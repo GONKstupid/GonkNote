@@ -1,0 +1,34 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Grundflächen -->
+    <SolidColorBrush x:Key="Brush.WindowBg"  Color="#F4F7FB"/>
+    <SolidColorBrush x:Key="Brush.SidebarBg" Color="#EAF0F8"/>
+    <SolidColorBrush x:Key="Brush.CardBg"    Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="Brush.ToolbarBg" Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="Brush.Border"    Color="#D4DEEA"/>
+
+    <!-- Text -->
+    <SolidColorBrush x:Key="Brush.Text"      Color="#1B2B4B"/>
+    <SolidColorBrush x:Key="Brush.TextMuted" Color="#6B7A99"/>
+
+    <!-- Akzente: Blau, Türkis, Pink, Lila -->
+    <SolidColorBrush x:Key="Brush.Accent"       Color="#2563EB"/>
+    <SolidColorBrush x:Key="Brush.AccentSoft"   Color="#DBEAFE"/>
+    <SolidColorBrush x:Key="Brush.Turquoise"    Color="#14B8A6"/>
+    <SolidColorBrush x:Key="Brush.Pink"         Color="#EC4899"/>
+    <SolidColorBrush x:Key="Brush.Purple"       Color="#8B5CF6"/>
+
+    <!-- Interaktion -->
+    <SolidColorBrush x:Key="Brush.Hover"     Color="#DEE8F4"/>
+    <SolidColorBrush x:Key="Brush.Pressed"   Color="#CFDDF0"/>
+    <SolidColorBrush x:Key="Brush.Selection" Color="#C7DBFF"/>
+
+    <!-- Whiteboard-Canvas -->
+    <Color x:Key="Color.CanvasBg">#E8EDF5</Color>
+    <Color x:Key="Color.PageBg">#FFFFFF</Color>
+    <Color x:Key="Color.PageLine">#BBD2F0</Color>
+    <Color x:Key="Color.PageGridDot">#B8C6DC</Color>
+    <Color x:Key="Color.DefaultInk">#1B2B4B</Color>
+
+</ResourceDictionary>

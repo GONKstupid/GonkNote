@@ -1,0 +1,71 @@
+<UserControl x:Class="GonkNote.Views.TextEditorView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <DockPanel>
+
+        <!-- Formatierungsleiste -->
+        <Border DockPanel.Dock="Top" Background="{DynamicResource Brush.ToolbarBg}"
+                BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,0,0,1"
+                Padding="8,4">
+            <StackPanel Orientation="Horizontal">
+                <Button Style="{StaticResource IconButton}" Content="&#xE8DD;" ToolTip="Fett (Strg+B)"
+                        Command="EditingCommands.ToggleBold" CommandTarget="{Binding ElementName=Editor}"/>
+                <Button Style="{StaticResource IconButton}" Content="&#xE8DB;" ToolTip="Kursiv (Strg+I)"
+                        Command="EditingCommands.ToggleItalic" CommandTarget="{Binding ElementName=Editor}"/>
+                <Button Style="{StaticResource IconButton}" Content="&#xE8DC;" ToolTip="Unterstrichen (Strg+U)"
+                        Command="EditingCommands.ToggleUnderline" CommandTarget="{Binding ElementName=Editor}"/>
+
+                <Border Width="1" Background="{DynamicResource Brush.Border}" Margin="6,4"/>
+
+                <Button Style="{StaticResource IconButton}" Content="&#xE8FD;" ToolTip="Aufzählung"
+                        Command="EditingCommands.ToggleBullets" CommandTarget="{Binding ElementName=Editor}"/>
+                <Button Style="{StaticResource IconButton}" Content="&#xE8FC;" ToolTip="Nummerierte Liste"
+                        Command="EditingCommands.ToggleNumbering" CommandTarget="{Binding ElementName=Editor}"/>
+
+                <Border Width="1" Background="{DynamicResource Brush.Border}" Margin="6,4"/>
+
+                <Button Style="{StaticResource IconButton}" Content="&#xE8E8;" ToolTip="Schrift vergrößern"
+                        Command="EditingCommands.IncreaseFontSize" CommandTarget="{Binding ElementName=Editor}"/>
+                <Button Style="{StaticResource IconButton}" Content="&#xE8E7;" ToolTip="Schrift verkleinern"
+                        Command="EditingCommands.DecreaseFontSize" CommandTarget="{Binding ElementName=Editor}"/>
+
+                <Border Width="1" Background="{DynamicResource Brush.Border}" Margin="6,4"/>
+
+                <!-- Textfarben -->
+                <RadioButton Style="{StaticResource ColorSwatch}" GroupName="txt" IsChecked="True"
+                             Background="{DynamicResource Brush.Text}" Tag="auto"
+                             ToolTip="Standard" Checked="TextColor_Checked"/>
+                <RadioButton Style="{StaticResource ColorSwatch}" GroupName="txt"
+                             Background="#2563EB" Tag="#2563EB" ToolTip="Blau" Checked="TextColor_Checked"/>
+                <RadioButton Style="{StaticResource ColorSwatch}" GroupName="txt"
+                             Background="#14B8A6" Tag="#14B8A6" ToolTip="Türkis" Checked="TextColor_Checked"/>
+                <RadioButton Style="{StaticResource ColorSwatch}" GroupName="txt"
+                             Background="#EC4899" Tag="#EC4899" ToolTip="Pink" Checked="TextColor_Checked"/>
+                <RadioButton Style="{StaticResource ColorSwatch}" GroupName="txt"
+                             Background="#8B5CF6" Tag="#8B5CF6" ToolTip="Lila" Checked="TextColor_Checked"/>
+                <RadioButton Style="{StaticResource ColorSwatch}" GroupName="txt"
+                             Background="#EF4444" Tag="#EF4444" ToolTip="Rot" Checked="TextColor_Checked"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Schreibfläche -->
+        <Grid Background="{DynamicResource Brush.WindowBg}">
+            <Border MaxWidth="900" Margin="24" CornerRadius="10"
+                    Background="{DynamicResource Brush.CardBg}"
+                    BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1">
+                <RichTextBox x:Name="Editor"
+                             Background="Transparent" BorderThickness="0"
+                             Foreground="{DynamicResource Brush.Text}"
+                             CaretBrush="{DynamicResource Brush.Accent}"
+                             SelectionBrush="{DynamicResource Brush.Selection}"
+                             FontFamily="Segoe UI" FontSize="15"
+                             Padding="28,24"
+                             VerticalScrollBarVisibility="Auto"
+                             AcceptsTab="True"
+                             SpellCheck.IsEnabled="False"
+                             TextChanged="Editor_TextChanged"/>
+            </Border>
+        </Grid>
+
+    </DockPanel>
+</UserControl>

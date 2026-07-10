@@ -27,6 +27,11 @@ public partial class WhiteboardView : UserControl
     private float _width = 2.5f;
     private bool _suppressToolEvents;
 
+    // Formfüllung
+    private bool _shapeFillOn;
+    private string _shapeFillRgb = "#14B8A6";
+    private float _shapeFillOpacity = 0.4f;
+
     // Eingabezustand
     private bool _drawing;
     private List<WbPoint>? _activePoints;
@@ -56,7 +61,7 @@ public partial class WhiteboardView : UserControl
     private string _editingOldText = "";
     private bool _cancelEdit;
 
-    private ToggleButton[] ToolButtons => new[] { BtnPen, BtnPencil, BtnHighlighter, BtnEraser, BtnLasso, BtnText, BtnShape, BtnPan };
+    private ToggleButton[] ToolButtons => new[] { BtnPen, BtnSmoothPen, BtnPencil, BtnHighlighter, BtnEraser, BtnLasso, BtnText, BtnShape, BtnPan };
     private ToggleButton[] ShapeButtons => new[] { BtnShapeLine, BtnShapeArrow, BtnShapeRect, BtnShapeEllipse, BtnShapeTriangle };
 
     public WhiteboardView()
@@ -160,7 +165,7 @@ public partial class WhiteboardView : UserControl
 
         CanvasHost.Cursor = tool switch
         {
-            ToolType.Pen or ToolType.Pencil or ToolType.Highlighter => Cursors.Pen,
+            ToolType.Pen or ToolType.SmoothPen or ToolType.Pencil or ToolType.Highlighter => Cursors.Pen,
             ToolType.Eraser => Cursors.None,
             ToolType.Text => Cursors.IBeam,
             ToolType.Shape => Cursors.Cross,
@@ -187,6 +192,62 @@ public partial class WhiteboardView : UserControl
     private void Color_Checked(object sender, RoutedEventArgs e)
     {
         _colorTag = (string)((RadioButton)sender).Tag;
+    }
+
+    /// <summary>Aktuelle Füllfarbe inkl. Deckkraft oder null, wenn Füllung aus ist.</summary>
+    private string? CurrentFill()
+    {
+        if (!_shapeFillOn) return null;
+        var c = ParseColor(_shapeFillRgb);
+        byte a = (byte)Math.Round(_shapeFillOpacity * 255);
+        return $"#{a:X2}{c.Red:X2}{c.Green:X2}{c.Blue:X2}";
+    }
+
+    private void UpdateFillPreview()
+    {
+        var c = ParseColor(_shapeFillRgb);
+        byte a = (byte)Math.Round(_shapeFillOpacity * 255);
+        FillPreviewRect.Fill = new SolidColorBrush(Color.FromArgb(a, c.Red, c.Green, c.Blue));
+    }
+
+    private void ShapeFill_Changed(object sender, RoutedEventArgs e)
+    {
+        _shapeFillOn = BtnShapeFill.IsChecked == true;
+    }
+
+    private void PickFillColor_Click(object sender, RoutedEventArgs e)
+    {
+        var cur = ParseColor(_shapeFillRgb);
+        var initial = Color.FromRgb(cur.Red, cur.Green, cur.Blue);
+        if (ColorPickerDialog.Pick(Window.GetWindow(this), initial, allowAlpha: false) is not { } c) return;
+
+        _shapeFillRgb = $"#{c.R:X2}{c.G:X2}{c.B:X2}";
+        _shapeFillOn = true;
+        BtnShapeFill.IsChecked = true;
+        UpdateFillPreview();
+    }
+
+    private void FillOpacity_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        _shapeFillOpacity = (float)(e.NewValue / 100.0);
+        if (FillOpacityLabel != null) FillOpacityLabel.Text = $"{e.NewValue:0} %";
+        if (FillPreviewRect != null) UpdateFillPreview();
+    }
+
+    private void PickColor_Click(object sender, RoutedEventArgs e)
+    {
+        // Startwert: aktuelle Farbe
+        var cur = ParseColor(CurrentInkHex());
+        var initial = Color.FromArgb(cur.Alpha, cur.Red, cur.Green, cur.Blue);
+
+        if (ColorPickerDialog.Pick(Window.GetWindow(this), initial) is not { } c) return;
+
+        string hex = $"#{c.A:X2}{c.R:X2}{c.G:X2}{c.B:X2}";
+        CustomSwatch.Background = new SolidColorBrush(c);
+        CustomSwatch.Tag = hex;
+        CustomSwatch.Visibility = Visibility.Visible;
+        _colorTag = hex;
+        CustomSwatch.IsChecked = true;
     }
 
     private void WidthSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -421,6 +482,7 @@ public partial class WhiteboardView : UserControl
         switch (EffectiveTool)
         {
             case ToolType.Pen:
+            case ToolType.SmoothPen:
             case ToolType.Pencil:
             case ToolType.Highlighter:
                 _drawing = true;
@@ -479,6 +541,7 @@ public partial class WhiteboardView : UserControl
         switch (EffectiveTool)
         {
             case ToolType.Pen:
+            case ToolType.SmoothPen:
             case ToolType.Pencil:
             case ToolType.Highlighter:
                 if (!_drawing || _activePoints == null) return;
@@ -543,6 +606,7 @@ public partial class WhiteboardView : UserControl
         switch (EffectiveTool)
         {
             case ToolType.Pen:
+            case ToolType.SmoothPen:
             case ToolType.Pencil:
             case ToolType.Highlighter:
                 if (!_drawing || _activePoints == null) break;
@@ -617,9 +681,11 @@ public partial class WhiteboardView : UserControl
             _ => StrokeKind.Pen,
         };
 
+        var points = _tool == ToolType.SmoothPen ? SmoothPoints(_activePoints) : _activePoints;
+
         var stroke = new StrokeElement
         {
-            Points = _activePoints,
+            Points = points,
             Color = CurrentInkHex(),
             Width = kind == StrokeKind.Highlighter ? Math.Max(_width * 5f, 10f) : _width,
             Kind = kind,
@@ -642,17 +708,112 @@ public partial class WhiteboardView : UserControl
             X2 = _shapeCur.X, Y2 = _shapeCur.Y,
             Color = CurrentInkHex(),
             StrokeWidth = _width,
+            Fill = CurrentFill(),
         };
         _page.Elements.Add(shape);
         _vm.Undo.Push(_page, new AddElementsAction(new WbElement[] { shape }));
         MarkDirty();
     }
 
+    /// <summary>Glättstift: Resampling auf gleichmäßige Abstände + mehrfacher gleitender Mittelwert.</summary>
+    private static List<WbPoint> SmoothPoints(List<WbPoint> pts)
+    {
+        if (pts.Count < 3) return pts;
+
+        var resampled = Resample(pts, 3f);
+        for (int pass = 0; pass < 3 && resampled.Count >= 3; pass++)
+        {
+            var sm = new List<WbPoint>(resampled.Count) { resampled[0] };
+            for (int i = 1; i < resampled.Count - 1; i++)
+            {
+                var a = resampled[i - 1];
+                var b = resampled[i];
+                var c = resampled[i + 1];
+                sm.Add(new WbPoint(
+                    (a.X + 2 * b.X + c.X) / 4f,
+                    (a.Y + 2 * b.Y + c.Y) / 4f,
+                    (a.P + 2 * b.P + c.P) / 4f));
+            }
+            sm.Add(resampled[^1]);
+            resampled = sm;
+        }
+        return resampled;
+    }
+
+    private static List<WbPoint> Resample(List<WbPoint> pts, float spacing)
+    {
+        var result = new List<WbPoint> { pts[0] };
+        float carried = 0;
+        for (int i = 1; i < pts.Count; i++)
+        {
+            var a = pts[i - 1];
+            var b = pts[i];
+            float dx = b.X - a.X, dy = b.Y - a.Y;
+            float segLen = MathF.Sqrt(dx * dx + dy * dy);
+            if (segLen < 1e-5f) continue;
+
+            float pos = spacing - carried;
+            while (pos <= segLen)
+            {
+                float t = pos / segLen;
+                result.Add(new WbPoint(a.X + t * dx, a.Y + t * dy, a.P + t * (b.P - a.P)));
+                pos += spacing;
+            }
+            carried = segLen - (pos - spacing);
+        }
+        if (result.Count < 2 ||
+            Math.Abs(result[^1].X - pts[^1].X) > 0.01f || Math.Abs(result[^1].Y - pts[^1].Y) > 0.01f)
+            result.Add(new WbPoint(pts[^1].X, pts[^1].Y, pts[^1].P));
+        return result;
+    }
+
+    /// <summary>Effektiver Farbton der Seite (Auto folgt dem App-Theme).</summary>
+    private static PageShade EffectiveShade(WbPage? page)
+    {
+        if (page != null && page.Shade != PageShade.Auto) return page.Shade;
+        return ThemeService.Current == AppTheme.Dark ? PageShade.Dark : PageShade.Light;
+    }
+
     private string CurrentInkHex()
     {
         if (_colorTag != "auto") return _colorTag;
-        var c = ResColor("Color.DefaultInk");
-        return $"#{c.Alpha:X2}{c.Red:X2}{c.Green:X2}{c.Blue:X2}";
+        // Standardtinte richtet sich nach dem Farbton der Seite, nicht nur dem Theme
+        return EffectiveShade(_page) == PageShade.Dark ? "#FFE6ECF7" : "#FF1B2B4B";
+    }
+
+    private void PageSetup_Click(object sender, RoutedEventArgs e)
+    {
+        if (_vm == null || _page == null) return;
+
+        bool notebook = !_page.IsInfinite;
+        var dlg = new PageSetupDialog(_page, showSize: notebook) { Owner = Window.GetWindow(this) };
+        if (dlg.ShowDialog() != true) return;
+
+        bool sizeChanged = false;
+        _page.Background = dlg.Pattern;
+        _page.Shade = dlg.Shade;
+        if (notebook)
+        {
+            sizeChanged = Math.Abs(_page.Width - dlg.PageWidth) > 0.5f ||
+                          Math.Abs(_page.Height - dlg.PageHeight) > 0.5f;
+            _page.Width = dlg.PageWidth;
+            _page.Height = dlg.PageHeight;
+
+            if (dlg.ApplyAsDefault)
+            {
+                _vm.Doc.NewPageTemplate = new PageTemplate
+                {
+                    Width = dlg.PageWidth,
+                    Height = dlg.PageHeight,
+                    Background = dlg.Pattern,
+                    Shade = dlg.Shade,
+                };
+            }
+        }
+
+        MarkDirty();
+        if (sizeChanged) CenterView();
+        Skia.InvalidateVisual();
     }
 
     // ==================== Radierer ====================
@@ -1029,6 +1190,7 @@ public partial class WhiteboardView : UserControl
         ToggleButton? btn = e.Key switch
         {
             Key.S => BtnPen,
+            Key.G => BtnSmoothPen,
             Key.B => BtnPencil,
             Key.M => BtnHighlighter,
             Key.E => BtnEraser,
@@ -1055,7 +1217,21 @@ public partial class WhiteboardView : UserControl
     private void UpdatePageLabel()
     {
         if (_vm == null) return;
-        PageLabel.Text = $"Seite {_vm.PageIndex + 1} / {_vm.Doc.Pages.Count}";
+        var pages = _vm.Doc.Pages;
+        int covers = pages.Count(pg => pg.IsCover);
+        int contentTotal = pages.Count - covers;
+
+        if (pages[_vm.PageIndex].IsCover)
+        {
+            PageLabel.Text = "Cover";
+        }
+        else
+        {
+            int num = 0;
+            for (int i = 0; i <= _vm.PageIndex; i++)
+                if (!pages[i].IsCover) num++;
+            PageLabel.Text = $"Seite {num} / {contentTotal}";
+        }
     }
 
     private void GoToPage(int idx)
@@ -1077,8 +1253,28 @@ public partial class WhiteboardView : UserControl
     private void AddPage_Click(object sender, RoutedEventArgs e)
     {
         if (_vm == null) return;
-        var page = WhiteboardDoc.NewNotebookPage();
-        page.Background = _page?.Background ?? PageBackground.Lines;
+
+        WbPage page;
+        if (_vm.Doc.NewPageTemplate != null)
+        {
+            page = _vm.Doc.PageFromTemplate();
+        }
+        else if (_page is { IsCover: false, IsInfinite: false })
+        {
+            // Ohne Vorlage: aktuelle Seite fortführen
+            page = new WbPage
+            {
+                Width = _page.Width,
+                Height = _page.Height,
+                Background = _page.Background,
+                Shade = _page.Shade,
+            };
+        }
+        else
+        {
+            page = WhiteboardDoc.NewNotebookPage();
+        }
+
         _vm.Doc.Pages.Insert(_vm.PageIndex + 1, page);
         MarkDirty();
         GoToPage(_vm.PageIndex + 1);
@@ -1114,7 +1310,12 @@ public partial class WhiteboardView : UserControl
     private void Skia_PaintSurface(object sender, SKPaintSurfaceEventArgs e)
     {
         var canvas = e.Surface.Canvas;
-        canvas.Clear(ResColor("Color.CanvasBg"));
+        var clearColor = ResColor("Color.CanvasBg");
+        if (_page is { IsInfinite: true } p && p.Shade != PageShade.Auto)
+            clearColor = EffectiveShade(p) == PageShade.Dark
+                ? SKColor.Parse("#12161F")
+                : SKColor.Parse("#EEF2F8");
+        canvas.Clear(clearColor);
         if (_page == null || _vm == null) return;
 
         if (!_vm.ViewInitialized && CanvasHost.ActualWidth > 0)
@@ -1139,23 +1340,25 @@ public partial class WhiteboardView : UserControl
         DrawActiveOverlays(canvas);
     }
 
+    private SKColor PageLineColor()
+    {
+        if (_page == null || _page.Shade == PageShade.Auto) return ResColor("Color.PageLine");
+        return EffectiveShade(_page) == PageShade.Dark ? SKColor.Parse("#35486E") : SKColor.Parse("#BBD2F0");
+    }
+
+    private SKColor PageDotColor()
+    {
+        if (_page == null || _page.Shade == PageShade.Auto) return ResColor("Color.PageGridDot");
+        return EffectiveShade(_page) == PageShade.Dark ? SKColor.Parse("#3A4A6B") : SKColor.Parse("#B8C6DC");
+    }
+
     private void DrawPageBackground(SKCanvas canvas)
     {
         if (_page == null) return;
 
         if (_page.IsInfinite)
         {
-            // Punktraster über den sichtbaren Bereich
-            var tl = ToCanvas(new Point(0, 0));
-            var br = ToCanvas(new Point(CanvasHost.ActualWidth, CanvasHost.ActualHeight));
-            float spacing = 28f;
-            while (spacing * Zoom < 14f) spacing *= 2f;
-
-            using var dot = new SKPaint { Color = ResColor("Color.PageGridDot"), IsAntialias = true };
-            float r = 1.1f / Zoom;
-            for (float x = MathF.Floor(tl.X / spacing) * spacing; x <= br.X; x += spacing)
-                for (float y = MathF.Floor(tl.Y / spacing) * spacing; y <= br.Y; y += spacing)
-                    canvas.DrawCircle(x, y, r, dot);
+            DrawInfinitePattern(canvas);
             return;
         }
 
@@ -1172,12 +1375,20 @@ public partial class WhiteboardView : UserControl
             canvas.DrawRect(sr, shadow);
         }
 
-        using (var bg = new SKPaint { Color = ResColor("Color.PageBg") })
+        if (_page.IsCover)
+        {
+            DrawCover(canvas);
+            return;
+        }
+
+        var bgColor = _page.Shade == PageShade.Auto ? ResColor("Color.PageBg")
+            : EffectiveShade(_page) == PageShade.Dark ? SKColor.Parse("#1E2638") : SKColors.White;
+        using (var bg = new SKPaint { Color = bgColor })
             canvas.DrawRect(pageRect, bg);
 
         using var line = new SKPaint
         {
-            Color = ResColor("Color.PageLine"),
+            Color = PageLineColor(),
             StrokeWidth = 1f,
             IsAntialias = false,
         };
@@ -1198,7 +1409,7 @@ public partial class WhiteboardView : UserControl
                 break;
 
             case PageBackground.Dots:
-                using (var dot = new SKPaint { Color = ResColor("Color.PageGridDot"), IsAntialias = true })
+                using (var dot = new SKPaint { Color = PageDotColor(), IsAntialias = true })
                 {
                     for (float x = 24; x < _page.Width; x += 24)
                         for (float y = 24; y < _page.Height; y += 24)
@@ -1206,6 +1417,94 @@ public partial class WhiteboardView : UserControl
                 }
                 break;
         }
+    }
+
+    /// <summary>Muster für die unendliche Fläche, nur über den sichtbaren Bereich.</summary>
+    private void DrawInfinitePattern(SKCanvas canvas)
+    {
+        if (_page == null || _page.Background == PageBackground.Blank) return;
+
+        var tl = ToCanvas(new Point(0, 0));
+        var br = ToCanvas(new Point(CanvasHost.ActualWidth, CanvasHost.ActualHeight));
+        float spacing = _page.Background == PageBackground.Dots ? 28f : 30f;
+        while (spacing * Zoom < 14f) spacing *= 2f;
+
+        float x0 = MathF.Floor(tl.X / spacing) * spacing;
+        float y0 = MathF.Floor(tl.Y / spacing) * spacing;
+
+        switch (_page.Background)
+        {
+            case PageBackground.Dots:
+                using (var dot = new SKPaint { Color = PageDotColor(), IsAntialias = true })
+                {
+                    float r = 1.1f / Zoom;
+                    for (float x = x0; x <= br.X; x += spacing)
+                        for (float y = y0; y <= br.Y; y += spacing)
+                            canvas.DrawCircle(x, y, r, dot);
+                }
+                break;
+
+            case PageBackground.Grid:
+            case PageBackground.Lines:
+                using (var line = new SKPaint { Color = PageLineColor(), StrokeWidth = 1f / Zoom })
+                {
+                    for (float y = y0; y <= br.Y; y += spacing)
+                        canvas.DrawLine(tl.X, y, br.X, y, line);
+                    if (_page.Background == PageBackground.Grid)
+                        for (float x = x0; x <= br.X; x += spacing)
+                            canvas.DrawLine(x, tl.Y, x, br.Y, line);
+                }
+                break;
+        }
+    }
+
+    /// <summary>Cover-Seite: Farbverlauf, Akzentlinie und Dokumenttitel.</summary>
+    private void DrawCover(SKCanvas canvas)
+    {
+        if (_page == null) return;
+        var rect = SKRect.Create(0, 0, _page.Width, _page.Height);
+
+        using (var grad = new SKPaint { IsAntialias = true })
+        {
+            grad.Shader = SKShader.CreateLinearGradient(
+                new SKPoint(0, 0), new SKPoint(_page.Width, _page.Height),
+                new[] { SKColor.Parse("#1E3A8A"), SKColor.Parse("#7C3AED") },
+                null, SKShaderTileMode.Clamp);
+            canvas.DrawRect(rect, grad);
+        }
+
+        string title = _vm?.Item.Name ?? "";
+        using var titlePaint = new SKPaint
+        {
+            Color = SKColors.White,
+            IsAntialias = true,
+            TextSize = 46,
+            Typeface = Fonts.Bold,
+            TextAlign = SKTextAlign.Center,
+        };
+        while (titlePaint.TextSize > 18 && titlePaint.MeasureText(title) > _page.Width * 0.8f)
+            titlePaint.TextSize -= 2;
+        canvas.DrawText(title, _page.Width / 2f, _page.Height * 0.4f, titlePaint);
+
+        using (var accent = new SKPaint
+        {
+            Color = SKColor.Parse("#2DD4BF"),
+            StrokeWidth = 4,
+            IsAntialias = true,
+            StrokeCap = SKStrokeCap.Round,
+        })
+            canvas.DrawLine(_page.Width * 0.3f, _page.Height * 0.445f,
+                            _page.Width * 0.7f, _page.Height * 0.445f, accent);
+
+        using var subPaint = new SKPaint
+        {
+            Color = SKColors.White.WithAlpha(170),
+            IsAntialias = true,
+            TextSize = 15,
+            Typeface = Fonts.Regular,
+            TextAlign = SKTextAlign.Center,
+        };
+        canvas.DrawText("N O T I Z B U C H", _page.Width / 2f, _page.Height * 0.49f, subPaint);
     }
 
     private void DrawElement(SKCanvas canvas, WbElement el)
@@ -1409,6 +1708,7 @@ public partial class WhiteboardView : UserControl
                 X2 = _shapeCur.X, Y2 = _shapeCur.Y,
                 Color = CurrentInkHex(),
                 StrokeWidth = _width,
+                Fill = CurrentFill(),
             }, CurrentInkHex(), _width);
         }
 
@@ -1480,9 +1780,12 @@ public partial class WhiteboardView : UserControl
     }
 }
 
-/// <summary>Gemeinsame Schrift für Canvas-Text.</summary>
+/// <summary>Gemeinsame Schriften für Canvas-Text.</summary>
 internal static class Fonts
 {
     public static readonly SKTypeface Regular =
         SKTypeface.FromFamilyName("Segoe UI") ?? SKTypeface.Default;
+
+    public static readonly SKTypeface Bold =
+        SKTypeface.FromFamilyName("Segoe UI", SKFontStyle.Bold) ?? SKTypeface.Default;
 }

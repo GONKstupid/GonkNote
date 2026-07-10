@@ -19,5 +19,8 @@ public class NoteItem
     public DateTime CreatedUtc { get; set; } = DateTime.UtcNow;
     public DateTime ModifiedUtc { get; set; } = DateTime.UtcNow;
 
+    /// <summary>Symbolfarbe im Baum als "#RRGGBB"; null = Standardfarbe.</summary>
+    public string? IconColor { get; set; }
+
     public bool IsFolder => Kind == ItemKind.Folder;
 }

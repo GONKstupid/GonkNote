@@ -15,6 +15,13 @@
                     <!-- Stifte -->
                     <ToggleButton x:Name="BtnPen" Style="{StaticResource ToolButton}" Content="&#xE70F;"
                                   ToolTip="Stift (S)" Checked="Tool_Checked" Tag="Pen"/>
+                    <ToggleButton x:Name="BtnSmoothPen" Style="{StaticResource ToolButton}"
+                                  ToolTip="Glättstift – glättet Linien automatisch (G)" Checked="Tool_Checked" Tag="SmoothPen">
+                        <Path Data="{StaticResource Icon.SmoothPen}" StrokeThickness="1.3"
+                              StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                              Width="16" Height="16"
+                              Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ToggleButton}}"/>
+                    </ToggleButton>
                     <ToggleButton x:Name="BtnPencil" Style="{StaticResource ToolButton}" Content="&#xE76D;"
                                   ToolTip="Bleistift (B)" Checked="Tool_Checked" Tag="Pencil"/>
                     <ToggleButton x:Name="BtnHighlighter" Style="{StaticResource ToolButton}" Content="&#xE7E6;"
@@ -24,8 +31,13 @@
 
                     <Border Width="1" Background="{DynamicResource Brush.Border}" Margin="6,4"/>
 
-                    <ToggleButton x:Name="BtnLasso" Style="{StaticResource ToolButton}" Content="&#xE8B3;"
-                                  ToolTip="Lasso-Auswahl (L)" Checked="Tool_Checked" Tag="Lasso"/>
+                    <ToggleButton x:Name="BtnLasso" Style="{StaticResource ToolButton}"
+                                  ToolTip="Lasso-Auswahl (L)" Checked="Tool_Checked" Tag="Lasso">
+                        <Path Data="{StaticResource Icon.Lasso}" StrokeThickness="1.3"
+                              StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                              Width="16" Height="16"
+                              Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ToggleButton}}"/>
+                    </ToggleButton>
                     <ToggleButton x:Name="BtnText" Style="{StaticResource ToolButton}" Content="&#xE8D2;"
                                   ToolTip="Textfeld (T)" Checked="Tool_Checked" Tag="Text"/>
                     <ToggleButton x:Name="BtnShape" Style="{StaticResource ToolButton}" Content="&#xE739;"
@@ -46,6 +58,26 @@
                                       Content="◯" ToolTip="Ellipse" Checked="Shape_Checked" Tag="Ellipse"/>
                         <ToggleButton x:Name="BtnShapeTriangle" Style="{StaticResource ToolButton}" FontFamily="Segoe UI"
                                       Content="△" ToolTip="Dreieck" Checked="Shape_Checked" Tag="Triangle"/>
+
+                        <Border Width="1" Background="{DynamicResource Brush.Border}" Margin="6,4"/>
+
+                        <!-- Füllung -->
+                        <ToggleButton x:Name="BtnShapeFill" Style="{StaticResource ToolButton}"
+                                      ToolTip="Füllung ein/aus"
+                                      Checked="ShapeFill_Changed" Unchecked="ShapeFill_Changed">
+                            <Border Width="14" Height="14" CornerRadius="3"
+                                    Background="{StaticResource CheckerBrush}" ClipToBounds="True">
+                                <Rectangle x:Name="FillPreviewRect" Fill="#6614B8A6"/>
+                            </Border>
+                        </ToggleButton>
+                        <Button Style="{StaticResource IconButton}" ToolTip="Füllfarbe wählen"
+                                Click="PickFillColor_Click" Content="&#xE790;"/>
+                        <TextBlock Text="Deckkraft" VerticalAlignment="Center" Margin="6,0,4,0"
+                                   Foreground="{DynamicResource Brush.TextMuted}" FontSize="11"/>
+                        <Slider x:Name="FillOpacitySlider" Width="70" Minimum="0" Maximum="100" Value="40"
+                                VerticalAlignment="Center" ValueChanged="FillOpacity_ValueChanged"/>
+                        <TextBlock x:Name="FillOpacityLabel" Text="40 %" Width="34" VerticalAlignment="Center"
+                                   Margin="4,0,0,0" Foreground="{DynamicResource Brush.TextMuted}" FontSize="11"/>
                     </StackPanel>
 
                     <Border Width="1" Background="{DynamicResource Brush.Border}" Margin="6,4"/>
@@ -69,6 +101,23 @@
                                      Background="#EAB308" Tag="#FFEAB308" ToolTip="Gelb" Checked="Color_Checked"/>
                         <RadioButton Style="{StaticResource ColorSwatch}" GroupName="ink"
                                      Background="#22C55E" Tag="#FF22C55E" ToolTip="Grün" Checked="Color_Checked"/>
+                        <RadioButton x:Name="CustomSwatch" Style="{StaticResource ColorSwatch}" GroupName="ink"
+                                     Tag="#FF000000" ToolTip="Eigene Farbe" Checked="Color_Checked"
+                                     Visibility="Collapsed"/>
+                        <Button Style="{StaticResource IconButton}" ToolTip="Farbe wählen (Farbrad / Hex)"
+                                Click="PickColor_Click">
+                            <Ellipse Width="16" Height="16">
+                                <Ellipse.Fill>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                        <GradientStop Color="#EF4444" Offset="0"/>
+                                        <GradientStop Color="#EAB308" Offset="0.25"/>
+                                        <GradientStop Color="#22C55E" Offset="0.5"/>
+                                        <GradientStop Color="#2563EB" Offset="0.75"/>
+                                        <GradientStop Color="#8B5CF6" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Ellipse.Fill>
+                            </Ellipse>
+                        </Button>
                     </StackPanel>
 
                     <Border Width="1" Background="{DynamicResource Brush.Border}" Margin="6,4"/>
@@ -98,6 +147,11 @@
                             ToolTip="Zoom zurücksetzen" Click="ZoomReset_Click" MinWidth="52"/>
                     <Button Style="{StaticResource IconButton}" Content="&#xE8A3;" ToolTip="Vergrößern"
                             Click="ZoomIn_Click"/>
+
+                    <Border Width="1" Background="{DynamicResource Brush.Border}" Margin="6,4"/>
+
+                    <Button Style="{StaticResource IconButton}" Content="&#xE713;"
+                            ToolTip="Hintergrund &amp; Seitenformat" Click="PageSetup_Click"/>
 
                 </StackPanel>
             </ScrollViewer>

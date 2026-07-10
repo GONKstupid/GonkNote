@@ -37,6 +37,27 @@ public sealed class MainViewModel : ObservableObject
         _autosave = new DispatcherTimer { Interval = TimeSpan.FromSeconds(30) };
         _autosave.Tick += (_, _) => SaveAll();
         _autosave.Start();
+
+        // Standard-Symbolfarbe hängt am Theme
+        ThemeService.ThemeChanged += RefreshAllIcons;
+    }
+
+    private void RefreshAllIcons()
+    {
+        void Walk(IEnumerable<TreeItemViewModel> items)
+        {
+            foreach (var it in items) { it.RefreshIcon(); Walk(it.Children); }
+        }
+        Walk(RootItems);
+    }
+
+    /// <summary>Setzt die Symbolfarbe (null = Standard) und persistiert sie.</summary>
+    public void SetIconColor(TreeItemViewModel? vm, string? hex)
+    {
+        if (vm == null) return;
+        vm.Item.IconColor = hex;
+        _db.UpsertItem(vm.Item);
+        vm.RefreshIcon();
     }
 
     public RelayCommand NewFolderCommand { get; }

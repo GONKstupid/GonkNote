@@ -1,4 +1,6 @@
 using System.Collections.ObjectModel;
+using System.Windows;
+using System.Windows.Media;
 using GonkNote.Models;
 
 namespace GonkNote.ViewModels;
@@ -55,6 +57,22 @@ public sealed class TreeItemViewModel : ObservableObject
         ItemKind.TextDocument => "", // Dokument
         _ => "",
     };
+
+    /// <summary>Pinselfarbe des Symbols: eigene Farbe oder Theme-Türkis.</summary>
+    public Brush IconBrush
+    {
+        get
+        {
+            if (Item.IconColor is { } hex)
+            {
+                try { return new SolidColorBrush((Color)ColorConverter.ConvertFromString(hex)); }
+                catch { /* ungültiger Wert → Standard */ }
+            }
+            return (Brush)Application.Current.Resources["Brush.Turquoise"];
+        }
+    }
+
+    public void RefreshIcon() => OnPropertyChanged(nameof(IconBrush));
 
     public void SortChildren()
     {

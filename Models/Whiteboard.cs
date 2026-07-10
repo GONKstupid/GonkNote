@@ -4,6 +4,7 @@ namespace GonkNote.Models;
 public enum ToolType
 {
     Pen,
+    SmoothPen,
     Pencil,
     Highlighter,
     Eraser,
@@ -35,6 +36,14 @@ public enum PageBackground
     Lines,
     Grid,
     Dots,
+}
+
+/// <summary>Farbton der Seite, unabhängig vom App-Theme.</summary>
+public enum PageShade
+{
+    Auto,
+    Light,
+    Dark,
 }
 
 /// <summary>Ein Punkt einer Stiftlinie inkl. Stylus-Druck (0..1).</summary>
@@ -106,21 +115,38 @@ public class WbPage
 {
     public List<WbElement> Elements { get; set; } = new();
     public PageBackground Background { get; set; } = PageBackground.Blank;
+    public PageShade Shade { get; set; } = PageShade.Auto;
     public float Width { get; set; }
     public float Height { get; set; }
+    /// <summary>Cover-Seite eines Notizbuchs (ohne Muster, mit Titel).</summary>
+    public bool IsCover { get; set; }
 
     public bool IsInfinite => Width <= 0 || Height <= 0;
+}
+
+/// <summary>Vorlage für neue Notizbuch-Seiten.</summary>
+public class PageTemplate
+{
+    public float Width { get; set; } = WhiteboardDoc.A4Width;
+    public float Height { get; set; } = WhiteboardDoc.A4Height;
+    public PageBackground Background { get; set; } = PageBackground.Lines;
+    public PageShade Shade { get; set; } = PageShade.Auto;
 }
 
 /// <summary>Inhalt eines Whiteboards oder Notizbuchs (Id = NoteItem.Id).</summary>
 public class WhiteboardDoc
 {
-    // A4 bei 96 DPI
+    // Seitenformate bei 96 DPI
     public const float A4Width = 794f;
     public const float A4Height = 1123f;
+    public const float A3Width = 1123f;
+    public const float A3Height = 1587f;
 
     public Guid Id { get; set; }
     public List<WbPage> Pages { get; set; } = new();
+
+    /// <summary>Vorlage für neue Seiten; null = A4 liniert.</summary>
+    public PageTemplate? NewPageTemplate { get; set; }
 
     public static WhiteboardDoc NewWhiteboard(Guid id) => new()
     {
@@ -131,7 +157,11 @@ public class WhiteboardDoc
     public static WhiteboardDoc NewNotebook(Guid id) => new()
     {
         Id = id,
-        Pages = { NewNotebookPage() },
+        Pages =
+        {
+            new WbPage { IsCover = true, Width = A4Width, Height = A4Height },
+            NewNotebookPage(),
+        },
     };
 
     public static WbPage NewNotebookPage() => new()
@@ -140,9 +170,26 @@ public class WhiteboardDoc
         Width = A4Width,
         Height = A4Height,
     };
+
+    public WbPage PageFromTemplate()
+    {
+        var t = NewPageTemplate;
+        if (t == null) return NewNotebookPage();
+        return new WbPage
+        {
+            Width = t.Width,
+            Height = t.Height,
+            Background = t.Background,
+            Shade = t.Shade,
+        };
+    }
 }
 
-/// <summary>Inhalt eines Textdokuments als RTF (Id = NoteItem.Id).</summary>
+/// <summary>
+/// Inhalt eines Textdokuments (Id = NoteItem.Id).
+/// Feld heißt historisch "Rtf", enthält aber je nach Alter RTF oder XamlPackage
+/// (ZIP, erkennbar am "PK"-Header) – Letzteres erhält auch eingebettete Bilder.
+/// </summary>
 public class TextDoc
 {
     public Guid Id { get; set; }

@@ -36,7 +36,11 @@
         <!-- ===== Menüleiste ===== -->
         <Border DockPanel.Dock="Top" Background="{DynamicResource Brush.SidebarBg}"
                 BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,0,0,1">
-            <Menu Padding="4,2">
+            <DockPanel>
+            <Button DockPanel.Dock="Left" Style="{StaticResource IconButton}" Content="&#xE700;"
+                    ToolTip="Seitenleiste ein-/ausblenden (Strg+B)" Margin="4,2"
+                    Click="ToggleSidebar_Click"/>
+            <Menu Padding="0,2">
                 <MenuItem Header="_Datei">
                     <MenuItem Header="Neuer _Ordner" Command="{Binding NewFolderCommand}"/>
                     <MenuItem Header="Neues _Notizbuch" Command="{Binding NewNotebookCommand}"/>
@@ -49,23 +53,25 @@
                     <MenuItem Header="_Beenden" Command="{Binding ExitCommand}" InputGestureText="Alt+F4"/>
                 </MenuItem>
                 <MenuItem Header="_Ansicht">
+                    <MenuItem Header="_Seitenleiste" Click="ToggleSidebar_Click" InputGestureText="Strg+B"/>
                     <MenuItem Header="_Dark/Light Mode umschalten" Command="{Binding ToggleThemeCommand}" InputGestureText="Strg+T"/>
                 </MenuItem>
                 <MenuItem Header="_Hilfe">
                     <MenuItem Header="Über _Gonk Note" Click="About_Click"/>
                 </MenuItem>
             </Menu>
+            </DockPanel>
         </Border>
 
         <Grid>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="260" MinWidth="180" MaxWidth="450"/>
+                <ColumnDefinition x:Name="SidebarCol" Width="260" MinWidth="180" MaxWidth="450"/>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
             <!-- ===== Seitenleiste ===== -->
-            <Border Grid.Column="0" Background="{DynamicResource Brush.SidebarBg}">
+            <Border x:Name="Sidebar" Grid.Column="0" Background="{DynamicResource Brush.SidebarBg}">
                 <DockPanel Margin="10,10,6,10">
 
                     <!-- App-Titel -->
@@ -82,8 +88,13 @@
                                 Command="{Binding NewFolderCommand}"/>
                         <Button Style="{StaticResource IconButton}" Content="&#xE82D;" ToolTip="Neues Notizbuch"
                                 Command="{Binding NewNotebookCommand}"/>
-                        <Button Style="{StaticResource IconButton}" Content="&#xE70F;" ToolTip="Neues Whiteboard"
-                                Command="{Binding NewWhiteboardCommand}"/>
+                        <Button Style="{StaticResource IconButton}" ToolTip="Neues Whiteboard"
+                                Command="{Binding NewWhiteboardCommand}">
+                            <Path Data="{StaticResource Icon.Whiteboard}" StrokeThickness="1.3"
+                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                                  Width="16" Height="16"
+                                  Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                        </Button>
                         <Button Style="{StaticResource IconButton}" Content="&#xE8A5;" ToolTip="Neues Textdokument"
                                 Command="{Binding NewTextDocCommand}"/>
                     </StackPanel>
@@ -127,6 +138,43 @@
                                 <MenuItem Header="Umbenennen" InputGestureText="F2"
                                           Command="{Binding RenameCommand}"
                                           CommandParameter="{Binding SelectedTreeItem}"/>
+                                <MenuItem Header="Symbolfarbe">
+                                    <MenuItem Header="Standard" Click="IconColor_Click" Tag="">
+                                        <MenuItem.Icon>
+                                            <Ellipse Width="12" Height="12" Fill="{DynamicResource Brush.Turquoise}"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <Separator/>
+                                    <MenuItem Header="Blau" Click="IconColor_Click" Tag="#2563EB">
+                                        <MenuItem.Icon><Ellipse Width="12" Height="12" Fill="#2563EB"/></MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem Header="Türkis" Click="IconColor_Click" Tag="#14B8A6">
+                                        <MenuItem.Icon><Ellipse Width="12" Height="12" Fill="#14B8A6"/></MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem Header="Pink" Click="IconColor_Click" Tag="#EC4899">
+                                        <MenuItem.Icon><Ellipse Width="12" Height="12" Fill="#EC4899"/></MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem Header="Lila" Click="IconColor_Click" Tag="#8B5CF6">
+                                        <MenuItem.Icon><Ellipse Width="12" Height="12" Fill="#8B5CF6"/></MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem Header="Rot" Click="IconColor_Click" Tag="#EF4444">
+                                        <MenuItem.Icon><Ellipse Width="12" Height="12" Fill="#EF4444"/></MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem Header="Orange" Click="IconColor_Click" Tag="#F97316">
+                                        <MenuItem.Icon><Ellipse Width="12" Height="12" Fill="#F97316"/></MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem Header="Gelb" Click="IconColor_Click" Tag="#EAB308">
+                                        <MenuItem.Icon><Ellipse Width="12" Height="12" Fill="#EAB308"/></MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem Header="Grün" Click="IconColor_Click" Tag="#22C55E">
+                                        <MenuItem.Icon><Ellipse Width="12" Height="12" Fill="#22C55E"/></MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem Header="Grau" Click="IconColor_Click" Tag="#94A3B8">
+                                        <MenuItem.Icon><Ellipse Width="12" Height="12" Fill="#94A3B8"/></MenuItem.Icon>
+                                    </MenuItem>
+                                    <Separator/>
+                                    <MenuItem Header="Eigene Farbe…" Click="IconColorCustom_Click"/>
+                                </MenuItem>
                                 <MenuItem Header="Löschen" InputGestureText="Entf"
                                           Command="{Binding DeleteCommand}"
                                           CommandParameter="{Binding SelectedTreeItem}"/>
@@ -136,9 +184,16 @@
                             <HierarchicalDataTemplate DataType="{x:Type vm:TreeItemViewModel}"
                                                       ItemsSource="{Binding Children}">
                                 <StackPanel Orientation="Horizontal" Margin="0,4">
-                                    <TextBlock Text="{Binding IconGlyph}" FontFamily="{StaticResource IconFont}"
-                                               FontSize="14" VerticalAlignment="Center"
-                                               Foreground="{DynamicResource Brush.Turquoise}"/>
+                                    <Grid VerticalAlignment="Center" Width="16" Height="16">
+                                        <TextBlock x:Name="glyphIcon" Text="{Binding IconGlyph}"
+                                                   FontFamily="{StaticResource IconFont}"
+                                                   FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Center"
+                                                   Foreground="{Binding IconBrush}"/>
+                                        <Path x:Name="boardIcon" Data="{StaticResource Icon.Whiteboard}"
+                                              Stroke="{Binding IconBrush}" StrokeThickness="1.3"
+                                              StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                              StrokeLineJoin="Round" Visibility="Collapsed"/>
+                                    </Grid>
                                     <TextBlock Text="{Binding Name}" Margin="8,0,4,0" VerticalAlignment="Center"
                                                Foreground="{DynamicResource Brush.Text}"
                                                Visibility="{Binding IsRenaming, Converter={StaticResource InverseBoolToVis}}"/>
@@ -149,13 +204,19 @@
                                              LostKeyboardFocus="RenameBox_LostFocus"
                                              KeyDown="RenameBox_KeyDown"/>
                                 </StackPanel>
+                                <HierarchicalDataTemplate.Triggers>
+                                    <DataTrigger Binding="{Binding Kind}" Value="Whiteboard">
+                                        <Setter TargetName="glyphIcon" Property="Visibility" Value="Collapsed"/>
+                                        <Setter TargetName="boardIcon" Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </HierarchicalDataTemplate.Triggers>
                             </HierarchicalDataTemplate>
                         </TreeView.ItemTemplate>
                     </TreeView>
                 </DockPanel>
             </Border>
 
-            <GridSplitter Grid.Column="1" Width="4" HorizontalAlignment="Stretch"
+            <GridSplitter x:Name="Splitter" Grid.Column="1" Width="4" HorizontalAlignment="Stretch"
                           Background="Transparent" ResizeBehavior="PreviousAndNext"/>
 
             <!-- ===== Arbeitsbereich ===== -->

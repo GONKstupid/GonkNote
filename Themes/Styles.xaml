@@ -15,6 +15,25 @@
     <!-- Icon-Schrift (Segoe Fluent Icons ist auf Windows 11 vorinstalliert) -->
     <FontFamily x:Key="IconFont">Segoe Fluent Icons, Segoe MDL2 Assets</FontFamily>
 
+    <!-- Vektor-Icons (16x16), wo die Icon-Schrift nichts Passendes bietet -->
+    <Geometry x:Key="Icon.Whiteboard">M1.5,2.5 H14.5 V11 H1.5 Z M4,7.5 Q6,5 8,7 Q10,9 12,6 M5,11 L3.5,14.5 M11,11 L12.5,14.5</Geometry>
+    <Geometry x:Key="Icon.Lasso">M8,2 C12,2 14.5,3.8 14.5,6 C14.5,8.2 12,10 8,10 C4,10 1.5,8.2 1.5,6 C1.5,3.8 4,2 8,2 Z M8,10 C8,11.8 10.2,11.6 10.2,13.4 M10.2,13.4 m-1.1,0 a1.1,1.1 0 1,0 2.2,0 a1.1,1.1 0 1,0 -2.2,0</Geometry>
+    <Geometry x:Key="Icon.SmoothPen">M8,1.5 C10.2,4.4 11.6,6.3 11.6,8.3 A3.6,3.6 0 1,1 4.4,8.3 C4.4,6.3 5.8,4.4 8,1.5 Z M8,8.3 m-1,0 a1,1 0 1,0 2,0 a1,1 0 1,0 -2,0</Geometry>
+    <Geometry x:Key="Icon.Table">M2,3 H14 V13 H2 Z M2,6.33 H14 M2,9.66 H14 M6,3 V13 M10,3 V13</Geometry>
+    <Geometry x:Key="Icon.IndentInc">M7,3 H14 M7,8 H14 M7,13 H14 M2,5.5 L5,8 L2,10.5</Geometry>
+    <Geometry x:Key="Icon.IndentDec">M7,3 H14 M7,8 H14 M7,13 H14 M5,5.5 L2,8 L5,10.5</Geometry>
+    <Geometry x:Key="Icon.Justify">M2,3.5 H14 M2,6.66 H14 M2,9.83 H14 M2,13 H14</Geometry>
+
+    <!-- Schachbrett für Transparenz-Anzeigen -->
+    <DrawingBrush x:Key="CheckerBrush" TileMode="Tile" Viewport="0,0,12,12" ViewportUnits="Absolute">
+        <DrawingBrush.Drawing>
+            <DrawingGroup>
+                <GeometryDrawing Brush="#FFFFFF"><GeometryDrawing.Geometry><RectangleGeometry Rect="0,0,12,12"/></GeometryDrawing.Geometry></GeometryDrawing>
+                <GeometryDrawing Brush="#CCCCCC"><GeometryDrawing.Geometry><GeometryGroup><RectangleGeometry Rect="0,0,6,6"/><RectangleGeometry Rect="6,6,6,6"/></GeometryGroup></GeometryDrawing.Geometry></GeometryDrawing>
+            </DrawingGroup>
+        </DrawingBrush.Drawing>
+    </DrawingBrush>
+
     <!-- ===================== Buttons ===================== -->
 
     <Style TargetType="Button" x:Key="FlatButton">
@@ -310,6 +329,81 @@
                             <Setter Property="Opacity" Value="0.4"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ===================== ComboBox ===================== -->
+
+    <Style TargetType="ComboBoxItem">
+        <Setter Property="Foreground" Value="{DynamicResource Brush.Text}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ComboBoxItem">
+                    <Border x:Name="bd" Background="Transparent" CornerRadius="4" Padding="8,5">
+                        <ContentPresenter/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsHighlighted" Value="True">
+                            <Setter TargetName="bd" Property="Background" Value="{DynamicResource Brush.Hover}"/>
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter TargetName="bd" Property="Background" Value="{DynamicResource Brush.Selection}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style TargetType="ComboBox">
+        <Setter Property="Foreground" Value="{DynamicResource Brush.Text}"/>
+        <Setter Property="Background" Value="{DynamicResource Brush.CardBg}"/>
+        <Setter Property="Height" Value="30"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ComboBox">
+                    <Grid>
+                        <ToggleButton x:Name="toggle" Focusable="False" ClickMode="Press"
+                                      IsChecked="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
+                            <ToggleButton.Template>
+                                <ControlTemplate TargetType="ToggleButton">
+                                    <Border x:Name="bd" Background="{DynamicResource Brush.CardBg}"
+                                            BorderBrush="{DynamicResource Brush.Border}"
+                                            BorderThickness="1" CornerRadius="6">
+                                        <TextBlock Text="&#xE70D;" FontFamily="{StaticResource IconFont}" FontSize="9"
+                                                   Foreground="{DynamicResource Brush.TextMuted}"
+                                                   HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="bd" Property="BorderBrush" Value="{DynamicResource Brush.Accent}"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </ToggleButton.Template>
+                        </ToggleButton>
+                        <ContentPresenter Content="{TemplateBinding SelectionBoxItem}"
+                                          ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                          Margin="10,0,24,0" VerticalAlignment="Center" IsHitTestVisible="False"/>
+                        <Popup x:Name="PART_Popup" IsOpen="{TemplateBinding IsDropDownOpen}"
+                               AllowsTransparency="True" Focusable="False" PopupAnimation="Fade"
+                               Placement="Bottom">
+                            <Border Background="{DynamicResource Brush.CardBg}"
+                                    BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1"
+                                    CornerRadius="8" Padding="4" Margin="6"
+                                    MinWidth="{TemplateBinding ActualWidth}"
+                                    MaxHeight="320" SnapsToDevicePixels="True">
+                                <Border.Effect>
+                                    <DropShadowEffect BlurRadius="12" ShadowDepth="2" Opacity="0.25"/>
+                                </Border.Effect>
+                                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                    <StackPanel IsItemsHost="True"/>
+                                </ScrollViewer>
+                            </Border>
+                        </Popup>
+                    </Grid>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>

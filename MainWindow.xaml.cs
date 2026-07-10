@@ -12,12 +12,53 @@ public partial class MainWindow : Window
     private Point _dragStart;
     private TreeItemViewModel? _dragCandidate;
 
+    private bool _sidebarVisible = true;
+    private GridLength _sidebarWidth = new(260);
+
     public MainWindow()
     {
         InitializeComponent();
         _vm = new MainViewModel(App.Db);
         DataContext = _vm;
         Closing += (_, _) => _vm.SaveAll();
+        PreviewKeyDown += Window_PreviewKeyDown;
+
+        if (App.Db.GetSetting("sidebar") == "0") SetSidebarVisible(false);
+    }
+
+    private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.B && Keyboard.Modifiers == ModifierKeys.Control)
+        {
+            SetSidebarVisible(!_sidebarVisible);
+            e.Handled = true;
+        }
+    }
+
+    private void ToggleSidebar_Click(object sender, RoutedEventArgs e) =>
+        SetSidebarVisible(!_sidebarVisible);
+
+    private void SetSidebarVisible(bool visible)
+    {
+        if (visible == _sidebarVisible) return;
+        _sidebarVisible = visible;
+
+        if (visible)
+        {
+            Sidebar.Visibility = Visibility.Visible;
+            Splitter.Visibility = Visibility.Visible;
+            SidebarCol.MinWidth = 180;
+            SidebarCol.Width = _sidebarWidth;
+        }
+        else
+        {
+            _sidebarWidth = SidebarCol.Width;
+            Sidebar.Visibility = Visibility.Collapsed;
+            Splitter.Visibility = Visibility.Collapsed;
+            SidebarCol.MinWidth = 0;
+            SidebarCol.Width = new GridLength(0);
+        }
+        App.Db.SetSetting("sidebar", visible ? "1" : "0");
     }
 
     private void About_Click(object sender, RoutedEventArgs e)
@@ -134,6 +175,28 @@ public partial class MainWindow : Window
         bool copy = e.KeyStates.HasFlag(DragDropKeyStates.ControlKey);
         _vm.MoveItem(source, targetFolder, copy);
         e.Handled = true;
+    }
+
+    // ==================== Symbolfarbe ====================
+
+    private void IconColor_Click(object sender, RoutedEventArgs e)
+    {
+        var tag = (string)((MenuItem)sender).Tag;
+        _vm.SetIconColor(_vm.SelectedTreeItem, string.IsNullOrEmpty(tag) ? null : tag);
+    }
+
+    private void IconColorCustom_Click(object sender, RoutedEventArgs e)
+    {
+        if (_vm.SelectedTreeItem is not { } item) return;
+
+        var initial = Colors.Teal;
+        if (item.Item.IconColor is { } hex)
+        {
+            try { initial = (Color)ColorConverter.ConvertFromString(hex); } catch { }
+        }
+
+        if (Views.ColorPickerDialog.Pick(this, initial, allowAlpha: false) is { } c)
+            _vm.SetIconColor(item, $"#{c.R:X2}{c.G:X2}{c.B:X2}");
     }
 
     // ==================== Umbenennen ====================

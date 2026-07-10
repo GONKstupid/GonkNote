@@ -1,4 +1,4 @@
-# Gonk Note — Projektübergabe (Stand: 2026-07-10)
+# Gonk Note — Projektübergabe (Stand: 2026-07-10, abends)
 
 Diese Datei ist für den Einstieg in einen **neuen Chat-Thread** gedacht. Sie fasst
 zusammen, was existiert, was als Nächstes ansteht, und wie gearbeitet werden soll.
@@ -9,42 +9,43 @@ Wenn du diesen Thread eröffnest, sag einfach: *"Lies HANDOFF.md und mach weiter
 ## 1. Was ist Gonk Note
 
 Offline-Notiz-App für Windows 11 als Alternative zu GoodNotes/Apple Notes.
-Kernanforderungen des Nutzers (unverändert gültig, siehe ursprünglicher Auftrag):
+Kernanforderungen des Nutzers (unverändert gültig):
 
 - **Plattform**: Windows 11, komplett offline, keine PWA
 - **Single-File-Exe**, kein Installer, keine Adminrechte
 - **RAM-Ziel**: < 200 MB im Normalbetrieb
-- **Stylus-first**: Wacom/Microsoft Pen mit Druckstärke, Finger = Verschieben
+- **Stylus-first**: Wacom/Microsoft Pen mit Druckstärke, Finger = Gesten
 - **Architektur-Entscheidung des Nutzers**: **WPF** (nicht WinUI 3), .NET 8
 - **Drei Dokumenttypen**: Notizbuch, Whiteboard, Textdokument — je eigener Tab
-- Datenverwaltung per Ordnerbaum, Drag & Drop, Umbenennen, Löschen
-- Import (DOCX/PDF/Bilder) und Export (PDF/DOCX/Markdown) — **noch nicht gebaut**
-- Dark/Light-Mode, Farbpalette Blau/Türkis mit Pink/Lila-Akzenten
+- Import (DOCX ✔ / PDF ✗ / Bilder ✔) und Export (PDF/DOCX/Markdown — noch offen)
+- Dark/Light-Mode fürs App-Design; **Seiten/Schreibflächen standardmäßig hell**
 
-Arbeitsweise laut Nutzer: **in Phasen**, möglichst polished/alltagstauglich,
-Feedback zu Tools und UI wird **laufend** eingebaut, nicht erst am Phasenende
-gesammelt.
+Arbeitsweise: **in Phasen**, polished/alltagstauglich, Nutzer-Feedback wird
+**laufend** eingearbeitet (kommt in großen Batches, siehe Runden 1–3).
 
 ---
 
 ## 2. Repo-Status
 
-- Pfad: `C:\Dev\Zed\gonk-note`
-- Git: `main`-Branch, 3 Commits, sauber committet, kein offenes Diff
-- Build: `dotnet build` läuft fehlerfrei (0 Warnungen, 0 Fehler)
-- Release-Test war erfolgreich: `dotnet publish -c Release` erzeugt eine
-  einzelne `GonkNote.exe` (~67 MB, self-contained win-x64), gemessene
-  Private Memory ~192 MB im Leerlauf — **knapp am 200-MB-Ziel, noch nicht
-  optimiert** (Render-Caching/GC-Tuning ist bewusst auf Phase 3 verschoben)
+- Pfad: `C:\Dev\Zed\gonk-note`, Branch `main`, sauber committet
+- Build: `dotnet build` fehlerfrei (0 Warnungen)
+- Wichtige Commits:
+  - `638bb73` Phase 1 Grundgerüst · `6a921d9` App-Icon · `64b8129` Feedback-Runde 1
+  - `6e0da2e` **Phase 2.1**: Bilder-Import + Feedback-Runde 2 (Formen-Stift,
+    punktgenauer Radierer, Einstellungs-Seitenleiste, anpassbares Cover)
+  - `34eed2e` **Feedback-Runde 3**: Anpinnen/Favoriten, Touch-Gesten, Text-Optionen,
+    Schwarz/Hell-Defaults, Über-Dialog mit README
+  - `5b745f2` **Phase 2.2**: DOCX-Import
 
-Commits bisher:
-1. `638bb73` — Phase 1: Grundgerüst (Whiteboard, Ordnerbaum, Tabs, Themes)
-2. `6a921d9` — App-Icon eingebunden (Exe, Fenster, Seitenleiste, Willkommensbildschirm)
-3. `64b8129` — Feedback-Runde 1 (siehe Abschnitt 4)
+**Vor jedem Build**: laufende Testinstanz beenden (`taskkill //IM GonkNote.exe //F`),
+sonst Datei-Lock-Fehler.
 
-**Wichtig für den neuen Thread**: Vor dem nächsten Build immer prüfen, ob noch
-eine `GonkNote.exe`-Testinstanz läuft (`taskkill //IM GonkNote.exe //F`), sonst
-schlägt der Build mit einem Datei-Lock-Fehler fehl (kein Code-Problem).
+**UI-Tests**: `GonkNote.exe --db <pfad>` nutzt eine alternative DB → niemals in der
+echten Nutzer-DB (`%APPDATA%\GonkNote\gonknote.db` — enthält echte Schuldaten!) testen.
+Bewährtes Muster: PowerShell-Skripte in `%TEMP%\gonk-verify\` (UIA für Menüs/TreeItems,
+SetProcessDPIAware + physische Koordinaten für Canvas-Drags, Screenshots je Schritt).
+**Achtung**: Solche Tests übernehmen Maus/Tastatur — der Nutzer arbeitet oft parallel
+am Rechner; kurz halten, vor jeder Aktion SetForegroundWindow, Fokusverlust einplanen.
 
 ---
 
@@ -52,174 +53,90 @@ schlägt der Build mit einem Datei-Lock-Fehler fehl (kein Code-Problem).
 
 ```
 GonkNote/
-├─ App.xaml(.cs)              Einstieg, Theme-Init, DatabaseService-Lifecycle
-├─ MainWindow.xaml(.cs)       Menü, einklappbare Seitenleiste, Ordnerbaum
-│                             (Drag&Drop, Symbolfarben), Tab-Host
+├─ App.xaml(.cs)              Einstieg, Theme-Init, --db-Argument
+├─ MainWindow.xaml(.cs)       Menü (inkl. DOCX-Import), Seitenleiste mit
+│                             Schnellzugriff (angepinnte Ordner), Ordnerbaum
+│                             (Drag&Drop, Favoriten-Stern), Tab-Host
 ├─ Models/
-│  ├─ NoteItem.cs             Baum-Eintrag (Ordner/Notizbuch/Whiteboard/Text),
-│  │                          inkl. IconColor
-│  └─ Whiteboard.cs           WbPage, WbElement (Stroke/Shape/Text), Enums
-│                             (ToolType, ShapeKind, PageBackground, PageShade),
-│                             WhiteboardDoc (inkl. Cover, PageTemplate), TextDoc
-├─ ViewModels/
-│  ├─ Mvvm.cs                 ObservableObject, RelayCommand (Basis)
-│  ├─ MainViewModel.cs        Baum-Operationen, Tab-Verwaltung, Autosave (30s)
-│  ├─ TreeItemViewModel.cs    Baumknoten inkl. IconBrush/IconGlyph
-│  └─ DocumentTabViewModel.cs WhiteboardTabViewModel, TextTabViewModel
+│  ├─ NoteItem.cs             Baum-Eintrag inkl. IconColor, IsPinned, IsFavorite
+│  └─ Whiteboard.cs           WbPage, Elemente (Stroke/Shape/Text/Image), Enums,
+│                             CoverStyle, WhiteboardDoc, PageTemplate, TextDoc
+├─ ViewModels/                Mvvm-Basis, MainViewModel (Baum, Tabs, Autosave 30s,
+│                             Pin/Favorit, DOCX-Import), TreeItemViewModel, Tab-VMs
 ├─ Views/
-│  ├─ WhiteboardView.xaml(.cs)   SkiaSharp-Canvas: Werkzeuge, Rendering,
-│  │                             Undo/Redo, Zoom/Pan, Seiten, Cover
-│  ├─ TextEditorView.xaml(.cs)   RichTextBox-Editor, OnlyOffice-Toolbar
-│  ├─ ColorPickerDialog.xaml(.cs) HSV-Farbrad + Hex + Alpha (wiederverwendbar)
-│  ├─ PageSetupDialog.xaml(.cs)   Muster/Farbton/Format-Dialog
-│  ├─ TableSizeDialog.xaml(.cs)   Zeilen/Spalten-Auswahl für Tabelleneinfügung
+│  ├─ WhiteboardView.xaml(.cs)   SkiaSharp-Canvas: Werkzeuge (Stifte-Gruppe klappbar),
+│  │                             Formen-Stift-Erkennung, punktgenauer Radierer,
+│  │                             Bilder (Import/Paste/DnD/Resize), Touch-Gesten,
+│  │                             Einstellungs-Seitenleiste rechts (Seite/Formen/
+│  │                             Text/Cover), Undo/Redo, Zoom/Pan, Seiten, Cover
+│  ├─ TextEditorView.xaml(.cs)   RichTextBox (XamlPackage), Schreibfläche immer hell
+│  ├─ ColorPickerDialog.xaml(.cs) HSV-Farbrad + Hex + Alpha
+│  ├─ AboutDialog.xaml(.cs)      Version + eingebettetes README
+│  ├─ TableSizeDialog.xaml(.cs)
 │  └─ Converters.cs
 ├─ Services/
-│  ├─ DatabaseService.cs      LiteDB-Wrapper (%APPDATA%\GonkNote\gonknote.db)
-│  ├─ ThemeService.cs         Dark/Light-Umschaltung (ResourceDictionary-Swap)
-│  └─ UndoStack.cs            IEditAction-Pattern (Add/Remove/Move/TextChange)
-└─ Themes/
-   ├─ Light.xaml / Dark.xaml  Farbressourcen (Brush.*, Color.*)
-   └─ Styles.xaml             Alle Control-Templates + Vektor-Icons (Icon.*)
+│  ├─ DatabaseService.cs      LiteDB (items/boards/texts/settings)
+│  ├─ DocxImporter.cs         DOCX → FlowDocument → XamlPackage
+│  ├─ ImageCache.cs           LRU-Cache dekodierter Bilder (max. 24)
+│  ├─ ThemeService.cs, UndoStack.cs (inkl. PartialEraseAction, ResizeImageAction)
+└─ Themes/                    Light/Dark.xaml, Styles.xaml (inkl. Vektor-Icons)
 ```
 
-**Persistenz**: LiteDB, drei Collections (`items`, `boards`, `texts`) plus
-`settings` (Key-Value, u.a. Theme, Sidebar-Zustand). Autosave alle 30s, Save-on-Close.
+Pakete: LiteDB, SkiaSharp.Views.WPF, Svg.Skia (SVG-Rasterung beim Import),
+DocumentFormat.OpenXml (DOCX-Import).
 
-**Whiteboard-Rendering**: SkiaSharp `SKElement`, eigenes Koordinatensystem
-(Canvas-Space ↔ Screen-Space via Zoom/Pan), Elemente sind POCOs
-(`StrokeElement`, `ShapeElement`, `TextElement`), serialisiert direkt über LiteDB.
-
-**Texteditor**: `RichTextBox` mit `XamlPackage`-Serialisierung (ZIP, erhält
-Bilder/Tabellen). Ältere `TextDoc.Rtf`-Bytes werden weiter erkannt (RTF- vs.
-PK-Header-Check) und geladen.
+**Wichtige Eigenheiten:**
+- Whiteboard-Bilder liegen als PNG/JPEG-Bytes im Element (Downscale auf 2048 px),
+  Rendering über `ImageCache` (RAM-Ziel!)
+- Formen-Stift (`G`): Douglas-Peucker-Eckenerkennung, Sehnenabweichung für Geraden
+  (45°-Einrasten), Ellipsen-Fit; Fallback = geglättete Kurve
+- Radierer trennt Strokes an der Berührstelle auf (`SplitStroke` + `PartialEraseAction`)
+- Touch: rohe Touch-Events (1 Finger Pan, 2 Finger Pinch+Pan, 3-Finger-Doppeltipp
+  Undo); Stylus-Events ignorieren Touch-Geräte
+- Farb-Tags: `_colorTag` "auto" = Schwarz (auf dunklen Seiten hell); Checked-Handler
+  ist gegen fehlende Tags abgesichert (es gab einen Null-Farben-Bug)
 
 ---
 
-## 4. Was in Feedback-Runde 1 bereits umgesetzt wurde
+## 4. Feedback-Stand
 
-Der Nutzer hatte nach Phase 1 eine Wunschliste gegeben — **alles ist erledigt
-und committet** (Commit `64b8129`):
-
-**UI:**
-- Seitenleiste einklappbar (`Strg+B`, Hamburger-Button, Zustand persistiert)
-- Symbolfarben im Baum wählbar (Kontextmenü-Palette + eigener Farbwähler)
-- Neues Vektor-Icon für Whiteboard (Tafel mit Beinen) und Lasso (echte Schlinge)
-
-**Werkzeuge:**
-- Glättstift (Taste `G`): wie Stift, glättet Striche automatisch beim Absetzen
-  (Resampling auf 3px-Abstände + 3-facher gleitender Mittelwertfilter)
-- Freier Farbwähler (HSV-Rad, Hue-Slider, Alpha-Slider, Hex-Eingabe) zusätzlich
-  zur festen Palette, wiederverwendet für Tinte/Füllung/Symbolfarbe/Textfarbe
-- Formen mit optionaler Füllfarbe + Deckkraft-Slider (0–100 %)
-
-**Features:**
-- "Seite einrichten"-Dialog: Muster (Blanko/Liniert/Kariert/Punktiert),
-  Farbton (Hell/Dunkel/Auto=Theme), bei Notizbüchern zusätzlich A4/A3 +
-  Hoch-/Querformat + "als Standard für neue Seiten"
-- Notizbücher starten mit Cover-Seite (Verlauf + Dokumenttitel), Seitenzähler
-  ignoriert das Cover korrekt
-- Texteditor massiv ausgebaut: Schriftart/-größe, Überschriften-Styles,
-  Durchgestrichen, Hoch-/Tiefstellung, Text-/Markerfarbe, Blocksatz, Einzüge,
-  Zeilenabstand, Bild/Tabelle/Trennlinie einfügen, Suchen & Ersetzen (`Strg+F`)
-
-**Noch offenes Feedback vom Nutzer zu dieser Runde:** Es wurde noch keine
-Rückmeldung zum *Test* dieser Änderungen gegeben (Glättstärke des Glättstifts,
-Schreibgefühl, Texteditor-Bedienung). **Das im neuen Thread zuerst erfragen
-bzw. entgegennehmen, falls der Nutzer es mitbringt.**
+**Runde 1–3 sind vollständig umgesetzt und committet.** Noch keine Nutzer-Rückmeldung
+zu: Formen-Stift-Erkennung in der Praxis, Touch-Gesten auf echtem Gerät (konnte nur
+per Maus/Code verifiziert werden, kein Touchscreen im Test), Text-Tool-Optionen,
+Cover-Gestaltung, DOCX-Import mit echten Dokumenten. **Feedback dazu zuerst
+einarbeiten, wenn es kommt.**
 
 ---
 
 ## 5. Bekannte Lücken / bewusst vertagt
 
-- **Import**: DOCX/PDF/Bilder → noch nicht implementiert (Phase 2)
-- **Export**: PDF/DOCX/Markdown → noch nicht implementiert (Phase 2)
-- **Datei-Einfüge-Tool** (Mini-Vorschau für PDF/DOCX im Whiteboard) → Phase 2
-- **Sticker, Notizzettel, Lineal/Geodreieck, OCR (optional)** → Phase 3
-- **RAM-Optimierung** (Render-Caching, GC-Tuning, ggf. Trimming-Alternativen
-  für WPF) → Phase 3, aktuell ~192 MB im Release-Build, Ziel < 200 MB steht
-  aber noch ohne Sicherheitsabstand
-- **Obfuskierung** (aus Originalanforderung) → nicht begonnen
-- Textfarben im Editor werden beim Theme-Wechsel nicht automatisch invertiert
-  (bekannte Einschränkung, kein Bug-Report dazu bisher)
+- **PDF-Import** → offene Nutzer-Frage: Text-Extraktion (editierbar) oder
+  Bild-Seiten (Faksimile)? Bibliotheken: Docnet.Core/PDFium für Rendering
+- **Export**: Markdown → DOCX → PDF (Whiteboard via `SKDocument.CreatePdf`)
+- **Datei-Einfüge-Tool** (PDF/DOCX-Vorschau ins Whiteboard) → nach Import/Export
+- Sticker, Notizzettel, Lineal, OCR, RAM-Optimierung, Obfuskierung → Phase 3
+- Text-Stiländerungen (Schriftart/Farbe am bestehenden Whiteboard-Textfeld) sind
+  nicht undo-fähig (bewusst einfach gehalten)
+- DOCX-Import: keine Kopf-/Fußzeilen, Fußnoten, verschachtelte Tabellen
 
 ---
 
-## 6. Empfohlener Ablaufplan für den neuen Thread
+## 6. Empfohlener Ablaufplan
 
-### Schritt 0 — Kontext laden
-- Diese Datei lesen, dann `git log --oneline` und `git status` prüfen, um zu
-  bestätigen, dass der Stand mit dieser Doku übereinstimmt
-- Falls der Nutzer Feedback zur Feedback-Runde 1 mitbringt (Glättstift-Gefühl,
-  Texteditor-Test, UI-Kleinigkeiten): **zuerst einarbeiten**, bevor Phase 2
-  beginnt — das ist die etablierte Arbeitsweise (laufend einbauen, nicht sammeln)
-
-### Schritt 1 — Phase 2: Import
-Reihenfolge nach Aufwand/Nutzen, jede Etappe einzeln bauen+testen+committen:
-1. **Bilder importieren** (PNG/JPEG/SVG) ins Whiteboard und ins Textdokument
-   — einfachster Fall, kein externes Paket nötig für Raster-Bilder (SVG braucht
-   ggf. `Svg.Skia`, das mit SkiaSharp harmoniert)
-2. **DOCX-Import** → Textdokument (OpenXML SDK, `DocumentFormat.OpenXml`
-   NuGet-Paket), Text + Bilder rüberziehen, Formatierung bestmöglich erhalten
-3. **PDF-Import** → als Bild-Seiten ins Whiteboard (Rendering z. B. via
-   `PdfiumViewer` oder `Docnet.Core`; iText7 selbst rendert nicht zu Bitmaps,
-   dafür bräuchte es zusätzlich etwas wie PDFium) — mit dem Nutzer klären, ob
-   Text-Extraktion (editierbar) oder Bild-Import (Faksimile) Priorität hat,
-   da das sehr unterschiedliche Bibliotheken/Aufwand bedeutet
-
-### Schritt 2 — Phase 2: Export
-1. **Markdown-Export** aus Textdokument (einfachste Fließtext-Konvertierung
-   aus `RichTextBox`-Xaml)
-2. **DOCX-Export** aus Textdokument (OpenXML SDK)
-3. **PDF-Export** — von Whiteboard-Seiten (SkiaSharp kann direkt auf ein
-   PDF-Canvas rendern, `SKDocument.CreatePdf`) und von Textdokumenten
-   (PDFsharp oder Weiterverwendung von SkiaSharp-Textlayout)
-
-### Schritt 3 — Datei-Einfüge-Tool
-Mini-Vorschau-Dialog, der PDF/DOCX anzeigt und wahlweise als Bild oder
-strukturierte Elemente ins Whiteboard einfügt — baut auf Schritt 1 auf.
-
-### Schritt 4 — Phase 3 (nach Rücksprache mit Nutzer)
-RAM-Profiling und -Optimierung, Sticker/Notizzettel/Lineal, optionales OCR,
-Obfuskierung, ggf. weiteres UI-Feintuning aus laufendem Feedback.
+1. Nutzer-Feedback zu Runde 2/3 + DOCX-Import einarbeiten (falls vorhanden)
+2. **PDF-Import** (nach Klärung der Prioritätsfrage oben)
+3. **Export**: Markdown → DOCX (OpenXML, Gegenrichtung zum Importer) → PDF
+4. Datei-Einfüge-Tool, dann Phase 3 (nach Rücksprache)
 
 ---
 
-## 7. Arbeitsweise-Hinweise (aus bisherigem Verlauf gelernt)
-
-- Nutzer will **WPF**, nicht WinUI 3 — trotz ursprünglicher Architekturempfehlung
-  in der Anforderung, die WinUI 3 vorschlug. Diese Entscheidung ist bereits
-  gefallen und umgesetzt, nicht erneut aufrollen.
-- Nutzer gibt Feedback **gerne detailliert und in großen Batches** (siehe
-  Feedback-Runde 1: 3 Kategorien, ~10 Einzelpunkte auf einmal) — solche Listen
-  systematisch mit TaskCreate/TaskUpdate abarbeiten, dann gebündelt committen.
-- Nutzer erwartet **laufende Verifikation**: nach jeder größeren Änderung
-  bauen, App starten, Screenshot machen und optisch prüfen, bevor als fertig
-  gemeldet wird.
-- Deutsch ist die Konversations- und UI-Sprache; Code-Kommentare (wo vorhanden)
-  ebenfalls auf Deutsch gehalten.
-- Erwartungsmanagement wichtig: bei "70% wie Word" wurde offen kommuniziert,
-  dass das ein Richtwert ist und iterativ angegangen wird, statt eine falsche
-  Zusage zu machen. Diesen Stil beibehalten — lieber ehrlich scoping als
-  übercommitten.
-
----
-
-## 8. Schnellstart-Befehle
+## 7. Schnellstart-Befehle
 
 ```bash
 cd "C:\Dev\Zed\gonk-note"
-
-# Laufende Testinstanz beenden (vor jedem Build empfohlen)
-taskkill //IM GonkNote.exe //F
-
-# Bauen
+taskkill //IM GonkNote.exe //F   # vor jedem Build
 dotnet build
-
-# Starten (Debug)
-./bin/Debug/net8.0-windows/GonkNote.exe
-
-# Release / Single-File-Exe
-dotnet publish -c Release
-# → bin/Release/net8.0-windows/win-x64/publish/GonkNote.exe
+./bin/Debug/net8.0-windows/GonkNote.exe            # Debug-Start (echte DB!)
+./bin/Debug/net8.0-windows/GonkNote.exe --db X.db  # Test-DB
+dotnet publish -c Release                           # Single-File-Exe
 ```

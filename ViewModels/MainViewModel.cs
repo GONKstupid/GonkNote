@@ -31,6 +31,7 @@ public sealed class MainViewModel : ObservableObject
         RenameCommand = new RelayCommand(p => { if (p is TreeItemViewModel t) t.IsRenaming = true; });
         DeleteCommand = new RelayCommand(p => DeleteItem(p as TreeItemViewModel));
         OpenItemCommand = new RelayCommand(p => { if (p is TreeItemViewModel t) OpenItem(t); });
+        ImportDocxCommand = new RelayCommand(ImportDocx);
         TogglePinCommand = new RelayCommand(p => TogglePinned(p as TreeItemViewModel));
         ToggleFavoriteCommand = new RelayCommand(p => ToggleFavorite(p as TreeItemViewModel));
         OpenPinnedCommand = new RelayCommand(p => { if (p is TreeItemViewModel t) RevealItem(t); });
@@ -73,6 +74,7 @@ public sealed class MainViewModel : ObservableObject
     public RelayCommand RenameCommand { get; }
     public RelayCommand DeleteCommand { get; }
     public RelayCommand OpenItemCommand { get; }
+    public RelayCommand ImportDocxCommand { get; }
     public RelayCommand TogglePinCommand { get; }
     public RelayCommand ToggleFavoriteCommand { get; }
     public RelayCommand OpenPinnedCommand { get; }
@@ -236,6 +238,66 @@ public sealed class MainViewModel : ObservableObject
     }
 
     private TreeItemViewModel? _pendingOpen;
+
+    // ---------- Import ----------
+
+    /// <summary>DOCX-Dateien als neue Textdokumente importieren (Formatierung bestmöglich).</summary>
+    private void ImportDocx()
+    {
+        CommitPendingRename();
+        var dlg = new Microsoft.Win32.OpenFileDialog
+        {
+            Title = "DOCX importieren",
+            Filter = "Word-Dokumente (*.docx)|*.docx|Alle Dateien (*.*)|*.*",
+            Multiselect = true,
+        };
+        if (dlg.ShowDialog() != true) return;
+
+        var context = SelectedTreeItem;
+        var parent = context == null ? null
+            : context.IsFolder ? context
+            : FindParent(context);
+
+        var failed = new List<string>();
+        TreeItemViewModel? lastImported = null;
+
+        foreach (var file in dlg.FileNames)
+        {
+            try
+            {
+                byte[] bytes = DocxImporter.ToXamlPackage(file);
+
+                var item = new NoteItem
+                {
+                    Kind = ItemKind.TextDocument,
+                    Name = System.IO.Path.GetFileNameWithoutExtension(file),
+                    ParentId = parent?.Id,
+                };
+                _db.UpsertItem(item);
+                _db.SaveText(new TextDoc { Id = item.Id, Rtf = bytes });
+
+                var vm = new TreeItemViewModel(item);
+                (parent?.Children ?? RootItems).Add(vm);
+                lastImported = vm;
+            }
+            catch (Exception ex)
+            {
+                failed.Add($"{System.IO.Path.GetFileName(file)} – {ex.Message}");
+            }
+        }
+
+        if (lastImported != null)
+        {
+            if (parent != null) { parent.SortChildren(); parent.IsExpanded = true; }
+            else SortRoot();
+            lastImported.IsSelected = true;
+            OpenItem(lastImported);
+        }
+
+        if (failed.Count > 0)
+            MessageBox.Show("Import fehlgeschlagen:\n" + string.Join("\n", failed),
+                "Gonk Note", MessageBoxButton.OK, MessageBoxImage.Warning);
+    }
 
     public TreeItemViewModel? FindParent(TreeItemViewModel child)
     {

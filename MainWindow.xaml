@@ -47,6 +47,8 @@
                     <MenuItem Header="Neues _Whiteboard" Command="{Binding NewWhiteboardCommand}"/>
                     <MenuItem Header="Neues _Textdokument" Command="{Binding NewTextDocCommand}"/>
                     <Separator/>
+                    <MenuItem Header="DOCX _importieren…" Command="{Binding ImportDocxCommand}"/>
+                    <Separator/>
                     <MenuItem Header="_Speichern" Command="{Binding SaveCommand}" InputGestureText="Strg+S"/>
                     <MenuItem Header="_Alle speichern" Command="{Binding SaveAllCommand}" InputGestureText="Strg+Umschalt+S"/>
                     <Separator/>

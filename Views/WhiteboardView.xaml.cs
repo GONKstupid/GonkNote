@@ -1,8 +1,10 @@
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using GonkNote.Models;
 using GonkNote.Services;
 using GonkNote.ViewModels;
@@ -42,8 +44,8 @@ public partial class WhiteboardView : UserControl
     private bool _spaceDown;
     private bool _stylusInverted;
 
-    // Radierer
-    private List<(WbElement El, int Index)>? _erased;
+    // Radierer (punktgenau: Striche werden aufgetrennt statt komplett gelöscht)
+    private List<EraseStep>? _eraseSteps;
     private SKPoint _eraserPos;
     private bool _eraserVisible;
 
@@ -55,6 +57,10 @@ public partial class WhiteboardView : UserControl
     private SKPoint _moveLast;
     private float _movedX, _movedY;
 
+    // Bild-Skalierung (Eckgriff bei Einzelauswahl eines Bildes)
+    private ImageElement? _resizingImage;
+    private float _resizeW0, _resizeH0;
+
     // Texteingabe
     private TextElement? _editingText;
     private bool _editingIsNew;
@@ -63,6 +69,11 @@ public partial class WhiteboardView : UserControl
 
     private ToggleButton[] ToolButtons => new[] { BtnPen, BtnSmoothPen, BtnPencil, BtnHighlighter, BtnEraser, BtnLasso, BtnText, BtnShape, BtnPan };
     private ToggleButton[] ShapeButtons => new[] { BtnShapeLine, BtnShapeArrow, BtnShapeRect, BtnShapeEllipse, BtnShapeTriangle };
+    private ToggleButton[] PenButtons => new[] { BtnPen, BtnSmoothPen, BtnPencil, BtnHighlighter };
+
+    // Stifte-Gruppe: eingeklappt ist nur der zuletzt benutzte Stift sichtbar
+    private ToolType _lastPen = ToolType.Pen;
+    private bool _penGroupExpanded;
 
     public WhiteboardView()
     {
@@ -72,6 +83,7 @@ public partial class WhiteboardView : UserControl
         BtnPen.IsChecked = true;
         BtnShapeRect.IsChecked = true;
         _suppressToolEvents = false;
+        SetPenGroupExpanded(false);
 
         foreach (var b in ToolButtons) b.Unchecked += Tool_Unchecked;
 
@@ -111,6 +123,7 @@ public partial class WhiteboardView : UserControl
         UpdatePageLabel();
         OnUndoChanged();
         UpdateZoomLabel();
+        if (SettingsPanel.Visibility == Visibility.Visible) RefreshSettingsPanel();
         Skia.InvalidateVisual();
     }
 
@@ -139,6 +152,8 @@ public partial class WhiteboardView : UserControl
         _suppressToolEvents = false;
 
         SetTool(Enum.Parse<ToolType>((string)btn.Tag));
+        if (IsPenTool(_tool)) _lastPen = _tool;
+        SetPenGroupExpanded(false);
     }
 
     private void Tool_Unchecked(object? sender, RoutedEventArgs e)
@@ -151,7 +166,30 @@ public partial class WhiteboardView : UserControl
             _suppressToolEvents = true;
             btn.IsChecked = true;
             _suppressToolEvents = false;
+
+            // Zweiter Klick auf den aktiven Stift klappt die Stifte-Gruppe aus/ein
+            if (PenButtons.Contains(btn))
+                SetPenGroupExpanded(!_penGroupExpanded);
         }
+    }
+
+    private static bool IsPenTool(ToolType t) =>
+        t is ToolType.Pen or ToolType.SmoothPen or ToolType.Pencil or ToolType.Highlighter;
+
+    private ToggleButton PenButtonFor(ToolType t) => t switch
+    {
+        ToolType.SmoothPen => BtnSmoothPen,
+        ToolType.Pencil => BtnPencil,
+        ToolType.Highlighter => BtnHighlighter,
+        _ => BtnPen,
+    };
+
+    private void SetPenGroupExpanded(bool expanded)
+    {
+        _penGroupExpanded = expanded;
+        var rep = PenButtonFor(_lastPen);
+        foreach (var b in PenButtons)
+            b.Visibility = expanded || b == rep ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private void SetTool(ToolType tool)
@@ -390,7 +428,7 @@ public partial class WhiteboardView : UserControl
             e.Handled = true;
             return;
         }
-        if (!_drawing && _erased == null && _lassoPts == null && !_movingSelection && !_shapeActive)
+        if (!_drawing && _eraseSteps == null && _lassoPts == null && !_movingSelection && !_shapeActive && _resizingImage == null)
         {
             HoverInput(ToCanvas(e.GetPosition(CanvasHost)));
             return;
@@ -437,7 +475,7 @@ public partial class WhiteboardView : UserControl
         if (_panning) { MovePan(screen); return; }
 
         if (e.LeftButton == MouseButtonState.Pressed &&
-            (_drawing || _erased != null || _lassoPts != null || _movingSelection || _shapeActive))
+            (_drawing || _eraseSteps != null || _lassoPts != null || _movingSelection || _shapeActive || _resizingImage != null))
         {
             MoveInput(ToCanvas(screen), 0.5f);
         }
@@ -490,14 +528,20 @@ public partial class WhiteboardView : UserControl
                 break;
 
             case ToolType.Eraser:
-                _erased = new List<(WbElement, int)>();
+                _eraseSteps = new List<EraseStep>();
                 _eraserPos = c;
                 _eraserVisible = true;
                 EraseAt(c);
                 break;
 
             case ToolType.Lasso:
-                if (_selection.Count > 0 && InflatedSelectionBounds().Contains(c))
+                if (_selection.Count == 1 && _selection.First() is ImageElement rim && HitResizeHandle(rim, c))
+                {
+                    _resizingImage = rim;
+                    _resizeW0 = rim.Width;
+                    _resizeH0 = rim.Height;
+                }
+                else if (_selection.Count > 0 && InflatedSelectionBounds().Contains(c))
                 {
                     _movingSelection = true;
                     _moveLast = c;
@@ -557,14 +601,25 @@ public partial class WhiteboardView : UserControl
                 break;
 
             case ToolType.Eraser:
-                if (_erased == null) return;
+                if (_eraseSteps == null) return;
                 _eraserPos = c;
                 _eraserVisible = true;
                 EraseAt(c);
                 break;
 
             case ToolType.Lasso:
-                if (_movingSelection)
+                if (_resizingImage != null)
+                {
+                    // Proportional über den Eckgriff unten rechts, Ankerpunkt oben links
+                    float scale = Math.Max(
+                        (c.X - _resizingImage.X) / Math.Max(1f, _resizeW0),
+                        (c.Y - _resizingImage.Y) / Math.Max(1f, _resizeH0));
+                    scale = Math.Max(scale, 16f / Math.Max(_resizeW0, _resizeH0));
+                    _resizingImage.Width = _resizeW0 * scale;
+                    _resizingImage.Height = _resizeH0 * scale;
+                    ComputeSelectionBounds();
+                }
+                else if (_movingSelection)
                 {
                     float dx = c.X - _moveLast.X, dy = c.Y - _moveLast.Y;
                     foreach (var el in _selection) el.Translate(dx, dy);
@@ -614,16 +669,27 @@ public partial class WhiteboardView : UserControl
                 break;
 
             case ToolType.Eraser:
-                if (_erased is { Count: > 0 })
+                if (_eraseSteps is { Count: > 0 })
                 {
-                    _vm.Undo.Push(_page, new RemoveElementsAction(_erased));
+                    _vm.Undo.Push(_page, new PartialEraseAction(_eraseSteps));
                     MarkDirty();
                 }
-                _erased = null;
+                _eraseSteps = null;
                 break;
 
             case ToolType.Lasso:
-                if (_movingSelection)
+                if (_resizingImage != null)
+                {
+                    var im = _resizingImage;
+                    _resizingImage = null;
+                    if (Math.Abs(im.Width - _resizeW0) > 0.01f || Math.Abs(im.Height - _resizeH0) > 0.01f)
+                    {
+                        _vm.Undo.Push(_page, new ResizeImageAction(im, _resizeW0, _resizeH0, im.Width, im.Height));
+                        MarkDirty();
+                    }
+                    ComputeSelectionBounds();
+                }
+                else if (_movingSelection)
                 {
                     _movingSelection = false;
                     if (Math.Abs(_movedX) > 0.01f || Math.Abs(_movedY) > 0.01f)
@@ -681,6 +747,15 @@ public partial class WhiteboardView : UserControl
             _ => StrokeKind.Pen,
         };
 
+        // Formen-Stift: erst versuchen, eine Grundform zu erkennen (wie GoodNotes)
+        if (_tool == ToolType.SmoothPen && RecognizeShape(_activePoints) is { } recognized)
+        {
+            _page.Elements.Add(recognized);
+            _vm.Undo.Push(_page, new AddElementsAction(new[] { recognized }));
+            MarkDirty();
+            return;
+        }
+
         var points = _tool == ToolType.SmoothPen ? SmoothPoints(_activePoints) : _activePoints;
 
         var stroke = new StrokeElement
@@ -713,6 +788,216 @@ public partial class WhiteboardView : UserControl
         _page.Elements.Add(shape);
         _vm.Undo.Push(_page, new AddElementsAction(new WbElement[] { shape }));
         MarkDirty();
+    }
+
+    // ==================== Formen-Stift: Formerkennung ====================
+
+    /// <summary>
+    /// Erkennt gezeichnete Grundformen (wie der Formen-Stift in GoodNotes): fast gerade
+    /// Züge werden zu perfekten Geraden (mit Winkel-Einrasten auf 45°-Schritte), runde
+    /// geschlossene Züge zu Kreisen/Ellipsen, eckige zu Rechtecken bzw. Streckenzügen.
+    /// Liefert null, wenn nichts erkannt wurde – dann wird die Kurve geglättet übernommen.
+    /// </summary>
+    private WbElement? RecognizeShape(List<WbPoint> pts)
+    {
+        if (pts.Count < 4) return null;
+
+        float len = 0;
+        for (int i = 1; i < pts.Count; i++)
+            len += Dist(pts[i - 1], pts[i]);
+        if (len < 24) return null;
+
+        var a = pts[0];
+        var b = pts[^1];
+        float chord = Dist(a, b);
+
+        // Gerade Linie: Punkte weichen kaum von der Sehne ab
+        if (chord > len * 0.8f && MaxChordDeviation(pts) <= Math.Max(4f, len * 0.05f))
+            return SnappedLine(a, b);
+
+        bool closed = chord <= Math.Max(18f, len * 0.16f);
+        if (!closed)
+        {
+            // Offener Zug mit wenigen klaren Ecken → perfekter Streckenzug
+            var open = DouglasPeucker(pts, Math.Max(6f, len * 0.03f));
+            if (open.Count == 2) return SnappedLine(open[0], open[^1]);
+            if (open.Count <= 6) return PolylineStroke(open, closed: false);
+            return null;
+        }
+
+        // Geschlossener Zug: wenige Ecken → Polygon, sonst Ellipse prüfen
+        var poly = ClosedCorners(pts, Math.Max(7f, len * 0.025f));
+
+        if (poly.Count == 4 && TrySnapRectangle(poly) is { } rect) return rect;
+        if (poly.Count is 3 or 4) return PolylineStroke(poly, closed: true);
+
+        if (EllipseFitError(pts) <= 0.14f) return SnapEllipse(pts);
+        if (poly.Count <= 6) return PolylineStroke(poly, closed: true);
+        return null;
+    }
+
+    private static float Dist(WbPoint a, WbPoint b)
+    {
+        float dx = b.X - a.X, dy = b.Y - a.Y;
+        return MathF.Sqrt(dx * dx + dy * dy);
+    }
+
+    private static float MaxChordDeviation(List<WbPoint> pts)
+    {
+        var a = new SKPoint(pts[0].X, pts[0].Y);
+        var b = new SKPoint(pts[^1].X, pts[^1].Y);
+        float max = 0;
+        foreach (var p in pts)
+            max = Math.Max(max, SegmentDistance(a, b, new SKPoint(p.X, p.Y)));
+        return max;
+    }
+
+    /// <summary>Perfekte Gerade; rastet nahe 0°/45°/90° exakt ein.</summary>
+    private ShapeElement SnappedLine(WbPoint a, WbPoint b)
+    {
+        float dx = b.X - a.X, dy = b.Y - a.Y;
+        float angle = MathF.Atan2(dy, dx);
+        const float step = MathF.PI / 4f;
+        float snapped = MathF.Round(angle / step) * step;
+        if (Math.Abs(snapped - angle) <= 6f * MathF.PI / 180f)
+        {
+            float l = MathF.Sqrt(dx * dx + dy * dy);
+            dx = l * MathF.Cos(snapped);
+            dy = l * MathF.Sin(snapped);
+        }
+        return new ShapeElement
+        {
+            Shape = ShapeKind.Line,
+            X1 = a.X, Y1 = a.Y, X2 = a.X + dx, Y2 = a.Y + dy,
+            Color = CurrentInkHex(), StrokeWidth = _width,
+        };
+    }
+
+    /// <summary>Streckenzug aus den erkannten Eckpunkten – Segmente sind perfekt gerade.</summary>
+    private StrokeElement PolylineStroke(List<WbPoint> corners, bool closed)
+    {
+        var points = corners.Select(p => new WbPoint(p.X, p.Y, 0.5f)).ToList();
+        if (closed) points.Add(new WbPoint(corners[0].X, corners[0].Y, 0.5f));
+        return new StrokeElement { Points = points, Color = CurrentInkHex(), Width = _width, Kind = StrokeKind.Pen };
+    }
+
+    /// <summary>Achsenparalleles Viereck rastet zum perfekten Rechteck ein, sonst null.</summary>
+    private ShapeElement? TrySnapRectangle(List<WbPoint> quad)
+    {
+        const float tol = 15f * MathF.PI / 180f;
+        for (int i = 0; i < 4; i++)
+        {
+            var p = quad[i];
+            var q = quad[(i + 1) % 4];
+            float ang = MathF.Atan2(Math.Abs(q.Y - p.Y), Math.Abs(q.X - p.X));
+            if (ang > tol && ang < MathF.PI / 2f - tol) return null;
+        }
+        return new ShapeElement
+        {
+            Shape = ShapeKind.Rectangle,
+            X1 = quad.Min(p => p.X), Y1 = quad.Min(p => p.Y),
+            X2 = quad.Max(p => p.X), Y2 = quad.Max(p => p.Y),
+            Color = CurrentInkHex(), StrokeWidth = _width,
+        };
+    }
+
+    /// <summary>Mittlere radiale Abweichung von der einbeschriebenen Ellipse (0 = perfekt).</summary>
+    private static float EllipseFitError(List<WbPoint> pts)
+    {
+        float minX = float.MaxValue, minY = float.MaxValue, maxX = float.MinValue, maxY = float.MinValue;
+        foreach (var p in pts)
+        {
+            minX = Math.Min(minX, p.X); maxX = Math.Max(maxX, p.X);
+            minY = Math.Min(minY, p.Y); maxY = Math.Max(maxY, p.Y);
+        }
+        float rx = Math.Max(1f, (maxX - minX) / 2f), ry = Math.Max(1f, (maxY - minY) / 2f);
+        float cx = (minX + maxX) / 2f, cy = (minY + maxY) / 2f;
+
+        float err = 0;
+        foreach (var p in pts)
+        {
+            float nx = (p.X - cx) / rx, ny = (p.Y - cy) / ry;
+            err += Math.Abs(MathF.Sqrt(nx * nx + ny * ny) - 1f);
+        }
+        return err / pts.Count;
+    }
+
+    /// <summary>Perfekte Ellipse über der Bounding-Box; fast runde werden zum Kreis.</summary>
+    private ShapeElement SnapEllipse(List<WbPoint> pts)
+    {
+        float minX = float.MaxValue, minY = float.MaxValue, maxX = float.MinValue, maxY = float.MinValue;
+        foreach (var p in pts)
+        {
+            minX = Math.Min(minX, p.X); maxX = Math.Max(maxX, p.X);
+            minY = Math.Min(minY, p.Y); maxY = Math.Max(maxY, p.Y);
+        }
+        float w = maxX - minX, h = maxY - minY;
+        if (Math.Abs(w - h) <= 0.2f * Math.Max(w, h))
+        {
+            float cx = (minX + maxX) / 2f, cy = (minY + maxY) / 2f;
+            float r = (w + h) / 4f;
+            minX = cx - r; maxX = cx + r; minY = cy - r; maxY = cy + r;
+        }
+        return new ShapeElement
+        {
+            Shape = ShapeKind.Ellipse,
+            X1 = minX, Y1 = minY, X2 = maxX, Y2 = maxY,
+            Color = CurrentInkHex(), StrokeWidth = _width,
+        };
+    }
+
+    /// <summary>Ecken eines geschlossenen Zugs: Start an der centroid-fernsten Stelle, dann Douglas-Peucker.</summary>
+    private static List<WbPoint> ClosedCorners(List<WbPoint> pts, float epsilon)
+    {
+        float cx = 0, cy = 0;
+        foreach (var p in pts) { cx += p.X; cy += p.Y; }
+        cx /= pts.Count; cy /= pts.Count;
+
+        int start = 0; float best = -1;
+        for (int i = 0; i < pts.Count; i++)
+        {
+            float dx = pts[i].X - cx, dy = pts[i].Y - cy;
+            float d = dx * dx + dy * dy;
+            if (d > best) { best = d; start = i; }
+        }
+
+        var rotated = new List<WbPoint>(pts.Count + 1);
+        for (int i = 0; i < pts.Count; i++) rotated.Add(pts[(start + i) % pts.Count]);
+        rotated.Add(pts[start]);
+
+        var corners = DouglasPeucker(rotated, epsilon);
+        corners.RemoveAt(corners.Count - 1); // Ende == Anfang
+        return corners;
+    }
+
+    private static List<WbPoint> DouglasPeucker(List<WbPoint> pts, float epsilon)
+    {
+        if (pts.Count < 3) return new List<WbPoint>(pts);
+        var keep = new bool[pts.Count];
+        keep[0] = keep[^1] = true;
+        DpRecurse(pts, 0, pts.Count - 1, epsilon, keep);
+
+        var result = new List<WbPoint>();
+        for (int i = 0; i < pts.Count; i++)
+            if (keep[i]) result.Add(pts[i]);
+        return result;
+    }
+
+    private static void DpRecurse(List<WbPoint> pts, int lo, int hi, float eps, bool[] keep)
+    {
+        if (hi <= lo + 1) return;
+        var a = new SKPoint(pts[lo].X, pts[lo].Y);
+        var b = new SKPoint(pts[hi].X, pts[hi].Y);
+        float maxD = -1; int maxI = -1;
+        for (int i = lo + 1; i < hi; i++)
+        {
+            float d = SegmentDistance(a, b, new SKPoint(pts[i].X, pts[i].Y));
+            if (d > maxD) { maxD = d; maxI = i; }
+        }
+        if (maxD <= eps) return;
+        keep[maxI] = true;
+        DpRecurse(pts, lo, maxI, eps, keep);
+        DpRecurse(pts, maxI, hi, eps, keep);
     }
 
     /// <summary>Glättstift: Resampling auf gleichmäßige Abstände + mehrfacher gleitender Mittelwert.</summary>
@@ -781,56 +1066,504 @@ public partial class WhiteboardView : UserControl
         return EffectiveShade(_page) == PageShade.Dark ? "#FFE6ECF7" : "#FF1B2B4B";
     }
 
+    // ==================== Einstellungen (rechte Seitenleiste) ====================
+
+    private bool _suppressSettingsEvents;
+
+    private static readonly string[] CoverFonts =
+    {
+        "Segoe UI", "Segoe Print", "Segoe Script", "Arial", "Calibri", "Cambria",
+        "Comic Sans MS", "Consolas", "Georgia", "Impact", "Palatino Linotype",
+        "Times New Roman", "Trebuchet MS", "Verdana",
+    };
+
     private void PageSetup_Click(object sender, RoutedEventArgs e)
     {
-        if (_vm == null || _page == null) return;
-
-        bool notebook = !_page.IsInfinite;
-        var dlg = new PageSetupDialog(_page, showSize: notebook) { Owner = Window.GetWindow(this) };
-        if (dlg.ShowDialog() != true) return;
-
-        bool sizeChanged = false;
-        _page.Background = dlg.Pattern;
-        _page.Shade = dlg.Shade;
-        if (notebook)
+        if (SettingsPanel.Visibility == Visibility.Visible)
         {
-            sizeChanged = Math.Abs(_page.Width - dlg.PageWidth) > 0.5f ||
-                          Math.Abs(_page.Height - dlg.PageHeight) > 0.5f;
-            _page.Width = dlg.PageWidth;
-            _page.Height = dlg.PageHeight;
+            SettingsPanel.Visibility = Visibility.Collapsed;
+            return;
+        }
+        RefreshSettingsPanel();
+        SettingsPanel.Visibility = Visibility.Visible;
+    }
 
-            if (dlg.ApplyAsDefault)
+    /// <summary>Spiegelt die aktuelle Seite (und ggf. das Cover) in die Panel-Controls.</summary>
+    private void RefreshSettingsPanel()
+    {
+        if (_vm == null || _page == null) return;
+        _suppressSettingsEvents = true;
+
+        (_page.Background switch
+        {
+            PageBackground.Lines => SetBgLines,
+            PageBackground.Grid => SetBgGrid,
+            PageBackground.Dots => SetBgDots,
+            _ => SetBgBlank,
+        }).IsChecked = true;
+
+        (_page.Shade switch
+        {
+            PageShade.Light => SetShadeLight,
+            PageShade.Dark => SetShadeDark,
+            _ => SetShadeAuto,
+        }).IsChecked = true;
+
+        bool paged = !_page.IsInfinite;
+        SetSizeSection.Visibility = paged ? Visibility.Visible : Visibility.Collapsed;
+        if (paged)
+        {
+            float longSide = Math.Max(_page.Width, _page.Height);
+            (longSide > WhiteboardDoc.A4Height + 1 ? SetSizeA3 : SetSizeA4).IsChecked = true;
+            (_page.Width > _page.Height ? SetOrientLandscape : SetOrientPortrait).IsChecked = true;
+        }
+
+        bool hasCover = _vm.Doc.Pages.Any(p => p.IsCover);
+        CoverSection.Visibility = hasCover ? Visibility.Visible : Visibility.Collapsed;
+        if (hasCover)
+        {
+            var cs = _vm.Doc.Cover;
+            CoverStartSwatch.Background = BrushFromHex(cs?.GradientStart ?? "#1E3A8A");
+            CoverEndSwatch.Background = BrushFromHex(cs?.GradientEnd ?? "#7C3AED");
+
+            string font = cs?.FontFamily ?? "Segoe UI";
+            CoverFontBox.ItemsSource = CoverFonts.Contains(font)
+                ? CoverFonts
+                : CoverFonts.Append(font).OrderBy(f => f).ToArray();
+            CoverFontBox.SelectedItem = font;
+
+            BtnCoverImageRemove.IsEnabled = cs?.Image is { Length: > 0 };
+        }
+
+        _suppressSettingsEvents = false;
+    }
+
+    private static SolidColorBrush BrushFromHex(string hex)
+    {
+        var c = ParseColor(hex);
+        return new SolidColorBrush(Color.FromArgb(c.Alpha, c.Red, c.Green, c.Blue));
+    }
+
+    /// <summary>Änderungen im Panel wirken sofort auf die aktuelle Seite (kein OK-Knopf).</summary>
+    private void PageSetting_Changed(object sender, RoutedEventArgs e)
+    {
+        if (_suppressSettingsEvents || _vm == null || _page == null) return;
+
+        _page.Background = SetBgLines.IsChecked == true ? PageBackground.Lines
+            : SetBgGrid.IsChecked == true ? PageBackground.Grid
+            : SetBgDots.IsChecked == true ? PageBackground.Dots
+            : PageBackground.Blank;
+
+        _page.Shade = SetShadeLight.IsChecked == true ? PageShade.Light
+            : SetShadeDark.IsChecked == true ? PageShade.Dark
+            : PageShade.Auto;
+
+        if (!_page.IsInfinite)
+        {
+            float w = SetSizeA3.IsChecked == true ? WhiteboardDoc.A3Width : WhiteboardDoc.A4Width;
+            float h = SetSizeA3.IsChecked == true ? WhiteboardDoc.A3Height : WhiteboardDoc.A4Height;
+            bool landscape = SetOrientLandscape.IsChecked == true;
+            float nw = landscape ? h : w, nh = landscape ? w : h;
+
+            bool sizeChanged = Math.Abs(_page.Width - nw) > 0.5f || Math.Abs(_page.Height - nh) > 0.5f;
+            _page.Width = nw;
+            _page.Height = nh;
+            if (sizeChanged) CenterView();
+
+            if (SetAsDefault.IsChecked == true)
             {
                 _vm.Doc.NewPageTemplate = new PageTemplate
                 {
-                    Width = dlg.PageWidth,
-                    Height = dlg.PageHeight,
-                    Background = dlg.Pattern,
-                    Shade = dlg.Shade,
+                    Width = nw,
+                    Height = nh,
+                    Background = _page.Background,
+                    Shade = _page.Shade,
                 };
             }
         }
 
         MarkDirty();
-        if (sizeChanged) CenterView();
         Skia.InvalidateVisual();
+    }
+
+    private CoverStyle EnsureCoverStyle()
+    {
+        _vm!.Doc.Cover ??= new CoverStyle();
+        return _vm.Doc.Cover;
+    }
+
+    /// <summary>Zum Cover springen, damit Änderungen sofort sichtbar sind.</summary>
+    private void CoverChanged()
+    {
+        if (_vm == null) return;
+        MarkDirty();
+        int idx = _vm.Doc.Pages.FindIndex(p => p.IsCover);
+        if (idx >= 0 && idx != _vm.PageIndex) GoToPage(idx);
+        Skia.InvalidateVisual();
+    }
+
+    private void CoverStart_Click(object sender, RoutedEventArgs e)
+    {
+        if (_vm == null) return;
+        var cs = EnsureCoverStyle();
+        var cur = ParseColor(cs.GradientStart);
+        if (ColorPickerDialog.Pick(Window.GetWindow(this), Color.FromRgb(cur.Red, cur.Green, cur.Blue), allowAlpha: false) is not { } c)
+            return;
+        cs.GradientStart = $"#{c.R:X2}{c.G:X2}{c.B:X2}";
+        CoverStartSwatch.Background = new SolidColorBrush(c);
+        CoverChanged();
+    }
+
+    private void CoverEnd_Click(object sender, RoutedEventArgs e)
+    {
+        if (_vm == null) return;
+        var cs = EnsureCoverStyle();
+        var cur = ParseColor(cs.GradientEnd);
+        if (ColorPickerDialog.Pick(Window.GetWindow(this), Color.FromRgb(cur.Red, cur.Green, cur.Blue), allowAlpha: false) is not { } c)
+            return;
+        cs.GradientEnd = $"#{c.R:X2}{c.G:X2}{c.B:X2}";
+        CoverEndSwatch.Background = new SolidColorBrush(c);
+        CoverChanged();
+    }
+
+    private void CoverFont_Changed(object sender, SelectionChangedEventArgs e)
+    {
+        if (_suppressSettingsEvents || _vm == null) return;
+        if (CoverFontBox.SelectedItem is not string font) return;
+        EnsureCoverStyle().FontFamily = font;
+        CoverChanged();
+    }
+
+    private void CoverImage_Click(object sender, RoutedEventArgs e)
+    {
+        if (_vm == null) return;
+        var dlg = new Microsoft.Win32.OpenFileDialog
+        {
+            Title = "Bild als Cover wählen",
+            Filter = "Bilder (*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.webp;*.svg)|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.webp;*.svg|Alle Dateien (*.*)|*.*",
+        };
+        if (dlg.ShowDialog(Window.GetWindow(this)) != true) return;
+
+        try
+        {
+            var img = Path.GetExtension(dlg.FileName).Equals(".svg", StringComparison.OrdinalIgnoreCase)
+                ? RasterizeSvg(File.ReadAllBytes(dlg.FileName))
+                : PrepareRaster(File.ReadAllBytes(dlg.FileName));
+            if (img == null)
+            {
+                MessageBox.Show("Das Bild konnte nicht geladen werden.", "Gonk Note",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+            var cs = EnsureCoverStyle();
+            cs.Image = img.Value.Data;
+            cs.ImageId = Guid.NewGuid();
+            BtnCoverImageRemove.IsEnabled = true;
+            CoverChanged();
+        }
+        catch
+        {
+            MessageBox.Show("Das Bild konnte nicht geladen werden.", "Gonk Note",
+                MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+    }
+
+    private void CoverImageRemove_Click(object sender, RoutedEventArgs e)
+    {
+        if (_vm?.Doc.Cover is not { } cs) return;
+        cs.Image = null;
+        cs.ImageId = Guid.NewGuid();
+        BtnCoverImageRemove.IsEnabled = false;
+        CoverChanged();
+    }
+
+    // ==================== Bilder einfügen ====================
+
+    private static readonly string[] ImageExtensions = { ".png", ".jpg", ".jpeg", ".bmp", ".gif", ".webp", ".svg" };
+    private const int MaxImportDim = 2048;
+
+    private SKPoint ViewCenter() => ToCanvas(new Point(CanvasHost.ActualWidth / 2, CanvasHost.ActualHeight / 2));
+
+    private void InsertImage_Click(object sender, RoutedEventArgs e)
+    {
+        var dlg = new Microsoft.Win32.OpenFileDialog
+        {
+            Title = "Bild einfügen",
+            Filter = "Bilder (*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.webp;*.svg)|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.webp;*.svg|Alle Dateien (*.*)|*.*",
+            Multiselect = true,
+        };
+        if (dlg.ShowDialog(Window.GetWindow(this)) != true) return;
+        InsertImageFiles(dlg.FileNames, ViewCenter());
+    }
+
+    private void InsertImageFiles(IEnumerable<string> paths, SKPoint at)
+    {
+        var imported = new List<(byte[] Data, float W, float H)>();
+        var failed = new List<string>();
+        foreach (var path in paths)
+        {
+            try
+            {
+                var img = Path.GetExtension(path).Equals(".svg", StringComparison.OrdinalIgnoreCase)
+                    ? RasterizeSvg(File.ReadAllBytes(path))
+                    : PrepareRaster(File.ReadAllBytes(path));
+                if (img != null) imported.Add(img.Value);
+                else failed.Add(Path.GetFileName(path));
+            }
+            catch
+            {
+                failed.Add(Path.GetFileName(path));
+            }
+        }
+
+        if (imported.Count > 0) PlaceImages(imported, at);
+        if (failed.Count > 0)
+            MessageBox.Show("Konnte nicht geladen werden:\n" + string.Join("\n", failed),
+                "Gonk Note", MessageBoxButton.OK, MessageBoxImage.Warning);
+    }
+
+    /// <summary>Dekodiert, verkleinert große Bilder (RAM-/DB-Ziel) und liefert speicherbare Bytes + Pixelmaße.</summary>
+    private static (byte[] Data, float W, float H)? PrepareRaster(byte[] raw)
+    {
+        using var bmp = SKBitmap.Decode(raw);
+        if (bmp == null) return null;
+
+        // Klein genug: Originalbytes unverändert übernehmen
+        if (bmp.Width <= MaxImportDim && bmp.Height <= MaxImportDim && raw.Length <= 2 * 1024 * 1024)
+            return (raw, bmp.Width, bmp.Height);
+
+        float scale = Math.Min(1f, MaxImportDim / (float)Math.Max(bmp.Width, bmp.Height));
+        SKBitmap use = bmp;
+        if (scale < 1f)
+        {
+            int nw = Math.Max(1, (int)(bmp.Width * scale));
+            int nh = Math.Max(1, (int)(bmp.Height * scale));
+            use = bmp.Resize(new SKImageInfo(nw, nh), SKFilterQuality.High) ?? bmp;
+        }
+        try
+        {
+            var format = HasTransparency(use) ? SKEncodedImageFormat.Png : SKEncodedImageFormat.Jpeg;
+            using var img = SKImage.FromBitmap(use);
+            using var data = img.Encode(format, 88);
+            return (data.ToArray(), use.Width, use.Height);
+        }
+        finally
+        {
+            if (!ReferenceEquals(use, bmp)) use.Dispose();
+        }
+    }
+
+    private static bool HasTransparency(SKBitmap bmp)
+    {
+        if (bmp.AlphaType == SKAlphaType.Opaque) return false;
+        int sx = Math.Max(1, bmp.Width / 256), sy = Math.Max(1, bmp.Height / 256);
+        for (int y = 0; y < bmp.Height; y += sy)
+            for (int x = 0; x < bmp.Width; x += sx)
+                if (bmp.GetPixel(x, y).Alpha < 250) return true;
+        return false;
+    }
+
+    /// <summary>SVG wird beim Import gerastert (2x für scharfes Zoomen), Ergebnis ist PNG; Anzeigegröße bleibt die SVG-Größe.</summary>
+    private static (byte[] Data, float W, float H)? RasterizeSvg(byte[] raw)
+    {
+        using var svg = new Svg.Skia.SKSvg();
+        using var ms = new MemoryStream(raw);
+        if (svg.Load(ms) == null || svg.Picture == null) return null;
+
+        var bounds = svg.Picture.CullRect;
+        if (bounds.Width < 1 || bounds.Height < 1) return null;
+        float scale = Math.Min(2f, MaxImportDim / Math.Max(bounds.Width, bounds.Height));
+        int w = Math.Max(1, (int)(bounds.Width * scale));
+        int h = Math.Max(1, (int)(bounds.Height * scale));
+
+        using var surface = SKSurface.Create(new SKImageInfo(w, h, SKColorType.Rgba8888, SKAlphaType.Premul));
+        if (surface == null) return null;
+        surface.Canvas.Clear(SKColors.Transparent);
+        surface.Canvas.Scale(scale);
+        surface.Canvas.Translate(-bounds.Left, -bounds.Top);
+        surface.Canvas.DrawPicture(svg.Picture);
+        using var img = surface.Snapshot();
+        using var data = img.Encode(SKEncodedImageFormat.Png, 100);
+        return (data.ToArray(), bounds.Width, bounds.Height);
+    }
+
+    private void PlaceImages(List<(byte[] Data, float W, float H)> images, SKPoint at)
+    {
+        if (_page == null || _vm == null) return;
+
+        // Maximale Anzeigegröße: in Seite bzw. Sichtbereich einpassen
+        float maxW, maxH;
+        if (_page.IsInfinite)
+        {
+            maxW = Math.Max(64f, (float)CanvasHost.ActualWidth * 0.6f / Zoom);
+            maxH = Math.Max(64f, (float)CanvasHost.ActualHeight * 0.6f / Zoom);
+        }
+        else
+        {
+            maxW = _page.Width * 0.7f;
+            maxH = _page.Height * 0.7f;
+        }
+
+        var added = new List<WbElement>();
+        int i = 0;
+        foreach (var (data, w, h) in images)
+        {
+            float scale = Math.Min(1f, Math.Min(maxW / Math.Max(1f, w), maxH / Math.Max(1f, h)));
+            float dw = w * scale, dh = h * scale;
+            float x = at.X - dw / 2f + i * 24f;
+            float y = at.Y - dh / 2f + i * 24f;
+            if (!_page.IsInfinite)
+            {
+                x = Math.Clamp(x, 0, Math.Max(0, _page.Width - dw));
+                y = Math.Clamp(y, 0, Math.Max(0, _page.Height - dh));
+            }
+            added.Add(new ImageElement { X = x, Y = y, Width = dw, Height = dh, Data = data });
+            i++;
+        }
+
+        _page.Elements.AddRange(added);
+        _vm.Undo.Push(_page, new AddElementsAction(added));
+        MarkDirty();
+
+        // Direkt auswählen, damit Verschieben/Skalieren sofort möglich ist
+        BtnLasso.IsChecked = true;
+        _selection.Clear();
+        foreach (var el in added) _selection.Add(el);
+        ComputeSelectionBounds();
+        Skia.InvalidateVisual();
+    }
+
+    private bool PasteImageFromClipboard()
+    {
+        if (Clipboard.ContainsImage() && Clipboard.GetImage() is { } src)
+        {
+            var enc = new PngBitmapEncoder();
+            enc.Frames.Add(BitmapFrame.Create(src));
+            using var ms = new MemoryStream();
+            enc.Save(ms);
+            if (PrepareRaster(ms.ToArray()) is { } img)
+            {
+                PlaceImages(new List<(byte[], float, float)> { img }, ViewCenter());
+                return true;
+            }
+            return false;
+        }
+
+        if (Clipboard.ContainsFileDropList())
+        {
+            var files = Clipboard.GetFileDropList().Cast<string>()
+                .Where(f => ImageExtensions.Contains(Path.GetExtension(f).ToLowerInvariant()))
+                .ToList();
+            if (files.Count > 0)
+            {
+                InsertImageFiles(files, ViewCenter());
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void CanvasHost_DragOver(object sender, DragEventArgs e)
+    {
+        e.Effects = GetDroppedImageFiles(e).Count > 0 ? DragDropEffects.Copy : DragDropEffects.None;
+        e.Handled = true;
+    }
+
+    private void CanvasHost_Drop(object sender, DragEventArgs e)
+    {
+        var files = GetDroppedImageFiles(e);
+        if (files.Count == 0) return;
+        InsertImageFiles(files, ToCanvas(e.GetPosition(CanvasHost)));
+        e.Handled = true;
+    }
+
+    private static List<string> GetDroppedImageFiles(DragEventArgs e)
+    {
+        if (!e.Data.GetDataPresent(DataFormats.FileDrop) ||
+            e.Data.GetData(DataFormats.FileDrop) is not string[] files)
+            return new List<string>();
+        return files.Where(f => ImageExtensions.Contains(Path.GetExtension(f).ToLowerInvariant())).ToList();
+    }
+
+    private bool HitResizeHandle(ImageElement im, SKPoint c)
+    {
+        float r = 12f / Zoom;
+        float dx = c.X - (im.X + im.Width), dy = c.Y - (im.Y + im.Height);
+        return dx * dx + dy * dy <= r * r;
     }
 
     // ==================== Radierer ====================
 
     private void EraseAt(SKPoint c)
     {
-        if (_page == null || _erased == null) return;
+        if (_page == null || _eraseSteps == null) return;
         float r = 14f / Zoom;
 
         for (int i = _page.Elements.Count - 1; i >= 0; i--)
         {
             var el = _page.Elements[i];
-            if (!HitElement(el, c, r)) continue;
-            _erased.Add((el, i));
-            _page.Elements.RemoveAt(i);
-            MarkDirty();
+            switch (el)
+            {
+                // Striche: nur die berührte Stelle entfernen, Reststücke bleiben stehen
+                case StrokeElement s:
+                {
+                    if (!HitElement(s, c, r)) break;
+                    var parts = SplitStroke(s, c, r + s.Width / 2f);
+                    _page.Elements.RemoveAt(i);
+                    _page.Elements.InsertRange(i, parts);
+                    _eraseSteps.Add(new EraseStep(s, i, parts));
+                    MarkDirty();
+                    break;
+                }
+
+                // Formen/Text: als Ganzes, aber nur bei Berührung der Kontur bzw. des Rahmens
+                case ShapeElement or TextElement:
+                    if (!HitElement(el, c, r)) break;
+                    _page.Elements.RemoveAt(i);
+                    _eraseSteps.Add(new EraseStep(el, i, new List<WbElement>()));
+                    MarkDirty();
+                    break;
+
+                // Bilder sind nicht radierbar – über Lasso auswählen und löschen
+            }
         }
+    }
+
+    /// <summary>Zerlegt einen Strich in die Teilstücke außerhalb des Radierkreises.</summary>
+    private static List<WbElement> SplitStroke(StrokeElement s, SKPoint c, float rr)
+    {
+        var parts = new List<WbElement>();
+        var run = new List<WbPoint>();
+
+        void Flush()
+        {
+            if (run.Count >= 2)
+                parts.Add(new StrokeElement { Points = run, Color = s.Color, Width = s.Width, Kind = s.Kind });
+            run = new List<WbPoint>();
+        }
+
+        var pts = s.Points;
+        float rr2 = rr * rr;
+        for (int i = 0; i < pts.Count; i++)
+        {
+            var p = pts[i];
+            float dx = p.X - c.X, dy = p.Y - c.Y;
+            if (dx * dx + dy * dy <= rr2) { Flush(); continue; }
+
+            run.Add(p);
+
+            // Segment kreuzt den Radierkreis, ohne dass ein Endpunkt drinliegt → trotzdem trennen
+            if (i + 1 < pts.Count)
+            {
+                var q = pts[i + 1];
+                float qdx = q.X - c.X, qdy = q.Y - c.Y;
+                if (qdx * qdx + qdy * qdy > rr2 &&
+                    SegmentDistance(new SKPoint(p.X, p.Y), new SKPoint(q.X, q.Y), c) <= rr)
+                    Flush();
+            }
+        }
+        Flush();
+        return parts;
     }
 
     private static bool HitElement(WbElement el, SKPoint c, float r)
@@ -963,6 +1696,7 @@ public partial class WhiteboardView : UserControl
                     s.Points.Count(p => path.Contains(p.X, p.Y)) * 2 >= s.Points.Count,
                 ShapeElement sh => path.Contains((sh.X1 + sh.X2) / 2f, (sh.Y1 + sh.Y2) / 2f),
                 TextElement t => path.Contains(TextBounds(t).MidX, TextBounds(t).MidY),
+                ImageElement im => path.Contains(im.X + im.Width / 2f, im.Y + im.Height / 2f),
                 _ => false,
             };
             if (inside) _selection.Add(el);
@@ -1010,6 +1744,8 @@ public partial class WhiteboardView : UserControl
             }
             case TextElement t:
                 return TextBounds(t);
+            case ImageElement im:
+                return SKRect.Create(im.X, im.Y, im.Width, im.Height);
             default:
                 return SKRect.Empty;
         }
@@ -1056,6 +1792,11 @@ public partial class WhiteboardView : UserControl
         TextElement t => new TextElement
         {
             X = t.X, Y = t.Y, Text = t.Text, Color = t.Color, FontSize = t.FontSize,
+        },
+        // Data wird bewusst geteilt (unveränderlich nach Import) – spart RAM und DB-Größe
+        ImageElement im => new ImageElement
+        {
+            X = im.X, Y = im.Y, Width = im.Width, Height = im.Height, Data = im.Data,
         },
         _ => throw new NotSupportedException(),
     };
@@ -1169,6 +1910,7 @@ public partial class WhiteboardView : UserControl
         if (ctrl && e.Key == Key.Z) { DoUndo(); e.Handled = true; return; }
         if (ctrl && e.Key == Key.Y) { DoRedo(); e.Handled = true; return; }
         if (ctrl && e.Key == Key.D) { DuplicateSelection(); e.Handled = true; return; }
+        if (ctrl && e.Key == Key.V) { if (PasteImageFromClipboard()) e.Handled = true; return; }
 
         switch (e.Key)
         {
@@ -1244,6 +1986,7 @@ public partial class WhiteboardView : UserControl
         _vm.PageIndex = idx;
         _page = _vm.Doc.Pages[idx];
         UpdatePageLabel();
+        if (SettingsPanel.Visibility == Visibility.Visible) RefreshSettingsPanel();
         Skia.InvalidateVisual();
     }
 
@@ -1458,20 +2201,39 @@ public partial class WhiteboardView : UserControl
         }
     }
 
-    /// <summary>Cover-Seite: Farbverlauf, Akzentlinie und Dokumenttitel.</summary>
+    /// <summary>Cover-Seite: Bild oder Farbverlauf, Akzentlinie und Dokumenttitel (Stil anpassbar).</summary>
     private void DrawCover(SKCanvas canvas)
     {
         if (_page == null) return;
         var rect = SKRect.Create(0, 0, _page.Width, _page.Height);
+        var cs = _vm?.Doc.Cover;
+
+        // Bild-Cover: füllt die Seite formatfüllend (mittig beschnitten)
+        if (cs?.Image is { Length: > 0 } imgData &&
+            ImageCache.Get(cs.ImageId, imgData) is { } coverImg)
+        {
+            float scale = Math.Max(rect.Width / coverImg.Width, rect.Height / coverImg.Height);
+            float w = coverImg.Width * scale, h = coverImg.Height * scale;
+            var dst = SKRect.Create(rect.MidX - w / 2f, rect.MidY - h / 2f, w, h);
+            canvas.Save();
+            canvas.ClipRect(rect);
+            using var ip = new SKPaint { IsAntialias = true, FilterQuality = SKFilterQuality.Medium };
+            canvas.DrawImage(coverImg, dst, ip);
+            canvas.Restore();
+            return;
+        }
 
         using (var grad = new SKPaint { IsAntialias = true })
         {
             grad.Shader = SKShader.CreateLinearGradient(
                 new SKPoint(0, 0), new SKPoint(_page.Width, _page.Height),
-                new[] { SKColor.Parse("#1E3A8A"), SKColor.Parse("#7C3AED") },
+                new[] { ParseColor(cs?.GradientStart ?? "#1E3A8A"), ParseColor(cs?.GradientEnd ?? "#7C3AED") },
                 null, SKShaderTileMode.Clamp);
             canvas.DrawRect(rect, grad);
         }
+
+        var coverBold = cs == null ? Fonts.Bold
+            : SKTypeface.FromFamilyName(cs.FontFamily, SKFontStyle.Bold) ?? Fonts.Bold;
 
         string title = _vm?.Item.Name ?? "";
         using var titlePaint = new SKPaint
@@ -1479,7 +2241,7 @@ public partial class WhiteboardView : UserControl
             Color = SKColors.White,
             IsAntialias = true,
             TextSize = 46,
-            Typeface = Fonts.Bold,
+            Typeface = coverBold,
             TextAlign = SKTextAlign.Center,
         };
         while (titlePaint.TextSize > 18 && titlePaint.MeasureText(title) > _page.Width * 0.8f)
@@ -1501,7 +2263,7 @@ public partial class WhiteboardView : UserControl
             Color = SKColors.White.WithAlpha(170),
             IsAntialias = true,
             TextSize = 15,
-            Typeface = Fonts.Regular,
+            Typeface = cs == null ? Fonts.Regular : SKTypeface.FromFamilyName(cs.FontFamily) ?? Fonts.Regular,
             TextAlign = SKTextAlign.Center,
         };
         canvas.DrawText("N O T I Z B U C H", _page.Width / 2f, _page.Height * 0.49f, subPaint);
@@ -1514,7 +2276,23 @@ public partial class WhiteboardView : UserControl
             case StrokeElement s: DrawStroke(canvas, s); break;
             case ShapeElement sh: DrawShape(canvas, sh, sh.Color, sh.StrokeWidth); break;
             case TextElement t: DrawText(canvas, t); break;
+            case ImageElement im: DrawImage(canvas, im); break;
         }
+    }
+
+    private static void DrawImage(SKCanvas canvas, ImageElement im)
+    {
+        var rect = SKRect.Create(im.X, im.Y, im.Width, im.Height);
+        var img = ImageCache.Get(im.Id, im.Data);
+        if (img == null)
+        {
+            // Nicht dekodierbar: Platzhalter, damit das Element auswählbar bleibt
+            using var ph = new SKPaint { Color = SKColors.Gray.WithAlpha(60) };
+            canvas.DrawRect(rect, ph);
+            return;
+        }
+        using var paint = new SKPaint { IsAntialias = true, FilterQuality = SKFilterQuality.Medium };
+        canvas.DrawImage(img, rect, paint);
     }
 
     private static SKPath BuildSmoothPath(List<WbPoint> pts)
@@ -1750,6 +2528,23 @@ public partial class WhiteboardView : UserControl
                 PathEffect = SKPathEffect.CreateDash(new[] { 6f / Zoom, 4f / Zoom }, 0),
             };
             canvas.DrawRect(b, stroke);
+
+            // Eckgriff zum Skalieren (nur bei einzelnem Bild)
+            if (_selection.Count == 1 && _selection.First() is ImageElement selIm)
+            {
+                float hs = 5f / Zoom;
+                var hr = SKRect.Create(selIm.X + selIm.Width - hs, selIm.Y + selIm.Height - hs, hs * 2, hs * 2);
+                using var hf = new SKPaint { Color = accent, IsAntialias = true };
+                canvas.DrawRect(hr, hf);
+                using var hw = new SKPaint
+                {
+                    Color = SKColors.White,
+                    Style = SKPaintStyle.Stroke,
+                    StrokeWidth = 1.2f / Zoom,
+                    IsAntialias = true,
+                };
+                canvas.DrawRect(hr, hw);
+            }
         }
 
         // Radierer-Cursor

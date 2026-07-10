@@ -18,7 +18,7 @@
     <!-- Vektor-Icons (16x16), wo die Icon-Schrift nichts Passendes bietet -->
     <Geometry x:Key="Icon.Whiteboard">M1.5,2.5 H14.5 V11 H1.5 Z M4,7.5 Q6,5 8,7 Q10,9 12,6 M5,11 L3.5,14.5 M11,11 L12.5,14.5</Geometry>
     <Geometry x:Key="Icon.Lasso">M8,2 C12,2 14.5,3.8 14.5,6 C14.5,8.2 12,10 8,10 C4,10 1.5,8.2 1.5,6 C1.5,3.8 4,2 8,2 Z M8,10 C8,11.8 10.2,11.6 10.2,13.4 M10.2,13.4 m-1.1,0 a1.1,1.1 0 1,0 2.2,0 a1.1,1.1 0 1,0 -2.2,0</Geometry>
-    <Geometry x:Key="Icon.SmoothPen">M8,1.5 C10.2,4.4 11.6,6.3 11.6,8.3 A3.6,3.6 0 1,1 4.4,8.3 C4.4,6.3 5.8,4.4 8,1.5 Z M8,8.3 m-1,0 a1,1 0 1,0 2,0 a1,1 0 1,0 -2,0</Geometry>
+    <Geometry x:Key="Icon.SmoothPen">M1.5,14.5 L5.5,7 L9.5,14.5 Z M14.8,5.4 A3.4,3.4 0 1,1 8,5.4 A3.4,3.4 0 1,1 14.8,5.4</Geometry>
     <Geometry x:Key="Icon.Table">M2,3 H14 V13 H2 Z M2,6.33 H14 M2,9.66 H14 M6,3 V13 M10,3 V13</Geometry>
     <Geometry x:Key="Icon.IndentInc">M7,3 H14 M7,8 H14 M7,13 H14 M2,5.5 L5,8 L2,10.5</Geometry>
     <Geometry x:Key="Icon.IndentDec">M7,3 H14 M7,8 H14 M7,13 H14 M5,5.5 L2,8 L5,10.5</Geometry>

@@ -110,6 +110,25 @@ public class TextElement : WbElement
     }
 }
 
+/// <summary>
+/// Eingebettetes Rasterbild. Data enthält PNG- oder JPEG-Bytes; große Bilder
+/// werden beim Import auf max. 2048 px Kantenlänge verkleinert (RAM-/DB-Größe).
+/// SVG wird beim Import gerastert.
+/// </summary>
+public class ImageElement : WbElement
+{
+    public float X { get; set; }
+    public float Y { get; set; }
+    public float Width { get; set; }
+    public float Height { get; set; }
+    public byte[] Data { get; set; } = Array.Empty<byte>();
+
+    public override void Translate(float dx, float dy)
+    {
+        X += dx; Y += dy;
+    }
+}
+
 /// <summary>Eine Seite. Width/Height = 0 bedeutet unendliche Fläche (Whiteboard-Modus).</summary>
 public class WbPage
 {
@@ -122,6 +141,20 @@ public class WbPage
     public bool IsCover { get; set; }
 
     public bool IsInfinite => Width <= 0 || Height <= 0;
+}
+
+/// <summary>Gestaltung der Cover-Seite eines Notizbuchs.</summary>
+public class CoverStyle
+{
+    public string GradientStart { get; set; } = "#1E3A8A";
+    public string GradientEnd { get; set; } = "#7C3AED";
+    public string FontFamily { get; set; } = "Segoe UI";
+
+    /// <summary>Optionales Bild als Cover (PNG/JPEG-Bytes); ersetzt den Farbverlauf.</summary>
+    public byte[]? Image { get; set; }
+
+    /// <summary>Cache-Schlüssel fürs Rendering; wird bei jedem Bildwechsel neu vergeben.</summary>
+    public Guid ImageId { get; set; } = Guid.NewGuid();
 }
 
 /// <summary>Vorlage für neue Notizbuch-Seiten.</summary>
@@ -147,6 +180,9 @@ public class WhiteboardDoc
 
     /// <summary>Vorlage für neue Seiten; null = A4 liniert.</summary>
     public PageTemplate? NewPageTemplate { get; set; }
+
+    /// <summary>Gestaltung des Covers; null = Standard (Blau-Lila-Verlauf, Segoe UI).</summary>
+    public CoverStyle? Cover { get; set; }
 
     public static WhiteboardDoc NewWhiteboard(Guid id) => new()
     {

@@ -29,6 +29,7 @@
   <ItemGroup>
     <PackageReference Include="LiteDB" Version="5.0.21" />
     <PackageReference Include="SkiaSharp.Views.WPF" Version="2.88.9" />
+    <PackageReference Include="Svg.Skia" Version="1.0.0.18" />
   </ItemGroup>
 
   <ItemGroup>

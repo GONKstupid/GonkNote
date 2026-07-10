@@ -14,18 +14,18 @@
 
                     <!-- Stifte -->
                     <ToggleButton x:Name="BtnPen" Style="{StaticResource ToolButton}" Content="&#xE70F;"
-                                  ToolTip="Stift (S)" Checked="Tool_Checked" Tag="Pen"/>
+                                  ToolTip="Stift (S) – erneut tippen für weitere Stifte" Checked="Tool_Checked" Tag="Pen"/>
                     <ToggleButton x:Name="BtnSmoothPen" Style="{StaticResource ToolButton}"
-                                  ToolTip="Glättstift – glättet Linien automatisch (G)" Checked="Tool_Checked" Tag="SmoothPen">
+                                  ToolTip="Formen-Stift (G) – erkennt Linien, Kreise, Rechtecke &amp; Co., glättet Kurven; erneut tippen für weitere Stifte" Checked="Tool_Checked" Tag="SmoothPen">
                         <Path Data="{StaticResource Icon.SmoothPen}" StrokeThickness="1.3"
                               StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
                               Width="16" Height="16"
                               Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ToggleButton}}"/>
                     </ToggleButton>
                     <ToggleButton x:Name="BtnPencil" Style="{StaticResource ToolButton}" Content="&#xE76D;"
-                                  ToolTip="Bleistift (B)" Checked="Tool_Checked" Tag="Pencil"/>
+                                  ToolTip="Bleistift (B) – erneut tippen für weitere Stifte" Checked="Tool_Checked" Tag="Pencil"/>
                     <ToggleButton x:Name="BtnHighlighter" Style="{StaticResource ToolButton}" Content="&#xE7E6;"
-                                  ToolTip="Textmarker (M)" Checked="Tool_Checked" Tag="Highlighter"/>
+                                  ToolTip="Textmarker (M) – erneut tippen für weitere Stifte" Checked="Tool_Checked" Tag="Highlighter"/>
                     <ToggleButton x:Name="BtnEraser" Style="{StaticResource ToolButton}" Content="&#xE75C;"
                                   ToolTip="Radiergummi (E)" Checked="Tool_Checked" Tag="Eraser"/>
 
@@ -150,6 +150,12 @@
 
                     <Border Width="1" Background="{DynamicResource Brush.Border}" Margin="6,4"/>
 
+                    <Button Style="{StaticResource IconButton}" Content="&#xE8B9;"
+                            ToolTip="Bild einfügen (PNG, JPEG, SVG …) – auch per Strg+V oder Drag &amp; Drop"
+                            Click="InsertImage_Click"/>
+
+                    <Border Width="1" Background="{DynamicResource Brush.Border}" Margin="6,4"/>
+
                     <Button Style="{StaticResource IconButton}" Content="&#xE713;"
                             ToolTip="Hintergrund &amp; Seitenformat" Click="PageSetup_Click"/>
 
@@ -176,8 +182,132 @@
             </StackPanel>
         </Border>
 
+        <!-- ===== Einstellungen (rechte Seitenleiste, wie Word-Formatbereich) ===== -->
+        <Border x:Name="SettingsPanel" DockPanel.Dock="Right" Width="270" Visibility="Collapsed"
+                Background="{DynamicResource Brush.ToolbarBg}"
+                BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1,0,0,0">
+            <DockPanel>
+                <Border DockPanel.Dock="Top" BorderBrush="{DynamicResource Brush.Border}"
+                        BorderThickness="0,0,0,1" Padding="14,8">
+                    <DockPanel>
+                        <Button DockPanel.Dock="Right" Style="{StaticResource IconButton}" Content="&#xE711;"
+                                ToolTip="Einstellungen schließen" Click="PageSetup_Click"/>
+                        <TextBlock Text="Einstellungen" FontWeight="SemiBold" FontSize="14"
+                                   Foreground="{DynamicResource Brush.Text}" VerticalAlignment="Center"/>
+                    </DockPanel>
+                </Border>
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="14,12">
+
+                        <!-- Seite -->
+                        <TextBlock Text="Seite" FontWeight="SemiBold" Foreground="{DynamicResource Brush.Accent}"
+                                   Margin="0,0,0,8"/>
+
+                        <TextBlock Text="Muster" FontWeight="SemiBold" Margin="0,0,0,4"
+                                   Foreground="{DynamicResource Brush.Text}"/>
+                        <UniformGrid Columns="2" Margin="0,0,0,12">
+                            <RadioButton x:Name="SetBgBlank" Content="Blanko" GroupName="setBg" Margin="0,2"
+                                         Foreground="{DynamicResource Brush.Text}" Checked="PageSetting_Changed"/>
+                            <RadioButton x:Name="SetBgLines" Content="Liniert" GroupName="setBg" Margin="0,2"
+                                         Foreground="{DynamicResource Brush.Text}" Checked="PageSetting_Changed"/>
+                            <RadioButton x:Name="SetBgGrid" Content="Kariert" GroupName="setBg" Margin="0,2"
+                                         Foreground="{DynamicResource Brush.Text}" Checked="PageSetting_Changed"/>
+                            <RadioButton x:Name="SetBgDots" Content="Punktiert" GroupName="setBg" Margin="0,2"
+                                         Foreground="{DynamicResource Brush.Text}" Checked="PageSetting_Changed"/>
+                        </UniformGrid>
+
+                        <TextBlock Text="Farbton" FontWeight="SemiBold" Margin="0,0,0,4"
+                                   Foreground="{DynamicResource Brush.Text}"/>
+                        <UniformGrid Columns="2" Margin="0,0,0,12">
+                            <RadioButton x:Name="SetShadeAuto" Content="Wie App-Design" GroupName="setShade" Margin="0,2"
+                                         Foreground="{DynamicResource Brush.Text}" Checked="PageSetting_Changed"/>
+                            <RadioButton x:Name="SetShadeLight" Content="Hell" GroupName="setShade" Margin="0,2"
+                                         Foreground="{DynamicResource Brush.Text}" Checked="PageSetting_Changed"/>
+                            <RadioButton x:Name="SetShadeDark" Content="Dunkel" GroupName="setShade" Margin="0,2"
+                                         Foreground="{DynamicResource Brush.Text}" Checked="PageSetting_Changed"/>
+                        </UniformGrid>
+
+                        <StackPanel x:Name="SetSizeSection">
+                            <TextBlock Text="Format" FontWeight="SemiBold" Margin="0,0,0,4"
+                                       Foreground="{DynamicResource Brush.Text}"/>
+                            <UniformGrid Columns="2" Margin="0,0,0,12">
+                                <RadioButton x:Name="SetSizeA4" Content="A4" GroupName="setSize" Margin="0,2"
+                                             Foreground="{DynamicResource Brush.Text}" Checked="PageSetting_Changed"/>
+                                <RadioButton x:Name="SetSizeA3" Content="A3" GroupName="setSize" Margin="0,2"
+                                             Foreground="{DynamicResource Brush.Text}" Checked="PageSetting_Changed"/>
+                            </UniformGrid>
+
+                            <TextBlock Text="Ausrichtung" FontWeight="SemiBold" Margin="0,0,0,4"
+                                       Foreground="{DynamicResource Brush.Text}"/>
+                            <UniformGrid Columns="2" Margin="0,0,0,12">
+                                <RadioButton x:Name="SetOrientPortrait" Content="Hochformat" GroupName="setOrient" Margin="0,2"
+                                             Foreground="{DynamicResource Brush.Text}" Checked="PageSetting_Changed"/>
+                                <RadioButton x:Name="SetOrientLandscape" Content="Querformat" GroupName="setOrient" Margin="0,2"
+                                             Foreground="{DynamicResource Brush.Text}" Checked="PageSetting_Changed"/>
+                            </UniformGrid>
+
+                            <CheckBox x:Name="SetAsDefault" Content="Als Standard für neue Seiten"
+                                      Foreground="{DynamicResource Brush.Text}" Margin="0,0,0,12"
+                                      Checked="PageSetting_Changed" Unchecked="PageSetting_Changed"/>
+                        </StackPanel>
+
+                        <!-- Cover (nur Notizbücher) -->
+                        <StackPanel x:Name="CoverSection" Visibility="Collapsed">
+                            <Border Height="1" Background="{DynamicResource Brush.Border}" Margin="0,2,0,12"/>
+                            <TextBlock Text="Cover" FontWeight="SemiBold" Foreground="{DynamicResource Brush.Accent}"
+                                       Margin="0,0,0,8"/>
+
+                            <TextBlock Text="Farbverlauf" FontWeight="SemiBold" Margin="0,0,0,4"
+                                       Foreground="{DynamicResource Brush.Text}"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                                <Button Style="{StaticResource FlatButton}" Click="CoverStart_Click" ToolTip="Startfarbe wählen">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Border x:Name="CoverStartSwatch" Width="14" Height="14" CornerRadius="3"
+                                                Background="#1E3A8A" Margin="0,0,6,0"/>
+                                        <TextBlock Text="Start" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Style="{StaticResource FlatButton}" Click="CoverEnd_Click" Margin="8,0,0,0"
+                                        ToolTip="Endfarbe wählen">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Border x:Name="CoverEndSwatch" Width="14" Height="14" CornerRadius="3"
+                                                Background="#7C3AED" Margin="0,0,6,0"/>
+                                        <TextBlock Text="Ende" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+
+                            <TextBlock Text="Schrift" FontWeight="SemiBold" Margin="0,0,0,4"
+                                       Foreground="{DynamicResource Brush.Text}"/>
+                            <ComboBox x:Name="CoverFontBox" Margin="0,0,0,12"
+                                      SelectionChanged="CoverFont_Changed">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding}" FontFamily="{Binding}"/>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+
+                            <TextBlock Text="Bild als Cover" FontWeight="SemiBold" Margin="0,0,0,4"
+                                       Foreground="{DynamicResource Brush.Text}"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                <Button Content="Bild wählen…" Style="{StaticResource FlatButton}" Click="CoverImage_Click"/>
+                                <Button x:Name="BtnCoverImageRemove" Content="Entfernen" Style="{StaticResource FlatButton}"
+                                        Click="CoverImageRemove_Click" Margin="8,0,0,0" IsEnabled="False"/>
+                            </StackPanel>
+                            <TextBlock Text="Das Bild ersetzt Verlauf und Titel auf dem Cover."
+                                       Foreground="{DynamicResource Brush.TextMuted}" FontSize="11"
+                                       TextWrapping="Wrap" Margin="0,0,0,12"/>
+                        </StackPanel>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </DockPanel>
+        </Border>
+
         <!-- ===== Zeichenfläche ===== -->
-        <Grid x:Name="CanvasHost" Background="Transparent" ClipToBounds="True">
+        <Grid x:Name="CanvasHost" Background="Transparent" ClipToBounds="True"
+              AllowDrop="True" DragOver="CanvasHost_DragOver" Drop="CanvasHost_Drop">
             <skia:SKElement x:Name="Skia" PaintSurface="Skia_PaintSurface"/>
             <Canvas x:Name="Overlay" Background="{x:Null}">
                 <TextBox x:Name="EditBox" Visibility="Collapsed" AcceptsReturn="True"

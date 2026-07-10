@@ -89,6 +89,65 @@ public sealed class TextChangeAction : IEditAction
     public void Undo(WbPage page) => _element.Text = _oldText;
 }
 
+/// <summary>Ein Radier-Schritt: ein Element wurde entfernt und ggf. durch Teilstücke ersetzt.</summary>
+public sealed record EraseStep(WbElement Removed, int Index, List<WbElement> Added);
+
+/// <summary>
+/// Punktgenaues Radieren: Striche werden an der Berührstelle aufgetrennt.
+/// Die Schritte sind geordnet, weil spätere Schritte Teilstücke früherer treffen können.
+/// </summary>
+public sealed class PartialEraseAction : IEditAction
+{
+    private readonly List<EraseStep> _steps;
+
+    public PartialEraseAction(List<EraseStep> steps) => _steps = steps;
+
+    public void Redo(WbPage page)
+    {
+        foreach (var s in _steps)
+        {
+            int idx = page.Elements.IndexOf(s.Removed);
+            if (idx >= 0) page.Elements.RemoveAt(idx);
+            else idx = Math.Min(s.Index, page.Elements.Count);
+            page.Elements.InsertRange(Math.Min(idx, page.Elements.Count), s.Added);
+        }
+    }
+
+    public void Undo(WbPage page)
+    {
+        for (int i = _steps.Count - 1; i >= 0; i--)
+        {
+            var s = _steps[i];
+            int idx = -1;
+            foreach (var a in s.Added)
+            {
+                int j = page.Elements.IndexOf(a);
+                if (j < 0) continue;
+                if (idx < 0) idx = j;
+                page.Elements.RemoveAt(j);
+            }
+            if (idx < 0) idx = Math.Min(s.Index, page.Elements.Count);
+            page.Elements.Insert(Math.Min(idx, page.Elements.Count), s.Removed);
+        }
+    }
+}
+
+public sealed class ResizeImageAction : IEditAction
+{
+    private readonly ImageElement _element;
+    private readonly float _oldW, _oldH, _newW, _newH;
+
+    public ResizeImageAction(ImageElement element, float oldW, float oldH, float newW, float newH)
+    {
+        _element = element;
+        _oldW = oldW; _oldH = oldH;
+        _newW = newW; _newH = newH;
+    }
+
+    public void Redo(WbPage page) { _element.Width = _newW; _element.Height = _newH; }
+    public void Undo(WbPage page) { _element.Width = _oldW; _element.Height = _oldH; }
+}
+
 /// <summary>Undo/Redo pro Dokument; jede Aktion kennt ihre Seite.</summary>
 public sealed class UndoStack
 {

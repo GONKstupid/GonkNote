@@ -63,11 +63,7 @@ public partial class MainWindow : Window
 
     private void About_Click(object sender, RoutedEventArgs e)
     {
-        MessageBox.Show(this,
-            "Gonk Note 0.1 – Phase 1\n\n" +
-            "Offline-Notizen, Whiteboards und Textdokumente.\n" +
-            "Daten liegen lokal unter %APPDATA%\\GonkNote.",
-            "Über Gonk Note", MessageBoxButton.OK, MessageBoxImage.Information);
+        new Views.AboutDialog { Owner = this }.ShowDialog();
     }
 
     // ==================== Baum: Auswahl & Öffnen ====================

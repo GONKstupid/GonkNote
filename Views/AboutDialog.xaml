@@ -1,0 +1,43 @@
+<Window x:Class="GonkNote.Views.AboutDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Über Gonk Note" Width="620" Height="640"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource Brush.WindowBg}"
+        FontFamily="Segoe UI" FontSize="13"
+        Foreground="{DynamicResource Brush.Text}"
+        ShowInTaskbar="False">
+    <DockPanel Margin="18">
+
+        <!-- Kopf -->
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,12">
+            <Image Source="/Assets/gonk-note-Icon.png" Width="40" Height="40"
+                   RenderOptions.BitmapScalingMode="HighQuality" VerticalAlignment="Center"/>
+            <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
+                <TextBlock Text="Gonk Note" FontSize="19" FontWeight="SemiBold"/>
+                <TextBlock x:Name="VersionText" Foreground="{DynamicResource Brush.TextMuted}"/>
+            </StackPanel>
+        </StackPanel>
+
+        <TextBlock DockPanel.Dock="Top" Foreground="{DynamicResource Brush.TextMuted}"
+                   TextWrapping="Wrap" Margin="0,0,0,12"
+                   Text="Offline-Notizen, Whiteboards und Textdokumente. Daten liegen lokal unter %APPDATA%\GonkNote."/>
+
+        <!-- Fußzeile -->
+        <Button DockPanel.Dock="Bottom" Content="Schließen" Style="{StaticResource AccentButton}"
+                MinWidth="110" HorizontalAlignment="Right" Margin="0,12,0,0"
+                IsCancel="True" IsDefault="True"/>
+
+        <!-- README -->
+        <Border BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1" CornerRadius="6"
+                Background="{DynamicResource Brush.CardBg}">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="14,10">
+                <TextBox x:Name="ReadmeText" IsReadOnly="True" BorderThickness="0"
+                         Background="Transparent" Foreground="{DynamicResource Brush.Text}"
+                         FontFamily="Consolas" FontSize="12" TextWrapping="Wrap"
+                         IsReadOnlyCaretVisible="False"/>
+            </ScrollViewer>
+        </Border>
+
+    </DockPanel>
+</Window>

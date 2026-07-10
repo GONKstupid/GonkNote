@@ -16,6 +16,9 @@ public sealed class MainViewModel : ObservableObject
     public ObservableCollection<TreeItemViewModel> RootItems { get; } = new();
     public ObservableCollection<DocumentTabViewModel> OpenTabs { get; } = new();
 
+    /// <summary>Angepinnte Ordner für den Schnellzugriff-Bereich der Seitenleiste.</summary>
+    public ObservableCollection<TreeItemViewModel> PinnedFolders { get; } = new();
+
     public MainViewModel(DatabaseService db)
     {
         _db = db;
@@ -28,6 +31,9 @@ public sealed class MainViewModel : ObservableObject
         RenameCommand = new RelayCommand(p => { if (p is TreeItemViewModel t) t.IsRenaming = true; });
         DeleteCommand = new RelayCommand(p => DeleteItem(p as TreeItemViewModel));
         OpenItemCommand = new RelayCommand(p => { if (p is TreeItemViewModel t) OpenItem(t); });
+        TogglePinCommand = new RelayCommand(p => TogglePinned(p as TreeItemViewModel));
+        ToggleFavoriteCommand = new RelayCommand(p => ToggleFavorite(p as TreeItemViewModel));
+        OpenPinnedCommand = new RelayCommand(p => { if (p is TreeItemViewModel t) RevealItem(t); });
         CloseTabCommand = new RelayCommand(p => { if (p is DocumentTabViewModel t) CloseTab(t); });
         SaveCommand = new RelayCommand(() => SelectedTab?.Save());
         SaveAllCommand = new RelayCommand(SaveAll);
@@ -67,6 +73,9 @@ public sealed class MainViewModel : ObservableObject
     public RelayCommand RenameCommand { get; }
     public RelayCommand DeleteCommand { get; }
     public RelayCommand OpenItemCommand { get; }
+    public RelayCommand TogglePinCommand { get; }
+    public RelayCommand ToggleFavoriteCommand { get; }
+    public RelayCommand OpenPinnedCommand { get; }
     public RelayCommand CloseTabCommand { get; }
     public RelayCommand SaveCommand { get; }
     public RelayCommand SaveAllCommand { get; }
@@ -103,12 +112,65 @@ public sealed class MainViewModel : ObservableObject
 
         foreach (var vm in byId.Values) vm.SortChildren();
         SortRoot();
+        RefreshPinned();
+    }
+
+    // ---------- Anpinnen / Favoriten ----------
+
+    /// <summary>Pin-Status eines Ordners umschalten (Schnellzugriff-Bereich).</summary>
+    public void TogglePinned(TreeItemViewModel? vm)
+    {
+        if (vm is not { IsFolder: true }) return;
+        vm.Item.IsPinned = !vm.Item.IsPinned;
+        _db.UpsertItem(vm.Item);
+        vm.RefreshPinFavorite();
+        RefreshPinned();
+    }
+
+    /// <summary>Favoriten-Status eines Ordners umschalten (wird im Ordner zuerst angezeigt).</summary>
+    public void ToggleFavorite(TreeItemViewModel? vm)
+    {
+        if (vm is not { IsFolder: true }) return;
+        vm.Item.IsFavorite = !vm.Item.IsFavorite;
+        _db.UpsertItem(vm.Item);
+        vm.RefreshPinFavorite();
+        FindParent(vm)?.SortChildren();
+        if (vm.Item.ParentId == null) SortRoot();
+    }
+
+    /// <summary>Baut die Schnellzugriff-Liste neu auf (alle angepinnten Ordner, alphabetisch).</summary>
+    private void RefreshPinned()
+    {
+        var pinned = new List<TreeItemViewModel>();
+        void Walk(IEnumerable<TreeItemViewModel> items)
+        {
+            foreach (var it in items)
+            {
+                if (it is { IsFolder: true, IsPinned: true }) pinned.Add(it);
+                Walk(it.Children);
+            }
+        }
+        Walk(RootItems);
+
+        PinnedFolders.Clear();
+        foreach (var p in pinned.OrderBy(p => p.Name, StringComparer.CurrentCultureIgnoreCase))
+            PinnedFolders.Add(p);
+    }
+
+    /// <summary>Springt im Baum zu einem Eintrag: Vorfahren aufklappen und auswählen.</summary>
+    public void RevealItem(TreeItemViewModel vm)
+    {
+        for (var p = FindParent(vm); p != null; p = FindParent(p))
+            p.IsExpanded = true;
+        vm.IsExpanded = true;
+        vm.IsSelected = true;
     }
 
     private void SortRoot()
     {
         var sorted = RootItems
             .OrderByDescending(c => c.IsFolder)
+            .ThenByDescending(c => c.IsFavorite)
             .ThenBy(c => c.Name, StringComparer.CurrentCultureIgnoreCase)
             .ToList();
         for (int i = 0; i < sorted.Count; i++)
@@ -211,6 +273,7 @@ public sealed class MainViewModel : ObservableObject
 
         var parent = FindParent(vm);
         (parent?.Children ?? RootItems).Remove(vm);
+        RefreshPinned();
     }
 
     private void CloseTabsRecursive(TreeItemViewModel vm)
@@ -291,6 +354,7 @@ public sealed class MainViewModel : ObservableObject
         if (vm.Item.ParentId == null) SortRoot();
 
         OpenTabs.FirstOrDefault(t => t.Id == vm.Id)?.NotifyRenamed();
+        if (vm.IsPinned) RefreshPinned();
 
         if (_pendingOpen == vm)
         {

@@ -74,10 +74,26 @@ public sealed class TreeItemViewModel : ObservableObject
 
     public void RefreshIcon() => OnPropertyChanged(nameof(IconBrush));
 
+    public bool IsPinned => Item.IsPinned;
+    public bool IsFavorite => Item.IsFavorite;
+    public Visibility FavoriteVisibility => Item.IsFavorite ? Visibility.Visible : Visibility.Collapsed;
+    public string PinMenuHeader => Item.IsPinned ? "Nicht mehr anpinnen" : "Anpinnen";
+    public string FavoriteMenuHeader => Item.IsFavorite ? "Favorit entfernen" : "Als Favorit";
+
+    public void RefreshPinFavorite()
+    {
+        OnPropertyChanged(nameof(IsPinned));
+        OnPropertyChanged(nameof(IsFavorite));
+        OnPropertyChanged(nameof(FavoriteVisibility));
+        OnPropertyChanged(nameof(PinMenuHeader));
+        OnPropertyChanged(nameof(FavoriteMenuHeader));
+    }
+
     public void SortChildren()
     {
         var sorted = Children
             .OrderByDescending(c => c.IsFolder)
+            .ThenByDescending(c => c.IsFavorite)
             .ThenBy(c => c.Name, StringComparer.CurrentCultureIgnoreCase)
             .ToList();
         for (int i = 0; i < sorted.Count; i++)

@@ -14,18 +14,18 @@
 
                     <!-- Stifte -->
                     <ToggleButton x:Name="BtnPen" Style="{StaticResource ToolButton}" Content="&#xE70F;"
-                                  ToolTip="Stift (S) – erneut tippen für weitere Stifte" Checked="Tool_Checked" Tag="Pen"/>
+                                  ToolTip="Stift (S)" Checked="Tool_Checked" Tag="Pen"/>
                     <ToggleButton x:Name="BtnSmoothPen" Style="{StaticResource ToolButton}"
-                                  ToolTip="Formen-Stift (G) – erkennt Linien, Kreise, Rechtecke &amp; Co., glättet Kurven; erneut tippen für weitere Stifte" Checked="Tool_Checked" Tag="SmoothPen">
+                                  ToolTip="Formen-Stift (G) – erkennt Linien, Kreise, Rechtecke &amp; Co., glättet Kurven" Checked="Tool_Checked" Tag="SmoothPen">
                         <Path Data="{StaticResource Icon.SmoothPen}" StrokeThickness="1.3"
                               StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
                               Width="16" Height="16"
                               Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ToggleButton}}"/>
                     </ToggleButton>
                     <ToggleButton x:Name="BtnPencil" Style="{StaticResource ToolButton}" Content="&#xE76D;"
-                                  ToolTip="Bleistift (B) – erneut tippen für weitere Stifte" Checked="Tool_Checked" Tag="Pencil"/>
+                                  ToolTip="Bleistift (B)" Checked="Tool_Checked" Tag="Pencil"/>
                     <ToggleButton x:Name="BtnHighlighter" Style="{StaticResource ToolButton}" Content="&#xE7E6;"
-                                  ToolTip="Textmarker (M) – erneut tippen für weitere Stifte" Checked="Tool_Checked" Tag="Highlighter"/>
+                                  ToolTip="Textmarker (M)" Checked="Tool_Checked" Tag="Highlighter"/>
                     <ToggleButton x:Name="BtnEraser" Style="{StaticResource ToolButton}" Content="&#xE75C;"
                                   ToolTip="Radiergummi (E)" Checked="Tool_Checked" Tag="Eraser"/>
 
@@ -45,48 +45,13 @@
                     <ToggleButton x:Name="BtnPan" Style="{StaticResource ToolButton}" Content="&#xE7C9;"
                                   ToolTip="Verschieben (H) – oder mittlere Maustaste" Checked="Tool_Checked" Tag="Pan"/>
 
-                    <!-- Formauswahl (nur bei Formen-Werkzeug sichtbar) -->
-                    <StackPanel x:Name="ShapePicker" Orientation="Horizontal" Visibility="Collapsed">
-                        <Border Width="1" Background="{DynamicResource Brush.Border}" Margin="6,4"/>
-                        <ToggleButton x:Name="BtnShapeLine" Style="{StaticResource ToolButton}" FontFamily="Segoe UI"
-                                      Content="╱" ToolTip="Linie" Checked="Shape_Checked" Tag="Line"/>
-                        <ToggleButton x:Name="BtnShapeArrow" Style="{StaticResource ToolButton}" FontFamily="Segoe UI"
-                                      Content="→" ToolTip="Pfeil" Checked="Shape_Checked" Tag="Arrow"/>
-                        <ToggleButton x:Name="BtnShapeRect" Style="{StaticResource ToolButton}" FontFamily="Segoe UI"
-                                      Content="▭" ToolTip="Rechteck" Checked="Shape_Checked" Tag="Rectangle"/>
-                        <ToggleButton x:Name="BtnShapeEllipse" Style="{StaticResource ToolButton}" FontFamily="Segoe UI"
-                                      Content="◯" ToolTip="Ellipse" Checked="Shape_Checked" Tag="Ellipse"/>
-                        <ToggleButton x:Name="BtnShapeTriangle" Style="{StaticResource ToolButton}" FontFamily="Segoe UI"
-                                      Content="△" ToolTip="Dreieck" Checked="Shape_Checked" Tag="Triangle"/>
-
-                        <Border Width="1" Background="{DynamicResource Brush.Border}" Margin="6,4"/>
-
-                        <!-- Füllung -->
-                        <ToggleButton x:Name="BtnShapeFill" Style="{StaticResource ToolButton}"
-                                      ToolTip="Füllung ein/aus"
-                                      Checked="ShapeFill_Changed" Unchecked="ShapeFill_Changed">
-                            <Border Width="14" Height="14" CornerRadius="3"
-                                    Background="{StaticResource CheckerBrush}" ClipToBounds="True">
-                                <Rectangle x:Name="FillPreviewRect" Fill="#6614B8A6"/>
-                            </Border>
-                        </ToggleButton>
-                        <Button Style="{StaticResource IconButton}" ToolTip="Füllfarbe wählen"
-                                Click="PickFillColor_Click" Content="&#xE790;"/>
-                        <TextBlock Text="Deckkraft" VerticalAlignment="Center" Margin="6,0,4,0"
-                                   Foreground="{DynamicResource Brush.TextMuted}" FontSize="11"/>
-                        <Slider x:Name="FillOpacitySlider" Width="70" Minimum="0" Maximum="100" Value="40"
-                                VerticalAlignment="Center" ValueChanged="FillOpacity_ValueChanged"/>
-                        <TextBlock x:Name="FillOpacityLabel" Text="40 %" Width="34" VerticalAlignment="Center"
-                                   Margin="4,0,0,0" Foreground="{DynamicResource Brush.TextMuted}" FontSize="11"/>
-                    </StackPanel>
-
                     <Border Width="1" Background="{DynamicResource Brush.Border}" Margin="6,4"/>
 
                     <!-- Farben -->
                     <StackPanel x:Name="ColorPanel" Orientation="Horizontal" VerticalAlignment="Center">
                         <RadioButton Style="{StaticResource ColorSwatch}" GroupName="ink" IsChecked="True"
-                                     Background="{DynamicResource Brush.Text}" Tag="auto"
-                                     ToolTip="Standard" Checked="Color_Checked"/>
+                                     Background="#000000" Tag="auto"
+                                     ToolTip="Standard (Schwarz)" Checked="Color_Checked"/>
                         <RadioButton Style="{StaticResource ColorSwatch}" GroupName="ink"
                                      Background="#2563EB" Tag="#FF2563EB" ToolTip="Blau" Checked="Color_Checked"/>
                         <RadioButton Style="{StaticResource ColorSwatch}" GroupName="ink"
@@ -249,6 +214,97 @@
                             <CheckBox x:Name="SetAsDefault" Content="Als Standard für neue Seiten"
                                       Foreground="{DynamicResource Brush.Text}" Margin="0,0,0,12"
                                       Checked="PageSetting_Changed" Unchecked="PageSetting_Changed"/>
+                        </StackPanel>
+
+                        <!-- Formen -->
+                        <StackPanel x:Name="ShapeSection">
+                            <Border Height="1" Background="{DynamicResource Brush.Border}" Margin="0,2,0,12"/>
+                            <TextBlock Text="Formen" FontWeight="SemiBold" Foreground="{DynamicResource Brush.Accent}"
+                                       Margin="0,0,0,8"/>
+
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                <ToggleButton x:Name="BtnShapeLine" Style="{StaticResource ToolButton}" FontFamily="Segoe UI"
+                                              Content="╱" ToolTip="Linie" Checked="Shape_Checked" Tag="Line"/>
+                                <ToggleButton x:Name="BtnShapeArrow" Style="{StaticResource ToolButton}" FontFamily="Segoe UI"
+                                              Content="→" ToolTip="Pfeil" Checked="Shape_Checked" Tag="Arrow"/>
+                                <ToggleButton x:Name="BtnShapeRect" Style="{StaticResource ToolButton}" FontFamily="Segoe UI"
+                                              Content="▭" ToolTip="Rechteck" Checked="Shape_Checked" Tag="Rectangle"/>
+                                <ToggleButton x:Name="BtnShapeEllipse" Style="{StaticResource ToolButton}" FontFamily="Segoe UI"
+                                              Content="◯" ToolTip="Ellipse" Checked="Shape_Checked" Tag="Ellipse"/>
+                                <ToggleButton x:Name="BtnShapeTriangle" Style="{StaticResource ToolButton}" FontFamily="Segoe UI"
+                                              Content="△" ToolTip="Dreieck" Checked="Shape_Checked" Tag="Triangle"/>
+                            </StackPanel>
+
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                <ToggleButton x:Name="BtnShapeFill" Style="{StaticResource ToolButton}"
+                                              ToolTip="Füllung ein/aus"
+                                              Checked="ShapeFill_Changed" Unchecked="ShapeFill_Changed">
+                                    <Border Width="14" Height="14" CornerRadius="3"
+                                            Background="{StaticResource CheckerBrush}" ClipToBounds="True">
+                                        <Rectangle x:Name="FillPreviewRect" Fill="#6614B8A6"/>
+                                    </Border>
+                                </ToggleButton>
+                                <Button Style="{StaticResource IconButton}" ToolTip="Füllfarbe wählen"
+                                        Click="PickFillColor_Click" Content="&#xE790;"/>
+                                <TextBlock Text="Füllung" VerticalAlignment="Center" Margin="6,0,0,0"
+                                           Foreground="{DynamicResource Brush.Text}"/>
+                            </StackPanel>
+
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                                <TextBlock Text="Deckkraft" VerticalAlignment="Center" Margin="0,0,6,0"
+                                           Foreground="{DynamicResource Brush.TextMuted}" FontSize="11"/>
+                                <Slider x:Name="FillOpacitySlider" Width="110" Minimum="0" Maximum="100" Value="40"
+                                        VerticalAlignment="Center" ValueChanged="FillOpacity_ValueChanged"/>
+                                <TextBlock x:Name="FillOpacityLabel" Text="40 %" Width="34" VerticalAlignment="Center"
+                                           Margin="4,0,0,0" Foreground="{DynamicResource Brush.TextMuted}" FontSize="11"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!-- Text-Werkzeug -->
+                        <StackPanel x:Name="TextSection">
+                            <Border Height="1" Background="{DynamicResource Brush.Border}" Margin="0,2,0,12"/>
+                            <TextBlock Text="Text" FontWeight="SemiBold" Foreground="{DynamicResource Brush.Accent}"
+                                       Margin="0,0,0,8"/>
+
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                <Button Style="{StaticResource FlatButton}" Click="TextColor_Click" ToolTip="Textfarbe wählen (gilt auch als Tintenfarbe)">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Border x:Name="TextColorSwatch" Width="14" Height="14" CornerRadius="3"
+                                                Background="#000000" Margin="0,0,6,0"
+                                                BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1"/>
+                                        <TextBlock Text="Textfarbe" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                <Button Style="{StaticResource FlatButton}" Click="TextBg_Click" ToolTip="Hintergrundfarbe des Textfelds">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Border Width="14" Height="14" CornerRadius="3" Margin="0,0,6,0"
+                                                Background="{StaticResource CheckerBrush}" ClipToBounds="True"
+                                                BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1">
+                                            <Border x:Name="TextBgSwatch" Background="Transparent"/>
+                                        </Border>
+                                        <TextBlock Text="Hintergrund" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Style="{StaticResource FlatButton}" Content="Transparent"
+                                        Click="TextBgClear_Click" Margin="8,0,0,0"/>
+                            </StackPanel>
+
+                            <TextBlock Text="Schriftart" FontWeight="SemiBold" Margin="0,0,0,4"
+                                       Foreground="{DynamicResource Brush.Text}"/>
+                            <ComboBox x:Name="TextFontBox" Margin="0,0,0,4"
+                                      SelectionChanged="TextFont_Changed">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding}" FontFamily="{Binding}"/>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                            <TextBlock Text="Wirkt auf neue Textfelder sowie das gerade bearbeitete bzw. ausgewählte."
+                                       Foreground="{DynamicResource Brush.TextMuted}" FontSize="11"
+                                       TextWrapping="Wrap" Margin="0,0,0,12"/>
                         </StackPanel>
 
                         <!-- Cover (nur Notizbücher) -->

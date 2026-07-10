@@ -100,6 +100,9 @@ public partial class WhiteboardView : UserControl
         CanvasHost.StylusDown += OnStylusDown;
         CanvasHost.StylusMove += OnStylusMove;
         CanvasHost.StylusUp += OnStylusUp;
+        CanvasHost.TouchDown += OnTouchDown;
+        CanvasHost.TouchMove += OnTouchMove;
+        CanvasHost.TouchUp += OnTouchUp;
 
         PreviewKeyDown += OnPreviewKeyDown;
         PreviewKeyUp += OnPreviewKeyUp;
@@ -152,8 +155,11 @@ public partial class WhiteboardView : UserControl
         _suppressToolEvents = false;
 
         SetTool(Enum.Parse<ToolType>((string)btn.Tag));
+
+        // Ein Klick genügt: Stift auswählen klappt die Stifte-Gruppe aus,
+        // ein anderes Werkzeug klappt sie wieder ein
         if (IsPenTool(_tool)) _lastPen = _tool;
-        SetPenGroupExpanded(false);
+        SetPenGroupExpanded(IsPenTool(_tool));
     }
 
     private void Tool_Unchecked(object? sender, RoutedEventArgs e)
@@ -166,10 +172,6 @@ public partial class WhiteboardView : UserControl
             _suppressToolEvents = true;
             btn.IsChecked = true;
             _suppressToolEvents = false;
-
-            // Zweiter Klick auf den aktiven Stift klappt die Stifte-Gruppe aus/ein
-            if (PenButtons.Contains(btn))
-                SetPenGroupExpanded(!_penGroupExpanded);
         }
     }
 
@@ -198,8 +200,14 @@ public partial class WhiteboardView : UserControl
         if (tool != ToolType.Lasso) ClearSelection();
 
         _tool = tool;
-        ShapePicker.Visibility = tool == ToolType.Shape ? Visibility.Visible : Visibility.Collapsed;
         _eraserVisible = false;
+
+        // Formen-Werkzeug: Einstellungs-Panel mit der Formen-Sektion öffnen
+        if (tool == ToolType.Shape && SettingsPanel.Visibility != Visibility.Visible)
+        {
+            RefreshSettingsPanel();
+            SettingsPanel.Visibility = Visibility.Visible;
+        }
 
         CanvasHost.Cursor = tool switch
         {
@@ -229,7 +237,9 @@ public partial class WhiteboardView : UserControl
 
     private void Color_Checked(object sender, RoutedEventArgs e)
     {
-        _colorTag = (string)((RadioButton)sender).Tag;
+        // Tag kann während des XAML-Ladens noch fehlen → Standard behalten
+        if (((RadioButton)sender).Tag is string tag && tag.Length > 0)
+            _colorTag = tag;
     }
 
     /// <summary>Aktuelle Füllfarbe inkl. Deckkraft oder null, wenn Füllung aus ist.</summary>
@@ -402,14 +412,8 @@ public partial class WhiteboardView : UserControl
         Focus();
         if (_vm == null || _page == null) return;
 
-        // Finger = Verschieben (wie GoodNotes), Stift-Rückseite = Radierer
-        if (e.StylusDevice.TabletDevice?.Type == TabletDeviceType.Touch)
-        {
-            BeginPan(e.GetPosition(CanvasHost));
-            CanvasHost.CaptureStylus();
-            e.Handled = true;
-            return;
-        }
+        // Finger laufen über die Touch-Events (Gesten: Pan, Pinch-Zoom, Tipp-Gesten)
+        if (e.StylusDevice.TabletDevice?.Type == TabletDeviceType.Touch) return;
 
         _stylusInverted = e.Inverted;
         var pts = e.GetStylusPoints(CanvasHost);
@@ -422,6 +426,7 @@ public partial class WhiteboardView : UserControl
 
     private void OnStylusMove(object sender, StylusEventArgs e)
     {
+        if (e.StylusDevice?.TabletDevice?.Type == TabletDeviceType.Touch) return;
         if (_panning)
         {
             MovePan(e.GetPosition(CanvasHost));
@@ -441,6 +446,7 @@ public partial class WhiteboardView : UserControl
 
     private void OnStylusUp(object sender, StylusEventArgs e)
     {
+        if (e.StylusDevice?.TabletDevice?.Type == TabletDeviceType.Touch) return;
         CanvasHost.ReleaseStylusCapture();
         if (_panning) { EndPan(); e.Handled = true; return; }
         EndInput(ToCanvas(e.GetPosition(CanvasHost)));
@@ -491,6 +497,99 @@ public partial class WhiteboardView : UserControl
         CanvasHost.ReleaseMouseCapture();
         if (_panning) { EndPan(); return; }
         EndInput(ToCanvas(e.GetPosition(CanvasHost)));
+    }
+
+    // ==================== Touch-Gesten ====================
+    // 1 Finger = verschieben, 2 Finger = Pinch-Zoom + verschieben,
+    // Drei-Finger-Doppeltipp = Rückgängig
+
+    private readonly Dictionary<int, Point> _touches = new();
+    private Point _gestureMid;
+    private double _gestureDist;
+    private int _gestureMaxFingers;
+    private DateTime _gestureStart;
+    private bool _gestureMoved;
+    private DateTime _lastTripleTap = DateTime.MinValue;
+
+    private void OnTouchDown(object? sender, TouchEventArgs e)
+    {
+        CanvasHost.CaptureTouch(e.TouchDevice);
+        var p = e.GetTouchPoint(CanvasHost).Position;
+        _touches[e.TouchDevice.Id] = p;
+
+        if (_touches.Count == 1)
+        {
+            _gestureStart = DateTime.UtcNow;
+            _gestureMoved = false;
+            _gestureMaxFingers = 1;
+        }
+        _gestureMaxFingers = Math.Max(_gestureMaxFingers, _touches.Count);
+
+        if (_touches.Count >= 2) InitPinch();
+        e.Handled = true;
+    }
+
+    private void InitPinch()
+    {
+        var pts = _touches.Values.Take(2).ToList();
+        _gestureMid = new Point((pts[0].X + pts[1].X) / 2, (pts[0].Y + pts[1].Y) / 2);
+        _gestureDist = Math.Max(8, (pts[0] - pts[1]).Length);
+    }
+
+    private void OnTouchMove(object? sender, TouchEventArgs e)
+    {
+        if (!_touches.TryGetValue(e.TouchDevice.Id, out var old)) return;
+        var p = e.GetTouchPoint(CanvasHost).Position;
+        if ((p - old).Length > 6) _gestureMoved = true;
+        _touches[e.TouchDevice.Id] = p;
+
+        if (_touches.Count == 1)
+        {
+            PanX += (float)(p.X - old.X);
+            PanY += (float)(p.Y - old.Y);
+            Skia.InvalidateVisual();
+        }
+        else if (_touches.Count >= 2)
+        {
+            var pts = _touches.Values.Take(2).ToList();
+            var mid = new Point((pts[0].X + pts[1].X) / 2, (pts[0].Y + pts[1].Y) / 2);
+            double dist = Math.Max(8, (pts[0] - pts[1]).Length);
+
+            ZoomAt(mid, (float)(dist / _gestureDist));
+            PanX += (float)(mid.X - _gestureMid.X);
+            PanY += (float)(mid.Y - _gestureMid.Y);
+            _gestureMid = mid;
+            _gestureDist = dist;
+            Skia.InvalidateVisual();
+        }
+        e.Handled = true;
+    }
+
+    private void OnTouchUp(object? sender, TouchEventArgs e)
+    {
+        CanvasHost.ReleaseTouchCapture(e.TouchDevice);
+        _touches.Remove(e.TouchDevice.Id);
+
+        if (_touches.Count >= 2) InitPinch();
+
+        if (_touches.Count == 0)
+        {
+            bool tap = !_gestureMoved && (DateTime.UtcNow - _gestureStart).TotalMilliseconds < 400;
+            if (tap && _gestureMaxFingers == 3)
+            {
+                if ((DateTime.UtcNow - _lastTripleTap).TotalMilliseconds < 600)
+                {
+                    DoUndo();
+                    _lastTripleTap = DateTime.MinValue;
+                }
+                else
+                {
+                    _lastTripleTap = DateTime.UtcNow;
+                }
+            }
+            _gestureMaxFingers = 0;
+        }
+        e.Handled = true;
     }
 
     private void BeginPan(Point screen)
@@ -561,8 +660,10 @@ public partial class WhiteboardView : UserControl
                 else StartTextEdit(new TextElement
                 {
                     X = c.X, Y = c.Y,
-                    Color = CurrentInkHex(),
+                    Color = EnsureReadableTextColor(CurrentInkHex(), _textBgHex),
                     FontSize = 18f,
+                    Background = _textBgHex,
+                    FontFamily = _textFont,
                 }, isNew: true);
                 break;
 
@@ -1061,9 +1162,9 @@ public partial class WhiteboardView : UserControl
 
     private string CurrentInkHex()
     {
-        if (_colorTag != "auto") return _colorTag;
-        // Standardtinte richtet sich nach dem Farbton der Seite, nicht nur dem Theme
-        return EffectiveShade(_page) == PageShade.Dark ? "#FFE6ECF7" : "#FF1B2B4B";
+        if (!string.IsNullOrEmpty(_colorTag) && _colorTag != "auto") return _colorTag;
+        // Standardtinte: Schwarz; auf dunklen Seiten helle Tinte
+        return EffectiveShade(_page) == PageShade.Dark ? "#FFE6ECF7" : "#FF000000";
     }
 
     // ==================== Einstellungen (rechte Seitenleiste) ====================
@@ -1117,6 +1218,12 @@ public partial class WhiteboardView : UserControl
             (longSide > WhiteboardDoc.A4Height + 1 ? SetSizeA3 : SetSizeA4).IsChecked = true;
             (_page.Width > _page.Height ? SetOrientLandscape : SetOrientPortrait).IsChecked = true;
         }
+
+        // Text-Werkzeug
+        if (TextFontBox.ItemsSource == null) TextFontBox.ItemsSource = CoverFonts;
+        TextFontBox.SelectedItem = CoverFonts.Contains(_textFont) ? _textFont : CoverFonts[0];
+        TextColorSwatch.Background = BrushFromHex(CurrentInkHex());
+        TextBgSwatch.Background = _textBgHex is { } textBg ? BrushFromHex(textBg) : Brushes.Transparent;
 
         bool hasCover = _vm.Doc.Pages.Any(p => p.IsCover);
         CoverSection.Visibility = hasCover ? Visibility.Visible : Visibility.Collapsed;
@@ -1184,6 +1291,104 @@ public partial class WhiteboardView : UserControl
 
         MarkDirty();
         Skia.InvalidateVisual();
+    }
+
+    // ---- Text-Werkzeug (Sidebar-Sektion) ----
+
+    /// <summary>Standard-Hintergrund für neue Textfelder; null = transparent.</summary>
+    private string? _textBgHex;
+    private string _textFont = "Segoe UI";
+
+    /// <summary>
+    /// Sorgt für lesbaren Text: bei zu geringem Helligkeitskontrast zum Hintergrund
+    /// kippt die Textfarbe auf Schwarz bzw. Weiß.
+    /// </summary>
+    private static string EnsureReadableTextColor(string textHex, string? bgHex)
+    {
+        if (bgHex == null) return textHex;
+        var t = ParseColor(textHex);
+        var b = ParseColor(bgHex);
+        if (b.Alpha < 96) return textHex; // fast transparent → Seite bestimmt den Kontrast
+
+        static double Lum(SKColor c) => 0.2126 * c.Red + 0.7152 * c.Green + 0.0722 * c.Blue;
+        if (Math.Abs(Lum(t) - Lum(b)) >= 80) return textHex;
+        return Lum(b) > 127 ? "#FF000000" : "#FFFFFFFF";
+    }
+
+    /// <summary>Wendet eine Stiländerung auf das gerade bearbeitete bzw. einzeln ausgewählte Textfeld an.</summary>
+    private void ApplyToActiveText(Action<TextElement> apply)
+    {
+        TextElement? target = _editingText
+            ?? (_selection.Count == 1 ? _selection.First() as TextElement : null);
+        if (target == null) return;
+
+        apply(target);
+        MarkDirty();
+        if (_editingText == target) StartTextEditRefresh(target);
+        Skia.InvalidateVisual();
+    }
+
+    /// <summary>EditBox-Optik nach Stiländerung auffrischen, ohne die Eingabe zu unterbrechen.</summary>
+    private void StartTextEditRefresh(TextElement el)
+    {
+        EditBox.FontFamily = new FontFamily(string.IsNullOrEmpty(el.FontFamily) ? "Segoe UI" : el.FontFamily);
+        EditBox.Background = el.Background is { } bgHex
+            ? BrushFromHex(bgHex)
+            : new SolidColorBrush(Color.FromArgb(230, 255, 255, 255));
+        try
+        {
+            var c = SKColor.Parse(el.Color);
+            EditBox.Foreground = new SolidColorBrush(Color.FromArgb(c.Alpha, c.Red, c.Green, c.Blue));
+        }
+        catch { /* Farbe behalten */ }
+    }
+
+    private void TextColor_Click(object sender, RoutedEventArgs e)
+    {
+        var cur = ParseColor(CurrentInkHex());
+        if (ColorPickerDialog.Pick(Window.GetWindow(this), Color.FromArgb(cur.Alpha, cur.Red, cur.Green, cur.Blue)) is not { } c)
+            return;
+
+        // Textfarbe = Tintenfarbe: setzt die eigene Palette-Kachel und gilt für alle Werkzeuge
+        string hex = $"#{c.A:X2}{c.R:X2}{c.G:X2}{c.B:X2}";
+        CustomSwatch.Background = new SolidColorBrush(c);
+        CustomSwatch.Tag = hex;
+        CustomSwatch.Visibility = Visibility.Visible;
+        _colorTag = hex;
+        CustomSwatch.IsChecked = true;
+
+        TextColorSwatch.Background = new SolidColorBrush(c);
+        ApplyToActiveText(t => t.Color = hex);
+    }
+
+    private void TextBg_Click(object sender, RoutedEventArgs e)
+    {
+        var initial = _textBgHex is { } cur ? ParseColor(cur) : new SKColor(255, 249, 196);
+        if (ColorPickerDialog.Pick(Window.GetWindow(this), Color.FromRgb(initial.Red, initial.Green, initial.Blue), allowAlpha: false) is not { } c)
+            return;
+
+        _textBgHex = $"#FF{c.R:X2}{c.G:X2}{c.B:X2}";
+        TextBgSwatch.Background = new SolidColorBrush(c);
+        ApplyToActiveText(t =>
+        {
+            t.Background = _textBgHex;
+            t.Color = EnsureReadableTextColor(t.Color, _textBgHex);
+        });
+    }
+
+    private void TextBgClear_Click(object sender, RoutedEventArgs e)
+    {
+        _textBgHex = null;
+        TextBgSwatch.Background = Brushes.Transparent;
+        ApplyToActiveText(t => t.Background = null);
+    }
+
+    private void TextFont_Changed(object sender, SelectionChangedEventArgs e)
+    {
+        if (_suppressSettingsEvents) return;
+        if (TextFontBox.SelectedItem is not string font) return;
+        _textFont = font;
+        ApplyToActiveText(t => t.FontFamily = font);
     }
 
     private CoverStyle EnsureCoverStyle()
@@ -1792,6 +1997,7 @@ public partial class WhiteboardView : UserControl
         TextElement t => new TextElement
         {
             X = t.X, Y = t.Y, Text = t.Text, Color = t.Color, FontSize = t.FontSize,
+            Background = t.Background, FontFamily = t.FontFamily,
         },
         // Data wird bewusst geteilt (unveränderlich nach Import) – spart RAM und DB-Größe
         ImageElement im => new ImageElement
@@ -1815,6 +2021,10 @@ public partial class WhiteboardView : UserControl
         Canvas.SetLeft(EditBox, screen.X - 4);
         Canvas.SetTop(EditBox, screen.Y - 3);
         EditBox.FontSize = Math.Max(8, el.FontSize * Zoom);
+        EditBox.FontFamily = new FontFamily(string.IsNullOrEmpty(el.FontFamily) ? "Segoe UI" : el.FontFamily);
+        EditBox.Background = el.Background is { } bgHex
+            ? BrushFromHex(bgHex)
+            : new SolidColorBrush(Color.FromArgb(230, 255, 255, 255));
         EditBox.Text = el.Text;
         try
         {
@@ -1888,7 +2098,7 @@ public partial class WhiteboardView : UserControl
         using var paint = new SKPaint
         {
             TextSize = t.FontSize,
-            Typeface = Fonts.Regular,
+            Typeface = Fonts.Family(t.FontFamily),
         };
         var lines = t.Text.Length == 0 ? new[] { " " } : t.Text.Split('\n');
         float w = 10;
@@ -2443,12 +2653,20 @@ public partial class WhiteboardView : UserControl
 
     private static void DrawText(SKCanvas canvas, TextElement t)
     {
+        if (t.Background != null)
+        {
+            var b = TextBounds(t);
+            b.Inflate(5, 3);
+            using var bg = new SKPaint { IsAntialias = true, Color = ParseColor(t.Background) };
+            canvas.DrawRoundRect(b, 3, 3, bg);
+        }
+
         using var paint = new SKPaint
         {
             IsAntialias = true,
             Color = ParseColor(t.Color),
             TextSize = t.FontSize,
-            Typeface = Fonts.Regular,
+            Typeface = Fonts.Family(t.FontFamily),
         };
         float lineHeight = t.FontSize * 1.35f;
         var lines = t.Text.Split('\n');
@@ -2583,4 +2801,18 @@ internal static class Fonts
 
     public static readonly SKTypeface Bold =
         SKTypeface.FromFamilyName("Segoe UI", SKFontStyle.Bold) ?? SKTypeface.Default;
+
+    private static readonly Dictionary<string, SKTypeface> _families = new();
+
+    /// <summary>Typeface je Familienname, gecacht.</summary>
+    public static SKTypeface Family(string? name)
+    {
+        if (string.IsNullOrEmpty(name) || name == "Segoe UI") return Regular;
+        if (!_families.TryGetValue(name, out var tf))
+        {
+            tf = SKTypeface.FromFamilyName(name) ?? Regular;
+            _families[name] = tf;
+        }
+        return tf;
+    }
 }

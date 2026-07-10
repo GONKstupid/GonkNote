@@ -99,6 +99,42 @@
                                 Command="{Binding NewTextDocCommand}"/>
                     </StackPanel>
 
+                    <!-- Schnellzugriff: angepinnte Ordner -->
+                    <StackPanel DockPanel.Dock="Top" Margin="2,0,0,6">
+                        <StackPanel.Style>
+                            <Style TargetType="StackPanel">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding PinnedFolders.Count}" Value="0">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </StackPanel.Style>
+                        <TextBlock Text="ANGEPINNT" FontSize="10" FontWeight="SemiBold" Margin="6,2,0,4"
+                                   Foreground="{DynamicResource Brush.TextMuted}"/>
+                        <ItemsControl ItemsSource="{Binding PinnedFolders}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Style="{StaticResource FlatButton}"
+                                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                                            Command="{Binding DataContext.OpenPinnedCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                            CommandParameter="{Binding}"
+                                            ToolTip="Im Baum anzeigen">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="&#xE840;" FontFamily="{StaticResource IconFont}" FontSize="11"
+                                                       Foreground="{DynamicResource Brush.TextMuted}" VerticalAlignment="Center"/>
+                                            <TextBlock Text="{Binding IconGlyph}" FontFamily="{StaticResource IconFont}" FontSize="13"
+                                                       Foreground="{Binding IconBrush}" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="{Binding Name}" Margin="7,0,0,0" VerticalAlignment="Center"
+                                                       Foreground="{DynamicResource Brush.Text}"/>
+                                        </StackPanel>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <Border Height="1" Background="{DynamicResource Brush.Border}" Margin="4,6,4,0"/>
+                    </StackPanel>
+
                     <!-- Fußzeile -->
                     <Button DockPanel.Dock="Bottom" Style="{StaticResource FlatButton}"
                             HorizontalAlignment="Left" Margin="2,8,0,0"
@@ -138,6 +174,26 @@
                                 <MenuItem Header="Umbenennen" InputGestureText="F2"
                                           Command="{Binding RenameCommand}"
                                           CommandParameter="{Binding SelectedTreeItem}"/>
+                                <MenuItem Header="{Binding SelectedTreeItem.PinMenuHeader}"
+                                          Command="{Binding TogglePinCommand}"
+                                          CommandParameter="{Binding SelectedTreeItem}"
+                                          Visibility="{Binding SelectedTreeItem.IsFolder,
+                                                       Converter={StaticResource BoolToVis}, FallbackValue=Collapsed}">
+                                    <MenuItem.Icon>
+                                        <TextBlock Text="&#xE840;" FontFamily="{StaticResource IconFont}" FontSize="12"
+                                                   Foreground="{DynamicResource Brush.TextMuted}"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem Header="{Binding SelectedTreeItem.FavoriteMenuHeader}"
+                                          Command="{Binding ToggleFavoriteCommand}"
+                                          CommandParameter="{Binding SelectedTreeItem}"
+                                          Visibility="{Binding SelectedTreeItem.IsFolder,
+                                                       Converter={StaticResource BoolToVis}, FallbackValue=Collapsed}">
+                                    <MenuItem.Icon>
+                                        <TextBlock Text="&#xE735;" FontFamily="{StaticResource IconFont}" FontSize="12"
+                                                   Foreground="#EAB308"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
                                 <MenuItem Header="Symbolfarbe">
                                     <MenuItem Header="Standard" Click="IconColor_Click" Tag="">
                                         <MenuItem.Icon>
@@ -197,6 +253,9 @@
                                     <TextBlock Text="{Binding Name}" Margin="8,0,4,0" VerticalAlignment="Center"
                                                Foreground="{DynamicResource Brush.Text}"
                                                Visibility="{Binding IsRenaming, Converter={StaticResource InverseBoolToVis}}"/>
+                                    <TextBlock Text="&#xE735;" FontFamily="{StaticResource IconFont}" FontSize="10"
+                                               Margin="2,0,0,0" VerticalAlignment="Center" Foreground="#EAB308"
+                                               ToolTip="Favorit" Visibility="{Binding FavoriteVisibility}"/>
                                     <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
                                              Margin="6,0,4,0" MinWidth="110" Padding="2,1"
                                              Visibility="{Binding IsRenaming, Converter={StaticResource BoolToVis}}"

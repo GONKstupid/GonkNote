@@ -4,33 +4,41 @@ Moderne, offline-fähige Notiz-App für Windows 11 — eine Alternative zu GoodN
 Notizbüchern, Whiteboards und Textdokumenten. Stylus-freundlich (Wacom, Microsoft Pen, …),
 ohne Cloud, ohne Installation, ohne Adminrechte.
 
-## Features (Phase 1)
+## Features
 
 - **Ordnerbaum** mit beliebiger Verschachtelung, Drag & Drop (Verschieben, mit `Strg` Kopieren),
-  Umbenennen (`F2`), Löschen (`Entf`), Kontextmenü
+  Umbenennen (`F2`), Löschen (`Entf`), Kontextmenü, frei wählbare Symbolfarben
+- **Anpinnen & Favoriten**: angepinnte Ordner erscheinen im Schnellzugriff-Bereich der
+  Seitenleiste; Favoriten werden in ihrem Ordner zuerst angezeigt
 - **Drei Dokumenttypen**, jeder in eigener Registerkarte:
-  - **Notizbuch** — A4-Seiten mit Linien-Hintergrund, Seitennavigation, Seiten hinzufügen/löschen
+  - **Notizbuch** — A4/A3-Seiten mit anpassbarem Cover (Farbverlauf, Schrift oder eigenes Bild)
   - **Whiteboard** — unendliche Zeichenfläche mit Punktraster
-  - **Textdokument** — Rich-Text-Editor (fett/kursiv/unterstrichen, Listen, Schriftgröße, Textfarben)
-- **Whiteboard-Werkzeuge** (SkiaSharp-Rendering):
-  - Stift (druckempfindlich), Glättstift (glättet Linien automatisch), Bleistift, Textmarker
-  - Radiergummi (Element-Radierer, Stift-Rückseite radiert automatisch)
-  - Lasso-Auswahl: verschieben, löschen (`Entf`), duplizieren (`Strg+D`)
-  - Formen: Linie, Pfeil, Rechteck, Ellipse, Dreieck (`Umschalt` = proportional),
-    optional mit Füllfarbe und Deckkraft 0–100 %
-  - Freie Farbwahl über Farbrad + Hex-Eingabe, zusätzlich feste Farbpalette
-  - Textfelder direkt auf der Zeichenfläche
+  - **Textdokument** — Rich-Text-Editor mit stets heller Schreibfläche
+- **Whiteboard-Werkzeuge** (SkiaSharp-Rendering, Standardfarbe Schwarz):
+  - Stift (druckempfindlich), Bleistift, Textmarker
+  - **Formen-Stift** (`G`): erkennt gezeichnete Formen wie in GoodNotes — Geraden
+    (mit 45°-Einrasten), Kreise/Ellipsen, Rechtecke, Streckenzüge; sonst wird die Kurve geglättet
+  - **Radiergummi** radiert punktgenau: Striche werden an der Berührstelle aufgetrennt,
+    Stift-Rückseite radiert automatisch
+  - Lasso-Auswahl: verschieben, löschen (`Entf`), duplizieren (`Strg+D`), Bilder skalieren
+  - Formen (Linie, Pfeil, Rechteck, Ellipse, Dreieck) mit Füllfarbe und Deckkraft —
+    Einstellungen in der Seitenleiste rechts
+  - **Textfelder** mit wählbarer Schriftart, Text- und Hintergrundfarbe
+    (automatischer Kontrastschutz)
+  - **Bilder einfügen**: Toolbar-Button, `Strg+V` oder Drag & Drop
+    (PNG, JPEG, BMP, GIF, WebP, SVG); mit Eckgriff proportional skalierbar
   - Undo/Redo (`Strg+Z` / `Strg+Y`), Zoom (`Strg+Mausrad`), Pan (mittlere Maustaste,
-    Leertaste halten, Hand-Werkzeug oder **Finger auf Touchscreen**)
-- **Seiten & Hintergründe**: Muster (Blanko/Liniert/Kariert/Punktiert) und Farbton
-  (Hell/Dunkel/wie App) pro Seite; Notizbücher mit A4/A3, Hoch-/Querformat,
-  Vorlage für neue Seiten und **Cover-Seite** mit Dokumenttitel
-- **Texteditor** (OnlyOffice-orientierte Toolbar): Schriftart/-größe, Absatzformate
-  (Überschriften), Fett/Kursiv/Unterstrichen/Durchgestrichen, Hoch-/Tiefstellung,
-  Text- und Markerfarbe, Ausrichtung inkl. Blocksatz, Listen, Einzüge, Zeilenabstand,
+    Leertaste, Hand-Werkzeug)
+- **Touch-Gesten**: 1 Finger verschiebt die Ansicht, 2 Finger zoomen (Pinch) und
+  verschieben, Drei-Finger-Doppeltipp = Rückgängig
+- **Einstellungs-Seitenleiste rechts** (Zahnrad): Seitenmuster und -farbton, Format
+  (A4/A3, Hoch-/Querformat, Vorlage für neue Seiten), Formen-Optionen, Text-Optionen
+  und Cover-Gestaltung — Änderungen wirken sofort
+- **Texteditor**: Schriftart/-größe, Absatzformate, Fett/Kursiv/Unterstrichen/Durchgestrichen,
+  Hoch-/Tiefstellung, Text- und Markerfarbe, Blocksatz, Listen, Einzüge, Zeilenabstand,
   Bilder, Tabellen, Trennlinien, Suchen & Ersetzen (`Strg+F`)
-- **Dark-/Light-Mode** (`Strg+T`), Farbpalette Blau/Türkis mit Pink/Lila-Akzenten;
-  Seitenleiste einklappbar (`Strg+B`), Symbolfarben im Baum frei wählbar
+- **Dark-/Light-Mode** (`Strg+T`) fürs App-Design — Seiten und Schreibflächen bleiben
+  standardmäßig hell; Seitenleiste einklappbar (`Strg+B`)
 - **Persistenz**: LiteDB-Datei unter `%APPDATA%\GonkNote\gonknote.db`, Autosave alle 30 s,
   Speichern beim Schließen von Tabs und der App
 
@@ -39,7 +47,7 @@ ohne Cloud, ohne Installation, ohne Adminrechte.
 | Taste | Werkzeug |
 |---|---|
 | `S` | Stift |
-| `G` | Glättstift |
+| `G` | Formen-Stift |
 | `B` | Bleistift |
 | `M` | Textmarker |
 | `E` | Radiergummi |
@@ -62,7 +70,8 @@ dotnet publish -c Release
 ```
 
 Hinweis: WPF unterstützt kein Assembly-Trimming (`PublishTrimmed`); die Exe wird stattdessen
-komprimiert (`EnableCompressionInSingleFile`).
+komprimiert (`EnableCompressionInSingleFile`). Für Tests kann mit `GonkNote.exe --db <pfad>`
+eine alternative Datenbank verwendet werden.
 
 ## Architektur
 
@@ -74,18 +83,18 @@ komprimiert (`EnableCompressionInSingleFile`).
 
 ```
 GonkNote/
-├─ App.xaml(.cs)           Einstieg, Theme-Initialisierung
-├─ MainWindow.xaml(.cs)    Menü, Ordnerbaum (Drag & Drop), Tab-Verwaltung
+├─ App.xaml(.cs)           Einstieg, Theme-Initialisierung, --db-Argument
+├─ MainWindow.xaml(.cs)    Menü, Ordnerbaum (Drag & Drop, Anpinnen), Tab-Verwaltung
 ├─ Models/                 NoteItem (Baum), Whiteboard-Elemente, Enums
 ├─ ViewModels/             MainViewModel, Tab-VMs, Baum-VM, MVVM-Basis
-├─ Views/                  WhiteboardView (Skia-Canvas), TextEditorView
-├─ Services/               DatabaseService (LiteDB), ThemeService, UndoStack
+├─ Views/                  WhiteboardView (Skia-Canvas), TextEditorView, Dialoge
+├─ Services/               DatabaseService (LiteDB), ThemeService, UndoStack, ImageCache
 └─ Themes/                 Light.xaml, Dark.xaml, Styles.xaml
 ```
 
 ## Roadmap
 
-- **Phase 2 — Import/Export**: PDF/DOCX/Bilder importieren, Export nach PDF (Standard),
-  DOCX und Markdown; Datei-Einfüge-Tool mit Mini-Vorschau
+- **Phase 2 — Import/Export**: Bilder-Import ✔; als Nächstes DOCX-Import, PDF-Import,
+  Export nach PDF/DOCX/Markdown, Datei-Einfüge-Tool mit Mini-Vorschau
 - **Phase 3 — Feinschliff**: Sticker, Notizzettel, Lineal/Geodreieck, OCR (optional),
-  RAM-Profiling (< 200 MB), Render-Caching, App-Icon, Obfuskierung
+  RAM-Profiling (< 200 MB), Render-Caching, Obfuskierung

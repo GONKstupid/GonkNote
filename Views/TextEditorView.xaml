@@ -180,14 +180,14 @@
             </StackPanel>
         </Border>
 
-        <!-- ===== Schreibfläche ===== -->
+        <!-- ===== Schreibfläche (immer hell, unabhängig vom App-Theme) ===== -->
         <Grid Background="{DynamicResource Brush.WindowBg}">
             <Border MaxWidth="900" Margin="24" CornerRadius="10"
-                    Background="{DynamicResource Brush.CardBg}"
+                    Background="#FFFFFF"
                     BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1">
                 <RichTextBox x:Name="Editor"
                              Background="Transparent" BorderThickness="0"
-                             Foreground="{DynamicResource Brush.Text}"
+                             Foreground="#1A1A1A"
                              CaretBrush="{DynamicResource Brush.Accent}"
                              SelectionBrush="{DynamicResource Brush.Selection}"
                              FontFamily="Segoe UI" FontSize="15"

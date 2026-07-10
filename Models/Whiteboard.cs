@@ -101,8 +101,13 @@ public class TextElement : WbElement
     public float X { get; set; }
     public float Y { get; set; }
     public string Text { get; set; } = "";
-    public string Color { get; set; } = "#FF1B2B4B";
+    public string Color { get; set; } = "#FF000000";
     public float FontSize { get; set; } = 18f;
+
+    /// <summary>Hintergrundfarbe hinter dem Text; null = transparent.</summary>
+    public string? Background { get; set; }
+
+    public string FontFamily { get; set; } = "Segoe UI";
 
     public override void Translate(float dx, float dy)
     {
@@ -134,7 +139,8 @@ public class WbPage
 {
     public List<WbElement> Elements { get; set; } = new();
     public PageBackground Background { get; set; } = PageBackground.Blank;
-    public PageShade Shade { get; set; } = PageShade.Auto;
+    /// <summary>Standard ist Hell – Seiten sollen unabhängig vom App-Theme hell wirken.</summary>
+    public PageShade Shade { get; set; } = PageShade.Light;
     public float Width { get; set; }
     public float Height { get; set; }
     /// <summary>Cover-Seite eines Notizbuchs (ohne Muster, mit Titel).</summary>
@@ -163,7 +169,7 @@ public class PageTemplate
     public float Width { get; set; } = WhiteboardDoc.A4Width;
     public float Height { get; set; } = WhiteboardDoc.A4Height;
     public PageBackground Background { get; set; } = PageBackground.Lines;
-    public PageShade Shade { get; set; } = PageShade.Auto;
+    public PageShade Shade { get; set; } = PageShade.Light;
 }
 
 /// <summary>Inhalt eines Whiteboards oder Notizbuchs (Id = NoteItem.Id).</summary>

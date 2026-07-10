@@ -22,5 +22,11 @@ public class NoteItem
     /// <summary>Symbolfarbe im Baum als "#RRGGBB"; null = Standardfarbe.</summary>
     public string? IconColor { get; set; }
 
+    /// <summary>Angepinnt = erscheint im Schnellzugriff-Bereich der Seitenleiste (nur Ordner).</summary>
+    public bool IsPinned { get; set; }
+
+    /// <summary>Favorit = wird innerhalb seines Ordners zuerst angezeigt (nur Ordner).</summary>
+    public bool IsFavorite { get; set; }
+
     public bool IsFolder => Kind == ItemKind.Folder;
 }

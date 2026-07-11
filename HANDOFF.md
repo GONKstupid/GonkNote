@@ -1,4 +1,4 @@
-# Gonk Note — Projektübergabe (Stand: 2026-07-11)
+# Gonk Note — Projektübergabe (Stand: 2026-07-11, Phase 2 abgeschlossen)
 
 Diese Datei ist für den Einstieg in einen **neuen Chat-Thread** gedacht. Sie fasst
 zusammen, was existiert, was als Nächstes ansteht, und wie gearbeitet werden soll.
@@ -17,7 +17,7 @@ Kernanforderungen des Nutzers (unverändert gültig):
 - **Stylus-first**: Wacom/Microsoft Pen mit Druckstärke, Finger = Gesten
 - **Architektur-Entscheidung des Nutzers**: **WPF** (nicht WinUI 3), .NET 8
 - **Drei Dokumenttypen**: Notizbuch, Whiteboard, Textdokument — je eigener Tab
-- Import: **Bilder ✔ / DOCX ✔ / PDF ✔** · Export: PDF/DOCX/Markdown — **noch offen**
+- Import: **Bilder ✔ / DOCX ✔ / PDF ✔** · Export: **PDF (alle) ✔ / DOCX ✔ / Markdown ✔**
 - Dark/Light-Mode fürs App-Design; **Seiten/Schreibflächen standardmäßig hell**
 
 Arbeitsweise: **in Phasen**, polished/alltagstauglich, Nutzer-Feedback wird
@@ -31,6 +31,7 @@ durchgehend Deutsch (UI, Kommentare, Commits). Ehrliches Scoping statt Übercomm
 - Pfad: `C:\Dev\Zed\gonk-note`, Branch `main`, sauber committet
 - Build: `dotnet build` fehlerfrei (0 Warnungen)
 - Commit-Historie (neueste zuerst):
+  - `f743db5` **Phase 2.4**: Export – PDF (alle Typen), DOCX + Markdown (Text)
   - `618f6fc` **Phase 2.3+**: PDF-Import performanter (Viewport-Culling, async +
     Fortschritt), Whiteboard 2-spaltig, **ein** Import-Button für Bild+PDF
   - `6a1c8b6` Phase 2.3: PDF-Import (Grundfunktion) in Notizbücher & Whiteboards
@@ -75,7 +76,10 @@ GonkNote/
 ├─ Services/
 │  ├─ DatabaseService.cs      LiteDB (items/boards/texts/settings), --db-fähig
 │  ├─ DocxImporter.cs         DOCX → FlowDocument → XamlPackage
+│  ├─ DocxExporter.cs         FlowDocument → DOCX (OpenXML, Gegenrichtung)
+│  ├─ MarkdownExporter.cs     FlowDocument → Markdown (best-effort)
 │  ├─ PdfImporter.cs          PDF → JPEG-Seiten via Docnet.Core/PDFium
+│  ├─ PdfExporter.cs          Whiteboard→SKDocument, Text→Paginator-Raster→PDF
 │  ├─ ImageCache.cs           Byte-Budget-Cache (96 MB) dekodierter Bilder
 │  ├─ ThemeService.cs, UndoStack.cs (PartialErase/ResizeImage-Actions)
 ├─ Themes/                    Light/Dark.xaml, Styles.xaml (inkl. Vektor-Icons)
@@ -123,7 +127,8 @@ Optionen, Cover-Gestaltung, DOCX-/PDF-Import mit *echten* großen Dokumenten.
 **Feedback dazu zuerst einarbeiten, wenn es kommt** (etablierte Arbeitsweise).
 
 Zuletzt (Runde 4) erledigt: PDF-Import-Lag behoben (Culling), Import asynchron mit
-Fortschritt, Whiteboard 2-spaltig, ein statt zwei Import-Buttons.
+Fortschritt, Whiteboard 2-spaltig, ein statt zwei Import-Buttons. Danach **Export**
+(Phase 2.4) fertig – noch kein Praxis-Feedback dazu.
 
 ---
 
@@ -134,24 +139,32 @@ Fortschritt, Whiteboard 2-spaltig, ein statt zwei Import-Buttons.
   Optimierung**: Seiten *lazy* on-demand rendern (nur PDF-Bytes + Seitenindex
   speichern, Bild erst beim Anzeigen erzeugen/cachen) → Import quasi sofort.
   Größerer Umbau (Persistenz, Undo, Save/Load), bewusst vertagt.
-- **Export**: Markdown → DOCX → PDF (Whiteboard/Notizbuch via `SKDocument.CreatePdf`,
-  Text via OpenXML-Gegenrichtung zum Importer) — noch nicht begonnen.
-- **Datei-Einfüge-Tool** (PDF/DOCX-Mini-Vorschau) → nach Export.
+- **Datei-Einfüge-Tool** (PDF/DOCX-Mini-Vorschau ins Whiteboard) → noch offen.
 - Sticker, Notizzettel, Lineal/Geodreieck, OCR, **RAM-Optimierung**, Obfuskierung
   → Phase 3. RAM: Basis ~190 MB + bis 96 MB Bild-Cache; Ziel < 200 MB braucht noch
   Arbeit (Cache-Budget senken, Render-Caching, GC-Tuning).
 - Text-Stiländerungen am bestehenden Whiteboard-Textfeld sind nicht undo-fähig
   (bewusst einfach). DOCX-Import: keine Kopf-/Fußzeilen, Fußnoten, verschachtelten
   Tabellen. PDF: keine Text-Extraktion (per Nutzer-Wunsch reine Bild-Seiten).
+- **Export-Grenzen**: Text→PDF ist gerastert (kein selektierbarer Text im PDF –
+  bewusst, erhält aber die Formatierung 1:1). DOCX-Bilder landen unter `media/`
+  (nicht `word/media/`) – gültig. Markdown ist best-effort (Farben/Marker gehen
+  verloren). Whiteboard→DOCX/Markdown gibt es nicht (nur PDF).
 
 ---
 
 ## 6. Empfohlener Ablaufplan für den neuen Thread
 
-1. Falls Nutzer Feedback zu Runde 2–4 / DOCX- / PDF-Import mitbringt → **zuerst** einarbeiten.
-2. **Export** angehen (nächster großer Phase-2-Block):
-   Markdown (aus RichTextBox-Xaml) → DOCX (OpenXML) → PDF (SkiaSharp `SKDocument`).
-3. Datei-Einfüge-Tool, dann Phase 3 (RAM-Profiling, Sticker/Lineal/OCR) nach Rücksprache.
+1. Falls Nutzer Feedback zu Import/Export in der Praxis mitbringt → **zuerst** einarbeiten.
+2. **Datei-Einfüge-Tool**: PDF/DOCX-Vorschau, wahlweise als Bild oder strukturierte
+   Elemente ins Whiteboard einfügen (baut auf Import auf).
+3. **Phase 3** nach Rücksprache: RAM-Profiling/-Optimierung (Ziel < 200 MB),
+   Sticker/Notizzettel/Lineal, optionales OCR, Obfuskierung, laufendes UI-Feintuning.
+
+**Damit ist Phase 2 (Import + Export) abgeschlossen.** Export sitzt in
+`Datei → Exportieren`; `ExportActiveTab` im MainViewModel wählt anhand des aktiven
+Tabs die Formate. Zum Testen: `verify-export.ps1` / `verify-wbexport2.ps1` in
+`%TEMP%\gonk-verify\`, PDFs rendern mit dem Docnet-Tool in `%TEMP%\gonk-render\`.
 
 ---
 

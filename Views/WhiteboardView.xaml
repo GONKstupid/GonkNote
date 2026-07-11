@@ -116,13 +116,9 @@
                     <Border Width="1" Background="{DynamicResource Brush.Border}" Margin="6,4"/>
 
                     <Button Style="{StaticResource IconButton}" Content="&#xE8B9;"
-                            AutomationProperties.Name="Bild einfügen"
-                            ToolTip="Bild einfügen (PNG, JPEG, SVG …) – auch per Strg+V oder Drag &amp; Drop"
-                            Click="InsertImage_Click"/>
-                    <Button Style="{StaticResource IconButton}" Content="&#xE7C3;"
-                            AutomationProperties.Name="PDF einfügen"
-                            ToolTip="PDF einfügen – im Notizbuch als neue Seiten, im Whiteboard als Bild-Seiten"
-                            Click="InsertPdf_Click"/>
+                            AutomationProperties.Name="Datei einfügen"
+                            ToolTip="Datei einfügen – Bild oder PDF (im Notizbuch als neue Seiten, im Whiteboard als Bild-Seiten); auch per Strg+V oder Drag &amp; Drop"
+                            Click="InsertFile_Click"/>
 
                     <Border Width="1" Background="{DynamicResource Brush.Border}" Margin="6,4"/>
 
@@ -376,6 +372,21 @@
                          MinWidth="60" FontFamily="Segoe UI" BorderThickness="1"
                          LostKeyboardFocus="EditBox_LostFocus" PreviewKeyDown="EditBox_KeyDown"/>
             </Canvas>
+
+            <!-- Fortschritts-Overlay während des Imports (blockiert Eingaben) -->
+            <Border x:Name="BusyOverlay" Visibility="Collapsed" Background="#66000000">
+                <Border Background="{DynamicResource Brush.CardBg}" CornerRadius="10" Padding="26,20"
+                        HorizontalAlignment="Center" VerticalAlignment="Center"
+                        BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1">
+                    <StackPanel>
+                        <ProgressBar x:Name="BusyBar" Width="240" Height="6" Minimum="0" Maximum="100"
+                                     IsIndeterminate="True"/>
+                        <TextBlock x:Name="BusyText" Text="Wird importiert…" Margin="0,12,0,0"
+                                   HorizontalAlignment="Center"
+                                   Foreground="{DynamicResource Brush.Text}"/>
+                    </StackPanel>
+                </Border>
+            </Border>
         </Grid>
 
     </DockPanel>

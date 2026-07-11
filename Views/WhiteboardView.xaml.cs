@@ -1489,16 +1489,38 @@ public partial class WhiteboardView : UserControl
 
     private SKPoint ViewCenter() => ToCanvas(new Point(CanvasHost.ActualWidth / 2, CanvasHost.ActualHeight / 2));
 
-    private void InsertImage_Click(object sender, RoutedEventArgs e)
+    /// <summary>Aktuell sichtbarer Bereich in Canvas-Koordinaten (fürs Culling).</summary>
+    private SKRect VisibleCanvasRect()
+    {
+        var tl = ToCanvas(new Point(0, 0));
+        var br = ToCanvas(new Point(CanvasHost.ActualWidth, CanvasHost.ActualHeight));
+        return new SKRect(
+            Math.Min(tl.X, br.X), Math.Min(tl.Y, br.Y),
+            Math.Max(tl.X, br.X), Math.Max(tl.Y, br.Y));
+    }
+
+    /// <summary>Ein Import-Button für alle Formate: Bilder direkt, PDFs seitenweise.</summary>
+    private async void InsertFile_Click(object sender, RoutedEventArgs e)
     {
         var dlg = new Microsoft.Win32.OpenFileDialog
         {
-            Title = "Bild einfügen",
-            Filter = "Bilder (*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.webp;*.svg)|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.webp;*.svg|Alle Dateien (*.*)|*.*",
+            Title = "Datei einfügen",
+            Filter = "Bilder & PDF (*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.webp;*.svg;*.pdf)"
+                   + "|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.webp;*.svg;*.pdf"
+                   + "|PDF-Dokumente (*.pdf)|*.pdf"
+                   + "|Bilder (*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.webp;*.svg)|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.webp;*.svg"
+                   + "|Alle Dateien (*.*)|*.*",
             Multiselect = true,
         };
         if (dlg.ShowDialog(Window.GetWindow(this)) != true) return;
-        InsertImageFiles(dlg.FileNames, ViewCenter());
+
+        var images = dlg.FileNames
+            .Where(f => ImageExtensions.Contains(Path.GetExtension(f).ToLowerInvariant())).ToList();
+        var pdfs = dlg.FileNames
+            .Where(f => Path.GetExtension(f).Equals(".pdf", StringComparison.OrdinalIgnoreCase)).ToList();
+
+        if (images.Count > 0) InsertImageFiles(images, ViewCenter());
+        foreach (var pdf in pdfs) await InsertPdfFileAsync(pdf);
     }
 
     private void InsertImageFiles(IEnumerable<string> paths, SKPoint at)
@@ -1676,15 +1698,16 @@ public partial class WhiteboardView : UserControl
         e.Handled = true;
     }
 
-    private void CanvasHost_Drop(object sender, DragEventArgs e)
+    private async void CanvasHost_Drop(object sender, DragEventArgs e)
     {
-        foreach (var pdf in GetDroppedPdfFiles(e))
-            InsertPdfFile(pdf);
-
         var files = GetDroppedImageFiles(e);
         if (files.Count > 0)
             InsertImageFiles(files, ToCanvas(e.GetPosition(CanvasHost)));
+
+        var pdfs = GetDroppedPdfFiles(e);
         e.Handled = true;
+        foreach (var pdf in pdfs)
+            await InsertPdfFileAsync(pdf);
     }
 
     private static List<string> GetDroppedImageFiles(DragEventArgs e)
@@ -1708,49 +1731,57 @@ public partial class WhiteboardView : UserControl
     /// <summary>Renderauflösung der langen Kante (≈ 200 % einer A4-Seite bei 96 DPI).</summary>
     private const int PdfRenderLongSide = 2246;
 
-    private void InsertPdf_Click(object sender, RoutedEventArgs e)
-    {
-        if (_vm == null || _page == null) return;
-        var dlg = new Microsoft.Win32.OpenFileDialog
-        {
-            Title = "PDF einfügen",
-            Filter = "PDF-Dokumente (*.pdf)|*.pdf|Alle Dateien (*.*)|*.*",
-        };
-        if (dlg.ShowDialog(Window.GetWindow(this)) != true) return;
-        InsertPdfFile(dlg.FileName);
-    }
+    private bool _importing;
 
-    private void InsertPdfFile(string path)
+    /// <summary>
+    /// Rendert ein PDF im Hintergrund (UI bleibt bedienbar, Fortschritt sichtbar)
+    /// und fügt es je nach Dokumenttyp ein. Ziel-Seite/-Dokument werden vor dem
+    /// Await festgehalten, damit ein Tabwechsel während des Imports nichts verfälscht.
+    /// </summary>
+    private async Task InsertPdfFileAsync(string path)
     {
-        if (_vm == null || _page == null) return;
+        if (_vm == null || _page == null || _importing) return;
+        var vm = _vm;
+        var anchor = _page;
 
-        List<PdfImporter.PdfPageImage> pages;
-        Mouse.OverrideCursor = Cursors.Wait;
+        _importing = true;
+        ShowBusy("PDF wird importiert…");
+        var progress = new Progress<(int Done, int Total)>(t =>
+            BusyText.Text = t.Total > 0 ? $"PDF wird importiert…  {t.Done} / {t.Total}" : "PDF wird importiert…");
+
         try
         {
-            pages = PdfImporter.RenderPages(path, PdfRenderLongSide);
+            var pages = await Task.Run(() => PdfImporter.RenderPages(path, PdfRenderLongSide, progress));
+            if (pages.Count == 0)
+            {
+                MessageBox.Show("Das PDF enthält keine darstellbaren Seiten.",
+                    "Gonk Note", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            if (anchor.IsInfinite) InsertPdfIntoWhiteboard(pages, anchor, vm);
+            else InsertPdfIntoNotebook(pages, anchor, vm);
         }
         catch (Exception ex)
         {
             MessageBox.Show($"PDF konnte nicht geladen werden:\n{ex.Message}",
                 "Gonk Note", MessageBoxButton.OK, MessageBoxImage.Warning);
-            return;
         }
         finally
         {
-            Mouse.OverrideCursor = null;
+            _importing = false;
+            HideBusy();
         }
-
-        if (pages.Count == 0)
-        {
-            MessageBox.Show("Das PDF enthält keine darstellbaren Seiten.",
-                "Gonk Note", MessageBoxButton.OK, MessageBoxImage.Information);
-            return;
-        }
-
-        if (_page.IsInfinite) InsertPdfIntoWhiteboard(pages);
-        else InsertPdfIntoNotebook(pages);
     }
+
+    private void ShowBusy(string text)
+    {
+        BusyText.Text = text;
+        BusyBar.IsIndeterminate = true;
+        BusyOverlay.Visibility = Visibility.Visible;
+    }
+
+    private void HideBusy() => BusyOverlay.Visibility = Visibility.Collapsed;
 
     /// <summary>Anzeigemaße einer PDF-Seite: lange Kante = A4-Höhe, Seitenverhältnis bleibt.</summary>
     private static (float W, float H) PdfDisplaySize(PdfImporter.PdfPageImage pg)
@@ -1761,16 +1792,16 @@ public partial class WhiteboardView : UserControl
             : (longSide, longSide * pg.Height / pg.Width);
     }
 
-    /// <summary>Notizbuch: jede PDF-Seite wird eine neue Seite hinter der aktuellen.</summary>
-    private void InsertPdfIntoNotebook(List<PdfImporter.PdfPageImage> pages)
+    /// <summary>Notizbuch: jede PDF-Seite wird eine neue Seite hinter der Ankerseite.</summary>
+    private void InsertPdfIntoNotebook(List<PdfImporter.PdfPageImage> pages, WbPage anchor, WhiteboardTabViewModel vm)
     {
-        if (_vm == null) return;
+        int insertAt = vm.Doc.Pages.IndexOf(anchor) + 1;
+        if (insertAt <= 0) insertAt = vm.Doc.Pages.Count;
 
-        int insertAt = _vm.PageIndex + 1;
         foreach (var pg in pages)
         {
             var (pw, ph) = PdfDisplaySize(pg);
-            _vm.Doc.Pages.Insert(insertAt++, new WbPage
+            vm.Doc.Pages.Insert(insertAt++, new WbPage
             {
                 Width = pw,
                 Height = ph,
@@ -1781,42 +1812,59 @@ public partial class WhiteboardView : UserControl
             });
         }
 
-        MarkDirty();
-        GoToPage(_vm.PageIndex + 1);
-        UpdatePageLabel();
+        vm.IsDirty = true;
+        // Nur wenn dieses Dokument noch angezeigt wird, zur ersten neuen Seite springen
+        if (_vm == vm && _page == anchor)
+        {
+            GoToPage(vm.Doc.Pages.IndexOf(anchor) + 1);
+            UpdatePageLabel();
+        }
     }
 
-    /// <summary>Whiteboard: PDF-Seiten als Bild-Elemente untereinander, direkt ausgewählt.</summary>
-    private void InsertPdfIntoWhiteboard(List<PdfImporter.PdfPageImage> pages)
+    /// <summary>Whiteboard: PDF-Seiten zweispaltig (s1 s2 / s3 s4 …) als Bild-Elemente.</summary>
+    private void InsertPdfIntoWhiteboard(List<PdfImporter.PdfPageImage> pages, WbPage anchor, WhiteboardTabViewModel vm)
     {
-        if (_vm == null || _page == null) return;
+        const float gap = 28f;
+        var sizes = pages.Select(PdfDisplaySize).ToList();
+        float colW = sizes.Max(s => s.W);
 
-        var at = ViewCenter();
+        // Startpunkt: sichtbarer Mittelpunkt, wenn das Dokument noch angezeigt wird
+        SKPoint at = _vm == vm && _page == anchor ? ViewCenter() : new SKPoint(0, 0);
+        float leftX = at.X - colW - gap / 2f;
+
         var added = new List<WbElement>();
         float y = at.Y;
-        foreach (var pg in pages)
+        for (int i = 0; i < pages.Count; i += 2)
         {
-            var (dw, dh) = PdfDisplaySize(pg);
+            float rowH = sizes[i].H;
+            if (i + 1 < pages.Count) rowH = Math.Max(rowH, sizes[i + 1].H);
+
             added.Add(new ImageElement
             {
-                X = at.X - dw / 2f,
-                Y = y,
-                Width = dw,
-                Height = dh,
-                Data = pg.Data,
+                X = leftX, Y = y, Width = sizes[i].W, Height = sizes[i].H, Data = pages[i].Data,
             });
-            y += dh + 24f;
+            if (i + 1 < pages.Count)
+                added.Add(new ImageElement
+                {
+                    X = leftX + colW + gap, Y = y,
+                    Width = sizes[i + 1].W, Height = sizes[i + 1].H, Data = pages[i + 1].Data,
+                });
+
+            y += rowH + gap;
         }
 
-        _page.Elements.AddRange(added);
-        _vm.Undo.Push(_page, new AddElementsAction(added));
-        MarkDirty();
+        anchor.Elements.AddRange(added);
+        vm.Undo.Push(anchor, new AddElementsAction(added));
+        vm.IsDirty = true;
 
-        BtnLasso.IsChecked = true;
-        _selection.Clear();
-        foreach (var el in added) _selection.Add(el);
-        ComputeSelectionBounds();
-        Skia.InvalidateVisual();
+        if (_vm == vm && _page == anchor)
+        {
+            BtnLasso.IsChecked = true;
+            _selection.Clear();
+            foreach (var el in added) _selection.Add(el);
+            ComputeSelectionBounds();
+            Skia.InvalidateVisual();
+        }
     }
 
     private bool HitResizeHandle(ImageElement im, SKPoint c)
@@ -2413,9 +2461,14 @@ public partial class WhiteboardView : UserControl
 
         DrawPageBackground(canvas);
 
+        // Viewport-Culling: nur sichtbare Elemente zeichnen. Das verhindert, dass
+        // bei vielen (hochauflösenden) Bildern jedes Frame alle dekodiert werden.
+        var visible = VisibleCanvasRect();
         foreach (var el in _page.Elements)
         {
             if (el == _editingText) continue;
+            var b = ElementBounds(el);
+            if (!b.IsEmpty && !visible.IntersectsWith(b)) continue;
             DrawElement(canvas, el);
         }
 

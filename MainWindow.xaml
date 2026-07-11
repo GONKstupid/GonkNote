@@ -48,6 +48,7 @@
                     <MenuItem Header="Neues _Textdokument" Command="{Binding NewTextDocCommand}"/>
                     <Separator/>
                     <MenuItem Header="DOCX _importieren…" Command="{Binding ImportDocxCommand}"/>
+                    <MenuItem Header="_Exportieren… (PDF / DOCX / Markdown)" Command="{Binding ExportCommand}"/>
                     <Separator/>
                     <MenuItem Header="_Speichern" Command="{Binding SaveCommand}" InputGestureText="Strg+S"/>
                     <MenuItem Header="_Alle speichern" Command="{Binding SaveAllCommand}" InputGestureText="Strg+Umschalt+S"/>

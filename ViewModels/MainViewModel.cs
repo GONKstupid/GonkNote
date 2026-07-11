@@ -32,6 +32,7 @@ public sealed class MainViewModel : ObservableObject
         DeleteCommand = new RelayCommand(p => DeleteItem(p as TreeItemViewModel));
         OpenItemCommand = new RelayCommand(p => { if (p is TreeItemViewModel t) OpenItem(t); });
         ImportDocxCommand = new RelayCommand(ImportDocx);
+        ExportCommand = new RelayCommand(ExportActiveTab);
         TogglePinCommand = new RelayCommand(p => TogglePinned(p as TreeItemViewModel));
         ToggleFavoriteCommand = new RelayCommand(p => ToggleFavorite(p as TreeItemViewModel));
         OpenPinnedCommand = new RelayCommand(p => { if (p is TreeItemViewModel t) RevealItem(t); });
@@ -75,6 +76,7 @@ public sealed class MainViewModel : ObservableObject
     public RelayCommand DeleteCommand { get; }
     public RelayCommand OpenItemCommand { get; }
     public RelayCommand ImportDocxCommand { get; }
+    public RelayCommand ExportCommand { get; }
     public RelayCommand TogglePinCommand { get; }
     public RelayCommand ToggleFavoriteCommand { get; }
     public RelayCommand OpenPinnedCommand { get; }
@@ -297,6 +299,91 @@ public sealed class MainViewModel : ObservableObject
         if (failed.Count > 0)
             MessageBox.Show("Import fehlgeschlagen:\n" + string.Join("\n", failed),
                 "Gonk Note", MessageBoxButton.OK, MessageBoxImage.Warning);
+    }
+
+    // ---------- Export ----------
+
+    /// <summary>Exportiert den aktiven Tab: Textdokument → PDF/DOCX/Markdown, Whiteboard/Notizbuch → PDF.</summary>
+    private void ExportActiveTab()
+    {
+        var tab = SelectedTab;
+        if (tab == null)
+        {
+            MessageBox.Show("Bitte zuerst ein Dokument öffnen.", "Gonk Note",
+                MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        tab.Save(); // aktuellen Stand ins Modell schreiben
+
+        var dlg = new Microsoft.Win32.SaveFileDialog
+        {
+            Title = "Exportieren",
+            FileName = SafeFileName(tab.Title),
+            Filter = tab is TextTabViewModel
+                ? "PDF-Dokument (*.pdf)|*.pdf|Word-Dokument (*.docx)|*.docx|Markdown (*.md)|*.md"
+                : "PDF-Dokument (*.pdf)|*.pdf",
+        };
+        if (dlg.ShowDialog() != true) return;
+
+        string path = dlg.FileName;
+        string ext = System.IO.Path.GetExtension(path).ToLowerInvariant();
+
+        try
+        {
+            switch (tab)
+            {
+                case TextTabViewModel text:
+                {
+                    var flow = LoadFlowDocument(text.Doc);
+                    switch (ext)
+                    {
+                        case ".docx": DocxExporter.Export(flow, path); break;
+                        case ".md": MarkdownExporter.Export(flow, path); break;
+                        default: PdfExporter.ExportFlowDocument(flow, path); break;
+                    }
+                    break;
+                }
+                case WhiteboardTabViewModel wb:
+                    PdfExporter.ExportWhiteboard(wb.Doc, wb.Title, path);
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Export fehlgeschlagen:\n{ex.Message}", "Gonk Note",
+                MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        if (MessageBox.Show($"Exportiert nach:\n{path}\n\nDatei jetzt öffnen?", "Gonk Note",
+                MessageBoxButton.YesNo, MessageBoxImage.Information) == MessageBoxResult.Yes)
+        {
+            try { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(path) { UseShellExecute = true }); }
+            catch { /* kein Standardprogramm hinterlegt */ }
+        }
+    }
+
+    /// <summary>Baut aus den gespeicherten Bytes eines Textdokuments ein FlowDocument.</summary>
+    private static System.Windows.Documents.FlowDocument LoadFlowDocument(TextDoc doc)
+    {
+        var flow = new System.Windows.Documents.FlowDocument();
+        var bytes = doc.Rtf;
+        if (bytes.Length > 2)
+        {
+            var range = new System.Windows.Documents.TextRange(flow.ContentStart, flow.ContentEnd);
+            using var ms = new System.IO.MemoryStream(bytes);
+            bool isPackage = bytes[0] == 0x50 && bytes[1] == 0x4B; // "PK" = XamlPackage-ZIP
+            range.Load(ms, isPackage ? DataFormats.XamlPackage : DataFormats.Rtf);
+        }
+        return flow;
+    }
+
+    private static string SafeFileName(string name)
+    {
+        foreach (var ch in System.IO.Path.GetInvalidFileNameChars())
+            name = name.Replace(ch, '_');
+        return string.IsNullOrWhiteSpace(name) ? "Dokument" : name;
     }
 
     public TreeItemViewModel? FindParent(TreeItemViewModel child)

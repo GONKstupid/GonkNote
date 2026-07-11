@@ -2101,7 +2101,7 @@ public partial class WhiteboardView : UserControl
         _selectionBounds = r;
     }
 
-    private static SKRect ElementBounds(WbElement el)
+    internal static SKRect ElementBounds(WbElement el)
     {
         switch (el)
         {
@@ -2681,7 +2681,7 @@ public partial class WhiteboardView : UserControl
         }
     }
 
-    private static void DrawImage(SKCanvas canvas, ImageElement im)
+    internal static void DrawImage(SKCanvas canvas, ImageElement im)
     {
         var rect = SKRect.Create(im.X, im.Y, im.Width, im.Height);
         var img = ImageCache.Get(im.Id, im.Data);
@@ -2712,7 +2712,7 @@ public partial class WhiteboardView : UserControl
         return path;
     }
 
-    private static void DrawStroke(SKCanvas canvas, StrokeElement s)
+    internal static void DrawStroke(SKCanvas canvas, StrokeElement s)
     {
         if (s.Points.Count == 0) return;
         var color = ParseColor(s.Color);
@@ -2765,7 +2765,7 @@ public partial class WhiteboardView : UserControl
         }
     }
 
-    private static void DrawShape(SKCanvas canvas, ShapeElement sh, string colorHex, float strokeWidth)
+    internal static void DrawShape(SKCanvas canvas, ShapeElement sh, string colorHex, float strokeWidth)
     {
         var color = ParseColor(colorHex);
         using var paint = new SKPaint
@@ -2842,7 +2842,7 @@ public partial class WhiteboardView : UserControl
         }
     }
 
-    private static void DrawText(SKCanvas canvas, TextElement t)
+    internal static void DrawText(SKCanvas canvas, TextElement t)
     {
         if (t.Background != null)
         {

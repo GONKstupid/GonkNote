@@ -1670,15 +1670,20 @@ public partial class WhiteboardView : UserControl
 
     private void CanvasHost_DragOver(object sender, DragEventArgs e)
     {
-        e.Effects = GetDroppedImageFiles(e).Count > 0 ? DragDropEffects.Copy : DragDropEffects.None;
+        e.Effects = GetDroppedImageFiles(e).Count > 0 || GetDroppedPdfFiles(e).Count > 0
+            ? DragDropEffects.Copy
+            : DragDropEffects.None;
         e.Handled = true;
     }
 
     private void CanvasHost_Drop(object sender, DragEventArgs e)
     {
+        foreach (var pdf in GetDroppedPdfFiles(e))
+            InsertPdfFile(pdf);
+
         var files = GetDroppedImageFiles(e);
-        if (files.Count == 0) return;
-        InsertImageFiles(files, ToCanvas(e.GetPosition(CanvasHost)));
+        if (files.Count > 0)
+            InsertImageFiles(files, ToCanvas(e.GetPosition(CanvasHost)));
         e.Handled = true;
     }
 
@@ -1688,6 +1693,130 @@ public partial class WhiteboardView : UserControl
             e.Data.GetData(DataFormats.FileDrop) is not string[] files)
             return new List<string>();
         return files.Where(f => ImageExtensions.Contains(Path.GetExtension(f).ToLowerInvariant())).ToList();
+    }
+
+    private static List<string> GetDroppedPdfFiles(DragEventArgs e)
+    {
+        if (!e.Data.GetDataPresent(DataFormats.FileDrop) ||
+            e.Data.GetData(DataFormats.FileDrop) is not string[] files)
+            return new List<string>();
+        return files.Where(f => Path.GetExtension(f).Equals(".pdf", StringComparison.OrdinalIgnoreCase)).ToList();
+    }
+
+    // ==================== PDF einfügen ====================
+
+    /// <summary>Renderauflösung der langen Kante (≈ 200 % einer A4-Seite bei 96 DPI).</summary>
+    private const int PdfRenderLongSide = 2246;
+
+    private void InsertPdf_Click(object sender, RoutedEventArgs e)
+    {
+        if (_vm == null || _page == null) return;
+        var dlg = new Microsoft.Win32.OpenFileDialog
+        {
+            Title = "PDF einfügen",
+            Filter = "PDF-Dokumente (*.pdf)|*.pdf|Alle Dateien (*.*)|*.*",
+        };
+        if (dlg.ShowDialog(Window.GetWindow(this)) != true) return;
+        InsertPdfFile(dlg.FileName);
+    }
+
+    private void InsertPdfFile(string path)
+    {
+        if (_vm == null || _page == null) return;
+
+        List<PdfImporter.PdfPageImage> pages;
+        Mouse.OverrideCursor = Cursors.Wait;
+        try
+        {
+            pages = PdfImporter.RenderPages(path, PdfRenderLongSide);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"PDF konnte nicht geladen werden:\n{ex.Message}",
+                "Gonk Note", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+        finally
+        {
+            Mouse.OverrideCursor = null;
+        }
+
+        if (pages.Count == 0)
+        {
+            MessageBox.Show("Das PDF enthält keine darstellbaren Seiten.",
+                "Gonk Note", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        if (_page.IsInfinite) InsertPdfIntoWhiteboard(pages);
+        else InsertPdfIntoNotebook(pages);
+    }
+
+    /// <summary>Anzeigemaße einer PDF-Seite: lange Kante = A4-Höhe, Seitenverhältnis bleibt.</summary>
+    private static (float W, float H) PdfDisplaySize(PdfImporter.PdfPageImage pg)
+    {
+        const float longSide = WhiteboardDoc.A4Height;
+        return pg.Height >= pg.Width
+            ? (longSide * pg.Width / pg.Height, longSide)
+            : (longSide, longSide * pg.Height / pg.Width);
+    }
+
+    /// <summary>Notizbuch: jede PDF-Seite wird eine neue Seite hinter der aktuellen.</summary>
+    private void InsertPdfIntoNotebook(List<PdfImporter.PdfPageImage> pages)
+    {
+        if (_vm == null) return;
+
+        int insertAt = _vm.PageIndex + 1;
+        foreach (var pg in pages)
+        {
+            var (pw, ph) = PdfDisplaySize(pg);
+            _vm.Doc.Pages.Insert(insertAt++, new WbPage
+            {
+                Width = pw,
+                Height = ph,
+                Background = PageBackground.Blank,
+                Shade = PageShade.Light,
+                BackgroundImage = pg.Data,
+                BackgroundImageId = Guid.NewGuid(),
+            });
+        }
+
+        MarkDirty();
+        GoToPage(_vm.PageIndex + 1);
+        UpdatePageLabel();
+    }
+
+    /// <summary>Whiteboard: PDF-Seiten als Bild-Elemente untereinander, direkt ausgewählt.</summary>
+    private void InsertPdfIntoWhiteboard(List<PdfImporter.PdfPageImage> pages)
+    {
+        if (_vm == null || _page == null) return;
+
+        var at = ViewCenter();
+        var added = new List<WbElement>();
+        float y = at.Y;
+        foreach (var pg in pages)
+        {
+            var (dw, dh) = PdfDisplaySize(pg);
+            added.Add(new ImageElement
+            {
+                X = at.X - dw / 2f,
+                Y = y,
+                Width = dw,
+                Height = dh,
+                Data = pg.Data,
+            });
+            y += dh + 24f;
+        }
+
+        _page.Elements.AddRange(added);
+        _vm.Undo.Push(_page, new AddElementsAction(added));
+        MarkDirty();
+
+        BtnLasso.IsChecked = true;
+        _selection.Clear();
+        foreach (var el in added) _selection.Add(el);
+        ComputeSelectionBounds();
+        Skia.InvalidateVisual();
     }
 
     private bool HitResizeHandle(ImageElement im, SKPoint c)
@@ -2237,7 +2366,7 @@ public partial class WhiteboardView : UserControl
     private void DeletePage_Click(object sender, RoutedEventArgs e)
     {
         if (_vm == null || _vm.Doc.Pages.Count <= 1 || _page == null) return;
-        if (_page.Elements.Count > 0 &&
+        if ((_page.Elements.Count > 0 || _page.BackgroundImage != null) &&
             MessageBox.Show("Diese Seite und ihren Inhalt löschen?", "Gonk Note",
                 MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
             return;
@@ -2338,6 +2467,15 @@ public partial class WhiteboardView : UserControl
             : EffectiveShade(_page) == PageShade.Dark ? SKColor.Parse("#1E2638") : SKColors.White;
         using (var bg = new SKPaint { Color = bgColor })
             canvas.DrawRect(pageRect, bg);
+
+        // Hintergrundbild (importierte PDF-Seite): seitenfüllend, ersetzt das Muster
+        if (_page.BackgroundImage is { Length: > 0 } bgData &&
+            ImageCache.Get(_page.BackgroundImageId, bgData) is { } bgImg)
+        {
+            using var ip = new SKPaint { IsAntialias = true, FilterQuality = SKFilterQuality.Medium };
+            canvas.DrawImage(bgImg, pageRect, ip);
+            return;
+        }
 
         using var line = new SKPaint
         {

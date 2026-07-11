@@ -110,8 +110,6 @@ einarbeiten, wenn es kommt.**
 
 ## 5. Bekannte Lücken / bewusst vertagt
 
-- **PDF-Import** → offene Nutzer-Frage: Text-Extraktion (editierbar) oder
-  Bild-Seiten (Faksimile)? Bibliotheken: Docnet.Core/PDFium für Rendering
 - **Export**: Markdown → DOCX → PDF (Whiteboard via `SKDocument.CreatePdf`)
 - **Datei-Einfüge-Tool** (PDF/DOCX-Vorschau ins Whiteboard) → nach Import/Export
 - Sticker, Notizzettel, Lineal, OCR, RAM-Optimierung, Obfuskierung → Phase 3
@@ -123,10 +121,16 @@ einarbeiten, wenn es kommt.**
 
 ## 6. Empfohlener Ablaufplan
 
-1. Nutzer-Feedback zu Runde 2/3 + DOCX-Import einarbeiten (falls vorhanden)
-2. **PDF-Import** (nach Klärung der Prioritätsfrage oben)
-3. **Export**: Markdown → DOCX (OpenXML, Gegenrichtung zum Importer) → PDF
-4. Datei-Einfüge-Tool, dann Phase 3 (nach Rücksprache)
+1. Nutzer-Feedback zu Runde 2/3 + DOCX-/PDF-Import einarbeiten (falls vorhanden)
+2. **Export**: Markdown → DOCX (OpenXML, Gegenrichtung zum Importer) → PDF
+3. Datei-Einfüge-Tool, dann Phase 3 (nach Rücksprache)
+
+**PDF-Import ist umgesetzt** (Nutzer-Entscheidung: Bild-Seiten, keine Text-Extraktion):
+Docnet.Core/PDFium rendert Seiten als JPEG (lange Kante 2246 px). Im Notizbuch wird
+jede PDF-Seite eine neue `WbPage` mit `BackgroundImage` (nicht verschieb-/radierbar,
+ersetzt das Muster, Seitenverhältnis erhalten, lange Kante = A4-Höhe). Im Whiteboard
+werden die Seiten als `ImageElement` untereinander eingefügt und direkt ausgewählt.
+`ImageCache` arbeitet mit Byte-Budget (96 MB) statt Stückzahl-Limit.
 
 ---
 

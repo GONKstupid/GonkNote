@@ -146,6 +146,16 @@ public class WbPage
     /// <summary>Cover-Seite eines Notizbuchs (ohne Muster, mit Titel).</summary>
     public bool IsCover { get; set; }
 
+    /// <summary>
+    /// Hintergrundbild der Seite (z. B. importierte PDF-Seite, JPEG/PNG-Bytes).
+    /// Wird seitenfüllend hinter den Elementen gezeichnet und ist weder
+    /// verschieb- noch radierbar; ersetzt das Muster.
+    /// </summary>
+    public byte[]? BackgroundImage { get; set; }
+
+    /// <summary>Cache-Schlüssel fürs Rendering des Hintergrundbilds.</summary>
+    public Guid BackgroundImageId { get; set; }
+
     public bool IsInfinite => Width <= 0 || Height <= 0;
 }
 

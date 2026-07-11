@@ -116,13 +116,19 @@
                     <Border Width="1" Background="{DynamicResource Brush.Border}" Margin="6,4"/>
 
                     <Button Style="{StaticResource IconButton}" Content="&#xE8B9;"
+                            AutomationProperties.Name="Bild einfügen"
                             ToolTip="Bild einfügen (PNG, JPEG, SVG …) – auch per Strg+V oder Drag &amp; Drop"
                             Click="InsertImage_Click"/>
+                    <Button Style="{StaticResource IconButton}" Content="&#xE7C3;"
+                            AutomationProperties.Name="PDF einfügen"
+                            ToolTip="PDF einfügen – im Notizbuch als neue Seiten, im Whiteboard als Bild-Seiten"
+                            Click="InsertPdf_Click"/>
 
                     <Border Width="1" Background="{DynamicResource Brush.Border}" Margin="6,4"/>
 
                     <Button Style="{StaticResource IconButton}" Content="&#xE713;"
-                            ToolTip="Hintergrund &amp; Seitenformat" Click="PageSetup_Click"/>
+                            AutomationProperties.Name="Einstellungen"
+                            ToolTip="Einstellungen (Seite, Formen, Text, Cover)" Click="PageSetup_Click"/>
 
                 </StackPanel>
             </ScrollViewer>
@@ -134,16 +140,16 @@
                 Padding="8,3" Visibility="Collapsed">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                 <Button Style="{StaticResource IconButton}" Content="&#xE72B;" ToolTip="Vorherige Seite"
-                        Click="PrevPage_Click"/>
+                        AutomationProperties.Name="Vorherige Seite" Click="PrevPage_Click"/>
                 <TextBlock x:Name="PageLabel" Text="Seite 1 / 1" VerticalAlignment="Center" Margin="10,0"
                            Foreground="{DynamicResource Brush.Text}"/>
                 <Button Style="{StaticResource IconButton}" Content="&#xE72A;" ToolTip="Nächste Seite"
-                        Click="NextPage_Click"/>
+                        AutomationProperties.Name="Nächste Seite" Click="NextPage_Click"/>
                 <Border Width="1" Background="{DynamicResource Brush.Border}" Margin="8,4"/>
                 <Button Style="{StaticResource IconButton}" Content="&#xE710;" ToolTip="Neue Seite"
-                        Click="AddPage_Click"/>
+                        AutomationProperties.Name="Neue Seite" Click="AddPage_Click"/>
                 <Button Style="{StaticResource IconButton}" Content="&#xE74D;" ToolTip="Seite löschen"
-                        Click="DeletePage_Click"/>
+                        AutomationProperties.Name="Seite löschen" Click="DeletePage_Click"/>
             </StackPanel>
         </Border>
 

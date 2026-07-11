@@ -27,6 +27,9 @@ ohne Cloud, ohne Installation, ohne Adminrechte.
     (automatischer Kontrastschutz)
   - **Bilder einfügen**: Toolbar-Button, `Strg+V` oder Drag & Drop
     (PNG, JPEG, BMP, GIF, WebP, SVG); mit Eckgriff proportional skalierbar
+  - **PDF einfügen** (Toolbar-Button oder Drag & Drop): im Notizbuch wird jede
+    PDF-Seite eine eigene Seite zum Draufschreiben und Markieren (wie GoodNotes),
+    im Whiteboard landen die Seiten als hochauflösende, skalierbare Bilder
   - Undo/Redo (`Strg+Z` / `Strg+Y`), Zoom (`Strg+Mausrad`), Pan (mittlere Maustaste,
     Leertaste, Hand-Werkzeug)
 - **Touch-Gesten**: 1 Finger verschiebt die Ansicht, 2 Finger zoomen (Pinch) und
@@ -94,7 +97,7 @@ GonkNote/
 
 ## Roadmap
 
-- **Phase 2 — Import/Export**: Bilder-Import ✔; als Nächstes DOCX-Import, PDF-Import,
-  Export nach PDF/DOCX/Markdown, Datei-Einfüge-Tool mit Mini-Vorschau
+- **Phase 2 — Import/Export**: Bilder-Import ✔, DOCX-Import ✔, PDF-Import ✔;
+  als Nächstes Export nach PDF/DOCX/Markdown, Datei-Einfüge-Tool mit Mini-Vorschau
 - **Phase 3 — Feinschliff**: Sticker, Notizzettel, Lineal/Geodreieck, OCR (optional),
   RAM-Profiling (< 200 MB), Render-Caching, Obfuskierung

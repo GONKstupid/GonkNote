@@ -104,6 +104,11 @@ public partial class WhiteboardView : UserControl
     private ToolType _lastPen = ToolType.Pen;
     private bool _penGroupExpanded;
 
+    // Zeichenhilfen-Gruppe (Lineal/Geodreieck): eingeklappt ist nur die zuletzt benutzte sichtbar
+    private ToggleButton[] AidButtons => new[] { BtnRuler, BtnSetSquare };
+    private DrawAid _lastAid = DrawAid.Ruler;
+    private bool _aidGroupExpanded;
+
     public WhiteboardView()
     {
         InitializeComponent();
@@ -113,6 +118,7 @@ public partial class WhiteboardView : UserControl
         BtnShapeRect.IsChecked = true;
         _suppressToolEvents = false;
         SetPenGroupExpanded(false);
+        SetAidGroupExpanded(false);
 
         foreach (var b in ToolButtons) b.Unchecked += Tool_Unchecked;
 
@@ -2512,8 +2518,11 @@ public partial class WhiteboardView : UserControl
     private void SetAid(DrawAid kind)
     {
         _aid = _aid == kind ? DrawAid.None : kind;
+        if (_aid != DrawAid.None) _lastAid = _aid;
         BtnRuler.IsChecked = _aid == DrawAid.Ruler;
         BtnSetSquare.IsChecked = _aid == DrawAid.SetSquare;
+        // Gruppe aufklappen, solange eine Hilfe aktiv ist (zum Umschalten), sonst nur die zuletzt benutzte zeigen
+        SetAidGroupExpanded(_aid != DrawAid.None);
         if (_aid != DrawAid.None && !_aidPlaced)
         {
             var v = VisibleCanvasRect();
@@ -2522,6 +2531,14 @@ public partial class WhiteboardView : UserControl
             _aidPlaced = true;
         }
         Skia.InvalidateVisual();
+    }
+
+    private void SetAidGroupExpanded(bool expanded)
+    {
+        _aidGroupExpanded = expanded;
+        var rep = _lastAid == DrawAid.SetSquare ? BtnSetSquare : BtnRuler;
+        foreach (var b in AidButtons)
+            b.Visibility = expanded || b == rep ? Visibility.Visible : Visibility.Collapsed;
     }
 
     /// <summary>Richtungs- (entlang) und Normalenvektor (quer) der Ausrichtung.</summary>
@@ -2696,9 +2713,7 @@ public partial class WhiteboardView : UserControl
         }
         else if (_aid == DrawAid.SetSquare)
         {
-            DrawCmScale(canvas, accent, 0f, SsHalfHyp);
-            DrawProtractor(canvas, accent);
-            DrawRightAngleMark(canvas, accent);
+            DrawSetSquareMarkings(canvas, accent);
         }
 
         // Dreh-Griff
@@ -2725,32 +2740,117 @@ public partial class WhiteboardView : UserControl
         }
     }
 
-    /// <summary>Winkelskala (Protraktor) des Geodreiecks: radiale Striche alle 15° über der Hypotenuse.</summary>
-    private void DrawProtractor(SKCanvas canvas, SKColor accent)
+    /// <summary>Alle Markierungen des Geodreiecks: Parallel-Hilfslinien, mm/cm-Skala, Protraktor, rechter Winkel.</summary>
+    private void DrawSetSquareMarkings(SKCanvas canvas, SKColor accent)
     {
-        float r = SsHalfHyp * 0.62f;
-        using var tick = new SKPaint { Color = accent.WithAlpha(190), Style = SKPaintStyle.Stroke, StrokeWidth = 1f / Zoom, IsAntialias = true };
-        for (int p = 0; p <= 180; p += 15)
+        float h = SsHalfHyp;
+        DrawParallelGuides(canvas, accent, h);
+        DrawMmScaleNumbered(canvas, accent, h);
+        DrawProtractorFull(canvas, accent, h);
+
+        // Mittelkerbe am Protraktor-Zentrum (Hypotenusen-Mitte)
+        using (var notch = new SKPaint { Color = accent, Style = SKPaintStyle.Stroke, StrokeWidth = 1.6f / Zoom, IsAntialias = true })
+            canvas.DrawLine(AidP(0f, 0f), AidP(0f, -11f), notch);
+
+        DrawRightAngleMark(canvas, accent);
+    }
+
+    /// <summary>Hilfslinien parallel zur Hypotenuse (zum Ziehen von Parallelen).</summary>
+    private void DrawParallelGuides(SKCanvas canvas, SKColor accent, float h)
+    {
+        using var guide = new SKPaint { Color = accent.WithAlpha(55), Style = SKPaintStyle.Stroke, StrokeWidth = 1f / Zoom, IsAntialias = true };
+        foreach (float f in new[] { 0.30f, 0.50f, 0.70f })
         {
-            float th = p * MathF.PI / 180f;
-            float cx = MathF.Cos(th), cy = -MathF.Sin(th);       // 0°→rechts, 90°→oben, 180°→links
-            float len = (p % 45 == 0) ? 12f : 7f;
-            canvas.DrawLine(AidP((r - len) * cx, (r - len) * cy), AidP(r * cx, r * cy), tick);
+            float y = -h * f;
+            float hw = h * (1f - f) - 10f;   // das Dreieck verjüngt sich nach oben
+            if (hw <= 0) continue;
+            canvas.DrawLine(AidP(-hw, y), AidP(hw, y), guide);
         }
     }
 
-    /// <summary>Kleines Quadrat am rechten Winkel (Spitze) des Geodreiecks.</summary>
+    /// <summary>mm-Skala mit cm-Zahlen entlang der Hypotenuse (0 in der Mitte).</summary>
+    private void DrawMmScaleNumbered(SKCanvas canvas, SKColor accent, float h)
+    {
+        using (var tick = new SKPaint { Color = accent.WithAlpha(220), Style = SKPaintStyle.Stroke, StrokeWidth = 1f / Zoom, IsAntialias = true })
+        {
+            float mmStep = PxPerCm / 10f;
+            int mmMax = (int)(h / mmStep);
+            for (int mm = 0; mm <= mmMax; mm++)
+            {
+                float u = mm * mmStep;
+                float len = mm % 10 == 0 ? 8f : (mm % 5 == 0 ? 5.5f : 3f);
+                canvas.DrawLine(AidP(u, 0f), AidP(u, -len), tick);
+                if (mm > 0) canvas.DrawLine(AidP(-u, 0f), AidP(-u, -len), tick);
+            }
+        }
+
+        using var num = TextPaint(accent, 10.5f);
+        for (int cm = 0; cm * PxPerCm <= h; cm++)
+        {
+            float u = cm * PxPerCm;
+            DrawAidText(canvas, num, cm.ToString(), u, -13f);
+            if (cm > 0) DrawAidText(canvas, num, cm.ToString(), -u, -13f);
+        }
+    }
+
+    /// <summary>Winkelskala des Geodreiecks: Bogen, Grad-Ticks alle 5°, Zahlen alle 10°.</summary>
+    private void DrawProtractorFull(SKCanvas canvas, SKColor accent, float h)
+    {
+        float r = h * 0.60f;
+
+        using (var arc = new SKPaint { Color = accent.WithAlpha(150), Style = SKPaintStyle.Stroke, StrokeWidth = 1f / Zoom, IsAntialias = true })
+        using (var path = new SKPath())
+        {
+            for (int p = 0; p <= 180; p += 2)
+            {
+                float th = p * MathF.PI / 180f;
+                var pt = AidP(r * MathF.Cos(th), -r * MathF.Sin(th));
+                if (p == 0) path.MoveTo(pt); else path.LineTo(pt);
+            }
+            canvas.DrawPath(path, arc);
+        }
+
+        using (var tick = new SKPaint { Color = accent.WithAlpha(200), Style = SKPaintStyle.Stroke, StrokeWidth = 1f / Zoom, IsAntialias = true })
+            for (int p = 0; p <= 180; p += 5)
+            {
+                float th = p * MathF.PI / 180f;
+                float cx = MathF.Cos(th), cy = -MathF.Sin(th);      // 0°→rechts, 90°→oben, 180°→links
+                float len = p % 30 == 0 ? 11f : (p % 10 == 0 ? 8f : 5f);
+                canvas.DrawLine(AidP((r - len) * cx, (r - len) * cy), AidP(r * cx, r * cy), tick);
+            }
+
+        using var num = TextPaint(accent, 9.5f);
+        for (int p = 0; p <= 180; p += 10)
+        {
+            float th = p * MathF.PI / 180f;
+            float rr = r - 19f;
+            DrawAidText(canvas, num, p.ToString(), rr * MathF.Cos(th), -rr * MathF.Sin(th));
+        }
+    }
+
+    private SKPaint TextPaint(SKColor accent, float size) => new SKPaint
+    {
+        Color = accent, IsAntialias = true, TextSize = size / Zoom,
+        TextAlign = SKTextAlign.Center, Typeface = Fonts.Regular,
+    };
+
+    /// <summary>Text an lokaler Position (u,v), aufrecht (Glyphen nicht mitgedreht) für gute Lesbarkeit.</summary>
+    private void DrawAidText(SKCanvas canvas, SKPaint paint, string text, float u, float v)
+    {
+        var p = AidP(u, v);
+        canvas.DrawText(text, p.X, p.Y + paint.TextSize * 0.35f, paint);
+    }
+
+    /// <summary>Kleiner Winkelhaken am rechten Winkel (Spitze) des Geodreiecks.</summary>
     private void DrawRightAngleMark(SKCanvas canvas, SKColor accent)
     {
-        float m = 16f;                                  // Kantenlänge des Markers (lokal)
-        float s = m / MathF.Sqrt(2f);
-        var t = AidP(0f, -SsHalfHyp);                   // Spitze
-        var a = AidP(-s, -SsHalfHyp + s);               // ein Stück Richtung linke Kathete
-        var b = AidP(s, -SsHalfHyp + s);                // ein Stück Richtung rechte Kathete
-        var mid = AidP(0f, -SsHalfHyp + 2f * s);
-        using var pen = new SKPaint { Color = accent.WithAlpha(190), Style = SKPaintStyle.Stroke, StrokeWidth = 1f / Zoom, IsAntialias = true };
+        float d = 18f, s = d / MathF.Sqrt(2f);
+        var a = AidP(-s, -SsHalfHyp + s);
+        var inner = AidP(0f, -SsHalfHyp + d * MathF.Sqrt(2f));
+        var b = AidP(s, -SsHalfHyp + s);
+        using var pen = new SKPaint { Color = accent.WithAlpha(200), Style = SKPaintStyle.Stroke, StrokeWidth = 1f / Zoom, IsAntialias = true };
         using var pth = new SKPath();
-        pth.MoveTo(a); pth.LineTo(mid); pth.LineTo(b);
+        pth.MoveTo(a); pth.LineTo(inner); pth.LineTo(b);
         canvas.DrawPath(pth, pen);
     }
 

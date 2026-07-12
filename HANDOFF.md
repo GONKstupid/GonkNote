@@ -1,4 +1,12 @@
-# Gonk Note — Projektübergabe (Stand: 2026-07-12, Phase 2 + Feedback-Runde 5)
+# Gonk Note — Projektübergabe (Stand: 2026-07-12, Phase 3 laufend)
+
+> **⚠️ OFFENER PUNKT ZUERST:** Das **Geodreieck funktioniert laut Nutzer noch
+> immer nicht** (mehrere Anläufe). Das Overlay ist implementiert und rendert im
+> Harness korrekt (Proportionen 1:1 nach Vorlage), aber **im echten App-Betrieb
+> tut es nicht, was es soll** — Ursache noch ungeklärt (nicht reproduziert; die
+> interaktive Verifikation im echten Fenster scheitert an der Testumgebung, §7).
+> **Das ist die erste offene Aufgabe.** Siehe §4/§5.
+
 
 Diese Datei ist für den Einstieg in einen **neuen Chat-Thread** gedacht. Sie fasst
 zusammen, was existiert, was als Nächstes ansteht, und wie gearbeitet werden soll.
@@ -31,6 +39,20 @@ durchgehend Deutsch (UI, Kommentare, Commits). Ehrliches Scoping statt Übercomm
 - Pfad: `C:\Dev\Zed\gonk-note`, Branch `main`, sauber committet
 - Build: `dotnet build` fehlerfrei (0 Warnungen)
 - Commit-Historie (neueste zuerst):
+  - **Phase 3 – Zeichenhilfen (Lineal/Geodreieck)**:
+    - `8d4284e` Geodreieck-Overlay: korrekte Relationen nach Vorlage
+    - `cd0f8f7` Geodreieck-Overlay 1:1 nach echtem Vorbild (Akzentfarbe)
+    - `9c24184` eine Toolbar-Gruppe (wie Stifte) + neue Icons + volles Overlay
+    - `a061985` Lineal um Winkelanzeige/-rastung (15°) erweitert + Geodreieck
+    - `3e63c10` Lineal (Zeichen-Hilfsmittel) mit Kanten-Einrasten
+    - ⚠️ **Geodreieck rendert, funktioniert aber im Betrieb noch nicht** (s. o.)
+  - **Phase 3 – Notizzettel**: `4b10f9e` Notizzettel/Sticker aufs Whiteboard
+    (funktioniert: gerendert + DB-Persistenz + im echten Binary verifiziert)
+  - `41e14c6` Ordnername als Tooltip beim Hovern über Pin-Kacheln
+  - `8f105cf` **Fix**: PDF-Export von Whiteboards/Notizbüchern wieder scharf
+    (Skia re-komprimierte Bilder → jetzt `EncodingQuality=100` + Original-Bytes
+    via `SKImage.FromEncodedData`; wirkt auf Bestandsdokumente ohne Neu-Import)
+  - `79f0fd2` Übergabe-Doku auf Stand Feedback-Runde 5
   - `3cf5372` **Feedback-Runde 5**: Export-Qualität gefixt (Text-PDF scharf),
     PNG-Export, Zen-Style-Pin-Kacheln, Tree-Einfachklick öffnet/Doppelklick
     benennt um, Einstellungs-Accordion (Formen nur bei Formwerkzeug)
@@ -61,8 +83,10 @@ GonkNote/
 ├─ Models/
 │  ├─ NoteItem.cs             Baum-Eintrag inkl. IconColor, IsPinned, IsFavorite
 │  └─ Whiteboard.cs           WbPage (inkl. BackgroundImage/-Id für PDF-Seiten),
-│                             Elemente (Stroke/Shape/Text/Image), Enums,
-│                             CoverStyle, WhiteboardDoc, PageTemplate, TextDoc
+│                             Elemente (Stroke/Shape/Text/Image/**StickyNote**),
+│                             `IBoxElement` (Bild+Zettel: Pos+Größe für Resize),
+│                             Enums (ToolType inkl. **Sticky**), CoverStyle,
+│                             WhiteboardDoc, PageTemplate, TextDoc
 ├─ ViewModels/                Mvvm-Basis, MainViewModel (Baum, Tabs, Autosave 30s,
 │                             Pin/Favorit, DOCX-Import), TreeItemViewModel, Tab-VMs
 ├─ Views/
@@ -138,16 +162,29 @@ DocumentFormat.OpenXml (DOCX), **Docnet.Core** (PDFium-Rendering).
 
 ## 4. Feedback-Stand
 
-**Runden 1–5 umgesetzt und committet.** Noch keine Praxis-Rückmeldung zu:
-Formen-Stift & Touch-Gesten auf echtem Gerät, Cover-Gestaltung, Import/Export mit
-*echten* Dokumenten. **Feedback dazu zuerst einarbeiten, wenn es kommt.**
+**Runden 1–5 + Phase-3-Anfang umgesetzt und committet.**
 
-**⚠️ In Runde 5 noch NICHT interaktiv verifiziert** (Testumgebung, siehe §7):
-Einfachklick-Öffnen, Doppelklick-Umbenennen und das Einstellungs-Accordion sind
-implementiert, bauen fehlerfrei und die App lädt/rendert die Seitenleiste
-korrekt — aber ein echter Klick-Durchlauf steht aus. **Als Erstes im neuen
-Thread real durchklicken und bei Bedarf nachbessern.** Visuell bestätigt sind:
-Text-PDF-Schärfe, PNG-Export, Pin-Kacheln.
+**⚠️ OFFEN #1 — Geodreieck funktioniert nicht** (Nutzer hat es mehrfach getestet):
+Das Overlay (großer Winkelmesser tangential zu den Schenkeln, innerer Winkelmesser,
+cm-Skala 0–8, Koordinatengitter, doppelte mitgedrehte Gradzahlen, 90°-Raute) ist in
+`WhiteboardView.DrawSetSquareMarkings` + Helfer implementiert und rendert im
+**Render-Harness** (`%TEMP%\gonk-geotest`) korrekt und proportionsgetreu zur Vorlage
+`TestAssets/geodreieck-Als-Beispiel.png`. **Aber im echten App-Betrieb tut es nicht,
+was der Nutzer erwartet.** Was genau „nicht funktioniert" ist noch unklar — mögliche
+Verdachtspunkte für den nächsten Thread:
+  - Kippt/rendert das Overlay im echten Fenster überhaupt (vs. nur im Harness)?
+  - Einrasten an den Kanten / Bewegen / Drehen des Geodreiecks?
+  - Umschalten in der Zeichenhilfen-Toolbar-Gruppe (Lineal ↔ Geodreieck)?
+  → **Zuerst mit dem Nutzer klären, welches Verhalten fehlt**, dann gezielt fixen.
+  Die interaktive Verifikation im echten Fenster ist per Automation unzuverlässig (§7)
+  — der Nutzer testet mit Stift, sein Feedback ist die Quelle der Wahrheit.
+
+**Funktioniert (verifiziert):** PDF-Export-Schärfe (Docnet-Render geprüft), Notizzettel
+(im echten Binary aus geseedeter DB geladen + gerendert), Pin-Tooltip, **Lineal**
+(Harness: Kanten-Einrasten, Winkelanzeige, 15°-Rastung — Stylus-Feel vom Nutzer als
+„funktioniert super" bestätigt).
+
+**Noch keine Praxis-Rückmeldung** zu Formen-Stift/Touch auf echtem Gerät.
 
 ---
 
@@ -158,10 +195,20 @@ Text-PDF-Schärfe, PNG-Export, Pin-Kacheln.
   Optimierung**: Seiten *lazy* on-demand rendern (nur PDF-Bytes + Seitenindex
   speichern, Bild erst beim Anzeigen erzeugen/cachen) → Import quasi sofort.
   Größerer Umbau (Persistenz, Undo, Save/Load), bewusst vertagt.
-- **Datei-Einfüge-Tool** (PDF/DOCX-Mini-Vorschau ins Whiteboard) → noch offen.
-- Sticker, Notizzettel, Lineal/Geodreieck, OCR, **RAM-Optimierung**, Obfuskierung
-  → Phase 3. RAM: Basis ~190 MB + bis 96 MB Bild-Cache; Ziel < 200 MB braucht noch
-  Arbeit (Cache-Budget senken, Render-Caching, GC-Tuning).
+- **Datei-Einfüge-Tool** (PDF/DOCX-Mini-Vorschau ins Whiteboard) → noch offen
+  (laut Nutzer nach den Zeichenhilfen der nächste Schritt).
+- **Zeichenhilfen** (`WhiteboardView`, Bereich „Zeichenhilfen: Lineal & Geodreieck"):
+  transiente Overlays (nicht in der DB gespeichert). Gemeinsame Basis `DrawAid`
+  (None/Ruler/SetSquare), Toolbar-Gruppe `BtnRuler`/`BtnSetSquare` (klappbar wie die
+  Stifte). Einrasten = Punkt-auf-Kanten-Projektion (`TryActivateAidSnap`/`ApplyAidSnap`),
+  Bewegen/Drehen (`TryBeginAid`/`UpdateAidDrag`), Winkel-Rastung 15° (`SnapAngle`).
+  Geometrie über `AidP`/`AidPolar`; alles als Bruchteil von `SsHalfHyp` (=8 cm) bzw.
+  `PxPerCm`. **Lineal ok, Geodreieck-Verhalten offen (§4).** Zahlen drehen mit der
+  Hilfe mit (aufrecht war eine frühere Variante). Prototyp/Sichtprüfung:
+  `%TEMP%\gonk-geotest` und `%TEMP%\gonk-rulertest` (portieren die Zeichenlogik 1:1).
+- Sticker (über Notizzettel hinaus), OCR, **RAM-Optimierung**, Obfuskierung → Phase 3.
+  RAM: Basis ~190 MB + bis 96 MB Bild-Cache; Ziel < 200 MB braucht noch Arbeit
+  (Cache-Budget senken, Render-Caching, GC-Tuning).
 - Text-Stiländerungen am bestehenden Whiteboard-Textfeld sind nicht undo-fähig
   (bewusst einfach). DOCX-Import: keine Kopf-/Fußzeilen, Fußnoten, verschachtelten
   Tabellen. PDF: keine Text-Extraktion (per Nutzer-Wunsch reine Bild-Seiten).
@@ -174,15 +221,18 @@ Text-PDF-Schärfe, PNG-Export, Pin-Kacheln.
 
 ## 6. Empfohlener Ablaufplan für den neuen Thread
 
-1. **Runde-5-Punkte real durchklicken** (Einfachklick-Öffnen, Doppelklick-Umbenennen,
-   Einstellungs-Accordion, Formen-Sektion nur bei Formwerkzeug) und bei Bedarf
-   nachbessern — konnte automatisiert nicht bestätigt werden (§7).
+1. **Geodreieck zum Laufen bringen (§4, OFFEN #1).** Zuerst beim Nutzer erfragen,
+   *welches* Verhalten fehlt (Anzeige? Einrasten? Bewegen/Drehen? Umschalten?), dann
+   gezielt fixen. Nicht blind neu bauen — das Overlay stimmt bereits proportional.
 2. Falls Nutzer weiteres Feedback mitbringt → **zuerst** einarbeiten.
-3. **Datei-Einfüge-Tool** (der ausdrücklich gewünschte nächste Schritt):
+3. **Datei-Einfüge-Tool** (danach ausdrücklich gewünschter Schritt):
    PDF/DOCX-Vorschau-Dialog, wahlweise als Bild oder strukturierte Elemente ins
    Whiteboard einfügen (baut auf `PdfImporter`/`DocxImporter` auf).
-4. **Phase 3** nach Rücksprache: RAM-Profiling/-Optimierung (Ziel < 200 MB),
-   Sticker/Notizzettel/Lineal, optionales OCR, Obfuskierung, laufendes UI-Feintuning.
+4. **Rest von Phase 3**: RAM-Profiling/-Optimierung (Ziel < 200 MB), weitere Sticker,
+   optionales OCR, Obfuskierung, laufendes UI-Feintuning.
+
+**Reihenfolge-Wunsch des Nutzers war:** Lineal/Geodreieck → Datei-Einfüge-Tool →
+Rest Phase 3. Lineal + Notizzettel sind durch; das Geodreieck hängt an OFFEN #1.
 
 Export sitzt in `Datei → Exportieren`; `ExportActiveTab` wählt anhand des aktiven
 Tabs die Formate.
@@ -207,6 +257,27 @@ Tabs die Formate.
   LiteDB) liegt in `%TEMP%\gonk-dbclean\` (seedet u. a. `seed.db` mit fertigem
   Whiteboard/Ordner); ein Docnet-Renderer in `%TEMP%\gonk-render\` rendert
   Export-PDFs zu PNG zur Sichtprüfung.
+- **Render-Harnesses (zuverlässigste Prüfung für Zeichen-/Overlay-Logik!)**: statt
+  die flakige echte UI zu klicken, wird die Zeichenlogik 1:1 in ein Konsolen-Skia-
+  Programm portiert und zu PNG gerendert. Vorhanden: `%TEMP%\gonk-geotest`
+  (Geodreieck), `%TEMP%\gonk-rulertest` (Lineal + Snap), `%TEMP%\gonk-stickytest`
+  (Notizzettel), `%TEMP%\gonk-pdftest` (PDF-Export-Qualität). So wurden Proportionen/
+  Snap/Umbruch geprüft. **Aber: der Harness prüft nur das *Rendering/die Mathe*,
+  nicht das *Verhalten im echten Fenster* — genau da hakt das Geodreieck (§4).**
+- **Notizzettel/Geodreieck im echten Binary zeigen**: Seeder mit **echten Modellen**
+  in `%TEMP%\gonk-seedsticky` (referenziert `bin\Debug\...\GonkNote.dll` direkt, da
+  das Projekt eine self-contained Exe ist → kein ProjectReference möglich) schreibt
+  ein Whiteboard mit Elementen in eine Wegwerf-DB; dann App mit `--db` starten und
+  per **`PrintWindow(hwnd, hdc, 2)`** (PW_RENDERFULLCONTENT) kapturen — fängt das
+  Fenster auch, wenn es nicht im Vordergrund ist. Vordergrund erzwingen via
+  `AttachThreadInput`-Trick.
+- **DPI-Stolperfalle**: die PowerShell-Instanz ist mal DPI-aware, mal nicht →
+  `GetWindowRect`/`SetCursorPos` liefern inkonsistent physische vs. virtualisierte
+  Koordinaten, deshalb landen fixe Klick-Koordinaten oft daneben. **UIA-`Select` auf
+  TreeItems** funktioniert (öffnet Doku per Enter/Klick auf dessen BoundingRectangle);
+  **UIA-`Toggle` auf die Icon-ToggleButtons der Toolbar fand den Button trotz
+  `AutomationProperties.Name` nicht** (ungeklärt) — Buttons daher nur *visuell*
+  bestätigt.
 - **⚠️ Bekannte Grenze der Testumgebung**: Die IDE (Zed/Claude) reißt nach dem
   Start einer Test-Instanz oft den Fokus zurück → automatische `mouse_event`-Klicks
   landen dann in der IDE statt in Gonk Note (im schlimmsten Fall in einer echten,

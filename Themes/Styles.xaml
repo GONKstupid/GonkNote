@@ -20,6 +20,7 @@
     <Geometry x:Key="Icon.Lasso">M8,2 C12,2 14.5,3.8 14.5,6 C14.5,8.2 12,10 8,10 C4,10 1.5,8.2 1.5,6 C1.5,3.8 4,2 8,2 Z M8,10 C8,11.8 10.2,11.6 10.2,13.4 M10.2,13.4 m-1.1,0 a1.1,1.1 0 1,0 2.2,0 a1.1,1.1 0 1,0 -2.2,0</Geometry>
     <Geometry x:Key="Icon.SmoothPen">M1.5,14.5 L5.5,7 L9.5,14.5 Z M14.8,5.4 A3.4,3.4 0 1,1 8,5.4 A3.4,3.4 0 1,1 14.8,5.4</Geometry>
     <Geometry x:Key="Icon.Ruler">M1,5.5 H15 V10.5 H1 Z M3.5,5.5 V8.2 M6,5.5 V7 M8.5,5.5 V8.2 M11,5.5 V7 M13.5,5.5 V8.2</Geometry>
+    <Geometry x:Key="Icon.SetSquare">M2,13 H14 L2,4 Z M4.3,11.5 L5.2,10.8 M6.2,11.5 L7.5,10.5 M8.1,11.5 L9,10.8</Geometry>
     <Geometry x:Key="Icon.Table">M2,3 H14 V13 H2 Z M2,6.33 H14 M2,9.66 H14 M6,3 V13 M10,3 V13</Geometry>
     <Geometry x:Key="Icon.IndentInc">M7,3 H14 M7,8 H14 M7,13 H14 M2,5.5 L5,8 L2,10.5</Geometry>
     <Geometry x:Key="Icon.IndentDec">M7,3 H14 M7,8 H14 M7,13 H14 M5,5.5 L2,8 L5,10.5</Geometry>

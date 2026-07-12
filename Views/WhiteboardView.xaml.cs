@@ -73,15 +73,16 @@ public partial class WhiteboardView : UserControl
     private string _editingStickyOld = "";
     private string _stickyColorHex = "#FFFEF08A";
 
-    // Lineal (transientes Zeichen-Hilfsmittel, wird nicht gespeichert)
+    // Zeichenhilfen: Lineal & Geodreieck (transient, werden nicht gespeichert)
+    private enum DrawAid { None, Ruler, SetSquare }
     private enum RulerDrag { None, Move, Rotate }
-    private bool _rulerOn;
-    private bool _rulerPlaced;
-    private SKPoint _rulerCenter;
-    private float _rulerAngleDeg;
+    private DrawAid _aid = DrawAid.None;
+    private bool _aidPlaced;
+    private SKPoint _aidCenter;
+    private float _aidAngleDeg;
     private RulerDrag _rulerDrag;
     private SKPoint _rulerDragLast;
-    // Einrasten eines Strichs auf eine Lineal-Kante
+    // Einrasten eines Strichs auf eine Kante der aktiven Zeichenhilfe
     private bool _rulerSnapActive;
     private SKPoint _rulerSnapE0, _rulerSnapDir;
 
@@ -90,6 +91,10 @@ public partial class WhiteboardView : UserControl
     private const float RulerHalfWidth = 26f;
     private const float RulerSnapDist = 26f;
     private const float PxPerCm = 37.795f;
+    private const float SetSquareLeg = 380f;   // Kathetenlänge des Geodreiecks
+    // Winkel-Einrasten (Fresco-Stil): magnetische Rastung an 15°-Vielfachen
+    private const float RulerAngleStep = 15f;
+    private const float RulerAngleSnapTol = 4f;
 
     private ToggleButton[] ToolButtons => new[] { BtnPen, BtnSmoothPen, BtnPencil, BtnHighlighter, BtnEraser, BtnLasso, BtnText, BtnShape, BtnSticky, BtnPan };
     private ToggleButton[] ShapeButtons => new[] { BtnShapeLine, BtnShapeArrow, BtnShapeRect, BtnShapeEllipse, BtnShapeTriangle };
@@ -653,8 +658,8 @@ public partial class WhiteboardView : UserControl
         if (_page == null || _vm == null) return;
         CommitActiveEdit();
 
-        // Lineal bewegen/drehen hat Vorrang (außer beim Verschieben-Werkzeug)
-        if (_tool != ToolType.Pan && TryBeginRuler(c)) return;
+        // Zeichenhilfe bewegen/drehen hat Vorrang (außer beim Verschieben-Werkzeug)
+        if (_tool != ToolType.Pan && TryBeginAid(c)) return;
 
         switch (EffectiveTool)
         {
@@ -663,8 +668,8 @@ public partial class WhiteboardView : UserControl
             case ToolType.Pencil:
             case ToolType.Highlighter:
                 _drawing = true;
-                TryActivateRulerSnap(c);
-                var start = ApplyRulerSnap(c);
+                TryActivateAidSnap(c);
+                var start = ApplyAidSnap(c);
                 _activePoints = new List<WbPoint> { new(start.X, start.Y, Math.Clamp(pressure, 0.05f, 1f)) };
                 break;
 
@@ -744,7 +749,7 @@ public partial class WhiteboardView : UserControl
     private void MoveInput(SKPoint c, float pressure)
     {
         if (_page == null) return;
-        if (_rulerDrag != RulerDrag.None) { UpdateRulerDrag(c); return; }
+        if (_rulerDrag != RulerDrag.None) { UpdateAidDrag(c); return; }
 
         switch (EffectiveTool)
         {
@@ -753,7 +758,7 @@ public partial class WhiteboardView : UserControl
             case ToolType.Pencil:
             case ToolType.Highlighter:
                 if (!_drawing || _activePoints == null) return;
-                c = ApplyRulerSnap(c);
+                c = ApplyAidSnap(c);
                 var last = _activePoints[^1];
                 float minDist = 1.2f / Zoom;
                 if ((c.X - last.X) * (c.X - last.X) + (c.Y - last.Y) * (c.Y - last.Y) < minDist * minDist)
@@ -2496,147 +2501,281 @@ public partial class WhiteboardView : UserControl
         return lum > 140 ? "#FF1F2937" : "#FFF9FAFB";
     }
 
-    // ==================== Lineal ====================
+    // ==================== Zeichenhilfen: Lineal & Geodreieck ====================
 
-    private void Ruler_Click(object sender, RoutedEventArgs e) => SetRuler(BtnRuler.IsChecked == true);
+    private static readonly float SsHalfHyp = SetSquareLeg / MathF.Sqrt(2f); // halbe Hypotenuse = Höhe des Geodreiecks
 
-    private void SetRuler(bool on)
+    private void Ruler_Click(object sender, RoutedEventArgs e) => SetAid(DrawAid.Ruler);
+    private void SetSquare_Click(object sender, RoutedEventArgs e) => SetAid(DrawAid.SetSquare);
+
+    /// <summary>Schaltet eine Zeichenhilfe ein bzw. (bei erneutem Klick) aus. Beide schließen sich aus.</summary>
+    private void SetAid(DrawAid kind)
     {
-        _rulerOn = on;
-        BtnRuler.IsChecked = on;
-        if (on && !_rulerPlaced)
+        _aid = _aid == kind ? DrawAid.None : kind;
+        BtnRuler.IsChecked = _aid == DrawAid.Ruler;
+        BtnSetSquare.IsChecked = _aid == DrawAid.SetSquare;
+        if (_aid != DrawAid.None && !_aidPlaced)
         {
             var v = VisibleCanvasRect();
-            _rulerCenter = new SKPoint(v.MidX, v.MidY);
-            _rulerAngleDeg = 0f;
-            _rulerPlaced = true;
+            _aidCenter = new SKPoint(v.MidX, v.MidY);
+            _aidAngleDeg = 0f;
+            _aidPlaced = true;
         }
         Skia.InvalidateVisual();
     }
 
-    /// <summary>Richtungs- (entlang) und Normalenvektor (quer) der Lineal-Ausrichtung.</summary>
-    private (SKPoint Dir, SKPoint Nrm) RulerAxes()
+    /// <summary>Richtungs- (entlang) und Normalenvektor (quer) der Ausrichtung.</summary>
+    private (SKPoint Dir, SKPoint Nrm) AidAxes()
     {
-        float a = _rulerAngleDeg * MathF.PI / 180f;
+        float a = _aidAngleDeg * MathF.PI / 180f;
         var d = new SKPoint(MathF.Cos(a), MathF.Sin(a));
         return (d, new SKPoint(-d.Y, d.X));
     }
 
-    private SKPoint RulerHandleCenter()
+    /// <summary>Lokalen Punkt (u entlang, v quer) in Weltkoordinaten wandeln.</summary>
+    private SKPoint AidP(float u, float v)
     {
-        var (d, _) = RulerAxes();
-        float ext = RulerLength / 2f + 16f / Zoom;
-        return new SKPoint(_rulerCenter.X + d.X * ext, _rulerCenter.Y + d.Y * ext);
+        var (d, n) = AidAxes();
+        return new SKPoint(_aidCenter.X + u * d.X + v * n.X, _aidCenter.Y + u * d.Y + v * n.Y);
     }
 
-    /// <summary>Punkt in Lineal-lokale Koordinaten: x entlang der Kante, y quer dazu.</summary>
-    private (float Lx, float Ly) RulerLocal(SKPoint c)
+    /// <summary>Eckpunkte der aktiven Hilfe in lokalen Koordinaten.</summary>
+    private SKPoint[] AidLocalPolygon() => _aid switch
     {
-        var (d, n) = RulerAxes();
-        float rx = c.X - _rulerCenter.X, ry = c.Y - _rulerCenter.Y;
-        return (rx * d.X + ry * d.Y, rx * n.X + ry * n.Y);
+        DrawAid.Ruler => new[]
+        {
+            new SKPoint(-RulerLength / 2f, -RulerHalfWidth), new SKPoint(RulerLength / 2f, -RulerHalfWidth),
+            new SKPoint(RulerLength / 2f, RulerHalfWidth), new SKPoint(-RulerLength / 2f, RulerHalfWidth),
+        },
+        // Rechtwinklig-gleichschenkliges Geodreieck: Hypotenuse unten, rechter Winkel oben
+        DrawAid.SetSquare => new[]
+        {
+            new SKPoint(-SsHalfHyp, 0f), new SKPoint(SsHalfHyp, 0f), new SKPoint(0f, -SsHalfHyp),
+        },
+        _ => Array.Empty<SKPoint>(),
+    };
+
+    /// <summary>Kantenpaare (Indizes in das Polygon) zum Einrasten.</summary>
+    private (int A, int B)[] AidEdgePairs() => _aid switch
+    {
+        DrawAid.Ruler => new[] { (0, 1), (3, 2) },                 // beide Längskanten
+        DrawAid.SetSquare => new[] { (0, 1), (1, 2), (2, 0) },     // Hypotenuse + zwei Katheten
+        _ => Array.Empty<(int, int)>(),
+    };
+
+    private SKPoint[] AidWorldPolygon()
+    {
+        var lp = AidLocalPolygon();
+        var wp = new SKPoint[lp.Length];
+        for (int i = 0; i < lp.Length; i++) wp[i] = AidP(lp[i].X, lp[i].Y);
+        return wp;
     }
 
-    private bool RulerHandleHit(SKPoint c)
+    /// <summary>Lokale x-Position des „rechten Endes" (dort sitzt der Dreh-Griff).</summary>
+    private float AidRightEndX => _aid == DrawAid.SetSquare ? SsHalfHyp : RulerLength / 2f;
+
+    private SKPoint AidHandleCenter()
     {
-        var h = RulerHandleCenter();
+        var (d, _) = AidAxes();
+        var end = AidP(AidRightEndX, 0f);
+        float ext = 16f / Zoom;
+        return new SKPoint(end.X + d.X * ext, end.Y + d.Y * ext);
+    }
+
+    private bool AidHandleHit(SKPoint c)
+    {
+        var h = AidHandleCenter();
         float r = 13f / Zoom;
         float dx = c.X - h.X, dy = c.Y - h.Y;
         return dx * dx + dy * dy <= r * r;
     }
 
-    private bool RulerBodyContains(SKPoint c)
+    private static bool PointInPolygon(SKPoint[] poly, SKPoint p)
     {
-        var (lx, ly) = RulerLocal(c);
-        return Math.Abs(lx) <= RulerLength / 2f && Math.Abs(ly) <= RulerHalfWidth;
+        bool inside = false;
+        for (int i = 0, j = poly.Length - 1; i < poly.Length; j = i++)
+        {
+            if (poly[i].Y > p.Y != poly[j].Y > p.Y &&
+                p.X < (poly[j].X - poly[i].X) * (p.Y - poly[i].Y) / (poly[j].Y - poly[i].Y) + poly[i].X)
+                inside = !inside;
+        }
+        return inside;
     }
 
-    /// <summary>Prüft, ob ein Strichstart nahe einer Lineal-Kante liegt, und aktiviert das Einrasten.</summary>
-    private bool TryActivateRulerSnap(SKPoint c)
+    private bool AidBodyContains(SKPoint c) => _aid != DrawAid.None && PointInPolygon(AidWorldPolygon(), c);
+
+    /// <summary>Prüft, ob ein Strichstart nahe einer Kante liegt, und aktiviert das Einrasten auf diese Kante.</summary>
+    private bool TryActivateAidSnap(SKPoint c)
     {
         _rulerSnapActive = false;
-        if (!_rulerOn) return false;
-        var (lx, ly) = RulerLocal(c);
-        if (Math.Abs(lx) > RulerLength / 2f + 120f) return false;
+        if (_aid == DrawAid.None) return false;
 
-        float distTop = Math.Abs(ly - RulerHalfWidth);
-        float distBot = Math.Abs(ly + RulerHalfWidth);
-        if (Math.Min(distTop, distBot) > RulerSnapDist) return false;
+        var poly = AidWorldPolygon();
+        float best = float.MaxValue;
+        SKPoint bestE0 = default, bestDir = default;
 
-        float edgeOff = distTop <= distBot ? RulerHalfWidth : -RulerHalfWidth;
-        var (d, n) = RulerAxes();
-        _rulerSnapE0 = new SKPoint(_rulerCenter.X + n.X * edgeOff, _rulerCenter.Y + n.Y * edgeOff);
-        _rulerSnapDir = d;
+        foreach (var (ia, ib) in AidEdgePairs())
+        {
+            var a = poly[ia]; var b = poly[ib];
+            float ex = b.X - a.X, ey = b.Y - a.Y;
+            float len = MathF.Sqrt(ex * ex + ey * ey);
+            if (len < 1f) continue;
+            var dir = new SKPoint(ex / len, ey / len);
+            float t = (c.X - a.X) * dir.X + (c.Y - a.Y) * dir.Y;
+            if (t < -80f || t > len + 80f) continue;
+            var proj = new SKPoint(a.X + dir.X * t, a.Y + dir.Y * t);
+            float pd = MathF.Sqrt((c.X - proj.X) * (c.X - proj.X) + (c.Y - proj.Y) * (c.Y - proj.Y));
+            if (pd <= RulerSnapDist && pd < best) { best = pd; bestE0 = a; bestDir = dir; }
+        }
+
+        if (best == float.MaxValue) return false;
+        _rulerSnapE0 = bestE0;
+        _rulerSnapDir = bestDir;
         _rulerSnapActive = true;
         return true;
     }
 
     /// <summary>Projiziert einen Punkt auf die eingerastete Kantenlinie (sonst unverändert).</summary>
-    private SKPoint ApplyRulerSnap(SKPoint p)
+    private SKPoint ApplyAidSnap(SKPoint p)
     {
         if (!_rulerSnapActive) return p;
         float t = (p.X - _rulerSnapE0.X) * _rulerSnapDir.X + (p.Y - _rulerSnapE0.Y) * _rulerSnapDir.Y;
         return new SKPoint(_rulerSnapE0.X + _rulerSnapDir.X * t, _rulerSnapE0.Y + _rulerSnapDir.Y * t);
     }
 
-    /// <summary>Startet Bewegen/Drehen des Lineals, wenn Körper bzw. Dreh-Griff getroffen wird.</summary>
-    private bool TryBeginRuler(SKPoint c)
+    /// <summary>Startet Bewegen/Drehen, wenn Körper bzw. Dreh-Griff getroffen wird.</summary>
+    private bool TryBeginAid(SKPoint c)
     {
-        if (!_rulerOn) return false;
-        if (RulerHandleHit(c)) { _rulerDrag = RulerDrag.Rotate; Skia.InvalidateVisual(); return true; }
-        if (RulerBodyContains(c)) { _rulerDrag = RulerDrag.Move; _rulerDragLast = c; Skia.InvalidateVisual(); return true; }
+        if (_aid == DrawAid.None) return false;
+        if (AidHandleHit(c)) { _rulerDrag = RulerDrag.Rotate; Skia.InvalidateVisual(); return true; }
+        if (AidBodyContains(c)) { _rulerDrag = RulerDrag.Move; _rulerDragLast = c; Skia.InvalidateVisual(); return true; }
         return false;
     }
 
-    private void UpdateRulerDrag(SKPoint c)
+    private void UpdateAidDrag(SKPoint c)
     {
         if (_rulerDrag == RulerDrag.Move)
         {
-            _rulerCenter = new SKPoint(_rulerCenter.X + (c.X - _rulerDragLast.X), _rulerCenter.Y + (c.Y - _rulerDragLast.Y));
+            _aidCenter = new SKPoint(_aidCenter.X + (c.X - _rulerDragLast.X), _aidCenter.Y + (c.Y - _rulerDragLast.Y));
             _rulerDragLast = c;
         }
         else if (_rulerDrag == RulerDrag.Rotate)
         {
-            _rulerAngleDeg = MathF.Atan2(c.Y - _rulerCenter.Y, c.X - _rulerCenter.X) * 180f / MathF.PI;
+            float raw = MathF.Atan2(c.Y - _aidCenter.Y, c.X - _aidCenter.X) * 180f / MathF.PI;
+            _aidAngleDeg = SnapAngle(raw);
         }
         Skia.InvalidateVisual();
     }
 
-    private void DrawRuler(SKCanvas canvas)
+    /// <summary>Magnetisches Einrasten an 15°-Vielfachen (0/15/30/45…), sonst frei.</summary>
+    private static float SnapAngle(float deg)
     {
-        var (d, n) = RulerAxes();
-        float hl = RulerLength / 2f, hw = RulerHalfWidth;
-        SKPoint P(float u, float v) => new(_rulerCenter.X + u * d.X + v * n.X, _rulerCenter.Y + u * d.Y + v * n.Y);
+        float nearest = MathF.Round(deg / RulerAngleStep) * RulerAngleStep;
+        return MathF.Abs(deg - nearest) <= RulerAngleSnapTol ? nearest : deg;
+    }
 
+    private void DrawActiveAid(SKCanvas canvas)
+    {
         var accent = ResColorFromBrush("Brush.Accent");
+        var poly = AidWorldPolygon();
 
-        using (var body = new SKPath())
+        using (var path = new SKPath())
         {
-            body.MoveTo(P(-hl, -hw)); body.LineTo(P(hl, -hw)); body.LineTo(P(hl, hw)); body.LineTo(P(-hl, hw)); body.Close();
+            path.MoveTo(poly[0]);
+            for (int i = 1; i < poly.Length; i++) path.LineTo(poly[i]);
+            path.Close();
             using var fill = new SKPaint { Color = new SKColor(30, 41, 59, 40), IsAntialias = true };
-            canvas.DrawPath(body, fill);
+            canvas.DrawPath(path, fill);
             using var edge = new SKPaint { Color = accent, Style = SKPaintStyle.Stroke, StrokeWidth = 1.5f / Zoom, IsAntialias = true };
-            canvas.DrawPath(body, edge);
+            canvas.DrawPath(path, edge);
         }
 
-        // cm-Skala entlang der unteren Kante (längerer Strich alle 5 cm)
-        using (var tick = new SKPaint { Color = accent.WithAlpha(210), Style = SKPaintStyle.Stroke, StrokeWidth = 1f / Zoom, IsAntialias = true })
+        if (_aid == DrawAid.Ruler)
         {
-            int k = 0;
-            for (float u = 0; u <= hl; u += PxPerCm, k++)
-            {
-                float len = (k % 5 == 0) ? 9f : 5f;
-                canvas.DrawLine(P(u, hw), P(u, hw - len), tick);
-                if (u > 0) canvas.DrawLine(P(-u, hw), P(-u, hw - len), tick);
-            }
+            DrawCmScale(canvas, accent, RulerHalfWidth, RulerLength / 2f);
+        }
+        else if (_aid == DrawAid.SetSquare)
+        {
+            DrawCmScale(canvas, accent, 0f, SsHalfHyp);
+            DrawProtractor(canvas, accent);
+            DrawRightAngleMark(canvas, accent);
         }
 
-        // Dreh-Griff am Ende
-        var h = RulerHandleCenter();
+        // Dreh-Griff
+        var h = AidHandleCenter();
         using (var hf = new SKPaint { Color = accent, IsAntialias = true })
             canvas.DrawCircle(h, 6f / Zoom, hf);
         using (var hr = new SKPaint { Color = SKColors.White, Style = SKPaintStyle.Stroke, StrokeWidth = 1.4f / Zoom, IsAntialias = true })
             canvas.DrawCircle(h, 6f / Zoom, hr);
+
+        if (_rulerDrag == RulerDrag.Rotate)
+            DrawAidAngle(canvas);
+    }
+
+    /// <summary>cm-Skala entlang einer Kante (lokal bei y=edgeY), Ticks nach innen (−y).</summary>
+    private void DrawCmScale(SKCanvas canvas, SKColor accent, float edgeY, float halfLen)
+    {
+        using var tick = new SKPaint { Color = accent.WithAlpha(210), Style = SKPaintStyle.Stroke, StrokeWidth = 1f / Zoom, IsAntialias = true };
+        int k = 0;
+        for (float u = 0; u <= halfLen; u += PxPerCm, k++)
+        {
+            float len = (k % 5 == 0) ? 9f : 5f;
+            canvas.DrawLine(AidP(u, edgeY), AidP(u, edgeY - len), tick);
+            if (u > 0) canvas.DrawLine(AidP(-u, edgeY), AidP(-u, edgeY - len), tick);
+        }
+    }
+
+    /// <summary>Winkelskala (Protraktor) des Geodreiecks: radiale Striche alle 15° über der Hypotenuse.</summary>
+    private void DrawProtractor(SKCanvas canvas, SKColor accent)
+    {
+        float r = SsHalfHyp * 0.62f;
+        using var tick = new SKPaint { Color = accent.WithAlpha(190), Style = SKPaintStyle.Stroke, StrokeWidth = 1f / Zoom, IsAntialias = true };
+        for (int p = 0; p <= 180; p += 15)
+        {
+            float th = p * MathF.PI / 180f;
+            float cx = MathF.Cos(th), cy = -MathF.Sin(th);       // 0°→rechts, 90°→oben, 180°→links
+            float len = (p % 45 == 0) ? 12f : 7f;
+            canvas.DrawLine(AidP((r - len) * cx, (r - len) * cy), AidP(r * cx, r * cy), tick);
+        }
+    }
+
+    /// <summary>Kleines Quadrat am rechten Winkel (Spitze) des Geodreiecks.</summary>
+    private void DrawRightAngleMark(SKCanvas canvas, SKColor accent)
+    {
+        float m = 16f;                                  // Kantenlänge des Markers (lokal)
+        float s = m / MathF.Sqrt(2f);
+        var t = AidP(0f, -SsHalfHyp);                   // Spitze
+        var a = AidP(-s, -SsHalfHyp + s);               // ein Stück Richtung linke Kathete
+        var b = AidP(s, -SsHalfHyp + s);                // ein Stück Richtung rechte Kathete
+        var mid = AidP(0f, -SsHalfHyp + 2f * s);
+        using var pen = new SKPaint { Color = accent.WithAlpha(190), Style = SKPaintStyle.Stroke, StrokeWidth = 1f / Zoom, IsAntialias = true };
+        using var pth = new SKPath();
+        pth.MoveTo(a); pth.LineTo(mid); pth.LineTo(b);
+        canvas.DrawPath(pth, pen);
+    }
+
+    private void DrawAidAngle(SKCanvas canvas)
+    {
+        var (_, n) = AidAxes();
+        float disp = ((_aidAngleDeg % 180f) + 180f) % 180f;   // Winkel der Kante gegen die Waagerechte, 0–179°
+        string label = $"{disp:0}°";
+
+        float ts = 15f / Zoom;
+        float gap = (_aid == DrawAid.SetSquare ? SsHalfHyp * 0.5f : RulerHalfWidth) + 30f / Zoom;
+        var pos = new SKPoint(_aidCenter.X - n.X * gap, _aidCenter.Y - n.Y * gap);
+
+        using var tp = new SKPaint
+        {
+            Color = SKColors.White, IsAntialias = true, TextSize = ts,
+            TextAlign = SKTextAlign.Center, Typeface = Fonts.Bold,
+        };
+        float tw = tp.MeasureText(label);
+        float padX = 9f / Zoom, padY = 6f / Zoom;
+        var bg = new SKRect(pos.X - tw / 2f - padX, pos.Y - ts / 2f - padY,
+                            pos.X + tw / 2f + padX, pos.Y + ts / 2f + padY);
+        using (var bgp = new SKPaint { Color = new SKColor(23, 32, 51, 235), IsAntialias = true })
+            canvas.DrawRoundRect(bg, 6f / Zoom, 6f / Zoom, bgp);
+        canvas.DrawText(label, pos.X, pos.Y + ts * 0.35f, tp);
     }
 
     // ==================== Tastatur ====================
@@ -2671,7 +2810,8 @@ public partial class WhiteboardView : UserControl
 
         if (ctrl) return;
 
-        if (e.Key == Key.R) { SetRuler(!_rulerOn); e.Handled = true; return; }
+        if (e.Key == Key.R) { SetAid(DrawAid.Ruler); e.Handled = true; return; }
+        if (e.Key == Key.D) { SetAid(DrawAid.SetSquare); e.Handled = true; return; }
 
         ToggleButton? btn = e.Key switch
         {
@@ -3453,8 +3593,8 @@ public partial class WhiteboardView : UserControl
             canvas.DrawCircle(_eraserPos, 14f / Zoom, ring);
         }
 
-        // Lineal zuletzt (liegt über allem)
-        if (_rulerOn) DrawRuler(canvas);
+        // Zeichenhilfe zuletzt (liegt über allem)
+        if (_aid != DrawAid.None) DrawActiveAid(canvas);
     }
 
     private static SKColor ResColorFromBrush(string key)

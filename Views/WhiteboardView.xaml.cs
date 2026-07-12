@@ -2747,13 +2747,13 @@ public partial class WhiteboardView : UserControl
     /// </summary>
     private void DrawSetSquareMarkings(SKCanvas canvas, SKColor accent)
     {
-        float h = SsHalfHyp;
-        DrawSsParallels(canvas, accent, h);
-        DrawSsCenterAndDiagonals(canvas, accent, h);
-        DrawSsCmScale(canvas, accent, h);
-        DrawSsOuterProtractor(canvas, accent, h);
-        DrawSsInnerProtractor(canvas, accent, h);
-        DrawRightAngleMark(canvas, accent);
+        float h = SsHalfHyp, cm = PxPerCm;
+        DrawSsGrid(canvas, accent, h, cm);
+        DrawSsDiagonals(canvas, accent, h, cm);
+        DrawSsCmScale(canvas, accent, h, cm);
+        DrawSsInnerProtractor(canvas, accent, h, cm);
+        DrawSsOuterProtractor(canvas, accent, h, cm);
+        DrawRightAngleMark(canvas, accent, h, cm);
     }
 
     private SKPoint AidPolar(float r, float deg)
@@ -2779,134 +2779,144 @@ public partial class WhiteboardView : UserControl
         canvas.Restore();
     }
 
-    /// <summary>Hilfslinien parallel zur Hypotenuse (zum Ziehen von Parallelen).</summary>
-    private void DrawSsParallels(SKCanvas canvas, SKColor accent, float h)
+    /// <summary>Koordinatengitter: Parallelen (1–4 cm), senkrechte Achse, cm-Zahlen und die „4 3 2 1 0 …"-Zeile.</summary>
+    private void DrawSsGrid(SKCanvas canvas, SKColor accent, float h, float cm)
     {
-        using var g = AidStroke(accent, 45, 1f);
-        for (int i = 1; i <= 5; i++)
+        using (var g = AidStroke(accent, 45, 1f))
         {
-            float y = -i * (h * 0.11f);
-            float hw = h - (-y) - 12f;   // das Dreieck verjüngt sich nach oben
-            if (hw > 0) canvas.DrawLine(AidP(-hw, y), AidP(hw, y), g);
+            for (int k = 1; k <= 4; k++)
+            {
+                float y = -k * cm;
+                float hw = (h - k * cm) - 0.25f * cm;   // Dreieck verjüngt sich nach oben
+                if (hw > 0) canvas.DrawLine(AidP(-hw, y), AidP(hw, y), g);
+            }
+            canvas.DrawLine(AidP(0f, -0.15f * cm), AidP(0f, -4.2f * cm), g);   // senkrechte Achse
+        }
+        using (var t = AidStroke(accent, 150, 1f))
+            for (int k = 1; k <= 4; k++) canvas.DrawLine(AidP(-4f, -k * cm), AidP(4f, -k * cm), t);
+        using (var num = AidText(accent, 0.30f * cm, 220))
+        {
+            for (int k = 1; k <= 4; k++) DrawAidTextRot(canvas, num, k.ToString(), 0.42f * cm, -k * cm, 0f);
+            for (int j = 0; j <= 4; j++)
+            {
+                DrawAidTextRot(canvas, num, j.ToString(), j * cm, -4f * cm + 0.42f * cm, 0f);
+                if (j > 0) DrawAidTextRot(canvas, num, j.ToString(), -j * cm, -4f * cm + 0.42f * cm, 0f);
+            }
         }
     }
 
-    /// <summary>Senkrechte Mittelachse (0-Linie) und die beiden 45°-Striche.</summary>
-    private void DrawSsCenterAndDiagonals(SKCanvas canvas, SKColor accent, float h)
+    /// <summary>Die beiden 45°-Striche links und rechts.</summary>
+    private void DrawSsDiagonals(SKCanvas canvas, SKColor accent, float h, float cm)
     {
-        using (var g = AidStroke(accent, 70, 1f))
-            canvas.DrawLine(AidP(0f, -9f), AidP(0f, -h + 14f), g);
-
-        using (var g = AidStroke(accent, 120, 1f))
-        {
-            float y = -h * 0.30f, x = h - (-y);
-            canvas.DrawLine(AidP(x - 34f, y + 2f), AidP(x - 8f, y - 24f), g);
-            canvas.DrawLine(AidP(-x + 34f, y + 2f), AidP(-x + 8f, y - 24f), g);
-        }
+        using var g = AidStroke(accent, 120, 1.2f);
+        float y = -2.2f * cm, x = h - 2.2f * cm;
+        canvas.DrawLine(AidP(x - 0.6f * cm, y + 0.1f * cm), AidP(x - 0.05f * cm, y - 0.45f * cm), g);
+        canvas.DrawLine(AidP(-x + 0.6f * cm, y + 0.1f * cm), AidP(-x + 0.05f * cm, y - 0.45f * cm), g);
     }
 
     /// <summary>mm-Skala mit cm-Zahlen entlang der Hypotenuse (0 in der Mitte, bis 8 cm).</summary>
-    private void DrawSsCmScale(SKCanvas canvas, SKColor accent, float h)
+    private void DrawSsCmScale(SKCanvas canvas, SKColor accent, float h, float cm)
     {
-        using (var t = AidStroke(accent, 220, 1f))
+        using (var t = AidStroke(accent, 230, 1.1f))
         {
-            float mm = PxPerCm / 10f;
+            float mm = cm / 10f;
             int n = (int)(h / mm);
             for (int i = 0; i <= n; i++)
             {
                 float u = i * mm;
-                float l = i % 10 == 0 ? 9f : (i % 5 == 0 ? 6f : 3.2f);
+                float l = i % 10 == 0 ? 0.24f * cm : (i % 5 == 0 ? 0.16f * cm : 0.09f * cm);
                 canvas.DrawLine(AidP(u, 0f), AidP(u, -l), t);
                 if (i > 0) canvas.DrawLine(AidP(-u, 0f), AidP(-u, -l), t);
             }
         }
-        using var num = AidText(accent, 11f);
-        for (int cm = 0; cm * PxPerCm <= h; cm++)
+        using var num = AidText(accent, 0.32f * cm);
+        for (int c = 0; c <= 8; c++)
         {
-            float u = cm * PxPerCm;
-            DrawAidTextRot(canvas, num, cm.ToString(), u, -15f, 0f);
-            if (cm > 0) DrawAidTextRot(canvas, num, cm.ToString(), -u, -15f, 0f);
+            float u = c * cm;
+            DrawAidTextRot(canvas, num, c.ToString(), u, -0.42f * cm, 0f);
+            if (c > 0) DrawAidTextRot(canvas, num, c.ToString(), -u, -0.42f * cm, 0f);
         }
     }
 
-    /// <summary>Großer Winkelmesser: Band, Bogen, 1°/5°/10°-Ticks, doppelte Gradzahlen, 90°-Raute.</summary>
-    private void DrawSsOuterProtractor(SKCanvas canvas, SKColor accent, float h)
+    /// <summary>Kleiner innerer Winkelmesser (r = 0,50·H): Bogen, 1°/5°/10°-Ticks, mitgedrehte Gradzahlen.</summary>
+    private void DrawSsInnerProtractor(SKCanvas canvas, SKColor accent, float h, float cm)
     {
-        float r = h * 0.80f;
-
-        using (var band = AidStroke(accent, 38, 16f))
-        {
-            using var pth = new SKPath();
-            for (int p = 6; p <= 174; p += 2) { var pt = AidPolar(r, p); if (p == 6) pth.MoveTo(pt); else pth.LineTo(pt); }
-            canvas.DrawPath(pth, band);
-        }
-        using (var arc = AidStroke(accent, 150, 1f))
-        {
-            using var pth = new SKPath();
-            for (int p = 0; p <= 180; p += 2) { var pt = AidPolar(r, p); if (p == 0) pth.MoveTo(pt); else pth.LineTo(pt); }
-            canvas.DrawPath(pth, arc);
-        }
-        using (var t = AidStroke(accent, 190, 1f))
-            for (int p = 0; p <= 180; p++)
-            {
-                float l = p % 10 == 0 ? 9f : (p % 5 == 0 ? 6f : 3f);
-                canvas.DrawLine(AidPolar(r, p), AidPolar(r + l, p), t);
-            }
-        using (var outer = AidText(accent, 11.5f))
-        using (var inner = AidText(accent, 9.5f, 200))
-            for (int p = 10; p <= 170; p += 10)
-            {
-                float th = p * MathF.PI / 180f, phi = 90 - p;
-                DrawAidTextRot(canvas, outer, p.ToString(), (r + 20f) * MathF.Cos(th), -(r + 20f) * MathF.Sin(th), phi);
-                DrawAidTextRot(canvas, inner, (180 - p).ToString(), (r - 11f) * MathF.Cos(th), -(r - 11f) * MathF.Sin(th), phi);
-            }
-
-        // 90° in Raute an der Bogenspitze
-        float rd = r + 4f, s = 14f;
-        using (var dia = new SKPaint { Color = accent.WithAlpha(55), IsAntialias = true })
-        using (var p = new SKPath())
-        {
-            p.MoveTo(AidP(0f, -rd - s)); p.LineTo(AidP(s, -rd)); p.LineTo(AidP(0f, -rd + s)); p.LineTo(AidP(-s, -rd)); p.Close();
-            canvas.DrawPath(p, dia);
-        }
-        using (var num = AidText(accent, 13f))
-            DrawAidTextRot(canvas, num, "90", 0f, -rd, 0f);
-    }
-
-    /// <summary>Kleiner innerer Winkelmesser: Bogen, 5°/10°-Ticks, mitgedrehte Gradzahlen.</summary>
-    private void DrawSsInnerProtractor(SKCanvas canvas, SKColor accent, float h)
-    {
-        float r = h * 0.44f;
-
-        using (var arc = AidStroke(accent, 140, 1f))
+        float r = 0.50f * h;
+        using (var arc = AidStroke(accent, 150, 1.2f))
         {
             using var pth = new SKPath();
             for (int p = 0; p <= 180; p += 2) { var pt = AidPolar(r, p); if (p == 0) pth.MoveTo(pt); else pth.LineTo(pt); }
             canvas.DrawPath(pth, arc);
         }
         using (var t = AidStroke(accent, 180, 1f))
-            for (int p = 0; p <= 180; p += 5)
+            for (int p = 0; p <= 180; p++)
             {
-                float l = p % 10 == 0 ? 8f : 5f;
+                float l = p % 10 == 0 ? 0.16f * cm : (p % 5 == 0 ? 0.11f * cm : 0.06f * cm);
                 canvas.DrawLine(AidPolar(r - l, p), AidPolar(r, p), t);
             }
-        using (var num = AidText(accent, 9f, 210))
+        using (var num = AidText(accent, 0.24f * cm, 220))
             for (int p = 10; p <= 170; p += 10)
             {
-                float th = p * MathF.PI / 180f, phi = 90 - p;
-                DrawAidTextRot(canvas, num, p.ToString(), (r - 15f) * MathF.Cos(th), -(r - 15f) * MathF.Sin(th), phi);
+                float th = p * MathF.PI / 180f;
+                DrawAidTextRot(canvas, num, p.ToString(), (r - 0.34f * cm) * MathF.Cos(th), -(r - 0.34f * cm) * MathF.Sin(th), 90 - p);
             }
     }
 
-    /// <summary>Kleiner Winkelhaken am rechten Winkel (Spitze) des Geodreiecks.</summary>
-    private void DrawRightAngleMark(SKCanvas canvas, SKColor accent)
+    /// <summary>Großer Winkelmesser – Bogen tangential zu den Schenkeln (r = H/√2 ≈ 0,707·H):
+    /// Band, 1°/5°/10°-Ticks, doppelte mitgedrehte Gradzahlen, 90°-Raute an der Bogenspitze.</summary>
+    private void DrawSsOuterProtractor(SKCanvas canvas, SKColor accent, float h, float cm)
     {
-        float d = 18f, s = d / MathF.Sqrt(2f);
-        using var pen = AidStroke(accent, 200, 1.2f);
+        float r = 0.707f * h;
+
+        // Band (geometrische Dicke → skaliert mit dem Werkzeug)
+        using (var band = new SKPaint { Color = accent.WithAlpha(38), Style = SKPaintStyle.Stroke, StrokeWidth = 0.5f * cm, IsAntialias = true })
+        {
+            using var pth = new SKPath();
+            for (int p = 8; p <= 172; p += 2) { var pt = AidPolar(r - 0.22f * cm, p); if (p == 8) pth.MoveTo(pt); else pth.LineTo(pt); }
+            canvas.DrawPath(pth, band);
+        }
+        using (var arc = AidStroke(accent, 170, 1.2f))
+        {
+            using var pth = new SKPath();
+            for (int p = 0; p <= 180; p += 2) { var pt = AidPolar(r, p); if (p == 0) pth.MoveTo(pt); else pth.LineTo(pt); }
+            canvas.DrawPath(pth, arc);
+        }
+        using (var t = AidStroke(accent, 200, 1f))
+            for (int p = 0; p <= 180; p++)
+            {
+                float l = p % 10 == 0 ? 0.22f * cm : (p % 5 == 0 ? 0.15f * cm : 0.08f * cm);
+                canvas.DrawLine(AidPolar(r - l, p), AidPolar(r, p), t);
+            }
+        using (var big = AidText(accent, 0.30f * cm))
+        using (var sm = AidText(accent, 0.23f * cm, 210))
+            for (int p = 10; p <= 170; p += 10)
+            {
+                float th = p * MathF.PI / 180f, phi = 90 - p;
+                DrawAidTextRot(canvas, big, p.ToString(), (r - 0.42f * cm) * MathF.Cos(th), -(r - 0.42f * cm) * MathF.Sin(th), phi);
+                DrawAidTextRot(canvas, sm, (180 - p).ToString(), (r - 0.80f * cm) * MathF.Cos(th), -(r - 0.80f * cm) * MathF.Sin(th), phi);
+            }
+
+        // 90° in Raute an der Bogenspitze
+        float rd = r - 0.42f * cm, s = 0.28f * cm;
+        using (var dia = new SKPaint { Color = accent.WithAlpha(55), IsAntialias = true })
+        using (var p = new SKPath())
+        {
+            p.MoveTo(AidP(0f, -rd - s)); p.LineTo(AidP(s, -rd)); p.LineTo(AidP(0f, -rd + s)); p.LineTo(AidP(-s, -rd)); p.Close();
+            canvas.DrawPath(p, dia);
+        }
+        using (var num = AidText(accent, 0.34f * cm))
+            DrawAidTextRot(canvas, num, "90", 0f, -rd, 0f);
+    }
+
+    /// <summary>Kleiner Winkelhaken am rechten Winkel (Spitze) des Geodreiecks.</summary>
+    private void DrawRightAngleMark(SKCanvas canvas, SKColor accent, float h, float cm)
+    {
+        float d = 0.5f * cm, s = d / MathF.Sqrt(2f);
+        using var pen = AidStroke(accent, 210, 1.4f);
         using var pth = new SKPath();
-        pth.MoveTo(AidP(-s, -SsHalfHyp + s));
-        pth.LineTo(AidP(0f, -SsHalfHyp + d * MathF.Sqrt(2f)));
-        pth.LineTo(AidP(s, -SsHalfHyp + s));
+        pth.MoveTo(AidP(-s, -h + s));
+        pth.LineTo(AidP(0f, -h + d * MathF.Sqrt(2f)));
+        pth.LineTo(AidP(s, -h + s));
         canvas.DrawPath(pth, pen);
     }
 

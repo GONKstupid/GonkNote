@@ -28,6 +28,11 @@ public static class PdfExporter
         {
             Title = title,
             Producer = "Gonk Note",
+            // 100 = verlustfrei: Skia bettet Bilder unverändert ein, statt sie
+            // erneut (stark) als JPEG zu komprimieren → importierte PDF-Seiten
+            // bleiben scharf. Zusammen mit SKImage.FromEncodedData unten werden
+            // die Original-Bytes direkt durchgereicht.
+            EncodingQuality = 100,
         });
 
         foreach (var page in doc.Pages)
@@ -100,8 +105,27 @@ public static class PdfExporter
             case StrokeElement s: WhiteboardView.DrawStroke(canvas, s); break;
             case ShapeElement sh: WhiteboardView.DrawShape(canvas, sh, sh.Color, sh.StrokeWidth); break;
             case GonkNote.Models.TextElement t: WhiteboardView.DrawText(canvas, t); break;
-            case ImageElement im: WhiteboardView.DrawImage(canvas, im); break;
+            case ImageElement im: DrawImage(canvas, SKRect.Create(im.X, im.Y, im.Width, im.Height), im.Data); break;
         }
+    }
+
+    /// <summary>
+    /// Zeichnet ein eingebettetes Bild aus seinen Original-Bytes (statt aus dem
+    /// dekodierten <see cref="ImageCache"/> wie im Editor). Wichtig für den PDF-Export:
+    /// Skia reicht so das unveränderte JPEG/PNG durch, statt es neu zu komprimieren –
+    /// importierte PDF-Seiten und eingefügte Bilder bleiben dadurch scharf.
+    /// </summary>
+    private static void DrawImage(SKCanvas canvas, SKRect rect, byte[]? data)
+    {
+        using var img = data is { Length: > 0 } ? SKImage.FromEncodedData(data) : null;
+        if (img == null)
+        {
+            using var ph = new SKPaint { Color = SKColors.Gray.WithAlpha(60) };
+            canvas.DrawRect(rect, ph);
+            return;
+        }
+        using var paint = new SKPaint { IsAntialias = true, FilterQuality = SKFilterQuality.High };
+        canvas.DrawImage(img, rect, paint);
     }
 
     private static SKRect ContentBounds(WbPage page)
@@ -128,12 +152,11 @@ public static class PdfExporter
         using (var bg = new SKPaint { Color = dark ? SKColor.Parse("#1E2638") : SKColors.White })
             canvas.DrawRect(pageRect, bg);
 
-        // Importierte PDF-Seite bzw. Cover haben Vorrang vor dem Muster
-        if (page.BackgroundImage is { Length: > 0 } bgData &&
-            ImageCache.Get(page.BackgroundImageId, bgData) is { } bgImg)
+        // Importierte PDF-Seite bzw. Cover haben Vorrang vor dem Muster.
+        // Aus Original-Bytes zeichnen (nicht aus ImageCache) → verlustfreier Export.
+        if (page.BackgroundImage is { Length: > 0 } bgData)
         {
-            using var ip = new SKPaint { IsAntialias = true, FilterQuality = SKFilterQuality.High };
-            canvas.DrawImage(bgImg, SKRect.Create(0, 0, page.Width, page.Height), ip);
+            DrawImage(canvas, SKRect.Create(0, 0, page.Width, page.Height), bgData);
             return;
         }
         if (page.IsCover)
@@ -176,9 +199,9 @@ public static class PdfExporter
         var rect = SKRect.Create(0, 0, page.Width, page.Height);
         var cover = doc.Cover;
 
-        if (cover?.Image is { Length: > 0 } img && ImageCache.Get(cover.ImageId, img) is { } coverImg)
+        if (cover?.Image is { Length: > 0 } img)
         {
-            canvas.DrawImage(coverImg, rect);
+            DrawImage(canvas, rect, img);
             return;
         }
 

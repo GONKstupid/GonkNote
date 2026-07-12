@@ -1,4 +1,4 @@
-# Gonk Note — Projektübergabe (Stand: 2026-07-11, Phase 2 abgeschlossen)
+# Gonk Note — Projektübergabe (Stand: 2026-07-12, Phase 2 + Feedback-Runde 5)
 
 Diese Datei ist für den Einstieg in einen **neuen Chat-Thread** gedacht. Sie fasst
 zusammen, was existiert, was als Nächstes ansteht, und wie gearbeitet werden soll.
@@ -17,7 +17,7 @@ Kernanforderungen des Nutzers (unverändert gültig):
 - **Stylus-first**: Wacom/Microsoft Pen mit Druckstärke, Finger = Gesten
 - **Architektur-Entscheidung des Nutzers**: **WPF** (nicht WinUI 3), .NET 8
 - **Drei Dokumenttypen**: Notizbuch, Whiteboard, Textdokument — je eigener Tab
-- Import: **Bilder ✔ / DOCX ✔ / PDF ✔** · Export: **PDF (alle) ✔ / DOCX ✔ / Markdown ✔**
+- Import: **Bilder ✔ / DOCX ✔ / PDF ✔** · Export: **PDF ✔ / DOCX ✔ / Markdown ✔ / PNG ✔**
 - Dark/Light-Mode fürs App-Design; **Seiten/Schreibflächen standardmäßig hell**
 
 Arbeitsweise: **in Phasen**, polished/alltagstauglich, Nutzer-Feedback wird
@@ -31,6 +31,9 @@ durchgehend Deutsch (UI, Kommentare, Commits). Ehrliches Scoping statt Übercomm
 - Pfad: `C:\Dev\Zed\gonk-note`, Branch `main`, sauber committet
 - Build: `dotnet build` fehlerfrei (0 Warnungen)
 - Commit-Historie (neueste zuerst):
+  - `3cf5372` **Feedback-Runde 5**: Export-Qualität gefixt (Text-PDF scharf),
+    PNG-Export, Zen-Style-Pin-Kacheln, Tree-Einfachklick öffnet/Doppelklick
+    benennt um, Einstellungs-Accordion (Formen nur bei Formwerkzeug)
   - `f743db5` **Phase 2.4**: Export – PDF (alle Typen), DOCX + Markdown (Text)
   - `618f6fc` **Phase 2.3+**: PDF-Import performanter (Viewport-Culling, async +
     Fortschritt), Whiteboard 2-spaltig, **ein** Import-Button für Bild+PDF
@@ -116,19 +119,35 @@ DocumentFormat.OpenXml (DOCX), **Docnet.Core** (PDFium-Rendering).
   Touchscreen im Test.**
 - Farb-Tags: `_colorTag` "auto" = Schwarz (auf dunklen Seiten hell); Checked-Handler
   gegen leere Tags abgesichert (es gab einen Null-Farben-Bug).
+- **Export** (`MainViewModel.ExportActiveTab`): Text → PDF/DOCX/Markdown/PNG,
+  Whiteboard/Notizbuch → PDF/PNG. Text-PDF wird über den WPF-Paginator direkt in
+  ein `RenderTargetBitmap` gerendert (3×/288 DPI, PagePadding) und als Bild ins
+  PDF gelegt → scharf. Whiteboard-PDF/PNG rendert vektorbasiert über dieselben
+  Zeichenroutinen (`WhiteboardView.Draw*` sind dafür `internal static`).
+- **Ordnerbaum-Interaktion**: Einfachklick öffnet Dokumente (Ordner werden nur
+  ausgewählt, Aufklappen per Pfeil), Doppelklick startet Umbenennen. Logik in
+  `MainWindow.Tree_PreviewMouseLeftButtonUp` (Einfachklick, nur `!IsFolder`) und
+  `Tree_MouseDoubleClick` (Umbenennen).
+- **Angepinnte Ordner**: kompaktes Icon-Kachel-Raster (WrapPanel aus
+  Button-Kacheln mit eigenem Template) in `MainWindow.xaml`, Zen-Browser-Stil.
+- **Einstellungs-Seitenleiste**: ausklappbare `Expander`-Sektionen (Style in
+  `Styles.xaml`); `ShapeSection` nur sichtbar bei aktivem Formen-Werkzeug
+  (`RefreshSettingsPanel` setzt die Sichtbarkeit).
 
 ---
 
 ## 4. Feedback-Stand
 
-**Runden 1–4 vollständig umgesetzt und committet.** Noch keine Nutzer-Rückmeldung zu:
-Formen-Stift-Erkennung in der Praxis, Touch-Gesten auf echtem Gerät, Text-Tool-
-Optionen, Cover-Gestaltung, DOCX-/PDF-Import mit *echten* großen Dokumenten.
-**Feedback dazu zuerst einarbeiten, wenn es kommt** (etablierte Arbeitsweise).
+**Runden 1–5 umgesetzt und committet.** Noch keine Praxis-Rückmeldung zu:
+Formen-Stift & Touch-Gesten auf echtem Gerät, Cover-Gestaltung, Import/Export mit
+*echten* Dokumenten. **Feedback dazu zuerst einarbeiten, wenn es kommt.**
 
-Zuletzt (Runde 4) erledigt: PDF-Import-Lag behoben (Culling), Import asynchron mit
-Fortschritt, Whiteboard 2-spaltig, ein statt zwei Import-Buttons. Danach **Export**
-(Phase 2.4) fertig – noch kein Praxis-Feedback dazu.
+**⚠️ In Runde 5 noch NICHT interaktiv verifiziert** (Testumgebung, siehe §7):
+Einfachklick-Öffnen, Doppelklick-Umbenennen und das Einstellungs-Accordion sind
+implementiert, bauen fehlerfrei und die App lädt/rendert die Seitenleiste
+korrekt — aber ein echter Klick-Durchlauf steht aus. **Als Erstes im neuen
+Thread real durchklicken und bei Bedarf nachbessern.** Visuell bestätigt sind:
+Text-PDF-Schärfe, PNG-Export, Pin-Kacheln.
 
 ---
 
@@ -155,16 +174,18 @@ Fortschritt, Whiteboard 2-spaltig, ein statt zwei Import-Buttons. Danach **Expor
 
 ## 6. Empfohlener Ablaufplan für den neuen Thread
 
-1. Falls Nutzer Feedback zu Import/Export in der Praxis mitbringt → **zuerst** einarbeiten.
-2. **Datei-Einfüge-Tool**: PDF/DOCX-Vorschau, wahlweise als Bild oder strukturierte
-   Elemente ins Whiteboard einfügen (baut auf Import auf).
-3. **Phase 3** nach Rücksprache: RAM-Profiling/-Optimierung (Ziel < 200 MB),
+1. **Runde-5-Punkte real durchklicken** (Einfachklick-Öffnen, Doppelklick-Umbenennen,
+   Einstellungs-Accordion, Formen-Sektion nur bei Formwerkzeug) und bei Bedarf
+   nachbessern — konnte automatisiert nicht bestätigt werden (§7).
+2. Falls Nutzer weiteres Feedback mitbringt → **zuerst** einarbeiten.
+3. **Datei-Einfüge-Tool** (der ausdrücklich gewünschte nächste Schritt):
+   PDF/DOCX-Vorschau-Dialog, wahlweise als Bild oder strukturierte Elemente ins
+   Whiteboard einfügen (baut auf `PdfImporter`/`DocxImporter` auf).
+4. **Phase 3** nach Rücksprache: RAM-Profiling/-Optimierung (Ziel < 200 MB),
    Sticker/Notizzettel/Lineal, optionales OCR, Obfuskierung, laufendes UI-Feintuning.
 
-**Damit ist Phase 2 (Import + Export) abgeschlossen.** Export sitzt in
-`Datei → Exportieren`; `ExportActiveTab` im MainViewModel wählt anhand des aktiven
-Tabs die Formate. Zum Testen: `verify-export.ps1` / `verify-wbexport2.ps1` in
-`%TEMP%\gonk-verify\`, PDFs rendern mit dem Docnet-Tool in `%TEMP%\gonk-render\`.
+Export sitzt in `Datei → Exportieren`; `ExportActiveTab` wählt anhand des aktiven
+Tabs die Formate.
 
 ---
 
@@ -182,9 +203,19 @@ Tabs die Formate. Zum Testen: `verify-export.ps1` / `verify-wbexport2.ps1` in
   bei ~physisch (2217, 242), ZoomOut ~(1958, 242) — je nach Auflösung neu ermitteln
   (siehe `locate.ps1`, das per Screenshot die Positionen zeigt).
 - **Achtung**: Tests übernehmen Maus/Tastatur. Der Nutzer arbeitet oft parallel am
-  Rechner — kurz halten, vor jeder Aktion `SetForegroundWindow`, Fokusverlust
-  einplanen. Ein DB-Dump-Tool (net8.0-Console mit LiteDB/OpenXml/SkiaSharp) lag in
-  `%TEMP%\gonk-dbclean\` zum Erzeugen von Test-DOCX/PDF und Inspizieren der Test-DB.
+  Rechner — kurz halten, Fokusverlust einplanen. Ein DB-Tool (net8.0-Console mit
+  LiteDB) liegt in `%TEMP%\gonk-dbclean\` (seedet u. a. `seed.db` mit fertigem
+  Whiteboard/Ordner); ein Docnet-Renderer in `%TEMP%\gonk-render\` rendert
+  Export-PDFs zu PNG zur Sichtprüfung.
+- **⚠️ Bekannte Grenze der Testumgebung**: Die IDE (Zed/Claude) reißt nach dem
+  Start einer Test-Instanz oft den Fokus zurück → automatische `mouse_event`-Klicks
+  landen dann in der IDE statt in Gonk Note (im schlimmsten Fall in einer echten,
+  parallel laufenden Nutzer-Instanz!). **Zuverlässig ist nur**: Instanz mit
+  `--db` starten, `ShowWindow(hwnd,3)` maximieren, **sofort einen Screenshot**
+  machen (fängt den Ladezustand). *Interaktive* Klick-Sequenzen sind unzuverlässig.
+  Vor jedem Test prüfen, ob eine echte Instanz läuft (`Get-Process GonkNote` +
+  CommandLine ansehen) und nur die eigene per **PID** beenden, nie pauschal
+  `taskkill /IM`, solange der Nutzer die App offen haben könnte.
 
 ---
 

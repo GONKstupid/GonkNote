@@ -73,6 +73,24 @@ public partial class WhiteboardView : UserControl
     private string _editingStickyOld = "";
     private string _stickyColorHex = "#FFFEF08A";
 
+    // Lineal (transientes Zeichen-Hilfsmittel, wird nicht gespeichert)
+    private enum RulerDrag { None, Move, Rotate }
+    private bool _rulerOn;
+    private bool _rulerPlaced;
+    private SKPoint _rulerCenter;
+    private float _rulerAngleDeg;
+    private RulerDrag _rulerDrag;
+    private SKPoint _rulerDragLast;
+    // Einrasten eines Strichs auf eine Lineal-Kante
+    private bool _rulerSnapActive;
+    private SKPoint _rulerSnapE0, _rulerSnapDir;
+
+    // Maße in Canvas-Einheiten (96 DPI): 1 cm ≈ 37,8 px
+    private const float RulerLength = 680f;
+    private const float RulerHalfWidth = 26f;
+    private const float RulerSnapDist = 26f;
+    private const float PxPerCm = 37.795f;
+
     private ToggleButton[] ToolButtons => new[] { BtnPen, BtnSmoothPen, BtnPencil, BtnHighlighter, BtnEraser, BtnLasso, BtnText, BtnShape, BtnSticky, BtnPan };
     private ToggleButton[] ShapeButtons => new[] { BtnShapeLine, BtnShapeArrow, BtnShapeRect, BtnShapeEllipse, BtnShapeTriangle };
     private ToggleButton[] PenButtons => new[] { BtnPen, BtnSmoothPen, BtnPencil, BtnHighlighter };
@@ -452,7 +470,7 @@ public partial class WhiteboardView : UserControl
             e.Handled = true;
             return;
         }
-        if (!_drawing && _eraseSteps == null && _lassoPts == null && !_movingSelection && !_shapeActive && _resizingBox == null)
+        if (!_drawing && _eraseSteps == null && _lassoPts == null && !_movingSelection && !_shapeActive && _resizingBox == null && _rulerDrag == RulerDrag.None)
         {
             HoverInput(ToCanvas(e.GetPosition(CanvasHost)));
             return;
@@ -500,7 +518,7 @@ public partial class WhiteboardView : UserControl
         if (_panning) { MovePan(screen); return; }
 
         if (e.LeftButton == MouseButtonState.Pressed &&
-            (_drawing || _eraseSteps != null || _lassoPts != null || _movingSelection || _shapeActive || _resizingBox != null))
+            (_drawing || _eraseSteps != null || _lassoPts != null || _movingSelection || _shapeActive || _resizingBox != null || _rulerDrag != RulerDrag.None))
         {
             MoveInput(ToCanvas(screen), 0.5f);
         }
@@ -635,6 +653,9 @@ public partial class WhiteboardView : UserControl
         if (_page == null || _vm == null) return;
         CommitActiveEdit();
 
+        // Lineal bewegen/drehen hat Vorrang (außer beim Verschieben-Werkzeug)
+        if (_tool != ToolType.Pan && TryBeginRuler(c)) return;
+
         switch (EffectiveTool)
         {
             case ToolType.Pen:
@@ -642,7 +663,9 @@ public partial class WhiteboardView : UserControl
             case ToolType.Pencil:
             case ToolType.Highlighter:
                 _drawing = true;
-                _activePoints = new List<WbPoint> { new(c.X, c.Y, Math.Clamp(pressure, 0.05f, 1f)) };
+                TryActivateRulerSnap(c);
+                var start = ApplyRulerSnap(c);
+                _activePoints = new List<WbPoint> { new(start.X, start.Y, Math.Clamp(pressure, 0.05f, 1f)) };
                 break;
 
             case ToolType.Eraser:
@@ -721,6 +744,7 @@ public partial class WhiteboardView : UserControl
     private void MoveInput(SKPoint c, float pressure)
     {
         if (_page == null) return;
+        if (_rulerDrag != RulerDrag.None) { UpdateRulerDrag(c); return; }
 
         switch (EffectiveTool)
         {
@@ -729,6 +753,7 @@ public partial class WhiteboardView : UserControl
             case ToolType.Pencil:
             case ToolType.Highlighter:
                 if (!_drawing || _activePoints == null) return;
+                c = ApplyRulerSnap(c);
                 var last = _activePoints[^1];
                 float minDist = 1.2f / Zoom;
                 if ((c.X - last.X) * (c.X - last.X) + (c.Y - last.Y) * (c.Y - last.Y) < minDist * minDist)
@@ -805,6 +830,8 @@ public partial class WhiteboardView : UserControl
     {
         if (_page == null || _vm == null) return;
 
+        if (_rulerDrag != RulerDrag.None) { _rulerDrag = RulerDrag.None; Skia.InvalidateVisual(); return; }
+
         switch (EffectiveTool)
         {
             case ToolType.Pen:
@@ -865,6 +892,7 @@ public partial class WhiteboardView : UserControl
 
         _drawing = false;
         _activePoints = null;
+        _rulerSnapActive = false;
         Skia.InvalidateVisual();
     }
 
@@ -2468,6 +2496,149 @@ public partial class WhiteboardView : UserControl
         return lum > 140 ? "#FF1F2937" : "#FFF9FAFB";
     }
 
+    // ==================== Lineal ====================
+
+    private void Ruler_Click(object sender, RoutedEventArgs e) => SetRuler(BtnRuler.IsChecked == true);
+
+    private void SetRuler(bool on)
+    {
+        _rulerOn = on;
+        BtnRuler.IsChecked = on;
+        if (on && !_rulerPlaced)
+        {
+            var v = VisibleCanvasRect();
+            _rulerCenter = new SKPoint(v.MidX, v.MidY);
+            _rulerAngleDeg = 0f;
+            _rulerPlaced = true;
+        }
+        Skia.InvalidateVisual();
+    }
+
+    /// <summary>Richtungs- (entlang) und Normalenvektor (quer) der Lineal-Ausrichtung.</summary>
+    private (SKPoint Dir, SKPoint Nrm) RulerAxes()
+    {
+        float a = _rulerAngleDeg * MathF.PI / 180f;
+        var d = new SKPoint(MathF.Cos(a), MathF.Sin(a));
+        return (d, new SKPoint(-d.Y, d.X));
+    }
+
+    private SKPoint RulerHandleCenter()
+    {
+        var (d, _) = RulerAxes();
+        float ext = RulerLength / 2f + 16f / Zoom;
+        return new SKPoint(_rulerCenter.X + d.X * ext, _rulerCenter.Y + d.Y * ext);
+    }
+
+    /// <summary>Punkt in Lineal-lokale Koordinaten: x entlang der Kante, y quer dazu.</summary>
+    private (float Lx, float Ly) RulerLocal(SKPoint c)
+    {
+        var (d, n) = RulerAxes();
+        float rx = c.X - _rulerCenter.X, ry = c.Y - _rulerCenter.Y;
+        return (rx * d.X + ry * d.Y, rx * n.X + ry * n.Y);
+    }
+
+    private bool RulerHandleHit(SKPoint c)
+    {
+        var h = RulerHandleCenter();
+        float r = 13f / Zoom;
+        float dx = c.X - h.X, dy = c.Y - h.Y;
+        return dx * dx + dy * dy <= r * r;
+    }
+
+    private bool RulerBodyContains(SKPoint c)
+    {
+        var (lx, ly) = RulerLocal(c);
+        return Math.Abs(lx) <= RulerLength / 2f && Math.Abs(ly) <= RulerHalfWidth;
+    }
+
+    /// <summary>Prüft, ob ein Strichstart nahe einer Lineal-Kante liegt, und aktiviert das Einrasten.</summary>
+    private bool TryActivateRulerSnap(SKPoint c)
+    {
+        _rulerSnapActive = false;
+        if (!_rulerOn) return false;
+        var (lx, ly) = RulerLocal(c);
+        if (Math.Abs(lx) > RulerLength / 2f + 120f) return false;
+
+        float distTop = Math.Abs(ly - RulerHalfWidth);
+        float distBot = Math.Abs(ly + RulerHalfWidth);
+        if (Math.Min(distTop, distBot) > RulerSnapDist) return false;
+
+        float edgeOff = distTop <= distBot ? RulerHalfWidth : -RulerHalfWidth;
+        var (d, n) = RulerAxes();
+        _rulerSnapE0 = new SKPoint(_rulerCenter.X + n.X * edgeOff, _rulerCenter.Y + n.Y * edgeOff);
+        _rulerSnapDir = d;
+        _rulerSnapActive = true;
+        return true;
+    }
+
+    /// <summary>Projiziert einen Punkt auf die eingerastete Kantenlinie (sonst unverändert).</summary>
+    private SKPoint ApplyRulerSnap(SKPoint p)
+    {
+        if (!_rulerSnapActive) return p;
+        float t = (p.X - _rulerSnapE0.X) * _rulerSnapDir.X + (p.Y - _rulerSnapE0.Y) * _rulerSnapDir.Y;
+        return new SKPoint(_rulerSnapE0.X + _rulerSnapDir.X * t, _rulerSnapE0.Y + _rulerSnapDir.Y * t);
+    }
+
+    /// <summary>Startet Bewegen/Drehen des Lineals, wenn Körper bzw. Dreh-Griff getroffen wird.</summary>
+    private bool TryBeginRuler(SKPoint c)
+    {
+        if (!_rulerOn) return false;
+        if (RulerHandleHit(c)) { _rulerDrag = RulerDrag.Rotate; Skia.InvalidateVisual(); return true; }
+        if (RulerBodyContains(c)) { _rulerDrag = RulerDrag.Move; _rulerDragLast = c; Skia.InvalidateVisual(); return true; }
+        return false;
+    }
+
+    private void UpdateRulerDrag(SKPoint c)
+    {
+        if (_rulerDrag == RulerDrag.Move)
+        {
+            _rulerCenter = new SKPoint(_rulerCenter.X + (c.X - _rulerDragLast.X), _rulerCenter.Y + (c.Y - _rulerDragLast.Y));
+            _rulerDragLast = c;
+        }
+        else if (_rulerDrag == RulerDrag.Rotate)
+        {
+            _rulerAngleDeg = MathF.Atan2(c.Y - _rulerCenter.Y, c.X - _rulerCenter.X) * 180f / MathF.PI;
+        }
+        Skia.InvalidateVisual();
+    }
+
+    private void DrawRuler(SKCanvas canvas)
+    {
+        var (d, n) = RulerAxes();
+        float hl = RulerLength / 2f, hw = RulerHalfWidth;
+        SKPoint P(float u, float v) => new(_rulerCenter.X + u * d.X + v * n.X, _rulerCenter.Y + u * d.Y + v * n.Y);
+
+        var accent = ResColorFromBrush("Brush.Accent");
+
+        using (var body = new SKPath())
+        {
+            body.MoveTo(P(-hl, -hw)); body.LineTo(P(hl, -hw)); body.LineTo(P(hl, hw)); body.LineTo(P(-hl, hw)); body.Close();
+            using var fill = new SKPaint { Color = new SKColor(30, 41, 59, 40), IsAntialias = true };
+            canvas.DrawPath(body, fill);
+            using var edge = new SKPaint { Color = accent, Style = SKPaintStyle.Stroke, StrokeWidth = 1.5f / Zoom, IsAntialias = true };
+            canvas.DrawPath(body, edge);
+        }
+
+        // cm-Skala entlang der unteren Kante (längerer Strich alle 5 cm)
+        using (var tick = new SKPaint { Color = accent.WithAlpha(210), Style = SKPaintStyle.Stroke, StrokeWidth = 1f / Zoom, IsAntialias = true })
+        {
+            int k = 0;
+            for (float u = 0; u <= hl; u += PxPerCm, k++)
+            {
+                float len = (k % 5 == 0) ? 9f : 5f;
+                canvas.DrawLine(P(u, hw), P(u, hw - len), tick);
+                if (u > 0) canvas.DrawLine(P(-u, hw), P(-u, hw - len), tick);
+            }
+        }
+
+        // Dreh-Griff am Ende
+        var h = RulerHandleCenter();
+        using (var hf = new SKPaint { Color = accent, IsAntialias = true })
+            canvas.DrawCircle(h, 6f / Zoom, hf);
+        using (var hr = new SKPaint { Color = SKColors.White, Style = SKPaintStyle.Stroke, StrokeWidth = 1.4f / Zoom, IsAntialias = true })
+            canvas.DrawCircle(h, 6f / Zoom, hr);
+    }
+
     // ==================== Tastatur ====================
 
     private void OnPreviewKeyDown(object sender, KeyEventArgs e)
@@ -2499,6 +2670,9 @@ public partial class WhiteboardView : UserControl
         }
 
         if (ctrl) return;
+
+        if (e.Key == Key.R) { SetRuler(!_rulerOn); e.Handled = true; return; }
+
         ToggleButton? btn = e.Key switch
         {
             Key.S => BtnPen,
@@ -3278,6 +3452,9 @@ public partial class WhiteboardView : UserControl
             };
             canvas.DrawCircle(_eraserPos, 14f / Zoom, ring);
         }
+
+        // Lineal zuletzt (liegt über allem)
+        if (_rulerOn) DrawRuler(canvas);
     }
 
     private static SKColor ResColorFromBrush(string key)

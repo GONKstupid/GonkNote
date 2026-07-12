@@ -46,6 +46,15 @@
                                   ToolTip="Notizzettel (N) – farbigen Klebezettel setzen" Checked="Tool_Checked" Tag="Sticky"/>
                     <ToggleButton x:Name="BtnPan" Style="{StaticResource ToolButton}" Content="&#xE7C9;"
                                   ToolTip="Verschieben (H) – oder mittlere Maustaste" Checked="Tool_Checked" Tag="Pan"/>
+                    <ToggleButton x:Name="BtnRuler" Style="{StaticResource ToolButton}"
+                                  AutomationProperties.Name="Lineal"
+                                  ToolTip="Lineal (R) – gerade Linien entlang der Kante; Körper ziehen = bewegen, Griff ziehen = drehen"
+                                  Click="Ruler_Click">
+                        <Path Data="{StaticResource Icon.Ruler}" StrokeThickness="1.3"
+                              StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                              Width="16" Height="16"
+                              Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ToggleButton}}"/>
+                    </ToggleButton>
 
                     <Border Width="1" Background="{DynamicResource Brush.Border}" Margin="6,4"/>
 

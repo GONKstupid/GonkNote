@@ -132,12 +132,13 @@ public sealed class PartialEraseAction : IEditAction
     }
 }
 
-public sealed class ResizeImageAction : IEditAction
+/// <summary>Skalieren eines Box-Elements (Bild oder Notizzettel).</summary>
+public sealed class ResizeBoxAction : IEditAction
 {
-    private readonly ImageElement _element;
+    private readonly IBoxElement _element;
     private readonly float _oldW, _oldH, _newW, _newH;
 
-    public ResizeImageAction(ImageElement element, float oldW, float oldH, float newW, float newH)
+    public ResizeBoxAction(IBoxElement element, float oldW, float oldH, float newW, float newH)
     {
         _element = element;
         _oldW = oldW; _oldH = oldH;
@@ -146,6 +147,22 @@ public sealed class ResizeImageAction : IEditAction
 
     public void Redo(WbPage page) { _element.Width = _newW; _element.Height = _newH; }
     public void Undo(WbPage page) { _element.Width = _oldW; _element.Height = _oldH; }
+}
+
+public sealed class StickyTextChangeAction : IEditAction
+{
+    private readonly StickyNoteElement _element;
+    private readonly string _oldText, _newText;
+
+    public StickyTextChangeAction(StickyNoteElement element, string oldText, string newText)
+    {
+        _element = element;
+        _oldText = oldText;
+        _newText = newText;
+    }
+
+    public void Redo(WbPage page) => _element.Text = _newText;
+    public void Undo(WbPage page) => _element.Text = _oldText;
 }
 
 /// <summary>Undo/Redo pro Dokument; jede Aktion kennt ihre Seite.</summary>

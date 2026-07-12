@@ -42,6 +42,8 @@
                                   ToolTip="Textfeld (T)" Checked="Tool_Checked" Tag="Text"/>
                     <ToggleButton x:Name="BtnShape" Style="{StaticResource ToolButton}" Content="&#xE739;"
                                   ToolTip="Formen (F)" Checked="Tool_Checked" Tag="Shape"/>
+                    <ToggleButton x:Name="BtnSticky" Style="{StaticResource ToolButton}" Content="&#xE70B;"
+                                  ToolTip="Notizzettel (N) – farbigen Klebezettel setzen" Checked="Tool_Checked" Tag="Sticky"/>
                     <ToggleButton x:Name="BtnPan" Style="{StaticResource ToolButton}" Content="&#xE7C9;"
                                   ToolTip="Verschieben (H) – oder mittlere Maustaste" Checked="Tool_Checked" Tag="Pan"/>
 
@@ -301,6 +303,34 @@
                                 </ComboBox.ItemTemplate>
                             </ComboBox>
                             <TextBlock Text="Wirkt auf neue Textfelder sowie das gerade bearbeitete bzw. ausgewählte."
+                                       Foreground="{DynamicResource Brush.TextMuted}" FontSize="11"
+                                       TextWrapping="Wrap" Margin="0,0,0,12"/>
+                        </StackPanel>
+                        </Expander>
+
+                        <!-- Notizzettel (nur bei aktivem Notizzettel-Werkzeug sichtbar) -->
+                        <Expander x:Name="StickySection" Header="Notizzettel" IsExpanded="True">
+                        <StackPanel>
+                            <TextBlock Text="Zettelfarbe" FontWeight="SemiBold" Margin="0,0,0,6"
+                                       Foreground="{DynamicResource Brush.Text}"/>
+                            <StackPanel x:Name="StickyColorPanel" Orientation="Horizontal" Margin="0,0,0,8">
+                                <RadioButton Style="{StaticResource ColorSwatch}" GroupName="sticky" IsChecked="True"
+                                             Background="#FEF08A" Tag="#FFFEF08A" ToolTip="Gelb" Checked="StickyColor_Checked"/>
+                                <RadioButton Style="{StaticResource ColorSwatch}" GroupName="sticky"
+                                             Background="#BBF7D0" Tag="#FFBBF7D0" ToolTip="Grün" Checked="StickyColor_Checked"/>
+                                <RadioButton Style="{StaticResource ColorSwatch}" GroupName="sticky"
+                                             Background="#BFDBFE" Tag="#FFBFDBFE" ToolTip="Blau" Checked="StickyColor_Checked"/>
+                                <RadioButton Style="{StaticResource ColorSwatch}" GroupName="sticky"
+                                             Background="#FBCFE8" Tag="#FFFBCFE8" ToolTip="Pink" Checked="StickyColor_Checked"/>
+                                <RadioButton Style="{StaticResource ColorSwatch}" GroupName="sticky"
+                                             Background="#FED7AA" Tag="#FFFED7AA" ToolTip="Orange" Checked="StickyColor_Checked"/>
+                                <RadioButton x:Name="StickyCustomSwatch" Style="{StaticResource ColorSwatch}" GroupName="sticky"
+                                             Tag="#FFFEF08A" ToolTip="Eigene Farbe" Checked="StickyColor_Checked"
+                                             Visibility="Collapsed"/>
+                                <Button Style="{StaticResource IconButton}" ToolTip="Eigene Zettelfarbe wählen"
+                                        Click="StickyColorPick_Click" Content="&#xE790;"/>
+                            </StackPanel>
+                            <TextBlock Text="Zum Setzen aufs Blatt tippen, dann tippen zum Beschriften. Verschieben/Skalieren mit dem Lasso."
                                        Foreground="{DynamicResource Brush.TextMuted}" FontSize="11"
                                        TextWrapping="Wrap" Margin="0,0,0,12"/>
                         </StackPanel>

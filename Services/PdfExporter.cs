@@ -106,6 +106,7 @@ public static class PdfExporter
             case ShapeElement sh: WhiteboardView.DrawShape(canvas, sh, sh.Color, sh.StrokeWidth); break;
             case GonkNote.Models.TextElement t: WhiteboardView.DrawText(canvas, t); break;
             case ImageElement im: DrawImage(canvas, SKRect.Create(im.X, im.Y, im.Width, im.Height), im.Data); break;
+            case StickyNoteElement sn: WhiteboardView.DrawSticky(canvas, sn); break;
         }
     }
 

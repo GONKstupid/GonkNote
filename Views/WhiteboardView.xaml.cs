@@ -57,17 +57,23 @@ public partial class WhiteboardView : UserControl
     private SKPoint _moveLast;
     private float _movedX, _movedY;
 
-    // Bild-Skalierung (Eckgriff bei Einzelauswahl eines Bildes)
-    private ImageElement? _resizingImage;
+    // Skalierung über den Eckgriff bei Einzelauswahl eines Box-Elements (Bild/Notizzettel)
+    private IBoxElement? _resizingBox;
     private float _resizeW0, _resizeH0;
 
-    // Texteingabe
+    // Texteingabe (Textfeld)
     private TextElement? _editingText;
     private bool _editingIsNew;
     private string _editingOldText = "";
     private bool _cancelEdit;
 
-    private ToggleButton[] ToolButtons => new[] { BtnPen, BtnSmoothPen, BtnPencil, BtnHighlighter, BtnEraser, BtnLasso, BtnText, BtnShape, BtnPan };
+    // Notizzettel-Bearbeitung
+    private StickyNoteElement? _editingSticky;
+    private bool _editingStickyIsNew;
+    private string _editingStickyOld = "";
+    private string _stickyColorHex = "#FFFEF08A";
+
+    private ToggleButton[] ToolButtons => new[] { BtnPen, BtnSmoothPen, BtnPencil, BtnHighlighter, BtnEraser, BtnLasso, BtnText, BtnShape, BtnSticky, BtnPan };
     private ToggleButton[] ShapeButtons => new[] { BtnShapeLine, BtnShapeArrow, BtnShapeRect, BtnShapeEllipse, BtnShapeTriangle };
     private ToggleButton[] PenButtons => new[] { BtnPen, BtnSmoothPen, BtnPencil, BtnHighlighter };
 
@@ -196,22 +202,28 @@ public partial class WhiteboardView : UserControl
 
     private void SetTool(ToolType tool)
     {
-        CommitTextEdit();
+        CommitActiveEdit();
         if (tool != ToolType.Lasso) ClearSelection();
 
         _tool = tool;
         _eraserVisible = false;
 
-        // Formen-Werkzeug: Einstellungs-Panel mit der Formen-Sektion öffnen
+        // Formen-/Notizzettel-Werkzeug: Einstellungs-Panel mit passender Sektion öffnen
         if (tool == ToolType.Shape && SettingsPanel.Visibility != Visibility.Visible)
         {
             RefreshSettingsPanel();
             ShapeSection.IsExpanded = true;
             SettingsPanel.Visibility = Visibility.Visible;
         }
+        else if (tool == ToolType.Sticky && SettingsPanel.Visibility != Visibility.Visible)
+        {
+            RefreshSettingsPanel();
+            StickySection.IsExpanded = true;
+            SettingsPanel.Visibility = Visibility.Visible;
+        }
         else if (SettingsPanel.Visibility == Visibility.Visible)
         {
-            // Sichtbarkeit der Formen-Sektion an das neue Werkzeug anpassen
+            // Sichtbarkeit der werkzeugspezifischen Sektionen ans neue Werkzeug anpassen
             RefreshSettingsPanel();
         }
 
@@ -221,6 +233,7 @@ public partial class WhiteboardView : UserControl
             ToolType.Eraser => Cursors.None,
             ToolType.Text => Cursors.IBeam,
             ToolType.Shape => Cursors.Cross,
+            ToolType.Sticky => Cursors.Cross,
             ToolType.Pan => Cursors.Hand,
             _ => Cursors.Arrow,
         };
@@ -316,7 +329,7 @@ public partial class WhiteboardView : UserControl
     private void DoUndo()
     {
         if (_vm == null) return;
-        CommitTextEdit();
+        CommitActiveEdit();
         ClearSelection();
         var page = _vm.Undo.Undo();
         if (page != null) { NavigateToPage(page); MarkDirty(); Skia.InvalidateVisual(); }
@@ -325,7 +338,7 @@ public partial class WhiteboardView : UserControl
     private void DoRedo()
     {
         if (_vm == null) return;
-        CommitTextEdit();
+        CommitActiveEdit();
         ClearSelection();
         var page = _vm.Undo.Redo();
         if (page != null) { NavigateToPage(page); MarkDirty(); Skia.InvalidateVisual(); }
@@ -439,7 +452,7 @@ public partial class WhiteboardView : UserControl
             e.Handled = true;
             return;
         }
-        if (!_drawing && _eraseSteps == null && _lassoPts == null && !_movingSelection && !_shapeActive && _resizingImage == null)
+        if (!_drawing && _eraseSteps == null && _lassoPts == null && !_movingSelection && !_shapeActive && _resizingBox == null)
         {
             HoverInput(ToCanvas(e.GetPosition(CanvasHost)));
             return;
@@ -487,7 +500,7 @@ public partial class WhiteboardView : UserControl
         if (_panning) { MovePan(screen); return; }
 
         if (e.LeftButton == MouseButtonState.Pressed &&
-            (_drawing || _eraseSteps != null || _lassoPts != null || _movingSelection || _shapeActive || _resizingImage != null))
+            (_drawing || _eraseSteps != null || _lassoPts != null || _movingSelection || _shapeActive || _resizingBox != null))
         {
             MoveInput(ToCanvas(screen), 0.5f);
         }
@@ -620,7 +633,7 @@ public partial class WhiteboardView : UserControl
     private void BeginInput(SKPoint c, float pressure)
     {
         if (_page == null || _vm == null) return;
-        CommitTextEdit();
+        CommitActiveEdit();
 
         switch (EffectiveTool)
         {
@@ -640,11 +653,11 @@ public partial class WhiteboardView : UserControl
                 break;
 
             case ToolType.Lasso:
-                if (_selection.Count == 1 && _selection.First() is ImageElement rim && HitResizeHandle(rim, c))
+                if (_selection.Count == 1 && _selection.First() is IBoxElement rb && HitResizeHandle(rb, c))
                 {
-                    _resizingImage = rim;
-                    _resizeW0 = rim.Width;
-                    _resizeH0 = rim.Height;
+                    _resizingBox = rb;
+                    _resizeW0 = rb.Width;
+                    _resizeH0 = rb.Height;
                 }
                 else if (_selection.Count > 0 && InflatedSelectionBounds().Contains(c))
                 {
@@ -676,6 +689,26 @@ public partial class WhiteboardView : UserControl
             case ToolType.Shape:
                 _shapeActive = true;
                 _shapeStart = _shapeCur = c;
+                break;
+
+            case ToolType.Sticky:
+                var hitNote = _page.Elements.OfType<StickyNoteElement>()
+                    .LastOrDefault(s => SKRect.Create(s.X, s.Y, s.Width, s.Height).Contains(c));
+                if (hitNote != null)
+                {
+                    StartStickyEdit(hitNote, isNew: false);
+                }
+                else
+                {
+                    // Neuen Zettel mittig unter dem Zeiger anlegen und gleich beschriften
+                    var note = new StickyNoteElement
+                    {
+                        X = c.X - 100f, Y = c.Y - 100f,
+                        Color = _stickyColorHex,
+                        TextColor = ReadableStickyTextColor(_stickyColorHex),
+                    };
+                    StartStickyEdit(note, isNew: true);
+                }
                 break;
 
             case ToolType.Pan:
@@ -715,15 +748,22 @@ public partial class WhiteboardView : UserControl
                 break;
 
             case ToolType.Lasso:
-                if (_resizingImage != null)
+                if (_resizingBox is ImageElement rImg)
                 {
-                    // Proportional über den Eckgriff unten rechts, Ankerpunkt oben links
+                    // Bilder proportional über den Eckgriff unten rechts, Ankerpunkt oben links
                     float scale = Math.Max(
-                        (c.X - _resizingImage.X) / Math.Max(1f, _resizeW0),
-                        (c.Y - _resizingImage.Y) / Math.Max(1f, _resizeH0));
+                        (c.X - rImg.X) / Math.Max(1f, _resizeW0),
+                        (c.Y - rImg.Y) / Math.Max(1f, _resizeH0));
                     scale = Math.Max(scale, 16f / Math.Max(_resizeW0, _resizeH0));
-                    _resizingImage.Width = _resizeW0 * scale;
-                    _resizingImage.Height = _resizeH0 * scale;
+                    rImg.Width = _resizeW0 * scale;
+                    rImg.Height = _resizeH0 * scale;
+                    ComputeSelectionBounds();
+                }
+                else if (_resizingBox is StickyNoteElement rNote)
+                {
+                    // Notizzettel frei skalieren (Text bricht neu um), Mindestgröße 60 px
+                    rNote.Width = Math.Max(60f, c.X - rNote.X);
+                    rNote.Height = Math.Max(60f, c.Y - rNote.Y);
                     ComputeSelectionBounds();
                 }
                 else if (_movingSelection)
@@ -785,13 +825,13 @@ public partial class WhiteboardView : UserControl
                 break;
 
             case ToolType.Lasso:
-                if (_resizingImage != null)
+                if (_resizingBox != null)
                 {
-                    var im = _resizingImage;
-                    _resizingImage = null;
-                    if (Math.Abs(im.Width - _resizeW0) > 0.01f || Math.Abs(im.Height - _resizeH0) > 0.01f)
+                    var box = _resizingBox;
+                    _resizingBox = null;
+                    if (Math.Abs(box.Width - _resizeW0) > 0.01f || Math.Abs(box.Height - _resizeH0) > 0.01f)
                     {
-                        _vm.Undo.Push(_page, new ResizeImageAction(im, _resizeW0, _resizeH0, im.Width, im.Height));
+                        _vm.Undo.Push(_page, new ResizeBoxAction(box, _resizeW0, _resizeH0, box.Width, box.Height));
                         MarkDirty();
                     }
                     ComputeSelectionBounds();
@@ -1218,6 +1258,8 @@ public partial class WhiteboardView : UserControl
 
         // Formen-Sektion nur bei aktivem Formen-Werkzeug
         ShapeSection.Visibility = _tool == ToolType.Shape ? Visibility.Visible : Visibility.Collapsed;
+        // Notizzettel-Sektion nur bei aktivem Notizzettel-Werkzeug
+        StickySection.Visibility = _tool == ToolType.Sticky ? Visibility.Visible : Visibility.Collapsed;
 
         bool paged = !_page.IsInfinite;
         SetSizeSection.Visibility = paged ? Visibility.Visible : Visibility.Collapsed;
@@ -1350,6 +1392,51 @@ public partial class WhiteboardView : UserControl
             EditBox.Foreground = new SolidColorBrush(Color.FromArgb(c.Alpha, c.Red, c.Green, c.Blue));
         }
         catch { /* Farbe behalten */ }
+    }
+
+    // ---- Notizzettel-Werkzeug (Sidebar-Sektion) ----
+
+    /// <summary>Wendet eine Änderung auf den gerade bearbeiteten bzw. einzeln ausgewählten Zettel an.</summary>
+    private void ApplyToActiveSticky(Action<StickyNoteElement> apply)
+    {
+        StickyNoteElement? target = _editingSticky
+            ?? (_selection.Count == 1 ? _selection.First() as StickyNoteElement : null);
+        if (target == null) return;
+
+        apply(target);
+        MarkDirty();
+        if (_editingSticky == target)
+        {
+            EditBox.Background = BrushFromHex(target.Color);
+            EditBox.Foreground = BrushFromHex(target.TextColor);
+        }
+        Skia.InvalidateVisual();
+    }
+
+    private void StickyColor_Checked(object sender, RoutedEventArgs e)
+    {
+        // Tag kann während des XAML-Ladens noch fehlen → Standard behalten
+        if (((RadioButton)sender).Tag is not string tag || tag.Length == 0) return;
+        _stickyColorHex = tag;
+        ApplyToActiveSticky(sn =>
+        {
+            sn.Color = _stickyColorHex;
+            sn.TextColor = ReadableStickyTextColor(_stickyColorHex);
+        });
+    }
+
+    private void StickyColorPick_Click(object sender, RoutedEventArgs e)
+    {
+        var cur = ParseColor(_stickyColorHex);
+        if (ColorPickerDialog.Pick(Window.GetWindow(this), Color.FromRgb(cur.Red, cur.Green, cur.Blue), allowAlpha: false) is not { } c)
+            return;
+
+        string hex = $"#FF{c.R:X2}{c.G:X2}{c.B:X2}";
+        StickyCustomSwatch.Background = new SolidColorBrush(c);
+        StickyCustomSwatch.Tag = hex;
+        StickyCustomSwatch.Visibility = Visibility.Visible;
+        _stickyColorHex = hex;
+        StickyCustomSwatch.IsChecked = true; // löst StickyColor_Checked aus → wendet an
     }
 
     private void TextColor_Click(object sender, RoutedEventArgs e)
@@ -1876,10 +1963,10 @@ public partial class WhiteboardView : UserControl
         }
     }
 
-    private bool HitResizeHandle(ImageElement im, SKPoint c)
+    private bool HitResizeHandle(IBoxElement box, SKPoint c)
     {
         float r = 12f / Zoom;
-        float dx = c.X - (im.X + im.Width), dy = c.Y - (im.Y + im.Height);
+        float dx = c.X - (box.X + box.Width), dy = c.Y - (box.Y + box.Height);
         return dx * dx + dy * dy <= r * r;
     }
 
@@ -2137,6 +2224,8 @@ public partial class WhiteboardView : UserControl
                 return TextBounds(t);
             case ImageElement im:
                 return SKRect.Create(im.X, im.Y, im.Width, im.Height);
+            case StickyNoteElement sn:
+                return SKRect.Create(sn.X, sn.Y, sn.Width, sn.Height);
             default:
                 return SKRect.Empty;
         }
@@ -2190,6 +2279,11 @@ public partial class WhiteboardView : UserControl
         {
             X = im.X, Y = im.Y, Width = im.Width, Height = im.Height, Data = im.Data,
         },
+        StickyNoteElement sn => new StickyNoteElement
+        {
+            X = sn.X, Y = sn.Y, Width = sn.Width, Height = sn.Height, Text = sn.Text,
+            Color = sn.Color, TextColor = sn.TextColor, FontSize = sn.FontSize, FontFamily = sn.FontFamily,
+        },
         _ => throw new NotSupportedException(),
     };
 
@@ -2197,7 +2291,7 @@ public partial class WhiteboardView : UserControl
 
     private void StartTextEdit(TextElement el, bool isNew)
     {
-        CommitTextEdit();
+        CommitActiveEdit();
         _editingText = el;
         _editingIsNew = isNew;
         _editingOldText = el.Text;
@@ -2240,7 +2334,7 @@ public partial class WhiteboardView : UserControl
         }
     }
 
-    private void EditBox_LostFocus(object sender, RoutedEventArgs e) => CommitTextEdit();
+    private void EditBox_LostFocus(object sender, RoutedEventArgs e) => CommitActiveEdit();
 
     private void CommitTextEdit()
     {
@@ -2294,6 +2388,86 @@ public partial class WhiteboardView : UserControl
         return SKRect.Create(t.X, t.Y, w, h);
     }
 
+    // ==================== Notizzettel-Bearbeitung ====================
+
+    /// <summary>Innenabstand des Zettels zwischen Kartenrand und Text (Canvas-Einheiten).</summary>
+    private const float StickyPad = 14f;
+
+    /// <summary>Schließt eine offene Text- oder Notizzettel-Bearbeitung.</summary>
+    private void CommitActiveEdit()
+    {
+        CommitTextEdit();
+        CommitStickyEdit();
+    }
+
+    private void StartStickyEdit(StickyNoteElement el, bool isNew)
+    {
+        CommitActiveEdit();
+        _editingSticky = el;
+        _editingStickyIsNew = isNew;
+        _editingStickyOld = el.Text;
+        _cancelEdit = false;
+
+        var screen = ToScreen(new SKPoint(el.X + StickyPad, el.Y + StickyPad));
+        Canvas.SetLeft(EditBox, screen.X);
+        Canvas.SetTop(EditBox, screen.Y);
+        EditBox.Width = Math.Max(24, (el.Width - StickyPad * 2) * Zoom);
+        EditBox.Height = Math.Max(24, (el.Height - StickyPad * 2) * Zoom);
+        EditBox.TextWrapping = TextWrapping.Wrap;
+        EditBox.VerticalContentAlignment = VerticalAlignment.Top;
+        EditBox.FontSize = Math.Max(8, el.FontSize * Zoom);
+        EditBox.FontFamily = new FontFamily(string.IsNullOrEmpty(el.FontFamily) ? "Segoe UI" : el.FontFamily);
+        EditBox.Background = BrushFromHex(el.Color);
+        EditBox.Foreground = BrushFromHex(el.TextColor);
+        EditBox.Text = el.Text;
+
+        EditBox.Visibility = Visibility.Visible;
+        EditBox.Focus();
+        EditBox.CaretIndex = EditBox.Text.Length;
+        Skia.InvalidateVisual();
+    }
+
+    private void CommitStickyEdit()
+    {
+        if (_editingSticky == null || _page == null || _vm == null) return;
+        var el = _editingSticky;
+        _editingSticky = null;
+
+        EditBox.Visibility = Visibility.Collapsed;
+        // Zettel-spezifische EditBox-Optik zurücksetzen (sonst erbt das Textfeld sie)
+        EditBox.Width = double.NaN;
+        EditBox.Height = double.NaN;
+        EditBox.TextWrapping = TextWrapping.NoWrap;
+
+        string newText = _cancelEdit ? _editingStickyOld : EditBox.Text;
+        _cancelEdit = false;
+
+        if (_editingStickyIsNew)
+        {
+            // Ein bewusst gesetzter Zettel bleibt bestehen, auch ohne Text
+            el.Text = newText;
+            _page.Elements.Add(el);
+            _vm.Undo.Push(_page, new AddElementsAction(new WbElement[] { el }));
+            MarkDirty();
+        }
+        else if (newText != _editingStickyOld)
+        {
+            el.Text = newText;
+            _vm.Undo.Push(_page, new StickyTextChangeAction(el, _editingStickyOld, newText));
+            MarkDirty();
+        }
+
+        Skia.InvalidateVisual();
+    }
+
+    /// <summary>Dunkler oder heller Text je nach Helligkeit der Zettelfarbe.</summary>
+    private static string ReadableStickyTextColor(string bgHex)
+    {
+        var b = ParseColor(bgHex);
+        double lum = 0.2126 * b.Red + 0.7152 * b.Green + 0.0722 * b.Blue;
+        return lum > 140 ? "#FF1F2937" : "#FFF9FAFB";
+    }
+
     // ==================== Tastatur ====================
 
     private void OnPreviewKeyDown(object sender, KeyEventArgs e)
@@ -2335,6 +2509,7 @@ public partial class WhiteboardView : UserControl
             Key.L => BtnLasso,
             Key.T => BtnText,
             Key.F => BtnShape,
+            Key.N => BtnSticky,
             Key.H => BtnPan,
             _ => null,
         };
@@ -2377,7 +2552,7 @@ public partial class WhiteboardView : UserControl
         if (_vm == null) return;
         idx = Math.Clamp(idx, 0, _vm.Doc.Pages.Count - 1);
         if (idx == _vm.PageIndex) return;
-        CommitTextEdit();
+        CommitActiveEdit();
         ClearSelection();
         _vm.PageIndex = idx;
         _page = _vm.Doc.Pages[idx];
@@ -2476,6 +2651,8 @@ public partial class WhiteboardView : UserControl
         foreach (var el in _page.Elements)
         {
             if (el == _editingText) continue;
+            // Zettel in Bearbeitung: nur die Karte zeichnen, den Text übernimmt die EditBox
+            if (el == _editingSticky) { DrawStickyCard(canvas, (StickyNoteElement)el); continue; }
             var b = ElementBounds(el);
             if (!b.IsEmpty && !visible.IntersectsWith(b)) continue;
             DrawElement(canvas, el);
@@ -2687,6 +2864,7 @@ public partial class WhiteboardView : UserControl
             case ShapeElement sh: DrawShape(canvas, sh, sh.Color, sh.StrokeWidth); break;
             case TextElement t: DrawText(canvas, t); break;
             case ImageElement im: DrawImage(canvas, im); break;
+            case StickyNoteElement sn: DrawSticky(canvas, sn); break;
         }
     }
 
@@ -2874,6 +3052,129 @@ public partial class WhiteboardView : UserControl
             canvas.DrawText(lines[i], t.X, t.Y + t.FontSize + i * lineHeight, paint);
     }
 
+    /// <summary>Zeichnet nur die Zettelkarte (Schatten, Fläche, dezenter Rand) – ohne Text.</summary>
+    internal static void DrawStickyCard(SKCanvas canvas, StickyNoteElement sn)
+    {
+        var rect = SKRect.Create(sn.X, sn.Y, sn.Width, sn.Height);
+        const float radius = 6f;
+
+        // weicher Schlagschatten für einen „aufgeklebten" Eindruck
+        using (var shadow = new SKPaint
+        {
+            IsAntialias = true,
+            Color = new SKColor(0, 0, 0, 45),
+            ImageFilter = SKImageFilter.CreateBlur(6, 6),
+        })
+        {
+            var sr = rect;
+            sr.Offset(0, 3);
+            canvas.DrawRoundRect(sr, radius, radius, shadow);
+        }
+
+        var fill = ParseColor(sn.Color);
+        using (var bg = new SKPaint { IsAntialias = true, Color = fill })
+            canvas.DrawRoundRect(rect, radius, radius, bg);
+
+        // hauchzarter Rand, leicht dunkler als die Füllung
+        using var border = new SKPaint
+        {
+            IsAntialias = true,
+            Style = SKPaintStyle.Stroke,
+            StrokeWidth = 1f,
+            Color = new SKColor(0, 0, 0, 28),
+        };
+        canvas.DrawRoundRect(rect, radius, radius, border);
+    }
+
+    internal static void DrawSticky(SKCanvas canvas, StickyNoteElement sn)
+    {
+        DrawStickyCard(canvas, sn);
+        if (string.IsNullOrEmpty(sn.Text)) return;
+
+        using var paint = new SKPaint
+        {
+            IsAntialias = true,
+            Color = ParseColor(sn.TextColor),
+            TextSize = sn.FontSize,
+            Typeface = Fonts.Family(sn.FontFamily),
+        };
+
+        float lineHeight = sn.FontSize * 1.32f;
+        float maxWidth = sn.Width - StickyPad * 2;
+        float x = sn.X + StickyPad;
+        float yBase = sn.Y + StickyPad + sn.FontSize;
+        float maxY = sn.Y + sn.Height - StickyPad * 0.5f;
+
+        canvas.Save();
+        canvas.ClipRect(SKRect.Create(sn.X, sn.Y, sn.Width, sn.Height));
+        float y = yBase;
+        foreach (var line in WrapText(sn.Text, paint, maxWidth))
+        {
+            if (y > maxY) break; // Text, der nicht mehr passt, wird abgeschnitten
+            canvas.DrawText(line, x, y, paint);
+            y += lineHeight;
+        }
+        canvas.Restore();
+    }
+
+    /// <summary>Bricht Text an Wortgrenzen auf die verfügbare Breite um (respektiert \n).</summary>
+    private static IEnumerable<string> WrapText(string text, SKPaint paint, float maxWidth)
+    {
+        foreach (var para in text.Split('\n'))
+        {
+            if (para.Length == 0) { yield return ""; continue; }
+
+            var words = para.Split(' ');
+            var current = "";
+            foreach (var word in words)
+            {
+                var candidate = current.Length == 0 ? word : current + " " + word;
+                if (paint.MeasureText(candidate) <= maxWidth || current.Length == 0)
+                {
+                    // Einzelnes zu langes Wort hart umbrechen
+                    if (current.Length == 0 && paint.MeasureText(word) > maxWidth)
+                    {
+                        foreach (var chunk in BreakLongWord(word, paint, maxWidth))
+                        {
+                            if (chunk.Last) { current = chunk.Text; }
+                            else yield return chunk.Text;
+                        }
+                    }
+                    else current = candidate;
+                }
+                else
+                {
+                    yield return current;
+                    current = word;
+                    if (paint.MeasureText(word) > maxWidth)
+                    {
+                        foreach (var chunk in BreakLongWord(word, paint, maxWidth))
+                        {
+                            if (chunk.Last) current = chunk.Text;
+                            else yield return chunk.Text;
+                        }
+                    }
+                }
+            }
+            yield return current;
+        }
+    }
+
+    private static IEnumerable<(string Text, bool Last)> BreakLongWord(string word, SKPaint paint, float maxWidth)
+    {
+        var chunk = "";
+        foreach (var ch in word)
+        {
+            if (chunk.Length > 0 && paint.MeasureText(chunk + ch) > maxWidth)
+            {
+                yield return (chunk, false);
+                chunk = ch.ToString();
+            }
+            else chunk += ch;
+        }
+        yield return (chunk, true);
+    }
+
     private void DrawActiveOverlays(SKCanvas canvas)
     {
         // Laufender Strich
@@ -2947,11 +3248,11 @@ public partial class WhiteboardView : UserControl
             };
             canvas.DrawRect(b, stroke);
 
-            // Eckgriff zum Skalieren (nur bei einzelnem Bild)
-            if (_selection.Count == 1 && _selection.First() is ImageElement selIm)
+            // Eckgriff zum Skalieren (bei einzelnem Box-Element: Bild oder Notizzettel)
+            if (_selection.Count == 1 && _selection.First() is IBoxElement selBox)
             {
                 float hs = 5f / Zoom;
-                var hr = SKRect.Create(selIm.X + selIm.Width - hs, selIm.Y + selIm.Height - hs, hs * 2, hs * 2);
+                var hr = SKRect.Create(selBox.X + selBox.Width - hs, selBox.Y + selBox.Height - hs, hs * 2, hs * 2);
                 using var hf = new SKPaint { Color = accent, IsAntialias = true };
                 canvas.DrawRect(hr, hf);
                 using var hw = new SKPaint

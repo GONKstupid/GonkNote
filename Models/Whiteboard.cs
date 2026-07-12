@@ -11,6 +11,7 @@ public enum ToolType
     Lasso,
     Text,
     Shape,
+    Sticky,
     Pan,
 }
 
@@ -63,6 +64,18 @@ public abstract class WbElement
     public Guid Id { get; set; } = Guid.NewGuid();
 
     public abstract void Translate(float dx, float dy);
+}
+
+/// <summary>
+/// Elemente mit rechteckiger Position und Größe (Bild, Notizzettel). Ermöglicht
+/// gemeinsame Behandlung von Auswahl-Griff und Skalierung.
+/// </summary>
+public interface IBoxElement
+{
+    float X { get; set; }
+    float Y { get; set; }
+    float Width { get; set; }
+    float Height { get; set; }
 }
 
 public class StrokeElement : WbElement
@@ -120,13 +133,37 @@ public class TextElement : WbElement
 /// werden beim Import auf max. 2048 px Kantenlänge verkleinert (RAM-/DB-Größe).
 /// SVG wird beim Import gerastert.
 /// </summary>
-public class ImageElement : WbElement
+public class ImageElement : WbElement, IBoxElement
 {
     public float X { get; set; }
     public float Y { get; set; }
     public float Width { get; set; }
     public float Height { get; set; }
     public byte[] Data { get; set; } = Array.Empty<byte>();
+
+    public override void Translate(float dx, float dy)
+    {
+        X += dx; Y += dy;
+    }
+}
+
+/// <summary>
+/// Notizzettel (Klebezettel): farbige Karte mit umbrochenem Text, frei verschieb-
+/// und skalierbar. Größe wird gespeichert; der Text wird beim Zeichnen umbrochen.
+/// </summary>
+public class StickyNoteElement : WbElement, IBoxElement
+{
+    public float X { get; set; }
+    public float Y { get; set; }
+    public float Width { get; set; } = 200f;
+    public float Height { get; set; } = 200f;
+    public string Text { get; set; } = "";
+    /// <summary>Zettelfarbe (Kartenhintergrund).</summary>
+    public string Color { get; set; } = "#FFFEF08A";
+    /// <summary>Textfarbe.</summary>
+    public string TextColor { get; set; } = "#FF1F2937";
+    public float FontSize { get; set; } = 16f;
+    public string FontFamily { get; set; } = "Segoe UI";
 
     public override void Translate(float dx, float dy)
     {

@@ -127,7 +127,10 @@
                                     <Button Width="46" Height="46" Margin="3" Cursor="Hand"
                                             Command="{Binding DataContext.OpenPinnedCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                             CommandParameter="{Binding}"
-                                            ToolTip="{Binding Name}">
+                                            ToolTip="{Binding Name}"
+                                            ToolTipService.InitialShowDelay="250"
+                                            ToolTipService.ShowDuration="8000"
+                                            ToolTipService.Placement="Bottom">
                                         <Button.Template>
                                             <ControlTemplate TargetType="Button">
                                                 <Border x:Name="tile" CornerRadius="11"

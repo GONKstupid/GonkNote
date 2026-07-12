@@ -11,6 +11,7 @@ public partial class MainWindow : Window
     private readonly MainViewModel _vm;
     private Point _dragStart;
     private TreeItemViewModel? _dragCandidate;
+    private TreeItemViewModel? _clickOpenCandidate;
 
     private bool _sidebarVisible = true;
     private GridLength _sidebarWidth = new(260);
@@ -75,8 +76,14 @@ public partial class MainWindow : Window
 
     private void Tree_MouseDoubleClick(object sender, MouseButtonEventArgs e)
     {
+        // Doppelklick benennt um (Einfachklick öffnet bereits)
+        if (e.OriginalSource is TextBox) return;
         if (FindTreeItem(e.OriginalSource) is { } vm)
-            _vm.OpenItem(vm);
+        {
+            _clickOpenCandidate = null;
+            vm.IsRenaming = true;
+            e.Handled = true;
+        }
     }
 
     private void Tree_KeyDown(object sender, KeyEventArgs e)
@@ -125,7 +132,20 @@ public partial class MainWindow : Window
     private void Tree_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
         _dragStart = e.GetPosition(Tree);
-        _dragCandidate = e.OriginalSource is TextBox ? null : FindTreeItem(e.OriginalSource);
+        var hit = e.OriginalSource is TextBox ? null : FindTreeItem(e.OriginalSource);
+        _dragCandidate = hit;
+        // Einfachklick öffnet (beim Loslassen, wenn nicht gezogen und kein Doppelklick)
+        _clickOpenCandidate = e.ClickCount == 1 ? hit : null;
+    }
+
+    private void Tree_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        // Einfachklick öffnet Dokumente; Ordner werden nur ausgewählt (Aufklappen per Pfeil).
+        // Ziehen/Doppelklick haben den Kandidaten bereits geleert.
+        var vm = _clickOpenCandidate;
+        _clickOpenCandidate = null;
+        if (vm != null && !vm.IsRenaming && !vm.IsFolder && e.OriginalSource is not TextBox)
+            _vm.OpenItem(vm);
     }
 
     private void Tree_MouseMove(object sender, MouseEventArgs e)
@@ -139,6 +159,7 @@ public partial class MainWindow : Window
 
         var item = _dragCandidate;
         _dragCandidate = null;
+        _clickOpenCandidate = null; // Ziehen ist kein Klick
         DragDrop.DoDragDrop(Tree, new DataObject(typeof(TreeItemViewModel), item),
             DragDropEffects.Move | DragDropEffects.Copy);
     }

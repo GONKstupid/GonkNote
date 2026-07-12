@@ -206,7 +206,13 @@ public partial class WhiteboardView : UserControl
         if (tool == ToolType.Shape && SettingsPanel.Visibility != Visibility.Visible)
         {
             RefreshSettingsPanel();
+            ShapeSection.IsExpanded = true;
             SettingsPanel.Visibility = Visibility.Visible;
+        }
+        else if (SettingsPanel.Visibility == Visibility.Visible)
+        {
+            // Sichtbarkeit der Formen-Sektion an das neue Werkzeug anpassen
+            RefreshSettingsPanel();
         }
 
         CanvasHost.Cursor = tool switch
@@ -1209,6 +1215,9 @@ public partial class WhiteboardView : UserControl
             PageShade.Dark => SetShadeDark,
             _ => SetShadeAuto,
         }).IsChecked = true;
+
+        // Formen-Sektion nur bei aktivem Formen-Werkzeug
+        ShapeSection.Visibility = _tool == ToolType.Shape ? Visibility.Visible : Visibility.Collapsed;
 
         bool paged = !_page.IsInfinite;
         SetSizeSection.Visibility = paged ? Visibility.Visible : Visibility.Collapsed;

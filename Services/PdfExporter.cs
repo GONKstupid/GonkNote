@@ -36,35 +36,61 @@ public static class PdfExporter
         pdf.Close();
     }
 
+    /// <summary>Whiteboard/Notizbuch als PNG: 1 Datei pro Seite, hohe Auflösung (2×).</summary>
+    public static List<string> ExportWhiteboardPng(WhiteboardDoc doc, string title, string path)
+    {
+        const float scale = 2f;
+        var written = new List<string>();
+        string dir = Path.GetDirectoryName(path)!;
+        string stem = Path.GetFileNameWithoutExtension(path);
+        bool multi = doc.Pages.Count > 1;
+
+        for (int i = 0; i < doc.Pages.Count; i++)
+        {
+            var page = doc.Pages[i];
+            var (ox, oy, w, h) = PageGeometry(page);
+
+            var info = new SKImageInfo((int)Math.Round(w * scale), (int)Math.Round(h * scale));
+            using var surface = SKSurface.Create(info);
+            var canvas = surface.Canvas;
+            canvas.Scale(scale);
+            canvas.Translate(-ox, -oy);
+            PaintPage(canvas, page, doc, title, ox, oy, w, h);
+
+            using var img = surface.Snapshot();
+            using var data = img.Encode(SKEncodedImageFormat.Png, 100);
+            string outPath = multi ? Path.Combine(dir, $"{stem}-{i + 1}.png") : path;
+            File.WriteAllBytes(outPath, data.ToArray());
+            written.Add(outPath);
+        }
+        return written;
+    }
+
+    /// <summary>Seitengröße/Ursprung: feste Seiten direkt, unendliche über den Inhalt (mit Rand).</summary>
+    private static (float Ox, float Oy, float W, float H) PageGeometry(WbPage page)
+    {
+        if (!page.IsInfinite) return (0, 0, page.Width, page.Height);
+        var b = ContentBounds(page);
+        const float margin = 48f;
+        return (b.Left - margin, b.Top - margin, b.Width + margin * 2, b.Height + margin * 2);
+    }
+
     private static void RenderPage(SKDocument pdf, WbPage page, WhiteboardDoc doc, string title)
     {
-        // Seitengröße bestimmen: feste Seiten direkt, unendliche über den Inhalt
-        float ox = 0, oy = 0, w, h;
-        if (page.IsInfinite)
-        {
-            var b = ContentBounds(page);
-            const float margin = 48f;
-            ox = b.Left - margin;
-            oy = b.Top - margin;
-            w = b.Width + margin * 2;
-            h = b.Height + margin * 2;
-        }
-        else
-        {
-            w = page.Width;
-            h = page.Height;
-        }
-
+        var (ox, oy, w, h) = PageGeometry(page);
         var canvas = pdf.BeginPage(w * PtPerUnit, h * PtPerUnit);
         canvas.Scale(PtPerUnit);
         canvas.Translate(-ox, -oy);
+        PaintPage(canvas, page, doc, title, ox, oy, w, h);
+        pdf.EndPage();
+    }
 
+    private static void PaintPage(SKCanvas canvas, WbPage page, WhiteboardDoc doc, string title,
+        float ox, float oy, float w, float h)
+    {
         DrawBackground(canvas, page, doc, title, ox, oy, w, h);
-
         foreach (var el in page.Elements)
             DrawElement(canvas, el);
-
-        pdf.EndPage();
     }
 
     private static void DrawElement(SKCanvas canvas, WbElement el)
@@ -106,7 +132,8 @@ public static class PdfExporter
         if (page.BackgroundImage is { Length: > 0 } bgData &&
             ImageCache.Get(page.BackgroundImageId, bgData) is { } bgImg)
         {
-            canvas.DrawImage(bgImg, SKRect.Create(0, 0, page.Width, page.Height));
+            using var ip = new SKPaint { IsAntialias = true, FilterQuality = SKFilterQuality.High };
+            canvas.DrawImage(bgImg, SKRect.Create(0, 0, page.Width, page.Height), ip);
             return;
         }
         if (page.IsCover)
@@ -197,58 +224,87 @@ public static class PdfExporter
     /// </summary>
     public static void ExportFlowDocument(FlowDocument flow, string path)
     {
-        const double pw = WhiteboardDoc.A4Width;   // 794 (96 DPI)
-        const double ph = WhiteboardDoc.A4Height;  // 1123
-        const double margin = 48;
-        const double contentW = pw - margin * 2;
-        const double contentH = ph - margin * 2;
-        const float scale = 2f;                    // 192 DPI fürs Rendern
-
-        // Eigenes Print-Layout: eine Spalte in Content-Breite, sonst bräche der Text
-        // auf Bildschirmbreite um. Paginierung erfolgt auf den Content-Bereich.
-        var doc = CloneForPrint(flow, contentW);
-        var paginator = ((IDocumentPaginatorSource)doc).DocumentPaginator;
-        paginator.PageSize = new Size(contentW, contentH);
-        paginator.ComputePageCount();
-
         using var stream = File.Create(path);
         using var pdf = SKDocument.CreatePdf(stream, new SKDocumentPdfMetadata { Producer = "Gonk Note" });
+        foreach (var (skImage, pw, ph) in RenderTextPages(flow, 3f))
+        {
+            using (skImage)
+            {
+                var canvas = pdf.BeginPage((float)pw * PtPerUnit, (float)ph * PtPerUnit);
+                canvas.DrawImage(skImage, SKRect.Create(0, 0, (float)pw * PtPerUnit, (float)ph * PtPerUnit));
+                pdf.EndPage();
+            }
+        }
+        pdf.Close();
+    }
 
-        int pages = Math.Max(1, paginator.PageCount);
-        for (int i = 0; i < pages; i++)
+    /// <summary>Textdokument als einzelne PNG-Seiten (A4). Multi-Page → base-1.png, base-2.png …</summary>
+    public static List<string> ExportFlowDocumentPng(FlowDocument flow, string path)
+    {
+        var pages = RenderTextPages(flow, 3f).ToList();
+        var written = new List<string>();
+        string dir = Path.GetDirectoryName(path)!;
+        string stem = Path.GetFileNameWithoutExtension(path);
+
+        for (int i = 0; i < pages.Count; i++)
+        {
+            var (skImage, _, _) = pages[i];
+            using (skImage)
+            {
+                string outPath = pages.Count == 1 ? path : Path.Combine(dir, $"{stem}-{i + 1}.png");
+                using var data = skImage.Encode(SKEncodedImageFormat.Png, 100);
+                File.WriteAllBytes(outPath, data.ToArray());
+                written.Add(outPath);
+            }
+        }
+        return written;
+    }
+
+    /// <summary>
+    /// Rendert das FlowDocument seitenweise (A4) direkt in hochauflösende Bitmaps.
+    /// Direkt-Render (kein VisualBrush) → scharfer Text; PagePadding trägt den Rand.
+    /// </summary>
+    private static IEnumerable<(SKImage Image, double W, double H)> RenderTextPages(FlowDocument flow, float scale)
+    {
+        const double pw = WhiteboardDoc.A4Width;   // 794 (96 DPI)
+        const double ph = WhiteboardDoc.A4Height;  // 1123
+        const double margin = 56;
+
+        var doc = CloneForPrint(flow, pw, margin);
+        var paginator = ((IDocumentPaginatorSource)doc).DocumentPaginator;
+        paginator.PageSize = new Size(pw, ph);
+        paginator.ComputePageCount();
+
+        int count = Math.Max(1, paginator.PageCount);
+        for (int i = 0; i < count; i++)
         {
             using var docPage = paginator.GetPage(i);
-            if (docPage == DocumentPage.Missing) break;
+            if (docPage == DocumentPage.Missing) yield break;
 
             var rtb = new RenderTargetBitmap(
-                (int)(pw * scale), (int)(ph * scale), 96 * scale, 96 * scale, PixelFormats.Pbgra32);
+                (int)Math.Round(pw * scale), (int)Math.Round(ph * scale),
+                96 * scale, 96 * scale, PixelFormats.Pbgra32);
 
-            var visual = new DrawingVisual();
-            using (var dc = visual.RenderOpen())
-            {
+            // Weiß hinterlegen, dann die Seite direkt darüber rendern (scharf)
+            var bg = new DrawingVisual();
+            using (var dc = bg.RenderOpen())
                 dc.DrawRectangle(System.Windows.Media.Brushes.White, null, new Rect(0, 0, pw, ph));
-                // Seiteninhalt in Originalgröße mit Rand einsetzen
-                dc.DrawRectangle(new VisualBrush(docPage.Visual) { Stretch = Stretch.None },
-                    null, new Rect(margin, margin, contentW, contentH));
-            }
-            rtb.Render(visual);
+            rtb.Render(bg);
+            rtb.Render(docPage.Visual);
+            rtb.Freeze();
 
+            // Verlustfrei über PNG an SkiaSharp übergeben (formatunabhängig, scharf)
             var encoder = new PngBitmapEncoder();
             encoder.Frames.Add(BitmapFrame.Create(rtb));
             using var ms = new MemoryStream();
             encoder.Save(ms);
             ms.Position = 0;
-
-            using var skImage = SKImage.FromEncodedData(ms);
-            var canvas = pdf.BeginPage((float)pw * PtPerUnit, (float)ph * PtPerUnit);
-            canvas.DrawImage(skImage, SKRect.Create(0, 0, (float)pw * PtPerUnit, (float)ph * PtPerUnit));
-            pdf.EndPage();
+            yield return (SKImage.FromEncodedData(ms), pw, ph);
         }
-        pdf.Close();
     }
 
-    /// <summary>Kopie des FlowDocuments mit einer Spalte fester Breite (verhindert Bildschirm-Umbruch).</summary>
-    private static FlowDocument CloneForPrint(FlowDocument source, double contentWidth)
+    /// <summary>Kopie des FlowDocuments mit einer Spalte voller Breite und Seitenrand (Print-Layout).</summary>
+    private static FlowDocument CloneForPrint(FlowDocument source, double pageWidth, double margin)
     {
         using var ms = new MemoryStream();
         new TextRange(source.ContentStart, source.ContentEnd).Save(ms, DataFormats.XamlPackage);
@@ -256,9 +312,11 @@ public static class PdfExporter
 
         var clone = new FlowDocument
         {
-            ColumnWidth = contentWidth,   // exakt eine Spalte
+            ColumnWidth = pageWidth,                  // exakt eine Spalte
+            PagePadding = new Thickness(margin),      // Rand ist Teil der Seite → scharf
             FontFamily = source.FontFamily,
             FontSize = source.FontSize,
+            TextAlignment = TextAlignment.Left,
         };
         new TextRange(clone.ContentStart, clone.ContentEnd).Load(ms, DataFormats.XamlPackage);
         return clone;

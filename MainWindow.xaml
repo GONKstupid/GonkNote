@@ -113,29 +113,49 @@
                                 </Style.Triggers>
                             </Style>
                         </StackPanel.Style>
-                        <TextBlock Text="ANGEPINNT" FontSize="10" FontWeight="SemiBold" Margin="6,2,0,4"
+                        <TextBlock Text="ANGEPINNT" FontSize="10" FontWeight="SemiBold" Margin="6,2,0,5"
                                    Foreground="{DynamicResource Brush.TextMuted}"/>
+                        <!-- Icon-Kachel-Raster (angelehnt an Zen-Browser-Pinned-Tabs) -->
                         <ItemsControl ItemsSource="{Binding PinnedFolders}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel Orientation="Horizontal"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Button Style="{StaticResource FlatButton}"
-                                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                                    <Button Width="46" Height="46" Margin="3" Cursor="Hand"
                                             Command="{Binding DataContext.OpenPinnedCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                             CommandParameter="{Binding}"
-                                            ToolTip="Im Baum anzeigen">
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBlock Text="&#xE840;" FontFamily="{StaticResource IconFont}" FontSize="11"
-                                                       Foreground="{DynamicResource Brush.TextMuted}" VerticalAlignment="Center"/>
-                                            <TextBlock Text="{Binding IconGlyph}" FontFamily="{StaticResource IconFont}" FontSize="13"
-                                                       Foreground="{Binding IconBrush}" Margin="6,0,0,0" VerticalAlignment="Center"/>
-                                            <TextBlock Text="{Binding Name}" Margin="7,0,0,0" VerticalAlignment="Center"
-                                                       Foreground="{DynamicResource Brush.Text}"/>
-                                        </StackPanel>
+                                            ToolTip="{Binding Name}">
+                                        <Button.Template>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border x:Name="tile" CornerRadius="11"
+                                                        Background="{DynamicResource Brush.CardBg}"
+                                                        BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1">
+                                                    <Grid>
+                                                        <TextBlock Text="{Binding IconGlyph}" FontFamily="{StaticResource IconFont}"
+                                                                   FontSize="21" Foreground="{Binding IconBrush}"
+                                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="&#xE840;" FontFamily="{StaticResource IconFont}" FontSize="9"
+                                                                   Foreground="{DynamicResource Brush.TextMuted}"
+                                                                   HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,3,4,0"/>
+                                                    </Grid>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="tile" Property="BorderBrush"
+                                                                Value="{DynamicResource Brush.Accent}"/>
+                                                        <Setter TargetName="tile" Property="BorderThickness" Value="1.5"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Button.Template>
                                     </Button>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
-                        <Border Height="1" Background="{DynamicResource Brush.Border}" Margin="4,6,4,0"/>
+                        <Border Height="1" Background="{DynamicResource Brush.Border}" Margin="4,8,4,0"/>
                     </StackPanel>
 
                     <!-- Fußzeile -->
@@ -156,6 +176,7 @@
                               SelectedItemChanged="Tree_SelectedItemChanged"
                               MouseDoubleClick="Tree_MouseDoubleClick"
                               PreviewMouseLeftButtonDown="Tree_PreviewMouseLeftButtonDown"
+                              PreviewMouseLeftButtonUp="Tree_PreviewMouseLeftButtonUp"
                               PreviewMouseRightButtonDown="Tree_PreviewMouseRightButtonDown"
                               MouseMove="Tree_MouseMove"
                               Drop="Tree_Drop" DragOver="Tree_DragOver"
@@ -292,7 +313,7 @@
                     <TextBlock Text="Willkommen bei Gonk Note" FontSize="20" FontWeight="SemiBold"
                                Foreground="{DynamicResource Brush.Text}" Margin="0,14,0,6"
                                HorizontalAlignment="Center"/>
-                    <TextBlock Text="Erstelle links ein Notizbuch, Whiteboard oder Textdokument – oder öffne eines per Doppelklick."
+                    <TextBlock Text="Erstelle links ein Notizbuch, Whiteboard oder Textdokument – oder öffne eines per Klick (Doppelklick zum Umbenennen)."
                                Foreground="{DynamicResource Brush.TextMuted}" HorizontalAlignment="Center"
                                TextWrapping="Wrap" MaxWidth="420" TextAlignment="Center"/>
                 </StackPanel>

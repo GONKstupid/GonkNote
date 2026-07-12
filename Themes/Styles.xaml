@@ -552,4 +552,51 @@
         </Setter>
     </Style>
 
+    <!-- ===================== Expander (ausklappbare Sektion) ===================== -->
+
+    <Style TargetType="Expander">
+        <Setter Property="Foreground" Value="{DynamicResource Brush.Text}"/>
+        <Setter Property="Margin" Value="0,0,0,2"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Expander">
+                    <StackPanel>
+                        <ToggleButton IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
+                                      Content="{TemplateBinding Header}" Cursor="Hand">
+                            <ToggleButton.Template>
+                                <ControlTemplate TargetType="ToggleButton">
+                                    <Border x:Name="hb" Background="Transparent" Padding="0,9" CornerRadius="5">
+                                        <DockPanel>
+                                            <TextBlock x:Name="chev" DockPanel.Dock="Right" Text="&#xE70D;"
+                                                       FontFamily="{StaticResource IconFont}" FontSize="11"
+                                                       Foreground="{DynamicResource Brush.TextMuted}" VerticalAlignment="Center"/>
+                                            <TextBlock Text="{TemplateBinding Content}" FontWeight="SemiBold" FontSize="13"
+                                                       Foreground="{DynamicResource Brush.Accent}" VerticalAlignment="Center"/>
+                                        </DockPanel>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsChecked" Value="True">
+                                            <Setter TargetName="chev" Property="Text" Value="&#xE70E;"/>
+                                        </Trigger>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="chev" Property="Foreground" Value="{DynamicResource Brush.Text}"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </ToggleButton.Template>
+                        </ToggleButton>
+                        <Border x:Name="content" Visibility="Collapsed" Margin="0,2,0,10">
+                            <ContentPresenter/>
+                        </Border>
+                    </StackPanel>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsExpanded" Value="True">
+                            <Setter TargetName="content" Property="Visibility" Value="Visible"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
 </ResourceDictionary>

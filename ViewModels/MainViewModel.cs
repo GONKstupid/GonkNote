@@ -321,13 +321,14 @@ public sealed class MainViewModel : ObservableObject
             Title = "Exportieren",
             FileName = SafeFileName(tab.Title),
             Filter = tab is TextTabViewModel
-                ? "PDF-Dokument (*.pdf)|*.pdf|Word-Dokument (*.docx)|*.docx|Markdown (*.md)|*.md"
-                : "PDF-Dokument (*.pdf)|*.pdf",
+                ? "PDF-Dokument (*.pdf)|*.pdf|Word-Dokument (*.docx)|*.docx|Markdown (*.md)|*.md|PNG-Bild(er) (*.png)|*.png"
+                : "PDF-Dokument (*.pdf)|*.pdf|PNG-Bild(er) (*.png)|*.png",
         };
         if (dlg.ShowDialog() != true) return;
 
         string path = dlg.FileName;
         string ext = System.IO.Path.GetExtension(path).ToLowerInvariant();
+        List<string> written = new() { path };
 
         try
         {
@@ -340,12 +341,14 @@ public sealed class MainViewModel : ObservableObject
                     {
                         case ".docx": DocxExporter.Export(flow, path); break;
                         case ".md": MarkdownExporter.Export(flow, path); break;
+                        case ".png": written = PdfExporter.ExportFlowDocumentPng(flow, path); break;
                         default: PdfExporter.ExportFlowDocument(flow, path); break;
                     }
                     break;
                 }
                 case WhiteboardTabViewModel wb:
-                    PdfExporter.ExportWhiteboard(wb.Doc, wb.Title, path);
+                    if (ext == ".png") written = PdfExporter.ExportWhiteboardPng(wb.Doc, wb.Title, path);
+                    else PdfExporter.ExportWhiteboard(wb.Doc, wb.Title, path);
                     break;
             }
         }
@@ -356,10 +359,14 @@ public sealed class MainViewModel : ObservableObject
             return;
         }
 
-        if (MessageBox.Show($"Exportiert nach:\n{path}\n\nDatei jetzt öffnen?", "Gonk Note",
-                MessageBoxButton.YesNo, MessageBoxImage.Information) == MessageBoxResult.Yes)
+        string openTarget = written.Count > 0 ? written[0] : path;
+        string info = written.Count > 1
+            ? $"{written.Count} Seiten exportiert nach:\n{System.IO.Path.GetDirectoryName(openTarget)}\n\nErste Datei öffnen?"
+            : $"Exportiert nach:\n{openTarget}\n\nDatei jetzt öffnen?";
+
+        if (MessageBox.Show(info, "Gonk Note", MessageBoxButton.YesNo, MessageBoxImage.Information) == MessageBoxResult.Yes)
         {
-            try { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(path) { UseShellExecute = true }); }
+            try { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(openTarget) { UseShellExecute = true }); }
             catch { /* kein Standardprogramm hinterlegt */ }
         }
     }

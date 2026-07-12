@@ -167,9 +167,8 @@
                     <StackPanel Margin="14,12">
 
                         <!-- Seite -->
-                        <TextBlock Text="Seite" FontWeight="SemiBold" Foreground="{DynamicResource Brush.Accent}"
-                                   Margin="0,0,0,8"/>
-
+                        <Expander Header="Seite" IsExpanded="True">
+                        <StackPanel>
                         <TextBlock Text="Muster" FontWeight="SemiBold" Margin="0,0,0,4"
                                    Foreground="{DynamicResource Brush.Text}"/>
                         <UniformGrid Columns="2" Margin="0,0,0,12">
@@ -217,13 +216,12 @@
                                       Foreground="{DynamicResource Brush.Text}" Margin="0,0,0,12"
                                       Checked="PageSetting_Changed" Unchecked="PageSetting_Changed"/>
                         </StackPanel>
+                        </StackPanel>
+                        </Expander>
 
-                        <!-- Formen -->
-                        <StackPanel x:Name="ShapeSection">
-                            <Border Height="1" Background="{DynamicResource Brush.Border}" Margin="0,2,0,12"/>
-                            <TextBlock Text="Formen" FontWeight="SemiBold" Foreground="{DynamicResource Brush.Accent}"
-                                       Margin="0,0,0,8"/>
-
+                        <!-- Formen (nur bei aktivem Formen-Werkzeug sichtbar) -->
+                        <Expander x:Name="ShapeSection" Header="Formen" IsExpanded="True">
+                        <StackPanel>
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
                                 <ToggleButton x:Name="BtnShapeLine" Style="{StaticResource ToolButton}" FontFamily="Segoe UI"
                                               Content="╱" ToolTip="Linie" Checked="Shape_Checked" Tag="Line"/>
@@ -261,13 +259,11 @@
                                            Margin="4,0,0,0" Foreground="{DynamicResource Brush.TextMuted}" FontSize="11"/>
                             </StackPanel>
                         </StackPanel>
+                        </Expander>
 
                         <!-- Text-Werkzeug -->
-                        <StackPanel x:Name="TextSection">
-                            <Border Height="1" Background="{DynamicResource Brush.Border}" Margin="0,2,0,12"/>
-                            <TextBlock Text="Text" FontWeight="SemiBold" Foreground="{DynamicResource Brush.Accent}"
-                                       Margin="0,0,0,8"/>
-
+                        <Expander x:Name="TextSection" Header="Text" IsExpanded="False">
+                        <StackPanel>
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                                 <Button Style="{StaticResource FlatButton}" Click="TextColor_Click" ToolTip="Textfarbe wählen (gilt auch als Tintenfarbe)">
                                     <StackPanel Orientation="Horizontal">
@@ -308,13 +304,11 @@
                                        Foreground="{DynamicResource Brush.TextMuted}" FontSize="11"
                                        TextWrapping="Wrap" Margin="0,0,0,12"/>
                         </StackPanel>
+                        </Expander>
 
                         <!-- Cover (nur Notizbücher) -->
-                        <StackPanel x:Name="CoverSection" Visibility="Collapsed">
-                            <Border Height="1" Background="{DynamicResource Brush.Border}" Margin="0,2,0,12"/>
-                            <TextBlock Text="Cover" FontWeight="SemiBold" Foreground="{DynamicResource Brush.Accent}"
-                                       Margin="0,0,0,8"/>
-
+                        <Expander x:Name="CoverSection" Header="Cover" IsExpanded="False" Visibility="Collapsed">
+                        <StackPanel>
                             <TextBlock Text="Farbverlauf" FontWeight="SemiBold" Margin="0,0,0,4"
                                        Foreground="{DynamicResource Brush.Text}"/>
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
@@ -357,6 +351,7 @@
                                        Foreground="{DynamicResource Brush.TextMuted}" FontSize="11"
                                        TextWrapping="Wrap" Margin="0,0,0,12"/>
                         </StackPanel>
+                        </Expander>
 
                     </StackPanel>
                 </ScrollViewer>

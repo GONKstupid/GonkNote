@@ -283,4 +283,34 @@ public class TextDoc
 {
     public Guid Id { get; set; }
     public byte[] Rtf { get; set; } = Array.Empty<byte>();
+
+    // ---------- Seiteneinrichtung (Neu: Word-Grundfunktionen) ----------
+
+    /// <summary>Papierformat: "A4", "A5", "A3" oder "Letter".</summary>
+    public string PageFormat { get; set; } = "A4";
+
+    /// <summary>Querformat statt Hochformat.</summary>
+    public bool Landscape { get; set; }
+
+    // Seitenränder in Zentimetern (Word-Standard: 2,5/2,5/2,5/2 – hier 2 rundum)
+    public double MarginLeftCm { get; set; } = 2;
+    public double MarginTopCm { get; set; } = 2;
+    public double MarginRightCm { get; set; } = 2;
+    public double MarginBottomCm { get; set; } = 2;
+
+    /// <summary>
+    /// Kopf-/Fußzeilentext. Platzhalter: {SEITE}, {SEITEN}, {DATUM}, {TITEL}.
+    /// Leer = keine Kopf-/Fußzeile.
+    /// </summary>
+    public string HeaderText { get; set; } = "";
+    public string FooterText { get; set; } = "";
+
+    /// <summary>Kopf-/Fußzeile auf der ersten Seite unterdrücken (Deckblatt).</summary>
+    public bool SuppressHeaderOnFirstPage { get; set; }
+
+    /// <summary>Seitenfüllendes Hintergrundbild/Wasserzeichen (hinter dem Text), null = keins.</summary>
+    public byte[]? WatermarkImage { get; set; }
+
+    /// <summary>Deckkraft des Wasserzeichens (0–1).</summary>
+    public double WatermarkOpacity { get; set; } = 1.0;
 }

@@ -1,19 +1,22 @@
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Markup;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
+using System.Windows.Threading;
+using GonkNote.Services;
 using GonkNote.ViewModels;
-using Microsoft.Win32;
 
 namespace GonkNote.Views;
 
 /// <summary>
-/// Rich-Text-Editor für Textdokumente. Speichert als XamlPackage
-/// (erhält Bilder/Tabellen), lädt ältere RTF-Dokumente weiterhin.
+/// Rich-Text-Editor für Textdokumente im Ribbon-Layout (Design-Konzept nach
+/// ONLYOFFICE-Vorbild, Farben ausschließlich aus Themes/Light|Dark.xaml).
+/// Speichert als XamlPackage (erhält Bilder/Tabellen), lädt ältere RTF-Dokumente.
+/// Kern: Laden/Speichern, Ribbon-Umschaltung, Zoom, Lineal, Statusleiste,
+/// Navigator, Theme-/Ink-Handling. Werkzeuge in den partial-Dateien.
 /// </summary>
 public partial class TextEditorView : UserControl
 {
@@ -22,9 +25,12 @@ public partial class TextEditorView : UserControl
 
     private TextTabViewModel? _vm;
     private bool _loading;
-    private bool _syncing;
+    private bool _syncing;        // Toolbar ← Auswahl wird gerade synchronisiert
+    private bool _syncingLayout;  // Layout-Felder ← Modell wird gerade befüllt
     private string _textColorHex = "#EC4899";
     private Color? _highlightColor = Color.FromRgb(0xFD, 0xE0, 0x47);
+
+    private readonly DispatcherTimer _statsTimer;
 
     public TextEditorView()
     {
@@ -34,7 +40,28 @@ public partial class TextEditorView : UserControl
             .Select(f => f.Source).OrderBy(s => s).ToList();
         SizeCombo.ItemsSource = FontSizes;
 
+        BuildStyleGallery();
+        BuildSymbolGrid();
+
+        // Wortanzahl/Navigator nicht bei jedem Tastendruck neu berechnen
+        _statsTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(600) };
+        _statsTimer.Tick += (_, _) => { _statsTimer.Stop(); UpdateWordCount(); RefreshNavigator(); };
+
+        Editor.AddHandler(Hyperlink.RequestNavigateEvent,
+            new System.Windows.Navigation.RequestNavigateEventHandler(Hyperlink_RequestNavigate));
+
         DataContextChanged += OnDataContextChanged;
+        Loaded += (_, _) => ThemeService.ThemeChanged += OnThemeChanged;
+        Unloaded += (_, _) => ThemeService.ThemeChanged -= OnThemeChanged;
+    }
+
+    private static Color CurrentInk() =>
+        (Color)Application.Current.Resources["Color.DefaultInk"];
+
+    private void OnThemeChanged()
+    {
+        // Eingebrannte Standard-Schreibfarbe des alten Themes auf das neue umziehen
+        TextStyles.NormalizeInk(Editor.Document, CurrentInk());
     }
 
     private void OnDataContextChanged(object? sender, DependencyPropertyChangedEventArgs e)
@@ -69,11 +96,20 @@ public partial class TextEditorView : UserControl
             {
                 range.Text = "";
             }
+
+            TextStyles.NormalizeInk(Editor.Document, CurrentInk());
+            LoadSettingsToUi();
+            ApplyPageSetup();
+
+            ZoomSlider.Value = Math.Clamp(_vm.Zoom * 100, ZoomSlider.Minimum, ZoomSlider.Maximum);
         }
         finally
         {
             _loading = false;
         }
+        UpdateWordCount();
+        RefreshNavigator();
+        Editor_SelectionChanged(this, new RoutedEventArgs());  // Toolbar initial befüllen
     }
 
     private void FlushToModel()
@@ -89,13 +125,38 @@ public partial class TextEditorView : UserControl
     {
         if (_loading || _vm == null) return;
         _vm.IsDirty = true;
+        _statsTimer.Stop();
+        _statsTimer.Start();
     }
+
+    private void MarkDirty()
+    {
+        if (_vm != null) _vm.IsDirty = true;
+    }
+
+    // ==================== Ribbon ====================
+
+    private void RibbonTab_Checked(object sender, RoutedEventArgs e)
+    {
+        if (PanelStart == null || PanelRefs == null) return;  // während InitializeComponent
+        string tag = (string)((RadioButton)sender).Tag;
+        PanelStart.Visibility = tag == "Start" ? Visibility.Visible : Visibility.Collapsed;
+        PanelInsert.Visibility = tag == "Einfügen" ? Visibility.Visible : Visibility.Collapsed;
+        PanelLayout.Visibility = tag == "Layout" ? Visibility.Visible : Visibility.Collapsed;
+        PanelRefs.Visibility = tag == "Verweise" ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private void Undo_Click(object s, RoutedEventArgs e) { Editor.Undo(); Editor.Focus(); }
+    private void Redo_Click(object s, RoutedEventArgs e) { Editor.Redo(); Editor.Focus(); }
 
     // ==================== Toolbar-Zustand mit Auswahl synchronisieren ====================
 
     private void Editor_SelectionChanged(object sender, RoutedEventArgs e)
     {
         if (_loading) return;
+
+        if (TryApplyFormatPainter()) return;
+
         _syncing = true;
         try
         {
@@ -124,260 +185,147 @@ public partial class TextEditorView : UserControl
             BtnAlignCenter.IsChecked = align == TextAlignment.Center;
             BtnAlignRight.IsChecked = align == TextAlignment.Right;
             BtnAlignJustify.IsChecked = align == TextAlignment.Justify;
+
+            SyncParaSpacingFields();
+            SyncStyleGallery();
         }
         finally
         {
             _syncing = false;
         }
+
+        EnsureCaretVisible();
     }
 
-    // ==================== Zeichenformate ====================
-
-    private void Undo_Click(object s, RoutedEventArgs e) { Editor.Undo(); Editor.Focus(); }
-    private void Redo_Click(object s, RoutedEventArgs e) { Editor.Redo(); Editor.Focus(); }
-
-    private void Bold_Click(object s, RoutedEventArgs e) { EditingCommands.ToggleBold.Execute(null, Editor); Editor.Focus(); }
-    private void Italic_Click(object s, RoutedEventArgs e) { EditingCommands.ToggleItalic.Execute(null, Editor); Editor.Focus(); }
-    private void Underline_Click(object s, RoutedEventArgs e) { EditingCommands.ToggleUnderline.Execute(null, Editor); Editor.Focus(); }
-
-    private void Strike_Click(object s, RoutedEventArgs e)
+    /// <summary>
+    /// Der äußere ScrollViewer scrollt (die RichTextBox selbst hat keinen Viewport) –
+    /// deshalb den Cursor beim Tippen/Navigieren manuell sichtbar halten.
+    /// </summary>
+    private void EnsureCaretVisible()
     {
-        var sel = Editor.Selection;
-        var deco = sel.GetPropertyValue(Inline.TextDecorationsProperty) as TextDecorationCollection;
-        bool has = deco?.Any(d => d.Location == TextDecorationLocation.Strikethrough) == true;
-
-        var result = new TextDecorationCollection(
-            (deco ?? new TextDecorationCollection()).Where(d => d.Location != TextDecorationLocation.Strikethrough));
-        if (!has) result.Add(TextDecorations.Strikethrough[0]);
-        sel.ApplyPropertyValue(Inline.TextDecorationsProperty, result);
-        Editor.Focus();
-    }
-
-    private void Sub_Click(object s, RoutedEventArgs e) => ToggleBaseline(BaselineAlignment.Subscript);
-    private void Super_Click(object s, RoutedEventArgs e) => ToggleBaseline(BaselineAlignment.Superscript);
-
-    private void ToggleBaseline(BaselineAlignment target)
-    {
-        var sel = Editor.Selection;
-        var current = sel.GetPropertyValue(Inline.BaselineAlignmentProperty);
-        bool active = current is BaselineAlignment b && b == target;
-        sel.ApplyPropertyValue(Inline.BaselineAlignmentProperty,
-            active ? BaselineAlignment.Baseline : target);
-        Editor.Focus();
-    }
-
-    private void ClearFormat_Click(object s, RoutedEventArgs e)
-    {
-        Editor.Selection.ClearAllProperties();
-        Editor.Focus();
-    }
-
-    // ==================== Schrift / Styles ====================
-
-    private void FontCombo_Changed(object s, SelectionChangedEventArgs e)
-    {
-        if (Editor == null || _syncing || FontCombo.SelectedItem is not string name) return;
-        Editor.Selection.ApplyPropertyValue(TextElement.FontFamilyProperty, new FontFamily(name));
-        Editor.Focus();
-    }
-
-    private void SizeCombo_Changed(object s, SelectionChangedEventArgs e)
-    {
-        if (Editor == null || _syncing || SizeCombo.SelectedItem is not double size) return;
-        Editor.Selection.ApplyPropertyValue(TextElement.FontSizeProperty, size);
-        Editor.Focus();
-    }
-
-    private void StyleCombo_Changed(object s, SelectionChangedEventArgs e)
-    {
-        if (Editor == null || _syncing || StyleCombo.SelectedIndex < 0) return;
-
-        (double size, FontWeight weight) = StyleCombo.SelectedIndex switch
-        {
-            1 => (26.0, FontWeights.Bold),
-            2 => (20.0, FontWeights.Bold),
-            3 => (16.0, FontWeights.Bold),
-            _ => (15.0, FontWeights.Normal),
-        };
-
-        var start = Editor.Selection.Start.Paragraph?.ContentStart ?? Editor.Selection.Start;
-        var end = Editor.Selection.End.Paragraph?.ContentEnd ?? Editor.Selection.End;
-        var range = new TextRange(start, end);
-        range.ApplyPropertyValue(TextElement.FontSizeProperty, size);
-        range.ApplyPropertyValue(TextElement.FontWeightProperty, weight);
-        Editor.Focus();
-    }
-
-    // ==================== Farben ====================
-
-    private void ApplyTextColor_Click(object s, RoutedEventArgs e)
-    {
-        var c = (Color)ColorConverter.ConvertFromString(_textColorHex);
-        Editor.Selection.ApplyPropertyValue(TextElement.ForegroundProperty, new SolidColorBrush(c));
-        Editor.Focus();
-    }
-
-    private void PickTextColor_Click(object s, RoutedEventArgs e)
-    {
-        var initial = (Color)ColorConverter.ConvertFromString(_textColorHex);
-        if (ColorPickerDialog.Pick(Window.GetWindow(this), initial, allowAlpha: false) is not { } c) return;
-        _textColorHex = $"#{c.R:X2}{c.G:X2}{c.B:X2}";
-        TextColorBar.Fill = new SolidColorBrush(c);
-        ApplyTextColor_Click(s, e);
-    }
-
-    private void ApplyHighlight_Click(object s, RoutedEventArgs e)
-    {
-        Editor.Selection.ApplyPropertyValue(TextElement.BackgroundProperty,
-            _highlightColor is { } c ? new SolidColorBrush(c) : null);
-        Editor.Focus();
-    }
-
-    private void PickHighlight_Click(object s, RoutedEventArgs e)
-    {
-        var initial = _highlightColor ?? Color.FromArgb(0, 255, 255, 255);
-        if (ColorPickerDialog.Pick(Window.GetWindow(this), initial) is not { } c) return;
-
-        // Deckkraft 0 = Markierung entfernen
-        _highlightColor = c.A == 0 ? null : Color.FromRgb(c.R, c.G, c.B);
-        HighlightBar.Fill = _highlightColor is { } hc
-            ? new SolidColorBrush(hc)
-            : (Brush)Application.Current.Resources["Brush.Border"];
-        ApplyHighlight_Click(s, e);
-    }
-
-    // ==================== Absatz ====================
-
-    private void Align_Click(object s, RoutedEventArgs e)
-    {
-        var tag = (string)((ToggleButton)s).Tag;
-        var cmd = tag switch
-        {
-            "Center" => EditingCommands.AlignCenter,
-            "Right" => EditingCommands.AlignRight,
-            "Justify" => EditingCommands.AlignJustify,
-            _ => EditingCommands.AlignLeft,
-        };
-        cmd.Execute(null, Editor);
-        Editor.Focus();
-        Editor_SelectionChanged(s, e);
-    }
-
-    private void Spacing_Changed(object s, SelectionChangedEventArgs e)
-    {
-        if (Editor == null || _syncing || SpacingCombo.SelectedItem is not ComboBoxItem item) return;
-        double factor = double.Parse((string)item.Tag, System.Globalization.CultureInfo.InvariantCulture);
-
-        var startPara = Editor.Selection.Start.Paragraph;
-        var endPara = Editor.Selection.End.Paragraph;
-        if (startPara == null) return;
-
-        var block = (Block)startPara;
-        while (block != null)
-        {
-            if (block is Paragraph p)
-                p.LineHeight = factor <= 1.001 ? double.NaN : p.FontSize * factor;
-            if (block == endPara) break;
-            block = block.NextBlock;
-        }
-        if (_vm != null) _vm.IsDirty = true;
-        Editor.Focus();
-    }
-
-    // ==================== Einfügen ====================
-
-    private void InsertImage_Click(object s, RoutedEventArgs e)
-    {
-        var dlg = new OpenFileDialog
-        {
-            Title = "Bild einfügen",
-            Filter = "Bilder|*.png;*.jpg;*.jpeg;*.bmp;*.gif|Alle Dateien|*.*",
-        };
-        if (dlg.ShowDialog(Window.GetWindow(this)) != true) return;
-
         try
         {
-            var bmp = new BitmapImage();
-            bmp.BeginInit();
-            bmp.CacheOption = BitmapCacheOption.OnLoad;
-            bmp.UriSource = new Uri(dlg.FileName);
-            bmp.EndInit();
-            bmp.Freeze();
+            var rect = Editor.CaretPosition.GetCharacterRect(LogicalDirection.Forward);
+            if (rect.IsEmpty) return;
 
-            var img = new Image
-            {
-                Source = bmp,
-                MaxWidth = 640,
-                Stretch = Stretch.Uniform,
-            };
-            if (bmp.PixelWidth < 640) img.Width = bmp.PixelWidth;
+            var top = Editor.TransformToAncestor(PageHost).Transform(rect.TopLeft);
+            var bottom = Editor.TransformToAncestor(PageHost).Transform(rect.BottomLeft);
+            double y1 = top.Y + PageHost.Margin.Top;
+            double y2 = bottom.Y + PageHost.Margin.Top;
 
-            Editor.CaretPosition = Editor.CaretPosition.GetInsertionPosition(LogicalDirection.Forward);
-            _ = new InlineUIContainer(img, Editor.CaretPosition);
-            if (_vm != null) _vm.IsDirty = true;
+            if (y1 < MainScroll.VerticalOffset + 8)
+                MainScroll.ScrollToVerticalOffset(Math.Max(0, y1 - 40));
+            else if (y2 > MainScroll.VerticalOffset + MainScroll.ViewportHeight - 8)
+                MainScroll.ScrollToVerticalOffset(y2 - MainScroll.ViewportHeight + 40);
         }
-        catch (Exception ex)
+        catch
         {
-            MessageBox.Show(Window.GetWindow(this), $"Bild konnte nicht geladen werden:\n{ex.Message}",
-                "Gonk Note", MessageBoxButton.OK, MessageBoxImage.Warning);
+            // Layout noch nicht fertig – unkritisch
         }
-        Editor.Focus();
     }
 
-    private void InsertTable_Click(object s, RoutedEventArgs e)
+    // ==================== Zoom ====================
+
+    private void Zoom_Changed(object s, RoutedPropertyChangedEventArgs<double> e)
     {
-        var dlg = new TableSizeDialog { Owner = Window.GetWindow(this) };
-        if (dlg.ShowDialog() != true) return;
+        if (ZoomText == null || PageScale == null) return;  // während InitializeComponent
+        double z = e.NewValue / 100.0;
+        PageScale.ScaleX = z;
+        PageScale.ScaleY = z;
+        ZoomText.Text = $"{Math.Round(e.NewValue)} %";
+        if (_vm != null) _vm.Zoom = z;
+        DrawRuler();
+    }
 
-        var table = new Table { CellSpacing = 0, Margin = new Thickness(0, 8, 0, 8) };
-        for (int c = 0; c < dlg.Cols; c++)
-            table.Columns.Add(new TableColumn());
+    private void ZoomIn_Click(object s, RoutedEventArgs e) => ZoomSlider.Value = Math.Min(ZoomSlider.Maximum, ZoomSlider.Value + 10);
+    private void ZoomOut_Click(object s, RoutedEventArgs e) => ZoomSlider.Value = Math.Max(ZoomSlider.Minimum, ZoomSlider.Value - 10);
 
-        var group = new TableRowGroup();
-        var borderBrush = (Brush)Application.Current.Resources["Brush.Border"];
-        for (int r = 0; r < dlg.Rows; r++)
+    private void MainScroll_PreviewMouseWheel(object s, MouseWheelEventArgs e)
+    {
+        if (Keyboard.Modifiers != ModifierKeys.Control) return;
+        ZoomSlider.Value = Math.Clamp(ZoomSlider.Value + (e.Delta > 0 ? 10 : -10),
+            ZoomSlider.Minimum, ZoomSlider.Maximum);
+        e.Handled = true;
+    }
+
+    private void MainScroll_ScrollChanged(object s, ScrollChangedEventArgs e)
+    {
+        // Lineal horizontal mit dem Arbeitsbereich synchron halten
+        if (RulerHost.Width != MainScroll.ExtentWidth && MainScroll.ExtentWidth > 0)
+            RulerHost.Width = MainScroll.ExtentWidth;
+        RulerScroll.ScrollToHorizontalOffset(e.HorizontalOffset);
+    }
+
+    // ==================== Statusleiste ====================
+
+    private void UpdateWordCount()
+    {
+        string text = new TextRange(Editor.Document.ContentStart, Editor.Document.ContentEnd).Text;
+        int words = text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries).Length;
+        int chars = text.Count(c => c != '\r' && c != '\n');
+        WordCountText.Text = $"Wörter: {words} · Zeichen: {chars}";
+    }
+
+    private void Language_Changed(object s, SelectionChangedEventArgs e)
+    {
+        if (Editor == null || LanguageCombo.SelectedItem is not ComboBoxItem item) return;
+        var lang = XmlLanguage.GetLanguage((string)item.Tag);
+        Editor.Language = lang;
+        Editor.Document.Language = lang;
+    }
+
+    private void Spell_Click(object s, RoutedEventArgs e) =>
+        Editor.SpellCheck.IsEnabled = BtnSpell.IsChecked == true;
+
+    // ==================== Überschriften-Navigator ====================
+
+    private void ToggleNavigator_Click(object s, RoutedEventArgs e)
+    {
+        NavPanel.Visibility = BtnSideNav.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
+        RefreshNavigator();
+    }
+
+    private void RefreshNavigator()
+    {
+        if (NavPanel.Visibility != Visibility.Visible) return;
+
+        NavList.Items.Clear();
+        foreach (var (level, text, para) in TextStyles.CollectHeadings(Editor.Document))
         {
-            var row = new TableRow();
-            for (int c = 0; c < dlg.Cols; c++)
+            NavList.Items.Add(new ListBoxItem
             {
-                var cell = new TableCell(new Paragraph())
+                Content = new TextBlock
                 {
-                    BorderBrush = borderBrush,
-                    BorderThickness = new Thickness(1),
-                    Padding = new Thickness(6, 3, 6, 3),
-                };
-                row.Cells.Add(cell);
-            }
-            group.Rows.Add(row);
+                    Text = text,
+                    TextTrimming = TextTrimming.CharacterEllipsis,
+                    FontSize = level == 1 ? 13 : 12,
+                    FontWeight = level == 1 ? FontWeights.SemiBold : FontWeights.Normal,
+                },
+                Margin = new Thickness((level - 1) * 12, 0, 0, 0),
+                Padding = new Thickness(6, 3, 4, 3),
+                Tag = para,
+                ToolTip = text,
+            });
         }
-        table.RowGroups.Add(group);
-
-        var insertAfter = Editor.CaretPosition.Paragraph as Block ?? Editor.Document.Blocks.LastBlock;
-        if (insertAfter != null) Editor.Document.Blocks.InsertAfter(insertAfter, table);
-        else Editor.Document.Blocks.Add(table);
-
-        if (_vm != null) _vm.IsDirty = true;
-        Editor.Focus();
+        if (NavList.Items.Count == 0)
+            NavList.Items.Add(new ListBoxItem
+            {
+                Content = "Keine Überschriften",
+                IsEnabled = false,
+                Padding = new Thickness(6, 3, 4, 3),
+            });
     }
 
-    private void InsertRule_Click(object s, RoutedEventArgs e)
+    private void NavList_Selected(object s, SelectionChangedEventArgs e)
     {
-        var rule = new BlockUIContainer(new Border
-        {
-            Height = 2,
-            Background = (Brush)Application.Current.Resources["Brush.Border"],
-            Margin = new Thickness(0, 6, 0, 6),
-        });
-
-        var insertAfter = Editor.CaretPosition.Paragraph as Block ?? Editor.Document.Blocks.LastBlock;
-        if (insertAfter != null) Editor.Document.Blocks.InsertAfter(insertAfter, rule);
-        else Editor.Document.Blocks.Add(rule);
-
-        if (_vm != null) _vm.IsDirty = true;
+        if (NavList.SelectedItem is not ListBoxItem { Tag: Paragraph para }) return;
+        para.BringIntoView();
+        Editor.CaretPosition = para.ContentStart;
         Editor.Focus();
+        NavList.SelectedItem = null;
     }
 
-    // ==================== Suchen & Ersetzen ====================
+    // ==================== Tastatur ====================
 
     private void Editor_PreviewKeyDown(object s, KeyEventArgs e)
     {
@@ -391,101 +339,23 @@ public partial class TextEditorView : UserControl
             CloseFind_Click(s, e);
             e.Handled = true;
         }
-    }
-
-    private void ToggleFind_Click(object s, RoutedEventArgs e)
-    {
-        if (FindPanel.Visibility == Visibility.Visible) CloseFind_Click(s, e);
-        else ShowFind();
-    }
-
-    private void ShowFind()
-    {
-        FindPanel.Visibility = Visibility.Visible;
-        FindStatus.Text = "";
-        if (!Editor.Selection.IsEmpty && Editor.Selection.Text.Length < 60)
-            FindBox.Text = Editor.Selection.Text;
-        FindBox.Focus();
-        FindBox.SelectAll();
-    }
-
-    private void CloseFind_Click(object s, RoutedEventArgs e)
-    {
-        FindPanel.Visibility = Visibility.Collapsed;
-        Editor.Focus();
-    }
-
-    private void FindBox_KeyDown(object s, KeyEventArgs e)
-    {
-        if (e.Key == Key.Enter) { FindNext_Click(s, e); e.Handled = true; }
-        else if (e.Key == Key.Escape) { CloseFind_Click(s, e); e.Handled = true; }
-    }
-
-    private void FindNext_Click(object s, RoutedEventArgs e)
-    {
-        string needle = FindBox.Text;
-        if (needle.Length == 0) return;
-
-        var hit = FindFrom(Editor.Selection.End, needle) ?? FindFrom(Editor.Document.ContentStart, needle);
-        if (hit == null)
+        else if (Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Alt))
         {
-            FindStatus.Text = "Nicht gefunden";
-            return;
-        }
-        FindStatus.Text = "";
-        Editor.Selection.Select(hit.Start, hit.End);
-        Editor.Focus();
-    }
-
-    private void ReplaceOne_Click(object s, RoutedEventArgs e)
-    {
-        string needle = FindBox.Text;
-        if (needle.Length == 0) return;
-
-        if (string.Equals(Editor.Selection.Text, needle, StringComparison.CurrentCultureIgnoreCase))
-        {
-            Editor.Selection.Text = ReplaceBox.Text;
-            if (_vm != null) _vm.IsDirty = true;
-        }
-        FindNext_Click(s, e);
-    }
-
-    private void ReplaceAll_Click(object s, RoutedEventArgs e)
-    {
-        string needle = FindBox.Text;
-        if (needle.Length == 0) return;
-
-        int count = 0;
-        var hit = FindFrom(Editor.Document.ContentStart, needle);
-        while (hit != null && count < 10000)
-        {
-            hit.Text = ReplaceBox.Text;
-            count++;
-            hit = FindFrom(hit.End, needle);
-        }
-        FindStatus.Text = $"{count} ersetzt";
-        if (count > 0 && _vm != null) _vm.IsDirty = true;
-    }
-
-    /// <summary>Sucht (ohne Groß-/Kleinschreibung) ab einer Position innerhalb einzelner Text-Runs.</summary>
-    private static TextRange? FindFrom(TextPointer start, string needle)
-    {
-        var pos = start;
-        while (pos != null)
-        {
-            if (pos.GetPointerContext(LogicalDirection.Forward) == TextPointerContext.Text)
+            // Strg+Alt+1…4 = Überschrift 1…4, Strg+Alt+0 = Standard (wie Word)
+            int? level = e.Key switch
             {
-                string run = pos.GetTextInRun(LogicalDirection.Forward);
-                int idx = run.IndexOf(needle, StringComparison.CurrentCultureIgnoreCase);
-                if (idx >= 0)
-                {
-                    var s = pos.GetPositionAtOffset(idx);
-                    var e = pos.GetPositionAtOffset(idx + needle.Length);
-                    if (s != null && e != null) return new TextRange(s, e);
-                }
+                Key.D1 or Key.NumPad1 => 1,
+                Key.D2 or Key.NumPad2 => 2,
+                Key.D3 or Key.NumPad3 => 3,
+                Key.D4 or Key.NumPad4 => 4,
+                Key.D0 or Key.NumPad0 => 0,
+                _ => null,
+            };
+            if (level is { } lvl)
+            {
+                ApplyParaStyle(TextStyles.ForHeading(lvl));
+                e.Handled = true;
             }
-            pos = pos.GetNextContextPosition(LogicalDirection.Forward);
         }
-        return null;
     }
 }

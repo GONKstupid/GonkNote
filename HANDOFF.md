@@ -1,4 +1,4 @@
-# Gonk Note — Projektübergabe (Stand: 2026-07-12, Phase 3 laufend)
+# Gonk Note — Projektübergabe (Stand: 2026-07-13, Phase 3 laufend)
 
 > **⚠️ OFFENER PUNKT ZUERST:** Das **Geodreieck funktioniert laut Nutzer noch
 > immer nicht** (mehrere Anläufe). Das Overlay ist implementiert und rendert im
@@ -39,6 +39,9 @@ durchgehend Deutsch (UI, Kommentare, Commits). Ehrliches Scoping statt Übercomm
 - Pfad: `C:\Dev\Zed\gonk-note`, Branch `main`, sauber committet
 - Build: `dotnet build` fehlerfrei (0 Warnungen)
 - Commit-Historie (neueste zuerst):
+  - **Text-Editor-Großausbau** (neuester Commit): Ribbon-UI nach Nutzer-Design-Konzept
+    (`Docs/Design-Konzept-Text-Editor.md`) + Word-Grundfunktionen aus der
+    Nutzer-Wunschliste (`Docs/word-funktionen-liste.md`). Details in §3/§5.
   - **Phase 3 – Zeichenhilfen (Lineal/Geodreieck)**:
     - `8d4284e` Geodreieck-Overlay: korrekte Relationen nach Vorlage
     - `cd0f8f7` Geodreieck-Overlay 1:1 nach echtem Vorbild (Akzentfarbe)
@@ -96,7 +99,19 @@ GonkNote/
 │  │                             Touch-Gesten, Einstellungs-Seitenleiste rechts
 │  │                             (Seite/Formen/Text/Cover), Undo/Redo, Zoom/Pan,
 │  │                             Seiten, Cover, Viewport-Culling, Busy-Overlay
-│  ├─ TextEditorView.xaml(.cs)   RichTextBox (XamlPackage), Schreibfläche immer hell
+│  ├─ TextEditorView.xaml(.cs)   Text-Editor im Ribbon-Layout (Tabs Start/Einfügen/
+│  │      + .Format/.Insert/      Layout/Verweise), Formatvorlagen-Galerie (Überschrift
+│  │        .Layout/.Refs/        1–4 farbig, Erkennung über Größe+Gewicht → TOC/
+│  │        .Find.cs (partial)    Navigator/DOCX-Styles), Seiteneinrichtung (A4/A5/A3/
+│  │                              Letter, Hoch/Quer, Ränder in cm inkl. „Lernblatt“
+│  │                              4 cm links), Kopf-/Fußzeile ({SEITE}/{SEITEN}/{DATUM}/
+│  │                              {TITEL}), Wasserzeichen, Inhaltsverzeichnis, Format
+│  │                              übertragen, Tabellen-Werkzeuge (Kontextmenü), Links,
+│  │                              Sonderzeichen, Beschriftungen, Lineal, Statusleiste
+│  │                              (Wörter/Sprache/Rechtschreibung/Zoom), Navigator.
+│  │                              Seite folgt Color.PageBg (im Dark Mode dunkel!),
+│  │                              Ink-Normalisierung hält Standardtext lesbar (§5)
+│  ├─ HeaderFooterDialog / PromptDialog   Kopf-/Fußzeile bzw. generische Eingabe
 │  ├─ ColorPickerDialog.xaml(.cs) HSV-Farbrad + Hex + Alpha
 │  ├─ AboutDialog.xaml(.cs)      Version + eingebettetes README (scrollbar)
 │  ├─ PageSetupDialog / TableSizeDialog / Converters
@@ -108,6 +123,9 @@ GonkNote/
 │  ├─ PdfImporter.cs          PDF → JPEG-Seiten via Docnet.Core/PDFium
 │  ├─ PdfExporter.cs          Whiteboard→SKDocument, Text→Paginator-Raster→PDF
 │  ├─ ImageCache.cs           Byte-Budget-Cache (96 MB) dekodierter Bilder
+│  ├─ TextStyles.cs           Zentrale Formatvorlagen/Seitenformate/Heading-Erkennung/
+│  │                          Ink-Normalisierung des Text-Editors (eine Wahrheit für
+│  │                          Editor, TOC, PDF-/DOCX-Export, Import, Markdown)
 │  ├─ ThemeService.cs, UndoStack.cs (PartialErase/ResizeImage-Actions)
 ├─ Themes/                    Light/Dark.xaml, Styles.xaml (inkl. Vektor-Icons)
 └─ TestAssets/               testdokument.pdf (20 Seiten, gitignored) für UI-Tests
@@ -210,12 +228,38 @@ Verdachtspunkte für den nächsten Thread:
   RAM: Basis ~190 MB + bis 96 MB Bild-Cache; Ziel < 200 MB braucht noch Arbeit
   (Cache-Budget senken, Render-Caching, GC-Tuning).
 - Text-Stiländerungen am bestehenden Whiteboard-Textfeld sind nicht undo-fähig
-  (bewusst einfach). DOCX-Import: keine Kopf-/Fußzeilen, Fußnoten, verschachtelten
+  (bewusst einfach). DOCX-Import: keine Fußnoten, verschachtelten
   Tabellen. PDF: keine Text-Extraktion (per Nutzer-Wunsch reine Bild-Seiten).
 - **Export-Grenzen**: Text→PDF ist gerastert (kein selektierbarer Text im PDF –
   bewusst, erhält aber die Formatierung 1:1). DOCX-Bilder landen unter `media/`
   (nicht `word/media/`) – gültig. Markdown ist best-effort (Farben/Marker gehen
   verloren). Whiteboard→DOCX/Markdown gibt es nicht (nur PDF).
+- **Text-Editor – bewusst nicht umgesetzt** (aus der Word-Funktionsliste in
+  `Docs/word-funktionen-liste.md`; ehrliches Scoping):
+  - **Kein Live-Seitenumbruch**: Der Editor zeigt eine fortlaufende Seite in
+    Seitenbreite; der Umbruch in echte Seiten passiert beim PDF-Export (WPF-
+    RichTextBox kann nicht paginiert editieren). Statusleiste zeigt daher keine
+    Seitenzahl.
+  - Spalten, Abschnittsumbrüche, Zeilennummerierung, Texteffekte (Schatten/Kontur),
+    Formen/SmartArt/WordArt/Diagramme, Fußnoten/Endnoten, Querverweise, Lesezeichen,
+    Zitate/Literaturverzeichnis, Kommentare, Änderungen nachverfolgen, Dokumente
+    vergleichen, Versionsverlauf, Thesaurus, Serienbrief, Makros, AutoKorrektur/
+    QuickParts, Vorlagen-Katalog, Barrierefreiheitsprüfung, Übersetzen.
+  - Rechtschreibprüfung = WPF-eigene (de-DE/en-US umschaltbar in der Statusleiste);
+    rote Unterstreichung braucht das jeweilige Windows-Sprachpaket.
+  - Wasserzeichen wird in PDF exportiert, aber (noch) nicht in DOCX (Header-Bild
+    hinter Text in OpenXML ist aufwendig; vertagt).
+  - Kopf-/Fußzeile: ein Text für alle Seiten (+ Option „erste Seite ohne“); keine
+    getrennten gerade/ungerade Seiten.
+- **Design-Entscheidungen Text-Editor** (Design-Konzept kritisch angewendet):
+  - Seite folgt `Color.PageBg` → **im Dark Mode dunkle Seite** (explizite Konzept-
+    Entscheidung des Nutzers; ersetzt für den Text-Editor die alte Regel
+    „Schreibfläche immer hell“). Damit Text lesbar bleibt: `TextStyles.NormalizeInk`
+    tauscht die Standard-Schreibfarbe beim Laden/Theme-Wechsel; Exporte werden
+    immer auf dunkle Tinte auf weißem Papier normalisiert.
+  - Linke Icon-Leiste nur mit real existierenden Funktionen (Suche, Navigator) —
+    keine toten Icons für Kommentare/Plugins.
+  - Titelleiste/Fenster-Chrome bleibt App-Sache (Editor ist ein Tab).
 
 ---
 
@@ -224,7 +268,12 @@ Verdachtspunkte für den nächsten Thread:
 1. **Geodreieck zum Laufen bringen (§4, OFFEN #1).** Zuerst beim Nutzer erfragen,
    *welches* Verhalten fehlt (Anzeige? Einrasten? Bewegen/Drehen? Umschalten?), dann
    gezielt fixen. Nicht blind neu bauen — das Overlay stimmt bereits proportional.
-2. Falls Nutzer weiteres Feedback mitbringt → **zuerst** einarbeiten.
+2. Falls Nutzer weiteres Feedback mitbringt → **zuerst** einarbeiten. Insbesondere
+   Praxis-Feedback zum **neuen Text-Editor** (Ribbon, Formatvorlagen, TOC, Export)
+   einholen — der Umbau ist per Harness + Screenshots verifiziert (Light/Dark,
+   PDF/DOCX-Roundtrip, OpenXML-Validierung 0 Fehler), aber noch ohne Nutzer-Test.
+   Test-Harness: `%TEMP%\gonk-texttest` (End-zu-End ohne UI), UI-Skript
+   `%TEMP%\gonk-verify\ui-texttest.ps1`.
 3. **Datei-Einfüge-Tool** (danach ausdrücklich gewünschter Schritt):
    PDF/DOCX-Vorschau-Dialog, wahlweise als Bild oder strukturierte Elemente ins
    Whiteboard einfügen (baut auf `PdfImporter`/`DocxImporter` auf).

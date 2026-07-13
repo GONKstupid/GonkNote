@@ -4,6 +4,7 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using A = DocumentFormat.OpenXml.Drawing;
 using W = DocumentFormat.OpenXml.Wordprocessing;
@@ -20,16 +21,22 @@ namespace GonkNote.Services;
 /// </summary>
 public static class DocxImporter
 {
-    public static byte[] ToXamlPackage(string path)
+    public static byte[] ToXamlPackage(string path) => ToXamlPackage(path, null);
+
+    /// <summary>
+    /// Import inkl. Seiteneinrichtung: Ist <paramref name="target"/> gesetzt, werden
+    /// Papierformat, Orientierung, Ränder und Kopf-/Fußzeilentext übernommen.
+    /// </summary>
+    public static byte[] ToXamlPackage(string path, Models.TextDoc? target)
     {
-        var flow = Convert(path);
+        var flow = Convert(path, target);
         var range = new TextRange(flow.ContentStart, flow.ContentEnd);
         using var ms = new MemoryStream();
         range.Save(ms, DataFormats.XamlPackage, true);
         return ms.ToArray();
     }
 
-    private static FlowDocument Convert(string path)
+    private static FlowDocument Convert(string path, Models.TextDoc? target = null)
     {
         var flow = new FlowDocument
         {
@@ -41,6 +48,8 @@ public static class DocxImporter
         var main = doc.MainDocumentPart;
         var body = main?.Document.Body;
         if (main == null || body == null) return flow;
+
+        if (target != null) ReadPageSettings(main, body, target);
 
         List? currentList = null;
         TextMarkerStyle currentMarker = TextMarkerStyle.Disc;
@@ -116,13 +125,19 @@ public static class DocxImporter
             };
         }
 
-        // Überschriften-Styles (Heading1/berschrift1 …)
+        // Überschriften-Styles (Heading1/berschrift1 …) → eigene Formatvorlagen,
+        // damit sie nach dem Import erkannt werden (TOC, Navigator, Re-Export)
         int headingLevel = HeadingLevel(props?.ParagraphStyleId?.Val?.Value);
         if (headingLevel > 0)
         {
-            para.FontSize = headingLevel switch { 1 => 26, 2 => 21, _ => 17 };
-            para.FontWeight = FontWeights.SemiBold;
-            para.Margin = new Thickness(0, headingLevel == 1 ? 12 : 8, 0, 6);
+            var style = TextStyles.ForHeading(Math.Min(headingLevel, 4));
+            para.FontSize = style.Size;
+            para.FontWeight = style.Weight;
+            para.FontStyle = style.Style;
+            para.Margin = style.Margin;
+            if (style.ColorHex != null)
+                para.Foreground = new SolidColorBrush(
+                    (Color)ColorConverter.ConvertFromString(style.ColorHex));
         }
 
         foreach (var child in p.ChildElements)
@@ -319,6 +334,18 @@ public static class DocxImporter
             BorderThickness = new Thickness(0.5),
             Margin = new Thickness(0, 6, 0, 6),
         };
+
+        // Feste Spaltenbreiten aus dem tblGrid übernehmen (Twips → px: ÷15)
+        if (t.GetFirstChild<W.TableGrid>() is { } grid)
+            foreach (var col in grid.Elements<W.GridColumn>())
+                table.Columns.Add(new TableColumn
+                {
+                    Width = col.Width?.Value is { } tw &&
+                            double.TryParse(tw, out double twips) && twips > 0
+                        ? new GridLength(twips / 15.0)
+                        : GridLength.Auto,
+                });
+
         var group = new TableRowGroup();
         table.RowGroups.Add(group);
 
@@ -336,6 +363,11 @@ public static class DocxImporter
                 int span = cell.TableCellProperties?.GridSpan?.Val?.Value ?? 1;
                 if (span > 1) tableCell.ColumnSpan = span;
 
+                // Zellschattierung (farbige Info-Boxen)
+                var fillHex = cell.TableCellProperties?.Shading?.Fill?.Value;
+                if (fillHex is not null and not "auto" && TryParseHex(fillHex, out var fill))
+                    tableCell.Background = new SolidColorBrush(fill);
+
                 foreach (var p in cell.Elements<W.Paragraph>())
                     tableCell.Blocks.Add(ConvertParagraph(p, main));
                 if (tableCell.Blocks.Count == 0)
@@ -346,6 +378,94 @@ public static class DocxImporter
             group.Rows.Add(tableRow);
         }
         return table;
+    }
+
+    // ==================== Seiteneinrichtung ====================
+
+    /// <summary>Papierformat, Orientierung, Ränder und Kopf-/Fußzeilentext übernehmen.</summary>
+    private static void ReadPageSettings(MainDocumentPart main, W.Body body, Models.TextDoc target)
+    {
+        try
+        {
+            var sect = body.Descendants<W.SectionProperties>().FirstOrDefault();
+
+            if (sect?.GetFirstChild<W.PageSize>() is { } pgSz &&
+                pgSz.Width?.Value is { } wTwips && pgSz.Height?.Value is { } hTwips)
+            {
+                target.Landscape = pgSz.Orient?.Value == W.PageOrientationValues.Landscape;
+                double wPx = wTwips / 15.0, hPx = hTwips / 15.0;
+
+                // Nächstliegendes bekanntes Format wählen
+                string best = "A4";
+                double bestDiff = double.MaxValue;
+                foreach (var fmt in new[] { "A4", "A5", "A3", "Letter" })
+                {
+                    var (fw, fh) = TextStyles.PageSize(fmt);
+                    if (target.Landscape) (fw, fh) = (fh, fw);
+                    double diff = Math.Abs(fw - wPx) + Math.Abs(fh - hPx);
+                    if (diff < bestDiff) { bestDiff = diff; best = fmt; }
+                }
+                target.PageFormat = best;
+            }
+
+            if (sect?.GetFirstChild<W.PageMargin>() is { } pgMar)
+            {
+                const double twipToCm = 1 / 566.929;
+                if (pgMar.Left?.Value is { } l) target.MarginLeftCm = Math.Round(l * twipToCm, 2);
+                if (pgMar.Top?.Value is { } t && t > 0) target.MarginTopCm = Math.Round(t * twipToCm, 2);
+                if (pgMar.Right?.Value is { } r) target.MarginRightCm = Math.Round(r * twipToCm, 2);
+                if (pgMar.Bottom?.Value is { } b && b > 0) target.MarginBottomCm = Math.Round(b * twipToCm, 2);
+            }
+
+            target.SuppressHeaderOnFirstPage = sect?.GetFirstChild<W.TitlePage>() != null;
+
+            target.HeaderText = HeaderFooterTemplate(main.HeaderParts.FirstOrDefault()?.Header);
+            target.FooterText = HeaderFooterTemplate(main.FooterParts.FirstOrDefault()?.Footer);
+        }
+        catch
+        {
+            // Seiteneinrichtung ist optional – Import nicht daran scheitern lassen
+        }
+    }
+
+    /// <summary>Kopf-/Fußzeile als Text mit {SEITE}/{SEITEN}-Platzhaltern rekonstruieren.</summary>
+    private static string HeaderFooterTemplate(OpenXmlElement? headerFooter)
+    {
+        if (headerFooter == null) return "";
+        var sb = new System.Text.StringBuilder();
+        bool inFieldResult = false;  // zwischengespeicherte Feldwerte (fldChar separate…end) überspringen
+        foreach (var el in headerFooter.Descendants())
+        {
+            switch (el)
+            {
+                case W.FieldChar fchar:
+                    if (fchar.FieldCharType?.Value == W.FieldCharValues.Separate) inFieldResult = true;
+                    else if (fchar.FieldCharType?.Value == W.FieldCharValues.End) inFieldResult = false;
+                    break;
+                case W.SimpleField f:
+                {
+                    string instr = f.Instruction?.Value ?? "";
+                    if (instr.Contains("NUMPAGES")) sb.Append("{SEITEN}");
+                    else if (instr.Contains("PAGE")) sb.Append("{SEITE}");
+                    break;
+                }
+                case W.FieldCode fc:
+                {
+                    string instr = fc.Text;
+                    if (instr.Contains("NUMPAGES")) sb.Append("{SEITEN}");
+                    else if (instr.Contains("PAGE")) sb.Append("{SEITE}");
+                    break;
+                }
+                case W.Text t when !inFieldResult &&
+                                   t.Ancestors<W.SimpleField>().FirstOrDefault() == null:
+                    sb.Append(t.Text);
+                    break;
+                case W.TabChar:
+                    sb.Append(" · ");
+                    break;
+            }
+        }
+        return sb.ToString().Trim();
     }
 
     // ==================== Listen ====================

@@ -196,11 +196,13 @@ public static class MarkdownExporter
         return size;
     }
 
+    // Schwellen passend zu den Formatvorlagen (TextStyles: 28/22/18/16, Fließtext 15)
     private static string HeadingPrefix(double fontSize) => fontSize switch
     {
-        >= 24 => "# ",
-        >= 18 => "## ",
-        >= 15.6 => "### ",
+        >= 25 => "# ",
+        >= 20 => "## ",
+        >= 17 => "### ",
+        >= 15.6 => "#### ",
         _ => "",
     };
 

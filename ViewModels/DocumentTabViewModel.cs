@@ -81,6 +81,9 @@ public sealed class TextTabViewModel : DocumentTabViewModel
         Doc = db.GetText(item.Id);
     }
 
+    /// <summary>Editor-Zoom (1 = 100 %), überlebt Tab-Wechsel.</summary>
+    public double Zoom { get; set; } = 1.0;
+
     public override void Save()
     {
         if (!IsDirty) return;

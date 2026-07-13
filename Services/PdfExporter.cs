@@ -243,14 +243,20 @@ public static class PdfExporter
     // ==================== Textdokument ====================
 
     /// <summary>
-    /// Rendert ein FlowDocument seitenweise (A4) über den WPF-Paginator und legt jede
-    /// Seite als hochauflösendes Bild ins PDF. Muss auf dem UI-Thread laufen.
+    /// Rendert ein FlowDocument seitenweise über den WPF-Paginator und legt jede
+    /// Seite als hochauflösendes Bild ins PDF. Seitenformat, Ränder, Kopf-/Fußzeile
+    /// und Wasserzeichen kommen aus den TextDoc-Einstellungen.
+    /// Muss auf dem UI-Thread laufen.
     /// </summary>
-    public static void ExportFlowDocument(FlowDocument flow, string path)
+    public static void ExportFlowDocument(FlowDocument flow, TextDoc settings, string title, string path)
     {
         using var stream = File.Create(path);
-        using var pdf = SKDocument.CreatePdf(stream, new SKDocumentPdfMetadata { Producer = "Gonk Note" });
-        foreach (var (skImage, pw, ph) in RenderTextPages(flow, 3f))
+        using var pdf = SKDocument.CreatePdf(stream, new SKDocumentPdfMetadata
+        {
+            Title = title,
+            Producer = "Gonk Note",
+        });
+        foreach (var (skImage, pw, ph) in RenderTextPages(flow, settings, title, 3f))
         {
             using (skImage)
             {
@@ -262,10 +268,10 @@ public static class PdfExporter
         pdf.Close();
     }
 
-    /// <summary>Textdokument als einzelne PNG-Seiten (A4). Multi-Page → base-1.png, base-2.png …</summary>
-    public static List<string> ExportFlowDocumentPng(FlowDocument flow, string path)
+    /// <summary>Textdokument als einzelne PNG-Seiten. Multi-Page → base-1.png, base-2.png …</summary>
+    public static List<string> ExportFlowDocumentPng(FlowDocument flow, TextDoc settings, string title, string path)
     {
-        var pages = RenderTextPages(flow, 3f).ToList();
+        var pages = RenderTextPages(flow, settings, title, 3f).ToList();
         var written = new List<string>();
         string dir = Path.GetDirectoryName(path)!;
         string stem = Path.GetFileNameWithoutExtension(path);
@@ -285,19 +291,40 @@ public static class PdfExporter
     }
 
     /// <summary>
-    /// Rendert das FlowDocument seitenweise (A4) direkt in hochauflösende Bitmaps.
+    /// Rendert das FlowDocument seitenweise direkt in hochauflösende Bitmaps.
     /// Direkt-Render (kein VisualBrush) → scharfer Text; PagePadding trägt den Rand.
+    /// Wasserzeichen liegt hinter, Kopf-/Fußzeile in den Randbereichen über dem Inhalt.
     /// </summary>
-    private static IEnumerable<(SKImage Image, double W, double H)> RenderTextPages(FlowDocument flow, float scale)
+    private static IEnumerable<(SKImage Image, double W, double H)> RenderTextPages(
+        FlowDocument flow, TextDoc settings, string title, float scale)
     {
-        const double pw = WhiteboardDoc.A4Width;   // 794 (96 DPI)
-        const double ph = WhiteboardDoc.A4Height;  // 1123
-        const double margin = 56;
+        var (pw, ph) = TextStyles.PageSize(settings);
+        var margin = TextStyles.PageMarginPx(settings);
 
         var doc = CloneForPrint(flow, pw, margin);
         var paginator = ((IDocumentPaginatorSource)doc).DocumentPaginator;
         paginator.PageSize = new Size(pw, ph);
         paginator.ComputePageCount();
+
+        // Wasserzeichen einmal dekodieren
+        BitmapImage? watermark = null;
+        if (settings.WatermarkImage is { Length: > 0 } wmBytes)
+        {
+            try
+            {
+                using var wms = new MemoryStream(wmBytes);
+                watermark = new BitmapImage();
+                watermark.BeginInit();
+                watermark.CacheOption = BitmapCacheOption.OnLoad;
+                watermark.StreamSource = wms;
+                watermark.EndInit();
+                watermark.Freeze();
+            }
+            catch
+            {
+                watermark = null;
+            }
+        }
 
         int count = Math.Max(1, paginator.PageCount);
         for (int i = 0; i < count; i++)
@@ -309,12 +336,39 @@ public static class PdfExporter
                 (int)Math.Round(pw * scale), (int)Math.Round(ph * scale),
                 96 * scale, 96 * scale, PixelFormats.Pbgra32);
 
-            // Weiß hinterlegen, dann die Seite direkt darüber rendern (scharf)
+            // Weiß + Wasserzeichen hinterlegen, dann die Seite direkt darüber rendern
             var bg = new DrawingVisual();
             using (var dc = bg.RenderOpen())
+            {
                 dc.DrawRectangle(System.Windows.Media.Brushes.White, null, new Rect(0, 0, pw, ph));
+                if (watermark != null)
+                {
+                    if (settings.WatermarkOpacity < 0.999)
+                        dc.PushOpacity(settings.WatermarkOpacity);
+                    dc.DrawImage(watermark, FillRect(watermark, pw, ph));
+                    if (settings.WatermarkOpacity < 0.999)
+                        dc.Pop();
+                }
+            }
             rtb.Render(bg);
             rtb.Render(docPage.Visual);
+
+            // Kopf-/Fußzeile in die Randbereiche
+            bool suppress = settings.SuppressHeaderOnFirstPage && i == 0;
+            if (!suppress && (settings.HeaderText.Length > 0 || settings.FooterText.Length > 0))
+            {
+                var hf = new DrawingVisual();
+                using (var dc = hf.RenderOpen())
+                {
+                    if (settings.HeaderText.Length > 0)
+                        DrawHeaderFooter(dc, settings.HeaderText, i + 1, count, title,
+                            pw, margin, y: Math.Max(4, (margin.Top - 16) / 2));
+                    if (settings.FooterText.Length > 0)
+                        DrawHeaderFooter(dc, settings.FooterText, i + 1, count, title,
+                            pw, margin, y: ph - margin.Bottom + Math.Max(2, (margin.Bottom - 16) / 2));
+                }
+                rtb.Render(hf);
+            }
             rtb.Freeze();
 
             // Verlustfrei über PNG an SkiaSharp übergeben (formatunabhängig, scharf)
@@ -327,8 +381,36 @@ public static class PdfExporter
         }
     }
 
+    /// <summary>„Seitenfüllend“: Bild proportional so skalieren, dass es die Seite abdeckt (Mitte).</summary>
+    private static Rect FillRect(BitmapSource img, double pw, double ph)
+    {
+        double s = Math.Max(pw / img.PixelWidth, ph / img.PixelHeight);
+        double w = img.PixelWidth * s, h = img.PixelHeight * s;
+        return new Rect((pw - w) / 2, (ph - h) / 2, w, h);
+    }
+
+    private static void DrawHeaderFooter(DrawingContext dc, string template, int page, int pages,
+        string title, double pw, Thickness margin, double y)
+    {
+        string text = TextStyles.ResolveHeaderFooter(template, page, pages, title);
+        var ft = new FormattedText(text,
+            System.Globalization.CultureInfo.CurrentCulture,
+            FlowDirection.LeftToRight,
+            new Typeface("Segoe UI"),
+            12,
+            new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x6B, 0x7A, 0x99)),
+            1.0)
+        {
+            TextAlignment = TextAlignment.Center,
+            MaxTextWidth = Math.Max(40, pw - margin.Left - margin.Right),
+            MaxLineCount = 1,
+            Trimming = TextTrimming.CharacterEllipsis,
+        };
+        dc.DrawText(ft, new Point(margin.Left, y));
+    }
+
     /// <summary>Kopie des FlowDocuments mit einer Spalte voller Breite und Seitenrand (Print-Layout).</summary>
-    private static FlowDocument CloneForPrint(FlowDocument source, double pageWidth, double margin)
+    private static FlowDocument CloneForPrint(FlowDocument source, double pageWidth, Thickness margin)
     {
         using var ms = new MemoryStream();
         new TextRange(source.ContentStart, source.ContentEnd).Save(ms, DataFormats.XamlPackage);
@@ -337,7 +419,7 @@ public static class PdfExporter
         var clone = new FlowDocument
         {
             ColumnWidth = pageWidth,                  // exakt eine Spalte
-            PagePadding = new Thickness(margin),      // Rand ist Teil der Seite → scharf
+            PagePadding = margin,                     // Rand ist Teil der Seite → scharf
             FontFamily = source.FontFamily,
             FontSize = source.FontSize,
             TextAlignment = TextAlignment.Left,

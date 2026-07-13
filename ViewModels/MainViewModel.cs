@@ -267,7 +267,8 @@ public sealed class MainViewModel : ObservableObject
         {
             try
             {
-                byte[] bytes = DocxImporter.ToXamlPackage(file);
+                var textDoc = new TextDoc();
+                byte[] bytes = DocxImporter.ToXamlPackage(file, textDoc);  // liest auch Seiteneinrichtung
 
                 var item = new NoteItem
                 {
@@ -276,7 +277,9 @@ public sealed class MainViewModel : ObservableObject
                     ParentId = parent?.Id,
                 };
                 _db.UpsertItem(item);
-                _db.SaveText(new TextDoc { Id = item.Id, Rtf = bytes });
+                textDoc.Id = item.Id;
+                textDoc.Rtf = bytes;
+                _db.SaveText(textDoc);
 
                 var vm = new TreeItemViewModel(item);
                 (parent?.Children ?? RootItems).Add(vm);
@@ -329,6 +332,7 @@ public sealed class MainViewModel : ObservableObject
         string path = dlg.FileName;
         string ext = System.IO.Path.GetExtension(path).ToLowerInvariant();
         List<string> written = new() { path };
+        string validationInfo = "";
 
         try
         {
@@ -339,10 +343,14 @@ public sealed class MainViewModel : ObservableObject
                     var flow = LoadFlowDocument(text.Doc);
                     switch (ext)
                     {
-                        case ".docx": DocxExporter.Export(flow, path); break;
+                        case ".docx":
+                            int issues = DocxExporter.Export(flow, text.Doc, text.Title, path);
+                            if (issues > 0)
+                                validationInfo = $"\n\nHinweis: OpenXML-Validierung meldet {issues} Punkt(e).";
+                            break;
                         case ".md": MarkdownExporter.Export(flow, path); break;
-                        case ".png": written = PdfExporter.ExportFlowDocumentPng(flow, path); break;
-                        default: PdfExporter.ExportFlowDocument(flow, path); break;
+                        case ".png": written = PdfExporter.ExportFlowDocumentPng(flow, text.Doc, text.Title, path); break;
+                        default: PdfExporter.ExportFlowDocument(flow, text.Doc, text.Title, path); break;
                     }
                     break;
                 }
@@ -360,9 +368,9 @@ public sealed class MainViewModel : ObservableObject
         }
 
         string openTarget = written.Count > 0 ? written[0] : path;
-        string info = written.Count > 1
+        string info = (written.Count > 1
             ? $"{written.Count} Seiten exportiert nach:\n{System.IO.Path.GetDirectoryName(openTarget)}\n\nErste Datei öffnen?"
-            : $"Exportiert nach:\n{openTarget}\n\nDatei jetzt öffnen?";
+            : $"Exportiert nach:\n{openTarget}\n\nDatei jetzt öffnen?") + validationInfo;
 
         if (MessageBox.Show(info, "Gonk Note", MessageBoxButton.YesNo, MessageBoxImage.Information) == MessageBoxResult.Yes)
         {
@@ -383,6 +391,8 @@ public sealed class MainViewModel : ObservableObject
             bool isPackage = bytes[0] == 0x50 && bytes[1] == 0x4B; // "PK" = XamlPackage-ZIP
             range.Load(ms, isPackage ? DataFormats.XamlPackage : DataFormats.Rtf);
         }
+        // Export ist immer "Papier": Dark-Mode-Schreibfarbe auf dunkle Tinte normalisieren
+        Services.TextStyles.NormalizeInk(flow, Services.TextStyles.InkLight);
         return flow;
     }
 

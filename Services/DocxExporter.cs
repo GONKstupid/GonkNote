@@ -6,6 +6,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Validation;
+using TextDoc = GonkNote.Models.TextDoc;  // Models.TextElement würde mit WPF kollidieren
 using A = DocumentFormat.OpenXml.Drawing;
 using DW = DocumentFormat.OpenXml.Drawing.Wordprocessing;
 using PIC = DocumentFormat.OpenXml.Drawing.Pictures;
@@ -15,14 +17,20 @@ namespace GonkNote.Services;
 
 /// <summary>
 /// Exportiert ein WPF-FlowDocument als DOCX (OpenXML) – die Gegenrichtung zum
-/// <see cref="DocxImporter"/>. Erbbare Zeichenformate (fett/kursiv/Größe/Farbe/
-/// Schriftart) werden als effektive Werte am Run gelesen, nicht-erbbare
-/// (Unterstrichen/Durchgestrichen/Marker/Hoch-Tief) über die Elternkette akkumuliert.
+/// <see cref="DocxImporter"/>. Zusätzlich zur Zeichen-/Absatzformatierung werden
+/// exportiert: Seitenformat/Ränder (sectPr), Kopf-/Fußzeile mit PAGE-Feldern,
+/// echte Überschriften-Styles (Heading1–4 mit Gliederungsebene → Word-Navigation
+/// und automatisches Inhaltsverzeichnis), Zellschattierung/Spaltenbreiten und
+/// Hyperlinks. Ein von Gonk Note erzeugtes Inhaltsverzeichnis wird durch ein
+/// echtes TOC-Feld ersetzt (Word aktualisiert es beim Öffnen).
 /// </summary>
 public static class DocxExporter
 {
     private const int BulletNumId = 1;
     private const int DecimalNumId = 2;
+
+    // px (96 dpi) → Twips (1/20 pt, 1440/Zoll)
+    private const double PxToTwip = 15.0;
 
     /// <summary>Nicht vererbte Zeichenformate, die von Eltern-Spans mitgetragen werden.</summary>
     private readonly record struct Acc(bool Underline, bool Strike, string? Vert, string? Highlight)
@@ -30,47 +38,228 @@ public static class DocxExporter
         public static readonly Acc None = new();
     }
 
-    public static void Export(FlowDocument flow, string path)
+    private sealed class Ctx
     {
-        using var docx = WordprocessingDocument.Create(path, WordprocessingDocumentType.Document);
-        var main = docx.AddMainDocumentPart();
-        main.Document = new W.Document(new W.Body());
-        var body = main.Document.Body!;
+        public uint ImageId = 1;
+        public bool SkipTocEntries;
+    }
 
-        AddNumberingDefinitions(main);
+    /// <summary>Export inkl. Validierung. Rückgabe: Anzahl der Validierungsfehler (0 = sauber).</summary>
+    public static int Export(FlowDocument flow, TextDoc settings, string title, string path)
+    {
+        using (var docx = WordprocessingDocument.Create(path, WordprocessingDocumentType.Document))
+        {
+            var main = docx.AddMainDocumentPart();
+            main.Document = new W.Document(new W.Body());
+            var body = main.Document.Body!;
 
-        foreach (var block in flow.Blocks)
-            WriteBlock(block, body, main, null);
+            AddNumberingDefinitions(main);
+            AddStyleDefinitions(main);
 
-        if (!body.HasChildren) body.AppendChild(new W.Paragraph());
-        main.Document.Save();
+            // Felder (TOC/PAGE) beim Öffnen aktualisieren lassen
+            var settingsPart = main.AddNewPart<DocumentSettingsPart>();
+            settingsPart.Settings = new W.Settings(new W.UpdateFieldsOnOpen { Val = true });
+
+            var ctx = new Ctx();
+            foreach (var block in flow.Blocks)
+                WriteBlock(block, body, main, null, ctx);
+
+            if (!body.HasChildren) body.AppendChild(new W.Paragraph());
+
+            body.AppendChild(BuildSectionProperties(main, settings, title));
+            main.Document.Save();
+        }
+
+        // Dokumentvalidierung (Wunschliste "lernblatt-generator")
+        using var reopened = WordprocessingDocument.Open(path, false);
+        return new OpenXmlValidator(FileFormatVersions.Office2019).Validate(reopened).Count();
+    }
+
+    // ==================== Styles ====================
+
+    private static void AddStyleDefinitions(MainDocumentPart main)
+    {
+        var part = main.AddNewPart<StyleDefinitionsPart>();
+        var styles = new W.Styles();
+
+        styles.AppendChild(new W.Style(
+            new W.StyleName { Val = "Normal" })
+        {
+            Type = W.StyleValues.Paragraph,
+            StyleId = "Normal",
+            Default = true,
+        });
+
+        foreach (var s in TextStyles.All.Where(s => s.HeadingLevel > 0))
+        {
+            int lvl = s.HeadingLevel;
+            string colorHex = s.ColorHex!.TrimStart('#');
+            // Schema-Reihenfolge beachten: b, i, color, sz
+            var runProps = new W.StyleRunProperties();
+            if (s.Weight >= FontWeights.Bold) runProps.AppendChild(new W.Bold());
+            if (s.Style == FontStyles.Italic) runProps.AppendChild(new W.Italic());
+            runProps.AppendChild(new W.Color { Val = colorHex });
+            runProps.AppendChild(new W.FontSize { Val = ((int)Math.Round(s.Size * 1.5)).ToString() });
+
+            styles.AppendChild(new W.Style(
+                new W.StyleName { Val = $"heading {lvl}" },
+                new W.BasedOn { Val = "Normal" },
+                new W.NextParagraphStyle { Val = "Normal" },
+                new W.PrimaryStyle(),
+                new W.StyleParagraphProperties(
+                    new W.KeepNext(),
+                    new W.SpacingBetweenLines
+                    {
+                        Before = ((int)(s.Margin.Top * PxToTwip)).ToString(),
+                        After = ((int)(s.Margin.Bottom * PxToTwip)).ToString(),
+                    },
+                    new W.OutlineLevel { Val = lvl - 1 }),
+                runProps)
+            {
+                Type = W.StyleValues.Paragraph,
+                StyleId = $"Heading{lvl}",
+            });
+        }
+
+        part.Styles = styles;
+    }
+
+    // ==================== Seiteneinrichtung / Kopf- & Fußzeile ====================
+
+    private static W.SectionProperties BuildSectionProperties(MainDocumentPart main, TextDoc settings, string title)
+    {
+        var (pw, ph) = TextStyles.PageSize(settings);
+        var sect = new W.SectionProperties();
+
+        if (settings.HeaderText.Length > 0)
+        {
+            var headerPart = main.AddNewPart<HeaderPart>();
+            headerPart.Header = new W.Header(BuildHeaderFooterParagraph(settings.HeaderText, title));
+            sect.AppendChild(new W.HeaderReference
+            {
+                Type = W.HeaderFooterValues.Default,
+                Id = main.GetIdOfPart(headerPart),
+            });
+        }
+        if (settings.FooterText.Length > 0)
+        {
+            var footerPart = main.AddNewPart<FooterPart>();
+            footerPart.Footer = new W.Footer(BuildHeaderFooterParagraph(settings.FooterText, title));
+            sect.AppendChild(new W.FooterReference
+            {
+                Type = W.HeaderFooterValues.Default,
+                Id = main.GetIdOfPart(footerPart),
+            });
+        }
+
+        var pgSz = new W.PageSize
+        {
+            Width = (uint)Math.Round(pw * PxToTwip),
+            Height = (uint)Math.Round(ph * PxToTwip),
+        };
+        if (settings.Landscape) pgSz.Orient = W.PageOrientationValues.Landscape;
+        sect.AppendChild(pgSz);
+
+        const double cmToTwip = 566.929;
+        sect.AppendChild(new W.PageMargin
+        {
+            Left = (uint)Math.Round(settings.MarginLeftCm * cmToTwip),
+            Top = (int)Math.Round(settings.MarginTopCm * cmToTwip),
+            Right = (uint)Math.Round(settings.MarginRightCm * cmToTwip),
+            Bottom = (int)Math.Round(settings.MarginBottomCm * cmToTwip),
+            Header = (uint)Math.Round(settings.MarginTopCm * cmToTwip / 2),
+            Footer = (uint)Math.Round(settings.MarginBottomCm * cmToTwip / 2),
+            Gutter = 0U,
+        });
+
+        // "Unterschiedliche erste Seite": ohne eigene First-Page-Parts bleibt Seite 1 leer
+        if (settings.SuppressHeaderOnFirstPage)
+            sect.AppendChild(new W.TitlePage());
+
+        return sect;
+    }
+
+    /// <summary>Kopf-/Fußzeilentext mit {SEITE}/{SEITEN} als echte Felder, Rest als Text.</summary>
+    private static W.Paragraph BuildHeaderFooterParagraph(string template, string title)
+    {
+        string text = template
+            .Replace("{DATUM}", DateTime.Now.ToString("dd.MM.yyyy"))
+            .Replace("{TITEL}", title);
+
+        var para = new W.Paragraph(new W.ParagraphProperties(
+            new W.Justification { Val = W.JustificationValues.Center }));
+
+        static W.RunProperties SmallMuted() => new(
+            new W.Color { Val = "6B7A99" },
+            new W.FontSize { Val = "18" });  // 9 pt
+
+        foreach (var part in System.Text.RegularExpressions.Regex.Split(text, @"(\{SEITEN?\})"))
+        {
+            switch (part)
+            {
+                case "":
+                    break;
+                case "{SEITE}" or "{SEITEN}":
+                    para.AppendChild(new W.SimpleField(
+                        new W.Run(SmallMuted(), new W.Text("1")))
+                    {
+                        Instruction = part == "{SEITE}" ? " PAGE " : " NUMPAGES ",
+                    });
+                    break;
+                default:
+                    para.AppendChild(new W.Run(SmallMuted(),
+                        new W.Text(part) { Space = SpaceProcessingModeValues.Preserve }));
+                    break;
+            }
+        }
+
+        return para;
     }
 
     // ==================== Blöcke ====================
 
-    private static void WriteBlock(Block block, OpenXmlElement target, MainDocumentPart main, int? numId)
+    private static void WriteBlock(Block block, OpenXmlElement target, MainDocumentPart main,
+        int? numId, Ctx ctx)
     {
         switch (block)
         {
             case Paragraph p:
-                target.AppendChild(BuildParagraph(p, main, numId));
+            {
+                // Von Gonk Note generierte TOC-Einträge → durch echtes TOC-Feld ersetzt
+                if (ctx.SkipTocEntries && TextStyles.IsTocEntry(p)) return;
+                ctx.SkipTocEntries = false;
+
+                target.AppendChild(BuildParagraph(p, main, numId, ctx));
+
+                if (IsTocTitle(p))
+                {
+                    target.AppendChild(new W.Paragraph(new W.SimpleField(
+                        new W.Run(new W.Text("(Inhaltsverzeichnis – wird beim Öffnen in Word aktualisiert)")))
+                    {
+                        Instruction = " TOC \\o \"1-4\" \\h \\z \\u ",
+                    }));
+                    ctx.SkipTocEntries = true;
+                }
                 break;
+            }
 
             case List list:
             {
                 int id = IsOrdered(list.MarkerStyle) ? DecimalNumId : BulletNumId;
                 foreach (var li in list.ListItems)
                     foreach (var b in li.Blocks)
-                        WriteBlock(b, target, main, id);
+                        WriteBlock(b, target, main, id, ctx);
                 break;
             }
 
             case Table table:
-                target.AppendChild(BuildTable(table, main));
+                ctx.SkipTocEntries = false;
+                target.AppendChild(BuildTable(table, main, ctx));
                 break;
 
             case BlockUIContainer or Section:
                 // Trennlinien u. Ä.: als leerer Absatz mit Unterstrich
+                ctx.SkipTocEntries = false;
                 target.AppendChild(new W.Paragraph(new W.ParagraphProperties(
                     new W.ParagraphBorders(new W.BottomBorder
                     {
@@ -80,22 +269,45 @@ public static class DocxExporter
         }
     }
 
-    private static W.Paragraph BuildParagraph(Paragraph p, MainDocumentPart main, int? numId)
+    private static bool IsTocTitle(Paragraph p) =>
+        new TextRange(p.ContentStart, p.ContentEnd).Text.Trim() == TextStyles.TocTitle &&
+        new TextRange(p.ContentStart, p.ContentEnd)
+            .GetPropertyValue(TextElement.FontSizeProperty) is double size && size >= 20;
+
+    private static W.Paragraph BuildParagraph(Paragraph p, MainDocumentPart main, int? numId, Ctx ctx)
     {
         var para = new W.Paragraph();
-        var props = new W.ParagraphProperties
+        var props = new W.ParagraphProperties();
+
+        // Überschrift? → echter Word-Style (Gliederungsebene, Navigation, TOC)
+        int heading = TextStyles.HeadingLevel(p);
+        if (heading > 0)
+            props.ParagraphStyleId = new W.ParagraphStyleId { Val = $"Heading{heading}" };
+
+        props.Justification = new W.Justification
         {
-            Justification = new W.Justification
+            Val = p.TextAlignment switch
             {
-                Val = p.TextAlignment switch
-                {
-                    TextAlignment.Center => W.JustificationValues.Center,
-                    TextAlignment.Right => W.JustificationValues.Right,
-                    TextAlignment.Justify => W.JustificationValues.Both,
-                    _ => W.JustificationValues.Left,
-                },
+                TextAlignment.Center => W.JustificationValues.Center,
+                TextAlignment.Right => W.JustificationValues.Right,
+                TextAlignment.Justify => W.JustificationValues.Both,
+                _ => W.JustificationValues.Left,
             },
         };
+
+        // Absatzabstände (Abstand vor/nach) + Einzug
+        if (p.Margin.Top > 0 || p.Margin.Bottom > 0)
+            props.SpacingBetweenLines = new W.SpacingBetweenLines
+            {
+                Before = ((int)Math.Round(p.Margin.Top * PxToTwip)).ToString(),
+                After = ((int)Math.Round(p.Margin.Bottom * PxToTwip)).ToString(),
+            };
+        if (p.Margin.Left > 0)
+            props.Indentation = new W.Indentation
+            {
+                Left = ((int)Math.Round(p.Margin.Left * PxToTwip)).ToString(),
+            };
+
         if (numId is int id)
             props.NumberingProperties = new W.NumberingProperties(
                 new W.NumberingLevelReference { Val = 0 },
@@ -103,13 +315,14 @@ public static class DocxExporter
         para.AppendChild(props);
 
         foreach (var inline in p.Inlines)
-            WriteInline(inline, para, main, Acc.None);
+            WriteInline(inline, para, main, Acc.None, ctx);
         return para;
     }
 
     // ==================== Inlines ====================
 
-    private static void WriteInline(Inline inline, OpenXmlElement target, MainDocumentPart main, Acc acc)
+    private static void WriteInline(Inline inline, OpenXmlElement target, MainDocumentPart main,
+        Acc acc, Ctx ctx)
     {
         switch (inline)
         {
@@ -118,11 +331,22 @@ public static class DocxExporter
                     target.AppendChild(BuildRun(run, run.Text, Combine(acc, run)));
                 break;
 
-            case Span span:  // Bold/Italic/Underline/Hyperlink sind Spans
+            case Hyperlink { NavigateUri: { } uri } link:
+            {
+                var rel = main.AddHyperlinkRelationship(uri, true);
+                var wLink = new W.Hyperlink { Id = rel.Id };
+                var a = Combine(acc, link);
+                foreach (var child in link.Inlines)
+                    WriteInline(child, wLink, main, a, ctx);
+                target.AppendChild(wLink);
+                break;
+            }
+
+            case Span span:  // Bold/Italic/Underline sind Spans
             {
                 var a = Combine(acc, span);
                 foreach (var child in span.Inlines)
-                    WriteInline(child, target, main, a);
+                    WriteInline(child, target, main, a, ctx);
                 break;
             }
 
@@ -131,7 +355,7 @@ public static class DocxExporter
                 break;
 
             case InlineUIContainer { Child: Image img }:
-                var drawing = BuildImage(img, main);
+                var drawing = BuildImage(img, main, ctx);
                 if (drawing != null) target.AppendChild(new W.Run(drawing));
                 break;
         }
@@ -202,15 +426,30 @@ public static class DocxExporter
 
     // ==================== Tabellen ====================
 
-    private static W.Table BuildTable(Table table, MainDocumentPart main)
+    private static W.Table BuildTable(Table table, MainDocumentPart main, Ctx ctx)
     {
+        // Schema-Reihenfolge der Rahmen: top, left, bottom, right, insideH, insideV
         var t = new W.Table(new W.TableProperties(new W.TableBorders(
             new W.TopBorder { Val = W.BorderValues.Single, Size = 4, Color = "999999" },
-            new W.BottomBorder { Val = W.BorderValues.Single, Size = 4, Color = "999999" },
             new W.LeftBorder { Val = W.BorderValues.Single, Size = 4, Color = "999999" },
+            new W.BottomBorder { Val = W.BorderValues.Single, Size = 4, Color = "999999" },
             new W.RightBorder { Val = W.BorderValues.Single, Size = 4, Color = "999999" },
             new W.InsideHorizontalBorder { Val = W.BorderValues.Single, Size = 4, Color = "999999" },
             new W.InsideVerticalBorder { Val = W.BorderValues.Single, Size = 4, Color = "999999" })));
+
+        // Feste Spaltenbreiten (falls im Editor gesetzt) als tblGrid übernehmen
+        if (table.Columns.Any(c => c.Width.IsAbsolute))
+        {
+            var grid = new W.TableGrid();
+            foreach (var col in table.Columns)
+            {
+                var gc = new W.GridColumn();
+                if (col.Width.IsAbsolute)  // Auto-Spalten: Attribut weglassen (w="" wäre ungültig)
+                    gc.Width = ((int)Math.Round(col.Width.Value * PxToTwip)).ToString();
+                grid.AppendChild(gc);
+            }
+            t.AppendChild(grid);
+        }
 
         foreach (var group in table.RowGroups)
             foreach (var row in group.Rows)
@@ -219,11 +458,37 @@ public static class DocxExporter
                 foreach (var cell in row.Cells)
                 {
                     var tc = new W.TableCell();
+                    // Schema-Reihenfolge in tcPr: gridSpan → tcBorders → shd
+                    var tcp = new W.TableCellProperties();
                     if (cell.ColumnSpan > 1)
-                        tc.AppendChild(new W.TableCellProperties(new W.GridSpan { Val = cell.ColumnSpan }));
+                        tcp.AppendChild(new W.GridSpan { Val = cell.ColumnSpan });
+
+                    // Abweichende Rahmenfarbe/unsichtbare Rahmen je Zelle
+                    if (cell.BorderBrush is SolidColorBrush bb)
+                    {
+                        bool none = cell.BorderThickness.Left <= 0;
+                        var val = none ? W.BorderValues.None : W.BorderValues.Single;
+                        string color = Hex(bb.Color);
+                        tcp.AppendChild(new W.TableCellBorders(
+                            new W.TopBorder { Val = val, Size = 4, Color = color },
+                            new W.LeftBorder { Val = val, Size = 4, Color = color },
+                            new W.BottomBorder { Val = val, Size = 4, Color = color },
+                            new W.RightBorder { Val = val, Size = 4, Color = color }));
+                    }
+
+                    // Zellschattierung (farbige Info-Boxen des Lernblatt-Skills)
+                    if (cell.Background is SolidColorBrush bg)
+                        tcp.AppendChild(new W.Shading
+                        {
+                            Val = W.ShadingPatternValues.Clear,
+                            Fill = Hex(bg.Color),
+                            Color = "auto",
+                        });
+
+                    if (tcp.HasChildren) tc.AppendChild(tcp);
 
                     foreach (var b in cell.Blocks)
-                        WriteBlock(b, tc, main, null);
+                        WriteBlock(b, tc, main, null, ctx);
                     if (!tc.Elements<W.Paragraph>().Any()) tc.AppendChild(new W.Paragraph());
                     tr.AppendChild(tc);
                 }
@@ -234,7 +499,7 @@ public static class DocxExporter
 
     // ==================== Bilder ====================
 
-    private static W.Drawing? BuildImage(Image img, MainDocumentPart main)
+    private static W.Drawing? BuildImage(Image img, MainDocumentPart main, Ctx ctx)
     {
         if (img.Source is not BitmapSource src) return null;
         try
@@ -256,13 +521,14 @@ public static class DocxExporter
             long cx = (long)(wPx * 9525);
             long cy = (long)(hPx * 9525);
 
+            uint id = ctx.ImageId++;
             return new W.Drawing(new DW.Inline(
                 new DW.Extent { Cx = cx, Cy = cy },
-                new DW.DocProperties { Id = 1U, Name = "Bild" },
+                new DW.DocProperties { Id = id, Name = $"Bild {id}" },
                 new A.Graphic(new A.GraphicData(
                     new PIC.Picture(
                         new PIC.NonVisualPictureProperties(
-                            new PIC.NonVisualDrawingProperties { Id = 0U, Name = "Bild" },
+                            new PIC.NonVisualDrawingProperties { Id = 0U, Name = $"Bild {id}" },
                             new PIC.NonVisualPictureDrawingProperties()),
                         new PIC.BlipFill(
                             new A.Blip { Embed = rId },

@@ -136,6 +136,12 @@ Pakete: LiteDB, SkiaSharp.Views.WPF, Svg.Skia (SVG-Rasterung),
 DocumentFormat.OpenXml (DOCX), **Docnet.Core** (PDFium-Rendering).
 
 **Wichtige Eigenheiten:**
+- **LiteDB-Stolperfalle**: `BsonMapper.Global.EmptyStringToNull` ist bei LiteDB
+  standardmäßig **true** → leere Strings werden als BSON-Null gespeichert und
+  kommen als `null` zurück (hat den Crash beim Öffnen von Textdokumenten mit
+  leerer Kopf-/Fußzeile verursacht). Seit dem Fix: in `DatabaseService` auf
+  false gesetzt **und** String-Properties in `TextDoc` mit null-sicheren
+  Settern. Bei neuen String-Feldern in Modellen daran denken!
 - **PDF-Import** (Nutzer-Entscheidung: Bild-Seiten, keine Text-Extraktion):
   `PdfImporter.RenderPages` rendert jede Seite als JPEG (lange Kante 2246 px ≈
   200 % A4@96dpi). Läuft **asynchron** (`InsertPdfFileAsync` + `Task.Run`),

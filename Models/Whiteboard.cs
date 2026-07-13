@@ -285,9 +285,19 @@ public class TextDoc
     public byte[] Rtf { get; set; } = Array.Empty<byte>();
 
     // ---------- Seiteneinrichtung (Neu: Word-Grundfunktionen) ----------
+    // String-Felder haben null-sichere Setter: LiteDB kann leere Strings als
+    // BSON-Null speichern (EmptyStringToNull) – null darf hier nie ankommen.
+
+    private string _pageFormat = "A4";
+    private string _headerText = "";
+    private string _footerText = "";
 
     /// <summary>Papierformat: "A4", "A5", "A3" oder "Letter".</summary>
-    public string PageFormat { get; set; } = "A4";
+    public string PageFormat
+    {
+        get => _pageFormat;
+        set => _pageFormat = string.IsNullOrEmpty(value) ? "A4" : value;
+    }
 
     /// <summary>Querformat statt Hochformat.</summary>
     public bool Landscape { get; set; }
@@ -302,8 +312,8 @@ public class TextDoc
     /// Kopf-/Fußzeilentext. Platzhalter: {SEITE}, {SEITEN}, {DATUM}, {TITEL}.
     /// Leer = keine Kopf-/Fußzeile.
     /// </summary>
-    public string HeaderText { get; set; } = "";
-    public string FooterText { get; set; } = "";
+    public string HeaderText { get => _headerText; set => _headerText = value ?? ""; }
+    public string FooterText { get => _footerText; set => _footerText = value ?? ""; }
 
     /// <summary>Kopf-/Fußzeile auf der ersten Seite unterdrücken (Deckblatt).</summary>
     public bool SuppressHeaderOnFirstPage { get; set; }

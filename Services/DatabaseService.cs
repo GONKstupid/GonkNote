@@ -16,6 +16,10 @@ public sealed class DatabaseService : IDisposable
 
     public DatabaseService(string? path = null)
     {
+        // LiteDB macht aus "" standardmäßig BSON-Null (EmptyStringToNull) – das hat
+        // beim Laden null-Strings erzeugt (Crash beim Öffnen von Textdokumenten).
+        BsonMapper.Global.EmptyStringToNull = false;
+
         path ??= DefaultPath;
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
         _db = new LiteDatabase(new ConnectionString { Filename = path, Connection = ConnectionType.Shared });

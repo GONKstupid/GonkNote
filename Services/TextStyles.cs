@@ -221,8 +221,8 @@ public static class TextStyles
     // ==================== Kopf-/Fußzeile ====================
 
     /// <summary>Ersetzt die Platzhalter {SEITE}, {SEITEN}, {DATUM}, {TITEL}.</summary>
-    public static string ResolveHeaderFooter(string template, int page, int pageCount, string title) =>
-        template
+    public static string ResolveHeaderFooter(string? template, int page, int pageCount, string? title) =>
+        (template ?? "")
             .Replace("{SEITE}", page.ToString())
             .Replace("{SEITEN}", pageCount.ToString())
             .Replace("{DATUM}", DateTime.Now.ToString("dd.MM.yyyy"))

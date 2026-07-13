@@ -43,9 +43,16 @@ public partial class TextEditorView : UserControl
         BuildStyleGallery();
         BuildSymbolGrid();
 
-        // Wortanzahl/Navigator nicht bei jedem Tastendruck neu berechnen
+        // Wortanzahl/Navigator/Umbruch-Marken nicht bei jedem Tastendruck neu berechnen
         _statsTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(600) };
-        _statsTimer.Tick += (_, _) => { _statsTimer.Stop(); UpdateWordCount(); RefreshNavigator(); };
+        _statsTimer.Tick += (_, _) =>
+        {
+            _statsTimer.Stop();
+            UpdateWordCount();
+            RefreshNavigator();
+            DrawPageBreaks();
+        };
+        Editor.SizeChanged += (_, _) => DrawPageBreaks();
 
         Editor.AddHandler(Hyperlink.RequestNavigateEvent,
             new System.Windows.Navigation.RequestNavigateEventHandler(Hyperlink_RequestNavigate));
@@ -55,12 +62,12 @@ public partial class TextEditorView : UserControl
         Unloaded += (_, _) => ThemeService.ThemeChanged -= OnThemeChanged;
     }
 
-    private static Color CurrentInk() =>
-        (Color)Application.Current.Resources["Color.DefaultInk"];
+    // Die Seite bleibt in beiden Themes weiß → Standard-Tinte ist immer die helle Variante.
+    private static Color CurrentInk() => TextStyles.InkLight;
 
     private void OnThemeChanged()
     {
-        // Eingebrannte Standard-Schreibfarbe des alten Themes auf das neue umziehen
+        // Repariert Dokumente, die (aus der dunklen-Seite-Phase) helle Tinte gespeichert haben
         TextStyles.NormalizeInk(Editor.Document, CurrentInk());
     }
 
@@ -180,11 +187,7 @@ public partial class TextEditorView : UserControl
             BtnSub.IsChecked = baseline is BaselineAlignment.Subscript;
             BtnSuper.IsChecked = baseline is BaselineAlignment.Superscript;
 
-            var align = sel.Start.Paragraph?.TextAlignment;
-            BtnAlignLeft.IsChecked = align == TextAlignment.Left;
-            BtnAlignCenter.IsChecked = align == TextAlignment.Center;
-            BtnAlignRight.IsChecked = align == TextAlignment.Right;
-            BtnAlignJustify.IsChecked = align == TextAlignment.Justify;
+            SyncAlignButton(sel.Start.Paragraph?.TextAlignment);
 
             SyncParaSpacingFields();
             SyncStyleGallery();

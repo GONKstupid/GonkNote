@@ -45,6 +45,8 @@ public partial class TextEditorView
                 _ => 0,
             };
             WatermarkOpacityCombo.SelectedIndex = opacityIdx;
+
+            BreaksCheck.IsChecked = doc.ShowPageBreaks;
         }
         finally
         {
@@ -244,6 +246,65 @@ public partial class TextEditorView
         }
 
         DrawRuler();
+        DrawPageBreaks();
+    }
+
+    // ==================== Seitenumbruch-Markierungen ====================
+
+    private void PageBreaks_Toggled(object s, RoutedEventArgs e)
+    {
+        if (Editor == null || _vm == null || _loading || _syncingLayout) return;
+        _vm.Doc.ShowPageBreaks = BreaksCheck.IsChecked == true;
+        DrawPageBreaks();
+        MarkDirty();
+    }
+
+    /// <summary>
+    /// Zeichnet gestrichelte Markierungen dort, wo der PDF-Export voraussichtlich
+    /// umbricht (Näherung: der Paginator bricht nur an Zeilengrenzen, die Marke
+    /// exakt bei jedem vollen Inhaltsmaß pro Seite).
+    /// </summary>
+    private void DrawPageBreaks()
+    {
+        if (PageBreakLayer == null) return;
+        PageBreakLayer.Children.Clear();
+        if (_vm == null || !_vm.Doc.ShowPageBreaks) return;
+
+        var doc = _vm.Doc;
+        var (w, h) = TextStyles.PageSize(doc);
+        var m = TextStyles.PageMarginPx(doc);
+        double contentH = h - m.Top - m.Bottom;
+        if (contentH < 60) return;
+
+        double totalContent = Math.Max(0, Editor.ActualHeight - m.Top - m.Bottom);
+        int pages = Math.Max(1, (int)Math.Ceiling((totalContent - 1) / contentH));
+
+        var stroke = (Brush)FindResource("Brush.Accent");
+        for (int k = 1; k < pages; k++)
+        {
+            double y = m.Top + k * contentH;
+
+            var line = new Line
+            {
+                X1 = 6, X2 = w - 6, Y1 = y, Y2 = y,
+                Stroke = stroke,
+                StrokeThickness = 1,
+                StrokeDashArray = new DoubleCollection { 5, 4 },
+                Opacity = 0.55,
+            };
+            PageBreakLayer.Children.Add(line);
+
+            var label = new TextBlock
+            {
+                Text = $"Seite {k + 1}",
+                FontSize = 10,
+                Foreground = stroke,
+                Opacity = 0.75,
+            };
+            Canvas.SetLeft(label, w - m.Right - 44);
+            Canvas.SetTop(label, y + 2);
+            PageBreakLayer.Children.Add(label);
+        }
     }
 
     // ==================== Lineal ====================

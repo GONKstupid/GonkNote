@@ -313,4 +313,7 @@ public class TextDoc
 
     /// <summary>Deckkraft des Wasserzeichens (0–1).</summary>
     public double WatermarkOpacity { get; set; } = 1.0;
+
+    /// <summary>Seitenumbruch-Markierungen im Editor anzeigen (Näherung, s. Layout-Tab).</summary>
+    public bool ShowPageBreaks { get; set; }
 }

@@ -226,9 +226,19 @@ public partial class TextEditorView
 
     // ==================== Absatz ====================
 
-    private void Align_Click(object s, RoutedEventArgs e)
+    /// <summary>Öffnet das ContextMenu eines Sammel-Buttons als Dropdown.</summary>
+    private void OpenDropdown_Click(object s, RoutedEventArgs e)
     {
-        var tag = (string)((ToggleButton)s).Tag;
+        var btn = (Button)s;
+        if (btn.ContextMenu == null) return;
+        btn.ContextMenu.PlacementTarget = btn;
+        btn.ContextMenu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
+        btn.ContextMenu.IsOpen = true;
+    }
+
+    private void AlignMenu_Click(object s, RoutedEventArgs e)
+    {
+        var tag = (string)((MenuItem)s).Tag;
         var cmd = tag switch
         {
             "Center" => EditingCommands.AlignCenter,
@@ -239,6 +249,31 @@ public partial class TextEditorView
         cmd.Execute(null, Editor);
         Editor.Focus();
         Editor_SelectionChanged(s, e);
+    }
+
+    /// <summary>Zeigt die aktuelle Ausrichtung als Icon auf dem Sammel-Button.</summary>
+    private void SyncAlignButton(TextAlignment? align)
+    {
+        string iconKey = align switch
+        {
+            TextAlignment.Center => "Icon.AlignC",
+            TextAlignment.Right => "Icon.AlignR",
+            TextAlignment.Justify => "Icon.Justify",
+            _ => "Icon.AlignL",
+        };
+        AlignGlyph.Data = (Geometry)FindResource(iconKey);
+        string name = align switch
+        {
+            TextAlignment.Center => "Zentriert",
+            TextAlignment.Right => "Rechtsbündig",
+            TextAlignment.Justify => "Blocksatz",
+            _ => "Linksbündig",
+        };
+        BtnAlign.ToolTip = $"Textausrichtung: {name}";
+        AlignItemLeft.FontWeight = align is null or TextAlignment.Left ? FontWeights.SemiBold : FontWeights.Normal;
+        AlignItemCenter.FontWeight = align == TextAlignment.Center ? FontWeights.SemiBold : FontWeights.Normal;
+        AlignItemRight.FontWeight = align == TextAlignment.Right ? FontWeights.SemiBold : FontWeights.Normal;
+        AlignItemJustify.FontWeight = align == TextAlignment.Justify ? FontWeights.SemiBold : FontWeights.Normal;
     }
 
     private void Spacing_Changed(object s, SelectionChangedEventArgs e)

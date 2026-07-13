@@ -108,9 +108,10 @@ GonkNote/
 │  │                              {TITEL}), Wasserzeichen, Inhaltsverzeichnis, Format
 │  │                              übertragen, Tabellen-Werkzeuge (Kontextmenü), Links,
 │  │                              Sonderzeichen, Beschriftungen, Lineal, Statusleiste
-│  │                              (Wörter/Sprache/Rechtschreibung/Zoom), Navigator.
-│  │                              Seite folgt Color.PageBg (im Dark Mode dunkel!),
-│  │                              Ink-Normalisierung hält Standardtext lesbar (§5)
+│  │                              (Wörter/Sprache/Rechtschreibung/Zoom), Navigator,
+│  │                              Seitenumbruch-Marken (Layout-Tab, Näherung).
+│  │                              Seite bleibt in beiden Themes weiß (Nutzer-Wunsch
+│  │                              Runde 6); Ink-Normalisierung repariert Altbestände
 │  ├─ HeaderFooterDialog / PromptDialog   Kopf-/Fußzeile bzw. generische Eingabe
 │  ├─ ColorPickerDialog.xaml(.cs) HSV-Farbrad + Hex + Alpha
 │  ├─ AboutDialog.xaml(.cs)      Version + eingebettetes README (scrollbar)
@@ -180,7 +181,9 @@ DocumentFormat.OpenXml (DOCX), **Docnet.Core** (PDFium-Rendering).
 
 ## 4. Feedback-Stand
 
-**Runden 1–5 + Phase-3-Anfang umgesetzt und committet.**
+**Runden 1–6 + Phase-3-Anfang umgesetzt und committet.** (Runde 6 = Text-Editor-
+Feinschliff: weiße Seite in beiden Themes, Navigator-Kontrast, Sammel-Buttons/
+WrapPanel in der Toolbar, Schriftarten-Vorschau, Seitenumbruch-Marken.)
 
 **⚠️ OFFEN #1 — Geodreieck funktioniert nicht** (Nutzer hat es mehrfach getestet):
 Das Overlay (großer Winkelmesser tangential zu den Schenkeln, innerer Winkelmesser,
@@ -252,14 +255,18 @@ Verdachtspunkte für den nächsten Thread:
   - Kopf-/Fußzeile: ein Text für alle Seiten (+ Option „erste Seite ohne“); keine
     getrennten gerade/ungerade Seiten.
 - **Design-Entscheidungen Text-Editor** (Design-Konzept kritisch angewendet):
-  - Seite folgt `Color.PageBg` → **im Dark Mode dunkle Seite** (explizite Konzept-
-    Entscheidung des Nutzers; ersetzt für den Text-Editor die alte Regel
-    „Schreibfläche immer hell“). Damit Text lesbar bleibt: `TextStyles.NormalizeInk`
-    tauscht die Standard-Schreibfarbe beim Laden/Theme-Wechsel; Exporte werden
-    immer auf dunkle Tinte auf weißem Papier normalisiert.
+  - **Seite bleibt in beiden Themes weiß** (Feedback-Runde 6 — überschreibt die
+    Konzept-Entscheidung „Seite folgt Color.PageBg“). Nur die Canvas-Umgebung
+    folgt dem Theme. Feste helle Werte im Editor: PageBgBrush #FFFFFF, InkBrush
+    #1B2B4B, Selektion #C7DBFF. `TextStyles.NormalizeInk` bleibt aktiv, um
+    Dokumente zu reparieren, die in der kurzen Dunkle-Seite-Phase helle Tinte
+    gespeichert haben; Exporte normalisieren weiterhin auf dunkle Tinte.
   - Linke Icon-Leiste nur mit real existierenden Funktionen (Suche, Navigator) —
     keine toten Icons für Kommentare/Plugins.
   - Titelleiste/Fenster-Chrome bleibt App-Sache (Editor ist ein Tab).
+  - Toolbar mit Sammel-Buttons (Ausrichtung ▾, Listen/Einzug ▾) und WrapPanels —
+    nichts ragt aus dem Sichtfeld, bei schmalen Fenstern bricht das Ribbon um
+    (Feedback-Runde 6). Schriftarten-Combo mit Live-Vorschau je Eintrag.
 
 ---
 

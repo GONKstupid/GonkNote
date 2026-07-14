@@ -2508,9 +2508,9 @@ public partial class WhiteboardView : UserControl
 
     // ==================== Zeichenhilfen: Lineal & Geodreieck ====================
 
-    // Halbe Hypotenuse = Höhe = 9 cm (18-cm-Geodreieck wie die Vorlage
-    // TestAssets/geodreieck-Als-Beispiel.png; cm-Skala nummeriert bis ±8)
-    private static readonly float SsHalfHyp = 9f * PxPerCm;
+    // Halbe Hypotenuse = Höhe = 8 cm (16-cm-Geodreieck, wie die SVG-Assets;
+    // cm-Skala der SVGs ist bis ±7 nummeriert)
+    private static readonly float SsHalfHyp = 8f * PxPerCm;
 
     private void Ruler_Click(object sender, RoutedEventArgs e) => SetAid(DrawAid.Ruler);
     private void SetSquare_Click(object sender, RoutedEventArgs e) => SetAid(DrawAid.SetSquare);
@@ -2741,249 +2741,89 @@ public partial class WhiteboardView : UserControl
         }
     }
 
-    // ==================== Geodreieck (1:1 nach TestAssets/geodreieck-Als-Beispiel.png) ====================
+    // ==================== Geodreieck (SVG-Assets des Nutzers, je Theme) ====================
     //
-    // Alle Maße wurden pixelgenau aus der Vorlage vermessen (Druckmaßstab der Vorlage:
-    // 53,3 px/cm → 18-cm-Geodreieck, halbe Hypotenuse = Höhe = 9 cm):
-    //  · Hypotenusen-Skala: mm-Ticks bis ±8,4 cm, Zahlen 0–8
-    //  · Katheten: mm-Ticks + Begleitlinie 0,28 cm innen
-    //  · Strichkranz r=4,12/4,20/4,28→4,54 (10°/5°/1°)
-    //  · innerer Zahlenkranz (Gegenwinkel) r=4,90 · äußerer Zahlenkranz r=5,75
-    //  · Farbband ("Holo") r=5,15–6,20: rosa (90°) → blaugrau → türkis → gelb, Raute bei 90°
-    //  · Radiallinien alle 10° (bei 5°,15°,…,175°) von r=6,28 bis 0,55 cm vor die Kanten
-    //  · Parallel-Feld: Linien alle 0,5 cm (1–4 cm), Zahlen an vollen cm, Mittelachse,
-    //    45°-Strichellinien, senkrechte mm-Streifen bei ±2,58 cm
-    // Wie beim echten Geodreieck stehen alle Zahlen kopfüber, solange die Spitze nach
-    // oben zeigt – dreht man das Dreieck (Spitze zum Nutzer), sind sie lesbar.
+    // Das Geodreieck wird nicht mehr im Code gezeichnet, sondern aus den Nutzer-SVGs
+    // Assets/Geodreieck-Light.svg bzw. -Dark.svg gerendert (eingebettete Ressourcen,
+    // Unterschied: Bandfarbe Lila bzw. Pink). Vermessene SVG-Geometrie (viewBox 2520x1680):
+    //   Hypotenuse von (2,2 | 1468,9) bis (2517,5 | 1468,9) = 2515,2 units,
+    //   Spitze bei (1259,8 | 210) -> 16-cm-Geodreieck -> 157,2 units/cm.
+    // Beim Zeichnen kommt der Hypotenusen-Mittelpunkt des SVG auf das Interaktions-
+    // zentrum, skaliert auf 1 Geodreieck-cm = 1 Seiten-cm (PxPerCm). Dadurch deckt
+    // sich der Aufdruck exakt mit dem Einrast-/Dreh-Polygon (SsHalfHyp = 8 cm).
+
+    private const float SsSvgUnitsPerCm = 157.2f;
+    private static readonly SKPoint SsSvgMid = new(1259.85f, 1468.85f);
+
+    private static Svg.Skia.SKSvg? _ssSvgLight, _ssSvgDark;
+
+    /// <summary>SVG des aktuellen Themes, beim ersten Zugriff aus der Ressource geladen.</summary>
+    private static SKPicture? SetSquarePicture()
+    {
+        bool dark = ThemeService.Current == AppTheme.Dark;
+        var cached = dark ? _ssSvgDark : _ssSvgLight;
+        if (cached == null)
+        {
+            try
+            {
+                string name = dark
+                    ? "GonkNote.Assets.Geodreieck-Dark.svg"
+                    : "GonkNote.Assets.Geodreieck-Light.svg";
+                using var stream = typeof(WhiteboardView).Assembly.GetManifestResourceStream(name);
+                if (stream == null) return null;
+                var svg = new Svg.Skia.SKSvg();
+                svg.Load(stream);
+                if (dark) _ssSvgDark = svg;
+                else _ssSvgLight = svg;
+                cached = svg;
+            }
+            catch
+            {
+                return null;   // kaputte/fehlende Ressource -> Notnagel unten
+            }
+        }
+        return cached?.Picture;
+    }
 
     /// <summary>
-    /// Zeichnet das komplette Geodreieck (Körper + Aufdruck). Statisch, damit der
-    /// Render-Harness exakt denselben Code aufrufen kann wie die App.
+    /// Zeichnet das Geodreieck-SVG um <paramref name="center"/> mit Drehung
+    /// <paramref name="angleDeg"/>. Statisch, damit der Render-Harness exakt
+    /// denselben Code aufrufen kann wie die App.
     /// </summary>
     public static void DrawSetSquare(SKCanvas canvas, SKPoint center, float angleDeg, float zoom)
     {
-        float cm = PxPerCm;
-        const float H = 9f;   // halbe Hypotenuse = Höhe in cm
-        var navy = new SKColor(46, 49, 82);
-        var ink = new SKColor(30, 32, 54);
+        var picture = SetSquarePicture();
+        if (picture != null)
+        {
+            float s = PxPerCm / SsSvgUnitsPerCm;
+            canvas.Save();
+            canvas.Translate(center.X, center.Y);
+            canvas.RotateDegrees(angleDeg);
+            canvas.Scale(s);
+            canvas.Translate(-SsSvgMid.X, -SsSvgMid.Y);
+            canvas.DrawPicture(picture);
+            canvas.Restore();
+            return;
+        }
 
+        // Notnagel: schlichte Glas-Kontur, falls die SVG-Ressource nicht ladbar ist
         float rad = angleDeg * MathF.PI / 180f;
         float cos = MathF.Cos(rad), sin = MathF.Sin(rad);
-
-        // Lokale cm-Koordinaten (u nach rechts, v Richtung Spitze) → Weltkoordinaten
         SKPoint P(float u, float v)
         {
-            float x = u * cm, y = -v * cm;
+            float x = u * PxPerCm, y = -v * PxPerCm;
             return new SKPoint(center.X + x * cos - y * sin, center.Y + x * sin + y * cos);
         }
-        SKPoint Polar(float r, float deg)
+        using var path = new SKPath();
+        path.MoveTo(P(-8f, 0)); path.LineTo(P(8f, 0)); path.LineTo(P(0, 8f)); path.Close();
+        using (var fill = new SKPaint { Color = new SKColor(0xF2, 0xF3, 0xF8, 165), IsAntialias = true })
+            canvas.DrawPath(path, fill);
+        using var edge = new SKPaint
         {
-            float t = deg * MathF.PI / 180f;
-            return P(r * MathF.Cos(t), r * MathF.Sin(t));
-        }
-        // Geometrische Breiten (in cm): der Aufdruck skaliert wie bei einem echten
-        // Objekt mit dem Zoom mit (deshalb bleibt der zoom-Parameter ungenutzt).
-        SKPaint Stroke(byte alpha, float wCm) => new()
-        {
-            Color = navy.WithAlpha(alpha), Style = SKPaintStyle.Stroke,
-            StrokeWidth = wCm * cm, IsAntialias = true,
+            Color = new SKColor(46, 49, 82), Style = SKPaintStyle.Stroke,
+            StrokeWidth = 1.5f / zoom, IsAntialias = true,
         };
-        SKPaint Text(float sizeCm, byte alpha = 255) => new()
-        {
-            Color = ink.WithAlpha(alpha), IsAntialias = true, TextSize = sizeCm * cm,
-            TextAlign = SKTextAlign.Center, Typeface = Fonts.Bold,
-        };
-        // Beschriftung, mitgedreht; extraDeg = 180 → kopfüber wie auf der Vorlage
-        void TextRot(SKPaint paint, string s, float u, float v, float extraDeg)
-        {
-            var p = P(u, v);
-            canvas.Save();
-            canvas.Translate(p.X, p.Y);
-            canvas.RotateDegrees(angleDeg + extraDeg);
-            canvas.DrawText(s, 0, paint.TextSize * 0.34f, paint);
-            canvas.Restore();
-        }
-
-        // ---------- Körper (transparentes "Glas") ----------
-        using (var body = new SKPath())
-        {
-            body.MoveTo(P(-H, 0)); body.LineTo(P(H, 0)); body.LineTo(P(0, H)); body.Close();
-            using (var fill = new SKPaint { Color = new SKColor(0xF2, 0xF3, 0xF8, 165), IsAntialias = true })
-                canvas.DrawPath(body, fill);
-            using var edge = Stroke(240, 0.04f);
-            canvas.DrawPath(body, edge);
-        }
-
-        // ---------- Farbband (r 5,15–6,20) in kurzen Segmenten (rotationsfest) ----------
-        using (var band = new SKPaint
-        {
-            Style = SKPaintStyle.Stroke, StrokeWidth = 1.05f * cm,
-            IsAntialias = true, StrokeCap = SKStrokeCap.Butt,
-        })
-        {
-            const float rm = 5.675f;
-            for (float a = 5f; a < 175f; a += 1.5f)
-            {
-                band.Color = BandColor(a + 0.75f);
-                canvas.DrawLine(Polar(rm, a), Polar(rm, a + 1.6f), band);
-            }
-        }
-
-        // ---------- Raute bei 90° ----------
-        using (var dia = new SKPath())
-        {
-            const float rd = 5.68f, s = 0.62f;
-            dia.MoveTo(P(0, rd + s)); dia.LineTo(P(s, rd)); dia.LineTo(P(0, rd - s)); dia.LineTo(P(-s, rd)); dia.Close();
-            using var fill = new SKPaint { Color = new SKColor(243, 139, 146, 235), IsAntialias = true };
-            canvas.DrawPath(dia, fill);
-        }
-
-        // ---------- Radiallinien alle 10° (zwischen den Zahlen) + 90°-Achse ----------
-        using (var line = Stroke(210, 0.026f))
-        {
-            for (int a = 5; a <= 175; a += 10)
-            {
-                float t = a * MathF.PI / 180f;
-                float rEnd = a < 90
-                    ? 8.22f / (MathF.Cos(t) + MathF.Sin(t))     // endet 0,55 cm vor der rechten Kante
-                    : 8.22f / (MathF.Sin(t) - MathF.Cos(t));    // … bzw. der linken Kante
-                canvas.DrawLine(Polar(6.28f, a), Polar(rEnd, a), line);
-            }
-            canvas.DrawLine(P(0, 6.38f), P(0, 8.35f), line);    // 90°-Achse bis zur Spitze
-        }
-
-        // ---------- Strichkranz (1°/5°/10°) ----------
-        using (var tick = Stroke(215, 0.022f))
-            for (int d = 0; d <= 180; d++)
-            {
-                float r0 = d % 10 == 0 ? 4.12f : (d % 5 == 0 ? 4.20f : 4.28f);
-                canvas.DrawLine(Polar(r0, d), Polar(4.54f, d), tick);
-            }
-
-        // ---------- Gradzahlen: außen (auf dem Band) + innen (Gegenwinkel) ----------
-        using (var big = Text(0.45f))
-        using (var small = Text(0.30f, 235))
-            for (int p = 10; p <= 170; p += 10)
-            {
-                if (p == 90) continue;                          // 90 sitzt auf der Raute (unten)
-                float rot = 270f - p;                           // kopfüber, mitgedreht
-                float t = p * MathF.PI / 180f;
-                TextRot(big, p.ToString(), 5.75f * MathF.Cos(t), 5.75f * MathF.Sin(t), rot);
-                TextRot(small, (180 - p).ToString(), 4.90f * MathF.Cos(t), 4.90f * MathF.Sin(t), rot);
-            }
-
-        // ---------- Hypotenusen-Skala (mm-Ticks, Zahlen 0–8) ----------
-        using (var tick = Stroke(245, 0.035f))
-            for (int i = 0; i <= 84; i++)
-            {
-                float u = i / 10f;
-                float len = i % 10 == 0 ? 0.28f : (i % 5 == 0 ? 0.20f : 0.13f);
-                canvas.DrawLine(P(u, 0), P(u, len), tick);
-                if (i > 0) canvas.DrawLine(P(-u, 0), P(-u, len), tick);
-            }
-        using (var num = Text(0.34f))
-            for (int k = 0; k <= 8; k++)
-            {
-                TextRot(num, k.ToString(), k, 0.52f, 180f);
-                if (k > 0) TextRot(num, k.ToString(), -k, 0.52f, 180f);
-            }
-
-        // ---------- Katheten: mm-Ticks + Begleitlinie 0,28 cm innen ----------
-        {
-            float inv = 1f / MathF.Sqrt(2f);
-            using var tick = Stroke(245, 0.035f);
-            using var guide = Stroke(200, 0.026f);
-            for (int side = -1; side <= 1; side += 2)           // -1 = links, +1 = rechts
-            {
-                float nu = -side * inv, nv = -inv;              // Normale ins Innere
-                for (int i = 3; i <= 124; i++)
-                {
-                    float e = i / 10f;                          // Weg entlang der Kante ab Ecke
-                    float u = side * (H - e * inv), v = e * inv;
-                    float len = i % 10 == 0 ? 0.28f : (i % 5 == 0 ? 0.20f : 0.13f);
-                    canvas.DrawLine(P(u, v), P(u + nu * len, v + nv * len), tick);
-                }
-                const float e0 = 0.25f, e1 = 12.5f, d = 0.28f;
-                canvas.DrawLine(
-                    P(side * (H - e0 * inv) + nu * d, e0 * inv + nv * d),
-                    P(side * (H - e1 * inv) + nu * d, e1 * inv + nv * d),
-                    guide);
-            }
-        }
-
-        // ---------- Parallel-Feld: Linien alle 0,5 cm, Mittelachse, Zahlen an vollen cm ----------
-        using (var line = Stroke(225, 0.028f))
-        {
-            for (float y = 1f; y <= 4.01f; y += 0.5f)
-            {
-                float hw = MathF.Min(1.72f, MathF.Sqrt(MathF.Max(0f, 4.35f * 4.35f - y * y)));
-                canvas.DrawLine(P(-hw, y), P(-0.06f, y), line);
-                canvas.DrawLine(P(0.06f, y), P(hw, y), line);
-            }
-            canvas.DrawLine(P(0, 0.75f), P(0, 4.08f), line);    // Mittelachse
-        }
-        using (var num = Text(0.32f))
-            for (int k = 1; k <= 4; k++)
-            {
-                // Die "4" rückt nach außen, damit sie nicht in den Strichkranz ragt (wie Vorlage)
-                float ux = k == 4 ? 2.31f : 1.95f;
-                TextRot(num, k.ToString(), ux, k, 180f);
-                TextRot(num, k.ToString(), -ux, k, 180f);
-            }
-
-        // 45°-Strichellinien durch den Nullpunkt
-        using (var dash = Stroke(225, 0.03f))
-        {
-            dash.PathEffect = SKPathEffect.CreateDash(
-                new[] { 0.55f * cm, 0.35f * cm }, 0.2f * cm);
-            using var pth = new SKPath();
-            pth.MoveTo(Polar(0.55f, 45f)); pth.LineTo(Polar(4.05f, 45f));
-            pth.MoveTo(Polar(0.55f, 135f)); pth.LineTo(Polar(4.05f, 135f));
-            canvas.DrawPath(pth, dash);
-        }
-
-        // Senkrechte mm-Streifen bei ±2,58 cm
-        using (var tick = Stroke(240, 0.03f))
-            for (int i = 5; i <= 34; i++)
-            {
-                float v = i / 10f;
-                float hw = i % 10 == 0 ? 0.16f : (i % 5 == 0 ? 0.12f : 0.08f);
-                canvas.DrawLine(P(2.58f - hw, v), P(2.58f + hw, v), tick);
-                canvas.DrawLine(P(-2.58f - hw, v), P(-2.58f + hw, v), tick);
-            }
-
-        // ---------- "90" auf der Raute ----------
-        using (var num = Text(0.45f))
-            TextRot(num, "90", 0f, 5.68f, 180f);
-    }
-
-    /// <summary>Bandfarbe der Vorlage: rosa (90°) → blaugrau → türkis → gelb (Ränder), mit weichem Auslauf.</summary>
-    private static SKColor BandColor(float deg)
-    {
-        float t = MathF.Abs(deg - 90f);
-        (float T, byte R, byte G, byte B)[] stops =
-        {
-            (0f, 242, 140, 146),
-            (22f, 214, 166, 171),
-            (38f, 183, 203, 208),
-            (52f, 160, 245, 245),
-            (68f, 215, 242, 165),
-            (82f, 236, 228, 105),
-        };
-        byte r = stops[^1].R, g = stops[^1].G, b = stops[^1].B;
-        for (int i = 1; i < stops.Length; i++)
-            if (t <= stops[i].T)
-            {
-                float f = (t - stops[i - 1].T) / (stops[i].T - stops[i - 1].T);
-                r = (byte)(stops[i - 1].R + f * (stops[i].R - stops[i - 1].R));
-                g = (byte)(stops[i - 1].G + f * (stops[i].G - stops[i - 1].G));
-                b = (byte)(stops[i - 1].B + f * (stops[i].B - stops[i - 1].B));
-                break;
-            }
-        // Weicher Auslauf zu den Bandenden (wie in der Vorlage ab ~10°)
-        float edge = MathF.Min(deg - 5f, 175f - deg);
-        byte alpha = (byte)(185 * Math.Clamp((edge - 1f) / 6f, 0f, 1f));
-        return new SKColor(r, g, b, alpha);
+        canvas.DrawPath(path, edge);
     }
 
     private void DrawAidAngle(SKCanvas canvas)

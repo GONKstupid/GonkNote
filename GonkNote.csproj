@@ -37,6 +37,10 @@
   <ItemGroup>
     <Resource Include="Assets\gonk-note-Icon.png" />
     <Resource Include="README.md" />
+    <!-- Geodreieck-Overlays (Nutzer-SVGs, je Theme); EmbeddedResource statt
+         Resource, damit auch Nicht-WPF-Harnesses sie laden können -->
+    <EmbeddedResource Include="Assets\Geodreieck-Light.svg" />
+    <EmbeddedResource Include="Assets\Geodreieck-Dark.svg" />
   </ItemGroup>
 
 </Project>

@@ -191,20 +191,20 @@ DocumentFormat.OpenXml (DOCX), **Docnet.Core** (PDFium-Rendering).
 Feinschliff: weiße Seite in beiden Themes, Navigator-Kontrast, Sammel-Buttons/
 WrapPanel in der Toolbar, Schriftarten-Vorschau, Seitenumbruch-Marken.)
 
-**Geodreieck — Zeichnung komplett neu (2026-07-14, Nutzer-Test steht aus):**
-Auf Nutzerwunsch („vorherige Versuche waren Müll, 1:1 nach Vorlage") wurde die
-Zeichnung von Grund auf neu gebaut: `WhiteboardView.DrawSetSquare` (public static,
-eine einzige Methode). Die Vorlage `TestAssets/geodreieck-Als-Beispiel.png` wurde
-dafür **pixelgenau vermessen** (Druckmaßstab 53,3 px/cm → 18-cm-Geodreieck, halbe
-Hypotenuse = Höhe = 9 cm; alle Radien/Abstände im Kommentar über der Methode).
-Enthalten: transparenter Glaskörper, Farbband gelb→türkis→blaugrau→rosa mit
-90°-Raute, doppelter Zahlenkranz (Gegenwinkel innen), Strichkranz 1°/5°/10°,
-Radiallinien alle 10°, cm-Skala ±8, Kathetenskalen mit Begleitlinie, Parallelfeld
-(0,5-cm-Linien, Zahlen an vollen cm, Mittelachse, 45°-Strichellinien, mm-Streifen
-bei ±2,58 cm). Alle Zahlen stehen wie beim echten Geodreieck kopfüber (drehbar).
-**Verifiziert**: Side-by-Side-Render gegen die Vorlage (`gonk-texttest`-Harness
-ruft den ECHTEN Code aus GonkNote.dll auf, Modus `geo`) + Screenshot im echten
-Whiteboard (Overlay transparent über Notizzetteln, Kurzbefehl D).
+**Geodreieck — jetzt SVG-Asset des Nutzers (2026-07-14, Nutzer-Test steht aus):**
+Der Nutzer hat eigene SVGs geliefert; die Code-Zeichnung wurde durch reines
+SVG-Rendering ersetzt (`WhiteboardView.DrawSetSquare` via Svg.Skia):
+- Assets: `Assets/Geodreieck-Light.svg` / `-Dark.svg` (EmbeddedResource; einziger
+  Unterschied ist die Bandfarbe Lila/Pink, gecacht je Theme, Wechsel greift sofort).
+- Vermessene SVG-Geometrie: viewBox 2520×1680, Hypotenuse 2515,2 units =
+  **16-cm-Geodreieck** → 157,2 units/cm; Hypotenusen-Mittelpunkt (1259,85|1468,85)
+  wird auf das Interaktionszentrum gelegt, Skalierung 1 Geodreieck-cm = 1 Seiten-cm.
+  `SsHalfHyp = 8 cm` — Einrast-Polygon und Optik decken sich exakt (per Harness
+  mit übergelegtem rotem Polygon in 0° und 25° verifiziert).
+- Fallback: fehlt/bricht die Ressource, wird eine schlichte Glas-Kontur gezeichnet.
+- Harness: `%TEMP%\gonk-texttest` Modus `geo` (ruft echten Code aus GonkNote.dll),
+  Modus `svg` rastert die SVG-Dateien direkt. In-App-Test: `ui-geotest.ps1`
+  (öffnet Whiteboard, Kurzbefehl D, PrintWindow-Screenshot).
 Interaktion (Bewegen/Drehen/Einrasten) ist unverändert; ob das frühere
 „funktioniert nicht" an der Optik lag oder an der Interaktion, klärt der
 Nutzer-Test mit Stift.

@@ -191,20 +191,23 @@ DocumentFormat.OpenXml (DOCX), **Docnet.Core** (PDFium-Rendering).
 Feinschliff: weiße Seite in beiden Themes, Navigator-Kontrast, Sammel-Buttons/
 WrapPanel in der Toolbar, Schriftarten-Vorschau, Seitenumbruch-Marken.)
 
-**⚠️ OFFEN #1 — Geodreieck funktioniert nicht** (Nutzer hat es mehrfach getestet):
-Das Overlay (großer Winkelmesser tangential zu den Schenkeln, innerer Winkelmesser,
-cm-Skala 0–8, Koordinatengitter, doppelte mitgedrehte Gradzahlen, 90°-Raute) ist in
-`WhiteboardView.DrawSetSquareMarkings` + Helfer implementiert und rendert im
-**Render-Harness** (`%TEMP%\gonk-geotest`) korrekt und proportionsgetreu zur Vorlage
-`TestAssets/geodreieck-Als-Beispiel.png`. **Aber im echten App-Betrieb tut es nicht,
-was der Nutzer erwartet.** Was genau „nicht funktioniert" ist noch unklar — mögliche
-Verdachtspunkte für den nächsten Thread:
-  - Kippt/rendert das Overlay im echten Fenster überhaupt (vs. nur im Harness)?
-  - Einrasten an den Kanten / Bewegen / Drehen des Geodreiecks?
-  - Umschalten in der Zeichenhilfen-Toolbar-Gruppe (Lineal ↔ Geodreieck)?
-  → **Zuerst mit dem Nutzer klären, welches Verhalten fehlt**, dann gezielt fixen.
-  Die interaktive Verifikation im echten Fenster ist per Automation unzuverlässig (§7)
-  — der Nutzer testet mit Stift, sein Feedback ist die Quelle der Wahrheit.
+**Geodreieck — Zeichnung komplett neu (2026-07-14, Nutzer-Test steht aus):**
+Auf Nutzerwunsch („vorherige Versuche waren Müll, 1:1 nach Vorlage") wurde die
+Zeichnung von Grund auf neu gebaut: `WhiteboardView.DrawSetSquare` (public static,
+eine einzige Methode). Die Vorlage `TestAssets/geodreieck-Als-Beispiel.png` wurde
+dafür **pixelgenau vermessen** (Druckmaßstab 53,3 px/cm → 18-cm-Geodreieck, halbe
+Hypotenuse = Höhe = 9 cm; alle Radien/Abstände im Kommentar über der Methode).
+Enthalten: transparenter Glaskörper, Farbband gelb→türkis→blaugrau→rosa mit
+90°-Raute, doppelter Zahlenkranz (Gegenwinkel innen), Strichkranz 1°/5°/10°,
+Radiallinien alle 10°, cm-Skala ±8, Kathetenskalen mit Begleitlinie, Parallelfeld
+(0,5-cm-Linien, Zahlen an vollen cm, Mittelachse, 45°-Strichellinien, mm-Streifen
+bei ±2,58 cm). Alle Zahlen stehen wie beim echten Geodreieck kopfüber (drehbar).
+**Verifiziert**: Side-by-Side-Render gegen die Vorlage (`gonk-texttest`-Harness
+ruft den ECHTEN Code aus GonkNote.dll auf, Modus `geo`) + Screenshot im echten
+Whiteboard (Overlay transparent über Notizzetteln, Kurzbefehl D).
+Interaktion (Bewegen/Drehen/Einrasten) ist unverändert; ob das frühere
+„funktioniert nicht" an der Optik lag oder an der Interaktion, klärt der
+Nutzer-Test mit Stift.
 
 **Funktioniert (verifiziert):** PDF-Export-Schärfe (Docnet-Render geprüft), Notizzettel
 (im echten Binary aus geseedeter DB geladen + gerendert), Pin-Tooltip, **Lineal**

@@ -9,10 +9,11 @@ public enum ToolType
     Highlighter,
     Eraser,
     Lasso,
+    Move,     // Verschieben (V): Objekte direkt anklicken/verschieben (wie Photoshop)
     Text,
     Shape,
     Sticky,
-    Pan,
+    Pan,      // Hand (H): Leinwand verschieben
 }
 
 public enum StrokeKind

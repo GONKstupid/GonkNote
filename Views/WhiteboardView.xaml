@@ -31,8 +31,19 @@
 
                     <Border Width="1" Background="{DynamicResource Brush.Border}" Margin="6,4"/>
 
+                    <ToggleButton x:Name="BtnMove" Style="{StaticResource ToolButton}"
+                                  AutomationProperties.Name="Verschieben"
+                                  ToolTip="Verschieben (V) – Objekt anklicken, dann verschieben, skalieren oder drehen"
+                                  Checked="Tool_Checked" Tag="Move">
+                        <Path Data="{StaticResource Icon.MoveSelect}" StrokeThickness="1.2"
+                              StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                              Width="16" Height="16"
+                              Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ToggleButton}}"
+                              Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ToggleButton}}"/>
+                    </ToggleButton>
                     <ToggleButton x:Name="BtnLasso" Style="{StaticResource ToolButton}"
-                                  ToolTip="Lasso-Auswahl (L)" Checked="Tool_Checked" Tag="Lasso">
+                                  ToolTip="Lasso-Auswahl (L) – Objekte umkreisen (nur was ~vollständig umschlossen ist)"
+                                  Checked="Tool_Checked" Tag="Lasso">
                         <Path Data="{StaticResource Icon.Lasso}" StrokeThickness="1.3"
                               StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
                               Width="16" Height="16"
@@ -44,8 +55,15 @@
                                   ToolTip="Formen (F)" Checked="Tool_Checked" Tag="Shape"/>
                     <ToggleButton x:Name="BtnSticky" Style="{StaticResource ToolButton}" Content="&#xE70B;"
                                   ToolTip="Notizzettel (N) – farbigen Klebezettel setzen" Checked="Tool_Checked" Tag="Sticky"/>
-                    <ToggleButton x:Name="BtnPan" Style="{StaticResource ToolButton}" Content="&#xE7C9;"
-                                  ToolTip="Verschieben (H) – oder mittlere Maustaste" Checked="Tool_Checked" Tag="Pan"/>
+                    <ToggleButton x:Name="BtnPan" Style="{StaticResource ToolButton}"
+                                  AutomationProperties.Name="Hand"
+                                  ToolTip="Hand (H) – Leinwand verschieben (oder mittlere Maustaste)"
+                                  Checked="Tool_Checked" Tag="Pan">
+                        <Path Data="{StaticResource Icon.Hand}" StrokeThickness="1.2"
+                              StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                              Width="16" Height="16"
+                              Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ToggleButton}}"/>
+                    </ToggleButton>
                     <ToggleButton x:Name="BtnRuler" Style="{StaticResource ToolButton}"
                                   AutomationProperties.Name="Lineal"
                                   ToolTip="Lineal (R) – gerade Linien entlang der Kante; Körper ziehen = bewegen, Griff ziehen = drehen"

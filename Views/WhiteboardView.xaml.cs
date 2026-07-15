@@ -95,7 +95,7 @@ public partial class WhiteboardView : UserControl
     private const float RulerAngleStep = 15f;
     private const float RulerAngleSnapTol = 4f;
 
-    private ToggleButton[] ToolButtons => new[] { BtnPen, BtnSmoothPen, BtnPencil, BtnHighlighter, BtnEraser, BtnLasso, BtnText, BtnShape, BtnSticky, BtnPan };
+    private ToggleButton[] ToolButtons => new[] { BtnPen, BtnSmoothPen, BtnPencil, BtnHighlighter, BtnEraser, BtnMove, BtnLasso, BtnText, BtnShape, BtnSticky, BtnPan };
     private ToggleButton[] ShapeButtons => new[] { BtnShapeLine, BtnShapeArrow, BtnShapeRect, BtnShapeEllipse, BtnShapeTriangle };
     private ToggleButton[] PenButtons => new[] { BtnPen, BtnSmoothPen, BtnPencil, BtnHighlighter };
 
@@ -231,7 +231,8 @@ public partial class WhiteboardView : UserControl
     private void SetTool(ToolType tool)
     {
         CommitActiveEdit();
-        if (tool != ToolType.Lasso) ClearSelection();
+        // Auswahl bleibt nur bei den Auswahl-Werkzeugen (Lasso, Verschieben) erhalten
+        if (tool != ToolType.Lasso && tool != ToolType.Move) ClearSelection();
 
         _tool = tool;
         _eraserVisible = false;
@@ -263,6 +264,7 @@ public partial class WhiteboardView : UserControl
             ToolType.Shape => Cursors.Cross,
             ToolType.Sticky => Cursors.Cross,
             ToolType.Pan => Cursors.Hand,
+            ToolType.Move => Cursors.Arrow,
             _ => Cursors.Arrow,
         };
         Skia.InvalidateVisual();
@@ -686,6 +688,7 @@ public partial class WhiteboardView : UserControl
                 break;
 
             case ToolType.Lasso:
+            case ToolType.Move:
                 if (_selection.Count == 1 && _selection.First() is IBoxElement rb && HitResizeHandle(rb, c))
                 {
                     _resizingBox = rb;
@@ -697,6 +700,20 @@ public partial class WhiteboardView : UserControl
                     _movingSelection = true;
                     _moveLast = c;
                     _movedX = _movedY = 0;
+                }
+                else if (EffectiveTool == ToolType.Move)
+                {
+                    // Direktauswahl: oberstes Objekt unter dem Zeiger anwählen und gleich bewegen
+                    var pick = HitTestElement(c);
+                    ClearSelection();
+                    if (pick != null)
+                    {
+                        _selection.Add(pick);
+                        ComputeSelectionBounds();
+                        _movingSelection = true;
+                        _moveLast = c;
+                        _movedX = _movedY = 0;
+                    }
                 }
                 else
                 {
@@ -783,6 +800,7 @@ public partial class WhiteboardView : UserControl
                 break;
 
             case ToolType.Lasso:
+            case ToolType.Move:
                 if (_resizingBox is ImageElement rImg)
                 {
                     // Bilder proportional über den Eckgriff unten rechts, Ankerpunkt oben links
@@ -862,6 +880,7 @@ public partial class WhiteboardView : UserControl
                 break;
 
             case ToolType.Lasso:
+            case ToolType.Move:
                 if (_resizingBox != null)
                 {
                     var box = _resizingBox;
@@ -2178,9 +2197,36 @@ public partial class WhiteboardView : UserControl
                 b.Inflate(r, r);
                 return b.Contains(c);
 
+            case ImageElement im:
+                return SKRect.Create(im.X, im.Y, im.Width, im.Height).Contains(c);
+
+            case StickyNoteElement sn:
+                return SKRect.Create(sn.X, sn.Y, sn.Width, sn.Height).Contains(c);
+
             default:
                 return false;
         }
+    }
+
+    /// <summary>
+    /// Oberstes Objekt unter dem Zeiger für die Direktauswahl (Verschieben-Werkzeug).
+    /// Vordergrund-Objekte (Striche/Formen/Text/Zettel) haben Vorrang vor Bildern/PDF-
+    /// Seiten, damit man einen Strich über einem Hintergrundbild greifen kann.
+    /// </summary>
+    private WbElement? HitTestElement(SKPoint c)
+    {
+        if (_page == null) return null;
+        float tol = 5f / Zoom;
+        for (int pass = 0; pass < 2; pass++)
+            for (int i = _page.Elements.Count - 1; i >= 0; i--)
+            {
+                var el = _page.Elements[i];
+                bool isImage = el is ImageElement;
+                if (pass == 0 && isImage) continue;   // erst Vordergrund …
+                if (pass == 1 && !isImage) continue;   // … dann Bilder
+                if (HitElement(el, c, tol)) return el;
+            }
+        return null;
     }
 
     private static float SegOrPointDist(List<WbPoint> pts, int i, SKPoint c)
@@ -2281,13 +2327,17 @@ public partial class WhiteboardView : UserControl
         _selection.Clear();
         foreach (var el in _page.Elements)
         {
+            // Nutzer-Wunsch: nur Objekte auswählen, die ~vollständig (≥95 %) umschlossen
+            // sind – so lässt sich ein Strich greifen, ohne die PDF-Seite/Form dahinter
+            // mitzunehmen.
             bool inside = el switch
             {
                 StrokeElement s => s.Points.Count > 0 &&
-                    s.Points.Count(p => path.Contains(p.X, p.Y)) * 2 >= s.Points.Count,
-                ShapeElement sh => path.Contains((sh.X1 + sh.X2) / 2f, (sh.Y1 + sh.Y2) / 2f),
-                TextElement t => path.Contains(TextBounds(t).MidX, TextBounds(t).MidY),
-                ImageElement im => path.Contains(im.X + im.Width / 2f, im.Y + im.Height / 2f),
+                    s.Points.Count(p => path.Contains(p.X, p.Y)) >= s.Points.Count * 0.95f,
+                ShapeElement sh => AllCornersInside(path, ElementBounds(sh)),
+                TextElement t => AllCornersInside(path, TextBounds(t)),
+                ImageElement im => AllCornersInside(path, SKRect.Create(im.X, im.Y, im.Width, im.Height)),
+                StickyNoteElement sn => AllCornersInside(path, SKRect.Create(sn.X, sn.Y, sn.Width, sn.Height)),
                 _ => false,
             };
             if (inside) _selection.Add(el);
@@ -2296,6 +2346,12 @@ public partial class WhiteboardView : UserControl
         if (_selection.Count > 0) ComputeSelectionBounds();
         Skia.InvalidateVisual();
     }
+
+    /// <summary>Alle vier Ecken (plus Mitte) eines Rechtecks liegen im Lasso-Pfad.</summary>
+    private static bool AllCornersInside(SKPath path, SKRect r) =>
+        path.Contains(r.Left, r.Top) && path.Contains(r.Right, r.Top) &&
+        path.Contains(r.Left, r.Bottom) && path.Contains(r.Right, r.Bottom) &&
+        path.Contains(r.MidX, r.MidY);
 
     private void ComputeSelectionBounds()
     {
@@ -2967,6 +3023,7 @@ public partial class WhiteboardView : UserControl
             Key.B => BtnPencil,
             Key.M => BtnHighlighter,
             Key.E => BtnEraser,
+            Key.V => BtnMove,
             Key.L => BtnLasso,
             Key.T => BtnText,
             Key.F => BtnShape,

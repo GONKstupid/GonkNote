@@ -220,6 +220,22 @@ Nutzer-Test mit Stift.
 
 ## 5. Bekannte Lücken / bewusst vertagt
 
+**⚠️ Offen aus Fixes-Runde (2026-07-15) – bewusst vertagt, nicht vergessen:**
+- **Rotieren von Auswahl-Objekten (Whiteboard):** Der Nutzer wünscht sich neben
+  Skalieren auch Rotieren über das Lasso/Verschieben-Werkzeug. **Skalieren ist
+  umgesetzt** (gleichmäßig, alle Objekttypen, mit Undo). **Rotieren fehlt:** sauber
+  ginge es nur für strichbasierte Objekte (Punkte drehen); Rechtecke/Ellipsen/Text/
+  Bilder/Notizzettel bräuchten ein `Rotation`-Feld je Element **plus** rotations-
+  fähiges Rendering, Hit-Test, Bounds und Export über alle Zeichenpfade (interaktiv
+  UND `PdfExporter`). Das ist ein großer, invasiver Umbau → als Nächstes anzugehen,
+  wenn Whiteboard-Rotation dran ist.
+- **Grammatik-/Satzbauprüfung (Text-Editor, „blaue" Markierung):** Die WPF-
+  `RichTextBox` bringt nur Rechtschreibung mit (rote Wellenlinie, Vorschläge jetzt
+  im Kontextmenü). Eine echte Grammatikprüfung gibt es in .NET nicht eingebaut;
+  sie bräuchte eine große externe Engine oder einen Online-Dienst (widerspricht dem
+  Offline-Ziel). Bewusst nicht umgesetzt.
+
+
 - **Import-Dauer**: PDF-Rendering ist CPU-gebunden (~0,5–0,7 s pro Seite bei
   2246 px). Jetzt wenigstens non-blocking mit Fortschritt. **Mögliche künftige
   Optimierung**: Seiten *lazy* on-demand rendern (nur PDF-Bytes + Seitenindex

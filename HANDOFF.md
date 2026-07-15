@@ -1,12 +1,4 @@
-# Gonk Note — Projektübergabe (Stand: 2026-07-13, Phase 3 laufend)
-
-> **⚠️ OFFENER PUNKT ZUERST:** Das **Geodreieck funktioniert laut Nutzer noch
-> immer nicht** (mehrere Anläufe). Das Overlay ist implementiert und rendert im
-> Harness korrekt (Proportionen 1:1 nach Vorlage), aber **im echten App-Betrieb
-> tut es nicht, was es soll** — Ursache noch ungeklärt (nicht reproduziert; die
-> interaktive Verifikation im echten Fenster scheitert an der Testumgebung, §7).
-> **Das ist die erste offene Aufgabe.** Siehe §4/§5.
-
+# Gonk Note — Projektübergabe (Stand: 2026-07-15, Phase 3 laufend)
 
 Diese Datei ist für den Einstieg in einen **neuen Chat-Thread** gedacht. Sie fasst
 zusammen, was existiert, was als Nächstes ansteht, und wie gearbeitet werden soll.
@@ -39,9 +31,24 @@ durchgehend Deutsch (UI, Kommentare, Commits). Ehrliches Scoping statt Übercomm
 - Pfad: `C:\Dev\Zed\gonk-note`, Branch `main`, sauber committet
 - Build: `dotnet build` fehlerfrei (0 Warnungen)
 - Commit-Historie (neueste zuerst):
-  - **Text-Editor-Großausbau** (neuester Commit): Ribbon-UI nach Nutzer-Design-Konzept
-    (`Docs/Design-Konzept-Text-Editor.md`) + Word-Grundfunktionen aus der
-    Nutzer-Wunschliste (`Docs/word-funktionen-liste.md`). Details in §3/§5.
+  - **Fixes-Runde 7 (2026-07-15)** – große Wunschliste des Nutzers abgearbeitet
+    (Ordner `Änderungen` war die Quelle, danach gelöscht):
+    - `d68308e` HANDOFF + Ordner entfernt
+    - `388eed5` **Batch C 2/2**: Auswahl skalieren (alle Objekttypen, Undo) +
+      **Sticker-Werkzeug** mit Sammlung (`Assets/Stickers` + `%APPDATA%\GonkNote\Stickers`)
+    - `fdcb443` **Batch C 1/2**: „Hand (H)" (umbenannt) + neues **Verschieben (V)**-Tool
+      (Direktauswahl), Notizzettel in der Auswahl, Lasso wählt nur ~95 %-umschlossene Objekte
+    - `4e79516` **Batch B**: Einstellungs-Seitenleiste (Text-Editor, rechts), Preset-Kacheln
+      auf 3 + Flyout, Layout-Tab entschlackt (Ränder/Abstände/Hintergrundbild → Seitenleiste)
+    - `5a4b1e3` **Batch A**: Listen-Dropdowns repariert (waren ausgegraut), Format-Painter-Fix,
+      Zeilenabstand→Layout, Link/Beschriftung nur unter Verweise, Rechtschreib-Vorschläge im
+      Kontextmenü, **Formen-Palette + Diagramm-Tool** im Einfügen-Tab
+    - `c602d84` **Datei-Einfüge-Tool**: Seitenauswahl-Dialog für PDF **und DOCX**
+    - `6a0a30b` Geodreieck als Nutzer-**SVG-Asset** (Light/Dark) statt Code-Zeichnung
+    - `416d705` **Fix**: Crash beim Öffnen von Textdokumenten (LiteDB EmptyStringToNull)
+    - `ad0ba9f` Feedback-Runde 6 (Text-Editor-Feinschliff) · `91d197f` Text-Editor-Großausbau
+      (Ribbon-UI nach `Docs/Design-Konzept-Text-Editor.md` + Word-Funktionen aus
+      `Docs/word-funktionen-liste.md`)
   - **Phase 3 – Zeichenhilfen (Lineal/Geodreieck)**:
     - `8d4284e` Geodreieck-Overlay: korrekte Relationen nach Vorlage
     - `cd0f8f7` Geodreieck-Overlay 1:1 nach echtem Vorbild (Akzentfarbe)
@@ -94,15 +101,22 @@ GonkNote/
 │                             Pin/Favorit, DOCX-Import), TreeItemViewModel, Tab-VMs
 ├─ Views/
 │  ├─ WhiteboardView.xaml(.cs)   SkiaSharp-Canvas: Werkzeuge (Stifte-Gruppe klappbar),
-│  │                             Formen-Stift-Erkennung, punktgenauer Radierer,
-│  │                             Bild-/PDF-Import (ein Button, Paste, DnD, Resize),
-│  │                             Touch-Gesten, Einstellungs-Seitenleiste rechts
-│  │                             (Seite/Formen/Text/Cover), Undo/Redo, Zoom/Pan,
-│  │                             Seiten, Cover, Viewport-Culling, Busy-Overlay
+│  │      + .Stickers.cs          Formen-Stift-Erkennung, punktgenauer Radierer,
+│  │        (partial)             Bild-/PDF-/DOCX-Import (ein Button, Paste, DnD),
+│  │                             Verschieben (V)=Direktauswahl + Lasso (L, nur ~95 %),
+│  │                             Auswahl skalieren (alle Objekttypen), Hand (H)=Pan,
+│  │                             Sticker-Werkzeug (.Stickers.cs), Touch-Gesten,
+│  │                             Einstellungs-Seitenleiste rechts (Seite/Formen/Text/
+│  │                             Sticker/Cover), Undo/Redo, Zoom/Pan, Seiten, Cover,
+│  │                             Viewport-Culling, Busy-Overlay
 │  ├─ TextEditorView.xaml(.cs)   Text-Editor im Ribbon-Layout (Tabs Start/Einfügen/
-│  │      + .Format/.Insert/      Layout/Verweise), Formatvorlagen-Galerie (Überschrift
-│  │        .Layout/.Refs/        1–4 farbig, Erkennung über Größe+Gewicht → TOC/
-│  │        .Find.cs (partial)    Navigator/DOCX-Styles), Seiteneinrichtung (A4/A5/A3/
+│  │      + .Format/.Insert/      Layout/Verweise), rechte Einstellungs-Seitenleiste
+│  │        .Layout/.Refs/        (Ränder/Absätze/Hintergrundbild), Listen-Split-Buttons
+│  │        .Find/.Lists/         + Bibliotheken (.Lists.cs), Formen-Palette + Diagramm
+│  │        .Shapes.cs (partial)  (.Shapes.cs → ChartDialog), Formatvorlagen-Galerie (nur
+│  │                              3 Kacheln inline + Flyout; Überschrift 1–4 farbig,
+│  │                              Erkennung über Größe+Gewicht → TOC/Navigator/DOCX-Styles),
+│  │                              Seiteneinrichtung (A4/A5/A3/
 │  │                              Letter, Hoch/Quer, Ränder in cm inkl. „Lernblatt“
 │  │                              4 cm links), Kopf-/Fußzeile ({SEITE}/{SEITEN}/{DATUM}/
 │  │                              {TITEL}), Wasserzeichen, Inhaltsverzeichnis, Format
@@ -220,15 +234,27 @@ Nutzer-Test mit Stift.
 
 ## 5. Bekannte Lücken / bewusst vertagt
 
-**⚠️ Offen aus Fixes-Runde (2026-07-15) – bewusst vertagt, nicht vergessen:**
-- **Rotieren von Auswahl-Objekten (Whiteboard):** Der Nutzer wünscht sich neben
-  Skalieren auch Rotieren über das Lasso/Verschieben-Werkzeug. **Skalieren ist
-  umgesetzt** (gleichmäßig, alle Objekttypen, mit Undo). **Rotieren fehlt:** sauber
-  ginge es nur für strichbasierte Objekte (Punkte drehen); Rechtecke/Ellipsen/Text/
-  Bilder/Notizzettel bräuchten ein `Rotation`-Feld je Element **plus** rotations-
-  fähiges Rendering, Hit-Test, Bounds und Export über alle Zeichenpfade (interaktiv
-  UND `PdfExporter`). Das ist ein großer, invasiver Umbau → als Nächstes anzugehen,
-  wenn Whiteboard-Rotation dran ist.
+**⚠️ OFFENE WUNSCHLISTE Fixes-Runde 8 (Nutzer, 2026-07-15) — in Arbeit:**
+*Text-Editor:* Breite/Höhe von Formen & Diagrammen ändern · Diagrammfarben im
+Erstellungsprozess wählbar · Formen in den Hintergrund legen (hinter Text) ·
+Tabellen-Formatierung in die Einstellungs-Seitenleiste statt Rechtsklick-Chaos ·
+Tabellenränder mit unterschiedlicher Dicke/Art · Text-Presets auch für Kopf-/
+Fußzeile, Titel, Zitate · ausgeklappte Auflistungs-Menüs wirken buggy + Kontraste
+stimmen nicht (fixen).
+*Whiteboard:* Rotieren UND Größe-Ändern der Auswahl „funktioniert noch nicht"
+(Nutzer) → prüfen/fixen · Verschieben (V)-Icon zu **hohlem** Mauszeiger (nur Rand) ·
+Lasso mit Verschieben (V) zu einer klappbaren Gruppe (wie die Stifte: nur Lasso
+zeigen, Rest bei Nutzung) · Toolbar neu ordnen: **Hand (H) → Stift (S) → Radierer
+(E) → Lasso (L)**, Rest beibehalten.
+
+**⚠️ Bewusst vertagt (nicht vergessen):**
+- **Rotieren von Auswahl-Objekten (Whiteboard):** sauber ginge es nur für strich-
+  basierte Objekte (Punkte drehen); Rechtecke/Ellipsen/Text/Bilder/Notizzettel
+  bräuchten ein `Rotation`-Feld je Element **plus** rotationsfähiges Rendering,
+  Hit-Test, Bounds und Export über alle Zeichenpfade (interaktiv UND `PdfExporter`).
+  Großer, invasiver Umbau. **Skalieren** ist umgesetzt (`WbElement.Scale`,
+  `ScaleElementsAction`, Eckgriff an der Auswahl-Umrandung) — falls der Nutzer sagt
+  „geht nicht", zuerst prüfen, ob der Griff gefunden/gezeichnet wird.
 - **Grammatik-/Satzbauprüfung (Text-Editor, „blaue" Markierung):** Die WPF-
   `RichTextBox` bringt nur Rechtschreibung mit (rote Wellenlinie, Vorschläge jetzt
   im Kontextmenü). Eine echte Grammatikprüfung gibt es in .NET nicht eingebaut;

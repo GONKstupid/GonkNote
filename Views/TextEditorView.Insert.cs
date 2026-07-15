@@ -336,8 +336,42 @@ public partial class TextEditorView
 
     // ==================== Kontextmenü (inkl. Tabellen-Werkzeuge) ====================
 
+    private readonly List<object> _spellItems = new();
+
     private void Editor_ContextMenuOpening(object s, ContextMenuEventArgs e)
     {
+        // Zuvor eingefügte Rechtschreib-Einträge entfernen
+        foreach (var it in _spellItems) EditorMenu.Items.Remove(it);
+        _spellItems.Clear();
+
+        // Rechtschreib-Vorschläge zuoberst, falls das Wort unter dem Cursor falsch ist
+        var error = Editor.GetSpellingError(Editor.CaretPosition);
+        if (error != null)
+        {
+            int idx = 0;
+            var suggestions = error.Suggestions.ToList();
+            if (suggestions.Count == 0)
+            {
+                var none = new MenuItem { Header = "Keine Vorschläge", IsEnabled = false };
+                EditorMenu.Items.Insert(idx++, none); _spellItems.Add(none);
+            }
+            else
+            {
+                foreach (var sug in suggestions.Take(6))
+                {
+                    string replacement = sug;
+                    var mi = new MenuItem { Header = replacement, FontWeight = FontWeights.SemiBold };
+                    mi.Click += (_, _) => { error.Correct(replacement); MarkDirty(); };
+                    EditorMenu.Items.Insert(idx++, mi); _spellItems.Add(mi);
+                }
+            }
+            var ignore = new MenuItem { Header = "Alle ignorieren" };
+            ignore.Click += (_, _) => error.IgnoreAll();
+            EditorMenu.Items.Insert(idx++, ignore); _spellItems.Add(ignore);
+            var sep = new Separator();
+            EditorMenu.Items.Insert(idx++, sep); _spellItems.Add(sep);
+        }
+
         bool inTable = CurrentCell() != null;
         MenuTable.Visibility = inTable ? Visibility.Visible : Visibility.Collapsed;
         MenuTableSep.Visibility = MenuTable.Visibility;

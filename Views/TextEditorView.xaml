@@ -271,38 +271,30 @@
                         </Button.ContextMenu>
                     </Button>
 
-                    <!-- Ein Sammel-Button für Listen &amp; Einzug -->
-                    <Button x:Name="BtnList" Style="{StaticResource DropButton}" Click="OpenDropdown_Click"
-                            ToolTip="Listen und Einzug" AutomationProperties.Name="Listen und Einzug">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="&#xE8FD;" FontFamily="{StaticResource IconFont}"
-                                       FontSize="15" VerticalAlignment="Center"/>
-                            <TextBlock Text="&#xE70D;" FontFamily="{StaticResource IconFont}" FontSize="8"
-                                       Margin="5,0,0,0" VerticalAlignment="Center"
-                                       Foreground="{DynamicResource Brush.TextMuted}"/>
-                        </StackPanel>
-                        <Button.ContextMenu>
-                            <ContextMenu>
-                                <MenuItem Header="• Aufzählung" Command="EditingCommands.ToggleBullets"
-                                          CommandTarget="{Binding ElementName=Editor}"/>
-                                <MenuItem Header="1. Nummerierte Liste" Command="EditingCommands.ToggleNumbering"
-                                          CommandTarget="{Binding ElementName=Editor}"/>
-                                <Separator/>
-                                <MenuItem Header="Einzug vergrößern" Command="EditingCommands.IncreaseIndentation"
-                                          CommandTarget="{Binding ElementName=Editor}"/>
-                                <MenuItem Header="Einzug verkleinern" Command="EditingCommands.DecreaseIndentation"
-                                          CommandTarget="{Binding ElementName=Editor}"/>
-                            </ContextMenu>
-                        </Button.ContextMenu>
-                    </Button>
+                    <!-- Aufzählung: Split-Button (Klick = umschalten, Pfeil = Stil-Bibliothek) -->
+                    <Button x:Name="BtnBullets" Style="{StaticResource IconButton}" Height="30" Content="&#xE8FD;"
+                            ToolTip="Aufzählung" Click="ToggleBullets_Click"
+                            AutomationProperties.Name="Aufzählung"/>
+                    <Button Style="{StaticResource IconButton}" Height="30" Width="16" Content="&#xE70D;" FontSize="8"
+                            ToolTip="Aufzählungszeichen wählen" Click="OpenBulletLibrary_Click"/>
 
-                    <ComboBox x:Name="SpacingCombo" Width="58" Margin="4,0,0,0" SelectionChanged="Spacing_Changed"
-                              ToolTip="Zeilenabstand">
-                        <ComboBoxItem Content="1,0" Tag="1.0" IsSelected="True"/>
-                        <ComboBoxItem Content="1,15" Tag="1.15"/>
-                        <ComboBoxItem Content="1,5" Tag="1.5"/>
-                        <ComboBoxItem Content="2,0" Tag="2.0"/>
-                    </ComboBox>
+                    <!-- Nummerierung: Split-Button -->
+                    <Button x:Name="BtnNumbering" Style="{StaticResource IconButton}" Height="30" FontFamily="Segoe UI"
+                            Content="№" ToolTip="Nummerierte Liste" Click="ToggleNumbering_Click"
+                            AutomationProperties.Name="Nummerierte Liste"/>
+                    <Button Style="{StaticResource IconButton}" Height="30" Width="16" Content="&#xE70D;" FontSize="8"
+                            ToolTip="Nummerierungsart wählen" Click="OpenNumberLibrary_Click"/>
+
+                    <Button Style="{StaticResource IconButton}" Height="30" ToolTip="Einzug vergrößern"
+                            Click="IndentInc_Click">
+                        <Path Style="{StaticResource PathIcon}" Data="{StaticResource Icon.IndentInc}"
+                              Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                    </Button>
+                    <Button Style="{StaticResource IconButton}" Height="30" ToolTip="Einzug verkleinern"
+                            Click="IndentDec_Click">
+                        <Path Style="{StaticResource PathIcon}" Data="{StaticResource Icon.IndentDec}"
+                              Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                    </Button>
 
                     <Border Style="{StaticResource GroupSep}"/>
 
@@ -339,21 +331,27 @@
 
                     <Border Style="{StaticResource GroupSep}"/>
 
-                    <Button Style="{StaticResource LabelButton}" Click="InsertLink_Click"
-                            AutomationProperties.Name="Link einfügen">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="&#xE71B;" FontFamily="{StaticResource IconFont}" VerticalAlignment="Center"/>
-                            <TextBlock Text="Link" Margin="6,0,0,0"/>
-                        </StackPanel>
-                    </Button>
                     <ToggleButton x:Name="BtnSymbols" Style="{StaticResource ToolButton}" Width="Auto" Height="30"
                                   Click="ToggleSymbols_Click" ToolTip="Sonderzeichen einfügen"
                                   AutomationProperties.Name="Sonderzeichen">
                         <TextBlock Text=" Ω Symbol " FontFamily="Segoe UI"/>
                     </ToggleButton>
-                    <Button Style="{StaticResource LabelButton}" Content="Beschriftung" Click="InsertCaption_Click"
-                            ToolTip="Bildunterschrift „Abbildung N: …“ unter dem Bild/Absatz einfügen"
-                            AutomationProperties.Name="Beschriftung einfügen"/>
+                    <Button Style="{StaticResource LabelButton}" Click="OpenShapes_Click"
+                            ToolTip="Form einfügen (Vektorform in Akzentfarbe)"
+                            AutomationProperties.Name="Formen">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE739;" FontFamily="{StaticResource IconFont}" VerticalAlignment="Center"/>
+                            <TextBlock Text="Formen" Margin="6,0,0,0"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource LabelButton}" Click="OpenChart_Click"
+                            ToolTip="Diagramm aus eigenen Werten einfügen (Balken, Linie, Kuchen)"
+                            AutomationProperties.Name="Diagramm">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE9D2;" FontFamily="{StaticResource IconFont}" VerticalAlignment="Center"/>
+                            <TextBlock Text="Diagramm" Margin="6,0,0,0"/>
+                        </StackPanel>
+                    </Button>
 
                     <Border Style="{StaticResource GroupSep}"/>
 
@@ -411,6 +409,15 @@
                     <TextBox x:Name="SpaceAfter" Style="{StaticResource NumBox}" LostFocus="ParaSpacing_Changed" KeyDown="NumBox_KeyDown"/>
                     <TextBlock Text="pt" Style="{StaticResource RibbonLabel}"/>
 
+                    <TextBlock Text="Zeilenabstand" Style="{StaticResource RibbonLabel}"/>
+                    <ComboBox x:Name="SpacingCombo" Width="58" SelectionChanged="Spacing_Changed"
+                              ToolTip="Zeilenabstand">
+                        <ComboBoxItem Content="1,0" Tag="1.0" IsSelected="True"/>
+                        <ComboBoxItem Content="1,15" Tag="1.15"/>
+                        <ComboBoxItem Content="1,5" Tag="1.5"/>
+                        <ComboBoxItem Content="2,0" Tag="2.0"/>
+                    </ComboBox>
+
                     <Border Style="{StaticResource GroupSep}"/>
 
                     <Button Style="{StaticResource LabelButton}" Content="Hintergrundbild…" Click="PickWatermark_Click"
@@ -450,13 +457,33 @@
 
                     <Border Style="{StaticResource GroupSep}"/>
 
-                    <Button Style="{StaticResource LabelButton}" Content="Beschriftung" Click="InsertCaption_Click"/>
-                    <Button Style="{StaticResource LabelButton}" Content="Link" Click="InsertLink_Click"/>
+                    <Button Style="{StaticResource LabelButton}" Click="InsertLink_Click"
+                            ToolTip="Hyperlink einfügen/bearbeiten" AutomationProperties.Name="Link einfügen">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE71B;" FontFamily="{StaticResource IconFont}" VerticalAlignment="Center"/>
+                            <TextBlock Text="Link" Margin="6,0,0,0"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource LabelButton}" Click="InsertCaption_Click"
+                            ToolTip="Bildunterschrift „Abbildung N: …“ unter dem Bild/Absatz einfügen"
+                            AutomationProperties.Name="Beschriftung einfügen">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE7C3;" FontFamily="{StaticResource IconFont}" VerticalAlignment="Center"/>
+                            <TextBlock Text="Beschriftung" Margin="6,0,0,0"/>
+                        </StackPanel>
+                    </Button>
 
-                    <Border Style="{StaticResource GroupSep}"/>
-
-                    <TextBlock Style="{StaticResource RibbonLabel}"
-                               Text="Hinweis: Beim DOCX-Export wird das Verzeichnis zum echten Word-Feld (mit Seitenzahlen)."/>
+                    <!-- Hinweis hinter Info-i (nur bei Hover/Klick) -->
+                    <Button Style="{StaticResource IconButton}" Height="30" Width="26" Content="&#xE946;"
+                            Foreground="{DynamicResource Brush.TextMuted}" ToolTipService.InitialShowDelay="150"
+                            ToolTipService.ShowDuration="20000" AutomationProperties.Name="Hinweis Verweise">
+                        <Button.ToolTip>
+                            <ToolTip MaxWidth="320">
+                                <TextBlock TextWrapping="Wrap"
+                                           Text="Beim DOCX-Export wird das Inhaltsverzeichnis zu einem echten Word-Feld (mit Seitenzahlen, aktualisiert sich beim Öffnen). Überschriften 1–4 erscheinen automatisch im Verzeichnis."/>
+                            </ToolTip>
+                        </Button.ToolTip>
+                    </Button>
                 </WrapPanel>
             </StackPanel>
         </Border>
@@ -680,6 +707,54 @@
                         <DropShadowEffect BlurRadius="12" ShadowDepth="2" Opacity="0.25"/>
                     </Border.Effect>
                     <WrapPanel x:Name="SymbolGrid" Width="308"/>
+                </Border>
+            </Popup>
+
+            <!-- Formen-Palette -->
+            <Popup x:Name="ShapesPopup" Placement="Bottom" StaysOpen="False"
+                   AllowsTransparency="True" PopupAnimation="Fade">
+                <Border Background="{DynamicResource Brush.CardBg}" BorderBrush="{DynamicResource Brush.Border}"
+                        BorderThickness="1" CornerRadius="8" Padding="10" Margin="6">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="12" ShadowDepth="2" Opacity="0.25"/>
+                    </Border.Effect>
+                    <StackPanel>
+                        <TextBlock Text="Formen" FontWeight="SemiBold" Margin="2,0,0,8"
+                                   Foreground="{DynamicResource Brush.Text}"/>
+                        <WrapPanel x:Name="ShapesGrid" Width="272"/>
+                    </StackPanel>
+                </Border>
+            </Popup>
+
+            <!-- Aufzählungszeichen-Bibliothek -->
+            <Popup x:Name="BulletPopup" Placement="Bottom" StaysOpen="False"
+                   AllowsTransparency="True" PopupAnimation="Fade">
+                <Border Background="{DynamicResource Brush.CardBg}" BorderBrush="{DynamicResource Brush.Border}"
+                        BorderThickness="1" CornerRadius="8" Padding="10" Margin="6">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="12" ShadowDepth="2" Opacity="0.25"/>
+                    </Border.Effect>
+                    <StackPanel>
+                        <TextBlock Text="Aufzählungszeichen" FontWeight="SemiBold" Margin="2,0,0,8"
+                                   Foreground="{DynamicResource Brush.Text}"/>
+                        <WrapPanel x:Name="BulletGrid" Width="228"/>
+                    </StackPanel>
+                </Border>
+            </Popup>
+
+            <!-- Nummerierungs-Bibliothek -->
+            <Popup x:Name="NumberPopup" Placement="Bottom" StaysOpen="False"
+                   AllowsTransparency="True" PopupAnimation="Fade">
+                <Border Background="{DynamicResource Brush.CardBg}" BorderBrush="{DynamicResource Brush.Border}"
+                        BorderThickness="1" CornerRadius="8" Padding="10" Margin="6">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="12" ShadowDepth="2" Opacity="0.25"/>
+                    </Border.Effect>
+                    <StackPanel>
+                        <TextBlock Text="Nummerierung" FontWeight="SemiBold" Margin="2,0,0,8"
+                                   Foreground="{DynamicResource Brush.Text}"/>
+                        <WrapPanel x:Name="NumberGrid" Width="228"/>
+                    </StackPanel>
                 </Border>
             </Popup>
         </Grid>

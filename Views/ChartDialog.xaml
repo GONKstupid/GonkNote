@@ -1,0 +1,51 @@
+<Window x:Class="GonkNote.Views.ChartDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Diagramm einfügen" Width="560" SizeToContent="Height"
+        WindowStartupLocation="CenterOwner" ResizeMode="NoResize"
+        Background="{DynamicResource Brush.WindowBg}"
+        FontFamily="Segoe UI" FontSize="13"
+        Foreground="{DynamicResource Brush.Text}"
+        ShowInTaskbar="False">
+    <StackPanel Margin="18">
+        <DockPanel Margin="0,0,0,10">
+            <TextBlock Text="Typ" Width="120" VerticalAlignment="Center"
+                       Foreground="{DynamicResource Brush.TextMuted}"/>
+            <ComboBox x:Name="TypeCombo" SelectionChanged="Input_Changed">
+                <ComboBoxItem Content="Balken (Säulen)" Tag="bar" IsSelected="True"/>
+                <ComboBoxItem Content="Linie" Tag="line"/>
+                <ComboBoxItem Content="Kuchen" Tag="pie"/>
+            </ComboBox>
+        </DockPanel>
+        <DockPanel Margin="0,0,0,10">
+            <TextBlock Text="Titel" Width="120" VerticalAlignment="Center"
+                       Foreground="{DynamicResource Brush.TextMuted}"/>
+            <TextBox x:Name="TitleBox" Text="Diagramm" TextChanged="Input_Changed"/>
+        </DockPanel>
+        <DockPanel Margin="0,0,0,10">
+            <TextBlock Text="Beschriftungen" Width="120" VerticalAlignment="Center"
+                       Foreground="{DynamicResource Brush.TextMuted}"/>
+            <TextBox x:Name="LabelsBox" Text="Jan, Feb, Mär, Apr" TextChanged="Input_Changed"
+                     ToolTip="durch Komma getrennt"/>
+        </DockPanel>
+        <DockPanel Margin="0,0,0,4">
+            <TextBlock Text="Werte" Width="120" VerticalAlignment="Center"
+                       Foreground="{DynamicResource Brush.TextMuted}"/>
+            <TextBox x:Name="ValuesBox" Text="4, 7, 3, 9" TextChanged="Input_Changed"
+                     ToolTip="durch Komma getrennt, dieselbe Anzahl wie Beschriftungen"/>
+        </DockPanel>
+        <TextBlock x:Name="ErrorText" Foreground="#EF4444" FontSize="12" Margin="120,0,0,0" TextWrapping="Wrap"/>
+
+        <Border Background="{DynamicResource Brush.CardBg}" BorderBrush="{DynamicResource Brush.Border}"
+                BorderThickness="1" CornerRadius="8" Margin="0,12,0,0" Height="240">
+            <Image x:Name="Preview" Margin="8"/>
+        </Border>
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+            <Button Content="Abbrechen" Style="{StaticResource FlatButton}" MinWidth="90"
+                    IsCancel="True" Margin="0,0,8,0"/>
+            <Button Content="Einfügen" Style="{StaticResource AccentButton}" MinWidth="110"
+                    Click="Ok_Click" IsDefault="True"/>
+        </StackPanel>
+    </StackPanel>
+</Window>

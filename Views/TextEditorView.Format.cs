@@ -136,6 +136,10 @@ public partial class TextEditorView
         object Foreground, object Background, object Decorations, object Baseline);
 
     private PainterFormat? _painterFormat;
+    // Auswahl, aus der das Format aufgenommen wurde: erst eine ANDERE Auswahl darf
+    // es empfangen (sonst wendete der Fokuswechsel es sofort auf sich selbst an).
+    private TextPointer? _painterFromStart;
+    private TextPointer? _painterFromEnd;
 
     private void FormatPainter_Click(object s, RoutedEventArgs e)
     {
@@ -155,6 +159,8 @@ public partial class TextEditorView
             sel.GetPropertyValue(TextElement.BackgroundProperty),
             sel.GetPropertyValue(Inline.TextDecorationsProperty),
             sel.GetPropertyValue(Inline.BaselineAlignmentProperty));
+        _painterFromStart = sel.Start;
+        _painterFromEnd = sel.End;
         Editor.Focus();
     }
 
@@ -163,6 +169,12 @@ public partial class TextEditorView
     {
         if (_painterFormat is not { } fmt || BtnFormatPainter.IsChecked != true) return false;
         if (Editor.Selection.IsEmpty) return false;
+
+        // Nicht auf die Quell-Auswahl selbst anwenden (Fokuswechsel feuert SelectionChanged)
+        if (_painterFromStart != null && _painterFromEnd != null &&
+            Editor.Selection.Start.CompareTo(_painterFromStart) == 0 &&
+            Editor.Selection.End.CompareTo(_painterFromEnd) == 0)
+            return false;
 
         var sel = Editor.Selection;
         void Apply(DependencyProperty prop, object value)

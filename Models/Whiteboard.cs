@@ -13,6 +13,7 @@ public enum ToolType
     Text,
     Shape,
     Sticky,
+    Sticker,  // Bild-Aufkleber aus der Sammlung
     Pan,      // Hand (H): Leinwand verschieben
 }
 
@@ -65,6 +66,9 @@ public abstract class WbElement
     public Guid Id { get; set; } = Guid.NewGuid();
 
     public abstract void Translate(float dx, float dy);
+
+    /// <summary>Skaliert die Geometrie um den Faktor <paramref name="f"/> herum um den Pivot (px,py).</summary>
+    public abstract void Scale(float f, float px, float py);
 }
 
 /// <summary>
@@ -90,6 +94,12 @@ public class StrokeElement : WbElement
     {
         foreach (var p in Points) { p.X += dx; p.Y += dy; }
     }
+
+    public override void Scale(float f, float px, float py)
+    {
+        foreach (var p in Points) { p.X = px + (p.X - px) * f; p.Y = py + (p.Y - py) * f; }
+        Width *= f;
+    }
 }
 
 public class ShapeElement : WbElement
@@ -107,6 +117,13 @@ public class ShapeElement : WbElement
     public override void Translate(float dx, float dy)
     {
         X1 += dx; X2 += dx; Y1 += dy; Y2 += dy;
+    }
+
+    public override void Scale(float f, float px, float py)
+    {
+        X1 = px + (X1 - px) * f; Y1 = py + (Y1 - py) * f;
+        X2 = px + (X2 - px) * f; Y2 = py + (Y2 - py) * f;
+        StrokeWidth *= f;
     }
 }
 
@@ -127,6 +144,12 @@ public class TextElement : WbElement
     {
         X += dx; Y += dy;
     }
+
+    public override void Scale(float f, float px, float py)
+    {
+        X = px + (X - px) * f; Y = py + (Y - py) * f;
+        FontSize = Math.Max(4f, FontSize * f);
+    }
 }
 
 /// <summary>
@@ -145,6 +168,12 @@ public class ImageElement : WbElement, IBoxElement
     public override void Translate(float dx, float dy)
     {
         X += dx; Y += dy;
+    }
+
+    public override void Scale(float f, float px, float py)
+    {
+        X = px + (X - px) * f; Y = py + (Y - py) * f;
+        Width *= f; Height *= f;
     }
 }
 
@@ -169,6 +198,14 @@ public class StickyNoteElement : WbElement, IBoxElement
     public override void Translate(float dx, float dy)
     {
         X += dx; Y += dy;
+    }
+
+    public override void Scale(float f, float px, float py)
+    {
+        X = px + (X - px) * f; Y = py + (Y - py) * f;
+        Width = Math.Max(60f, Width * f);
+        Height = Math.Max(60f, Height * f);
+        FontSize = Math.Max(6f, FontSize * f);
     }
 }
 

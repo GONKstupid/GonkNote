@@ -55,6 +55,9 @@
                                   ToolTip="Formen (F)" Checked="Tool_Checked" Tag="Shape"/>
                     <ToggleButton x:Name="BtnSticky" Style="{StaticResource ToolButton}" Content="&#xE70B;"
                                   ToolTip="Notizzettel (N) – farbigen Klebezettel setzen" Checked="Tool_Checked" Tag="Sticky"/>
+                    <ToggleButton x:Name="BtnSticker" Style="{StaticResource ToolButton}" Content="&#xE76E;"
+                                  AutomationProperties.Name="Sticker"
+                                  ToolTip="Sticker – Bild-Aufkleber aus der Sammlung einfügen" Checked="Tool_Checked" Tag="Sticker"/>
                     <ToggleButton x:Name="BtnPan" Style="{StaticResource ToolButton}"
                                   AutomationProperties.Name="Hand"
                                   ToolTip="Hand (H) – Leinwand verschieben (oder mittlere Maustaste)"
@@ -366,9 +369,28 @@
                                 <Button Style="{StaticResource IconButton}" ToolTip="Eigene Zettelfarbe wählen"
                                         Click="StickyColorPick_Click" Content="&#xE790;"/>
                             </StackPanel>
-                            <TextBlock Text="Zum Setzen aufs Blatt tippen, dann tippen zum Beschriften. Verschieben/Skalieren mit dem Lasso."
+                            <TextBlock Text="Zum Setzen aufs Blatt tippen, dann tippen zum Beschriften. Verschieben/Skalieren mit dem Verschieben- oder Lasso-Werkzeug."
                                        Foreground="{DynamicResource Brush.TextMuted}" FontSize="11"
                                        TextWrapping="Wrap" Margin="0,0,0,12"/>
+                        </StackPanel>
+                        </Expander>
+
+                        <!-- Sticker (Bild-Aufkleber) -->
+                        <Expander x:Name="StickerSection" Header="Sticker" IsExpanded="True" Visibility="Collapsed">
+                        <StackPanel>
+                            <TextBlock Text="Klick fügt den Sticker mittig aufs Blatt ein. Danach mit dem Verschieben-Werkzeug (V) platzieren und skalieren."
+                                       Foreground="{DynamicResource Brush.TextMuted}" FontSize="11"
+                                       TextWrapping="Wrap" Margin="0,0,0,8"/>
+                            <ScrollViewer MaxHeight="300" VerticalScrollBarVisibility="Auto">
+                                <WrapPanel x:Name="StickerGrid"/>
+                            </ScrollViewer>
+                            <Button Style="{StaticResource FlatButton}" HorizontalAlignment="Left" Margin="0,8,0,0"
+                                    Click="AddSticker_Click" AutomationProperties.Name="Sticker hinzufügen">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="&#xE710;" FontFamily="{StaticResource IconFont}" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Sticker hinzufügen" Margin="6,0,0,0"/>
+                                </StackPanel>
+                            </Button>
                         </StackPanel>
                         </Expander>
 

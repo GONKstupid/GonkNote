@@ -149,6 +149,29 @@ public sealed class ResizeBoxAction : IEditAction
     public void Undo(WbPage page) { _element.Width = _oldW; _element.Height = _oldH; }
 }
 
+/// <summary>Gleichmäßiges Skalieren einer Auswahl um einen Pivot (Lasso-/Verschieben-Griff).</summary>
+public sealed class ScaleElementsAction : IEditAction
+{
+    private readonly List<WbElement> _elements;
+    private readonly float _factor, _px, _py;
+
+    public ScaleElementsAction(IEnumerable<WbElement> elements, float factor, float px, float py)
+    {
+        _elements = elements.ToList();
+        _factor = factor; _px = px; _py = py;
+    }
+
+    public void Redo(WbPage page)
+    {
+        foreach (var el in _elements) el.Scale(_factor, _px, _py);
+    }
+
+    public void Undo(WbPage page)
+    {
+        foreach (var el in _elements) el.Scale(1f / _factor, _px, _py);
+    }
+}
+
 public sealed class StickyTextChangeAction : IEditAction
 {
     private readonly StickyNoteElement _element;

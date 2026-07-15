@@ -61,6 +61,12 @@ public partial class WhiteboardView : UserControl
     private IBoxElement? _resizingBox;
     private float _resizeW0, _resizeH0;
 
+    // Gleichmäßige Skalierung einer beliebigen Auswahl (Striche/Formen/mehrere Objekte)
+    private bool _scalingSelection;
+    private SKPoint _scalePivot;      // Ankerpunkt (oben links der Auswahl)
+    private float _scaleStartDist;    // Abstand Pivot→Zeiger beim Anfassen
+    private float _scaleAccum = 1f;   // bisher angewandter Gesamtfaktor (für Undo)
+
     // Texteingabe (Textfeld)
     private TextElement? _editingText;
     private bool _editingIsNew;
@@ -95,7 +101,7 @@ public partial class WhiteboardView : UserControl
     private const float RulerAngleStep = 15f;
     private const float RulerAngleSnapTol = 4f;
 
-    private ToggleButton[] ToolButtons => new[] { BtnPen, BtnSmoothPen, BtnPencil, BtnHighlighter, BtnEraser, BtnMove, BtnLasso, BtnText, BtnShape, BtnSticky, BtnPan };
+    private ToggleButton[] ToolButtons => new[] { BtnPen, BtnSmoothPen, BtnPencil, BtnHighlighter, BtnEraser, BtnMove, BtnLasso, BtnText, BtnShape, BtnSticky, BtnSticker, BtnPan };
     private ToggleButton[] ShapeButtons => new[] { BtnShapeLine, BtnShapeArrow, BtnShapeRect, BtnShapeEllipse, BtnShapeTriangle };
     private ToggleButton[] PenButtons => new[] { BtnPen, BtnSmoothPen, BtnPencil, BtnHighlighter };
 
@@ -250,6 +256,13 @@ public partial class WhiteboardView : UserControl
             StickySection.IsExpanded = true;
             SettingsPanel.Visibility = Visibility.Visible;
         }
+        else if (tool == ToolType.Sticker)
+        {
+            EnsureStickersLoaded();
+            RefreshSettingsPanel();
+            StickerSection.IsExpanded = true;
+            SettingsPanel.Visibility = Visibility.Visible;
+        }
         else if (SettingsPanel.Visibility == Visibility.Visible)
         {
             // Sichtbarkeit der werkzeugspezifischen Sektionen ans neue Werkzeug anpassen
@@ -263,6 +276,7 @@ public partial class WhiteboardView : UserControl
             ToolType.Text => Cursors.IBeam,
             ToolType.Shape => Cursors.Cross,
             ToolType.Sticky => Cursors.Cross,
+            ToolType.Sticker => Cursors.Arrow,
             ToolType.Pan => Cursors.Hand,
             ToolType.Move => Cursors.Arrow,
             _ => Cursors.Arrow,
@@ -695,6 +709,15 @@ public partial class WhiteboardView : UserControl
                     _resizeW0 = rb.Width;
                     _resizeH0 = rb.Height;
                 }
+                else if (_selection.Count > 0 && !(_selection.Count == 1 && _selection.First() is IBoxElement)
+                         && HitSelectionScaleHandle(c))
+                {
+                    // Gleichmäßig skalieren (Striche/Formen/Mehrfachauswahl)
+                    _scalingSelection = true;
+                    _scalePivot = new SKPoint(_selectionBounds.Left, _selectionBounds.Top);
+                    _scaleStartDist = Math.Max(1f, SKPoint.Distance(_scalePivot, c));
+                    _scaleAccum = 1f;
+                }
                 else if (_selection.Count > 0 && InflatedSelectionBounds().Contains(c))
                 {
                     _movingSelection = true;
@@ -819,6 +842,18 @@ public partial class WhiteboardView : UserControl
                     rNote.Height = Math.Max(60f, c.Y - rNote.Y);
                     ComputeSelectionBounds();
                 }
+                else if (_scalingSelection)
+                {
+                    float dist = SKPoint.Distance(_scalePivot, c);
+                    float target = Math.Max(0.05f, dist / _scaleStartDist);   // Gesamtfaktor seit Anfassen
+                    float step = target / _scaleAccum;                         // relativer Schritt
+                    if (step > 0.001f && MathF.Abs(step - 1f) > 0.0001f)
+                    {
+                        foreach (var el in _selection) el.Scale(step, _scalePivot.X, _scalePivot.Y);
+                        _scaleAccum = target;
+                        ComputeSelectionBounds();
+                    }
+                }
                 else if (_movingSelection)
                 {
                     float dx = c.X - _moveLast.X, dy = c.Y - _moveLast.Y;
@@ -888,6 +923,16 @@ public partial class WhiteboardView : UserControl
                     if (Math.Abs(box.Width - _resizeW0) > 0.01f || Math.Abs(box.Height - _resizeH0) > 0.01f)
                     {
                         _vm.Undo.Push(_page, new ResizeBoxAction(box, _resizeW0, _resizeH0, box.Width, box.Height));
+                        MarkDirty();
+                    }
+                    ComputeSelectionBounds();
+                }
+                else if (_scalingSelection)
+                {
+                    _scalingSelection = false;
+                    if (Math.Abs(_scaleAccum - 1f) > 0.001f)
+                    {
+                        _vm.Undo.Push(_page, new ScaleElementsAction(_selection, _scaleAccum, _scalePivot.X, _scalePivot.Y));
                         MarkDirty();
                     }
                     ComputeSelectionBounds();
@@ -1317,6 +1362,7 @@ public partial class WhiteboardView : UserControl
         ShapeSection.Visibility = _tool == ToolType.Shape ? Visibility.Visible : Visibility.Collapsed;
         // Notizzettel-Sektion nur bei aktivem Notizzettel-Werkzeug
         StickySection.Visibility = _tool == ToolType.Sticky ? Visibility.Visible : Visibility.Collapsed;
+        StickerSection.Visibility = _tool == ToolType.Sticker ? Visibility.Visible : Visibility.Collapsed;
 
         bool paged = !_page.IsInfinite;
         SetSizeSection.Visibility = paged ? Visibility.Visible : Visibility.Collapsed;
@@ -2099,6 +2145,15 @@ public partial class WhiteboardView : UserControl
     {
         float r = 12f / Zoom;
         float dx = c.X - (box.X + box.Width), dy = c.Y - (box.Y + box.Height);
+        return dx * dx + dy * dy <= r * r;
+    }
+
+    /// <summary>Skalier-Griff unten rechts an der (aufgeblähten) Auswahl-Umrandung.</summary>
+    private bool HitSelectionScaleHandle(SKPoint c)
+    {
+        var b = InflatedSelectionBounds();
+        float r = 12f / Zoom;
+        float dx = c.X - b.Right, dy = c.Y - b.Bottom;
         return dx * dx + dy * dy <= r * r;
     }
 
@@ -3766,22 +3821,24 @@ public partial class WhiteboardView : UserControl
             };
             canvas.DrawRect(b, stroke);
 
-            // Eckgriff zum Skalieren (bei einzelnem Box-Element: Bild oder Notizzettel)
+            // Eckgriff zum Skalieren
+            float hs = 5f / Zoom;
+            SKRect handleRect;
             if (_selection.Count == 1 && _selection.First() is IBoxElement selBox)
+                // Einzelnes Box-Element: Griff exakt an der Bild-/Zettel-Ecke
+                handleRect = SKRect.Create(selBox.X + selBox.Width - hs, selBox.Y + selBox.Height - hs, hs * 2, hs * 2);
+            else
+                // Striche/Formen/Mehrfachauswahl: Griff an der Auswahl-Umrandung
+                handleRect = SKRect.Create(b.Right - hs, b.Bottom - hs, hs * 2, hs * 2);
+
+            using (var hf = new SKPaint { Color = accent, IsAntialias = true })
+                canvas.DrawRect(handleRect, hf);
+            using (var hw = new SKPaint
             {
-                float hs = 5f / Zoom;
-                var hr = SKRect.Create(selBox.X + selBox.Width - hs, selBox.Y + selBox.Height - hs, hs * 2, hs * 2);
-                using var hf = new SKPaint { Color = accent, IsAntialias = true };
-                canvas.DrawRect(hr, hf);
-                using var hw = new SKPaint
-                {
-                    Color = SKColors.White,
-                    Style = SKPaintStyle.Stroke,
-                    StrokeWidth = 1.2f / Zoom,
-                    IsAntialias = true,
-                };
-                canvas.DrawRect(hr, hw);
-            }
+                Color = SKColors.White, Style = SKPaintStyle.Stroke,
+                StrokeWidth = 1.2f / Zoom, IsAntialias = true,
+            })
+                canvas.DrawRect(handleRect, hw);
         }
 
         // Radierer-Cursor

@@ -41,6 +41,8 @@
          Resource, damit auch Nicht-WPF-Harnesses sie laden können -->
     <EmbeddedResource Include="Assets\Geodreieck-Light.svg" />
     <EmbeddedResource Include="Assets\Geodreieck-Dark.svg" />
+    <!-- Basis-Sticker: neben die Exe kopieren; Nutzer-Sticker liegen in %APPDATA% -->
+    <Content Include="Assets\Stickers\*.png" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

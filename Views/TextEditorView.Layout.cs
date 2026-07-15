@@ -54,6 +54,23 @@ public partial class TextEditorView
         }
     }
 
+    // ==================== Einstellungs-Seitenleiste ====================
+
+    private void OpenSettings(Expander section)
+    {
+        SettingsPanel.Visibility = Visibility.Visible;
+        // nur die gewählte Sektion aufklappen, die anderen zu
+        SecMargins.IsExpanded = section == SecMargins;
+        SecSpacing.IsExpanded = section == SecSpacing;
+        SecWatermark.IsExpanded = section == SecWatermark;
+        section.BringIntoView();
+    }
+
+    private void OpenMargins_Click(object s, RoutedEventArgs e) => OpenSettings(SecMargins);
+    private void OpenSpacing_Click(object s, RoutedEventArgs e) => OpenSettings(SecSpacing);
+    private void OpenWatermark_Click(object s, RoutedEventArgs e) => OpenSettings(SecWatermark);
+    private void CloseSettings_Click(object s, RoutedEventArgs e) => SettingsPanel.Visibility = Visibility.Collapsed;
+
     // ==================== Papierformat & Orientierung ====================
 
     private void PageFormat_Changed(object s, SelectionChangedEventArgs e)

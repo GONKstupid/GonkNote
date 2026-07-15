@@ -71,41 +71,65 @@ public partial class TextEditorView
 
     private readonly List<Button> _styleCards = new();
 
+    // Nur diese Vorlagen liegen bei knappem Platz direkt in der Leiste; der Rest
+    // steckt im Aufklapp-Flyout (Nutzer-Wunsch: bei offener Ordner-Seitenleiste
+    // sollen nur 3 Kacheln sichtbar sein).
+    private static readonly string[] InlineStyleNames = { "Standard", "Überschrift 1", "Überschrift 2" };
+
     private void BuildStyleGallery()
     {
         foreach (var style in TextStyles.All)
         {
-            var preview = new TextBlock
+            // Karte für die Leiste (nur die drei Inline-Vorlagen)
+            if (InlineStyleNames.Contains(style.Name))
             {
-                Text = style.Name,
-                FontFamily = new FontFamily("Segoe UI"),
-                FontSize = Math.Min(14, style.Size * 0.5 + 4),
-                FontWeight = style.Weight,
-                FontStyle = style.Style,
-                TextAlignment = TextAlignment.Center,
-                TextWrapping = TextWrapping.Wrap,
-            };
-            if (style.ColorHex != null)
-                preview.Foreground = new SolidColorBrush(
-                    (Color)ColorConverter.ConvertFromString(style.ColorHex));
-            else
-                preview.SetResourceReference(TextBlock.ForegroundProperty, "InkBrush");
-
-            var card = new Button
-            {
-                Style = (Style)FindResource("StyleCard"),
-                Content = preview,
-                Tag = style,
-                ToolTip = style.HeadingLevel > 0
-                    ? $"{style.Name} (Strg+Alt+{style.HeadingLevel}) – erscheint im Inhaltsverzeichnis"
-                    : style.Name,
-            };
-            System.Windows.Automation.AutomationProperties.SetName(card, $"Formatvorlage {style.Name}");
-            card.Click += (_, _) => ApplyParaStyle((TextStyles.ParaStyle)card.Tag);
-            StyleGallery.Children.Add(card);
-            _styleCards.Add(card);
+                var inlineCard = MakeStyleCard(style);
+                StyleGallery.Children.Add(inlineCard);
+                _styleCards.Add(inlineCard);
+            }
+            // Karte fürs Flyout (alle) – ebenfalls tracken, damit der Aktiv-Rahmen stimmt
+            var fullCard = MakeStyleCard(style);
+            StyleGridFull.Children.Add(fullCard);
+            _styleCards.Add(fullCard);
         }
     }
+
+    private Button MakeStyleCard(TextStyles.ParaStyle style)
+    {
+        var preview = new TextBlock
+        {
+            Text = style.Name,
+            FontFamily = new FontFamily("Segoe UI"),
+            FontSize = Math.Min(14, style.Size * 0.5 + 4),
+            FontWeight = style.Weight,
+            FontStyle = style.Style,
+            TextAlignment = TextAlignment.Center,
+            TextWrapping = TextWrapping.Wrap,
+        };
+        if (style.ColorHex != null)
+            preview.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(style.ColorHex));
+        else
+            preview.SetResourceReference(TextBlock.ForegroundProperty, "InkBrush");
+
+        var card = new Button
+        {
+            Style = (Style)FindResource("StyleCard"),
+            Content = preview,
+            Tag = style,
+            ToolTip = style.HeadingLevel > 0
+                ? $"{style.Name} (Strg+Alt+{style.HeadingLevel}) – erscheint im Inhaltsverzeichnis"
+                : style.Name,
+        };
+        System.Windows.Automation.AutomationProperties.SetName(card, $"Formatvorlage {style.Name}");
+        card.Click += (_, _) =>
+        {
+            ApplyParaStyle((TextStyles.ParaStyle)card.Tag);
+            StylePopup.IsOpen = false;
+        };
+        return card;
+    }
+
+    private void OpenStyleGallery_Click(object s, RoutedEventArgs e) => StylePopup.IsOpen = true;
 
     /// <summary>Markiert die Karte der aktuellen Formatvorlage mit Akzentrahmen (Design-Konzept 7.4).</summary>
     private void SyncStyleGallery()

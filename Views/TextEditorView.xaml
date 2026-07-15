@@ -298,8 +298,11 @@
 
                     <Border Style="{StaticResource GroupSep}"/>
 
-                    <!-- Formatvorlagen-Galerie (wird im Code befüllt) -->
+                    <!-- Formatvorlagen: 3 Kacheln inline + Aufklapp-Pfeil (Rest im Flyout) -->
                     <StackPanel x:Name="StyleGallery" Orientation="Horizontal"/>
+                    <Button x:Name="BtnStyleMore" Style="{StaticResource IconButton}" Height="44" Width="20"
+                            Content="&#xE70D;" FontSize="9" ToolTip="Alle Formatvorlagen"
+                            Click="OpenStyleGallery_Click" AutomationProperties.Name="Alle Formatvorlagen"/>
                 </WrapPanel>
 
                 <!-- ============ Werkzeugleiste: Einfügen ============ -->
@@ -382,55 +385,28 @@
 
                     <Border Style="{StaticResource GroupSep}"/>
 
-                    <TextBlock Text="Ränder" Style="{StaticResource RibbonLabel}"/>
-                    <ComboBox x:Name="MarginPresetCombo" Width="106" SelectionChanged="MarginPreset_Changed"
-                              ToolTip="Rand-Vorlagen">
-                        <ComboBoxItem Content="Normal (2 cm)"/>
-                        <ComboBoxItem Content="Schmal (1,27 cm)"/>
-                        <ComboBoxItem Content="Breit (3 cm)"/>
-                        <ComboBoxItem Content="Lernblatt (4 cm links)"/>
-                        <ComboBoxItem Content="Benutzerdefiniert"/>
-                    </ComboBox>
-                    <TextBlock Text="L" Style="{StaticResource RibbonLabel}"/>
-                    <TextBox x:Name="MarginL" Style="{StaticResource NumBox}" LostFocus="Margin_Changed" KeyDown="NumBox_KeyDown"/>
-                    <TextBlock Text="O" Style="{StaticResource RibbonLabel}"/>
-                    <TextBox x:Name="MarginT" Style="{StaticResource NumBox}" LostFocus="Margin_Changed" KeyDown="NumBox_KeyDown"/>
-                    <TextBlock Text="R" Style="{StaticResource RibbonLabel}"/>
-                    <TextBox x:Name="MarginR" Style="{StaticResource NumBox}" LostFocus="Margin_Changed" KeyDown="NumBox_KeyDown"/>
-                    <TextBlock Text="U" Style="{StaticResource RibbonLabel}"/>
-                    <TextBox x:Name="MarginB" Style="{StaticResource NumBox}" LostFocus="Margin_Changed" KeyDown="NumBox_KeyDown"/>
-                    <TextBlock Text="cm" Style="{StaticResource RibbonLabel}"/>
-
-                    <Border Style="{StaticResource GroupSep}"/>
-
-                    <TextBlock Text="Abstand vor" Style="{StaticResource RibbonLabel}"/>
-                    <TextBox x:Name="SpaceBefore" Style="{StaticResource NumBox}" LostFocus="ParaSpacing_Changed" KeyDown="NumBox_KeyDown"/>
-                    <TextBlock Text="nach" Style="{StaticResource RibbonLabel}"/>
-                    <TextBox x:Name="SpaceAfter" Style="{StaticResource NumBox}" LostFocus="ParaSpacing_Changed" KeyDown="NumBox_KeyDown"/>
-                    <TextBlock Text="pt" Style="{StaticResource RibbonLabel}"/>
-
-                    <TextBlock Text="Zeilenabstand" Style="{StaticResource RibbonLabel}"/>
-                    <ComboBox x:Name="SpacingCombo" Width="58" SelectionChanged="Spacing_Changed"
-                              ToolTip="Zeilenabstand">
-                        <ComboBoxItem Content="1,0" Tag="1.0" IsSelected="True"/>
-                        <ComboBoxItem Content="1,15" Tag="1.15"/>
-                        <ComboBoxItem Content="1,5" Tag="1.5"/>
-                        <ComboBoxItem Content="2,0" Tag="2.0"/>
-                    </ComboBox>
-
-                    <Border Style="{StaticResource GroupSep}"/>
-
-                    <Button Style="{StaticResource LabelButton}" Content="Hintergrundbild…" Click="PickWatermark_Click"
-                            ToolTip="Seitenfüllendes Bild hinter dem Text (Wasserzeichen)"
-                            AutomationProperties.Name="Hintergrundbild wählen"/>
-                    <TextBlock Text="Deckkraft" Style="{StaticResource RibbonLabel}"/>
-                    <ComboBox x:Name="WatermarkOpacityCombo" Width="62" SelectionChanged="WatermarkOpacity_Changed">
-                        <ComboBoxItem Content="100 %" Tag="1.0" IsSelected="True"/>
-                        <ComboBoxItem Content="60 %" Tag="0.6"/>
-                        <ComboBoxItem Content="30 %" Tag="0.3"/>
-                        <ComboBoxItem Content="15 %" Tag="0.15"/>
-                    </ComboBox>
-                    <Button Style="{StaticResource LabelButton}" Content="Entfernen" Click="RemoveWatermark_Click"/>
+                    <!-- Detaileinstellungen wandern in die Seitenleiste rechts -->
+                    <Button Style="{StaticResource LabelButton}" Click="OpenMargins_Click"
+                            ToolTip="Seitenränder einstellen" AutomationProperties.Name="Ränder">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE799;" FontFamily="{StaticResource IconFont}" VerticalAlignment="Center"/>
+                            <TextBlock Text="Ränder" Margin="6,0,0,0"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource LabelButton}" Click="OpenSpacing_Click"
+                            ToolTip="Absatz- und Zeilenabstände" AutomationProperties.Name="Abstände">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE799;" FontFamily="{StaticResource IconFont}" VerticalAlignment="Center"/>
+                            <TextBlock Text="Abstände" Margin="6,0,0,0"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource LabelButton}" Click="OpenWatermark_Click"
+                            ToolTip="Hintergrundbild / Wasserzeichen" AutomationProperties.Name="Hintergrundbild">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE91B;" FontFamily="{StaticResource IconFont}" VerticalAlignment="Center"/>
+                            <TextBlock Text="Hintergrundbild" Margin="6,0,0,0"/>
+                        </StackPanel>
+                    </Button>
 
                     <Border Style="{StaticResource GroupSep}"/>
 
@@ -594,6 +570,109 @@
             </DockPanel>
         </Border>
 
+        <!-- ===================== Einstellungs-Seitenleiste (rechts, ausklappbar) ===================== -->
+        <Border x:Name="SettingsPanel" DockPanel.Dock="Right" Width="248" Visibility="Collapsed"
+                Background="{DynamicResource Brush.SidebarBg}"
+                BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1,0,0,0">
+            <DockPanel>
+                <Grid DockPanel.Dock="Top" Margin="12,10,8,6">
+                    <TextBlock Text="Seiteneinstellungen" FontWeight="SemiBold" FontSize="14"
+                               Foreground="{DynamicResource Brush.Text}" VerticalAlignment="Center"/>
+                    <Button Style="{StaticResource IconButton}" Content="&#xE711;" FontSize="10" Width="26" Height="26"
+                            HorizontalAlignment="Right" ToolTip="Schließen" Click="CloseSettings_Click"/>
+                </Grid>
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="12,0,12,12">
+
+                        <Expander x:Name="SecMargins" Header="Ränder" IsExpanded="True">
+                            <StackPanel>
+                                <TextBlock Text="Vorlage" Style="{StaticResource RibbonLabel}" Margin="0,0,0,2"/>
+                                <ComboBox x:Name="MarginPresetCombo" SelectionChanged="MarginPreset_Changed">
+                                    <ComboBoxItem Content="Normal (2 cm)"/>
+                                    <ComboBoxItem Content="Schmal (1,27 cm)"/>
+                                    <ComboBoxItem Content="Breit (3 cm)"/>
+                                    <ComboBoxItem Content="Lernblatt (4 cm links)"/>
+                                    <ComboBoxItem Content="Benutzerdefiniert"/>
+                                </ComboBox>
+                                <UniformGrid Columns="2" Margin="0,8,0,0">
+                                    <DockPanel Margin="0,0,4,6">
+                                        <TextBlock Text="Links" Width="42" Style="{StaticResource RibbonLabel}"/>
+                                        <TextBox x:Name="MarginL" Style="{StaticResource NumBox}" Width="Auto"
+                                                 LostFocus="Margin_Changed" KeyDown="NumBox_KeyDown"/>
+                                    </DockPanel>
+                                    <DockPanel Margin="0,0,0,6">
+                                        <TextBlock Text="Oben" Width="42" Style="{StaticResource RibbonLabel}"/>
+                                        <TextBox x:Name="MarginT" Style="{StaticResource NumBox}" Width="Auto"
+                                                 LostFocus="Margin_Changed" KeyDown="NumBox_KeyDown"/>
+                                    </DockPanel>
+                                    <DockPanel Margin="0,0,4,0">
+                                        <TextBlock Text="Rechts" Width="42" Style="{StaticResource RibbonLabel}"/>
+                                        <TextBox x:Name="MarginR" Style="{StaticResource NumBox}" Width="Auto"
+                                                 LostFocus="Margin_Changed" KeyDown="NumBox_KeyDown"/>
+                                    </DockPanel>
+                                    <DockPanel>
+                                        <TextBlock Text="Unten" Width="42" Style="{StaticResource RibbonLabel}"/>
+                                        <TextBox x:Name="MarginB" Style="{StaticResource NumBox}" Width="Auto"
+                                                 LostFocus="Margin_Changed" KeyDown="NumBox_KeyDown"/>
+                                    </DockPanel>
+                                </UniformGrid>
+                                <TextBlock Text="Werte in cm" Style="{StaticResource RibbonLabel}" Margin="0,4,0,0"/>
+                            </StackPanel>
+                        </Expander>
+
+                        <Border Height="1" Background="{DynamicResource Brush.Border}" Margin="0,4"/>
+
+                        <Expander x:Name="SecSpacing" Header="Absätze">
+                            <StackPanel>
+                                <DockPanel Margin="0,2,0,6">
+                                    <TextBlock Text="Abstand vor" Width="110" Style="{StaticResource RibbonLabel}"/>
+                                    <TextBox x:Name="SpaceBefore" Style="{StaticResource NumBox}" Width="Auto"
+                                             LostFocus="ParaSpacing_Changed" KeyDown="NumBox_KeyDown"/>
+                                </DockPanel>
+                                <DockPanel Margin="0,0,0,6">
+                                    <TextBlock Text="Abstand nach" Width="110" Style="{StaticResource RibbonLabel}"/>
+                                    <TextBox x:Name="SpaceAfter" Style="{StaticResource NumBox}" Width="Auto"
+                                             LostFocus="ParaSpacing_Changed" KeyDown="NumBox_KeyDown"/>
+                                </DockPanel>
+                                <TextBlock Text="Abstände in pt" Style="{StaticResource RibbonLabel}"/>
+                                <DockPanel Margin="0,8,0,0">
+                                    <TextBlock Text="Zeilenabstand" Width="110" Style="{StaticResource RibbonLabel}"/>
+                                    <ComboBox x:Name="SpacingCombo" SelectionChanged="Spacing_Changed">
+                                        <ComboBoxItem Content="1,0" Tag="1.0" IsSelected="True"/>
+                                        <ComboBoxItem Content="1,15" Tag="1.15"/>
+                                        <ComboBoxItem Content="1,5" Tag="1.5"/>
+                                        <ComboBoxItem Content="2,0" Tag="2.0"/>
+                                    </ComboBox>
+                                </DockPanel>
+                            </StackPanel>
+                        </Expander>
+
+                        <Border Height="1" Background="{DynamicResource Brush.Border}" Margin="0,4"/>
+
+                        <Expander x:Name="SecWatermark" Header="Hintergrundbild">
+                            <StackPanel>
+                                <Button Style="{StaticResource FlatButton}" HorizontalAlignment="Left"
+                                        Content="Bild wählen…" Click="PickWatermark_Click"
+                                        ToolTip="Seitenfüllendes Bild hinter dem Text (Wasserzeichen)"
+                                        AutomationProperties.Name="Hintergrundbild wählen"/>
+                                <DockPanel Margin="0,6,0,0">
+                                    <TextBlock Text="Deckkraft" Width="80" Style="{StaticResource RibbonLabel}"/>
+                                    <ComboBox x:Name="WatermarkOpacityCombo" SelectionChanged="WatermarkOpacity_Changed">
+                                        <ComboBoxItem Content="100 %" Tag="1.0" IsSelected="True"/>
+                                        <ComboBoxItem Content="60 %" Tag="0.6"/>
+                                        <ComboBoxItem Content="30 %" Tag="0.3"/>
+                                        <ComboBoxItem Content="15 %" Tag="0.15"/>
+                                    </ComboBox>
+                                </DockPanel>
+                                <Button Style="{StaticResource FlatButton}" HorizontalAlignment="Left" Margin="0,6,0,0"
+                                        Content="Entfernen" Click="RemoveWatermark_Click"/>
+                            </StackPanel>
+                        </Expander>
+                    </StackPanel>
+                </ScrollViewer>
+            </DockPanel>
+        </Border>
+
         <!-- ===================== Arbeitsbereich ===================== -->
         <Grid>
             <Grid.RowDefinitions>
@@ -707,6 +786,22 @@
                         <DropShadowEffect BlurRadius="12" ShadowDepth="2" Opacity="0.25"/>
                     </Border.Effect>
                     <WrapPanel x:Name="SymbolGrid" Width="308"/>
+                </Border>
+            </Popup>
+
+            <!-- Formatvorlagen-Flyout (volle Bibliothek) -->
+            <Popup x:Name="StylePopup" PlacementTarget="{Binding ElementName=BtnStyleMore}" Placement="Bottom"
+                   StaysOpen="False" AllowsTransparency="True" PopupAnimation="Fade">
+                <Border Background="{DynamicResource Brush.CardBg}" BorderBrush="{DynamicResource Brush.Border}"
+                        BorderThickness="1" CornerRadius="8" Padding="10" Margin="6">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="12" ShadowDepth="2" Opacity="0.25"/>
+                    </Border.Effect>
+                    <StackPanel>
+                        <TextBlock Text="Formatvorlagen" FontWeight="SemiBold" Margin="2,0,0,8"
+                                   Foreground="{DynamicResource Brush.Text}"/>
+                        <WrapPanel x:Name="StyleGridFull" Width="320"/>
+                    </StackPanel>
                 </Border>
             </Popup>
 

@@ -137,7 +137,7 @@
 
                     <Button Style="{StaticResource IconButton}" Content="&#xE8B9;"
                             AutomationProperties.Name="Datei einfügen"
-                            ToolTip="Datei einfügen – Bild oder PDF (im Notizbuch als neue Seiten, im Whiteboard als Bild-Seiten); auch per Strg+V oder Drag &amp; Drop"
+                            ToolTip="Datei einfügen – Bild, PDF oder Word (bei PDF/Word Seiten auswählbar; im Notizbuch als neue Seiten, im Whiteboard als Bild-Seiten); auch per Strg+V oder Drag &amp; Drop"
                             Click="InsertFile_Click"/>
 
                     <Border Width="1" Background="{DynamicResource Brush.Border}" Margin="6,4"/>

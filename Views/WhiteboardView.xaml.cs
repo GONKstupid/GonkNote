@@ -1633,15 +1633,16 @@ public partial class WhiteboardView : UserControl
             Math.Max(tl.X, br.X), Math.Max(tl.Y, br.Y));
     }
 
-    /// <summary>Ein Import-Button für alle Formate: Bilder direkt, PDFs seitenweise.</summary>
+    /// <summary>Ein Import-Button für alle Formate: Bilder direkt, PDF/DOCX seitenweise mit Vorschau.</summary>
     private async void InsertFile_Click(object sender, RoutedEventArgs e)
     {
         var dlg = new Microsoft.Win32.OpenFileDialog
         {
             Title = "Datei einfügen",
-            Filter = "Bilder & PDF (*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.webp;*.svg;*.pdf)"
-                   + "|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.webp;*.svg;*.pdf"
+            Filter = "Bilder, PDF & Word (*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.webp;*.svg;*.pdf;*.docx)"
+                   + "|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.webp;*.svg;*.pdf;*.docx"
                    + "|PDF-Dokumente (*.pdf)|*.pdf"
+                   + "|Word-Dokumente (*.docx)|*.docx"
                    + "|Bilder (*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.webp;*.svg)|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.webp;*.svg"
                    + "|Alle Dateien (*.*)|*.*",
             Multiselect = true,
@@ -1652,9 +1653,12 @@ public partial class WhiteboardView : UserControl
             .Where(f => ImageExtensions.Contains(Path.GetExtension(f).ToLowerInvariant())).ToList();
         var pdfs = dlg.FileNames
             .Where(f => Path.GetExtension(f).Equals(".pdf", StringComparison.OrdinalIgnoreCase)).ToList();
+        var docxs = dlg.FileNames
+            .Where(f => Path.GetExtension(f).Equals(".docx", StringComparison.OrdinalIgnoreCase)).ToList();
 
         if (images.Count > 0) InsertImageFiles(images, ViewCenter());
         foreach (var pdf in pdfs) await InsertPdfFileAsync(pdf);
+        foreach (var docx in docxs) await InsertDocxFileAsync(docx);
     }
 
     private void InsertImageFiles(IEnumerable<string> paths, SKPoint at)
@@ -1826,7 +1830,9 @@ public partial class WhiteboardView : UserControl
 
     private void CanvasHost_DragOver(object sender, DragEventArgs e)
     {
-        e.Effects = GetDroppedImageFiles(e).Count > 0 || GetDroppedPdfFiles(e).Count > 0
+        e.Effects = GetDroppedImageFiles(e).Count > 0
+            || GetDroppedByExtension(e, ".pdf").Count > 0
+            || GetDroppedByExtension(e, ".docx").Count > 0
             ? DragDropEffects.Copy
             : DragDropEffects.None;
         e.Handled = true;
@@ -1838,10 +1844,13 @@ public partial class WhiteboardView : UserControl
         if (files.Count > 0)
             InsertImageFiles(files, ToCanvas(e.GetPosition(CanvasHost)));
 
-        var pdfs = GetDroppedPdfFiles(e);
+        var pdfs = GetDroppedByExtension(e, ".pdf");
+        var docxs = GetDroppedByExtension(e, ".docx");
         e.Handled = true;
         foreach (var pdf in pdfs)
             await InsertPdfFileAsync(pdf);
+        foreach (var docx in docxs)
+            await InsertDocxFileAsync(docx);
     }
 
     private static List<string> GetDroppedImageFiles(DragEventArgs e)
@@ -1852,12 +1861,12 @@ public partial class WhiteboardView : UserControl
         return files.Where(f => ImageExtensions.Contains(Path.GetExtension(f).ToLowerInvariant())).ToList();
     }
 
-    private static List<string> GetDroppedPdfFiles(DragEventArgs e)
+    private static List<string> GetDroppedByExtension(DragEventArgs e, string ext)
     {
         if (!e.Data.GetDataPresent(DataFormats.FileDrop) ||
             e.Data.GetData(DataFormats.FileDrop) is not string[] files)
             return new List<string>();
-        return files.Where(f => Path.GetExtension(f).Equals(".pdf", StringComparison.OrdinalIgnoreCase)).ToList();
+        return files.Where(f => Path.GetExtension(f).Equals(ext, StringComparison.OrdinalIgnoreCase)).ToList();
     }
 
     // ==================== PDF einfügen ====================
@@ -1893,12 +1902,78 @@ public partial class WhiteboardView : UserControl
                 return;
             }
 
-            if (anchor.IsInfinite) InsertPdfIntoWhiteboard(pages, anchor, vm);
-            else InsertPdfIntoNotebook(pages, anchor, vm);
+            HideBusy();
+            var chosen = ChoosePages(Path.GetFileName(path), pages);
+            if (chosen == null) return;   // abgebrochen
+
+            if (anchor.IsInfinite) InsertPdfIntoWhiteboard(chosen, anchor, vm);
+            else InsertPdfIntoNotebook(chosen, anchor, vm);
         }
         catch (Exception ex)
         {
             MessageBox.Show($"PDF konnte nicht geladen werden:\n{ex.Message}",
+                "Gonk Note", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+        finally
+        {
+            _importing = false;
+            HideBusy();
+        }
+    }
+
+    /// <summary>
+    /// Zeigt die Seitenauswahl (ab 2 Seiten) und liefert die gewählten Seiten in
+    /// Reihenfolge; null = abgebrochen. Bei nur einer Seite ohne Dialog durchreichen.
+    /// </summary>
+    private List<PdfImporter.PdfPageImage>? ChoosePages(string fileName, List<PdfImporter.PdfPageImage> pages)
+    {
+        if (pages.Count <= 1) return pages;
+
+        var dlg = new FileInsertDialog(fileName, pages) { Owner = Window.GetWindow(this) };
+        if (dlg.ShowDialog() != true || dlg.SelectedPages.Count == 0) return null;
+        return dlg.SelectedPages.Select(i => pages[i]).ToList();
+    }
+
+    // ==================== DOCX einfügen ====================
+
+    /// <summary>
+    /// Rendert ein DOCX über denselben Paginator wie der Text-Export zu Bildseiten
+    /// und fügt die gewählten Seiten wie ein PDF ein. Das Rendern (Paginator) muss
+    /// auf dem UI-Thread laufen; der Import bleibt daher kurz sichtbar „busy“.
+    /// </summary>
+    private async Task InsertDocxFileAsync(string path)
+    {
+        if (_vm == null || _page == null || _importing) return;
+        var vm = _vm;
+        var anchor = _page;
+
+        _importing = true;
+        ShowBusy("Word-Dokument wird eingefügt…");
+        try
+        {
+            // Kurz Zeit geben, damit das Busy-Overlay sichtbar wird
+            await Task.Yield();
+
+            var settings = new TextDoc();
+            var flow = DocxImporter.ToFlowDocument(path, settings);
+            var pages = PdfExporter.RenderFlowDocumentPages(flow, settings, Path.GetFileNameWithoutExtension(path));
+            if (pages.Count == 0)
+            {
+                MessageBox.Show("Das Word-Dokument enthält keine darstellbaren Seiten.",
+                    "Gonk Note", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            HideBusy();
+            var chosen = ChoosePages(Path.GetFileName(path), pages);
+            if (chosen == null) return;
+
+            if (anchor.IsInfinite) InsertPdfIntoWhiteboard(chosen, anchor, vm);
+            else InsertPdfIntoNotebook(chosen, anchor, vm);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Word-Dokument konnte nicht geladen werden:\n{ex.Message}",
                 "Gonk Note", MessageBoxButton.OK, MessageBoxImage.Warning);
         }
         finally

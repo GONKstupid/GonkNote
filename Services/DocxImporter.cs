@@ -36,6 +36,13 @@ public static class DocxImporter
         return ms.ToArray();
     }
 
+    /// <summary>
+    /// DOCX als FlowDocument (für das Datei-Einfüge-Tool: Rendern zu Bildseiten).
+    /// <paramref name="target"/> erhält optional die Seiteneinrichtung des Dokuments.
+    /// </summary>
+    public static FlowDocument ToFlowDocument(string path, Models.TextDoc? target = null) =>
+        Convert(path, target);
+
     private static FlowDocument Convert(string path, Models.TextDoc? target = null)
     {
         var flow = new FlowDocument

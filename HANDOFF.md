@@ -225,8 +225,15 @@ Nutzer-Test mit Stift.
   Optimierung**: Seiten *lazy* on-demand rendern (nur PDF-Bytes + Seitenindex
   speichern, Bild erst beim Anzeigen erzeugen/cachen) → Import quasi sofort.
   Größerer Umbau (Persistenz, Undo, Save/Load), bewusst vertagt.
-- **Datei-Einfüge-Tool** (PDF/DOCX-Mini-Vorschau ins Whiteboard) → noch offen
-  (laut Nutzer nach den Zeichenhilfen der nächste Schritt).
+- **Datei-Einfüge-Tool** ✔ (umgesetzt 2026-07-15): Der eine Import-Button nimmt jetzt
+  auch **DOCX** (zusätzlich zu Bild/PDF), per Klick, Strg+V (Bilder) und Drag&Drop.
+  Ab 2 Seiten erscheint der **Seitenauswahl-Dialog** (`FileInsertDialog`): Thumbnails
+  mit Häkchen, „Alle/Keine", Button zeigt „N Seiten einfügen". Gewählte Seiten landen
+  wie bisher im Whiteboard (2-spaltige Bild-Seiten) bzw. Notizbuch (neue Hintergrund-
+  Seiten). DOCX wird über den Text-Paginator (`PdfExporter.RenderFlowDocumentPages`,
+  ruft `DocxImporter.ToFlowDocument`) zu JPEG-Seiten gerendert – gleiche Optik wie der
+  Text-Export. Verifiziert: Dialog + Auswahl-Logik im View-Host-Harness, DOCX→Seiten
+  im `gonk-texttest`-Harness (`dialog`/`docxpages`).
 - **Zeichenhilfen** (`WhiteboardView`, Bereich „Zeichenhilfen: Lineal & Geodreieck"):
   transiente Overlays (nicht in der DB gespeichert). Gemeinsame Basis `DrawAid`
   (None/Ruler/SetSquare), Toolbar-Gruppe `BtnRuler`/`BtnSetSquare` (klappbar wie die
@@ -290,9 +297,7 @@ Nutzer-Test mit Stift.
    PDF/DOCX-Roundtrip, OpenXML-Validierung 0 Fehler), aber noch ohne Nutzer-Test.
    Test-Harness: `%TEMP%\gonk-texttest` (End-zu-End ohne UI), UI-Skript
    `%TEMP%\gonk-verify\ui-texttest.ps1`.
-3. **Datei-Einfüge-Tool** (danach ausdrücklich gewünschter Schritt):
-   PDF/DOCX-Vorschau-Dialog, wahlweise als Bild oder strukturierte Elemente ins
-   Whiteboard einfügen (baut auf `PdfImporter`/`DocxImporter` auf).
+3. **Datei-Einfüge-Tool** ✔ erledigt (Seitenauswahl-Dialog für PDF+DOCX, s. §5).
 4. **Rest von Phase 3**: RAM-Profiling/-Optimierung (Ziel < 200 MB), weitere Sticker,
    optionales OCR, Obfuskierung, laufendes UI-Feintuning.
 

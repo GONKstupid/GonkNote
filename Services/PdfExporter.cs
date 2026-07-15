@@ -291,6 +291,24 @@ public static class PdfExporter
     }
 
     /// <summary>
+    /// Rendert ein FlowDocument seitenweise zu JPEG-Bildern — für das
+    /// Datei-Einfüge-Tool (DOCX → Bildseiten ins Whiteboard/Notizbuch).
+    /// Muss auf dem UI-Thread laufen (WPF-Paginator).
+    /// </summary>
+    public static List<PdfImporter.PdfPageImage> RenderFlowDocumentPages(
+        FlowDocument flow, TextDoc settings, string title, float scale = 2f)
+    {
+        var result = new List<PdfImporter.PdfPageImage>();
+        foreach (var (skImage, _, _) in RenderTextPages(flow, settings, title, scale))
+            using (skImage)
+            {
+                using var data = skImage.Encode(SKEncodedImageFormat.Jpeg, 90);
+                result.Add(new PdfImporter.PdfPageImage(data.ToArray(), skImage.Width, skImage.Height));
+            }
+        return result;
+    }
+
+    /// <summary>
     /// Rendert das FlowDocument seitenweise direkt in hochauflösende Bitmaps.
     /// Direkt-Render (kein VisualBrush) → scharfer Text; PagePadding trägt den Rand.
     /// Wasserzeichen liegt hinter, Kopf-/Fußzeile in den Randbereichen über dem Inhalt.

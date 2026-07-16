@@ -666,49 +666,45 @@
                                 Margin="0,4" Visibility="Collapsed"/>
                         <Expander x:Name="SecTable" Header="Tabelle" Visibility="Collapsed">
                             <StackPanel>
-                                <TextBlock Text="Struktur" Style="{StaticResource RibbonLabel}" Margin="0,0,0,4"/>
-                                <UniformGrid Columns="2">
-                                    <Button Style="{StaticResource FlatButton}" Content="Zeile darüber" Click="TableRowAbove_Click" HorizontalAlignment="Stretch"/>
-                                    <Button Style="{StaticResource FlatButton}" Content="Zeile darunter" Click="TableRowBelow_Click" HorizontalAlignment="Stretch"/>
-                                    <Button Style="{StaticResource FlatButton}" Content="Spalte links" Click="TableColLeft_Click" HorizontalAlignment="Stretch"/>
-                                    <Button Style="{StaticResource FlatButton}" Content="Spalte rechts" Click="TableColRight_Click" HorizontalAlignment="Stretch"/>
-                                    <Button Style="{StaticResource FlatButton}" Content="Zeile löschen" Click="TableDeleteRow_Click" HorizontalAlignment="Stretch"/>
-                                    <Button Style="{StaticResource FlatButton}" Content="Spalte löschen" Click="TableDeleteCol_Click" HorizontalAlignment="Stretch"/>
-                                    <Button Style="{StaticResource FlatButton}" Content="Zellen verbinden" Click="TableMergeCells_Click" HorizontalAlignment="Stretch"/>
-                                    <Button Style="{StaticResource FlatButton}" Content="Verbund lösen" Click="TableUnmergeCell_Click" HorizontalAlignment="Stretch"/>
+                                <TextBlock TextWrapping="Wrap" FontSize="11" Margin="0,0,0,8"
+                                           Foreground="{DynamicResource Brush.TextMuted}"
+                                           Text="Wirkt auf die ausgewählten Zellen. Zeilen/Spalten &amp; Verbinden im Rechtsklick-Menü."/>
+
+                                <TextBlock Text="Rahmen der Auswahl" FontWeight="SemiBold" FontSize="12.5"
+                                           Foreground="{DynamicResource Brush.Text}" Margin="0,0,0,6"/>
+                                <DockPanel Margin="0,0,0,6">
+                                    <TextBlock Text="Dicke" Width="64" Style="{StaticResource RibbonLabel}"/>
+                                    <ComboBox x:Name="TableBorderWidth">
+                                        <ComboBoxItem Content="Dünn (0,5)" Tag="0.5"/>
+                                        <ComboBoxItem Content="Normal (1)" Tag="1" IsSelected="True"/>
+                                        <ComboBoxItem Content="Kräftig (2)" Tag="2"/>
+                                        <ComboBoxItem Content="Dick (3,5)" Tag="3.5"/>
+                                    </ComboBox>
+                                </DockPanel>
+                                <TextBlock Text="Anwenden auf:" Style="{StaticResource RibbonLabel}" Margin="0,2,0,4"/>
+                                <UniformGrid Columns="2" Rows="2">
+                                    <Button Style="{StaticResource FlatButton}" HorizontalAlignment="Stretch"
+                                            Content="Alle Seiten" Tag="all" Click="TableBorders_Click"/>
+                                    <Button Style="{StaticResource FlatButton}" HorizontalAlignment="Stretch"
+                                            Content="Nur außen" Tag="outer" Click="TableBorders_Click"/>
+                                    <Button Style="{StaticResource FlatButton}" HorizontalAlignment="Stretch"
+                                            Content="Nur innen" Tag="inner" Click="TableBorders_Click"/>
+                                    <Button Style="{StaticResource FlatButton}" HorizontalAlignment="Stretch"
+                                            Content="Keine" Tag="none" Click="TableBorders_Click"/>
                                 </UniformGrid>
+                                <Button Style="{StaticResource FlatButton}" HorizontalAlignment="Left" Margin="0,4,0,0"
+                                        Content="Rahmenfarbe…" Click="TableBorderColor_Click"/>
 
-                                <TextBlock Text="Rahmen" Style="{StaticResource RibbonLabel}" Margin="0,8,0,4"/>
-                                <DockPanel Margin="0,0,0,6">
-                                    <TextBlock Text="Dicke" Width="70" Style="{StaticResource RibbonLabel}"/>
-                                    <ComboBox x:Name="TableBorderWidth" SelectionChanged="TableBorderWidth_Changed">
-                                        <ComboBoxItem Content="Dünn" Tag="0.5"/>
-                                        <ComboBoxItem Content="Normal" Tag="1" IsSelected="True"/>
-                                        <ComboBoxItem Content="Kräftig" Tag="2"/>
-                                        <ComboBoxItem Content="Dick" Tag="3.5"/>
-                                    </ComboBox>
-                                </DockPanel>
-                                <DockPanel Margin="0,0,0,6">
-                                    <TextBlock Text="Variante" Width="70" Style="{StaticResource RibbonLabel}"/>
-                                    <ComboBox x:Name="TableBorderVariant" SelectionChanged="TableBorderVariant_Changed">
-                                        <ComboBoxItem Content="Alle Linien" Tag="all" IsSelected="True"/>
-                                        <ComboBoxItem Content="Nur außen" Tag="outer"/>
-                                        <ComboBoxItem Content="Nur innen" Tag="inner"/>
-                                        <ComboBoxItem Content="Keine" Tag="none"/>
-                                    </ComboBox>
-                                </DockPanel>
-                                <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
-                                    <Button Style="{StaticResource FlatButton}" Content="Rahmenfarbe…" Click="TableBorderColor_Click"/>
-                                    <Button Style="{StaticResource FlatButton}" Content="Breite…" Click="TableColumnWidth_Click"/>
-                                </StackPanel>
+                                <Border Height="1" Background="{DynamicResource Brush.Border}" Margin="0,10"/>
 
-                                <TextBlock Text="Zellen" Style="{StaticResource RibbonLabel}" Margin="0,8,0,4"/>
+                                <TextBlock Text="Zellen &amp; Spalten" FontWeight="SemiBold" FontSize="12.5"
+                                           Foreground="{DynamicResource Brush.Text}" Margin="0,0,0,6"/>
                                 <StackPanel Orientation="Horizontal">
                                     <Button Style="{StaticResource FlatButton}" Content="Füllfarbe…" Click="TableCellColor_Click"/>
                                     <Button Style="{StaticResource FlatButton}" Content="Füllung weg" Click="TableCellColorClear_Click"/>
                                 </StackPanel>
-                                <Button Style="{StaticResource FlatButton}" HorizontalAlignment="Left" Margin="0,6,0,0"
-                                        Content="Tabelle löschen" Click="TableDelete_Click"/>
+                                <Button Style="{StaticResource FlatButton}" HorizontalAlignment="Left" Margin="0,4,0,0"
+                                        Content="Spaltenbreite…" Click="TableColumnWidth_Click"/>
                             </StackPanel>
                         </Expander>
                     </StackPanel>
@@ -805,9 +801,21 @@
                                             <MenuItem x:Name="MenuToFront" Header="Vor den Text holen"
                                                       Visibility="Collapsed" Click="ShapeToFront_Click"/>
                                             <Separator x:Name="MenuTableSep"/>
-                                            <!-- Tabellen-Werkzeuge liegen jetzt in der Einstellungs-Seitenleiste -->
-                                            <MenuItem x:Name="MenuTable" Header="Tabelle formatieren…"
-                                                      Click="OpenTableSettings_Click"/>
+                                            <MenuItem x:Name="MenuTable" Header="Tabelle">
+                                                <MenuItem Header="Zeile darüber einfügen" Click="TableRowAbove_Click"/>
+                                                <MenuItem Header="Zeile darunter einfügen" Click="TableRowBelow_Click"/>
+                                                <MenuItem Header="Spalte links einfügen" Click="TableColLeft_Click"/>
+                                                <MenuItem Header="Spalte rechts einfügen" Click="TableColRight_Click"/>
+                                                <Separator/>
+                                                <MenuItem Header="Zeile löschen" Click="TableDeleteRow_Click"/>
+                                                <MenuItem Header="Spalte löschen" Click="TableDeleteCol_Click"/>
+                                                <Separator/>
+                                                <MenuItem Header="Zellen verbinden (Auswahl)" Click="TableMergeCells_Click"/>
+                                                <MenuItem Header="Zellverbund aufheben" Click="TableUnmergeCell_Click"/>
+                                                <Separator/>
+                                                <MenuItem Header="Rahmen/Zellen formatieren…" Click="OpenTableSettings_Click"/>
+                                                <MenuItem Header="Tabelle löschen" Click="TableDelete_Click"/>
+                                            </MenuItem>
                                         </ContextMenu>
                                     </RichTextBox.ContextMenu>
                                 </RichTextBox>

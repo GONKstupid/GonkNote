@@ -406,42 +406,52 @@ public partial class TextEditorView
         if (CurrentCell() != null) OpenSettings(SecTable);
     }
 
-    private void TableBorderWidth_Changed(object s, SelectionChangedEventArgs e) => ApplyTableBorders();
-    private void TableBorderVariant_Changed(object s, SelectionChangedEventArgs e) => ApplyTableBorders();
+    private void TableBorders_Click(object s, RoutedEventArgs e) =>
+        ApplyTableBordersToSelection((string)((Button)s).Tag);
 
     /// <summary>
-    /// Wendet Randdicke und -variante (alle/außen/innen/keine) auf die Tabelle an,
-    /// indem je Zelle die passenden Seiten des Rahmens gesetzt werden.
+    /// Wendet Randdicke und -variante (alle/außen/innen/keine) nur auf die
+    /// AUSGEWÄHLTEN Zellen an. „außen/innen" beziehen sich auf das Rechteck der Auswahl.
     /// </summary>
-    private void ApplyTableBorders()
+    private void ApplyTableBordersToSelection(string variant)
     {
         if (Editor == null || CurrentTableContext() is not { } ctx) return;
-        if (TableBorderWidth.SelectedItem is not ComboBoxItem wi ||
-            !TryParseNum((string)wi.Tag, out double w)) return;
-        string variant = (TableBorderVariant.SelectedItem as ComboBoxItem)?.Tag as string ?? "all";
+        if (TableBorderWidth.SelectedItem is not ComboBoxItem wi || !TryParseNum((string)wi.Tag, out double w))
+            return;
 
+        var selected = SelectedCells();
+        if (selected.Count == 0) return;
+
+        // Gitter-Position jeder Zelle bestimmen (Spalten-Start berücksichtigt Verbünde)
         var rows = ctx.Table.RowGroups.SelectMany(g => g.Rows).ToList();
-        int totalCols = rows.Count == 0 ? 0 : rows.Max(r => r.Cells.Sum(c => c.ColumnSpan));
-
+        var pos = new Dictionary<TableCell, (int Row, int ColStart, int Span)>();
         for (int r = 0; r < rows.Count; r++)
         {
             int col = 0;
             foreach (var cell in rows[r].Cells)
             {
-                int span = cell.ColumnSpan;
-                bool firstRow = r == 0, lastRow = r == rows.Count - 1;
-                bool firstCol = col == 0, lastCol = col + span >= totalCols;
-                bool top, left, right, bottom;
-                switch (variant)
-                {
-                    case "none": top = left = right = bottom = false; break;
-                    case "outer": top = firstRow; bottom = lastRow; left = firstCol; right = lastCol; break;
-                    case "inner": top = !firstRow; left = !firstCol; right = false; bottom = false; break;
-                    default: top = left = right = bottom = true; break;   // all
-                }
-                cell.BorderThickness = new Thickness(left ? w : 0, top ? w : 0, right ? w : 0, bottom ? w : 0);
-                col += span;
+                pos[cell] = (r, col, cell.ColumnSpan);
+                col += cell.ColumnSpan;
             }
+        }
+
+        int minRow = selected.Min(c => pos[c].Row), maxRow = selected.Max(c => pos[c].Row);
+        int minCol = selected.Min(c => pos[c].ColStart);
+        int maxCol = selected.Max(c => pos[c].ColStart + pos[c].Span - 1);
+
+        foreach (var cell in selected)
+        {
+            var (r, cs, span) = pos[cell];
+            int ce = cs + span - 1;
+            bool top, left, right, bottom;
+            switch (variant)
+            {
+                case "none": top = left = right = bottom = false; break;
+                case "outer": top = r == minRow; bottom = r == maxRow; left = cs == minCol; right = ce == maxCol; break;
+                case "inner": top = r > minRow; left = cs > minCol; right = false; bottom = false; break;
+                default: top = left = right = bottom = true; break;   // all
+            }
+            cell.BorderThickness = new Thickness(left ? w : 0, top ? w : 0, right ? w : 0, bottom ? w : 0);
         }
         MarkDirty();
     }

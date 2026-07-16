@@ -12,9 +12,13 @@
             <TextBlock Text="Typ" Width="120" VerticalAlignment="Center"
                        Foreground="{DynamicResource Brush.TextMuted}"/>
             <ComboBox x:Name="TypeCombo" SelectionChanged="Input_Changed">
-                <ComboBoxItem Content="Balken (Säulen)" Tag="bar" IsSelected="True"/>
+                <ComboBoxItem Content="Säulen (senkrecht)" Tag="column" IsSelected="True"/>
+                <ComboBoxItem Content="Balken (waagerecht)" Tag="bar"/>
                 <ComboBoxItem Content="Linie" Tag="line"/>
+                <ComboBoxItem Content="Punkt (Streuung)" Tag="scatter"/>
+                <ComboBoxItem Content="Punkt + Linie" Tag="scatterline"/>
                 <ComboBoxItem Content="Kuchen" Tag="pie"/>
+                <ComboBoxItem Content="Radar (Netz)" Tag="radar"/>
             </ComboBox>
         </DockPanel>
         <DockPanel Margin="0,0,0,10">
@@ -23,18 +27,26 @@
             <TextBox x:Name="TitleBox" Text="Diagramm" TextChanged="Input_Changed"/>
         </DockPanel>
         <DockPanel Margin="0,0,0,10">
-            <TextBlock Text="Beschriftungen" Width="120" VerticalAlignment="Center"
+            <TextBlock Text="Kategorien" Width="120" VerticalAlignment="Center"
                        Foreground="{DynamicResource Brush.TextMuted}"/>
             <TextBox x:Name="LabelsBox" Text="Jan, Feb, Mär, Apr" TextChanged="Input_Changed"
-                     ToolTip="durch Komma getrennt"/>
+                     ToolTip="Achsen-Beschriftungen, durch Komma getrennt"/>
         </DockPanel>
-        <DockPanel Margin="0,0,0,4">
-            <TextBlock Text="Werte" Width="120" VerticalAlignment="Center"
+        <DockPanel Margin="0,0,0,10">
+            <TextBlock Text="Reihen-Namen" Width="120" VerticalAlignment="Center"
+                       Foreground="{DynamicResource Brush.TextMuted}"/>
+            <TextBox x:Name="SeriesBox" Text="Reihe 1" TextChanged="Input_Changed"
+                     ToolTip="ein Name je Reihe, durch Komma getrennt (optional)"/>
+        </DockPanel>
+        <DockPanel Margin="0,0,0,4" VerticalAlignment="Top">
+            <TextBlock Text="Werte" Width="120" VerticalAlignment="Top" Margin="0,4,0,0"
                        Foreground="{DynamicResource Brush.TextMuted}"/>
             <TextBox x:Name="ValuesBox" Text="4, 7, 3, 9" TextChanged="Input_Changed"
-                     ToolTip="durch Komma getrennt, dieselbe Anzahl wie Beschriftungen"/>
+                     AcceptsReturn="True" Height="58" TextWrapping="Wrap"
+                     VerticalScrollBarVisibility="Auto"
+                     ToolTip="eine Zeile je Reihe/Kurve, Werte durch Komma getrennt"/>
         </DockPanel>
-        <DockPanel Margin="0,4,0,0">
+        <DockPanel Margin="0,6,0,0">
             <TextBlock Text="Farben" Width="120" VerticalAlignment="Center"
                        Foreground="{DynamicResource Brush.TextMuted}"/>
             <StackPanel x:Name="ColorRow" Orientation="Horizontal"/>

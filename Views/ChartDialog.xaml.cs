@@ -7,21 +7,25 @@ using System.Windows.Media.Imaging;
 namespace GonkNote.Views;
 
 /// <summary>
-/// Einfaches Diagramm-Werkzeug: Werte + Beschriftungen eingeben, Typ wählen
-/// (Balken/Linie/Kuchen), Live-Vorschau. Das Ergebnis wird als Bitmap gerendert
-/// und in den Text eingefügt (druck-/exportfähig, keine Live-Datenbindung).
+/// Diagramm-Werkzeug: Kategorien + eine oder mehrere Werte-Reihen (je Zeile eine
+/// Kurve), Typ wählbar (Säulen/Balken/Linie/Punkt/Punkt+Linie/Kuchen/Radar),
+/// anpassbare Farben, Live-Vorschau. Das Ergebnis wird als Bitmap gerendert und in
+/// den Text eingefügt (druck-/exportfähig, keine Live-Datenbindung).
 /// </summary>
 public partial class ChartDialog : Window
 {
     public RenderTargetBitmap? ResultImage { get; private set; }
 
-    // Anpassbare Palette (Blau/Türkis/Pink/Lila/Grün/Gelb) für die Reihen/Segmente
     private readonly Color[] _palette =
     {
         Color.FromRgb(0x25, 0x63, 0xEB), Color.FromRgb(0x14, 0xB8, 0xA6),
         Color.FromRgb(0xEC, 0x48, 0x99), Color.FromRgb(0x8B, 0x5C, 0xF6),
         Color.FromRgb(0x22, 0xC5, 0x5E), Color.FromRgb(0xEA, 0xB3, 0x08),
     };
+
+    private static readonly Brush Ink = new SolidColorBrush(Color.FromRgb(0x1B, 0x2B, 0x4B));
+    private static readonly Brush Grid = new SolidColorBrush(Color.FromRgb(0xD4, 0xDE, 0xEA));
+    private static readonly Brush Muted = new SolidColorBrush(Color.FromRgb(0x6B, 0x7A, 0x99));
 
     public ChartDialog()
     {
@@ -36,7 +40,7 @@ public partial class ChartDialog : Window
         for (int i = 0; i < _palette.Length; i++)
         {
             int idx = i;
-            var swatch = new System.Windows.Controls.Button
+            var swatch = new Button
             {
                 Width = 24, Height = 24, Margin = new Thickness(0, 0, 4, 0),
                 Background = new SolidColorBrush(_palette[i]),
@@ -47,8 +51,7 @@ public partial class ChartDialog : Window
             };
             swatch.Click += (_, _) =>
             {
-                var picked = ColorPickerDialog.Pick(this, _palette[idx], allowAlpha: false);
-                if (picked is { } col)
+                if (ColorPickerDialog.Pick(this, _palette[idx], allowAlpha: false) is { } col)
                 {
                     _palette[idx] = col;
                     ((SolidColorBrush)swatch.Background).Color = col;
@@ -61,56 +64,68 @@ public partial class ChartDialog : Window
 
     private void Input_Changed(object sender, RoutedEventArgs e) => Redraw();
 
-    private string ChartType =>
-        (string)((ComboBoxItem)TypeCombo.SelectedItem).Tag;
+    private string ChartType => (string)((ComboBoxItem)TypeCombo.SelectedItem).Tag;
+
+    private static double[] ParseRow(string s) =>
+        s.Split(new[] { ',', ';', '\t' }, StringSplitOptions.RemoveEmptyEntries)
+         .Select(x => double.TryParse(x.Trim().Replace(',', '.'), NumberStyles.Float,
+             CultureInfo.InvariantCulture, out double v) ? v : (double?)null)
+         .Where(v => v.HasValue).Select(v => v!.Value).ToArray();
 
     private void Redraw()
     {
         if (Preview == null) return;
         ErrorText.Text = "";
 
-        var labels = LabelsBox.Text.Split(',').Select(x => x.Trim()).Where(x => x.Length > 0).ToArray();
-        var valueStrs = ValuesBox.Text.Split(',').Select(x => x.Trim()).Where(x => x.Length > 0).ToArray();
-        var values = new List<double>();
-        foreach (var vs in valueStrs)
-        {
-            if (double.TryParse(vs.Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture, out double v))
-                values.Add(v);
-        }
+        var cats = LabelsBox.Text.Split(',').Select(x => x.Trim()).Where(x => x.Length > 0).ToArray();
 
-        if (values.Count == 0) { ErrorText.Text = "Bitte Werte eingeben (z. B. 4, 7, 3)."; Preview.Source = null; return; }
-        if (labels.Length < values.Count)
-        {
-            // fehlende Beschriftungen mit Nummern auffüllen
-            labels = labels.Concat(Enumerable.Range(labels.Length + 1, values.Count - labels.Length)
+        // Jede nicht-leere Zeile ist eine Reihe/Kurve
+        var series = ValuesBox.Text
+            .Split('\n').Select(l => l.Trim()).Where(l => l.Length > 0)
+            .Select(ParseRow).Where(r => r.Length > 0).ToList();
+        if (series.Count == 0) { ErrorText.Text = "Bitte Werte eingeben (z. B. 4, 7, 3)."; Preview.Source = null; ResultImage = null; return; }
+
+        int maxLen = series.Max(r => r.Length);
+        if (cats.Length < maxLen)
+            cats = cats.Concat(Enumerable.Range(cats.Length + 1, maxLen - cats.Length)
                 .Select(n => n.ToString())).ToArray();
-        }
 
-        var bmp = RenderChart(ChartType, TitleBox.Text.Trim(), labels, values, _palette, 520, 300);
+        var names = SeriesBox.Text.Split(',').Select(x => x.Trim()).Where(x => x.Length > 0).ToArray();
+        if (names.Length < series.Count)
+            names = names.Concat(Enumerable.Range(names.Length + 1, series.Count - names.Length)
+                .Select(n => $"Reihe {n}")).ToArray();
+
+        var bmp = RenderChart(ChartType, TitleBox.Text.Trim(), cats, series, names, _palette, 560, 320);
         Preview.Source = bmp;
         ResultImage = bmp;
     }
 
-    private static RenderTargetBitmap RenderChart(string type, string title, string[] labels,
-        List<double> values, Color[] palette, int w, int h)
+    private static RenderTargetBitmap RenderChart(string type, string title, string[] cats,
+        List<double[]> series, string[] names, Color[] palette, int w, int h)
     {
         var dv = new DrawingVisual();
         using (var dc = dv.RenderOpen())
         {
             dc.DrawRectangle(Brushes.White, null, new Rect(0, 0, w, h));
-            var ink = new SolidColorBrush(Color.FromRgb(0x1B, 0x2B, 0x4B));
-            var grid = new SolidColorBrush(Color.FromRgb(0xD4, 0xDE, 0xEA));
-            var muted = new SolidColorBrush(Color.FromRgb(0x6B, 0x7A, 0x99));
-
             double top = title.Length > 0 ? 34 : 14;
             if (title.Length > 0)
-                // Text() zentriert bereits über MaxTextWidth = w → Ursprung x = 0
-                dc.DrawText(Text(title, 15, ink, true, w), new Point(0, 8));
+                dc.DrawText(Text(title, 15, Ink, true, w), new Point(0, 8));
 
-            if (type == "pie")
-                DrawPie(dc, labels, values, palette, w, h, top, muted);
-            else
-                DrawAxes(dc, type, labels, values, palette, w, h, top, ink, grid, muted);
+            // Legende (Reihennamen) rechts, wenn mehr als eine Reihe oder kein Kuchen
+            bool showLegend = type != "pie" && series.Count > 1;
+            double legendW = showLegend ? 120 : 0;
+            var plot = new Rect(0, top, w - legendW, h - top);
+
+            switch (type)
+            {
+                case "pie": DrawPie(dc, cats, series[0], palette, w, h, top); break;
+                case "radar": DrawRadar(dc, cats, series, palette, plot); break;
+                case "bar": DrawBars(dc, cats, series, palette, plot, horizontal: true); break;
+                case "column": DrawBars(dc, cats, series, palette, plot, horizontal: false); break;
+                default: DrawXY(dc, type, cats, series, palette, plot); break; // line/scatter/scatterline
+            }
+
+            if (showLegend) DrawLegend(dc, names, palette, w - legendW + 12, top + 8);
         }
 
         var rtb = new RenderTargetBitmap(w * 2, h * 2, 192, 192, PixelFormats.Pbgra32);
@@ -119,86 +134,213 @@ public partial class ChartDialog : Window
         return rtb;
     }
 
-    private static void DrawAxes(DrawingContext dc, string type, string[] labels, List<double> values,
-        Color[] palette, int w, int h, double top, Brush ink, Brush grid, Brush muted)
-    {
-        double left = 40, right = 14, bottom = 34;
-        double plotW = w - left - right, plotH = h - top - bottom;
-        double max = Math.Max(1, values.Max());
-        // "schöne" Obergrenze
-        double step = NiceStep(max / 4);
-        double axisMax = Math.Ceiling(max / step) * step;
+    // ==================== Achsen-Diagramme (Linie/Punkt) ====================
 
-        var axisPen = new Pen(grid, 1);
+    private static void DrawXY(DrawingContext dc, string type, string[] cats, List<double[]> series,
+        Color[] palette, Rect area)
+    {
+        double left = 42, right = 14, bottom = 34;
+        double plotW = area.Width - left - right, plotH = area.Height - bottom - 6;
+        double x0 = area.X + left, y0 = area.Y + 6;
+        double max = Math.Max(1, series.SelectMany(s => s).DefaultIfEmpty(0).Max());
+        double step = NiceStep(max / 4), axisMax = Math.Ceiling(max / step) * step;
+
+        var axisPen = new Pen(Grid, 1);
         for (int i = 0; i <= 4; i++)
         {
-            double y = top + plotH - plotH * i / 4;
-            dc.DrawLine(axisPen, new Point(left, y), new Point(left + plotW, y));
-            double val = axisMax * i / 4;
-            dc.DrawText(Text(val.ToString("0.#"), 11, muted, false, 36, TextAlignment.Right),
-                new Point(left - 38, y - 8));
+            double y = y0 + plotH - plotH * i / 4;
+            dc.DrawLine(axisPen, new Point(x0, y), new Point(x0 + plotW, y));
+            dc.DrawText(Text((axisMax * i / 4).ToString("0.#"), 11, Muted, false, 38, TextAlignment.Right),
+                new Point(x0 - 40, y - 8));
         }
 
-        int n = values.Count;
-        double slot = plotW / n;
-        if (type == "line")
+        int n = cats.Length;
+        double slot = plotW / Math.Max(1, n);
+        bool line = type is "line" or "scatterline";
+        bool dots = type is "scatter" or "scatterline";
+
+        for (int si = 0; si < series.Count; si++)
         {
-            var pen = new Pen(new SolidColorBrush(palette[0]), 2.5) { LineJoin = PenLineJoin.Round };
+            var col = new SolidColorBrush(palette[si % palette.Length]);
+            var pen = new Pen(col, 2.4) { LineJoin = PenLineJoin.Round };
             Point? prev = null;
-            for (int i = 0; i < n; i++)
+            var s = series[si];
+            for (int i = 0; i < s.Length; i++)
             {
-                double x = left + slot * (i + 0.5);
-                double y = top + plotH - plotH * (values[i] / axisMax);
-                if (prev is { } p) dc.DrawLine(pen, p, new Point(x, y));
-                prev = new Point(x, y);
+                double x = x0 + slot * (i + 0.5);
+                double y = y0 + plotH - plotH * (s[i] / axisMax);
+                var pt = new Point(x, y);
+                if (line && prev is { } p) dc.DrawLine(pen, p, pt);
+                prev = pt;
             }
+            if (dots)
+                for (int i = 0; i < s.Length; i++)
+                {
+                    double x = x0 + slot * (i + 0.5);
+                    double y = y0 + plotH - plotH * (s[i] / axisMax);
+                    dc.DrawEllipse(col, null, new Point(x, y), 3.6, 3.6);
+                }
+        }
+
+        for (int i = 0; i < n; i++)
+            dc.DrawText(Text(cats[i], 11, Muted, false, slot), new Point(x0 + slot * i, y0 + plotH + 6));
+    }
+
+    // ==================== Balken / Säulen (gruppiert, mehrere Reihen) ====================
+
+    private static void DrawBars(DrawingContext dc, string[] cats, List<double[]> series,
+        Color[] palette, Rect area, bool horizontal)
+    {
+        double max = Math.Max(1, series.SelectMany(s => s).DefaultIfEmpty(0).Max());
+        double step = NiceStep(max / 4), axisMax = Math.Ceiling(max / step) * step;
+        int n = cats.Length, m = series.Count;
+
+        if (!horizontal)
+        {
+            double left = 42, right = 14, bottom = 34;
+            double plotW = area.Width - left - right, plotH = area.Height - bottom - 6;
+            double x0 = area.X + left, y0 = area.Y + 6;
+            var axisPen = new Pen(Grid, 1);
+            for (int i = 0; i <= 4; i++)
+            {
+                double y = y0 + plotH - plotH * i / 4;
+                dc.DrawLine(axisPen, new Point(x0, y), new Point(x0 + plotW, y));
+                dc.DrawText(Text((axisMax * i / 4).ToString("0.#"), 11, Muted, false, 38, TextAlignment.Right),
+                    new Point(x0 - 40, y - 8));
+            }
+            double slot = plotW / Math.Max(1, n), bw = slot * 0.7 / m;
             for (int i = 0; i < n; i++)
             {
-                double x = left + slot * (i + 0.5);
-                double y = top + plotH - plotH * (values[i] / axisMax);
-                dc.DrawEllipse(new SolidColorBrush(palette[0]), null, new Point(x, y), 3.5, 3.5);
-                dc.DrawText(Text(labels[i], 11, muted, false, slot), new Point(x - slot / 2, top + plotH + 6));
+                double gx = x0 + slot * i + slot * 0.15;
+                for (int si = 0; si < m; si++)
+                {
+                    if (i >= series[si].Length) continue;
+                    double bh = plotH * (series[si][i] / axisMax);
+                    dc.DrawRectangle(new SolidColorBrush(palette[si % palette.Length]), null,
+                        new Rect(gx + si * bw, y0 + plotH - bh, bw * 0.92, bh));
+                }
+                dc.DrawText(Text(cats[i], 11, Muted, false, slot), new Point(x0 + slot * i, y0 + plotH + 6));
             }
         }
-        else // bar
+        else
         {
-            double bw = slot * 0.6;
+            double left = 70, right = 30, top2 = 6, bottom = 20;
+            double plotW = area.Width - left - right, plotH = area.Height - top2 - bottom;
+            double x0 = area.X + left, y0 = area.Y + top2;
+            var axisPen = new Pen(Grid, 1);
+            for (int i = 0; i <= 4; i++)
+            {
+                double x = x0 + plotW * i / 4;
+                dc.DrawLine(axisPen, new Point(x, y0), new Point(x, y0 + plotH));
+                dc.DrawText(Text((axisMax * i / 4).ToString("0.#"), 11, Muted, false, 40),
+                    new Point(x - 20, y0 + plotH + 3));
+            }
+            double slot = plotH / Math.Max(1, n), bh = slot * 0.7 / m;
             for (int i = 0; i < n; i++)
             {
-                double x = left + slot * i + (slot - bw) / 2;
-                double bh = plotH * (values[i] / axisMax);
-                double y = top + plotH - bh;
-                dc.DrawRectangle(new SolidColorBrush(palette[i % palette.Length]), null, new Rect(x, y, bw, bh));
-                dc.DrawText(Text(labels[i], 11, muted, false, slot),
-                    new Point(left + slot * i + slot / 2 - slot / 2, top + plotH + 6));
+                double gy = y0 + slot * i + slot * 0.15;
+                for (int si = 0; si < m; si++)
+                {
+                    if (i >= series[si].Length) continue;
+                    double bw = plotW * (series[si][i] / axisMax);
+                    dc.DrawRectangle(new SolidColorBrush(palette[si % palette.Length]), null,
+                        new Rect(x0, gy + si * bh, bw, bh * 0.92));
+                }
+                dc.DrawText(Text(cats[i], 11, Muted, false, left - 4, TextAlignment.Right),
+                    new Point(x0 - left, gy + slot * 0.2));
             }
         }
     }
 
-    private static void DrawPie(DrawingContext dc, string[] labels, List<double> values,
-        Color[] palette, int w, int h, double top, Brush muted)
+    // ==================== Radar ====================
+
+    private static void DrawRadar(DrawingContext dc, string[] cats, List<double[]> series,
+        Color[] palette, Rect area)
+    {
+        int n = cats.Length;
+        if (n < 3) { dc.DrawText(Text("Radar braucht ≥ 3 Kategorien", 12, Muted, false, area.Width),
+            new Point(area.X, area.Y + area.Height / 2)); return; }
+
+        double cx = area.X + area.Width / 2, cy = area.Y + area.Height / 2 + 4;
+        double r = Math.Min(area.Width, area.Height) / 2 - 30;
+        double max = Math.Max(1, series.SelectMany(s => s).DefaultIfEmpty(0).Max());
+        double step = NiceStep(max / 4), axisMax = Math.Ceiling(max / step) * step;
+
+        Point Vertex(int i, double val) =>
+            new(cx + r * (val / axisMax) * Math.Sin(2 * Math.PI * i / n),
+                cy - r * (val / axisMax) * Math.Cos(2 * Math.PI * i / n));
+
+        // Netz
+        var gridPen = new Pen(Grid, 1);
+        for (int ring = 1; ring <= 4; ring++)
+        {
+            var g = new StreamGeometry();
+            using (var ctx = g.Open())
+            {
+                ctx.BeginFigure(Vertex(0, axisMax * ring / 4), false, true);
+                for (int i = 1; i < n; i++) ctx.LineTo(Vertex(i, axisMax * ring / 4), true, false);
+            }
+            dc.DrawGeometry(null, gridPen, g);
+        }
+        for (int i = 0; i < n; i++)
+        {
+            dc.DrawLine(gridPen, new Point(cx, cy), Vertex(i, axisMax));
+            var lp = Vertex(i, axisMax * 1.12);
+            dc.DrawText(Text(cats[i], 10.5, Muted, false, 70), new Point(lp.X - 35, lp.Y - 7));
+        }
+
+        // Reihen als Polygone
+        for (int si = 0; si < series.Count; si++)
+        {
+            var s = series[si];
+            var geo = new StreamGeometry();
+            using (var ctx = geo.Open())
+            {
+                ctx.BeginFigure(Vertex(0, s.Length > 0 ? s[0] : 0), true, true);
+                for (int i = 1; i < n; i++) ctx.LineTo(Vertex(i, i < s.Length ? s[i] : 0), true, false);
+            }
+            var col = palette[si % palette.Length];
+            dc.DrawGeometry(new SolidColorBrush(col) { Opacity = 0.18 },
+                new Pen(new SolidColorBrush(col), 2), geo);
+        }
+    }
+
+    // ==================== Kuchen ====================
+
+    private static void DrawPie(DrawingContext dc, string[] cats, double[] values, Color[] palette,
+        int w, int h, double top)
     {
         double total = values.Sum();
         if (total <= 0) return;
-        double cx = w * 0.36, cy = top + (h - top) / 2, r = Math.Min(cx - 20, (h - top) / 2 - 16);
+        double cx = w * 0.34, cy = top + (h - top) / 2, r = Math.Min(cx - 20, (h - top) / 2 - 16);
         double angle = -90;
-        for (int i = 0; i < values.Count; i++)
+        for (int i = 0; i < values.Length; i++)
         {
             double sweep = values[i] / total * 360;
-            var fill = new SolidColorBrush(palette[i % palette.Length]);
-            dc.DrawGeometry(fill, null, PieSlice(cx, cy, r, angle, angle + sweep));
+            dc.DrawGeometry(new SolidColorBrush(palette[i % palette.Length]), null,
+                PieSlice(cx, cy, r, angle, angle + sweep));
             angle += sweep;
         }
-        // Legende rechts
-        double lx = w * 0.7, ly = top + 10;
-        for (int i = 0; i < values.Count; i++)
+        double lx = w * 0.66, ly = top + 10;
+        for (int i = 0; i < values.Length; i++)
         {
             dc.DrawRectangle(new SolidColorBrush(palette[i % palette.Length]), null, new Rect(lx, ly + i * 22, 14, 14));
-            double pct = values[i] / total * 100;
-            dc.DrawText(Text($"{labels[i]} · {pct:0}%", 12, muted, false, 160),
+            string cat = i < cats.Length ? cats[i] : (i + 1).ToString();
+            dc.DrawText(Text($"{cat} · {values[i] / total * 100:0}%", 12, Muted, false, 150),
                 new Point(lx + 20, ly + i * 22 - 1));
         }
     }
+
+    private static void DrawLegend(DrawingContext dc, string[] names, Color[] palette, double x, double y)
+    {
+        for (int i = 0; i < names.Length; i++)
+        {
+            dc.DrawRectangle(new SolidColorBrush(palette[i % palette.Length]), null, new Rect(x, y + i * 22, 14, 14));
+            dc.DrawText(Text(names[i], 12, Muted, false, 100), new Point(x + 20, y + i * 22 - 1));
+        }
+    }
+
+    // ==================== Helfer ====================
 
     private static Geometry PieSlice(double cx, double cy, double r, double a0, double a1)
     {
@@ -228,7 +370,7 @@ public partial class ChartDialog : Window
                 bold ? FontWeights.SemiBold : FontWeights.Normal, FontStretches.Normal),
             size, brush, 1.0)
         {
-            MaxTextWidth = maxW, MaxLineCount = 1, Trimming = TextTrimming.CharacterEllipsis,
+            MaxTextWidth = Math.Max(1, maxW), MaxLineCount = 1, Trimming = TextTrimming.CharacterEllipsis,
             TextAlignment = align,
         };
 

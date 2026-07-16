@@ -34,7 +34,12 @@
             <TextBox x:Name="ValuesBox" Text="4, 7, 3, 9" TextChanged="Input_Changed"
                      ToolTip="durch Komma getrennt, dieselbe Anzahl wie Beschriftungen"/>
         </DockPanel>
-        <TextBlock x:Name="ErrorText" Foreground="#EF4444" FontSize="12" Margin="120,0,0,0" TextWrapping="Wrap"/>
+        <DockPanel Margin="0,4,0,0">
+            <TextBlock Text="Farben" Width="120" VerticalAlignment="Center"
+                       Foreground="{DynamicResource Brush.TextMuted}"/>
+            <StackPanel x:Name="ColorRow" Orientation="Horizontal"/>
+        </DockPanel>
+        <TextBlock x:Name="ErrorText" Foreground="#EF4444" FontSize="12" Margin="120,4,0,0" TextWrapping="Wrap"/>
 
         <Border Background="{DynamicResource Brush.CardBg}" BorderBrush="{DynamicResource Brush.Border}"
                 BorderThickness="1" CornerRadius="8" Margin="0,12,0,0" Height="240">

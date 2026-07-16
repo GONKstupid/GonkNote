@@ -379,6 +379,15 @@ public partial class TextEditorView
         bool inLink = CurrentHyperlink() != null;
         MenuLink.Header = inLink ? "Link bearbeiten…" : "Link einfügen…";
         MenuUnlink.Visibility = inLink ? Visibility.Visible : Visibility.Collapsed;
+
+        // Objekt-Menü (Größe / Hintergrund) nur bei Bild/Form/Diagramm am Cursor
+        var obj = CurrentObjectHost();
+        bool hasObj = obj != null;
+        MenuObjSep.Visibility = hasObj ? Visibility.Visible : Visibility.Collapsed;
+        MenuSize.Visibility = hasObj ? Visibility.Visible : Visibility.Collapsed;
+        bool isBehind = obj is { Host: Figure };
+        MenuToBack.Visibility = hasObj && !isBehind ? Visibility.Visible : Visibility.Collapsed;
+        MenuToFront.Visibility = isBehind ? Visibility.Visible : Visibility.Collapsed;
     }
 
     // ---------- Tabellen-Navigation ----------

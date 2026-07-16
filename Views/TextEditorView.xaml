@@ -745,6 +745,22 @@
                                             <MenuItem x:Name="MenuLink" Header="Link bearbeiten…" Click="InsertLink_Click"/>
                                             <MenuItem x:Name="MenuUnlink" Header="Link entfernen" Click="RemoveLink_Click"/>
                                             <MenuItem Header="Beschriftung einfügen" Click="InsertCaption_Click"/>
+                                            <Separator x:Name="MenuObjSep" Visibility="Collapsed"/>
+                                            <MenuItem x:Name="MenuSize" Header="Größe" Visibility="Collapsed">
+                                                <MenuItem Header="Größer" Click="ObjBigger_Click"/>
+                                                <MenuItem Header="Kleiner" Click="ObjSmaller_Click"/>
+                                                <Separator/>
+                                                <MenuItem Header="Breiter" Click="ObjWider_Click"/>
+                                                <MenuItem Header="Schmaler" Click="ObjNarrower_Click"/>
+                                                <MenuItem Header="Höher" Click="ObjTaller_Click"/>
+                                                <MenuItem Header="Flacher" Click="ObjShorter_Click"/>
+                                                <Separator/>
+                                                <MenuItem Header="Genaue Größe…" Click="ObjExactSize_Click"/>
+                                            </MenuItem>
+                                            <MenuItem x:Name="MenuToBack" Header="Hinter den Text legen"
+                                                      Visibility="Collapsed" Click="ShapeToBack_Click"/>
+                                            <MenuItem x:Name="MenuToFront" Header="Vor den Text holen"
+                                                      Visibility="Collapsed" Click="ShapeToFront_Click"/>
                                             <Separator x:Name="MenuTableSep"/>
                                             <MenuItem x:Name="MenuTable" Header="Tabelle">
                                                 <MenuItem Header="Zeile darüber einfügen" Click="TableRowAbove_Click"/>

@@ -15,8 +15,8 @@ public partial class ChartDialog : Window
 {
     public RenderTargetBitmap? ResultImage { get; private set; }
 
-    // Akzentpalette (Blau/Türkis/Pink/Lila/Grün/Gelb) für die Reihen/Segmente
-    private static readonly Color[] Palette =
+    // Anpassbare Palette (Blau/Türkis/Pink/Lila/Grün/Gelb) für die Reihen/Segmente
+    private readonly Color[] _palette =
     {
         Color.FromRgb(0x25, 0x63, 0xEB), Color.FromRgb(0x14, 0xB8, 0xA6),
         Color.FromRgb(0xEC, 0x48, 0x99), Color.FromRgb(0x8B, 0x5C, 0xF6),
@@ -26,7 +26,37 @@ public partial class ChartDialog : Window
     public ChartDialog()
     {
         InitializeComponent();
+        BuildColorRow();
         Loaded += (_, _) => Redraw();
+    }
+
+    private void BuildColorRow()
+    {
+        ColorRow.Children.Clear();
+        for (int i = 0; i < _palette.Length; i++)
+        {
+            int idx = i;
+            var swatch = new System.Windows.Controls.Button
+            {
+                Width = 24, Height = 24, Margin = new Thickness(0, 0, 4, 0),
+                Background = new SolidColorBrush(_palette[i]),
+                BorderBrush = new SolidColorBrush(Color.FromRgb(0xD4, 0xDE, 0xEA)),
+                BorderThickness = new Thickness(1),
+                Cursor = System.Windows.Input.Cursors.Hand,
+                ToolTip = $"Farbe {i + 1} ändern",
+            };
+            swatch.Click += (_, _) =>
+            {
+                var picked = ColorPickerDialog.Pick(this, _palette[idx], allowAlpha: false);
+                if (picked is { } col)
+                {
+                    _palette[idx] = col;
+                    ((SolidColorBrush)swatch.Background).Color = col;
+                    Redraw();
+                }
+            };
+            ColorRow.Children.Add(swatch);
+        }
     }
 
     private void Input_Changed(object sender, RoutedEventArgs e) => Redraw();
@@ -56,13 +86,13 @@ public partial class ChartDialog : Window
                 .Select(n => n.ToString())).ToArray();
         }
 
-        var bmp = RenderChart(ChartType, TitleBox.Text.Trim(), labels, values, 520, 300);
+        var bmp = RenderChart(ChartType, TitleBox.Text.Trim(), labels, values, _palette, 520, 300);
         Preview.Source = bmp;
         ResultImage = bmp;
     }
 
     private static RenderTargetBitmap RenderChart(string type, string title, string[] labels,
-        List<double> values, int w, int h)
+        List<double> values, Color[] palette, int w, int h)
     {
         var dv = new DrawingVisual();
         using (var dc = dv.RenderOpen())
@@ -78,9 +108,9 @@ public partial class ChartDialog : Window
                 dc.DrawText(Text(title, 15, ink, true, w), new Point(0, 8));
 
             if (type == "pie")
-                DrawPie(dc, labels, values, w, h, top, muted);
+                DrawPie(dc, labels, values, palette, w, h, top, muted);
             else
-                DrawAxes(dc, type, labels, values, w, h, top, ink, grid, muted);
+                DrawAxes(dc, type, labels, values, palette, w, h, top, ink, grid, muted);
         }
 
         var rtb = new RenderTargetBitmap(w * 2, h * 2, 192, 192, PixelFormats.Pbgra32);
@@ -90,7 +120,7 @@ public partial class ChartDialog : Window
     }
 
     private static void DrawAxes(DrawingContext dc, string type, string[] labels, List<double> values,
-        int w, int h, double top, Brush ink, Brush grid, Brush muted)
+        Color[] palette, int w, int h, double top, Brush ink, Brush grid, Brush muted)
     {
         double left = 40, right = 14, bottom = 34;
         double plotW = w - left - right, plotH = h - top - bottom;
@@ -113,7 +143,7 @@ public partial class ChartDialog : Window
         double slot = plotW / n;
         if (type == "line")
         {
-            var pen = new Pen(new SolidColorBrush(Palette[0]), 2.5) { LineJoin = PenLineJoin.Round };
+            var pen = new Pen(new SolidColorBrush(palette[0]), 2.5) { LineJoin = PenLineJoin.Round };
             Point? prev = null;
             for (int i = 0; i < n; i++)
             {
@@ -126,7 +156,7 @@ public partial class ChartDialog : Window
             {
                 double x = left + slot * (i + 0.5);
                 double y = top + plotH - plotH * (values[i] / axisMax);
-                dc.DrawEllipse(new SolidColorBrush(Palette[0]), null, new Point(x, y), 3.5, 3.5);
+                dc.DrawEllipse(new SolidColorBrush(palette[0]), null, new Point(x, y), 3.5, 3.5);
                 dc.DrawText(Text(labels[i], 11, muted, false, slot), new Point(x - slot / 2, top + plotH + 6));
             }
         }
@@ -138,7 +168,7 @@ public partial class ChartDialog : Window
                 double x = left + slot * i + (slot - bw) / 2;
                 double bh = plotH * (values[i] / axisMax);
                 double y = top + plotH - bh;
-                dc.DrawRectangle(new SolidColorBrush(Palette[i % Palette.Length]), null, new Rect(x, y, bw, bh));
+                dc.DrawRectangle(new SolidColorBrush(palette[i % palette.Length]), null, new Rect(x, y, bw, bh));
                 dc.DrawText(Text(labels[i], 11, muted, false, slot),
                     new Point(left + slot * i + slot / 2 - slot / 2, top + plotH + 6));
             }
@@ -146,7 +176,7 @@ public partial class ChartDialog : Window
     }
 
     private static void DrawPie(DrawingContext dc, string[] labels, List<double> values,
-        int w, int h, double top, Brush muted)
+        Color[] palette, int w, int h, double top, Brush muted)
     {
         double total = values.Sum();
         if (total <= 0) return;
@@ -155,7 +185,7 @@ public partial class ChartDialog : Window
         for (int i = 0; i < values.Count; i++)
         {
             double sweep = values[i] / total * 360;
-            var fill = new SolidColorBrush(Palette[i % Palette.Length]);
+            var fill = new SolidColorBrush(palette[i % palette.Length]);
             dc.DrawGeometry(fill, null, PieSlice(cx, cy, r, angle, angle + sweep));
             angle += sweep;
         }
@@ -163,7 +193,7 @@ public partial class ChartDialog : Window
         double lx = w * 0.7, ly = top + 10;
         for (int i = 0; i < values.Count; i++)
         {
-            dc.DrawRectangle(new SolidColorBrush(Palette[i % Palette.Length]), null, new Rect(lx, ly + i * 22, 14, 14));
+            dc.DrawRectangle(new SolidColorBrush(palette[i % palette.Length]), null, new Rect(lx, ly + i * 22, 14, 14));
             double pct = values[i] / total * 100;
             dc.DrawText(Text($"{labels[i]} · {pct:0}%", 12, muted, false, 160),
                 new Point(lx + 20, ly + i * 22 - 1));

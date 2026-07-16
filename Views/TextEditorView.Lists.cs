@@ -78,24 +78,57 @@ public partial class TextEditorView
             NumberGrid.Children.Add(MakeListCard(label, marker, ordered: true));
     }
 
+    // Karten sind immer weiß (Vorschau des Blatts) → feste dunkle Tinte, sonst
+    // wäre der Text im Dark Mode hell auf weiß (der gemeldete Kontrast-Bug).
+    private static readonly Brush ListInk = new SolidColorBrush(Color.FromRgb(0x1B, 0x2B, 0x4B));
+    private static readonly Brush ListLine = new SolidColorBrush(Color.FromRgb(0xC4, 0xD0, 0xE2));
+    private static readonly Brush ListMuted = new SolidColorBrush(Color.FromRgb(0x6B, 0x7A, 0x99));
+
     private Button MakeListCard(string label, TextMarkerStyle? marker, bool ordered)
     {
+        UIElement content;
+        if (marker == null)
+        {
+            content = new TextBlock
+            {
+                Text = "Kein(e)",
+                FontSize = 12.5,
+                FontFamily = new FontFamily("Segoe UI"),
+                Foreground = ListMuted,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
+            };
+        }
+        else
+        {
+            // Word-artige Vorschau: 3 Zeilen aus Marker + kurzer Linie
+            var stack = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
+            var rowLabels = RowLabels(marker.Value);
+            foreach (var rl in rowLabels)
+            {
+                var row = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 1.5, 0, 1.5) };
+                row.Children.Add(new TextBlock
+                {
+                    Text = rl, FontSize = 11, FontFamily = new FontFamily("Segoe UI"),
+                    Foreground = ListInk, Width = 18, TextAlignment = TextAlignment.Right,
+                    Margin = new Thickness(0, 0, 4, 0),
+                });
+                row.Children.Add(new Border
+                {
+                    Height = 2.5, Width = 30, Background = ListLine,
+                    CornerRadius = new CornerRadius(1), VerticalAlignment = VerticalAlignment.Center,
+                });
+                stack.Children.Add(row);
+            }
+            content = stack;
+        }
+
         var card = new Button
         {
             Style = (Style)FindResource("StyleCard"),
-            Content = new TextBlock
-            {
-                Text = label,
-                FontSize = 16,
-                FontFamily = new FontFamily("Segoe UI"),
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center,
-                Foreground = marker == null
-                    ? (Brush)FindResource("Brush.TextMuted")
-                    : (Brush)FindResource("Brush.Text"),
-            },
-            Width = 66,
-            Height = 40,
+            Content = content,
+            Width = 68,
+            Height = 58,
             ToolTip = marker == null ? "Keine Liste" : label,
         };
         card.Click += (_, _) =>
@@ -106,6 +139,21 @@ public partial class TextEditorView
         };
         return card;
     }
+
+    /// <summary>Die drei Vorschauzeilen-Beschriftungen je Markierungsart.</summary>
+    private static string[] RowLabels(TextMarkerStyle m) => m switch
+    {
+        TextMarkerStyle.Disc => new[] { "●", "●", "●" },
+        TextMarkerStyle.Circle => new[] { "○", "○", "○" },
+        TextMarkerStyle.Square => new[] { "■", "■", "■" },
+        TextMarkerStyle.Box => new[] { "▪", "▪", "▪" },
+        TextMarkerStyle.Decimal => new[] { "1.", "2.", "3." },
+        TextMarkerStyle.LowerLatin => new[] { "a.", "b.", "c." },
+        TextMarkerStyle.UpperLatin => new[] { "A.", "B.", "C." },
+        TextMarkerStyle.LowerRoman => new[] { "i.", "ii.", "iii." },
+        TextMarkerStyle.UpperRoman => new[] { "I.", "II.", "III." },
+        _ => new[] { "•", "•", "•" },
+    };
 
     private void OpenBulletLibrary_Click(object s, RoutedEventArgs e)
     {

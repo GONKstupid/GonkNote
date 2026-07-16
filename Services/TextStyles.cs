@@ -47,6 +47,11 @@ public static class TextStyles
         new("Überschrift 2", 22, FontWeights.Bold, FontStyles.Normal, "#14B8A6", new Thickness(0, 12, 0, 6), 2),
         new("Überschrift 3", 18, FontWeights.Bold, FontStyles.Normal, "#8B5CF6", new Thickness(0, 10, 0, 4), 3),
         new("Überschrift 4", 16, FontWeights.Bold, FontStyles.Italic, "#EC4899", new Thickness(0, 8, 0, 4), 4),
+        // Weitere Presets (keine Überschriften → nicht im Inhaltsverzeichnis)
+        new("Titel", 34, FontWeights.Bold, FontStyles.Normal, null, new Thickness(0, 6, 0, 12), 0),
+        new("Zitat", BodySize, FontWeights.Normal, FontStyles.Italic, "#6B7A99", new Thickness(28, 8, 28, 8), 0),
+        new("Kopfzeile", 12, FontWeights.Normal, FontStyles.Normal, "#6B7A99", new Thickness(0, 2, 0, 2), 0),
+        new("Fußzeile", 12, FontWeights.Normal, FontStyles.Normal, "#6B7A99", new Thickness(0, 2, 0, 2), 0),
     };
 
     public static ParaStyle ForHeading(int level) => All.First(s => s.HeadingLevel == level);

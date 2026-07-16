@@ -112,7 +112,7 @@ GonkNote/
 │  ├─ TextEditorView.xaml(.cs)   Text-Editor im Ribbon-Layout (Tabs Start/Einfügen/
 │  │      + .Format/.Insert/      Layout/Verweise), rechte Einstellungs-Seitenleiste
 │  │        .Layout/.Refs/        (Ränder/Absätze/Hintergrundbild), Listen-Split-Buttons
-│  │        .Find/.Lists/         + Bibliotheken (.Lists.cs), Formen-Palette + Diagramm
+│  │        .Find/.Lists/         + Bibliotheken (.Lists.cs), Diagramm-Werkzeug
 │  │        .Shapes.cs (partial)  (.Shapes.cs → ChartDialog), Formatvorlagen-Galerie (nur
 │  │                              3 Kacheln inline + Flyout; Überschrift 1–4 farbig,
 │  │                              Erkennung über Größe+Gewicht → TOC/Navigator/DOCX-Styles),
@@ -242,10 +242,16 @@ Nutzer-Test mit Stift.
   **Skalieren** vereinheitlicht (Einzel-/Mehrfachauswahl, mitgedrehte Auswahlbox).
 - *Text-Editor:* Auflistungs-Bibliotheken mit festem dunklem Text auf weißer Karte
   (Kontrast-Bug behoben) + Word-artige Vorschau. Neue Presets Titel/Zitat/Kopf-/
-  Fußzeile. Formen/Diagramme/Bilder per Kontextmenü in der Größe änderbar; Diagramm-
-  farben im Dialog wählbar; Form „hinter den Text" (Figure + reduzierte Deckkraft).
+  Fußzeile. Diagramme/Bilder per Kontextmenü in der Größe änderbar; Diagramm-
+  farben im Dialog wählbar; Objekt „hinter den Text" (Figure + reduzierte Deckkraft).
   Tabellen-Formatierung in einer eigenen Seitenleisten-Sektion (Struktur, Rahmen-
   dicke/-variante, Farben) statt im Rechtsklick-Menü.
+- **Formen aus dem Text-Editor entfernt (2026-07-16):** Voll interaktive Office-
+  Objekte (freies Ziehen/Drehen mit Umfluss) sind im WPF-FlowDocument nur mit einem
+  großen, CPU-hungrigen Overlay-/Adorner-System machbar (Text-Relayout pro Frame) —
+  bewusst nicht gebaut. Das interaktive Zeichnen bietet das Whiteboard. Die statische
+  Formen-Palette wurde daher auf Nutzerwunsch komplett entfernt (Diagramme/Bilder
+  bleiben). `.Shapes.cs` enthält nur noch das Diagramm-Werkzeug.
 
 **⚠️ Bewusst vertagt (nicht vergessen):**
 - **Gedrehte Elemente – Feinschliff:** Auswahlbox/Hit-Test gedrehter Box-Elemente

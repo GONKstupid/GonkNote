@@ -339,14 +339,6 @@
                                   AutomationProperties.Name="Sonderzeichen">
                         <TextBlock Text=" Ω Symbol " FontFamily="Segoe UI"/>
                     </ToggleButton>
-                    <Button Style="{StaticResource LabelButton}" Click="OpenShapes_Click"
-                            ToolTip="Form einfügen (Vektorform in Akzentfarbe)"
-                            AutomationProperties.Name="Formen">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="&#xE739;" FontFamily="{StaticResource IconFont}" VerticalAlignment="Center"/>
-                            <TextBlock Text="Formen" Margin="6,0,0,0"/>
-                        </StackPanel>
-                    </Button>
                     <Button Style="{StaticResource LabelButton}" Click="OpenChart_Click"
                             ToolTip="Diagramm aus eigenen Werten einfügen (Balken, Linie, Kuchen)"
                             AutomationProperties.Name="Diagramm">
@@ -852,22 +844,6 @@
                         <TextBlock Text="Formatvorlagen" FontWeight="SemiBold" Margin="2,0,0,8"
                                    Foreground="{DynamicResource Brush.Text}"/>
                         <WrapPanel x:Name="StyleGridFull" Width="320"/>
-                    </StackPanel>
-                </Border>
-            </Popup>
-
-            <!-- Formen-Palette -->
-            <Popup x:Name="ShapesPopup" Placement="Bottom" StaysOpen="False"
-                   AllowsTransparency="True" PopupAnimation="Fade">
-                <Border Background="{DynamicResource Brush.CardBg}" BorderBrush="{DynamicResource Brush.Border}"
-                        BorderThickness="1" CornerRadius="8" Padding="10" Margin="6">
-                    <Border.Effect>
-                        <DropShadowEffect BlurRadius="12" ShadowDepth="2" Opacity="0.25"/>
-                    </Border.Effect>
-                    <StackPanel>
-                        <TextBlock Text="Formen" FontWeight="SemiBold" Margin="2,0,0,8"
-                                   Foreground="{DynamicResource Brush.Text}"/>
-                        <WrapPanel x:Name="ShapesGrid" Width="272"/>
                     </StackPanel>
                 </Border>
             </Popup>

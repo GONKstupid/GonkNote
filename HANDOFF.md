@@ -1,5 +1,16 @@
 # Gonk Note — Projektübergabe (Stand: 2026-07-16, Phase 3 laufend)
 
+> **Fixes-Runde 9 (2026-07-16) zuletzt umgesetzt:** Formen aus dem Text-Editor
+> **entfernt** (voll interaktive Office-Formen im FlowDocument nicht sinnvoll
+> machbar → Zeichnen ist Whiteboard-Sache). **Diagramm** stark erweitert: Typen
+> Säulen/Balken/Linie/Punkt/Punkt+Linie/Kuchen/Radar + **mehrere Reihen** (eine
+> Zeile je Kurve) + Legende. **Tabelle**: Struktur zurück ins Rechtsklick-Menü,
+> Rahmen wirken nur auf die **ausgewählten Zellen**, Sidebar-UI aufgeräumt.
+> **Whiteboard/Notizbuch**: Rechtsklick-**Kontextmenü** (Ausschneiden/Kopieren/
+> Duplizieren/Einfügen/Löschen/Alles auswählen) für keyboard-freie Nutzung, mit
+> interner Element-Zwischenablage. Alle Commits `…`→HEAD, Build 0 Warnungen.
+
+
 Diese Datei ist für den Einstieg in einen **neuen Chat-Thread** gedacht. Sie fasst
 zusammen, was existiert, was als Nächstes ansteht, und wie gearbeitet werden soll.
 Wenn du diesen Thread eröffnest, sag einfach: *"Lies HANDOFF.md und mach weiter."*

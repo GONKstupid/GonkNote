@@ -2575,6 +2575,133 @@ public partial class WhiteboardView : UserControl
         Skia.InvalidateVisual();
     }
 
+    // Interne Zwischenablage (Whiteboard-Elemente); überlebt keinen App-Neustart
+    private readonly List<WbElement> _clipboard = new();
+
+    private void CopySelection()
+    {
+        if (_selection.Count == 0) return;
+        _clipboard.Clear();
+        _clipboard.AddRange(_selection.Select(CloneElement));
+    }
+
+    private void CutSelection()
+    {
+        if (_selection.Count == 0) return;
+        CopySelection();
+        DeleteSelection();
+    }
+
+    /// <summary>Fügt die interne Zwischenablage ein (an <paramref name="at"/> zentriert, sonst leicht versetzt).</summary>
+    private void PasteClipboard(SKPoint? at)
+    {
+        if (_page == null || _vm == null || _clipboard.Count == 0) return;
+        var clones = _clipboard.Select(CloneElement).ToList();
+
+        if (at is { } target)
+        {
+            // Mittelpunkt der kopierten Gruppe auf den Zielpunkt legen
+            bool first = true;
+            SKRect b = SKRect.Empty;
+            foreach (var cl in clones)
+            {
+                var eb = ElementBounds(cl);
+                if (first) { b = eb; first = false; } else b = SKRect.Union(b, eb);
+            }
+            float dx = target.X - b.MidX, dy = target.Y - b.MidY;
+            foreach (var cl in clones) cl.Translate(dx, dy);
+        }
+        else
+        {
+            foreach (var cl in clones) cl.Translate(18, 18);
+        }
+
+        _page.Elements.AddRange(clones);
+        _vm.Undo.Push(_page, new AddElementsAction(clones));
+
+        // Eingefügtes gleich auswählen (Verschieben-Werkzeug)
+        _suppressToolEvents = true;
+        foreach (var bt in ToolButtons) bt.IsChecked = bt == BtnMove;
+        _suppressToolEvents = false;
+        SetTool(ToolType.Move);
+        _selection.Clear();
+        foreach (var cl in clones) _selection.Add(cl);
+        ComputeSelectionBounds();
+        MarkDirty();
+        Skia.InvalidateVisual();
+    }
+
+    private void SelectAll()
+    {
+        if (_page == null || _page.Elements.Count == 0) return;
+        _selection.Clear();
+        foreach (var el in _page.Elements) _selection.Add(el);
+        ComputeSelectionBounds();
+        // Auswahl-Werkzeug aktivieren, damit Griffe erscheinen
+        if (_tool != ToolType.Move && _tool != ToolType.Lasso)
+        {
+            _suppressToolEvents = true;
+            foreach (var bt in ToolButtons) bt.IsChecked = bt == BtnMove;
+            _suppressToolEvents = false;
+            SetTool(ToolType.Move);
+        }
+        Skia.InvalidateVisual();
+    }
+
+    // ==================== Kontextmenü (keyboard-freie Nutzung) ====================
+
+    private SKPoint _contextCanvasPos;
+
+    private void Canvas_ContextMenuOpening(object sender, ContextMenuEventArgs e)
+    {
+        // Während Text-/Zettel-Bearbeitung oder Import kein Leinwand-Menü
+        if (_editingText != null || _editingSticky != null || BusyOverlay.Visibility == Visibility.Visible)
+        {
+            e.Handled = true;
+            return;
+        }
+
+        _contextCanvasPos = ToCanvas(Mouse.GetPosition(CanvasHost));
+
+        // Nichts ausgewählt? Objekt unter dem Zeiger anwählen, damit das Menü darauf wirkt
+        if (_selection.Count == 0)
+        {
+            var pick = HitTestElement(_contextCanvasPos);
+            if (pick != null)
+            {
+                _selection.Add(pick);
+                ComputeSelectionBounds();
+                Skia.InvalidateVisual();
+            }
+        }
+
+        bool hasSel = _selection.Count > 0;
+        Cm_Cut.IsEnabled = hasSel;
+        Cm_Copy.IsEnabled = hasSel;
+        Cm_Duplicate.IsEnabled = hasSel;
+        Cm_Delete.IsEnabled = hasSel;
+        Cm_Paste.IsEnabled = _clipboard.Count > 0 || ClipboardHasImage();
+        Cm_SelectAll.IsEnabled = _page is { Elements.Count: > 0 };
+    }
+
+    private static bool ClipboardHasImage()
+    {
+        try { return System.Windows.Clipboard.ContainsImage(); }
+        catch { return false; }
+    }
+
+    private void Cm_Cut_Click(object s, RoutedEventArgs e) => CutSelection();
+    private void Cm_Copy_Click(object s, RoutedEventArgs e) => CopySelection();
+    private void Cm_Duplicate_Click(object s, RoutedEventArgs e) => DuplicateSelection();
+    private void Cm_Delete_Click(object s, RoutedEventArgs e) => DeleteSelection();
+    private void Cm_SelectAll_Click(object s, RoutedEventArgs e) => SelectAll();
+
+    private void Cm_Paste_Click(object s, RoutedEventArgs e)
+    {
+        if (_clipboard.Count > 0) PasteClipboard(_contextCanvasPos);
+        else PasteImageFromClipboard();
+    }
+
     private static WbElement CloneElement(WbElement el) => el switch
     {
         StrokeElement s => new StrokeElement
@@ -3142,7 +3269,17 @@ public partial class WhiteboardView : UserControl
         if (ctrl && e.Key == Key.Z) { DoUndo(); e.Handled = true; return; }
         if (ctrl && e.Key == Key.Y) { DoRedo(); e.Handled = true; return; }
         if (ctrl && e.Key == Key.D) { DuplicateSelection(); e.Handled = true; return; }
-        if (ctrl && e.Key == Key.V) { if (PasteImageFromClipboard()) e.Handled = true; return; }
+        if (ctrl && e.Key == Key.C) { CopySelection(); e.Handled = true; return; }
+        if (ctrl && e.Key == Key.X) { CutSelection(); e.Handled = true; return; }
+        if (ctrl && e.Key == Key.A) { SelectAll(); e.Handled = true; return; }
+        if (ctrl && e.Key == Key.V)
+        {
+            // Erst interne Element-Zwischenablage, sonst Bild aus der System-Zwischenablage
+            if (_clipboard.Count > 0) PasteClipboard(null);
+            else PasteImageFromClipboard();
+            e.Handled = true;
+            return;
+        }
 
         switch (e.Key)
         {

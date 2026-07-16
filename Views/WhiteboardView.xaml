@@ -457,7 +457,19 @@
 
         <!-- ===== Zeichenfläche ===== -->
         <Grid x:Name="CanvasHost" Background="Transparent" ClipToBounds="True"
-              AllowDrop="True" DragOver="CanvasHost_DragOver" Drop="CanvasHost_Drop">
+              AllowDrop="True" DragOver="CanvasHost_DragOver" Drop="CanvasHost_Drop"
+              ContextMenuOpening="Canvas_ContextMenuOpening">
+            <Grid.ContextMenu>
+                <ContextMenu x:Name="CanvasMenu">
+                    <MenuItem x:Name="Cm_Cut" Header="Ausschneiden" InputGestureText="Strg+X" Click="Cm_Cut_Click"/>
+                    <MenuItem x:Name="Cm_Copy" Header="Kopieren" InputGestureText="Strg+C" Click="Cm_Copy_Click"/>
+                    <MenuItem x:Name="Cm_Duplicate" Header="Duplizieren" InputGestureText="Strg+D" Click="Cm_Duplicate_Click"/>
+                    <MenuItem x:Name="Cm_Paste" Header="Einfügen" InputGestureText="Strg+V" Click="Cm_Paste_Click"/>
+                    <Separator x:Name="Cm_Sep1"/>
+                    <MenuItem x:Name="Cm_Delete" Header="Löschen" InputGestureText="Entf" Click="Cm_Delete_Click"/>
+                    <MenuItem x:Name="Cm_SelectAll" Header="Alles auswählen" InputGestureText="Strg+A" Click="Cm_SelectAll_Click"/>
+                </ContextMenu>
+            </Grid.ContextMenu>
             <skia:SKElement x:Name="Skia" PaintSurface="Skia_PaintSurface"/>
             <Canvas x:Name="Overlay" Background="{x:Null}">
                 <TextBox x:Name="EditBox" Visibility="Collapsed" AcceptsReturn="True"

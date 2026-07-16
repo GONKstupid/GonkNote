@@ -172,6 +172,22 @@ public sealed class ScaleElementsAction : IEditAction
     }
 }
 
+/// <summary>Drehen eines einzelnen Elements (um seinen Mittelpunkt).</summary>
+public sealed class RotateElementAction : IEditAction
+{
+    private readonly WbElement _element;
+    private readonly float _oldDeg, _newDeg;
+
+    public RotateElementAction(WbElement element, float oldDeg, float newDeg)
+    {
+        _element = element;
+        _oldDeg = oldDeg; _newDeg = newDeg;
+    }
+
+    public void Redo(WbPage page) => _element.Rotation = _newDeg;
+    public void Undo(WbPage page) => _element.Rotation = _oldDeg;
+}
+
 public sealed class StickyTextChangeAction : IEditAction
 {
     private readonly StickyNoteElement _element;

@@ -57,15 +57,16 @@ public partial class WhiteboardView : UserControl
     private SKPoint _moveLast;
     private float _movedX, _movedY;
 
-    // Skalierung über den Eckgriff bei Einzelauswahl eines Box-Elements (Bild/Notizzettel)
-    private IBoxElement? _resizingBox;
-    private float _resizeW0, _resizeH0;
-
     // Gleichmäßige Skalierung einer beliebigen Auswahl (Striche/Formen/mehrere Objekte)
     private bool _scalingSelection;
     private SKPoint _scalePivot;      // Ankerpunkt (oben links der Auswahl)
     private float _scaleStartDist;    // Abstand Pivot→Zeiger beim Anfassen
     private float _scaleAccum = 1f;   // bisher angewandter Gesamtfaktor (für Undo)
+
+    // Drehen eines einzelnen Elements (Griff über der Auswahl)
+    private WbElement? _rotatingEl;
+    private float _rotStartDeg;       // Rotation des Elements beim Anfassen
+    private float _rotStartPointer;   // Zeigerwinkel beim Anfassen
 
     // Texteingabe (Textfeld)
     private TextElement? _editingText;
@@ -109,6 +110,11 @@ public partial class WhiteboardView : UserControl
     private ToolType _lastPen = ToolType.Pen;
     private bool _penGroupExpanded;
 
+    // Auswahl-Gruppe (Lasso + Verschieben): eingeklappt ist nur das zuletzt benutzte sichtbar
+    private ToggleButton[] SelectButtons => new[] { BtnLasso, BtnMove };
+    private ToolType _lastSelect = ToolType.Lasso;
+    private bool _selectGroupExpanded;
+
     // Zeichenhilfen-Gruppe (Lineal/Geodreieck): eingeklappt ist nur die zuletzt benutzte sichtbar
     private ToggleButton[] AidButtons => new[] { BtnRuler, BtnSetSquare };
     private DrawAid _lastAid = DrawAid.Ruler;
@@ -123,6 +129,7 @@ public partial class WhiteboardView : UserControl
         BtnShapeRect.IsChecked = true;
         _suppressToolEvents = false;
         SetPenGroupExpanded(false);
+        SetSelectGroupExpanded(false);
         SetAidGroupExpanded(false);
 
         foreach (var b in ToolButtons) b.Unchecked += Tool_Unchecked;
@@ -200,6 +207,9 @@ public partial class WhiteboardView : UserControl
         // ein anderes Werkzeug klappt sie wieder ein
         if (IsPenTool(_tool)) _lastPen = _tool;
         SetPenGroupExpanded(IsPenTool(_tool));
+
+        if (IsSelectTool(_tool)) _lastSelect = _tool;
+        SetSelectGroupExpanded(IsSelectTool(_tool));
     }
 
     private void Tool_Unchecked(object? sender, RoutedEventArgs e)
@@ -231,6 +241,18 @@ public partial class WhiteboardView : UserControl
         _penGroupExpanded = expanded;
         var rep = PenButtonFor(_lastPen);
         foreach (var b in PenButtons)
+            b.Visibility = expanded || b == rep ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private static bool IsSelectTool(ToolType t) => t is ToolType.Lasso or ToolType.Move;
+
+    private ToggleButton SelectButtonFor(ToolType t) => t == ToolType.Move ? BtnMove : BtnLasso;
+
+    private void SetSelectGroupExpanded(bool expanded)
+    {
+        _selectGroupExpanded = expanded;
+        var rep = SelectButtonFor(_lastSelect);
+        foreach (var b in SelectButtons)
             b.Visibility = expanded || b == rep ? Visibility.Visible : Visibility.Collapsed;
     }
 
@@ -496,7 +518,7 @@ public partial class WhiteboardView : UserControl
             e.Handled = true;
             return;
         }
-        if (!_drawing && _eraseSteps == null && _lassoPts == null && !_movingSelection && !_shapeActive && _resizingBox == null && _rulerDrag == RulerDrag.None)
+        if (!_drawing && _eraseSteps == null && _lassoPts == null && !_movingSelection && !_shapeActive && !_scalingSelection && _rotatingEl == null && _rulerDrag == RulerDrag.None)
         {
             HoverInput(ToCanvas(e.GetPosition(CanvasHost)));
             return;
@@ -544,7 +566,7 @@ public partial class WhiteboardView : UserControl
         if (_panning) { MovePan(screen); return; }
 
         if (e.LeftButton == MouseButtonState.Pressed &&
-            (_drawing || _eraseSteps != null || _lassoPts != null || _movingSelection || _shapeActive || _resizingBox != null || _rulerDrag != RulerDrag.None))
+            (_drawing || _eraseSteps != null || _lassoPts != null || _movingSelection || _scalingSelection || _rotatingEl != null || _shapeActive || _rulerDrag != RulerDrag.None))
         {
             MoveInput(ToCanvas(screen), 0.5f);
         }
@@ -703,45 +725,53 @@ public partial class WhiteboardView : UserControl
 
             case ToolType.Lasso:
             case ToolType.Move:
-                if (_selection.Count == 1 && _selection.First() is IBoxElement rb && HitResizeHandle(rb, c))
+                if (_selection.Count == 1)
                 {
-                    _resizingBox = rb;
-                    _resizeW0 = rb.Width;
-                    _resizeH0 = rb.Height;
+                    var el = _selection.First();
+                    var h = SingleHandles(el);
+                    var ctr = new SKPoint(ElementBounds(el).MidX, ElementBounds(el).MidY);
+                    if (NearHandle(c, h.Rotate))
+                    {
+                        // Drehen um den Elementmittelpunkt
+                        _rotatingEl = el;
+                        _rotStartDeg = el.Rotation;
+                        _rotStartPointer = AngleDeg(ctr, c);
+                    }
+                    else if (NearHandle(c, h.Scale))
+                    {
+                        // Gleichmäßig um den Mittelpunkt skalieren
+                        _scalingSelection = true;
+                        _scalePivot = ctr;
+                        _scaleStartDist = Math.Max(1f, SKPoint.Distance(ctr, c));
+                        _scaleAccum = 1f;
+                    }
+                    else if (SelectionContains(c))
+                    {
+                        _movingSelection = true;
+                        _moveLast = c;
+                        _movedX = _movedY = 0;
+                    }
+                    else
+                    {
+                        BeginSelectOrLasso(c);
+                    }
                 }
-                else if (_selection.Count > 0 && !(_selection.Count == 1 && _selection.First() is IBoxElement)
-                         && HitSelectionScaleHandle(c))
+                else if (_selection.Count > 1 && HitSelectionScaleHandle(c))
                 {
-                    // Gleichmäßig skalieren (Striche/Formen/Mehrfachauswahl)
                     _scalingSelection = true;
                     _scalePivot = new SKPoint(_selectionBounds.Left, _selectionBounds.Top);
                     _scaleStartDist = Math.Max(1f, SKPoint.Distance(_scalePivot, c));
                     _scaleAccum = 1f;
                 }
-                else if (_selection.Count > 0 && InflatedSelectionBounds().Contains(c))
+                else if (_selection.Count > 1 && InflatedSelectionBounds().Contains(c))
                 {
                     _movingSelection = true;
                     _moveLast = c;
                     _movedX = _movedY = 0;
                 }
-                else if (EffectiveTool == ToolType.Move)
-                {
-                    // Direktauswahl: oberstes Objekt unter dem Zeiger anwählen und gleich bewegen
-                    var pick = HitTestElement(c);
-                    ClearSelection();
-                    if (pick != null)
-                    {
-                        _selection.Add(pick);
-                        ComputeSelectionBounds();
-                        _movingSelection = true;
-                        _moveLast = c;
-                        _movedX = _movedY = 0;
-                    }
-                }
                 else
                 {
-                    ClearSelection();
-                    _lassoPts = new List<SKPoint> { c };
+                    BeginSelectOrLasso(c);
                 }
                 break;
 
@@ -824,23 +854,14 @@ public partial class WhiteboardView : UserControl
 
             case ToolType.Lasso:
             case ToolType.Move:
-                if (_resizingBox is ImageElement rImg)
+                if (_rotatingEl != null)
                 {
-                    // Bilder proportional über den Eckgriff unten rechts, Ankerpunkt oben links
-                    float scale = Math.Max(
-                        (c.X - rImg.X) / Math.Max(1f, _resizeW0),
-                        (c.Y - rImg.Y) / Math.Max(1f, _resizeH0));
-                    scale = Math.Max(scale, 16f / Math.Max(_resizeW0, _resizeH0));
-                    rImg.Width = _resizeW0 * scale;
-                    rImg.Height = _resizeH0 * scale;
-                    ComputeSelectionBounds();
-                }
-                else if (_resizingBox is StickyNoteElement rNote)
-                {
-                    // Notizzettel frei skalieren (Text bricht neu um), Mindestgröße 60 px
-                    rNote.Width = Math.Max(60f, c.X - rNote.X);
-                    rNote.Height = Math.Max(60f, c.Y - rNote.Y);
-                    ComputeSelectionBounds();
+                    var b = ElementBounds(_rotatingEl);
+                    var ctr = new SKPoint(b.MidX, b.MidY);
+                    float deg = _rotStartDeg + (AngleDeg(ctr, c) - _rotStartPointer);
+                    // an 15°-Schritten einrasten, wenn nah dran
+                    float snapped = MathF.Round(deg / 15f) * 15f;
+                    _rotatingEl.Rotation = MathF.Abs(deg - snapped) <= 3f ? snapped : deg;
                 }
                 else if (_scalingSelection)
                 {
@@ -916,16 +937,15 @@ public partial class WhiteboardView : UserControl
 
             case ToolType.Lasso:
             case ToolType.Move:
-                if (_resizingBox != null)
+                if (_rotatingEl != null)
                 {
-                    var box = _resizingBox;
-                    _resizingBox = null;
-                    if (Math.Abs(box.Width - _resizeW0) > 0.01f || Math.Abs(box.Height - _resizeH0) > 0.01f)
+                    var el = _rotatingEl;
+                    _rotatingEl = null;
+                    if (Math.Abs(el.Rotation - _rotStartDeg) > 0.01f)
                     {
-                        _vm.Undo.Push(_page, new ResizeBoxAction(box, _resizeW0, _resizeH0, box.Width, box.Height));
+                        _vm.Undo.Push(_page, new RotateElementAction(el, _rotStartDeg, el.Rotation));
                         MarkDirty();
                     }
-                    ComputeSelectionBounds();
                 }
                 else if (_scalingSelection)
                 {
@@ -2141,13 +2161,6 @@ public partial class WhiteboardView : UserControl
         }
     }
 
-    private bool HitResizeHandle(IBoxElement box, SKPoint c)
-    {
-        float r = 12f / Zoom;
-        float dx = c.X - (box.X + box.Width), dy = c.Y - (box.Y + box.Height);
-        return dx * dx + dy * dy <= r * r;
-    }
-
     /// <summary>Skalier-Griff unten rechts an der (aufgeblähten) Auswahl-Umrandung.</summary>
     private bool HitSelectionScaleHandle(SKPoint c)
     {
@@ -2155,6 +2168,79 @@ public partial class WhiteboardView : UserControl
         float r = 12f / Zoom;
         float dx = c.X - b.Right, dy = c.Y - b.Bottom;
         return dx * dx + dy * dy <= r * r;
+    }
+
+    // ---------- Griffe für Einzelauswahl (mitgedreht) ----------
+
+    private static SKPoint RotatePt(SKPoint p, SKPoint pivot, float deg)
+    {
+        float r = deg * MathF.PI / 180f, cos = MathF.Cos(r), sin = MathF.Sin(r);
+        float dx = p.X - pivot.X, dy = p.Y - pivot.Y;
+        return new SKPoint(pivot.X + dx * cos - dy * sin, pivot.Y + dx * sin + dy * cos);
+    }
+
+    /// <summary>Dreh-Griff (oben) und Skalier-Griff (unten rechts) eines einzelnen Elements, mitgedreht.</summary>
+    private (SKPoint Rotate, SKPoint Scale, SKPoint TL, SKPoint TR, SKPoint BR, SKPoint BL) SingleHandles(WbElement el)
+    {
+        var b = ElementBounds(el);
+        var ctr = new SKPoint(b.MidX, b.MidY);
+        float pad = 10f / Zoom;
+        var tl = new SKPoint(b.Left - pad, b.Top - pad);
+        var tr = new SKPoint(b.Right + pad, b.Top - pad);
+        var br = new SKPoint(b.Right + pad, b.Bottom + pad);
+        var bl = new SKPoint(b.Left - pad, b.Bottom + pad);
+        var rot = new SKPoint(b.MidX, b.Top - pad - 28f / Zoom);
+        float d = el.Rotation;
+        return (RotatePt(rot, ctr, d), RotatePt(br, ctr, d),
+                RotatePt(tl, ctr, d), RotatePt(tr, ctr, d), RotatePt(br, ctr, d), RotatePt(bl, ctr, d));
+    }
+
+    private bool NearHandle(SKPoint c, SKPoint handle)
+    {
+        float r = 13f / Zoom;
+        float dx = c.X - handle.X, dy = c.Y - handle.Y;
+        return dx * dx + dy * dy <= r * r;
+    }
+
+    private static float AngleDeg(SKPoint from, SKPoint to) =>
+        MathF.Atan2(to.Y - from.Y, to.X - from.X) * 180f / MathF.PI;
+
+    /// <summary>Ist der Zeiger „innerhalb" der (ggf. gedrehten) Auswahl → zum Verschieben?</summary>
+    private bool SelectionContains(SKPoint c)
+    {
+        if (_selection.Count == 1)
+        {
+            var el = _selection.First();
+            var b = ElementBounds(el);
+            var ctr = new SKPoint(b.MidX, b.MidY);
+            var local = RotatePt(c, ctr, -el.Rotation);   // Zeiger in den ungedrehten Raum bringen
+            b.Inflate(10f / Zoom, 10f / Zoom);
+            return b.Contains(local);
+        }
+        return InflatedSelectionBounds().Contains(c);
+    }
+
+    /// <summary>Verschieben-Werkzeug: Objekt direkt greifen; Lasso: neue Umkreisung beginnen.</summary>
+    private void BeginSelectOrLasso(SKPoint c)
+    {
+        if (EffectiveTool == ToolType.Move)
+        {
+            var pick = HitTestElement(c);
+            ClearSelection();
+            if (pick != null)
+            {
+                _selection.Add(pick);
+                ComputeSelectionBounds();
+                _movingSelection = true;
+                _moveLast = c;
+                _movedX = _movedY = 0;
+            }
+        }
+        else
+        {
+            ClearSelection();
+            _lassoPts = new List<SKPoint> { c };
+        }
     }
 
     // ==================== Radierer ====================
@@ -2233,6 +2319,12 @@ public partial class WhiteboardView : UserControl
 
     private static bool HitElement(WbElement el, SKPoint c, float r)
     {
+        // Gedrehte Elemente: Klickpunkt in den ungedrehten Raum zurückdrehen
+        if (el.Rotation != 0f)
+        {
+            var eb = ElementBounds(el);
+            c = RotatePt(c, new SKPoint(eb.MidX, eb.MidY), -el.Rotation);
+        }
         switch (el)
         {
             case StrokeElement s:
@@ -2361,6 +2453,8 @@ public partial class WhiteboardView : UserControl
     {
         _selection.Clear();
         _movingSelection = false;
+        _scalingSelection = false;
+        _rotatingEl = null;
         Skia.InvalidateVisual();
     }
 
@@ -3431,6 +3525,22 @@ public partial class WhiteboardView : UserControl
 
     private void DrawElement(SKCanvas canvas, WbElement el)
     {
+        if (el.Rotation != 0f)
+        {
+            var b = ElementBounds(el);
+            canvas.Save();
+            canvas.RotateDegrees(el.Rotation, b.MidX, b.MidY);
+            DrawElementCore(canvas, el);
+            canvas.Restore();
+        }
+        else
+        {
+            DrawElementCore(canvas, el);
+        }
+    }
+
+    private static void DrawElementCore(SKCanvas canvas, WbElement el)
+    {
         switch (el)
         {
             case StrokeElement s: DrawStroke(canvas, s); break;
@@ -3808,37 +3918,55 @@ public partial class WhiteboardView : UserControl
         // Auswahlrahmen
         if (_selection.Count > 0)
         {
-            var b = InflatedSelectionBounds();
             using var fill = new SKPaint { Color = accent.WithAlpha(18) };
-            canvas.DrawRect(b, fill);
             using var stroke = new SKPaint
             {
-                Color = accent,
-                Style = SKPaintStyle.Stroke,
-                StrokeWidth = 1.4f / Zoom,
-                IsAntialias = true,
+                Color = accent, Style = SKPaintStyle.Stroke, StrokeWidth = 1.4f / Zoom, IsAntialias = true,
                 PathEffect = SKPathEffect.CreateDash(new[] { 6f / Zoom, 4f / Zoom }, 0),
             };
-            canvas.DrawRect(b, stroke);
-
-            // Eckgriff zum Skalieren
-            float hs = 5f / Zoom;
-            SKRect handleRect;
-            if (_selection.Count == 1 && _selection.First() is IBoxElement selBox)
-                // Einzelnes Box-Element: Griff exakt an der Bild-/Zettel-Ecke
-                handleRect = SKRect.Create(selBox.X + selBox.Width - hs, selBox.Y + selBox.Height - hs, hs * 2, hs * 2);
-            else
-                // Striche/Formen/Mehrfachauswahl: Griff an der Auswahl-Umrandung
-                handleRect = SKRect.Create(b.Right - hs, b.Bottom - hs, hs * 2, hs * 2);
-
-            using (var hf = new SKPaint { Color = accent, IsAntialias = true })
-                canvas.DrawRect(handleRect, hf);
-            using (var hw = new SKPaint
+            using var handleFill = new SKPaint { Color = accent, IsAntialias = true };
+            using var handleRing = new SKPaint
             {
-                Color = SKColors.White, Style = SKPaintStyle.Stroke,
-                StrokeWidth = 1.2f / Zoom, IsAntialias = true,
-            })
-                canvas.DrawRect(handleRect, hw);
+                Color = SKColors.White, Style = SKPaintStyle.Stroke, StrokeWidth = 1.4f / Zoom, IsAntialias = true,
+            };
+            float hs = 6f / Zoom;
+
+            void Handle(SKPoint p, bool circle)
+            {
+                if (circle) { canvas.DrawCircle(p, hs, handleFill); canvas.DrawCircle(p, hs, handleRing); }
+                else
+                {
+                    var r = SKRect.Create(p.X - hs, p.Y - hs, hs * 2, hs * 2);
+                    canvas.DrawRect(r, handleFill); canvas.DrawRect(r, handleRing);
+                }
+            }
+
+            if (_selection.Count == 1)
+            {
+                // Einzelauswahl: mitgedrehte Box mit Dreh- (oben) und Skalier-Griff (Ecke)
+                var el = _selection.First();
+                var h = SingleHandles(el);
+                using (var box = new SKPath())
+                {
+                    box.MoveTo(h.TL); box.LineTo(h.TR); box.LineTo(h.BR); box.LineTo(h.BL); box.Close();
+                    canvas.DrawPath(box, fill);
+                    canvas.DrawPath(box, stroke);
+                }
+                // Linie zum Dreh-Griff
+                var topMid = new SKPoint((h.TL.X + h.TR.X) / 2f, (h.TL.Y + h.TR.Y) / 2f);
+                using (var line = new SKPaint { Color = accent, Style = SKPaintStyle.Stroke, StrokeWidth = 1.4f / Zoom, IsAntialias = true })
+                    canvas.DrawLine(topMid, h.Rotate, line);
+                Handle(h.Rotate, circle: true);   // Drehen = Kreis
+                Handle(h.Scale, circle: false);   // Skalieren = Quadrat
+            }
+            else
+            {
+                // Mehrfachauswahl: achsen­paralleler Rahmen + Skalier-Griff
+                var b = InflatedSelectionBounds();
+                canvas.DrawRect(b, fill);
+                canvas.DrawRect(b, stroke);
+                Handle(new SKPoint(b.Right, b.Bottom), circle: false);
+            }
         }
 
         // Radierer-Cursor

@@ -12,7 +12,20 @@
             <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
                 <StackPanel Orientation="Horizontal">
 
-                    <!-- Stifte -->
+                    <!-- Hand (H): Leinwand verschieben -->
+                    <ToggleButton x:Name="BtnPan" Style="{StaticResource ToolButton}"
+                                  AutomationProperties.Name="Hand"
+                                  ToolTip="Hand (H) – Leinwand verschieben (oder mittlere Maustaste)"
+                                  Checked="Tool_Checked" Tag="Pan">
+                        <Path Data="{StaticResource Icon.Hand}" StrokeThickness="1.2"
+                              StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                              Width="16" Height="16"
+                              Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ToggleButton}}"/>
+                    </ToggleButton>
+
+                    <Border Width="1" Background="{DynamicResource Brush.Border}" Margin="6,4"/>
+
+                    <!-- Stifte (klappbare Gruppe) -->
                     <ToggleButton x:Name="BtnPen" Style="{StaticResource ToolButton}" Content="&#xE70F;"
                                   ToolTip="Stift (S)" Checked="Tool_Checked" Tag="Pen"/>
                     <ToggleButton x:Name="BtnSmoothPen" Style="{StaticResource ToolButton}"
@@ -26,21 +39,14 @@
                                   ToolTip="Bleistift (B)" Checked="Tool_Checked" Tag="Pencil"/>
                     <ToggleButton x:Name="BtnHighlighter" Style="{StaticResource ToolButton}" Content="&#xE7E6;"
                                   ToolTip="Textmarker (M)" Checked="Tool_Checked" Tag="Highlighter"/>
+
+                    <!-- Radierer -->
                     <ToggleButton x:Name="BtnEraser" Style="{StaticResource ToolButton}" Content="&#xE75C;"
                                   ToolTip="Radiergummi (E)" Checked="Tool_Checked" Tag="Eraser"/>
 
                     <Border Width="1" Background="{DynamicResource Brush.Border}" Margin="6,4"/>
 
-                    <ToggleButton x:Name="BtnMove" Style="{StaticResource ToolButton}"
-                                  AutomationProperties.Name="Verschieben"
-                                  ToolTip="Verschieben (V) – Objekt anklicken, dann verschieben, skalieren oder drehen"
-                                  Checked="Tool_Checked" Tag="Move">
-                        <Path Data="{StaticResource Icon.MoveSelect}" StrokeThickness="1.2"
-                              StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
-                              Width="16" Height="16"
-                              Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ToggleButton}}"
-                              Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ToggleButton}}"/>
-                    </ToggleButton>
+                    <!-- Auswahl (Lasso + Verschieben, klappbare Gruppe wie die Stifte) -->
                     <ToggleButton x:Name="BtnLasso" Style="{StaticResource ToolButton}"
                                   ToolTip="Lasso-Auswahl (L) – Objekte umkreisen (nur was ~vollständig umschlossen ist)"
                                   Checked="Tool_Checked" Tag="Lasso">
@@ -49,6 +55,18 @@
                               Width="16" Height="16"
                               Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ToggleButton}}"/>
                     </ToggleButton>
+                    <ToggleButton x:Name="BtnMove" Style="{StaticResource ToolButton}"
+                                  AutomationProperties.Name="Verschieben"
+                                  ToolTip="Verschieben (V) – Objekt direkt anklicken, dann verschieben oder skalieren"
+                                  Checked="Tool_Checked" Tag="Move">
+                        <Path Data="{StaticResource Icon.MoveSelect}" StrokeThickness="1.3"
+                              StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                              Width="16" Height="16"
+                              Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ToggleButton}}"/>
+                    </ToggleButton>
+
+                    <Border Width="1" Background="{DynamicResource Brush.Border}" Margin="6,4"/>
+
                     <ToggleButton x:Name="BtnText" Style="{StaticResource ToolButton}" Content="&#xE8D2;"
                                   ToolTip="Textfeld (T)" Checked="Tool_Checked" Tag="Text"/>
                     <ToggleButton x:Name="BtnShape" Style="{StaticResource ToolButton}" Content="&#xE739;"
@@ -58,15 +76,6 @@
                     <ToggleButton x:Name="BtnSticker" Style="{StaticResource ToolButton}" Content="&#xE76E;"
                                   AutomationProperties.Name="Sticker"
                                   ToolTip="Sticker – Bild-Aufkleber aus der Sammlung einfügen" Checked="Tool_Checked" Tag="Sticker"/>
-                    <ToggleButton x:Name="BtnPan" Style="{StaticResource ToolButton}"
-                                  AutomationProperties.Name="Hand"
-                                  ToolTip="Hand (H) – Leinwand verschieben (oder mittlere Maustaste)"
-                                  Checked="Tool_Checked" Tag="Pan">
-                        <Path Data="{StaticResource Icon.Hand}" StrokeThickness="1.2"
-                              StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
-                              Width="16" Height="16"
-                              Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ToggleButton}}"/>
-                    </ToggleButton>
                     <ToggleButton x:Name="BtnRuler" Style="{StaticResource ToolButton}"
                                   AutomationProperties.Name="Lineal"
                                   ToolTip="Lineal (R) – gerade Linien entlang der Kante; Körper ziehen = bewegen, Griff ziehen = drehen"

@@ -65,6 +65,9 @@ public abstract class WbElement
 {
     public Guid Id { get; set; } = Guid.NewGuid();
 
+    /// <summary>Drehung im Uhrzeigersinn in Grad (um den Elementmittelpunkt). 0 = keine.</summary>
+    public float Rotation { get; set; }
+
     public abstract void Translate(float dx, float dy);
 
     /// <summary>Skaliert die Geometrie um den Faktor <paramref name="f"/> herum um den Pivot (px,py).</summary>

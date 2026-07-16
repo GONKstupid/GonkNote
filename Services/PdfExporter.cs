@@ -100,6 +100,22 @@ public static class PdfExporter
 
     private static void DrawElement(SKCanvas canvas, WbElement el)
     {
+        if (el.Rotation != 0f)
+        {
+            var b = WhiteboardView.ElementBounds(el);
+            canvas.Save();
+            canvas.RotateDegrees(el.Rotation, b.MidX, b.MidY);
+            DrawElementCore(canvas, el);
+            canvas.Restore();
+        }
+        else
+        {
+            DrawElementCore(canvas, el);
+        }
+    }
+
+    private static void DrawElementCore(SKCanvas canvas, WbElement el)
+    {
         switch (el)
         {
             case StrokeElement s: WhiteboardView.DrawStroke(canvas, s); break;

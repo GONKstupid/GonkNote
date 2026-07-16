@@ -9,6 +9,10 @@
 > **Whiteboard/Notizbuch**: Rechtsklick-**Kontextmenü** (Ausschneiden/Kopieren/
 > Duplizieren/Einfügen/Löschen/Alles auswählen) für keyboard-freie Nutzung, mit
 > interner Element-Zwischenablage. Alle Commits `…`→HEAD, Build 0 Warnungen.
+>
+> **⇒ Aktueller Arbeitsmodus:** Der Nutzer **testet die App ausführlich** und schickt
+> laufend kleine Änderungs-/Fix-Wünsche — die zuerst erledigen. **RAM-Optimierung erst,
+> wenn der Nutzer zufrieden ist** (Leitlinie & Schwellenwerte in §5, Ablauf in §6).
 
 
 Diese Datei ist für den Einstieg in einen **neuen Chat-Thread** gedacht. Sie fasst
@@ -302,9 +306,35 @@ Nutzer-Test mit Stift.
   `PxPerCm`. **Lineal ok, Geodreieck-Verhalten offen (§4).** Zahlen drehen mit der
   Hilfe mit (aufrecht war eine frühere Variante). Prototyp/Sichtprüfung:
   `%TEMP%\gonk-geotest` und `%TEMP%\gonk-rulertest` (portieren die Zeichenlogik 1:1).
-- Sticker (über Notizzettel hinaus), OCR, **RAM-Optimierung**, Obfuskierung → Phase 3.
-  RAM: Basis ~190 MB + bis 96 MB Bild-Cache; Ziel < 200 MB braucht noch Arbeit
-  (Cache-Budget senken, Render-Caching, GC-Tuning).
+- **Nutzer-Strategie & Phase-3-Rest (Stand 2026-07-16, verbindlich):**
+  - **Reihenfolge:** Der Nutzer testet die App gerade ausführlich und schickt
+    **laufend Änderungs-/Fix-Wünsche**. Diese haben Vorrang. **Erst wenn der Nutzer
+    zufrieden ist, wird die RAM-Optimierung angegangen** — nicht vorher anfangen.
+  - **RAM-Leitlinie: „Features vor RAM".** Zielwunsch ~200 MB. Als akzeptabel nannte
+    der Nutzer „unter 80 MB" — das ist angesichts der ~190-MB-Basis mit ~96 MB
+    Bild-Cache **mit hoher Wahrscheinlichkeit ein Tippfehler für ~800 MB**; die
+    **harte, nie zu überschreitende Obergrenze ist 1 GB**. Vor dem RAM-Thema den
+    Schwellenwert **einmal beim Nutzer rückversichern**. RAM ist ausdrücklich
+    zweitrangig — kein Feature dafür opfern.
+  - **Render-Caching:** erst umsetzen, **wenn nach der RAM-Optimierung** die
+    Auslastung noch zu hoch ist. Ausnahme: wäre es technisch unsinnig, es *nach* der
+    RAM-Optimierung zu machen, dann vorziehen — aber **immer erst nach** den
+    laufenden Änderungen/Fixes.
+  - **OCR:** vom Nutzer als interessant markiert. **Geplanter Ansatz:** die in
+    Windows 11 eingebaute **`Windows.Media.Ocr`**-Engine (WinRT, komplett offline,
+    Deutsch/Englisch, keine Zusatz-DLLs → passt zu Single-Exe/kein-Admin) für
+    gedruckten Text in Bild-/PDF-Seiten (importierte Seiten liegen ohnehin als
+    Bitmaps vor). Für **Handschrift** (Stift-Striche) separat der `InkAnalyzer`
+    (Windows.UI.Input.Inking.Analysis). Tesseract wäre die plattformunabhängige
+    Alternative, bringt aber native Lib + ~10–50 MB Sprachdaten mit (verworfen,
+    solange die Windows-OCR reicht).
+  - **Obfuskierung: gestrichen** — der Nutzer will das Projekt so **Open Source wie
+    möglich** halten.
+  - **Bereits erledigt** (kein offener Phase-3-Punkt mehr): Sticker, Notizzettel,
+    Lineal/Geodreieck, Diagramme, Tabellen, Whiteboard-Kontextmenü.
+  - **RAM-Ausgangslage** (für die spätere Optimierung): Basis ~190 MB + bis 96 MB
+    Bild-Cache. Ansatzpunkte: Cache-Budget senken, GC-Tuning, PDF-Seiten lazy
+    on-demand rendern (statt alle Bitmaps im Speicher).
 - Text-Stiländerungen am bestehenden Whiteboard-Textfeld sind nicht undo-fähig
   (bewusst einfach). DOCX-Import: keine Fußnoten, verschachtelten
   Tabellen. PDF: keine Text-Extraktion (per Nutzer-Wunsch reine Bild-Seiten).
@@ -347,21 +377,17 @@ Nutzer-Test mit Stift.
 
 ## 6. Empfohlener Ablaufplan für den neuen Thread
 
-1. **Geodreieck zum Laufen bringen (§4, OFFEN #1).** Zuerst beim Nutzer erfragen,
-   *welches* Verhalten fehlt (Anzeige? Einrasten? Bewegen/Drehen? Umschalten?), dann
-   gezielt fixen. Nicht blind neu bauen — das Overlay stimmt bereits proportional.
-2. Falls Nutzer weiteres Feedback mitbringt → **zuerst** einarbeiten. Insbesondere
-   Praxis-Feedback zum **neuen Text-Editor** (Ribbon, Formatvorlagen, TOC, Export)
-   einholen — der Umbau ist per Harness + Screenshots verifiziert (Light/Dark,
-   PDF/DOCX-Roundtrip, OpenXML-Validierung 0 Fehler), aber noch ohne Nutzer-Test.
-   Test-Harness: `%TEMP%\gonk-texttest` (End-zu-End ohne UI), UI-Skript
-   `%TEMP%\gonk-verify\ui-texttest.ps1`.
-3. **Datei-Einfüge-Tool** ✔ erledigt (Seitenauswahl-Dialog für PDF+DOCX, s. §5).
-4. **Rest von Phase 3**: RAM-Profiling/-Optimierung (Ziel < 200 MB), weitere Sticker,
-   optionales OCR, Obfuskierung, laufendes UI-Feintuning.
+**Aktuelle Phase: Nutzer testet ausführlich (Stand 2026-07-16).**
 
-**Reihenfolge-Wunsch des Nutzers war:** Lineal/Geodreieck → Datei-Einfüge-Tool →
-Rest Phase 3. Lineal + Notizzettel sind durch; das Geodreieck hängt an OFFEN #1.
+1. **Laufende Änderungs-/Fix-Wünsche des Nutzers zuerst** einarbeiten (kommen in
+   Batches während seiner Testphase). Sie haben Vorrang vor allem anderen.
+2. **Erst wenn der Nutzer ausdrücklich zufrieden ist → RAM-Optimierung** (Details/
+   Schwellenwerte in §5, „Nutzer-Strategie"). **Vorher den 1-GB-/800-MB-Wert einmal
+   rückversichern** und die Leitlinie „Features vor RAM" beachten.
+3. **Render-Caching** nur bei Bedarf **nach** der RAM-Optimierung (§5).
+4. **OCR** ist als Nächstes-Interessantes markiert — Ansatz `Windows.Media.Ocr`
+   (offline, keine Zusatz-DLL) für Bild-/PDF-Seiten, `InkAnalyzer` für Handschrift (§5).
+5. **Obfuskierung ist gestrichen** (Open-Source-Ziel).
 
 Export sitzt in `Datei → Exportieren`; `ExportActiveTab` wählt anhand des aktiven
 Tabs die Formate.

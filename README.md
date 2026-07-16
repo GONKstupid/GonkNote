@@ -20,16 +20,24 @@ ohne Cloud, ohne Installation, ohne Adminrechte.
     (mit 45°-Einrasten), Kreise/Ellipsen, Rechtecke, Streckenzüge; sonst wird die Kurve geglättet
   - **Radiergummi** radiert punktgenau: Striche werden an der Berührstelle aufgetrennt,
     Stift-Rückseite radiert automatisch
-  - Lasso-Auswahl: verschieben, löschen (`Entf`), duplizieren (`Strg+D`), Bilder skalieren
+  - **Auswahl** mit zwei Werkzeugen: **Lasso** (`L`) umkreist Objekte (nur was ~vollständig
+    umschlossen ist) und **Verschieben** (`V`) wählt Objekte direkt per Klick an. Ausgewählte
+    Objekte lassen sich verschieben, **skalieren** (Eckgriff) und **drehen** (Dreh-Griff mit
+    15°-Rastung) — für Striche, Formen, Text, Bilder und Notizzettel
+  - **Rechtsklick-Kontextmenü** auf der Leinwand (Ausschneiden, Kopieren, Duplizieren,
+    Einfügen, Löschen, Alles auswählen) — Whiteboard/Notizbuch komplett ohne Tastatur nutzbar
   - Formen (Linie, Pfeil, Rechteck, Ellipse, Dreieck) mit Füllfarbe und Deckkraft —
     Einstellungen in der Seitenleiste rechts
   - **Textfelder** mit wählbarer Schriftart, Text- und Hintergrundfarbe
     (automatischer Kontrastschutz)
+  - **Notizzettel** (farbige Klebezettel) und **Sticker** (Bild-Aufkleber mit eigener,
+    erweiterbarer Sammlung)
+  - **Zeichenhilfen**: Lineal (`R`) und Holo-Geodreieck (`D`) mit Winkelskala, drehbar/einrastend
   - **Bilder einfügen**: Toolbar-Button, `Strg+V` oder Drag & Drop
     (PNG, JPEG, BMP, GIF, WebP, SVG); mit Eckgriff proportional skalierbar
-  - **PDF einfügen** (Toolbar-Button oder Drag & Drop): im Notizbuch wird jede
-    PDF-Seite eine eigene Seite zum Draufschreiben und Markieren (wie GoodNotes),
-    im Whiteboard landen die Seiten als hochauflösende, skalierbare Bilder
+  - **PDF & Word einfügen** (Toolbar-Button oder Drag & Drop): mit Seitenauswahl-Dialog;
+    im Notizbuch wird jede Seite eine eigene Seite zum Draufschreiben und Markieren (wie
+    GoodNotes), im Whiteboard landen die Seiten als hochauflösende, skalierbare Bilder
   - Undo/Redo (`Strg+Z` / `Strg+Y`), Zoom (`Strg+Mausrad`), Pan (mittlere Maustaste,
     Leertaste, Hand-Werkzeug)
 - **Touch-Gesten**: 1 Finger verschiebt die Ansicht, 2 Finger zoomen (Pinch) und
@@ -37,9 +45,19 @@ ohne Cloud, ohne Installation, ohne Adminrechte.
 - **Einstellungs-Seitenleiste rechts** (Zahnrad): Seitenmuster und -farbton, Format
   (A4/A3, Hoch-/Querformat, Vorlage für neue Seiten), Formen-Optionen, Text-Optionen
   und Cover-Gestaltung — Änderungen wirken sofort
-- **Texteditor**: Schriftart/-größe, Absatzformate, Fett/Kursiv/Unterstrichen/Durchgestrichen,
-  Hoch-/Tiefstellung, Text- und Markerfarbe, Blocksatz, Listen, Einzüge, Zeilenabstand,
-  Bilder, Tabellen, Trennlinien, Suchen & Ersetzen (`Strg+F`)
+- **Texteditor** im Ribbon-Layout (Start / Einfügen / Layout / Verweise):
+  - Zeichen-/Absatzformate, Formatvorlagen (Standard, Überschrift 1–4, Titel, Zitat,
+    Kopf-/Fußzeile), Format übertragen, Listen mit Stil-Bibliothek, Suchen & Ersetzen
+  - **Seiteneinrichtung** (A4/A5/A3/Letter, Hoch-/Querformat, Ränder in cm inkl.
+    Lernblatt-Vorlage), Kopf-/Fußzeile mit Platzhaltern, Wasserzeichen — in einer
+    ausklappbaren Einstellungs-Seitenleiste
+  - **Inhaltsverzeichnis** aus den Überschriften, Hyperlinks, Sonderzeichen, Beschriftungen
+  - **Tabellen** (Struktur im Rechtsklick-Menü, Rahmen/Zellen in der Seitenleiste, wirkt auf
+    die ausgewählten Zellen) und **Diagramme** (Säulen, Balken, Linie, Punkt, Punkt+Linie,
+    Kuchen, Radar — mit mehreren Reihen und anpassbaren Farben)
+  - Rechtschreibprüfung (Deutsch/Englisch) mit Korrekturvorschlägen, Lineal, Statusleiste
+    (Wörter, Zoom), Überschriften-Navigator, Seitenumbruch-Marken
+- **Export**: Textdokument → PDF / DOCX / Markdown / PNG, Whiteboard/Notizbuch → PDF / PNG
 - **Dark-/Light-Mode** (`Strg+T`) fürs App-Design — Seiten und Schreibflächen bleiben
   standardmäßig hell; Seitenleiste einklappbar (`Strg+B`)
 - **Persistenz**: LiteDB-Datei unter `%APPDATA%\GonkNote\gonknote.db`, Autosave alle 30 s,
@@ -54,10 +72,17 @@ ohne Cloud, ohne Installation, ohne Adminrechte.
 | `B` | Bleistift |
 | `M` | Textmarker |
 | `E` | Radiergummi |
+| `V` | Verschieben (Objekte anklicken) |
 | `L` | Lasso |
 | `T` | Textfeld |
 | `F` | Formen |
-| `H` | Verschieben |
+| `N` | Notizzettel |
+| `R` | Lineal |
+| `D` | Geodreieck |
+| `H` | Hand (Leinwand verschieben) |
+
+Auswahl: verschieben, skalieren, drehen · `Strg+C/X/V` kopieren/ausschneiden/einfügen ·
+`Strg+D` duplizieren · `Strg+A` alles auswählen · `Entf` löschen · Rechtsklick = Kontextmenü.
 
 ## Build
 
@@ -97,7 +122,16 @@ GonkNote/
 
 ## Roadmap
 
-- **Phase 2 — Import/Export**: Bilder-Import ✔, DOCX-Import ✔, PDF-Import ✔;
-  als Nächstes Export nach PDF/DOCX/Markdown, Datei-Einfüge-Tool mit Mini-Vorschau
-- **Phase 3 — Feinschliff**: Sticker, Notizzettel, Lineal/Geodreieck, OCR (optional),
-  RAM-Profiling (< 200 MB), Render-Caching, Obfuskierung
+- **Phase 2 — Import/Export** ✔: Bilder-/DOCX-/PDF-Import, Export nach PDF/DOCX/Markdown/PNG,
+  Datei-Einfüge-Tool mit Seitenvorschau
+- **Phase 3 — Feinschliff**:
+  - ✔ Sticker, Notizzettel, Lineal/Geodreieck, Diagramme, Tabellen, Whiteboard-Kontextmenü
+  - **Nächster Schritt (nach der Testphase):** RAM-Optimierung. Leitlinie: *Features vor RAM* —
+    Ziel wären ~200 MB, akzeptabel bis in den mittleren dreistelligen MB-Bereich, **harte
+    Obergrenze 1 GB**, die nie überschritten werden darf.
+  - **Render-Caching**: nur, falls die RAM-Auslastung nach der Optimierung noch zu hoch ist
+    (oder vorgezogen, falls es technisch sinnvoller vor der Optimierung liegt)
+  - **OCR** (angedacht): geplant über die in Windows 11 eingebaute, **offline** OCR-Engine
+    (`Windows.Media.Ocr`, Deutsch/Englisch, keine Zusatz-Bibliotheken) für gedruckten Text in
+    Bild-/PDF-Seiten; Handschrift-Erkennung optional über `InkAnalyzer`
+  - **Keine Obfuskierung** — das Projekt soll so offen wie möglich bleiben

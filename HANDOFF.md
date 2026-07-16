@@ -1,4 +1,4 @@
-# Gonk Note — Projektübergabe (Stand: 2026-07-15, Phase 3 laufend)
+# Gonk Note — Projektübergabe (Stand: 2026-07-16, Phase 3 laufend)
 
 Diese Datei ist für den Einstieg in einen **neuen Chat-Thread** gedacht. Sie fasst
 zusammen, was existiert, was als Nächstes ansteht, und wie gearbeitet werden soll.
@@ -234,27 +234,27 @@ Nutzer-Test mit Stift.
 
 ## 5. Bekannte Lücken / bewusst vertagt
 
-**⚠️ OFFENE WUNSCHLISTE Fixes-Runde 8 (Nutzer, 2026-07-15) — in Arbeit:**
-*Text-Editor:* Breite/Höhe von Formen & Diagrammen ändern · Diagrammfarben im
-Erstellungsprozess wählbar · Formen in den Hintergrund legen (hinter Text) ·
-Tabellen-Formatierung in die Einstellungs-Seitenleiste statt Rechtsklick-Chaos ·
-Tabellenränder mit unterschiedlicher Dicke/Art · Text-Presets auch für Kopf-/
-Fußzeile, Titel, Zitate · ausgeklappte Auflistungs-Menüs wirken buggy + Kontraste
-stimmen nicht (fixen).
-*Whiteboard:* Rotieren UND Größe-Ändern der Auswahl „funktioniert noch nicht"
-(Nutzer) → prüfen/fixen · Verschieben (V)-Icon zu **hohlem** Mauszeiger (nur Rand) ·
-Lasso mit Verschieben (V) zu einer klappbaren Gruppe (wie die Stifte: nur Lasso
-zeigen, Rest bei Nutzung) · Toolbar neu ordnen: **Hand (H) → Stift (S) → Radierer
-(E) → Lasso (L)**, Rest beibehalten.
+**✔ Fixes-Runde 8 (2026-07-16) umgesetzt** (Commits `13413cb`…dieser):
+- *Whiteboard:* Toolbar neu geordnet (Hand→Stift→Radierer→Lasso→Rest); Verschieben
+  (V)-Icon jetzt hohler Mauszeiger; Lasso+Verschieben als klappbare Gruppe (wie
+  Stifte). **Rotieren** neu umgesetzt (`WbElement.Rotation`, rotationsfähiges
+  Rendering/Hit-Test/Export, Dreh-Griff mit 15°-Rastung, `RotateElementAction`);
+  **Skalieren** vereinheitlicht (Einzel-/Mehrfachauswahl, mitgedrehte Auswahlbox).
+- *Text-Editor:* Auflistungs-Bibliotheken mit festem dunklem Text auf weißer Karte
+  (Kontrast-Bug behoben) + Word-artige Vorschau. Neue Presets Titel/Zitat/Kopf-/
+  Fußzeile. Formen/Diagramme/Bilder per Kontextmenü in der Größe änderbar; Diagramm-
+  farben im Dialog wählbar; Form „hinter den Text" (Figure + reduzierte Deckkraft).
+  Tabellen-Formatierung in einer eigenen Seitenleisten-Sektion (Struktur, Rahmen-
+  dicke/-variante, Farben) statt im Rechtsklick-Menü.
 
 **⚠️ Bewusst vertagt (nicht vergessen):**
-- **Rotieren von Auswahl-Objekten (Whiteboard):** sauber ginge es nur für strich-
-  basierte Objekte (Punkte drehen); Rechtecke/Ellipsen/Text/Bilder/Notizzettel
-  bräuchten ein `Rotation`-Feld je Element **plus** rotationsfähiges Rendering,
-  Hit-Test, Bounds und Export über alle Zeichenpfade (interaktiv UND `PdfExporter`).
-  Großer, invasiver Umbau. **Skalieren** ist umgesetzt (`WbElement.Scale`,
-  `ScaleElementsAction`, Eckgriff an der Auswahl-Umrandung) — falls der Nutzer sagt
-  „geht nicht", zuerst prüfen, ob der Griff gefunden/gezeichnet wird.
+- **Gedrehte Elemente – Feinschliff:** Auswahlbox/Hit-Test gedrehter Box-Elemente
+  nutzen die achsenparallele Bounding-Box (Näherung); für sehr präzises Anfassen
+  gedrehter Bilder/Zettel ggf. später verfeinern. Grundfunktion (drehen, rendern,
+  exportieren) läuft.
+- **Gestrichelte/gepunktete Tabellenränder:** WPF-FlowDocument-Tabellen rendern
+  Zellränder immer durchgezogen; „Rand-Arten" daher über Linienverteilung
+  (alle/außen/innen/keine) + Dicke gelöst, nicht über Strichart.
 - **Grammatik-/Satzbauprüfung (Text-Editor, „blaue" Markierung):** Die WPF-
   `RichTextBox` bringt nur Rechtschreibung mit (rote Wellenlinie, Vorschläge jetzt
   im Kontextmenü). Eine echte Grammatikprüfung gibt es in .NET nicht eingebaut;

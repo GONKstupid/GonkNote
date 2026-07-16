@@ -216,7 +216,9 @@ public partial class ChartDialog : Window
                 {
                     if (i >= series[si].Length) continue;
                     double bh = plotH * (series[si][i] / axisMax);
-                    dc.DrawRectangle(new SolidColorBrush(palette[si % palette.Length]), null,
+                    // Eine Reihe → Farbe je Kategorie (bunt); mehrere Reihen → Farbe je Reihe
+                    var col = m == 1 ? palette[i % palette.Length] : palette[si % palette.Length];
+                    dc.DrawRectangle(new SolidColorBrush(col), null,
                         new Rect(gx + si * bw, y0 + plotH - bh, bw * 0.92, bh));
                 }
                 dc.DrawText(Text(cats[i], 11, Muted, false, slot), new Point(x0 + slot * i, y0 + plotH + 6));
@@ -243,7 +245,8 @@ public partial class ChartDialog : Window
                 {
                     if (i >= series[si].Length) continue;
                     double bw = plotW * (series[si][i] / axisMax);
-                    dc.DrawRectangle(new SolidColorBrush(palette[si % palette.Length]), null,
+                    var col = m == 1 ? palette[i % palette.Length] : palette[si % palette.Length];
+                    dc.DrawRectangle(new SolidColorBrush(col), null,
                         new Rect(x0, gy + si * bh, bw, bh * 0.92));
                 }
                 dc.DrawText(Text(cats[i], 11, Muted, false, left - 4, TextAlignment.Right),

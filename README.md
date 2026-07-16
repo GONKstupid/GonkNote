@@ -131,7 +131,6 @@ GonkNote/
     Obergrenze 1 GB**, die nie überschritten werden darf.
   - **Render-Caching**: nur, falls die RAM-Auslastung nach der Optimierung noch zu hoch ist
     (oder vorgezogen, falls es technisch sinnvoller vor der Optimierung liegt)
-  - **OCR** (angedacht): geplant über die in Windows 11 eingebaute, **offline** OCR-Engine
-    (`Windows.Media.Ocr`, Deutsch/Englisch, keine Zusatz-Bibliotheken) für gedruckten Text in
-    Bild-/PDF-Seiten; Handschrift-Erkennung optional über `InkAnalyzer`
+  - **OCR** (geplant): Umsetzung mit **Tesseract** (offline, Deutsch/Englisch) für gedruckten
+    Text in Bild-/PDF-Seiten; Handschrift-Erkennung optional
   - **Keine Obfuskierung** — das Projekt soll so offen wie möglich bleiben

@@ -12,8 +12,8 @@
             <TextBlock Text="Typ" Width="120" VerticalAlignment="Center"
                        Foreground="{DynamicResource Brush.TextMuted}"/>
             <ComboBox x:Name="TypeCombo" SelectionChanged="Input_Changed">
-                <ComboBoxItem Content="Säulen (senkrecht)" Tag="column" IsSelected="True"/>
-                <ComboBoxItem Content="Balken (waagerecht)" Tag="bar"/>
+                <ComboBoxItem Content="Säulen" Tag="column" IsSelected="True"/>
+                <ComboBoxItem Content="Balken" Tag="bar"/>
                 <ComboBoxItem Content="Linie" Tag="line"/>
                 <ComboBoxItem Content="Punkt (Streuung)" Tag="scatter"/>
                 <ComboBoxItem Content="Punkt + Linie" Tag="scatterline"/>
@@ -46,6 +46,8 @@
                      VerticalScrollBarVisibility="Auto"
                      ToolTip="eine Zeile je Reihe/Kurve, Werte durch Komma getrennt"/>
         </DockPanel>
+        <TextBlock Margin="120,2,0,0" FontSize="11" Foreground="{DynamicResource Brush.TextMuted}"
+                   Text="Mehrere Reihen/Kurven: pro Zeile eine Reihe (Enter für neue Zeile)."/>
         <DockPanel Margin="0,6,0,0">
             <TextBlock Text="Farben" Width="120" VerticalAlignment="Center"
                        Foreground="{DynamicResource Brush.TextMuted}"/>

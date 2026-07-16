@@ -320,14 +320,14 @@ Nutzer-Test mit Stift.
     Auslastung noch zu hoch ist. Ausnahme: wäre es technisch unsinnig, es *nach* der
     RAM-Optimierung zu machen, dann vorziehen — aber **immer erst nach** den
     laufenden Änderungen/Fixes.
-  - **OCR:** vom Nutzer als interessant markiert. **Geplanter Ansatz:** die in
-    Windows 11 eingebaute **`Windows.Media.Ocr`**-Engine (WinRT, komplett offline,
-    Deutsch/Englisch, keine Zusatz-DLLs → passt zu Single-Exe/kein-Admin) für
-    gedruckten Text in Bild-/PDF-Seiten (importierte Seiten liegen ohnehin als
-    Bitmaps vor). Für **Handschrift** (Stift-Striche) separat der `InkAnalyzer`
-    (Windows.UI.Input.Inking.Analysis). Tesseract wäre die plattformunabhängige
-    Alternative, bringt aber native Lib + ~10–50 MB Sprachdaten mit (verworfen,
-    solange die Windows-OCR reicht).
+  - **OCR:** vom Nutzer gewünscht — **Umsetzung mit Tesseract** (Nutzer-Entscheidung,
+    Stand 2026-07-16). Also `Tesseract`-NuGet + native `tesseract`-Lib und die
+    `tessdata`-Sprachdaten (deu/eng, ~10–30 MB) mitliefern; OCR auf die ohnehin als
+    Bitmaps vorliegenden importierten Bild-/PDF-Seiten anwenden. Beim Single-File-
+    Publish darauf achten, dass die native Lib + tessdata mit ausgeliefert/entpackt
+    werden. (Windows-eigene `Windows.Media.Ocr` wäre die DLL-freie Alternative, der
+    Nutzer bevorzugt aber Tesseract.) Für **Handschrift** ggf. separat der
+    `InkAnalyzer`.
   - **Obfuskierung: gestrichen** — der Nutzer will das Projekt so **Open Source wie
     möglich** halten.
   - **Bereits erledigt** (kein offener Phase-3-Punkt mehr): Sticker, Notizzettel,

@@ -191,6 +191,7 @@ public partial class TextEditorView : UserControl
 
             SyncParaSpacingFields();
             SyncStyleGallery();
+            UpdateTableSection();
         }
         finally
         {

@@ -390,6 +390,62 @@ public partial class TextEditorView
         MenuToFront.Visibility = isBehind ? Visibility.Visible : Visibility.Collapsed;
     }
 
+    // ---------- Tabellen-Formatierung in der Seitenleiste ----------
+
+    /// <summary>Blendet die Tabellen-Sektion der Seitenleiste ein/aus, je nachdem ob der Cursor in einer Tabelle steht.</summary>
+    private void UpdateTableSection()
+    {
+        bool inTable = CurrentCell() != null;
+        SecTable.Visibility = inTable ? Visibility.Visible : Visibility.Collapsed;
+        TableSecSep.Visibility = SecTable.Visibility;
+    }
+
+    private void OpenTableSettings_Click(object s, RoutedEventArgs e)
+    {
+        UpdateTableSection();
+        if (CurrentCell() != null) OpenSettings(SecTable);
+    }
+
+    private void TableBorderWidth_Changed(object s, SelectionChangedEventArgs e) => ApplyTableBorders();
+    private void TableBorderVariant_Changed(object s, SelectionChangedEventArgs e) => ApplyTableBorders();
+
+    /// <summary>
+    /// Wendet Randdicke und -variante (alle/außen/innen/keine) auf die Tabelle an,
+    /// indem je Zelle die passenden Seiten des Rahmens gesetzt werden.
+    /// </summary>
+    private void ApplyTableBorders()
+    {
+        if (Editor == null || CurrentTableContext() is not { } ctx) return;
+        if (TableBorderWidth.SelectedItem is not ComboBoxItem wi ||
+            !TryParseNum((string)wi.Tag, out double w)) return;
+        string variant = (TableBorderVariant.SelectedItem as ComboBoxItem)?.Tag as string ?? "all";
+
+        var rows = ctx.Table.RowGroups.SelectMany(g => g.Rows).ToList();
+        int totalCols = rows.Count == 0 ? 0 : rows.Max(r => r.Cells.Sum(c => c.ColumnSpan));
+
+        for (int r = 0; r < rows.Count; r++)
+        {
+            int col = 0;
+            foreach (var cell in rows[r].Cells)
+            {
+                int span = cell.ColumnSpan;
+                bool firstRow = r == 0, lastRow = r == rows.Count - 1;
+                bool firstCol = col == 0, lastCol = col + span >= totalCols;
+                bool top, left, right, bottom;
+                switch (variant)
+                {
+                    case "none": top = left = right = bottom = false; break;
+                    case "outer": top = firstRow; bottom = lastRow; left = firstCol; right = lastCol; break;
+                    case "inner": top = !firstRow; left = !firstCol; right = false; bottom = false; break;
+                    default: top = left = right = bottom = true; break;   // all
+                }
+                cell.BorderThickness = new Thickness(left ? w : 0, top ? w : 0, right ? w : 0, bottom ? w : 0);
+                col += span;
+            }
+        }
+        MarkDirty();
+    }
+
     // ---------- Tabellen-Navigation ----------
 
     private TableCell? CurrentCell() => CellOf(Editor.CaretPosition);

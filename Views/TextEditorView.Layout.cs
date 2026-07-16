@@ -63,6 +63,7 @@ public partial class TextEditorView
         SecMargins.IsExpanded = section == SecMargins;
         SecSpacing.IsExpanded = section == SecSpacing;
         SecWatermark.IsExpanded = section == SecWatermark;
+        SecTable.IsExpanded = section == SecTable;
         section.BringIntoView();
     }
 

@@ -172,6 +172,11 @@ public partial class WhiteboardView : UserControl
         CanvasHost.TouchMove += OnTouchMove;
         CanvasHost.TouchUp += OnTouchUp;
 
+        // Schnellaktionen (Quick-Options) statt Rechtsklick-Menü: Maus-Rechtsklick
+        // und – für den Stift – die zweite Taste (Barrel-Button → RightTap-Geste).
+        CanvasHost.MouseRightButtonUp += OnCanvasRightButtonUp;
+        CanvasHost.StylusSystemGesture += OnCanvasStylusSystemGesture;
+
         PreviewKeyDown += OnPreviewKeyDown;
         PreviewKeyUp += OnPreviewKeyUp;
     }
@@ -286,6 +291,7 @@ public partial class WhiteboardView : UserControl
     private void SetTool(ToolType tool)
     {
         CommitActiveEdit();
+        HideQuickMenu();
         // Auswahl bleibt nur bei den Auswahl-Werkzeugen (Lasso, Verschieben) erhalten
         if (tool != ToolType.Lasso && tool != ToolType.Move) ClearSelection();
 
@@ -506,6 +512,7 @@ public partial class WhiteboardView : UserControl
 
     private void OnMouseWheel(object sender, MouseWheelEventArgs e)
     {
+        HideQuickMenu();
         if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
         {
             ZoomAt(e.GetPosition(CanvasHost), (float)Math.Pow(1.1, e.Delta / 120.0));
@@ -529,6 +536,7 @@ public partial class WhiteboardView : UserControl
     {
         Focus();
         if (_vm == null || _page == null) return;
+        if (IsOnQuickMenu(e.OriginalSource)) return;
 
         // Finger laufen über die Touch-Events (Gesten: Pan, Pinch-Zoom, Tipp-Gesten)
         if (e.StylusDevice.TabletDevice?.Type == TabletDeviceType.Touch) return;
@@ -577,6 +585,7 @@ public partial class WhiteboardView : UserControl
         Focus();
         if (e.StylusDevice != null) return; // bereits als Stylus behandelt
         if (_vm == null || _page == null) return;
+        if (IsOnQuickMenu(e.OriginalSource)) return;
 
         var screen = e.GetPosition(CanvasHost);
         if (e.ChangedButton == MouseButton.Middle || _spaceDown || _tool == ToolType.Pan)
@@ -712,6 +721,7 @@ public partial class WhiteboardView : UserControl
 
     private void BeginPan(Point screen)
     {
+        HideQuickMenu();
         _panning = true;
         _panLast = screen;
     }
@@ -732,6 +742,7 @@ public partial class WhiteboardView : UserControl
     private void BeginInput(SKPoint c, float pressure)
     {
         if (_page == null || _vm == null) return;
+        HideQuickMenu();
         CommitActiveEdit();
 
         // Zeichenhilfe bewegen/drehen hat Vorrang (außer beim Verschieben-Werkzeug)
@@ -949,6 +960,10 @@ public partial class WhiteboardView : UserControl
 
         if (_rulerDrag != RulerDrag.None) { _rulerDrag = RulerDrag.None; Skia.InvalidateVisual(); return; }
 
+        // Ob diese Eingabe zu einer frischen Auswahl (Tipp/Lasso, ohne Verschieben)
+        // geführt hat → danach die Schnellaktionen an der Auswahl einblenden.
+        bool freshSelect = false;
+
         switch (EffectiveTool)
         {
             case ToolType.Pen:
@@ -998,11 +1013,17 @@ public partial class WhiteboardView : UserControl
                         _vm.Undo.Push(_page, new MoveElementsAction(_selection, _movedX, _movedY));
                         MarkDirty();
                     }
+                    else
+                    {
+                        // Reiner Tipp aufs Element = Auswahl → Schnellaktionen zeigen
+                        freshSelect = _selection.Count > 0;
+                    }
                 }
                 else if (_lassoPts is { Count: > 2 })
                 {
                     SelectByLasso(_lassoPts);
                     _lassoPts = null;
+                    freshSelect = _selection.Count > 0;
                 }
                 else
                 {
@@ -1021,6 +1042,8 @@ public partial class WhiteboardView : UserControl
         _activePoints = null;
         _rulerSnapActive = false;
         Skia.InvalidateVisual();
+
+        if (freshSelect) ShowQuickMenuForSelection();
     }
 
     private static SKPoint Constrain(SKPoint start, SKPoint cur)
@@ -2484,6 +2507,7 @@ public partial class WhiteboardView : UserControl
 
     private void ClearSelection()
     {
+        HideQuickMenu();
         _selection.Clear();
         _movingSelection = false;
         _scalingSelection = false;
@@ -2681,23 +2705,43 @@ public partial class WhiteboardView : UserControl
         Skia.InvalidateVisual();
     }
 
-    // ==================== Kontextmenü (keyboard-freie Nutzung) ====================
+    // ============ Schnellaktionen (Quick-Options statt Rechtsklick-Menü) ============
+    // Floatende Icon-Leiste im Toolbar-Look. Auslösung: Maus-Rechtsklick, zweite
+    // Stift-Taste (Barrel-Button → RightTap-Geste) oder automatisch nach einer
+    // Auswahl mit Lasso (L)/Verschieben (V). Keyboard-freie Nutzung.
 
     private SKPoint _contextCanvasPos;
+    private int _quickShownTick;
 
-    private void Canvas_ContextMenuOpening(object sender, ContextMenuEventArgs e)
+    private void OnCanvasRightButtonUp(object sender, MouseButtonEventArgs e)
     {
-        // Während Text-/Zettel-Bearbeitung oder Import kein Leinwand-Menü
-        if (_editingText != null || _editingSticky != null || BusyOverlay.Visibility == Visibility.Visible)
-        {
-            e.Handled = true;
-            return;
-        }
+        // Deckt Maus-Rechtsklick UND Stifte ab, deren Barrel-Button auf „Rechtsklick"
+        // gemappt ist (kommt als rechte Maustaste mit gesetztem StylusDevice).
+        ShowQuickMenuAt(e.GetPosition(CanvasHost), autoPick: true);
+        e.Handled = true;
+    }
 
-        _contextCanvasPos = ToCanvas(Mouse.GetPosition(CanvasHost));
+    private void OnCanvasStylusSystemGesture(object sender, StylusSystemGestureEventArgs e)
+    {
+        // Zweite Stift-Taste = RightTap-Geste
+        if (e.SystemGesture != SystemGesture.RightTap) return;
+        ShowQuickMenuAt(e.GetPosition(CanvasHost), autoPick: true);
+        e.Handled = true;
+    }
 
-        // Nichts ausgewählt? Objekt unter dem Zeiger anwählen, damit das Menü darauf wirkt
-        if (_selection.Count == 0)
+    /// <summary>Öffnet die Schnellaktionen an einer Zeigerposition (Rechtsklick/Stifttaste).</summary>
+    private void ShowQuickMenuAt(Point screen, bool autoPick)
+    {
+        if (!CanShowQuickMenu()) return;
+
+        // RightTap + synthetische rechte Maustaste beim Stift entprellen
+        int now = Environment.TickCount;
+        if (QuickMenu.Visibility == Visibility.Visible && now - _quickShownTick < 250) return;
+
+        _contextCanvasPos = ToCanvas(screen);
+
+        // Nichts ausgewählt? Objekt unter dem Zeiger anwählen, damit die Aktion darauf wirkt
+        if (autoPick && _selection.Count == 0)
         {
             var pick = HitTestElement(_contextCanvasPos);
             if (pick != null)
@@ -2708,13 +2752,83 @@ public partial class WhiteboardView : UserControl
             }
         }
 
+        PrepareQuickMenu();
+        QuickMenu.Visibility = Visibility.Visible;
+        QuickMenu.UpdateLayout();
+        PlaceQuickMenu(screen.X - QuickMenu.ActualWidth / 2, screen.Y + 12);
+    }
+
+    /// <summary>Öffnet die Schnellaktionen mittig über der aktuellen Auswahl.</summary>
+    private void ShowQuickMenuForSelection()
+    {
+        if (!CanShowQuickMenu() || _selection.Count == 0) return;
+
+        _contextCanvasPos = new SKPoint(_selectionBounds.MidX, _selectionBounds.Top);
+        PrepareQuickMenu();
+        QuickMenu.Visibility = Visibility.Visible;
+        QuickMenu.UpdateLayout();
+        double w = QuickMenu.ActualWidth, h = QuickMenu.ActualHeight;
+
+        var tl = ToScreen(new SKPoint(_selectionBounds.Left, _selectionBounds.Top));
+        var br = ToScreen(new SKPoint(_selectionBounds.Right, _selectionBounds.Bottom));
+        double midX = (tl.X + br.X) / 2;
+        double top = tl.Y - h - 10;
+        if (top < 4) top = br.Y + 10;   // kein Platz oben → unter die Auswahl
+        PlaceQuickMenu(midX - w / 2, top);
+    }
+
+    private bool CanShowQuickMenu() =>
+        _vm != null && _page != null && _editingText == null && _editingSticky == null
+        && BusyOverlay.Visibility != Visibility.Visible;
+
+    /// <summary>Setzt Aktiv-/Sichtbarkeit der Schnellaktionen je nach Auswahl/Zwischenablage.</summary>
+    private void PrepareQuickMenu()
+    {
         bool hasSel = _selection.Count > 0;
-        Cm_Cut.IsEnabled = hasSel;
-        Cm_Copy.IsEnabled = hasSel;
-        Cm_Duplicate.IsEnabled = hasSel;
-        Cm_Delete.IsEnabled = hasSel;
-        Cm_Paste.IsEnabled = _clipboard.Count > 0 || ClipboardHasImage();
-        Cm_SelectAll.IsEnabled = _page is { Elements.Count: > 0 };
+        Qm_Cut.IsEnabled = hasSel;
+        Qm_Copy.IsEnabled = hasSel;
+        Qm_Duplicate.IsEnabled = hasSel;
+        Qm_Delete.IsEnabled = hasSel;
+        Qm_Paste.IsEnabled = _clipboard.Count > 0 || ClipboardHasImage();
+        Qm_SelectAll.IsEnabled = _page is { Elements.Count: > 0 };
+
+        // OCR nur zeigen, wenn verfügbar; aktiv bei ausgewähltem Bild oder (ohne
+        // Auswahl) einer Seite mit importiertem Hintergrund (PDF-Seite).
+        bool ocrOk = OcrService.IsAvailable;
+        bool ocrSource = _selection.OfType<ImageElement>().Any()
+            || (_selection.Count == 0 && _page?.BackgroundImage is { Length: > 0 });
+        Qm_Ocr.Visibility = ocrOk ? Visibility.Visible : Visibility.Collapsed;
+        Qm_SepOcr.Visibility = ocrOk ? Visibility.Visible : Visibility.Collapsed;
+        Qm_Ocr.IsEnabled = ocrOk && ocrSource;
+    }
+
+    /// <summary>Positioniert die Leiste (in Leinwand-Koordinaten) und hält sie im sichtbaren Bereich.</summary>
+    private void PlaceQuickMenu(double left, double top)
+    {
+        double maxLeft = Math.Max(0, CanvasHost.ActualWidth - QuickMenu.ActualWidth);
+        double maxTop = Math.Max(0, CanvasHost.ActualHeight - QuickMenu.ActualHeight);
+        left = Math.Clamp(left, 0, maxLeft);
+        top = Math.Clamp(top, 0, maxTop);
+        QuickMenu.Margin = new Thickness(left, top, 0, 0);
+        _quickShownTick = Environment.TickCount;
+    }
+
+    private void HideQuickMenu()
+    {
+        if (QuickMenu.Visibility != Visibility.Collapsed) QuickMenu.Visibility = Visibility.Collapsed;
+    }
+
+    /// <summary>Stammt das Ereignis von der Schnellaktions-Leiste (dann nicht als Zeichnen behandeln)?</summary>
+    private bool IsOnQuickMenu(object? src)
+    {
+        if (QuickMenu.Visibility != Visibility.Visible) return false;
+        var d = src as DependencyObject;
+        while (d != null)
+        {
+            if (ReferenceEquals(d, QuickMenu)) return true;
+            d = d is Visual ? VisualTreeHelper.GetParent(d) : LogicalTreeHelper.GetParent(d);
+        }
+        return false;
     }
 
     private static bool ClipboardHasImage()
@@ -2723,14 +2837,15 @@ public partial class WhiteboardView : UserControl
         catch { return false; }
     }
 
-    private void Cm_Cut_Click(object s, RoutedEventArgs e) => CutSelection();
-    private void Cm_Copy_Click(object s, RoutedEventArgs e) => CopySelection();
-    private void Cm_Duplicate_Click(object s, RoutedEventArgs e) => DuplicateSelection();
-    private void Cm_Delete_Click(object s, RoutedEventArgs e) => DeleteSelection();
-    private void Cm_SelectAll_Click(object s, RoutedEventArgs e) => SelectAll();
+    private void Cm_Cut_Click(object s, RoutedEventArgs e) { HideQuickMenu(); CutSelection(); }
+    private void Cm_Copy_Click(object s, RoutedEventArgs e) { HideQuickMenu(); CopySelection(); }
+    private void Cm_Duplicate_Click(object s, RoutedEventArgs e) { HideQuickMenu(); DuplicateSelection(); }
+    private void Cm_Delete_Click(object s, RoutedEventArgs e) { HideQuickMenu(); DeleteSelection(); }
+    private void Cm_SelectAll_Click(object s, RoutedEventArgs e) { HideQuickMenu(); SelectAll(); }
 
     private void Cm_Paste_Click(object s, RoutedEventArgs e)
     {
+        HideQuickMenu();
         if (_clipboard.Count > 0) PasteClipboard(_contextCanvasPos);
         else PasteImageFromClipboard();
     }

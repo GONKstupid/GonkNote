@@ -1,6 +1,17 @@
-# Gonk Note — Projektübergabe (Stand: 2026-07-16, Phase 3 laufend)
+# Gonk Note — Projektübergabe (Stand: 2026-07-17, Phase 3 laufend)
 
-> **Fixes-Runde 9 (2026-07-16) zuletzt umgesetzt:** Formen aus dem Text-Editor
+> **Runde 10 (2026-07-17) zuletzt umgesetzt:** **OCR mit Tesseract** (Details §5/§6):
+> Kontextaktion „Text erkennen (OCR)" auf Bildern/PDF-Seiten, Ergebnis-Dialog
+> (kopieren / als Notizzettel). **Rechtsklick-Menü im Whiteboard/Notizbuch
+> ersetzt** durch ein **Quick-Options-Menü im Toolbar-Look** (floatende Icon-Leiste,
+> `WhiteboardView.xaml` `QuickMenu`): öffnet per Rechtsklick, **zweiter Stift-Taste**
+> (Barrel-Button → `RightTap`-Geste) **und automatisch nach einer Auswahl mit Lasso
+> (L)/Verschieben (V)**. Icons: Ausschneiden/Kopieren/Duplizieren/Einfügen · OCR ·
+> Löschen/Alles auswählen. Verifiziert: Whiteboard lädt + Quick-Menü erscheint per
+> Rechtsklick (Screenshot). Build 0 Warnungen. **Noch nicht commit-getestet mit Stift-
+> Hardware** (Barrel-Button) und der In-App-OCR-Endfluss (Klick→Dialog→Zettel).
+>
+> **Fixes-Runde 9 (2026-07-16):** Formen aus dem Text-Editor
 > **entfernt** (voll interaktive Office-Formen im FlowDocument nicht sinnvoll
 > machbar → Zeichnen ist Whiteboard-Sache). **Diagramm** stark erweitert: Typen
 > Säulen/Balken/Linie/Punkt/Punkt+Linie/Kuchen/Radar + **mehrere Reihen** (eine
@@ -320,18 +331,46 @@ Nutzer-Test mit Stift.
     Auslastung noch zu hoch ist. Ausnahme: wäre es technisch unsinnig, es *nach* der
     RAM-Optimierung zu machen, dann vorziehen — aber **immer erst nach** den
     laufenden Änderungen/Fixes.
-  - **OCR:** vom Nutzer gewünscht — **Umsetzung mit Tesseract** (Nutzer-Entscheidung,
-    Stand 2026-07-16). Also `Tesseract`-NuGet + native `tesseract`-Lib und die
-    `tessdata`-Sprachdaten (deu/eng, ~10–30 MB) mitliefern; OCR auf die ohnehin als
-    Bitmaps vorliegenden importierten Bild-/PDF-Seiten anwenden. Beim Single-File-
-    Publish darauf achten, dass die native Lib + tessdata mit ausgeliefert/entpackt
-    werden. (Windows-eigene `Windows.Media.Ocr` wäre die DLL-freie Alternative, der
-    Nutzer bevorzugt aber Tesseract.) Für **Handschrift** ggf. separat der
-    `InkAnalyzer`.
+  - **OCR: ✔ umgesetzt (2026-07-17) mit Tesseract** (Nutzer-Entscheidung 2026-07-16).
+    - `Tesseract` 5.2.0 (NuGet) + native `tesseract50.dll`/`leptonica`-DLLs (kommen
+      über das Paket in den `x64`-/`x86`-Unterordner neben der Exe).
+    - Sprachdaten `tessdata/deu.traineddata` + `eng.traineddata` (**tessdata_fast**,
+      zusammen ~5,6 MB) liegen als **lose Begleitdatei** neben der Exe – genau wie die
+      Basis-Sticker (`Content CopyToOutputDirectory=PreserveNewest` in der csproj).
+      Damit auch im Single-File-Publish dabei (wie die Sticker).
+    - `Services/OcrService.cs`: `Recognize(byte[])` → erkannter Text. Setzt
+      `TesseractEnviornment.CustomSearchPath = AppContext.BaseDirectory` (im
+      Single-File-Publish ist die Assembly-Location leer, sonst findet der native
+      Loader `x64\` nicht). Kleine Bilder werden vor dem OCR hochskaliert (bessere
+      Erkennung). Sprachwahl automatisch aus vorhandenen tessdata (`deu+eng`).
+    - UI: Aktion „Text erkennen (OCR)" im **Quick-Options-Menü** (`WhiteboardView.Ocr.cs`).
+      Quelle = ausgewählte Bild-Elemente, sonst (ohne Auswahl) der importierte
+      Seitenhintergrund (PDF-Seite). Ergebnis im `OcrResultDialog` (bearbeitbar,
+      Kopieren / als Notizzettel einfügen). Läuft async mit Busy-Overlay.
+    - **Verifiziert:** kompletter nativer Stack + tessdata end-to-end im Harness
+      `%TEMP%\gonk-ocrtest` (rendert bekannten Text via SkiaSharp, erkennt ihn korrekt
+      inkl. Zahlen, deu+eng). OCR-Button erscheint im Quick-Menü (Screenshot, tessdata
+      neben Debug-Exe erkannt). **In-App-Endfluss (Klick→Dialog→Zettel) noch nicht mit
+      echtem Bild im Fenster durchgespielt.**
+    - Für **Handschrift** ggf. separat der `InkAnalyzer` (offen).
+
+  - **Quick-Options-Menü (Runde 10, ersetzt das Rechtsklick-Kontextmenü):**
+    Floatende Icon-Leiste im Toolbar-Look (`WhiteboardView.xaml` Border `QuickMenu`,
+    Icon-Buttons `Qm_*` mit Segoe-Fluent-Glyphen). Logik in `WhiteboardView.xaml.cs`
+    (`ShowQuickMenuAt`/`ShowQuickMenuForSelection`/`PrepareQuickMenu`/`PlaceQuickMenu`/
+    `HideQuickMenu`/`IsOnQuickMenu`). **Auslöser:** Maus-Rechtsklick
+    (`OnCanvasRightButtonUp`), **zweite Stift-Taste** (`OnCanvasStylusSystemGesture`,
+    `SystemGesture.RightTap`; Entprellung gegen doppelte Auslösung per `_quickShownTick`),
+    **und automatisch nach frischer Lasso/Move-Auswahl** (`freshSelect` in `EndInput` →
+    `ShowQuickMenuForSelection`, mittig über der Auswahl). Schließt bei neuer Eingabe/
+    Pan/Zoom/Tool-Wechsel/Auswahl-leeren (`HideQuickMenu` an den passenden Stellen).
+    Klicks auf die Leiste werden in `OnMouseDown`/`OnStylusDown` via `IsOnQuickMenu`
+    von der Zeichenlogik ausgenommen. Die alten `Cm_*_Click`-Handler bleiben (jetzt vom
+    Quick-Menü genutzt) und rufen zuerst `HideQuickMenu`.
   - **Obfuskierung: gestrichen** — der Nutzer will das Projekt so **Open Source wie
     möglich** halten.
   - **Bereits erledigt** (kein offener Phase-3-Punkt mehr): Sticker, Notizzettel,
-    Lineal/Geodreieck, Diagramme, Tabellen, Whiteboard-Kontextmenü.
+    Lineal/Geodreieck, Diagramme, Tabellen, Whiteboard-Quick-Menü (Runde 10), OCR (Runde 10).
   - **RAM-Ausgangslage** (für die spätere Optimierung): Basis ~190 MB + bis 96 MB
     Bild-Cache. Ansatzpunkte: Cache-Budget senken, GC-Tuning, PDF-Seiten lazy
     on-demand rendern (statt alle Bitmaps im Speicher).
@@ -385,8 +424,9 @@ Nutzer-Test mit Stift.
    Schwellenwerte in §5, „Nutzer-Strategie"). **Vorher den 1-GB-/800-MB-Wert einmal
    rückversichern** und die Leitlinie „Features vor RAM" beachten.
 3. **Render-Caching** nur bei Bedarf **nach** der RAM-Optimierung (§5).
-4. **OCR** ist als Nächstes-Interessantes markiert — Ansatz `Windows.Media.Ocr`
-   (offline, keine Zusatz-DLL) für Bild-/PDF-Seiten, `InkAnalyzer` für Handschrift (§5).
+4. **OCR ✔ umgesetzt (2026-07-17) mit Tesseract** (§5) — Kontextmenü „Text erkennen
+   (OCR)" auf Bildern/PDF-Seiten. In-App-UI-Fluss noch im echten Fenster zu testen;
+   `InkAnalyzer` für Handschrift bleibt offen.
 5. **Obfuskierung ist gestrichen** (Open-Source-Ziel).
 
 Export sitzt in `Datei → Exportieren`; `ExportActiveTab` wählt anhand des aktiven

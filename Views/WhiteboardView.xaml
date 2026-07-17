@@ -465,25 +465,52 @@
 
         <!-- ===== Zeichenfläche ===== -->
         <Grid x:Name="CanvasHost" Background="Transparent" ClipToBounds="True"
-              AllowDrop="True" DragOver="CanvasHost_DragOver" Drop="CanvasHost_Drop"
-              ContextMenuOpening="Canvas_ContextMenuOpening">
-            <Grid.ContextMenu>
-                <ContextMenu x:Name="CanvasMenu">
-                    <MenuItem x:Name="Cm_Cut" Header="Ausschneiden" InputGestureText="Strg+X" Click="Cm_Cut_Click"/>
-                    <MenuItem x:Name="Cm_Copy" Header="Kopieren" InputGestureText="Strg+C" Click="Cm_Copy_Click"/>
-                    <MenuItem x:Name="Cm_Duplicate" Header="Duplizieren" InputGestureText="Strg+D" Click="Cm_Duplicate_Click"/>
-                    <MenuItem x:Name="Cm_Paste" Header="Einfügen" InputGestureText="Strg+V" Click="Cm_Paste_Click"/>
-                    <Separator x:Name="Cm_Sep1"/>
-                    <MenuItem x:Name="Cm_Delete" Header="Löschen" InputGestureText="Entf" Click="Cm_Delete_Click"/>
-                    <MenuItem x:Name="Cm_SelectAll" Header="Alles auswählen" InputGestureText="Strg+A" Click="Cm_SelectAll_Click"/>
-                </ContextMenu>
-            </Grid.ContextMenu>
+              AllowDrop="True" DragOver="CanvasHost_DragOver" Drop="CanvasHost_Drop">
             <skia:SKElement x:Name="Skia" PaintSurface="Skia_PaintSurface"/>
             <Canvas x:Name="Overlay" Background="{x:Null}">
                 <TextBox x:Name="EditBox" Visibility="Collapsed" AcceptsReturn="True"
                          MinWidth="60" FontFamily="Segoe UI" BorderThickness="1"
                          LostKeyboardFocus="EditBox_LostFocus" PreviewKeyDown="EditBox_KeyDown"/>
             </Canvas>
+
+            <!-- Schnellaktionen (Quick-Options): floatende Icon-Leiste im Toolbar-Look.
+                 Ersetzt das Rechtsklick-Menü; öffnet per Rechtsklick / zweiter Stift-
+                 Taste bzw. automatisch nach einer Lasso-/Verschieben-Auswahl. Position
+                 wird per Margin im Code gesetzt. -->
+            <Border x:Name="QuickMenu" Visibility="Collapsed"
+                    HorizontalAlignment="Left" VerticalAlignment="Top" Panel.ZIndex="50"
+                    Background="{DynamicResource Brush.CardBg}"
+                    BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1"
+                    CornerRadius="10" Padding="4">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="14" ShadowDepth="2" Opacity="0.28"/>
+                </Border.Effect>
+                <StackPanel Orientation="Horizontal">
+                    <Button x:Name="Qm_Cut" Style="{StaticResource IconButton}" Content="&#xE8C6;"
+                            ToolTip="Ausschneiden (Strg+X)" AutomationProperties.Name="Ausschneiden"
+                            Click="Cm_Cut_Click"/>
+                    <Button x:Name="Qm_Copy" Style="{StaticResource IconButton}" Content="&#xE8C8;"
+                            ToolTip="Kopieren (Strg+C)" AutomationProperties.Name="Kopieren"
+                            Click="Cm_Copy_Click"/>
+                    <Button x:Name="Qm_Duplicate" Style="{StaticResource IconButton}" Content="&#xE81E;"
+                            ToolTip="Duplizieren (Strg+D)" AutomationProperties.Name="Duplizieren"
+                            Click="Cm_Duplicate_Click"/>
+                    <Button x:Name="Qm_Paste" Style="{StaticResource IconButton}" Content="&#xE77F;"
+                            ToolTip="Einfügen (Strg+V)" AutomationProperties.Name="Einfügen"
+                            Click="Cm_Paste_Click"/>
+                    <Border x:Name="Qm_SepOcr" Width="1" Background="{DynamicResource Brush.Border}" Margin="3,5"/>
+                    <Button x:Name="Qm_Ocr" Style="{StaticResource IconButton}" Content="&#xE8FE;"
+                            ToolTip="Text erkennen (OCR)" AutomationProperties.Name="Text erkennen (OCR)"
+                            Click="Cm_Ocr_Click"/>
+                    <Border x:Name="Qm_Sep2" Width="1" Background="{DynamicResource Brush.Border}" Margin="3,5"/>
+                    <Button x:Name="Qm_Delete" Style="{StaticResource IconButton}" Content="&#xE74D;"
+                            ToolTip="Löschen (Entf)" AutomationProperties.Name="Löschen"
+                            Click="Cm_Delete_Click"/>
+                    <Button x:Name="Qm_SelectAll" Style="{StaticResource IconButton}" Content="&#xE8B3;"
+                            ToolTip="Alles auswählen (Strg+A)" AutomationProperties.Name="Alles auswählen"
+                            Click="Cm_SelectAll_Click"/>
+                </StackPanel>
+            </Border>
 
             <!-- Fortschritts-Overlay während des Imports (blockiert Eingaben) -->
             <Border x:Name="BusyOverlay" Visibility="Collapsed" Background="#66000000">

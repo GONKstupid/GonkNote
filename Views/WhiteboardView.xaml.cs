@@ -102,8 +102,29 @@ public partial class WhiteboardView : UserControl
     private const float RulerAngleStep = 15f;
     private const float RulerAngleSnapTol = 4f;
 
-    private ToggleButton[] ToolButtons => new[] { BtnPen, BtnSmoothPen, BtnPencil, BtnHighlighter, BtnEraser, BtnMove, BtnLasso, BtnText, BtnShape, BtnSticky, BtnSticker, BtnPan };
-    private ToggleButton[] ShapeButtons => new[] { BtnShapeLine, BtnShapeArrow, BtnShapeRect, BtnShapeEllipse, BtnShapeTriangle };
+    private ToggleButton[] ToolButtons => new[] { BtnPen, BtnSmoothPen, BtnPencil, BtnHighlighter, BtnEraser, BtnMove, BtnLasso, BtnText, BtnSticky, BtnSticker, BtnPan };
+
+    // Formen-Gruppe (Kind-Auswahl in der Toolbar, klappbar wie die Stifte)
+    private ToggleButton[] ShapeButtons => new[] { BtnShapeRect, BtnShapeLine, BtnShapeArrow, BtnShapeEllipse, BtnShapeTriangle };
+    private ShapeKind _lastShape = ShapeKind.Rectangle;
+    private bool _shapeGroupExpanded;
+
+    private ToggleButton ShapeButtonFor(ShapeKind k) => k switch
+    {
+        ShapeKind.Line => BtnShapeLine,
+        ShapeKind.Arrow => BtnShapeArrow,
+        ShapeKind.Ellipse => BtnShapeEllipse,
+        ShapeKind.Triangle => BtnShapeTriangle,
+        _ => BtnShapeRect,
+    };
+
+    private void SetShapeGroupExpanded(bool expanded)
+    {
+        _shapeGroupExpanded = expanded;
+        var rep = ShapeButtonFor(_lastShape);
+        foreach (var b in ShapeButtons)
+            b.Visibility = expanded || b == rep ? Visibility.Visible : Visibility.Collapsed;
+    }
     private ToggleButton[] PenButtons => new[] { BtnPen, BtnSmoothPen, BtnPencil, BtnHighlighter };
 
     // Stifte-Gruppe: eingeklappt ist nur der zuletzt benutzte Stift sichtbar
@@ -126,10 +147,10 @@ public partial class WhiteboardView : UserControl
 
         _suppressToolEvents = true;
         BtnPen.IsChecked = true;
-        BtnShapeRect.IsChecked = true;
         _suppressToolEvents = false;
         SetPenGroupExpanded(false);
         SetSelectGroupExpanded(false);
+        SetShapeGroupExpanded(false);
         SetAidGroupExpanded(false);
 
         foreach (var b in ToolButtons) b.Unchecked += Tool_Unchecked;
@@ -210,6 +231,12 @@ public partial class WhiteboardView : UserControl
 
         if (IsSelectTool(_tool)) _lastSelect = _tool;
         SetSelectGroupExpanded(IsSelectTool(_tool));
+
+        // Formen-Gruppe abwählen/einklappen, wenn ein anderes Werkzeug gewählt wird
+        _suppressToolEvents = true;
+        foreach (var b in ShapeButtons) b.IsChecked = false;
+        _suppressToolEvents = false;
+        SetShapeGroupExpanded(false);
     }
 
     private void Tool_Unchecked(object? sender, RoutedEventArgs e)
@@ -306,18 +333,24 @@ public partial class WhiteboardView : UserControl
         Skia.InvalidateVisual();
     }
 
-    private void Shape_Checked(object sender, RoutedEventArgs e)
+    /// <summary>Ein Formen-Werkzeug in der Toolbar: Formen-Werkzeug aktivieren + Art setzen.</summary>
+    private void ShapeTool_Checked(object sender, RoutedEventArgs e)
     {
         if (_suppressToolEvents) return;
         var btn = (ToggleButton)sender;
 
         _suppressToolEvents = true;
-        foreach (var b in ShapeButtons)
-            if (b != btn) b.IsChecked = false;
+        foreach (var b in ToolButtons) b.IsChecked = false;            // andere Werkzeuge aus
+        foreach (var b in ShapeButtons) if (b != btn) b.IsChecked = false;
         btn.IsChecked = true;
         _suppressToolEvents = false;
 
         _shape = Enum.Parse<ShapeKind>((string)btn.Tag);
+        _lastShape = _shape;
+        SetTool(ToolType.Shape);
+        SetPenGroupExpanded(false);
+        SetSelectGroupExpanded(false);
+        SetShapeGroupExpanded(true);
     }
 
     private void Color_Checked(object sender, RoutedEventArgs e)
@@ -3312,7 +3345,7 @@ public partial class WhiteboardView : UserControl
             Key.V => BtnMove,
             Key.L => BtnLasso,
             Key.T => BtnText,
-            Key.F => BtnShape,
+            Key.F => ShapeButtonFor(_lastShape),   // Formen-Werkzeug mit zuletzt genutzter Art
             Key.N => BtnSticky,
             Key.H => BtnPan,
             _ => null,

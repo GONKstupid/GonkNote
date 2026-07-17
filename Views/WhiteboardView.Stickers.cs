@@ -152,6 +152,31 @@ public partial class WhiteboardView
         }
     }
 
+    // ==================== Diagramm-Werkzeug ====================
+
+    /// <summary>Öffnet den Diagramm-Dialog (wie im Text-Editor) und fügt das Ergebnis als Bild ein.</summary>
+    private void InsertChart_Click(object sender, RoutedEventArgs e)
+    {
+        // Ist ein ToggleButton in der Werkzeugleiste → nicht „gedrückt“ stehen lassen
+        if (sender is System.Windows.Controls.Primitives.ToggleButton tb) tb.IsChecked = false;
+        if (_page == null || _vm == null) return;
+
+        var dlg = new ChartDialog { Owner = Window.GetWindow(this) };
+        if (dlg.ShowDialog() != true || dlg.ResultImage == null) return;
+
+        byte[] data;
+        var enc = new PngBitmapEncoder();
+        enc.Frames.Add(BitmapFrame.Create(dlg.ResultImage));
+        using (var ms = new MemoryStream()) { enc.Save(ms); data = ms.ToArray(); }
+
+        PlaceImages(
+            new List<(byte[] Data, float W, float H)>
+            {
+                (data, dlg.ResultImage.PixelWidth, dlg.ResultImage.PixelHeight),
+            },
+            ViewCenter());
+    }
+
     private void AddSticker_Click(object sender, RoutedEventArgs e)
     {
         var dlg = new OpenFileDialog

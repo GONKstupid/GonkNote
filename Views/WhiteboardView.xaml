@@ -69,8 +69,26 @@
 
                     <ToggleButton x:Name="BtnText" Style="{StaticResource ToolButton}" Content="&#xE8D2;"
                                   ToolTip="Textfeld (T)" Checked="Tool_Checked" Tag="Text"/>
-                    <ToggleButton x:Name="BtnShape" Style="{StaticResource ToolButton}" Content="&#xE739;"
-                                  ToolTip="Formen (F)" Checked="Tool_Checked" Tag="Shape"/>
+
+                    <!-- Formen (F): klappbare Gruppe wie die Stifte; Standard Rechteck sichtbar,
+                         Rest erscheint, sobald das Formen-Werkzeug aktiv ist. Weitere Optionen
+                         (Füllung/Deckkraft) in der Einstellungs-Seitenleiste. -->
+                    <ToggleButton x:Name="BtnShapeRect" Style="{StaticResource ToolButton}" FontFamily="Segoe UI"
+                                  Content="▭" ToolTip="Rechteck (F)" Checked="ShapeTool_Checked" Tag="Rectangle"/>
+                    <ToggleButton x:Name="BtnShapeLine" Style="{StaticResource ToolButton}" FontFamily="Segoe UI"
+                                  Content="╱" ToolTip="Linie" Checked="ShapeTool_Checked" Tag="Line"/>
+                    <ToggleButton x:Name="BtnShapeArrow" Style="{StaticResource ToolButton}" FontFamily="Segoe UI"
+                                  Content="→" ToolTip="Pfeil" Checked="ShapeTool_Checked" Tag="Arrow"/>
+                    <ToggleButton x:Name="BtnShapeEllipse" Style="{StaticResource ToolButton}" FontFamily="Segoe UI"
+                                  Content="◯" ToolTip="Ellipse" Checked="ShapeTool_Checked" Tag="Ellipse"/>
+                    <ToggleButton x:Name="BtnShapeTriangle" Style="{StaticResource ToolButton}" FontFamily="Segoe UI"
+                                  Content="△" ToolTip="Dreieck" Checked="ShapeTool_Checked" Tag="Triangle"/>
+
+                    <ToggleButton x:Name="BtnChart" Style="{StaticResource ToolButton}" Content="&#xE9D2;"
+                                  AutomationProperties.Name="Diagramm"
+                                  ToolTip="Diagramm einfügen (Säulen, Balken, Linie, Punkt, Kuchen, Radar)"
+                                  Click="InsertChart_Click"/>
+
                     <ToggleButton x:Name="BtnSticky" Style="{StaticResource ToolButton}" Content="&#xE70B;"
                                   ToolTip="Notizzettel (N) – farbigen Klebezettel setzen" Checked="Tool_Checked" Tag="Sticky"/>
                     <ToggleButton x:Name="BtnSticker" Style="{StaticResource ToolButton}" Content="&#xE76E;"
@@ -272,19 +290,9 @@
                         <!-- Formen (nur bei aktivem Formen-Werkzeug sichtbar) -->
                         <Expander x:Name="ShapeSection" Header="Formen" IsExpanded="True">
                         <StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                                <ToggleButton x:Name="BtnShapeLine" Style="{StaticResource ToolButton}" FontFamily="Segoe UI"
-                                              Content="╱" ToolTip="Linie" Checked="Shape_Checked" Tag="Line"/>
-                                <ToggleButton x:Name="BtnShapeArrow" Style="{StaticResource ToolButton}" FontFamily="Segoe UI"
-                                              Content="→" ToolTip="Pfeil" Checked="Shape_Checked" Tag="Arrow"/>
-                                <ToggleButton x:Name="BtnShapeRect" Style="{StaticResource ToolButton}" FontFamily="Segoe UI"
-                                              Content="▭" ToolTip="Rechteck" Checked="Shape_Checked" Tag="Rectangle"/>
-                                <ToggleButton x:Name="BtnShapeEllipse" Style="{StaticResource ToolButton}" FontFamily="Segoe UI"
-                                              Content="◯" ToolTip="Ellipse" Checked="Shape_Checked" Tag="Ellipse"/>
-                                <ToggleButton x:Name="BtnShapeTriangle" Style="{StaticResource ToolButton}" FontFamily="Segoe UI"
-                                              Content="△" ToolTip="Dreieck" Checked="Shape_Checked" Tag="Triangle"/>
-                            </StackPanel>
-
+                            <TextBlock Text="Form wählst du in der Werkzeugleiste; hier die Füllung."
+                                       Foreground="{DynamicResource Brush.TextMuted}" FontSize="11"
+                                       TextWrapping="Wrap" Margin="0,0,0,8"/>
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
                                 <ToggleButton x:Name="BtnShapeFill" Style="{StaticResource ToolButton}"
                                               ToolTip="Füllung ein/aus"

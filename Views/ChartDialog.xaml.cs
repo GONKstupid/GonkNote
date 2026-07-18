@@ -63,6 +63,20 @@ public partial class ChartDialog : Window
                     Redraw();
                 }
             };
+
+            // Rechtsklick: Farbe wieder löschen (mindestens eine bleibt übrig)
+            var del = new MenuItem { Header = "Farbe löschen", IsEnabled = Palette.Count > 1 };
+            del.Click += (_, _) =>
+            {
+                if (Palette.Count <= 1) return;
+                Palette.RemoveAt(idx);
+                BuildColorRow();   // Indizes der Kacheln neu vergeben
+                Redraw();
+            };
+            var menu = new ContextMenu();
+            menu.Items.Add(del);
+            swatch.ContextMenu = menu;
+
             ColorRow.Children.Add(swatch);
         }
 

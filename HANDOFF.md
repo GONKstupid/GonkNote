@@ -22,8 +22,9 @@
 >   die **ausgewählten Zellen/Spalten**. „Füllung weg" → **„Füllfarbe löschen"**.
 >   DOCX-Export/-Import können vMerge (Zeilenverbund) jetzt in beide Richtungen.
 > - **Diagramm (alle Arbeitsbereiche):** hinter den Farbkacheln gibt es eine
->   **„+"-Kachel** → Farbwähler → neue Farbe wird angehängt, beliebig oft. Palette ist
->   statisch (Sitzung) und gilt für Text-Editor/Whiteboard/Notizbuch (`ChartDialog`).
+>   **„+"-Kachel** → Farbwähler → neue Farbe wird angehängt, beliebig oft; Rechtsklick
+>   auf eine Kachel → **„Farbe löschen"** (mind. eine bleibt). Palette ist statisch
+>   (Sitzung) und gilt für Text-Editor/Whiteboard/Notizbuch (`ChartDialog`).
 >
 > **Runde 10 (2026-07-17):** **OCR mit Tesseract** (Details §5/§6):
 > Kontextaktion „Text erkennen (OCR)" auf Bildern/PDF-Seiten, Ergebnis-Dialog

@@ -173,9 +173,13 @@ public partial class WhiteboardView : UserControl
         CanvasHost.TouchUp += OnTouchUp;
 
         // Schnellaktionen (Quick-Options) statt Rechtsklick-Menü: Maus-Rechtsklick
-        // und – für den Stift – die zweite Taste (Barrel-Button → RightTap-Geste).
+        // und – für den Stift – die zweite Taste (Barrel-Button). Letzterer wird
+        // sowohl direkt (StylusButtonDown) als auch als RightTap-Geste erkannt; der
+        // eigentliche Barrel-Zustand wird zusätzlich in OnStylusDown geprüft, damit
+        // die zweite Taste zuverlässig öffnet und keinen Strich auslöst.
         CanvasHost.MouseRightButtonUp += OnCanvasRightButtonUp;
         CanvasHost.StylusSystemGesture += OnCanvasStylusSystemGesture;
+        CanvasHost.StylusButtonDown += OnCanvasStylusButtonDown;
 
         PreviewKeyDown += OnPreviewKeyDown;
         PreviewKeyUp += OnPreviewKeyUp;
@@ -545,14 +549,28 @@ public partial class WhiteboardView : UserControl
         var pts = e.GetStylusPoints(CanvasHost);
         if (pts.Count == 0) return;
         var p = pts[^1];
+
+        // Zweite Stift-Taste (Barrel) gehalten → Schnellaktionen öffnen statt zeichnen
+        if (IsBarrelPressed(p))
+        {
+            ShowQuickMenuAt(new Point(p.X, p.Y), autoPick: true);
+            e.Handled = true;
+            return;
+        }
+
         BeginInput(ToCanvas(new Point(p.X, p.Y)), p.PressureFactor);
         CanvasHost.CaptureStylus();
         e.Handled = true;
     }
 
+    private static bool IsBarrelPressed(StylusPoint p) =>
+        p.HasProperty(StylusPointProperties.BarrelButton)
+        && p.GetPropertyValue(StylusPointProperties.BarrelButton) != 0;
+
     private void OnStylusMove(object sender, StylusEventArgs e)
     {
         if (e.StylusDevice?.TabletDevice?.Type == TabletDeviceType.Touch) return;
+        if (IsOnQuickMenu(e.OriginalSource)) return;   // Klicks auf die Quick-Leiste durchlassen
         if (_panning)
         {
             MovePan(e.GetPosition(CanvasHost));
@@ -573,6 +591,10 @@ public partial class WhiteboardView : UserControl
     private void OnStylusUp(object sender, StylusEventArgs e)
     {
         if (e.StylusDevice?.TabletDevice?.Type == TabletDeviceType.Touch) return;
+        // Stift-Events auf der Quick-Leiste NICHT als „Handled" markieren – sonst
+        // wird der Stift-Tipp nicht zum Maus-Klick promotet und der Button-Klick
+        // (z. B. Kopieren) löst nie aus.
+        if (IsOnQuickMenu(e.OriginalSource)) return;
         CanvasHost.ReleaseStylusCapture();
         if (_panning) { EndPan(); e.Handled = true; return; }
         EndInput(ToCanvas(e.GetPosition(CanvasHost)));
@@ -2723,8 +2745,17 @@ public partial class WhiteboardView : UserControl
 
     private void OnCanvasStylusSystemGesture(object sender, StylusSystemGestureEventArgs e)
     {
-        // Zweite Stift-Taste = RightTap-Geste
+        // Zweite Stift-Taste = RightTap-Geste (Fallback zu StylusButtonDown)
         if (e.SystemGesture != SystemGesture.RightTap) return;
+        ShowQuickMenuAt(e.GetPosition(CanvasHost), autoPick: true);
+        e.Handled = true;
+    }
+
+    private void OnCanvasStylusButtonDown(object sender, StylusButtonEventArgs e)
+    {
+        // Direkter Druck der zweiten Stift-Taste (Barrel-Button) – zuverlässiger als
+        // die RightTap-Geste, auch wenn die Spitze die Fläche nicht berührt.
+        if (e.StylusButton.Guid != StylusPointProperties.BarrelButton.Id) return;
         ShowQuickMenuAt(e.GetPosition(CanvasHost), autoPick: true);
         e.Handled = true;
     }

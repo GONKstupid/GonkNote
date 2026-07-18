@@ -560,6 +560,7 @@ public partial class WhiteboardView : UserControl
 
         BeginInput(ToCanvas(new Point(p.X, p.Y)), p.PressureFactor);
         CanvasHost.CaptureStylus();
+        StartHoldDetect(new Point(p.X, p.Y), fromTouch: false);
         e.Handled = true;
     }
 
@@ -571,6 +572,7 @@ public partial class WhiteboardView : UserControl
     {
         if (e.StylusDevice?.TabletDevice?.Type == TabletDeviceType.Touch) return;
         if (IsOnQuickMenu(e.OriginalSource)) return;   // Klicks auf die Quick-Leiste durchlassen
+        MoveHoldDetect(e.GetPosition(CanvasHost));
         if (_panning)
         {
             MovePan(e.GetPosition(CanvasHost));
@@ -591,6 +593,7 @@ public partial class WhiteboardView : UserControl
     private void OnStylusUp(object sender, StylusEventArgs e)
     {
         if (e.StylusDevice?.TabletDevice?.Type == TabletDeviceType.Touch) return;
+        CancelHoldDetect();
         // Stift-Events auf der Quick-Leiste NICHT als „Handled" markieren – sonst
         // wird der Stift-Tipp nicht zum Maus-Klick promotet und der Button-Klick
         // (z. B. Kopieren) löst nie aus.
@@ -662,6 +665,7 @@ public partial class WhiteboardView : UserControl
 
     private void OnTouchDown(object? sender, TouchEventArgs e)
     {
+        if (IsOnQuickMenu(e.OriginalSource)) return;   // Tipp auf die Quick-Leiste durchlassen
         CanvasHost.CaptureTouch(e.TouchDevice);
         var p = e.GetTouchPoint(CanvasHost).Position;
         _touches[e.TouchDevice.Id] = p;
@@ -671,6 +675,11 @@ public partial class WhiteboardView : UserControl
             _gestureStart = DateTime.UtcNow;
             _gestureMoved = false;
             _gestureMaxFingers = 1;
+            StartHoldDetect(p, fromTouch: true);   // Langdruck = Schnellaktionen (L/V/H)
+        }
+        else
+        {
+            CancelHoldDetect();   // zweiter Finger = Pinch, kein Langdruck
         }
         _gestureMaxFingers = Math.Max(_gestureMaxFingers, _touches.Count);
 
@@ -690,6 +699,7 @@ public partial class WhiteboardView : UserControl
         if (!_touches.TryGetValue(e.TouchDevice.Id, out var old)) return;
         var p = e.GetTouchPoint(CanvasHost).Position;
         if ((p - old).Length > 6) _gestureMoved = true;
+        MoveHoldDetect(p);
         _touches[e.TouchDevice.Id] = p;
 
         if (_touches.Count == 1)
@@ -716,6 +726,8 @@ public partial class WhiteboardView : UserControl
 
     private void OnTouchUp(object? sender, TouchEventArgs e)
     {
+        if (IsOnQuickMenu(e.OriginalSource)) return;
+        CancelHoldDetect();
         CanvasHost.ReleaseTouchCapture(e.TouchDevice);
         _touches.Remove(e.TouchDevice.Id);
 
@@ -979,6 +991,9 @@ public partial class WhiteboardView : UserControl
     private void EndInput(SKPoint c)
     {
         if (_page == null || _vm == null) return;
+
+        // Loslassen nach einem Langdruck (Schnellaktionen sind bereits offen)
+        if (_suppressNextEndInput) { _suppressNextEndInput = false; return; }
 
         if (_rulerDrag != RulerDrag.None) { _rulerDrag = RulerDrag.None; Skia.InvalidateVisual(); return; }
 
@@ -2758,6 +2773,66 @@ public partial class WhiteboardView : UserControl
         if (e.StylusButton.Guid != StylusPointProperties.BarrelButton.Id) return;
         ShowQuickMenuAt(e.GetPosition(CanvasHost), autoPick: true);
         e.Handled = true;
+    }
+
+    // ---------- Langes Drücken (Stift oder Finger) ----------
+    // Öffnet die Schnellaktionen, wenn der Zeiger ~600 ms an derselben Stelle
+    // gedrückt bleibt – nur bei Lasso (L)/Verschieben (V)/Hand (H), damit die
+    // Zeichenwerkzeuge (Stift ruht beim Schreiben oft kurz) ungestört bleiben.
+
+    private System.Windows.Threading.DispatcherTimer? _holdTimer;
+    private Point _holdStart;
+    private bool _holdFromTouch;
+    /// <summary>Das Loslassen nach einem Langdruck nicht mehr als Eingabe-Ende verarbeiten.</summary>
+    private bool _suppressNextEndInput;
+
+    private bool HoldToolActive => _tool is ToolType.Lasso or ToolType.Move or ToolType.Pan;
+
+    private void StartHoldDetect(Point screen, bool fromTouch)
+    {
+        CancelHoldDetect();
+        if (!HoldToolActive || _page == null || _vm == null) return;
+        _holdStart = screen;
+        _holdFromTouch = fromTouch;
+        _holdTimer = new System.Windows.Threading.DispatcherTimer
+        {
+            Interval = TimeSpan.FromMilliseconds(600),
+        };
+        _holdTimer.Tick += HoldTimer_Tick;
+        _holdTimer.Start();
+    }
+
+    private void MoveHoldDetect(Point screen)
+    {
+        if (_holdTimer != null &&
+            (Math.Abs(screen.X - _holdStart.X) > 10 || Math.Abs(screen.Y - _holdStart.Y) > 10))
+            CancelHoldDetect();
+    }
+
+    private void CancelHoldDetect()
+    {
+        if (_holdTimer == null) return;
+        _holdTimer.Stop();
+        _holdTimer.Tick -= HoldTimer_Tick;
+        _holdTimer = null;
+    }
+
+    private void HoldTimer_Tick(object? sender, EventArgs e)
+    {
+        CancelHoldDetect();
+        if (!HoldToolActive) return;
+
+        // Die angefangene Interaktion verwerfen – der Zeiger ruhte, es geht nichts verloren
+        _lassoPts = null;
+        _movingSelection = false;
+        _scalingSelection = false;
+        _rotatingEl = null;
+        if (_panning) EndPan();
+        if (_holdFromTouch) _touches.Clear();          // Finger soll nicht weiter pannen
+        else _suppressNextEndInput = true;             // Stift-Up nicht als Eingabe-Ende werten
+
+        ShowQuickMenuAt(_holdStart, autoPick: true);
+        Skia.InvalidateVisual();
     }
 
     /// <summary>Öffnet die Schnellaktionen an einer Zeigerposition (Rechtsklick/Stifttaste).</summary>

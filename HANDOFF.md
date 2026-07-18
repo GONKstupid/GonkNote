@@ -25,6 +25,14 @@
 >   **„+"-Kachel** → Farbwähler → neue Farbe wird angehängt, beliebig oft; Rechtsklick
 >   auf eine Kachel → **„Farbe löschen"** (mind. eine bleibt). Palette ist statisch
 >   (Sitzung) und gilt für Text-Editor/Whiteboard/Notizbuch (`ChartDialog`).
+> - **Quick-Menü per Langdruck:** ~600 ms an derselben Stelle gedrückt halten
+>   (Stift **oder** Finger, Toleranz 10 px) öffnet die Schnellaktionen — **nur** bei
+>   Lasso (L)/Verschieben (V)/Hand (H), damit Zeichenwerkzeuge ungestört bleiben.
+>   `StartHoldDetect`/`HoldTimer_Tick` in `WhiteboardView.xaml.cs`; bricht die
+>   angefangene Interaktion ab (`_suppressNextEndInput` fürs Stift-Up, `_touches`-
+>   Clear für Finger-Pan). Touch-Tipps auf die Leiste laufen am Canvas vorbei
+>   (`IsOnQuickMenu`-Guards auch in den Touch-Handlern). **Nutzer-Test mit
+>   Stift-/Touch-Hardware steht aus.**
 >
 > **Runde 10 (2026-07-17):** **OCR mit Tesseract** (Details §5/§6):
 > Kontextaktion „Text erkennen (OCR)" auf Bildern/PDF-Seiten, Ergebnis-Dialog

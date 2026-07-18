@@ -412,7 +412,8 @@
                         </Expander>
 
                         <!-- Cover (nur Notizbücher) -->
-                        <Expander x:Name="CoverSection" Header="Cover" IsExpanded="False" Visibility="Collapsed">
+                        <Expander x:Name="CoverSection" Header="Cover" IsExpanded="False" Visibility="Collapsed"
+                                  Expanded="CoverSection_Expanded">
                         <StackPanel>
                             <TextBlock Text="Farbverlauf" FontWeight="SemiBold" Margin="0,0,0,4"
                                        Foreground="{DynamicResource Brush.Text}"/>
@@ -455,6 +456,12 @@
                             <TextBlock Text="Das Bild ersetzt Verlauf und Titel auf dem Cover."
                                        Foreground="{DynamicResource Brush.TextMuted}" FontSize="11"
                                        TextWrapping="Wrap" Margin="0,0,0,12"/>
+
+                            <!-- Cover-Vorlagen (Assets\Covers neben der Exe + eigene in
+                                 %APPDATA%\GonkNote\Covers); befüllt beim ersten Aufklappen -->
+                            <TextBlock Text="Vorlagen" FontWeight="SemiBold" Margin="0,0,0,4"
+                                       Foreground="{DynamicResource Brush.Text}"/>
+                            <StackPanel x:Name="CoverPresetHost"/>
                         </StackPanel>
                         </Expander>
 

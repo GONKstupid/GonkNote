@@ -25,6 +25,16 @@
 >   **„+"-Kachel** → Farbwähler → neue Farbe wird angehängt, beliebig oft; Rechtsklick
 >   auf eine Kachel → **„Farbe löschen"** (mind. eine bleibt). Palette ist statisch
 >   (Sitzung) und gilt für Text-Editor/Whiteboard/Notizbuch (`ChartDialog`).
+> - **Cover-Vorlagen (Notizbuch):** 53 Nutzer-Motive (19 „Basic", 34 „Muster") als
+>   Galerie in der Cover-Sektion der Einstellungs-Leiste (lazy beim Aufklappen,
+>   `WhiteboardView.Covers.cs` + `CoverPresetHost` im XAML). Klick = Bild-Cover über
+>   den bestehenden Weg (`CoverStyle.Image` → DB). Auslieferung wie Sticker:
+>   `Assets\Covers\<Gruppe>\*.jpg` neben der Exe (aus den A4-Originalen auf 1600 px
+>   JPEG q85 konvertiert, 296 MB → 8,9 MB; A3-Duplikate verworfen — gleiches Motiv,
+>   gleiches Seitenverhältnis, Cover wird eh mittig beschnitten). Eigene Vorlagen:
+>   `%APPDATA%\GonkNote\Covers` (auch Unterordner = Gruppen). Der Quell-Ordner
+>   `Assets\Notizbuch-Cover-Presets` wurde nach der Konvertierung gelöscht (Nutzer-OK).
+>   End-to-end verifiziert (Galerie rendert, Klick setzt Cover, Screenshot).
 > - **Quick-Menü per Langdruck:** ~600 ms an derselben Stelle gedrückt halten
 >   (Stift **oder** Finger, Toleranz 10 px) öffnet die Schnellaktionen — **nur** bei
 >   Lasso (L)/Verschieben (V)/Hand (H), damit Zeichenwerkzeuge ungestört bleiben.

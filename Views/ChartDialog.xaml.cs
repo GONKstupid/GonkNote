@@ -16,7 +16,12 @@ public partial class ChartDialog : Window
 {
     public RenderTargetBitmap? ResultImage { get; private set; }
 
-    private readonly Color[] _palette =
+    /// <summary>
+    /// Farbpalette der Reihen/Kategorien; über die „+"-Kachel beliebig erweiterbar.
+    /// Statisch, damit angepasste und hinzugefügte Farben innerhalb der Sitzung für
+    /// alle Diagramme (Text-Editor, Whiteboard, Notizbuch) erhalten bleiben.
+    /// </summary>
+    private static readonly List<Color> Palette = new()
     {
         Color.FromRgb(0x25, 0x63, 0xEB), Color.FromRgb(0x14, 0xB8, 0xA6),
         Color.FromRgb(0xEC, 0x48, 0x99), Color.FromRgb(0x8B, 0x5C, 0xF6),
@@ -37,13 +42,13 @@ public partial class ChartDialog : Window
     private void BuildColorRow()
     {
         ColorRow.Children.Clear();
-        for (int i = 0; i < _palette.Length; i++)
+        for (int i = 0; i < Palette.Count; i++)
         {
             int idx = i;
             var swatch = new Button
             {
-                Width = 24, Height = 24, Margin = new Thickness(0, 0, 4, 0),
-                Background = new SolidColorBrush(_palette[i]),
+                Width = 24, Height = 24, Margin = new Thickness(0, 0, 4, 4),
+                Background = new SolidColorBrush(Palette[i]),
                 BorderBrush = new SolidColorBrush(Color.FromRgb(0xD4, 0xDE, 0xEA)),
                 BorderThickness = new Thickness(1),
                 Cursor = System.Windows.Input.Cursors.Hand,
@@ -51,15 +56,39 @@ public partial class ChartDialog : Window
             };
             swatch.Click += (_, _) =>
             {
-                if (ColorPickerDialog.Pick(this, _palette[idx], allowAlpha: false) is { } col)
+                if (ColorPickerDialog.Pick(this, Palette[idx], allowAlpha: false) is { } col)
                 {
-                    _palette[idx] = col;
+                    Palette[idx] = col;
                     ((SolidColorBrush)swatch.Background).Color = col;
                     Redraw();
                 }
             };
             ColorRow.Children.Add(swatch);
         }
+
+        // „+": Farbwähler öffnen und die gewählte Farbe als neue Kachel anhängen –
+        // beliebig oft wiederholbar (Nutzer-Wunsch: mehr als 6 Farben)
+        var add = new Button
+        {
+            Width = 24, Height = 24, Margin = new Thickness(0, 0, 4, 4),
+            Content = "+", FontSize = 14, Padding = new Thickness(0, -2, 0, 0),
+            Foreground = (Brush)FindResource("Brush.Text"),
+            Background = Brushes.Transparent,
+            BorderBrush = new SolidColorBrush(Color.FromRgb(0xD4, 0xDE, 0xEA)),
+            BorderThickness = new Thickness(1),
+            Cursor = System.Windows.Input.Cursors.Hand,
+            ToolTip = "Neue Farbe hinzufügen",
+        };
+        add.Click += (_, _) =>
+        {
+            if (ColorPickerDialog.Pick(this, Palette[^1], allowAlpha: false) is { } col)
+            {
+                Palette.Add(col);
+                BuildColorRow();   // Reihe inkl. „+" neu aufbauen
+                Redraw();
+            }
+        };
+        ColorRow.Children.Add(add);
     }
 
     private void Input_Changed(object sender, RoutedEventArgs e) => Redraw();
@@ -95,13 +124,13 @@ public partial class ChartDialog : Window
             names = names.Concat(Enumerable.Range(names.Length + 1, series.Count - names.Length)
                 .Select(n => $"Reihe {n}")).ToArray();
 
-        var bmp = RenderChart(ChartType, TitleBox.Text.Trim(), cats, series, names, _palette, 560, 320);
+        var bmp = RenderChart(ChartType, TitleBox.Text.Trim(), cats, series, names, Palette, 560, 320);
         Preview.Source = bmp;
         ResultImage = bmp;
     }
 
     private static RenderTargetBitmap RenderChart(string type, string title, string[] cats,
-        List<double[]> series, string[] names, Color[] palette, int w, int h)
+        List<double[]> series, string[] names, IReadOnlyList<Color> palette, int w, int h)
     {
         var dv = new DrawingVisual();
         using (var dc = dv.RenderOpen())
@@ -137,7 +166,7 @@ public partial class ChartDialog : Window
     // ==================== Achsen-Diagramme (Linie/Punkt) ====================
 
     private static void DrawXY(DrawingContext dc, string type, string[] cats, List<double[]> series,
-        Color[] palette, Rect area)
+        IReadOnlyList<Color> palette, Rect area)
     {
         double left = 42, right = 14, bottom = 34;
         double plotW = area.Width - left - right, plotH = area.Height - bottom - 6;
@@ -161,7 +190,7 @@ public partial class ChartDialog : Window
 
         for (int si = 0; si < series.Count; si++)
         {
-            var col = new SolidColorBrush(palette[si % palette.Length]);
+            var col = new SolidColorBrush(palette[si % palette.Count]);
             var pen = new Pen(col, 2.4) { LineJoin = PenLineJoin.Round };
             Point? prev = null;
             var s = series[si];
@@ -189,7 +218,7 @@ public partial class ChartDialog : Window
     // ==================== Balken / Säulen (gruppiert, mehrere Reihen) ====================
 
     private static void DrawBars(DrawingContext dc, string[] cats, List<double[]> series,
-        Color[] palette, Rect area, bool horizontal)
+        IReadOnlyList<Color> palette, Rect area, bool horizontal)
     {
         double max = Math.Max(1, series.SelectMany(s => s).DefaultIfEmpty(0).Max());
         double step = NiceStep(max / 4), axisMax = Math.Ceiling(max / step) * step;
@@ -217,7 +246,7 @@ public partial class ChartDialog : Window
                     if (i >= series[si].Length) continue;
                     double bh = plotH * (series[si][i] / axisMax);
                     // Eine Reihe → Farbe je Kategorie (bunt); mehrere Reihen → Farbe je Reihe
-                    var col = m == 1 ? palette[i % palette.Length] : palette[si % palette.Length];
+                    var col = m == 1 ? palette[i % palette.Count] : palette[si % palette.Count];
                     dc.DrawRectangle(new SolidColorBrush(col), null,
                         new Rect(gx + si * bw, y0 + plotH - bh, bw * 0.92, bh));
                 }
@@ -245,7 +274,7 @@ public partial class ChartDialog : Window
                 {
                     if (i >= series[si].Length) continue;
                     double bw = plotW * (series[si][i] / axisMax);
-                    var col = m == 1 ? palette[i % palette.Length] : palette[si % palette.Length];
+                    var col = m == 1 ? palette[i % palette.Count] : palette[si % palette.Count];
                     dc.DrawRectangle(new SolidColorBrush(col), null,
                         new Rect(x0, gy + si * bh, bw, bh * 0.92));
                 }
@@ -258,7 +287,7 @@ public partial class ChartDialog : Window
     // ==================== Radar ====================
 
     private static void DrawRadar(DrawingContext dc, string[] cats, List<double[]> series,
-        Color[] palette, Rect area)
+        IReadOnlyList<Color> palette, Rect area)
     {
         int n = cats.Length;
         if (n < 3) { dc.DrawText(Text("Radar braucht ≥ 3 Kategorien", 12, Muted, false, area.Width),
@@ -302,7 +331,7 @@ public partial class ChartDialog : Window
                 ctx.BeginFigure(Vertex(0, s.Length > 0 ? s[0] : 0), true, true);
                 for (int i = 1; i < n; i++) ctx.LineTo(Vertex(i, i < s.Length ? s[i] : 0), true, false);
             }
-            var col = palette[si % palette.Length];
+            var col = palette[si % palette.Count];
             dc.DrawGeometry(new SolidColorBrush(col) { Opacity = 0.18 },
                 new Pen(new SolidColorBrush(col), 2), geo);
         }
@@ -310,7 +339,7 @@ public partial class ChartDialog : Window
 
     // ==================== Kuchen ====================
 
-    private static void DrawPie(DrawingContext dc, string[] cats, double[] values, Color[] palette,
+    private static void DrawPie(DrawingContext dc, string[] cats, double[] values, IReadOnlyList<Color> palette,
         int w, int h, double top)
     {
         double total = values.Sum();
@@ -320,25 +349,25 @@ public partial class ChartDialog : Window
         for (int i = 0; i < values.Length; i++)
         {
             double sweep = values[i] / total * 360;
-            dc.DrawGeometry(new SolidColorBrush(palette[i % palette.Length]), null,
+            dc.DrawGeometry(new SolidColorBrush(palette[i % palette.Count]), null,
                 PieSlice(cx, cy, r, angle, angle + sweep));
             angle += sweep;
         }
         double lx = w * 0.66, ly = top + 10;
         for (int i = 0; i < values.Length; i++)
         {
-            dc.DrawRectangle(new SolidColorBrush(palette[i % palette.Length]), null, new Rect(lx, ly + i * 22, 14, 14));
+            dc.DrawRectangle(new SolidColorBrush(palette[i % palette.Count]), null, new Rect(lx, ly + i * 22, 14, 14));
             string cat = i < cats.Length ? cats[i] : (i + 1).ToString();
             dc.DrawText(Text($"{cat} · {values[i] / total * 100:0}%", 12, Muted, false, 150),
                 new Point(lx + 20, ly + i * 22 - 1));
         }
     }
 
-    private static void DrawLegend(DrawingContext dc, string[] names, Color[] palette, double x, double y)
+    private static void DrawLegend(DrawingContext dc, string[] names, IReadOnlyList<Color> palette, double x, double y)
     {
         for (int i = 0; i < names.Length; i++)
         {
-            dc.DrawRectangle(new SolidColorBrush(palette[i % palette.Length]), null, new Rect(x, y + i * 22, 14, 14));
+            dc.DrawRectangle(new SolidColorBrush(palette[i % palette.Count]), null, new Rect(x, y + i * 22, 14, 14));
             dc.DrawText(Text(names[i], 12, Muted, false, 100), new Point(x + 20, y + i * 22 - 1));
         }
     }

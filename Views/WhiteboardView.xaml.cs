@@ -3644,6 +3644,51 @@ public partial class WhiteboardView : UserControl
         DrawActiveOverlays(canvas);
     }
 
+    // ==================== Schatten (gecacht statt Live-Blur) ====================
+    // Der frühere SKImageFilter.CreateBlur pro Frame skalierte mit der sichtbaren
+    // Pixelfläche (im Notizbuch = ganzes Fenster, bei hohem Zoom zusätzlich mit
+    // riesiger Blur-Sigma) und machte alle Eingaben träge. Stattdessen wird der
+    // weiche Schatten einmal klein gerendert und als Nine-Patch gedehnt –
+    // konstante Kosten pro Frame, identische Optik.
+
+    /// <summary>Breite des weichen Schattenrands (Canvas-Einheiten).</summary>
+    private const int ShadowFringe = 18;
+
+    private static SKImage? _pageShadowImg;     // Seite (eckig, Alpha 60)
+    private static SKImage? _stickyShadowImg;   // Notizzettel (Radius 6, Alpha 45)
+
+    private static SKImage ShadowNinePatch(ref SKImage? cache, float cornerRadius, byte alpha)
+    {
+        if (cache != null) return cache;
+        int inset = ShadowFringe + (int)MathF.Ceiling(cornerRadius) + 2;
+        int size = inset * 2 + 32;   // 32 px dehnbarer Kern
+        using var surface = SKSurface.Create(new SKImageInfo(size, size, SKColorType.Bgra8888, SKAlphaType.Premul));
+        var c = surface.Canvas;
+        c.Clear(SKColors.Transparent);
+        using var p = new SKPaint
+        {
+            IsAntialias = true,
+            Color = SKColors.Black.WithAlpha(alpha),
+            ImageFilter = SKImageFilter.CreateBlur(6, 6),
+        };
+        var r = SKRect.Create(ShadowFringe, ShadowFringe, size - 2 * ShadowFringe, size - 2 * ShadowFringe);
+        if (cornerRadius > 0) c.DrawRoundRect(r, cornerRadius, cornerRadius, p);
+        else c.DrawRect(r, p);
+        cache = surface.Snapshot();
+        return cache;
+    }
+
+    /// <summary>Zeichnet den weichen Schatten unter <paramref name="rect"/> (3 px nach unten versetzt).</summary>
+    private static void DrawCachedShadow(SKCanvas canvas, SKRect rect, float cornerRadius, byte alpha, ref SKImage? cache)
+    {
+        var img = ShadowNinePatch(ref cache, cornerRadius, alpha);
+        int inset = ShadowFringe + (int)MathF.Ceiling(cornerRadius) + 2;
+        var center = new SKRectI(inset, inset, img.Width - inset, img.Height - inset);
+        var dst = SKRect.Create(rect.Left - ShadowFringe, rect.Top - ShadowFringe + 3,
+            rect.Width + 2 * ShadowFringe, rect.Height + 2 * ShadowFringe);
+        canvas.DrawImageNinePatch(img, center, dst);
+    }
+
     private SKColor PageLineColor()
     {
         if (_page == null || _page.Shade == PageShade.Auto) return ResColor("Color.PageLine");
@@ -3667,17 +3712,7 @@ public partial class WhiteboardView : UserControl
         }
 
         var pageRect = SKRect.Create(0, 0, _page.Width, _page.Height);
-
-        using (var shadow = new SKPaint
-        {
-            Color = SKColors.Black.WithAlpha(60),
-            ImageFilter = SKImageFilter.CreateBlur(6, 6),
-        })
-        {
-            var sr = pageRect;
-            sr.Offset(0, 3);
-            canvas.DrawRect(sr, shadow);
-        }
+        DrawCachedShadow(canvas, pageRect, 0, 60, ref _pageShadowImg);
 
         if (_page.IsCover)
         {
@@ -4057,18 +4092,8 @@ public partial class WhiteboardView : UserControl
         var rect = SKRect.Create(sn.X, sn.Y, sn.Width, sn.Height);
         const float radius = 6f;
 
-        // weicher Schlagschatten für einen „aufgeklebten" Eindruck
-        using (var shadow = new SKPaint
-        {
-            IsAntialias = true,
-            Color = new SKColor(0, 0, 0, 45),
-            ImageFilter = SKImageFilter.CreateBlur(6, 6),
-        })
-        {
-            var sr = rect;
-            sr.Offset(0, 3);
-            canvas.DrawRoundRect(sr, radius, radius, shadow);
-        }
+        // weicher Schlagschatten für einen „aufgeklebten" Eindruck (gecacht, s. o.)
+        DrawCachedShadow(canvas, rect, radius, 45, ref _stickyShadowImg);
 
         var fill = ParseColor(sn.Color);
         using (var bg = new SKPaint { IsAntialias = true, Color = fill })

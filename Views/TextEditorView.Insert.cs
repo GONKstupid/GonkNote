@@ -392,17 +392,19 @@ public partial class TextEditorView
 
     // ---------- Tabellen-Formatierung in der Seitenleiste ----------
 
-    /// <summary>Blendet die Tabellen-Sektion der Seitenleiste ein/aus, je nachdem ob der Cursor in einer Tabelle steht.</summary>
+    /// <summary>
+    /// Schließt die Tabellen-Sektion („Erweiterte Einstellungen"), wenn der Cursor
+    /// die Tabelle verlässt, während sie angezeigt wird. Geöffnet wird sie nur
+    /// explizit übers Rechtsklick-Menü (OpenTableSettings_Click).
+    /// </summary>
     private void UpdateTableSection()
     {
-        bool inTable = CurrentCell() != null;
-        SecTable.Visibility = inTable ? Visibility.Visible : Visibility.Collapsed;
-        TableSecSep.Visibility = SecTable.Visibility;
+        if (_activeSection == SecTable && CurrentCell() == null)
+            CloseSettings_Click(this, new RoutedEventArgs());
     }
 
     private void OpenTableSettings_Click(object s, RoutedEventArgs e)
     {
-        UpdateTableSection();
         if (CurrentCell() != null) OpenSettings(SecTable);
     }
 
@@ -422,32 +424,24 @@ public partial class TextEditorView
         var selected = SelectedCells();
         if (selected.Count == 0) return;
 
-        // Gitter-Position jeder Zelle bestimmen (Spalten-Start berücksichtigt Verbünde)
-        var rows = ctx.Table.RowGroups.SelectMany(g => g.Rows).ToList();
-        var pos = new Dictionary<TableCell, (int Row, int ColStart, int Span)>();
-        for (int r = 0; r < rows.Count; r++)
-        {
-            int col = 0;
-            foreach (var cell in rows[r].Cells)
-            {
-                pos[cell] = (r, col, cell.ColumnSpan);
-                col += cell.ColumnSpan;
-            }
-        }
+        // Gitter-Position jeder Zelle (berücksichtigt Spalten- und Zeilenverbünde)
+        var pos = GridPositions(ctx.Table);
 
-        int minRow = selected.Min(c => pos[c].Row), maxRow = selected.Max(c => pos[c].Row);
-        int minCol = selected.Min(c => pos[c].ColStart);
-        int maxCol = selected.Max(c => pos[c].ColStart + pos[c].Span - 1);
+        int minRow = selected.Min(c => pos[c].Row);
+        int maxRow = selected.Max(c => pos[c].Row + pos[c].RowSpan - 1);
+        int minCol = selected.Min(c => pos[c].Col);
+        int maxCol = selected.Max(c => pos[c].Col + pos[c].ColSpan - 1);
 
         foreach (var cell in selected)
         {
-            var (r, cs, span) = pos[cell];
+            var (r, cs, span, rspan) = pos[cell];
             int ce = cs + span - 1;
+            int re = r + rspan - 1;
             bool top, left, right, bottom;
             switch (variant)
             {
                 case "none": top = left = right = bottom = false; break;
-                case "outer": top = r == minRow; bottom = r == maxRow; left = cs == minCol; right = ce == maxCol; break;
+                case "outer": top = r == minRow; bottom = re == maxRow; left = cs == minCol; right = ce == maxCol; break;
                 case "inner": top = r > minRow; left = cs > minCol; right = false; bottom = false; break;
                 default: top = left = right = bottom = true; break;   // all
             }
@@ -571,54 +565,132 @@ public partial class TextEditorView
         blocks.Remove(table);
     }
 
+    /// <summary>
+    /// Gitter-Position jeder Zelle (Zeile, Spaltenstart, Spannen) unter
+    /// Berücksichtigung von Spalten- UND Zeilenverbünden (Belegungsraster).
+    /// </summary>
+    private static Dictionary<TableCell, (int Row, int Col, int ColSpan, int RowSpan)> GridPositions(Table table)
+    {
+        var result = new Dictionary<TableCell, (int, int, int, int)>();
+        var occupied = new HashSet<(int Row, int Col)>();   // von Zeilenverbünden belegte Plätze
+        var rows = table.RowGroups.SelectMany(g => g.Rows).ToList();
+        for (int r = 0; r < rows.Count; r++)
+        {
+            int col = 0;
+            foreach (var cell in rows[r].Cells)
+            {
+                while (occupied.Contains((r, col))) col++;   // Platz unter einem Zeilenverbund überspringen
+                result[cell] = (r, col, cell.ColumnSpan, cell.RowSpan);
+                for (int rr = r; rr < r + cell.RowSpan; rr++)
+                    for (int cc = col; cc < col + cell.ColumnSpan; cc++)
+                        occupied.Add((rr, cc));
+                col += cell.ColumnSpan;
+            }
+        }
+        return result;
+    }
+
     private void TableMergeCells_Click(object s, RoutedEventArgs e)
     {
-        // Verbindet die Zellen zwischen Auswahlanfang und -ende innerhalb einer Zeile
+        // Verbindet die Zellen im Rechteck zwischen Auswahlanfang und -ende –
+        // waagerecht, senkrecht oder beides (ColumnSpan/RowSpan wie in Word).
         var startCell = CellOf(Editor.Selection.Start);
         var endCell = CellOf(Editor.Selection.End);
         if (startCell == null || endCell == null || startCell == endCell) return;
-        if (startCell.Parent is not TableRow row || endCell.Parent != row)
+        if (startCell.Parent is not TableRow { Parent: TableRowGroup group } ||
+            endCell.Parent is not TableRow { Parent: TableRowGroup endGroup } ||
+            group != endGroup || group.Parent is not Table table)
         {
             MessageBox.Show(Window.GetWindow(this),
-                "Zum Verbinden bitte Zellen innerhalb einer Zeile markieren.",
+                "Zum Verbinden bitte Zellen innerhalb derselben Tabelle markieren.",
                 "Gonk Note", MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }
 
-        int i = row.Cells.IndexOf(startCell);
-        int j = row.Cells.IndexOf(endCell);
-        if (i > j) (i, j) = (j, i);
+        var pos = GridPositions(table);
 
-        var target = row.Cells[i];
-        int span = 0;
-        for (int k = i; k <= j; k++) span += row.Cells[k].ColumnSpan;
-
-        for (int k = j; k > i; k--)
+        // Rechteck aus Start- und Endzelle; solange erweitern, bis jede geschnittene
+        // Zelle (inkl. bestehender Verbünde) vollständig darin liegt
+        int minRow = Math.Min(pos[startCell].Row, pos[endCell].Row);
+        int maxRow = Math.Max(pos[startCell].Row + pos[startCell].RowSpan - 1,
+                              pos[endCell].Row + pos[endCell].RowSpan - 1);
+        int minCol = Math.Min(pos[startCell].Col, pos[endCell].Col);
+        int maxCol = Math.Max(pos[startCell].Col + pos[startCell].ColSpan - 1,
+                              pos[endCell].Col + pos[endCell].ColSpan - 1);
+        bool grew = true;
+        while (grew)
         {
-            var victim = row.Cells[k];
+            grew = false;
+            foreach (var (cell, p) in pos)
+            {
+                int r2 = p.Row + p.RowSpan - 1, c2 = p.Col + p.ColSpan - 1;
+                bool intersects = p.Row <= maxRow && r2 >= minRow && p.Col <= maxCol && c2 >= minCol;
+                if (!intersects) continue;
+                if (p.Row < minRow) { minRow = p.Row; grew = true; }
+                if (r2 > maxRow) { maxRow = r2; grew = true; }
+                if (p.Col < minCol) { minCol = p.Col; grew = true; }
+                if (c2 > maxCol) { maxCol = c2; grew = true; }
+            }
+        }
+
+        var inside = pos.Where(kv =>
+                kv.Value.Row >= minRow && kv.Value.Row + kv.Value.RowSpan - 1 <= maxRow &&
+                kv.Value.Col >= minCol && kv.Value.Col + kv.Value.ColSpan - 1 <= maxCol)
+            .Select(kv => kv.Key).ToList();
+        var target = inside.FirstOrDefault(c => pos[c].Row == minRow && pos[c].Col == minCol);
+        if (target == null || inside.Count < 2) return;
+
+        foreach (var victim in inside)
+        {
+            if (victim == target) continue;
             foreach (var b in victim.Blocks.ToList())
             {
                 victim.Blocks.Remove(b);
                 target.Blocks.Add(b);
             }
-            row.Cells.RemoveAt(k);
+            ((TableRow)victim.Parent).Cells.Remove(victim);
         }
-        target.ColumnSpan = span;
+        target.ColumnSpan = maxCol - minCol + 1;
+        target.RowSpan = maxRow - minRow + 1;
         MarkDirty();
     }
 
     private void TableUnmergeCell_Click(object s, RoutedEventArgs e)
     {
-        if (CurrentTableContext() is not { } ctx || ctx.Cell.ColumnSpan <= 1) return;
-        int extra = ctx.Cell.ColumnSpan - 1;
-        ctx.Cell.ColumnSpan = 1;
-        int idx = ctx.Row.Cells.IndexOf(ctx.Cell);
-        for (int k = 0; k < extra; k++)
+        if (CurrentTableContext() is not { } ctx) return;
+        var cell = ctx.Cell;
+        if (cell.ColumnSpan <= 1 && cell.RowSpan <= 1) return;
+
+        var pos = GridPositions(ctx.Table);
+        var (row, col, colSpan, rowSpan) = pos[cell];
+        var rows = ctx.Table.RowGroups.SelectMany(g => g.Rows).ToList();
+
+        TableCell Clone()
         {
-            var cell = NewCell(ctx.Cell.BorderBrush ?? Brushes.Gray);
-            cell.BorderThickness = ctx.Cell.BorderThickness;
-            cell.Padding = ctx.Cell.Padding;
-            ctx.Row.Cells.Insert(idx + 1 + k, cell);
+            var c = NewCell(cell.BorderBrush ?? Brushes.Gray);
+            c.BorderThickness = cell.BorderThickness;
+            c.Padding = cell.Padding;
+            return c;
+        }
+
+        cell.ColumnSpan = 1;
+        cell.RowSpan = 1;
+
+        // Eigene Zeile: die restlichen Spalten des Verbunds auffüllen
+        int idx = ctx.Row.Cells.IndexOf(cell);
+        for (int k = 1; k < colSpan; k++)
+            ctx.Row.Cells.Insert(idx + k, Clone());
+
+        // Zeilen darunter: alle Spalten des Verbunds an der richtigen Stelle einfügen
+        // (Einfüge-Index = vor der ersten Zelle, deren Spaltenstart rechts vom Verbund lag)
+        for (int r = row + 1; r < row + rowSpan && r < rows.Count; r++)
+        {
+            var tr = rows[r];
+            int insertAt = tr.Cells.Count;
+            for (int i = 0; i < tr.Cells.Count; i++)
+                if (pos[tr.Cells[i]].Col > col) { insertAt = i; break; }
+            for (int k = 0; k < colSpan; k++)
+                tr.Cells.Insert(insertAt + k, Clone());
         }
         MarkDirty();
     }
@@ -665,47 +737,43 @@ public partial class TextEditorView
 
     private void TableBorderColor_Click(object s, RoutedEventArgs e)
     {
-        if (CurrentTableContext() is not { } ctx) return;
-        var initial = (ctx.Cell.BorderBrush as SolidColorBrush)?.Color ?? Colors.Gray;
+        // Wirkt nur auf die ausgewählten Zellen (Erweiterte Einstellungen = Auswahl)
+        var cells = SelectedCells();
+        if (cells.Count == 0) return;
+        var initial = (cells[0].BorderBrush as SolidColorBrush)?.Color ?? Colors.Gray;
         if (ColorPickerDialog.Pick(Window.GetWindow(this), initial, allowAlpha: false) is not { } c) return;
         var brush = new SolidColorBrush(c);
-        foreach (var cell in ctx.Table.RowGroups.SelectMany(g => g.Rows).SelectMany(r => r.Cells))
-            cell.BorderBrush = brush;
-        MarkDirty();
-    }
-
-    private void TableToggleBorders_Click(object s, RoutedEventArgs e)
-    {
-        if (CurrentTableContext() is not { } ctx) return;
-        bool visible = ctx.Cell.BorderThickness.Left > 0;
-        var thickness = new Thickness(visible ? 0 : 1);
-        foreach (var cell in ctx.Table.RowGroups.SelectMany(g => g.Rows).SelectMany(r => r.Cells))
-            cell.BorderThickness = thickness;
+        foreach (var cell in cells) cell.BorderBrush = brush;
         MarkDirty();
     }
 
     private void TableColumnWidth_Click(object s, RoutedEventArgs e)
     {
+        // Wirkt auf alle Spalten, die von den ausgewählten Zellen abgedeckt werden
         if (CurrentTableContext() is not { } ctx) return;
         EnsureColumns(ctx.Table);
-        int colIdx = 0;
-        foreach (var c in ctx.Row.Cells)
-        {
-            if (c == ctx.Cell) break;
-            colIdx += c.ColumnSpan;
-        }
-        if (colIdx >= ctx.Table.Columns.Count) return;
+        var pos = GridPositions(ctx.Table);
+        var cols = new SortedSet<int>();
+        foreach (var cell in SelectedCells())
+            for (int i = 0; i < pos[cell].ColSpan; i++)
+                cols.Add(pos[cell].Col + i);
+        cols.RemoveWhere(i => i >= ctx.Table.Columns.Count);
+        if (cols.Count == 0) return;
 
-        var col = ctx.Table.Columns[colIdx];
-        string initial = col.Width.IsAuto ? "" : FormatNum(col.Width.Value / TextStyles.PxPerCm);
+        var first = ctx.Table.Columns[cols.First()];
+        string initial = first.Width.IsAuto ? "" : FormatNum(first.Width.Value / TextStyles.PxPerCm);
         if (PromptDialog.Show(Window.GetWindow(this), "Spaltenbreite",
                 "Breite in cm (leer = automatisch):", initial) is not { } input)
             return;
 
+        GridLength width;
         if (input.Trim().Length == 0)
-            col.Width = GridLength.Auto;
+            width = GridLength.Auto;
         else if (TryParseNum(input, out double cm) && cm is > 0.2 and < 30)
-            col.Width = new GridLength(cm * TextStyles.PxPerCm);
+            width = new GridLength(cm * TextStyles.PxPerCm);
+        else
+            return;
+        foreach (int i in cols) ctx.Table.Columns[i].Width = width;
         MarkDirty();
     }
 }

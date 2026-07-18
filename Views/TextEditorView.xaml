@@ -568,7 +568,7 @@
                 BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1,0,0,0">
             <DockPanel>
                 <Grid DockPanel.Dock="Top" Margin="12,10,8,6">
-                    <TextBlock Text="Seiteneinstellungen" FontWeight="SemiBold" FontSize="14"
+                    <TextBlock Text="Erweiterte Einstellungen" FontWeight="SemiBold" FontSize="14"
                                Foreground="{DynamicResource Brush.Text}" VerticalAlignment="Center"/>
                     <Button Style="{StaticResource IconButton}" Content="&#xE711;" FontSize="10" Width="26" Height="26"
                             HorizontalAlignment="Right" ToolTip="Schließen" Click="CloseSettings_Click"/>
@@ -576,7 +576,9 @@
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="12,0,12,12">
 
-                        <Expander x:Name="SecMargins" Header="Ränder" IsExpanded="True">
+                        <!-- Es ist immer nur die über den jeweiligen Button geöffnete
+                             Sektion sichtbar (OpenSettings steuert die Visibility). -->
+                        <Expander x:Name="SecMargins" Header="Ränder" IsExpanded="True" Visibility="Collapsed">
                             <StackPanel>
                                 <TextBlock Text="Vorlage" Style="{StaticResource RibbonLabel}" Margin="0,0,0,2"/>
                                 <ComboBox x:Name="MarginPresetCombo" SelectionChanged="MarginPreset_Changed">
@@ -612,9 +614,7 @@
                             </StackPanel>
                         </Expander>
 
-                        <Border Height="1" Background="{DynamicResource Brush.Border}" Margin="0,4"/>
-
-                        <Expander x:Name="SecSpacing" Header="Absätze">
+                        <Expander x:Name="SecSpacing" Header="Absätze" Visibility="Collapsed">
                             <StackPanel>
                                 <DockPanel Margin="0,2,0,6">
                                     <TextBlock Text="Abstand vor" Width="110" Style="{StaticResource RibbonLabel}"/>
@@ -639,9 +639,7 @@
                             </StackPanel>
                         </Expander>
 
-                        <Border Height="1" Background="{DynamicResource Brush.Border}" Margin="0,4"/>
-
-                        <Expander x:Name="SecWatermark" Header="Hintergrundbild">
+                        <Expander x:Name="SecWatermark" Header="Hintergrundbild" Visibility="Collapsed">
                             <StackPanel>
                                 <Button Style="{StaticResource FlatButton}" HorizontalAlignment="Left"
                                         Content="Bild wählen…" Click="PickWatermark_Click"
@@ -661,9 +659,7 @@
                             </StackPanel>
                         </Expander>
 
-                        <!-- Tabelle (nur sichtbar, wenn der Cursor in einer Tabelle steht) -->
-                        <Border x:Name="TableSecSep" Height="1" Background="{DynamicResource Brush.Border}"
-                                Margin="0,4" Visibility="Collapsed"/>
+                        <!-- Tabelle (über Rechtsklick "Erweiterte Einstellungen" in einer Tabelle) -->
                         <Expander x:Name="SecTable" Header="Tabelle" Visibility="Collapsed">
                             <StackPanel>
                                 <TextBlock TextWrapping="Wrap" FontSize="11" Margin="0,0,0,8"
@@ -701,7 +697,7 @@
                                            Foreground="{DynamicResource Brush.Text}" Margin="0,0,0,6"/>
                                 <StackPanel Orientation="Horizontal">
                                     <Button Style="{StaticResource FlatButton}" Content="Füllfarbe…" Click="TableCellColor_Click"/>
-                                    <Button Style="{StaticResource FlatButton}" Content="Füllung weg" Click="TableCellColorClear_Click"/>
+                                    <Button Style="{StaticResource FlatButton}" Content="Füllfarbe löschen" Click="TableCellColorClear_Click"/>
                                 </StackPanel>
                                 <Button Style="{StaticResource FlatButton}" HorizontalAlignment="Left" Margin="0,4,0,0"
                                         Content="Spaltenbreite…" Click="TableColumnWidth_Click"/>
@@ -813,7 +809,7 @@
                                                 <MenuItem Header="Zellen verbinden (Auswahl)" Click="TableMergeCells_Click"/>
                                                 <MenuItem Header="Zellverbund aufheben" Click="TableUnmergeCell_Click"/>
                                                 <Separator/>
-                                                <MenuItem Header="Rahmen/Zellen formatieren…" Click="OpenTableSettings_Click"/>
+                                                <MenuItem Header="Erweiterte Einstellungen" Click="OpenTableSettings_Click"/>
                                                 <MenuItem Header="Tabelle löschen" Click="TableDelete_Click"/>
                                             </MenuItem>
                                         </ContextMenu>

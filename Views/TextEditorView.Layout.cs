@@ -54,23 +54,38 @@ public partial class TextEditorView
         }
     }
 
-    // ==================== Einstellungs-Seitenleiste ====================
+    // ==================== Einstellungs-Seitenleiste („Erweiterte Einstellungen") ====================
 
+    /// <summary>Die aktuell angezeigte Sektion; null = Leiste zu.</summary>
+    private Expander? _activeSection;
+
+    /// <summary>
+    /// Öffnet die Leiste mit GENAU der angeforderten Sektion – die übrigen bleiben
+    /// ausgeblendet (Nutzer-Wunsch: Ränder/Absätze/Hintergrundbild erscheinen nur
+    /// über ihren jeweiligen Button im Layout-Tab, Tabelle übers Rechtsklick-Menü).
+    /// </summary>
     private void OpenSettings(Expander section)
     {
+        _activeSection = section;
         SettingsPanel.Visibility = Visibility.Visible;
-        // nur die gewählte Sektion aufklappen, die anderen zu
-        SecMargins.IsExpanded = section == SecMargins;
-        SecSpacing.IsExpanded = section == SecSpacing;
-        SecWatermark.IsExpanded = section == SecWatermark;
-        SecTable.IsExpanded = section == SecTable;
+        foreach (var sec in new[] { SecMargins, SecSpacing, SecWatermark, SecTable })
+        {
+            bool on = sec == section;
+            sec.Visibility = on ? Visibility.Visible : Visibility.Collapsed;
+            sec.IsExpanded = on;
+        }
         section.BringIntoView();
     }
 
     private void OpenMargins_Click(object s, RoutedEventArgs e) => OpenSettings(SecMargins);
     private void OpenSpacing_Click(object s, RoutedEventArgs e) => OpenSettings(SecSpacing);
     private void OpenWatermark_Click(object s, RoutedEventArgs e) => OpenSettings(SecWatermark);
-    private void CloseSettings_Click(object s, RoutedEventArgs e) => SettingsPanel.Visibility = Visibility.Collapsed;
+
+    private void CloseSettings_Click(object s, RoutedEventArgs e)
+    {
+        _activeSection = null;
+        SettingsPanel.Visibility = Visibility.Collapsed;
+    }
 
     // ==================== Papierformat & Orientierung ====================
 

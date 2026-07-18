@@ -451,49 +451,88 @@ public static class DocxExporter
             t.AppendChild(grid);
         }
 
-        foreach (var group in table.RowGroups)
-            foreach (var row in group.Rows)
+        // Gitterpositionen (inkl. Zeilenverbünde) bestimmen: Zellen mit RowSpan > 1
+        // brauchen in OOXML vMerge=Restart plus Fortsetzungszellen in den Folgezeilen.
+        var allRows = table.RowGroups.SelectMany(g => g.Rows).ToList();
+        var occupied = new HashSet<(int Row, int Col)>();
+        var cellCol = new Dictionary<TableCell, int>();
+        var cont = new Dictionary<int, List<(int Col, int Span)>>();   // Zeile → Fortsetzungen
+        for (int r = 0; r < allRows.Count; r++)
+        {
+            int col = 0;
+            foreach (var cell in allRows[r].Cells)
             {
-                var tr = new W.TableRow();
-                foreach (var cell in row.Cells)
+                while (occupied.Contains((r, col))) col++;
+                cellCol[cell] = col;
+                for (int rr = r; rr < r + cell.RowSpan; rr++)
+                    for (int cc = col; cc < col + cell.ColumnSpan; cc++)
+                        occupied.Add((rr, cc));
+                for (int rr = r + 1; rr < r + cell.RowSpan; rr++)
                 {
-                    var tc = new W.TableCell();
-                    // Schema-Reihenfolge in tcPr: gridSpan → tcBorders → shd
-                    var tcp = new W.TableCellProperties();
-                    if (cell.ColumnSpan > 1)
-                        tcp.AppendChild(new W.GridSpan { Val = cell.ColumnSpan });
-
-                    // Abweichende Rahmenfarbe/unsichtbare Rahmen je Zelle
-                    if (cell.BorderBrush is SolidColorBrush bb)
-                    {
-                        bool none = cell.BorderThickness.Left <= 0;
-                        var val = none ? W.BorderValues.None : W.BorderValues.Single;
-                        string color = Hex(bb.Color);
-                        tcp.AppendChild(new W.TableCellBorders(
-                            new W.TopBorder { Val = val, Size = 4, Color = color },
-                            new W.LeftBorder { Val = val, Size = 4, Color = color },
-                            new W.BottomBorder { Val = val, Size = 4, Color = color },
-                            new W.RightBorder { Val = val, Size = 4, Color = color }));
-                    }
-
-                    // Zellschattierung (farbige Info-Boxen des Lernblatt-Skills)
-                    if (cell.Background is SolidColorBrush bg)
-                        tcp.AppendChild(new W.Shading
-                        {
-                            Val = W.ShadingPatternValues.Clear,
-                            Fill = Hex(bg.Color),
-                            Color = "auto",
-                        });
-
-                    if (tcp.HasChildren) tc.AppendChild(tcp);
-
-                    foreach (var b in cell.Blocks)
-                        WriteBlock(b, tc, main, null, ctx);
-                    if (!tc.Elements<W.Paragraph>().Any()) tc.AppendChild(new W.Paragraph());
-                    tr.AppendChild(tc);
+                    if (!cont.TryGetValue(rr, out var list)) cont[rr] = list = new();
+                    list.Add((col, cell.ColumnSpan));
                 }
-                t.AppendChild(tr);
+                col += cell.ColumnSpan;
             }
+        }
+
+        for (int r = 0; r < allRows.Count; r++)
+        {
+            var tr = new W.TableRow();
+            var entries = new List<(int Col, W.TableCell Tc)>();
+            foreach (var cell in allRows[r].Cells)
+            {
+                var tc = new W.TableCell();
+                // Schema-Reihenfolge in tcPr: gridSpan → vMerge → tcBorders → shd
+                var tcp = new W.TableCellProperties();
+                if (cell.ColumnSpan > 1)
+                    tcp.AppendChild(new W.GridSpan { Val = cell.ColumnSpan });
+                if (cell.RowSpan > 1)
+                    tcp.AppendChild(new W.VerticalMerge { Val = W.MergedCellValues.Restart });
+
+                // Abweichende Rahmenfarbe/unsichtbare Rahmen je Zelle
+                if (cell.BorderBrush is SolidColorBrush bb)
+                {
+                    bool none = cell.BorderThickness.Left <= 0;
+                    var val = none ? W.BorderValues.None : W.BorderValues.Single;
+                    string color = Hex(bb.Color);
+                    tcp.AppendChild(new W.TableCellBorders(
+                        new W.TopBorder { Val = val, Size = 4, Color = color },
+                        new W.LeftBorder { Val = val, Size = 4, Color = color },
+                        new W.BottomBorder { Val = val, Size = 4, Color = color },
+                        new W.RightBorder { Val = val, Size = 4, Color = color }));
+                }
+
+                // Zellschattierung (farbige Info-Boxen des Lernblatt-Skills)
+                if (cell.Background is SolidColorBrush bg)
+                    tcp.AppendChild(new W.Shading
+                    {
+                        Val = W.ShadingPatternValues.Clear,
+                        Fill = Hex(bg.Color),
+                        Color = "auto",
+                    });
+
+                if (tcp.HasChildren) tc.AppendChild(tcp);
+
+                foreach (var b in cell.Blocks)
+                    WriteBlock(b, tc, main, null, ctx);
+                if (!tc.Elements<W.Paragraph>().Any()) tc.AppendChild(new W.Paragraph());
+                entries.Add((cellCol[cell], tc));
+            }
+
+            // Fortsetzungszellen der Zeilenverbünde (vMerge ohne Val = Continue)
+            if (cont.TryGetValue(r, out var merges))
+                foreach (var (c, span) in merges)
+                {
+                    var tcp = new W.TableCellProperties();
+                    if (span > 1) tcp.AppendChild(new W.GridSpan { Val = span });
+                    tcp.AppendChild(new W.VerticalMerge());
+                    entries.Add((c, new W.TableCell(tcp, new W.Paragraph())));
+                }
+
+            foreach (var (_, tc) in entries.OrderBy(x => x.Col)) tr.AppendChild(tc);
+            t.AppendChild(tr);
+        }
         return t;
     }
 

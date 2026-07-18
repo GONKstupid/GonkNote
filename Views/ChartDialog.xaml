@@ -49,9 +49,10 @@
         <TextBlock Margin="120,2,0,0" FontSize="11" Foreground="{DynamicResource Brush.TextMuted}"
                    Text="Mehrere Reihen/Kurven: pro Zeile eine Reihe (Enter für neue Zeile)."/>
         <DockPanel Margin="0,6,0,0">
-            <TextBlock Text="Farben" Width="120" VerticalAlignment="Center"
+            <TextBlock Text="Farben" Width="120" VerticalAlignment="Top" Margin="0,4,0,0"
                        Foreground="{DynamicResource Brush.TextMuted}"/>
-            <StackPanel x:Name="ColorRow" Orientation="Horizontal"/>
+            <!-- WrapPanel: mit dem „+"-Button können beliebig viele Farben dazukommen -->
+            <WrapPanel x:Name="ColorRow"/>
         </DockPanel>
         <TextBlock x:Name="ErrorText" Foreground="#EF4444" FontSize="12" Margin="120,4,0,0" TextWrapping="Wrap"/>
 

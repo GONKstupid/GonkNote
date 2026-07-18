@@ -356,19 +356,42 @@ public static class DocxImporter
         var group = new TableRowGroup();
         table.RowGroups.Add(group);
 
+        // Offene Zeilenverbünde (vMerge): Gitterspalte → FlowDocument-Startzelle
+        var openMerges = new Dictionary<int, TableCell>();
+
         foreach (var row in t.Elements<W.TableRow>())
         {
             var tableRow = new TableRow();
+            int col = 0;
+            var continued = new HashSet<int>();
+            var started = new HashSet<int>();
             foreach (var cell in row.Elements<W.TableCell>())
             {
+                int span = cell.TableCellProperties?.GridSpan?.Val?.Value ?? 1;
+
+                // vMerge ohne Val (oder Continue) = Fortsetzungszelle eines
+                // Zeilenverbunds: RowSpan der Startzelle erhöhen, keine eigene Zelle
+                var vm = cell.TableCellProperties?.VerticalMerge;
+                if (vm != null && (vm.Val == null || vm.Val == W.MergedCellValues.Continue))
+                {
+                    if (openMerges.TryGetValue(col, out var mc)) mc.RowSpan++;
+                    continued.Add(col);
+                    col += span;
+                    continue;
+                }
+
                 var tableCell = new TableCell
                 {
                     BorderBrush = Brushes.Gray,
                     BorderThickness = new Thickness(0.5),
                     Padding = new Thickness(6, 3, 6, 3),
                 };
-                int span = cell.TableCellProperties?.GridSpan?.Val?.Value ?? 1;
                 if (span > 1) tableCell.ColumnSpan = span;
+                if (vm != null)   // Restart: neuer Zeilenverbund beginnt hier
+                {
+                    openMerges[col] = tableCell;
+                    started.Add(col);
+                }
 
                 // Zellschattierung (farbige Info-Boxen)
                 var fillHex = cell.TableCellProperties?.Shading?.Fill?.Value;
@@ -381,7 +404,13 @@ public static class DocxImporter
                     tableCell.Blocks.Add(new Paragraph());
 
                 tableRow.Cells.Add(tableCell);
+                col += span;
             }
+
+            // Verbünde schließen, die in dieser Zeile weder fortgesetzt noch begonnen wurden
+            foreach (var k in openMerges.Keys.Where(k => !continued.Contains(k) && !started.Contains(k)).ToList())
+                openMerges.Remove(k);
+
             group.Rows.Add(tableRow);
         }
         return table;

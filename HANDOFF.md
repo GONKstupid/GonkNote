@@ -1,15 +1,39 @@
-# Gonk Note — Projektübergabe (Stand: 2026-07-17, Phase 3 laufend)
+# Gonk Note — Projektübergabe (Stand: 2026-07-18, Phase 3 laufend)
 
-> **Runde 10 (2026-07-17) zuletzt umgesetzt:** **OCR mit Tesseract** (Details §5/§6):
+> **Fixes-Runde 11 (2026-07-18) zuletzt umgesetzt:**
+> - **Notizbuch-Performance:** Der Seiten- und Notizzettel-Schatten lief als
+>   `SKImageFilter.CreateBlur` **pro Frame** — Kosten skalieren mit der sichtbaren
+>   Pixelfläche (Notizbuch-Seite = ganzes Fenster; bei hohem Zoom zusätzlich riesige
+>   Blur-Sigma in Gerätepixeln). Genau das machte das Notizbuch träge und alle
+>   Werkzeuge bei 218 %/575 % Zoom verzögert (Whiteboard = unendliche Fläche ohne
+>   Seitenschatten → war nie betroffen). Jetzt: Schatten einmal klein rendern und als
+>   **gecachtes Nine-Patch** dehnen (`DrawCachedShadow`/`ShadowNinePatch` in
+>   `WhiteboardView.xaml.cs`) — konstante Kosten, identische Optik (Screenshots
+>   Notizbuch-Seite + Zettel geprüft). **Latenz-Verbesserung muss der Nutzer mit
+>   Stift/Zoom bestätigen.**
+> - **Text-Editor:** Seitenleiste heißt **„Erweiterte Einstellungen"**; es ist immer
+>   nur die per Button geöffnete Sektion sichtbar (Ränder/Absätze/Hintergrundbild über
+>   den Layout-Tab, Tabelle übers Rechtsklick-Menü „Erweiterte Einstellungen" —
+>   umbenannt von „Rahmen/Zellen formatieren…"). `_activeSection` in `.Layout.cs`;
+>   Tabellen-Sektion schließt, wenn der Cursor die Tabelle verlässt.
+> - **Tabelle:** Zellen verbinden jetzt **auch senkrecht/rechteckig** (RowSpan;
+>   `GridPositions`-Belegungsraster + Rechteck-Erweiterung in `.Insert.cs`; Aufheben
+>   füllt Zeilen darunter wieder auf). Rahmenfarbe + Spaltenbreite wirken nur noch auf
+>   die **ausgewählten Zellen/Spalten**. „Füllung weg" → **„Füllfarbe löschen"**.
+>   DOCX-Export/-Import können vMerge (Zeilenverbund) jetzt in beide Richtungen.
+> - **Diagramm (alle Arbeitsbereiche):** hinter den Farbkacheln gibt es eine
+>   **„+"-Kachel** → Farbwähler → neue Farbe wird angehängt, beliebig oft. Palette ist
+>   statisch (Sitzung) und gilt für Text-Editor/Whiteboard/Notizbuch (`ChartDialog`).
+>
+> **Runde 10 (2026-07-17):** **OCR mit Tesseract** (Details §5/§6):
 > Kontextaktion „Text erkennen (OCR)" auf Bildern/PDF-Seiten, Ergebnis-Dialog
 > (kopieren / als Notizzettel). **Rechtsklick-Menü im Whiteboard/Notizbuch
 > ersetzt** durch ein **Quick-Options-Menü im Toolbar-Look** (floatende Icon-Leiste,
 > `WhiteboardView.xaml` `QuickMenu`): öffnet per Rechtsklick, **zweiter Stift-Taste**
-> (Barrel-Button → `RightTap`-Geste) **und automatisch nach einer Auswahl mit Lasso
-> (L)/Verschieben (V)**. Icons: Ausschneiden/Kopieren/Duplizieren/Einfügen · OCR ·
-> Löschen/Alles auswählen. Verifiziert: Whiteboard lädt + Quick-Menü erscheint per
-> Rechtsklick (Screenshot). Build 0 Warnungen. **Noch nicht commit-getestet mit Stift-
-> Hardware** (Barrel-Button) und der In-App-OCR-Endfluss (Klick→Dialog→Zettel).
+> (Barrel-Button, direkt + `RightTap`-Fallback) **und automatisch nach einer Auswahl
+> mit Lasso (L)/Verschieben (V)**. Icons: Ausschneiden/Kopieren/Duplizieren/Einfügen ·
+> OCR · Löschen/Alles auswählen. **Stift-Fixes vom Nutzer mit Hardware bestätigt**
+> (Klicks auf die Leiste + zweite Taste funktionieren).
 >
 > **Fixes-Runde 9 (2026-07-16):** Formen aus dem Text-Editor
 > **entfernt** (voll interaktive Office-Formen im FlowDocument nicht sinnvoll

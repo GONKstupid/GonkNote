@@ -33,7 +33,9 @@
 >   `Assets\Covers\<Gruppe>\*.jpg` neben der Exe (aus den A4-Originalen auf 1600 px
 >   JPEG q85 konvertiert, 296 MB → 8,9 MB; A3-Duplikate verworfen — gleiches Motiv,
 >   gleiches Seitenverhältnis, Cover wird eh mittig beschnitten). Eigene Vorlagen:
->   `%APPDATA%\GonkNote\Covers` (auch Unterordner = Gruppen). Der Quell-Ordner
+>   `%APPDATA%\GonkNote\Covers` — erscheint als stets vorhandene Gruppe
+>   **„Individuell"** mit **„+"-Kachel** zum Hochladen (Dateidialog, Multiselect,
+>   Kopie nach %APPDATA%, kollisionssicher wie Sticker; Unterordner = eigene Gruppen). Der Quell-Ordner
 >   `Assets\Notizbuch-Cover-Presets` wurde nach der Konvertierung gelöscht (Nutzer-OK).
 >   End-to-end verifiziert (Galerie rendert, Klick setzt Cover, Screenshot).
 > - **Quick-Menü per Langdruck:** ~600 ms an derselben Stelle gedrückt halten

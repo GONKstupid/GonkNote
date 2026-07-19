@@ -40,38 +40,32 @@ public partial class WhiteboardView
         ReloadCoverPresets();
     }
 
+    /// <summary>Expander der Gruppe „Individuell" (eigene Vorlagen), für Auto-Aufklappen nach dem Hinzufügen.</summary>
+    private Expander? _coverIndividualExp;
+
     private void ReloadCoverPresets()
     {
         CoverPresetHost.Children.Clear();
+        _coverIndividualExp = null;
 
         // Gruppen = Unterordner (mitgeliefert: Basic, Muster); Dateien, die direkt
-        // im Ordner liegen, bilden eine eigene Gruppe (Nutzer-Ablage ohne Zwang
-        // zu Unterordnern)
-        var groups = new List<(string Name, List<string> Files)>();
+        // in %APPDATA%\GonkNote\Covers liegen, bilden die Gruppe „Individuell" –
+        // dort landen auch die über die „+"-Kachel hochgeladenen Vorlagen
+        var groups = new List<(string Name, List<string> Files, bool Individual)>();
         foreach (var root in new[] { BaseCoverDir, UserCoverDir })
         {
             if (!Directory.Exists(root)) continue;
             var loose = CoverFiles(root);
-            if (loose.Count > 0) groups.Add((root == BaseCoverDir ? "Weitere" : "Eigene", loose));
+            if (loose.Count > 0 || root == UserCoverDir)
+                groups.Add((root == BaseCoverDir ? "Weitere" : "Individuell", loose, root == UserCoverDir));
             foreach (var dir in Directory.EnumerateDirectories(root).OrderBy(d => d, StringComparer.OrdinalIgnoreCase))
             {
                 var files = CoverFiles(dir);
-                if (files.Count > 0) groups.Add((Path.GetFileName(dir), files));
+                if (files.Count > 0) groups.Add((Path.GetFileName(dir), files, false));
             }
         }
 
-        if (groups.Count == 0)
-        {
-            CoverPresetHost.Children.Add(new TextBlock
-            {
-                Text = "Keine Vorlagen gefunden (Assets\\Covers fehlt).",
-                Foreground = (Brush)FindResource("Brush.TextMuted"),
-                TextWrapping = TextWrapping.Wrap,
-            });
-            return;
-        }
-
-        foreach (var (name, files) in groups)
+        foreach (var (name, files, individual) in groups)
         {
             // Jede Gruppe als zuklappbarer Bereich (Stil wie die Sektionen);
             // die Kacheln entstehen erst beim ersten Aufklappen der Gruppe
@@ -88,7 +82,9 @@ public partial class WhiteboardView
                 if (filled) return;
                 filled = true;
                 foreach (var file in files) grid.Children.Add(MakeCoverThumb(file));
+                if (individual) grid.Children.Add(MakeAddCoverTile());
             };
+            if (individual) _coverIndividualExp = exp;
             CoverPresetHost.Children.Add(exp);
         }
     }
@@ -131,6 +127,65 @@ public partial class WhiteboardView
         };
         btn.Click += (_, _) => ApplyCoverPreset(file);
         return btn;
+    }
+
+    /// <summary>„+"-Kachel am Ende der Gruppe „Individuell": eigene Vorlagen hochladen.</summary>
+    private Button MakeAddCoverTile()
+    {
+        var btn = new Button
+        {
+            Style = (Style)FindResource("FlatButton"),
+            Width = 46,
+            Height = 62,
+            Margin = new Thickness(2),
+            Content = "+",
+            FontSize = 20,
+            ToolTip = "Eigene Cover-Vorlage hinzufügen",
+        };
+        System.Windows.Automation.AutomationProperties.SetName(btn, "Cover-Vorlage hinzufügen");
+        btn.Click += (_, _) => AddCoverPresets();
+        return btn;
+    }
+
+    /// <summary>Kopiert gewählte Bilder nach %APPDATA%\GonkNote\Covers („Individuell").</summary>
+    private void AddCoverPresets()
+    {
+        var dlg = new Microsoft.Win32.OpenFileDialog
+        {
+            Title = "Eigene Cover-Vorlagen hinzufügen",
+            Filter = "Bilder (*.png;*.jpg;*.jpeg;*.webp)|*.png;*.jpg;*.jpeg;*.webp|Alle Dateien (*.*)|*.*",
+            Multiselect = true,
+        };
+        if (dlg.ShowDialog(Window.GetWindow(this)) != true) return;
+
+        int added = 0;
+        foreach (var src in dlg.FileNames)
+        {
+            try
+            {
+                string dest = Path.Combine(UserCoverDir, Path.GetFileName(src));
+                // Namenskollision vermeiden (wie bei den Stickern)
+                int n = 1;
+                while (File.Exists(dest))
+                {
+                    string stem = Path.GetFileNameWithoutExtension(src);
+                    dest = Path.Combine(UserCoverDir, $"{stem}_{n++}{Path.GetExtension(src)}");
+                }
+                File.Copy(src, dest);
+                added++;
+            }
+            catch
+            {
+                // einzelnen Fehlversuch überspringen
+            }
+        }
+
+        if (added > 0)
+        {
+            ReloadCoverPresets();
+            // Gruppe „Individuell" gleich aufklappen, damit die neuen Kacheln sichtbar sind
+            if (_coverIndividualExp != null) _coverIndividualExp.IsExpanded = true;
+        }
     }
 
     private void ApplyCoverPreset(string file)

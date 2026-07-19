@@ -126,7 +126,37 @@ public partial class WhiteboardView
                 : (object)"?",
         };
         btn.Click += (_, _) => ApplyCoverPreset(file);
+
+        // Nur eigene Vorlagen (unter %APPDATA%) sind löschbar – die mitgelieferten
+        // Motive neben der Exe bleiben unantastbar
+        if (file.StartsWith(UserCoverDir, StringComparison.OrdinalIgnoreCase))
+        {
+            var del = new MenuItem { Header = "Vorlage löschen" };
+            del.Click += (_, _) => DeleteCoverPreset(file);
+            var menu = new ContextMenu();
+            menu.Items.Add(del);
+            btn.ContextMenu = menu;
+        }
+
         return btn;
+    }
+
+    /// <summary>Löscht eine eigene Vorlage (Datei in %APPDATA%\GonkNote\Covers) und baut die Galerie neu.</summary>
+    private void DeleteCoverPreset(string file)
+    {
+        try
+        {
+            File.Delete(file);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(Window.GetWindow(this),
+                $"Vorlage konnte nicht gelöscht werden:\n{ex.Message}",
+                "Gonk Note", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+        ReloadCoverPresets();
+        if (_coverIndividualExp != null) _coverIndividualExp.IsExpanded = true;
     }
 
     /// <summary>„+"-Kachel am Ende der Gruppe „Individuell": eigene Vorlagen hochladen.</summary>

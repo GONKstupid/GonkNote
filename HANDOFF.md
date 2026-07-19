@@ -35,7 +35,9 @@
 >   gleiches Seitenverhältnis, Cover wird eh mittig beschnitten). Eigene Vorlagen:
 >   `%APPDATA%\GonkNote\Covers` — erscheint als stets vorhandene Gruppe
 >   **„Individuell"** mit **„+"-Kachel** zum Hochladen (Dateidialog, Multiselect,
->   Kopie nach %APPDATA%, kollisionssicher wie Sticker; Unterordner = eigene Gruppen). Der Quell-Ordner
+>   Kopie nach %APPDATA%, kollisionssicher wie Sticker; Unterordner = eigene Gruppen);
+>   eigene Kacheln per Rechtsklick → **„Vorlage löschen"** (nur %APPDATA%-Dateien,
+>   mitgelieferte Motive nicht löschbar). Der Quell-Ordner
 >   `Assets\Notizbuch-Cover-Presets` wurde nach der Konvertierung gelöscht (Nutzer-OK).
 >   End-to-end verifiziert (Galerie rendert, Klick setzt Cover, Screenshot).
 > - **Quick-Menü per Langdruck:** ~600 ms an derselben Stelle gedrückt halten

@@ -73,16 +73,23 @@ public partial class WhiteboardView
 
         foreach (var (name, files) in groups)
         {
-            CoverPresetHost.Children.Add(new TextBlock
-            {
-                Text = $"{name} ({files.Count})",
-                FontSize = 11,
-                Foreground = (Brush)FindResource("Brush.TextMuted"),
-                Margin = new Thickness(0, 4, 0, 2),
-            });
+            // Jede Gruppe als zuklappbarer Bereich (Stil wie die Sektionen);
+            // die Kacheln entstehen erst beim ersten Aufklappen der Gruppe
             var grid = new WrapPanel();
-            foreach (var file in files) grid.Children.Add(MakeCoverThumb(file));
-            CoverPresetHost.Children.Add(grid);
+            var exp = new Expander
+            {
+                Header = $"{name} ({files.Count})",
+                IsExpanded = false,
+                Content = grid,
+            };
+            bool filled = false;
+            exp.Expanded += (_, _) =>
+            {
+                if (filled) return;
+                filled = true;
+                foreach (var file in files) grid.Children.Add(MakeCoverThumb(file));
+            };
+            CoverPresetHost.Children.Add(exp);
         }
     }
 

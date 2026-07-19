@@ -26,7 +26,8 @@
 >   auf eine Kachel → **„Farbe löschen"** (mind. eine bleibt). Palette ist statisch
 >   (Sitzung) und gilt für Text-Editor/Whiteboard/Notizbuch (`ChartDialog`).
 > - **Cover-Vorlagen (Notizbuch):** 53 Nutzer-Motive (19 „Basic", 34 „Muster") als
->   Galerie in der Cover-Sektion der Einstellungs-Leiste (lazy beim Aufklappen,
+>   Galerie in der Cover-Sektion der Einstellungs-Leiste; jede Gruppe ist ein
+>   eigener zuklappbarer Expander (Kacheln laden lazy beim Aufklappen,
 >   `WhiteboardView.Covers.cs` + `CoverPresetHost` im XAML). Klick = Bild-Cover über
 >   den bestehenden Weg (`CoverStyle.Image` → DB). Auslieferung wie Sticker:
 >   `Assets\Covers\<Gruppe>\*.jpg` neben der Exe (aus den A4-Originalen auf 1600 px

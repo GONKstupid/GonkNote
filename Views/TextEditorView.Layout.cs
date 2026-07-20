@@ -68,7 +68,7 @@ public partial class TextEditorView
     {
         _activeSection = section;
         SettingsPanel.Visibility = Visibility.Visible;
-        foreach (var sec in new[] { SecMargins, SecSpacing, SecWatermark, SecTable })
+        foreach (var sec in new[] { SecMargins, SecSpacing, SecWatermark })
         {
             bool on = sec == section;
             sec.Visibility = on ? Visibility.Visible : Visibility.Collapsed;

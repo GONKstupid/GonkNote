@@ -57,29 +57,32 @@ public partial class TextEditorView
 
     // ==================== Tabelle einfügen ====================
 
-    private void InsertTable_Click(object s, RoutedEventArgs e)
+    /// <summary>Baut eine leere Tabelle und fügt sie an der Cursorposition ein (Raster/Dialog/Schnelltabellen).</summary>
+    private Table InsertEmptyTable(int rows, int cols)
     {
-        var dlg = new TableSizeDialog { Owner = Window.GetWindow(this) };
-        if (dlg.ShowDialog() != true) return;
-
         var table = new Table { CellSpacing = 0, Margin = new Thickness(0, 8, 0, 8) };
-        for (int c = 0; c < dlg.Cols; c++)
+        for (int c = 0; c < cols; c++)
             table.Columns.Add(new TableColumn());
 
         var group = new TableRowGroup();
         var borderBrush = (Brush)Application.Current.Resources["Brush.Border"];
-        for (int r = 0; r < dlg.Rows; r++)
+        for (int r = 0; r < rows; r++)
         {
             var row = new TableRow();
-            for (int c = 0; c < dlg.Cols; c++)
+            for (int c = 0; c < cols; c++)
                 row.Cells.Add(NewCell(borderBrush));
             group.Rows.Add(row);
         }
         table.RowGroups.Add(group);
 
         InsertBlockAtCaret(table);
+        // Cursor in die erste Zelle: dort erwartet man die Eingabe, und der
+        // Selection-Sync blendet damit sofort den Kontext-Tab „Tabelle" ein
+        if (group.Rows.Count > 0 && group.Rows[0].Cells.Count > 0)
+            Editor.CaretPosition = group.Rows[0].Cells[0].ContentStart;
         MarkDirty();
         Editor.Focus();
+        return table;
     }
 
     private static TableCell NewCell(Brush borderBrush, Brush? background = null) => new(new Paragraph())
@@ -392,21 +395,8 @@ public partial class TextEditorView
 
     // ---------- Tabellen-Formatierung in der Seitenleiste ----------
 
-    /// <summary>
-    /// Schließt die Tabellen-Sektion („Erweiterte Einstellungen"), wenn der Cursor
-    /// die Tabelle verlässt, während sie angezeigt wird. Geöffnet wird sie nur
-    /// explizit übers Rechtsklick-Menü (OpenTableSettings_Click).
-    /// </summary>
-    private void UpdateTableSection()
-    {
-        if (_activeSection == SecTable && CurrentCell() == null)
-            CloseSettings_Click(this, new RoutedEventArgs());
-    }
-
-    private void OpenTableSettings_Click(object s, RoutedEventArgs e)
-    {
-        if (CurrentCell() != null) OpenSettings(SecTable);
-    }
+    /// <summary>Hält den Kontext-Tab „Tabelle" synchron zum Cursor (Details in TextEditorView.Table.cs).</summary>
+    private void UpdateTableSection() => UpdateTableRibbon();
 
     private void TableBorders_Click(object s, RoutedEventArgs e) =>
         ApplyTableBordersToSelection((string)((Button)s).Tag);

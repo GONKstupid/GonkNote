@@ -145,12 +145,13 @@ public partial class TextEditorView : UserControl
 
     private void RibbonTab_Checked(object sender, RoutedEventArgs e)
     {
-        if (PanelStart == null || PanelRefs == null) return;  // während InitializeComponent
+        if (PanelStart == null || PanelTable == null) return;  // während InitializeComponent
         string tag = (string)((RadioButton)sender).Tag;
         PanelStart.Visibility = tag == "Start" ? Visibility.Visible : Visibility.Collapsed;
         PanelInsert.Visibility = tag == "Einfügen" ? Visibility.Visible : Visibility.Collapsed;
         PanelLayout.Visibility = tag == "Layout" ? Visibility.Visible : Visibility.Collapsed;
         PanelRefs.Visibility = tag == "Verweise" ? Visibility.Visible : Visibility.Collapsed;
+        PanelTable.Visibility = tag == "Tabelle" ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private void Undo_Click(object s, RoutedEventArgs e) { Editor.Undo(); Editor.Focus(); }

@@ -1,6 +1,25 @@
-# Gonk Note — Projektübergabe (Stand: 2026-07-18, Phase 3 laufend)
+# Gonk Note — Projektübergabe (Stand: 2026-07-19, Phase 3 laufend)
 
-> **Fixes-Runde 11 (2026-07-18) zuletzt umgesetzt:**
+> **Fixes-Runde 12 (2026-07-19) zuletzt umgesetzt:**
+> - **Tabellenfunktion komplett neu (nach Word-Vorbild, Nutzer-Vorgabe):** Die alte
+>   Sidebar-Sektion „Tabelle" ist raus; stattdessen gibt es einen **Kontext-Ribbon-Tab
+>   „Tabelle"** (wie Words Tabellentools), der nur erscheint, wenn der Cursor in einer
+>   Tabelle steht (`UpdateTableRibbon`). Einfügen jetzt über **Hover-Raster** (8×10, wie
+>   Word) + Dialog + **Text↔Tabelle** + **Schnelltabellen** (Kalender, Liste). Neu im Tab:
+>   Zeilen/Spalten (einf./lösch.), **Verbinden/Verbund aufheben/Zelle teilen/Tabelle
+>   teilen**, Spaltenbreite, **AutoAnpassen** (Inhalt/Seitenbreite/fest), **Zellenränder**,
+>   **Sortieren** (Text/Zahl/Datum, `TableSortDialog`), **Formeln** (=SUMME/MITTELWERT/
+>   MIN/MAX/ANZAHL/PRODUKT über ABOVE/BELOW/LEFT/RIGHT), **In Text umwandeln**,
+>   **Formatvorlagen** (7 Farbschemata + Kopfzeile/Ergebniszeile/Zeilen-/Spaltenbänder,
+>   im `Table.Tag` gemerkt), Rahmen/Füllung auf die Auswahl. Logik in
+>   `Views/TextEditorView.Table.cs` (+ `.Insert.cs` Grundwerkzeuge). Verifiziert im echten
+>   Fenster (Raster → 4×3 eingefügt, Kontext-Tab erscheint, Schnelltabelle mit Kopfzeile).
+>   **Bewusste WPF-Grenzen** (Info-i im Tab): nur durchgezogene Zellränder, keine
+>   senkrechte Zellen-Ausrichtung/feste Zeilenhöhe, keine Excel-Einbettung, keine
+>   Kopfzeilen-Wiederholung beim Seitenumbruch, kein Textumfluss um die Tabelle.
+>   Vorgaben-Datei `TestAssets/tabellenfunktion.md` nach Umsetzung gelöscht.
+>
+> **Fixes-Runde 11 (2026-07-18):**
 > - **Notizbuch-Performance:** Der Seiten- und Notizzettel-Schatten lief als
 >   `SKImageFilter.CreateBlur` **pro Frame** — Kosten skalieren mit der sichtbaren
 >   Pixelfläche (Notizbuch-Seite = ganzes Fenster; bei hohem Zoom zusätzlich riesige

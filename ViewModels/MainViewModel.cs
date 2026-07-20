@@ -59,13 +59,17 @@ public sealed class MainViewModel : ObservableObject
         Walk(RootItems);
     }
 
-    /// <summary>Setzt die Symbolfarbe (null = Standard) und persistiert sie.</summary>
+    /// <summary>
+    /// Setzt die Symbolfarbe händisch (null = automatisch: erbt die Ordnerfarbe des
+    /// übergeordneten Ordners) und persistiert sie. Färbt anschließend alle Nachkommen
+    /// ohne eigene Farbe neu.
+    /// </summary>
     public void SetIconColor(TreeItemViewModel? vm, string? hex)
     {
         if (vm == null) return;
         vm.Item.IconColor = hex;
         _db.UpsertItem(vm.Item);
-        vm.RefreshIcon();
+        ApplyInheritedColors();
     }
 
     public RelayCommand NewFolderCommand { get; }
@@ -116,7 +120,28 @@ public sealed class MainViewModel : ObservableObject
 
         foreach (var vm in byId.Values) vm.SortChildren();
         SortRoot();
+        ApplyInheritedColors();
         RefreshPinned();
+    }
+
+    /// <summary>
+    /// Vererbt die Symbolfarbe eines Ordners an alle Nachkommen ohne eigene (händisch
+    /// gesetzte) Farbe. Zur Laufzeit berechnet – nicht in der DB gespeichert, damit ein
+    /// späterer Ordner-Farbwechsel automatisch durchschlägt.
+    /// </summary>
+    public void ApplyInheritedColors()
+    {
+        void Walk(IEnumerable<TreeItemViewModel> items, string? inherited)
+        {
+            foreach (var it in items)
+            {
+                it.InheritedColorHex = it.Item.IconColor == null ? inherited : null;
+                it.RefreshIcon();
+                // Effektive Farbe für die Kinder: eigene Farbe hat Vorrang, sonst geerbte
+                Walk(it.Children, it.Item.IconColor ?? inherited);
+            }
+        }
+        Walk(RootItems, null);
     }
 
     // ---------- Anpinnen / Favoriten ----------
@@ -232,6 +257,7 @@ public sealed class MainViewModel : ObservableObject
         target.Add(vm);
         if (parent != null) { parent.SortChildren(); parent.IsExpanded = true; }
         else SortRoot();
+        ApplyInheritedColors();   // neues Element erbt die Ordnerfarbe
 
         vm.IsSelected = true;
         vm.IsRenaming = true;
@@ -299,6 +325,7 @@ public sealed class MainViewModel : ObservableObject
         {
             if (parent != null) { parent.SortChildren(); parent.IsExpanded = true; }
             else SortRoot();
+            ApplyInheritedColors();   // importierte Dokumente erben die Ordnerfarbe
             lastImported.IsSelected = true;
             OpenItem(lastImported);
         }
@@ -464,6 +491,7 @@ public sealed class MainViewModel : ObservableObject
         if (copy)
         {
             CopyRecursive(source, targetFolder);
+            ApplyInheritedColors();   // Kopien erben die Ordnerfarbe des Ziels
         }
         else
         {
@@ -477,6 +505,7 @@ public sealed class MainViewModel : ObservableObject
             (targetFolder?.Children ?? RootItems).Add(source);
             if (targetFolder != null) { targetFolder.SortChildren(); targetFolder.IsExpanded = true; }
             else SortRoot();
+            ApplyInheritedColors();   // verschobenes Element erbt die neue Ordnerfarbe
         }
     }
 

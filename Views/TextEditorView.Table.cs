@@ -38,6 +38,8 @@ public partial class TextEditorView
                 TabTable.Visibility = Visibility.Collapsed;
                 if (TabTable.IsChecked == true) TabStart.IsChecked = true;
             }
+            // Tabellen-Sektion der Seitenleiste schließen, wenn die Tabelle verlassen wird
+            if (_activeSection == SecTable) CloseSettings_Click(this, new RoutedEventArgs());
             return;
         }
 
@@ -59,6 +61,25 @@ public partial class TextEditorView
     {
         UpdateTableRibbon();
         if (TabTable.Visibility == Visibility.Visible) TabTable.IsChecked = true;
+    }
+
+    /// <summary>„Design & Rahmen…" im Tab öffnet die Tabellen-Sektion der Seitenleiste.</summary>
+    private void OpenTableDesign_Click(object s, RoutedEventArgs e)
+    {
+        if (CurrentCell() != null) OpenSettings(SecTable);
+    }
+
+    // Sammel-Dropdowns im Tab (öffnen ihr ContextMenu unter dem Button)
+    private void RowMenu_Click(object s, RoutedEventArgs e) => OpenButtonMenu(s);
+    private void ColMenu_Click(object s, RoutedEventArgs e) => OpenButtonMenu(s);
+    private void SplitMenu_Click(object s, RoutedEventArgs e) => OpenButtonMenu(s);
+
+    private static void OpenButtonMenu(object s)
+    {
+        if (s is not Button btn || btn.ContextMenu is not { } menu) return;
+        menu.PlacementTarget = btn;
+        menu.Placement = PlacementMode.Bottom;
+        menu.IsOpen = true;
     }
 
     // ==================== Einfügen: Raster, Dialog, Schnelltabellen ====================
@@ -313,14 +334,6 @@ public partial class TextEditorView
     }
 
     // ==================== AutoAnpassen & Zellenränder ====================
-
-    private void AutoFitMenu_Click(object s, RoutedEventArgs e)
-    {
-        var btn = (Button)s;
-        btn.ContextMenu!.PlacementTarget = btn;
-        btn.ContextMenu.Placement = PlacementMode.Bottom;
-        btn.ContextMenu.IsOpen = true;
-    }
 
     private void AutoFitContent_Click(object s, RoutedEventArgs e)
     {

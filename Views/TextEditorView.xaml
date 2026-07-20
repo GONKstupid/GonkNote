@@ -493,48 +493,65 @@
                 </WrapPanel>
 
                 <!-- ============ Werkzeugleiste: Tabelle (Kontext-Tab) ============ -->
+                <!-- Schlank gehalten: nur die häufigen Struktur-/Daten-Aktionen; Design,
+                     Rahmen, Füllung und Größe liegen in der Seitenleiste („Design & Rahmen…"). -->
                 <WrapPanel x:Name="PanelTable" Margin="8,2,8,6" Visibility="Collapsed">
 
-                    <!-- Zeilen & Spalten -->
-                    <Button Style="{StaticResource LabelButton}" Content="Zeile darüber" Click="TableRowAbove_Click"/>
-                    <Button Style="{StaticResource LabelButton}" Content="Zeile darunter" Click="TableRowBelow_Click"/>
-                    <Button Style="{StaticResource LabelButton}" Content="Spalte links" Click="TableColLeft_Click"/>
-                    <Button Style="{StaticResource LabelButton}" Content="Spalte rechts" Click="TableColRight_Click"/>
-                    <Button Style="{StaticResource LabelButton}" Content="Zeile löschen" Click="TableDeleteRow_Click"/>
-                    <Button Style="{StaticResource LabelButton}" Content="Spalte löschen" Click="TableDeleteCol_Click"/>
+                    <!-- Zeilen (Sammel-Dropdown) -->
+                    <Button Style="{StaticResource DropButton}" Click="RowMenu_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Style="{StaticResource PathIcon}" Width="15" Height="15"
+                                  Data="{StaticResource Icon.Table}" Stroke="{DynamicResource Brush.TextMuted}"/>
+                            <TextBlock Text="Zeile" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="&#xE70D;" FontFamily="{StaticResource IconFont}" FontSize="9"
+                                       Margin="5,2,0,0" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <Button.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Zeile darüber einfügen" Click="TableRowAbove_Click"/>
+                                <MenuItem Header="Zeile darunter einfügen" Click="TableRowBelow_Click"/>
+                                <Separator/>
+                                <MenuItem Header="Zeile löschen" Click="TableDeleteRow_Click"/>
+                            </ContextMenu>
+                        </Button.ContextMenu>
+                    </Button>
+                    <!-- Spalten (Sammel-Dropdown) -->
+                    <Button Style="{StaticResource DropButton}" Click="ColMenu_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Spalte" VerticalAlignment="Center"/>
+                            <TextBlock Text="&#xE70D;" FontFamily="{StaticResource IconFont}" FontSize="9"
+                                       Margin="5,2,0,0" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <Button.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Spalte links einfügen" Click="TableColLeft_Click"/>
+                                <MenuItem Header="Spalte rechts einfügen" Click="TableColRight_Click"/>
+                                <Separator/>
+                                <MenuItem Header="Spalte löschen" Click="TableDeleteCol_Click"/>
+                            </ContextMenu>
+                        </Button.ContextMenu>
+                    </Button>
 
                     <Border Style="{StaticResource GroupSep}"/>
 
                     <!-- Verbinden & Teilen -->
                     <Button Style="{StaticResource LabelButton}" Content="Verbinden" Click="TableMergeCells_Click"
                             ToolTip="Markierte Zellen verbinden (waagerecht, senkrecht oder rechteckig)"/>
-                    <Button Style="{StaticResource LabelButton}" Content="Verbund aufheben" Click="TableUnmergeCell_Click"/>
-                    <Button Style="{StaticResource LabelButton}" Content="Zelle teilen…" Click="TableSplitCell_Click"
-                            ToolTip="Zelle in mehrere Spalten teilen (Zeilen nur bei bestehendem Zeilenverbund)"/>
-                    <Button Style="{StaticResource LabelButton}" Content="Tabelle teilen" Click="TableSplitTable_Click"
-                            ToolTip="Tabelle oberhalb der aktuellen Zeile in zwei Tabellen trennen"/>
-
-                    <Border Style="{StaticResource GroupSep}"/>
-
-                    <!-- Größe -->
-                    <Button Style="{StaticResource LabelButton}" Content="Spaltenbreite…" Click="TableColumnWidth_Click"/>
-                    <Button x:Name="BtnAutoFit" Style="{StaticResource DropButton}" Click="AutoFitMenu_Click"
-                            ToolTip="Spaltenbreiten automatisch anpassen">
+                    <Button Style="{StaticResource DropButton}" Click="SplitMenu_Click">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="AutoAnpassen" VerticalAlignment="Center"/>
+                            <TextBlock Text="Teilen" VerticalAlignment="Center"/>
                             <TextBlock Text="&#xE70D;" FontFamily="{StaticResource IconFont}" FontSize="9"
                                        Margin="5,2,0,0" VerticalAlignment="Center"/>
                         </StackPanel>
                         <Button.ContextMenu>
                             <ContextMenu>
-                                <MenuItem Header="An Inhalt anpassen" Click="AutoFitContent_Click"/>
-                                <MenuItem Header="An Seitenbreite anpassen" Click="AutoFitWindow_Click"/>
-                                <MenuItem Header="Feste Spaltenbreite…" Click="AutoFitFixed_Click"/>
+                                <MenuItem Header="Zellverbund aufheben" Click="TableUnmergeCell_Click"/>
+                                <MenuItem Header="Zelle teilen…" Click="TableSplitCell_Click"/>
+                                <Separator/>
+                                <MenuItem Header="Tabelle teilen (oberhalb der Zeile)" Click="TableSplitTable_Click"/>
                             </ContextMenu>
                         </Button.ContextMenu>
                     </Button>
-                    <Button Style="{StaticResource LabelButton}" Content="Zellenränder…" Click="TableCellPadding_Click"
-                            ToolTip="Innenabstand der ausgewählten Zellen"/>
 
                     <Border Style="{StaticResource GroupSep}"/>
 
@@ -543,52 +560,19 @@
                             ToolTip="Zeilen nach einer Spalte sortieren (Text/Zahl/Datum)"/>
                     <Button Style="{StaticResource LabelButton}" Content="Formel…" Click="TableFormula_Click"
                             ToolTip="Berechnung einfügen, z. B. =SUMME(ABOVE) oder =MITTELWERT(LEFT)"/>
-                    <Button Style="{StaticResource LabelButton}" Content="In Text umwandeln…" Click="TableToText_Click"/>
+                    <Button Style="{StaticResource LabelButton}" Content="In Text…" Click="TableToText_Click"
+                            ToolTip="Tabelle in Text umwandeln"/>
 
                     <Border Style="{StaticResource GroupSep}"/>
 
-                    <!-- Entwurf -->
-                    <TextBlock Text="Stil" Style="{StaticResource RibbonLabel}"/>
-                    <ComboBox x:Name="TableStyleCombo" Width="128" Height="28"
-                              SelectionChanged="TableStyle_Changed"/>
-                    <ToggleButton x:Name="BtnBandRows" Style="{StaticResource ToolButton}" Width="Auto" Height="28"
-                                  Padding="6,0" Click="TableBanding_Click"
-                                  ToolTip="Gebänderte Zeilen (Zebra-Streifen)">
-                        <TextBlock Text=" Zeilenbänder " FontFamily="Segoe UI" FontSize="12"/>
-                    </ToggleButton>
-                    <ToggleButton x:Name="BtnBandCols" Style="{StaticResource ToolButton}" Width="Auto" Height="28"
-                                  Padding="6,0" Click="TableBanding_Click"
-                                  ToolTip="Gebänderte Spalten">
-                        <TextBlock Text=" Spaltenbänder " FontFamily="Segoe UI" FontSize="12"/>
-                    </ToggleButton>
-                    <ToggleButton x:Name="BtnHeaderRow" Style="{StaticResource ToolButton}" Width="Auto" Height="28"
-                                  Padding="6,0" Click="TableBanding_Click"
-                                  ToolTip="Erste Zeile als Kopfzeile hervorheben">
-                        <TextBlock Text=" Kopfzeile " FontFamily="Segoe UI" FontSize="12"/>
-                    </ToggleButton>
-                    <ToggleButton x:Name="BtnTotalRow" Style="{StaticResource ToolButton}" Width="Auto" Height="28"
-                                  Padding="6,0" Click="TableBanding_Click"
-                                  ToolTip="Letzte Zeile als Ergebniszeile hervorheben">
-                        <TextBlock Text=" Ergebniszeile " FontFamily="Segoe UI" FontSize="12"/>
-                    </ToggleButton>
-
-                    <Border Style="{StaticResource GroupSep}"/>
-
-                    <!-- Rahmen & Füllung (wirken auf die ausgewählten Zellen) -->
-                    <TextBlock Text="Rahmen" Style="{StaticResource RibbonLabel}"/>
-                    <ComboBox x:Name="TableBorderWidth" Width="92" Height="28">
-                        <ComboBoxItem Content="Dünn (0,5)" Tag="0.5"/>
-                        <ComboBoxItem Content="Normal (1)" Tag="1" IsSelected="True"/>
-                        <ComboBoxItem Content="Kräftig (2)" Tag="2"/>
-                        <ComboBoxItem Content="Dick (3,5)" Tag="3.5"/>
-                    </ComboBox>
-                    <Button Style="{StaticResource FlatButton}" Content="Alle" Tag="all" Click="TableBorders_Click"/>
-                    <Button Style="{StaticResource FlatButton}" Content="Außen" Tag="outer" Click="TableBorders_Click"/>
-                    <Button Style="{StaticResource FlatButton}" Content="Innen" Tag="inner" Click="TableBorders_Click"/>
-                    <Button Style="{StaticResource FlatButton}" Content="Keine" Tag="none" Click="TableBorders_Click"/>
-                    <Button Style="{StaticResource FlatButton}" Content="Rahmenfarbe…" Click="TableBorderColor_Click"/>
-                    <Button Style="{StaticResource FlatButton}" Content="Füllfarbe…" Click="TableCellColor_Click"/>
-                    <Button Style="{StaticResource FlatButton}" Content="Füllfarbe löschen" Click="TableCellColorClear_Click"/>
+                    <!-- Design/Rahmen/Größe → Seitenleiste -->
+                    <Button Style="{StaticResource LabelButton}" Click="OpenTableDesign_Click"
+                            ToolTip="Formatvorlage, Rahmen, Füllung und Größe in der Seitenleiste">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE790;" FontFamily="{StaticResource IconFont}" VerticalAlignment="Center"/>
+                            <TextBlock Text="Design &amp; Rahmen…" Margin="6,0,0,0"/>
+                        </StackPanel>
+                    </Button>
 
                     <Border Style="{StaticResource GroupSep}"/>
 
@@ -812,7 +796,80 @@
                             </StackPanel>
                         </Expander>
 
-                        <!-- Tabellen-Funktionen leben im Kontext-Tab „Tabelle" des Ribbons -->
+                        <!-- Tabelle: Design, Rahmen, Füllung, Größe (aus dem Tabelle-Tab
+                             ausgelagert; über „Design & Rahmen…" geöffnet). Wirkt auf die
+                             ausgewählten Zellen; Design auf die ganze Tabelle. -->
+                        <Expander x:Name="SecTable" Header="Tabelle" Visibility="Collapsed">
+                            <StackPanel>
+                                <TextBlock Text="Formatvorlage" FontWeight="SemiBold" FontSize="12.5"
+                                           Foreground="{DynamicResource Brush.Text}" Margin="0,0,0,4"/>
+                                <ComboBox x:Name="TableStyleCombo" SelectionChanged="TableStyle_Changed"/>
+                                <UniformGrid Columns="2" Margin="0,6,0,0">
+                                    <CheckBox x:Name="BtnHeaderRow" Content="Kopfzeile" Margin="0,2"
+                                              Click="TableBanding_Click" Foreground="{DynamicResource Brush.Text}"/>
+                                    <CheckBox x:Name="BtnTotalRow" Content="Ergebniszeile" Margin="0,2"
+                                              Click="TableBanding_Click" Foreground="{DynamicResource Brush.Text}"/>
+                                    <CheckBox x:Name="BtnBandRows" Content="Zeilenbänder" Margin="0,2"
+                                              Click="TableBanding_Click" Foreground="{DynamicResource Brush.Text}"/>
+                                    <CheckBox x:Name="BtnBandCols" Content="Spaltenbänder" Margin="0,2"
+                                              Click="TableBanding_Click" Foreground="{DynamicResource Brush.Text}"/>
+                                </UniformGrid>
+
+                                <Border Height="1" Background="{DynamicResource Brush.Border}" Margin="0,10"/>
+
+                                <TextBlock Text="Rahmen der Auswahl" FontWeight="SemiBold" FontSize="12.5"
+                                           Foreground="{DynamicResource Brush.Text}" Margin="0,0,0,6"/>
+                                <DockPanel Margin="0,0,0,6">
+                                    <TextBlock Text="Dicke" Width="52" Style="{StaticResource RibbonLabel}"/>
+                                    <ComboBox x:Name="TableBorderWidth">
+                                        <ComboBoxItem Content="Dünn (0,5)" Tag="0.5"/>
+                                        <ComboBoxItem Content="Normal (1)" Tag="1" IsSelected="True"/>
+                                        <ComboBoxItem Content="Kräftig (2)" Tag="2"/>
+                                        <ComboBoxItem Content="Dick (3,5)" Tag="3.5"/>
+                                    </ComboBox>
+                                </DockPanel>
+                                <UniformGrid Columns="2" Rows="2">
+                                    <Button Style="{StaticResource FlatButton}" HorizontalAlignment="Stretch"
+                                            Content="Alle" Tag="all" Click="TableBorders_Click"/>
+                                    <Button Style="{StaticResource FlatButton}" HorizontalAlignment="Stretch"
+                                            Content="Nur außen" Tag="outer" Click="TableBorders_Click"/>
+                                    <Button Style="{StaticResource FlatButton}" HorizontalAlignment="Stretch"
+                                            Content="Nur innen" Tag="inner" Click="TableBorders_Click"/>
+                                    <Button Style="{StaticResource FlatButton}" HorizontalAlignment="Stretch"
+                                            Content="Keine" Tag="none" Click="TableBorders_Click"/>
+                                </UniformGrid>
+                                <Button Style="{StaticResource FlatButton}" HorizontalAlignment="Left" Margin="0,4,0,0"
+                                        Content="Rahmenfarbe…" Click="TableBorderColor_Click"/>
+
+                                <Border Height="1" Background="{DynamicResource Brush.Border}" Margin="0,10"/>
+
+                                <TextBlock Text="Füllung" FontWeight="SemiBold" FontSize="12.5"
+                                           Foreground="{DynamicResource Brush.Text}" Margin="0,0,0,6"/>
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Style="{StaticResource FlatButton}" Content="Füllfarbe…" Click="TableCellColor_Click"/>
+                                    <Button Style="{StaticResource FlatButton}" Content="Löschen" Click="TableCellColorClear_Click"/>
+                                </StackPanel>
+
+                                <Border Height="1" Background="{DynamicResource Brush.Border}" Margin="0,10"/>
+
+                                <TextBlock Text="Größe" FontWeight="SemiBold" FontSize="12.5"
+                                           Foreground="{DynamicResource Brush.Text}" Margin="0,0,0,6"/>
+                                <Button Style="{StaticResource FlatButton}" HorizontalAlignment="Left"
+                                        Content="Spaltenbreite…" Click="TableColumnWidth_Click"/>
+                                <TextBlock Text="AutoAnpassen" Style="{StaticResource RibbonLabel}" Margin="0,6,0,2"/>
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Style="{StaticResource FlatButton}" Content="Inhalt" Click="AutoFitContent_Click"
+                                            ToolTip="Spaltenbreiten an den Inhalt anpassen"/>
+                                    <Button Style="{StaticResource FlatButton}" Content="Seite" Click="AutoFitWindow_Click"
+                                            ToolTip="Tabelle auf Seitenbreite dehnen"/>
+                                    <Button Style="{StaticResource FlatButton}" Content="Fest…" Click="AutoFitFixed_Click"
+                                            ToolTip="Feste Spaltenbreite in cm"/>
+                                </StackPanel>
+                                <Button Style="{StaticResource FlatButton}" HorizontalAlignment="Left" Margin="0,4,0,0"
+                                        Content="Zellenränder…" Click="TableCellPadding_Click"
+                                        ToolTip="Innenabstand der ausgewählten Zellen"/>
+                            </StackPanel>
+                        </Expander>
                     </StackPanel>
                 </ScrollViewer>
             </DockPanel>

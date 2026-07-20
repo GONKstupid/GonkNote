@@ -58,12 +58,19 @@ public sealed class TreeItemViewModel : ObservableObject
         _ => "",
     };
 
-    /// <summary>Pinselfarbe des Symbols: eigene Farbe oder Theme-Türkis.</summary>
+    /// <summary>
+    /// Vom übergeordneten Ordner geerbte Farbe (vom MainViewModel gesetzt), greift nur,
+    /// wenn keine eigene (händisch gesetzte) <see cref="NoteItem.IconColor"/> vorliegt.
+    /// </summary>
+    public string? InheritedColorHex { get; set; }
+
+    /// <summary>Pinselfarbe des Symbols: eigene Farbe, sonst geerbte Ordnerfarbe, sonst Theme-Türkis.</summary>
     public Brush IconBrush
     {
         get
         {
-            if (Item.IconColor is { } hex)
+            string? hex = Item.IconColor ?? InheritedColorHex;
+            if (hex is { })
             {
                 try { return new SolidColorBrush((Color)ColorConverter.ConvertFromString(hex)); }
                 catch { /* ungültiger Wert → Standard */ }

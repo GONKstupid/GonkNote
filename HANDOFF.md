@@ -1,6 +1,24 @@
 # Gonk Note — Projektübergabe (Stand: 2026-07-19, Phase 3 laufend)
 
-> **Fixes-Runde 12 (2026-07-19) zuletzt umgesetzt:**
+> **Fixes-Runde 13 (2026-07-19) zuletzt umgesetzt:**
+> - **Ordner-Tree: Farbvererbung.** Elemente/Unterordner ohne eigene (händisch
+>   gesetzte) Symbolfarbe erben automatisch die Farbe des übergeordneten Ordners
+>   (rekursiv). `IconColor` = manuell (bleibt), sonst geerbt. Berechnung zentral in
+>   `MainViewModel.ApplyInheritedColors()` (nicht persistiert → Ordner-Farbwechsel
+>   schlägt sofort auf alle Nachkommen durch); aufgerufen nach Baumaufbau, Farbwahl,
+>   Move/Copy, Neuanlage, Import. `TreeItemViewModel.InheritedColorHex` +
+>   `IconBrush = IconColor ?? InheritedColorHex ?? Türkis`. Kontextmenü „Standard" →
+>   **„Automatisch (Ordnerfarbe)"**. Verifiziert (Screenshot: rotes/grünes Kind erbt,
+>   blaues Kind manuell bleibt, verschachtelter Unterordner erbt).
+> - **Tabellen-Tab aufgeräumt + Auslagerung.** Der Kontext-Tab „Tabelle" ist jetzt
+>   eine schlanke Zeile: Zeile ▾ / Spalte ▾ (Sammel-Dropdowns), Verbinden / Teilen ▾,
+>   Sortieren / Formel / In Text, **„Design & Rahmen…"** (öffnet Seitenleiste),
+>   Tabelle löschen. Design/Rahmen/Füllung/Größe (Formatvorlage-Combo, Kopf-/
+>   Ergebniszeile + Bänder als Checkboxen, Rahmen, Füllfarbe, Spaltenbreite,
+>   AutoAnpassen, Zellenränder) liegen in der Seitenleisten-Sektion „Tabelle"
+>   (`SecTable`). Handler unverändert. Verifiziert (Screenshots Tab + Seitenleiste).
+>
+> **Fixes-Runde 12 (2026-07-19):**
 > - **Tabellenfunktion komplett neu (nach Word-Vorbild, Nutzer-Vorgabe):** Die alte
 >   Sidebar-Sektion „Tabelle" ist raus; stattdessen gibt es einen **Kontext-Ribbon-Tab
 >   „Tabelle"** (wie Words Tabellentools), der nur erscheint, wenn der Cursor in einer

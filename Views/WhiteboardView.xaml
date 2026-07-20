@@ -117,9 +117,11 @@
 
                     <!-- Farben -->
                     <StackPanel x:Name="ColorPanel" Orientation="Horizontal" VerticalAlignment="Center">
-                        <RadioButton Style="{StaticResource ColorSwatch}" GroupName="ink" IsChecked="True"
+                        <!-- Standardfarbe folgt der Seite: Schwarz auf hellen, Weiß auf
+                             dunklen Seiten (RefreshAutoSwatch aktualisiert die Anzeige) -->
+                        <RadioButton x:Name="AutoSwatch" Style="{StaticResource ColorSwatch}" GroupName="ink" IsChecked="True"
                                      Background="#000000" Tag="auto"
-                                     ToolTip="Standard (Schwarz)" Checked="Color_Checked"/>
+                                     ToolTip="Standard (Schwarz auf hellen, Weiß auf dunklen Seiten)" Checked="Color_Checked"/>
                         <RadioButton Style="{StaticResource ColorSwatch}" GroupName="ink"
                                      Background="#2563EB" Tag="#FF2563EB" ToolTip="Blau" Checked="Color_Checked"/>
                         <RadioButton Style="{StaticResource ColorSwatch}" GroupName="ink"

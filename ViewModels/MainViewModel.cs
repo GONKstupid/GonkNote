@@ -243,14 +243,15 @@ public sealed class MainViewModel : ObservableObject
 
     // ---------- Import ----------
 
-    /// <summary>DOCX-Dateien als neue Textdokumente importieren (Formatierung bestmöglich).</summary>
+    /// <summary>DOCX-/Markdown-Dateien als neue Textdokumente importieren (Formatierung bestmöglich).</summary>
     private void ImportDocx()
     {
         CommitPendingRename();
         var dlg = new Microsoft.Win32.OpenFileDialog
         {
-            Title = "DOCX importieren",
-            Filter = "Word-Dokumente (*.docx)|*.docx|Alle Dateien (*.*)|*.*",
+            Title = "Dokument importieren",
+            Filter = "Dokumente (*.docx;*.md)|*.docx;*.md|Word-Dokumente (*.docx)|*.docx"
+                   + "|Markdown (*.md)|*.md|Alle Dateien (*.*)|*.*",
             Multiselect = true,
         };
         if (dlg.ShowDialog() != true) return;
@@ -268,7 +269,10 @@ public sealed class MainViewModel : ObservableObject
             try
             {
                 var textDoc = new TextDoc();
-                byte[] bytes = DocxImporter.ToXamlPackage(file, textDoc);  // liest auch Seiteneinrichtung
+                bool isMd = System.IO.Path.GetExtension(file).Equals(".md", StringComparison.OrdinalIgnoreCase);
+                byte[] bytes = isMd
+                    ? MarkdownImporter.ToXamlPackage(file)
+                    : DocxImporter.ToXamlPackage(file, textDoc);  // liest auch Seiteneinrichtung
 
                 var item = new NoteItem
                 {

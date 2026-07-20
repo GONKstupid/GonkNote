@@ -1424,8 +1424,23 @@ public partial class WhiteboardView : UserControl
     private string CurrentInkHex()
     {
         if (!string.IsNullOrEmpty(_colorTag) && _colorTag != "auto") return _colorTag;
-        // Standardtinte: Schwarz; auf dunklen Seiten helle Tinte
-        return EffectiveShade(_page) == PageShade.Dark ? "#FFE6ECF7" : "#FF000000";
+        // Standardtinte: Schwarz auf hellen, Weiß auf dunklen Seiten
+        return EffectiveShade(_page) == PageShade.Dark ? "#FFFFFFFF" : "#FF000000";
+    }
+
+    /// <summary>
+    /// Hält die erste Farbkachel synchron zur Seite: Schwarz auf hellen, Weiß auf
+    /// dunklen Seiten. Wird aus dem Paint-Pfad aufgerufen (deckt Seitenwechsel,
+    /// Farbton- und Theme-Wechsel ab) und ist per Cache-Feld praktisch kostenlos.
+    /// </summary>
+    private bool? _autoSwatchDark;
+
+    private void RefreshAutoSwatch()
+    {
+        bool dark = EffectiveShade(_page) == PageShade.Dark;
+        if (_autoSwatchDark == dark) return;
+        _autoSwatchDark = dark;
+        AutoSwatch.Background = new SolidColorBrush(dark ? Colors.White : Colors.Black);
     }
 
     // ==================== Einstellungen (rechte Seitenleiste) ====================
@@ -3701,6 +3716,7 @@ public partial class WhiteboardView : UserControl
         canvas.Translate(PanX, PanY);
         canvas.Scale(Zoom);
 
+        RefreshAutoSwatch();
         DrawPageBackground(canvas);
 
         // Viewport-Culling: nur sichtbare Elemente zeichnen. Das verhindert, dass

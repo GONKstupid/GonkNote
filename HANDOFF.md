@@ -7,6 +7,11 @@
 > `AboutDialog.xaml.cs` (`VersionText.Text`, aktuell „Phase 3") sowie ggf. Layout/Über-
 > Texte im Dialog selbst. Kurz: README ändern ⇒ Über-Dialog gegenprüfen.
 >
+> **📌 Antwort-Stil (Nutzer-Wunsch, dauerhaft):** Zusammenfassungen/Rückmeldungen zu
+> erledigter Arbeit **sehr kurz, stichpunktartig** halten (kein langer Fließtext, keine
+> ausführlichen Tabellen als Standard). **Ausführlich nur** bei **offenen Fragen und
+> Entscheidungen**, die der Nutzer treffen muss — die weiterhin klar begründen.
+>
 > **Fixes-Runde 15 (2026-07-21) zuletzt umgesetzt:**
 > - **Cover-Vorlagen: 3. Kategorie „Pixel Art".** Neun fertige Pixel-Art-Cover des
 >   Nutzers (`Assets\Covers\Pixel Art\PA (1..9).png`) sind als eigene Galerie-Gruppe

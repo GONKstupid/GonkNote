@@ -1,4 +1,4 @@
-# Gonk Note — Projektübergabe (Stand: 2026-07-21, Phase 3 laufend)
+# Gonk Note — Projektübergabe (Stand: 2026-07-22, Phase 3 laufend)
 
 > **📌 Doku-Pflege (Nutzer-Wunsch, dauerhaft):** Wird das **README** aktualisiert,
 > muss auch **Hilfe → Über Gonk Note** (`Views/AboutDialog`) mitgezogen werden. Das
@@ -12,7 +12,30 @@
 > ausführlichen Tabellen als Standard). **Ausführlich nur** bei **offenen Fragen und
 > Entscheidungen**, die der Nutzer treffen muss — die weiterhin klar begründen.
 >
-> **Fixes-Runde 15 (2026-07-21) zuletzt umgesetzt:**
+> **Fixes-Runde 16 (2026-07-22) zuletzt umgesetzt:**
+> - **Titelleiste: folgt dem Theme + verschwindet beim Maximieren.** Das Fenster nutzt
+>   weiterhin die native Windows-Titelleiste (kein Custom-Chrome).
+>   - *Dark Mode:* Leiste wird dunkel via DWM-Attribut `DWMWA_USE_IMMERSIVE_DARK_MODE`
+>     (neuer `Services/TitleBarTheme.cs`, `DwmSetWindowAttribute` + `SetWindowPos …|
+>     FRAMECHANGED` als Repaint-Anstoß, sonst färbt sie sich erst beim Fokuswechsel).
+>     Angewandt in `MainWindow.OnSourceInitialized` (Handle existiert erst dort) und bei
+>     jedem `ThemeService.ThemeChanged`.
+>   - *Maximiert = keine Titelleiste* (Nutzer-Wunsch, ersetzt die kurz gebaute F11-Variante):
+>     `StateChanged` → `ApplyMaximizedChrome()` setzt `WindowStyle=None` bei Maximiert und
+>     zurück auf `SingleBorderWindow` bei Normal (danach Titelfarbe neu setzen).
+>     **Zurück ins Fenster:** Doppelklick auf die Menüleiste (`TopBar_MouseLeftButtonDown`,
+>     Klicks auf Menü/Buttons ausgenommen) oder Windows-Standard (Win+ab/Taskleiste).
+>   - *Randlos-Maximier-Größe:* `Services/WindowBounds.cs` klemmt via WM_GETMINMAXINFO-Hook
+>     (`HwndSource.AddHook` in `OnSourceInitialized`, `handled=true`) auf den Monitor-
+>     Arbeitsbereich → Taskleiste bleibt sichtbar. **Grenze:** ist der Arbeitsbereich = volle
+>     Monitorgröße (ausgeblendete Taskleiste), legt WPF noch ~7 DIP Rahmenüberstand an;
+>     bei den 10-px-Rändern der App schneidet das keinen sichtbaren Inhalt ab (geprüft).
+>   - Verifiziert per echtem Screen-Capture + GetWindowRect-Messung (`%TEMP%\gonk-titlebar`):
+>     Light hell, Dark dunkel, maximiert ohne Leiste, wiederhergestellt mit Leiste. Achtung:
+>     Testrechner läuft 200 % DPI + Taskleiste auto-ausgeblendet (DPI-Stolperfalle §7).
+>     README aktualisiert (Über-Dialog zieht nach).
+>
+> **Fixes-Runde 15 (2026-07-21):**
 > - **Cover-Vorlagen: 3. Kategorie „Pixel Art".** Neun fertige Pixel-Art-Cover des
 >   Nutzers (`Assets\Covers\Pixel Art\PA (1..9).png`) sind als eigene Galerie-Gruppe
 >   in der Cover-Sektion verfügbar. **Kein neuer View-Code nötig** – die Gruppen werden

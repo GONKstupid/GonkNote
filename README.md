@@ -74,7 +74,11 @@ ohne Cloud, ohne Installation, ohne Adminrechte.
 - **Import**: Bilder, PDF, DOCX und **Markdown (`.md`)** — DOCX/Markdown als neue Textdokumente
 - **Export**: Textdokument → PDF / DOCX / Markdown / PNG, Whiteboard/Notizbuch → PDF / PNG
 - **Dark-/Light-Mode** (`Strg+T`) fürs App-Design — Seiten und Schreibflächen bleiben
-  standardmäßig hell; Seitenleiste einklappbar (`Strg+B`)
+  standardmäßig hell; die Fenster-Titelleiste folgt dem Theme (im Dark Mode dunkel).
+  Seitenleiste einklappbar (`Strg+B`)
+- **Maximiertes Fenster ohne Titelleiste**: Wird das Fenster maximiert („in Groß"),
+  blendet sich die Titelleiste aus und die Menüleiste rückt nach oben; Doppelklick auf
+  die Menüleiste (oder die Windows-Standardbefehle) stellt das Fenster wieder her
 - **Persistenz**: LiteDB-Datei unter `%APPDATA%\GonkNote\gonknote.db`, Autosave alle 30 s,
   Speichern beim Schließen von Tabs und der App
 

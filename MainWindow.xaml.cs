@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using GonkNote.Services;
 using GonkNote.ViewModels;
 
 namespace GonkNote;
@@ -22,9 +23,59 @@ public partial class MainWindow : Window
         _vm = new MainViewModel(App.Db);
         DataContext = _vm;
         Closing += (_, _) => _vm.SaveAll();
+        Closing += (_, _) => ThemeService.ThemeChanged -= ApplyTitleBarTheme;
         PreviewKeyDown += Window_PreviewKeyDown;
+        StateChanged += (_, _) => ApplyMaximizedChrome();
+        ThemeService.ThemeChanged += ApplyTitleBarTheme;
 
         if (App.Db.GetSetting("sidebar") == "0") SetSidebarVisible(false);
+    }
+
+    protected override void OnSourceInitialized(EventArgs e)
+    {
+        base.OnSourceInitialized(e);
+        // Handle existiert jetzt: MinMax-Hook (korrekte Maximier-Größe ohne Titelleiste)
+        // einhängen und Titelleiste passend zum Theme/Fensterzustand setzen.
+        System.Windows.Interop.HwndSource.FromHwnd(
+            new System.Windows.Interop.WindowInteropHelper(this).Handle)?.AddHook(WndProc);
+        ApplyTitleBarTheme();
+        ApplyMaximizedChrome();
+    }
+
+    private static IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+    {
+        if (msg == WindowBounds.WmGetMinMaxInfo)
+        {
+            WindowBounds.AdjustMaximizedBounds(hwnd, lParam);
+            // Als erledigt markieren, sonst überschreibt WPFs Standardbehandlung die Werte
+            // wieder mit dem Vollmonitor + ~7-px-Überstand (randlose Fenster).
+            handled = true;
+        }
+        return IntPtr.Zero;
+    }
+
+    /// <summary>Native Titelleiste dunkel/hell entsprechend dem aktuellen App-Theme.</summary>
+    private void ApplyTitleBarTheme() =>
+        TitleBarTheme.Apply(this, ThemeService.Current == AppTheme.Dark);
+
+    /// <summary>
+    /// Blendet die native Titelleiste aus, sobald das Fenster maximiert („in Groß") ist,
+    /// und bringt sie im Normalfenster zurück. Die Maximier-Größe ist per
+    /// <see cref="WindowBounds"/> auf den Arbeitsbereich begrenzt – Taskleiste bleibt
+    /// sichtbar, nichts ragt über den Rand. Zurück ins Fenster: Doppelklick auf die
+    /// Menüleiste (siehe <see cref="TopBar_MouseLeftButtonDown"/>).
+    /// </summary>
+    private void ApplyMaximizedChrome()
+    {
+        if (WindowState == WindowState.Maximized)
+        {
+            WindowStyle = WindowStyle.None;
+        }
+        else if (WindowState == WindowState.Normal)
+        {
+            WindowStyle = WindowStyle.SingleBorderWindow;
+            ApplyTitleBarTheme(); // Farbe nach dem Stilwechsel neu setzen
+        }
     }
 
     private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
@@ -34,6 +85,24 @@ public partial class MainWindow : Window
             SetSidebarVisible(!_sidebarVisible);
             e.Handled = true;
         }
+    }
+
+    /// <summary>
+    /// Doppelklick auf die Menüleiste maximiert bzw. verkleinert das Fenster (wie eine
+    /// Titelleiste). So lässt sich das maximierte, titelleistenlose Fenster wieder
+    /// verkleinern. Klicks auf Menüs/Buttons werden dabei ausgenommen.
+    /// </summary>
+    private void TopBar_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ClickCount != 2) return;
+        var src = e.OriginalSource as DependencyObject;
+        if (src.FindAncestor<MenuItem>() != null ||
+            src.FindAncestor<System.Windows.Controls.Primitives.ButtonBase>() != null)
+            return;
+        WindowState = WindowState == WindowState.Maximized
+            ? WindowState.Normal
+            : WindowState.Maximized;
+        e.Handled = true;
     }
 
     private void ToggleSidebar_Click(object sender, RoutedEventArgs e) =>
@@ -274,5 +343,13 @@ internal static class VisualTreeExtensions
             source = VisualTreeHelper.GetParent(source);
         }
         return null;
+    }
+
+    /// <summary>Sucht aufwärts im Visual Tree nach dem nächsten Vorfahren vom Typ T.</summary>
+    public static T? FindAncestor<T>(this DependencyObject? source) where T : DependencyObject
+    {
+        while (source != null && source is not T)
+            source = VisualTreeHelper.GetParent(source);
+        return source as T;
     }
 }

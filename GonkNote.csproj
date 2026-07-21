@@ -44,9 +44,10 @@
     <EmbeddedResource Include="Assets\Geodreieck-Dark.svg" />
     <!-- Basis-Sticker: neben die Exe kopieren; Nutzer-Sticker liegen in %APPDATA% -->
     <Content Include="Assets\Stickers\*.png" CopyToOutputDirectory="PreserveNewest" />
-    <!-- Cover-Vorlagen (Nutzer-Motive, JPEG 1600 px lange Kante): wie die Sticker
-         neben die Exe; eigene Vorlagen liegen in %APPDATA%\GonkNote\Covers -->
+    <!-- Cover-Vorlagen (Nutzer-Motive, JPEG 1600 px lange Kante bzw. Pixel-Art-PNGs):
+         wie die Sticker neben die Exe; eigene Vorlagen liegen in %APPDATA%\GonkNote\Covers -->
     <Content Include="Assets\Covers\**\*.jpg" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Assets\Covers\**\*.png" CopyToOutputDirectory="PreserveNewest" />
     <!-- OCR-Sprachdaten (Tesseract, tessdata_fast deu+eng): wie die Sticker als
          lose Begleitdatei neben die Exe. Die nativen Tesseract-DLLs kommen über
          das NuGet-Paket in den x64-/x86-Unterordner. -->

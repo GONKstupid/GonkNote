@@ -1,4 +1,4 @@
-# Gonk Note — Projektübergabe (Stand: 2026-07-19, Phase 3 laufend)
+# Gonk Note — Projektübergabe (Stand: 2026-07-21, Phase 3 laufend)
 
 > **📌 Doku-Pflege (Nutzer-Wunsch, dauerhaft):** Wird das **README** aktualisiert,
 > muss auch **Hilfe → Über Gonk Note** (`Views/AboutDialog`) mitgezogen werden. Das
@@ -7,7 +7,19 @@
 > `AboutDialog.xaml.cs` (`VersionText.Text`, aktuell „Phase 3") sowie ggf. Layout/Über-
 > Texte im Dialog selbst. Kurz: README ändern ⇒ Über-Dialog gegenprüfen.
 >
-> **Fixes-Runde 14 (2026-07-19) zuletzt umgesetzt:**
+> **Fixes-Runde 15 (2026-07-21) zuletzt umgesetzt:**
+> - **Cover-Vorlagen: 3. Kategorie „Pixel Art".** Neun fertige Pixel-Art-Cover des
+>   Nutzers (`Assets\Covers\Pixel Art\PA (1..9).png`) sind als eigene Galerie-Gruppe
+>   in der Cover-Sektion verfügbar. **Kein neuer View-Code nötig** – die Gruppen werden
+>   in `WhiteboardView.Covers.cs` generisch aus den Unterordnern von `Assets\Covers`
+>   erzeugt (alphabetisch → Basic, Muster, Pixel Art) und `.png` ist in `StickerExts`
+>   ohnehin erlaubt. Einziger Baustein: die csproj kopierte bisher nur `Covers\**\*.jpg`
+>   neben die Exe; jetzt zusätzlich `Covers\**\*.png` (`Content … PreserveNewest`),
+>   damit die PNGs im Build-Output/Single-File-Publish landen. Verifiziert: Build grün,
+>   alle 9 PNGs liegen neben der Debug-Exe. In-App-Klick nicht durchgespielt (Render-
+>   Pfad identisch zu Basic/Muster).
+>
+> **Fixes-Runde 14 (2026-07-19):**
 > - **Zahlenblock für die Strichstärke (Vorbild Adobe Fresco).** Langes Drücken auf
 >   den Größen-Slider (`WidthSlider`, ~500 ms, Finger/Stift/Maus) – oder ein Klick auf
 >   die Wertanzeige daneben (jetzt ein Button) – öffnet ein **Numpad-Popup**
@@ -84,9 +96,9 @@
 >   **„+"-Kachel** → Farbwähler → neue Farbe wird angehängt, beliebig oft; Rechtsklick
 >   auf eine Kachel → **„Farbe löschen"** (mind. eine bleibt). Palette ist statisch
 >   (Sitzung) und gilt für Text-Editor/Whiteboard/Notizbuch (`ChartDialog`).
-> - **Cover-Vorlagen (Notizbuch):** 53 Nutzer-Motive (19 „Basic", 34 „Muster") als
->   Galerie in der Cover-Sektion der Einstellungs-Leiste; jede Gruppe ist ein
->   eigener zuklappbarer Expander (Kacheln laden lazy beim Aufklappen,
+> - **Cover-Vorlagen (Notizbuch):** 62 Nutzer-Motive (19 „Basic", 34 „Muster",
+>   9 „Pixel Art") als Galerie in der Cover-Sektion der Einstellungs-Leiste; jede
+>   Gruppe ist ein eigener zuklappbarer Expander (Kacheln laden lazy beim Aufklappen,
 >   `WhiteboardView.Covers.cs` + `CoverPresetHost` im XAML). Klick = Bild-Cover über
 >   den bestehenden Weg (`CoverStyle.Image` → DB). Auslieferung wie Sticker:
 >   `Assets\Covers\<Gruppe>\*.jpg` neben der Exe (aus den A4-Originalen auf 1600 px

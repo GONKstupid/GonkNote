@@ -13,7 +13,8 @@ ohne Cloud, ohne Installation, ohne Adminrechte.
   Seitenleiste; Favoriten werden in ihrem Ordner zuerst angezeigt
 - **Drei Dokumenttypen**, jeder in eigener Registerkarte:
   - **Notizbuch** — A4/A3-Seiten mit anpassbarem Cover (Farbverlauf, Schrift oder eigenes Bild;
-    mitgelieferte Cover-Vorlagen und eigene, hochladbare Vorlagen unter „Individuell")
+    mitgelieferte Cover-Vorlagen in den Kategorien „Basic", „Muster" und „Pixel Art" sowie
+    eigene, hochladbare Vorlagen unter „Individuell")
   - **Whiteboard** — unendliche Zeichenfläche mit Punktraster
   - **Textdokument** — Rich-Text-Editor mit stets heller Schreibfläche
 - **Whiteboard-Werkzeuge** (SkiaSharp-Rendering; Standardfarbe folgt der Seite: Schwarz auf

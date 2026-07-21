@@ -7,14 +7,17 @@ ohne Cloud, ohne Installation, ohne Adminrechte.
 ## Features
 
 - **Ordnerbaum** mit beliebiger Verschachtelung, Drag & Drop (Verschieben, mit `Strg` Kopieren),
-  Umbenennen (`F2`), Löschen (`Entf`), Kontextmenü, frei wählbare Symbolfarben
+  Umbenennen (`F2`), Löschen (`Entf`), Kontextmenü, frei wählbare Symbolfarben — Elemente und
+  Unterordner **erben automatisch die Farbe ihres Ordners**, solange sie keine eigene Farbe haben
 - **Anpinnen & Favoriten**: angepinnte Ordner erscheinen im Schnellzugriff-Bereich der
   Seitenleiste; Favoriten werden in ihrem Ordner zuerst angezeigt
 - **Drei Dokumenttypen**, jeder in eigener Registerkarte:
-  - **Notizbuch** — A4/A3-Seiten mit anpassbarem Cover (Farbverlauf, Schrift oder eigenes Bild)
+  - **Notizbuch** — A4/A3-Seiten mit anpassbarem Cover (Farbverlauf, Schrift oder eigenes Bild;
+    mitgelieferte Cover-Vorlagen und eigene, hochladbare Vorlagen unter „Individuell")
   - **Whiteboard** — unendliche Zeichenfläche mit Punktraster
   - **Textdokument** — Rich-Text-Editor mit stets heller Schreibfläche
-- **Whiteboard-Werkzeuge** (SkiaSharp-Rendering, Standardfarbe Schwarz):
+- **Whiteboard-Werkzeuge** (SkiaSharp-Rendering; Standardfarbe folgt der Seite: Schwarz auf
+  hellen, Weiß auf dunklen Seiten):
   - Stift (druckempfindlich), Bleistift, Textmarker
   - **Formen-Stift** (`G`): erkennt gezeichnete Formen wie in GoodNotes — Geraden
     (mit 45°-Einrasten), Kreise/Ellipsen, Rechtecke, Streckenzüge; sonst wird die Kurve geglättet
@@ -24,8 +27,14 @@ ohne Cloud, ohne Installation, ohne Adminrechte.
     umschlossen ist) und **Verschieben** (`V`) wählt Objekte direkt per Klick an. Ausgewählte
     Objekte lassen sich verschieben, **skalieren** (Eckgriff) und **drehen** (Dreh-Griff mit
     15°-Rastung) — für Striche, Formen, Text, Bilder und Notizzettel
-  - **Rechtsklick-Kontextmenü** auf der Leinwand (Ausschneiden, Kopieren, Duplizieren,
-    Einfügen, Löschen, Alles auswählen) — Whiteboard/Notizbuch komplett ohne Tastatur nutzbar
+  - **Quick-Options-Menü** auf der Leinwand (floatende Icon-Leiste im Toolbar-Look:
+    Ausschneiden, Kopieren, Duplizieren, Einfügen, **Text erkennen (OCR)**, Löschen, Alles
+    auswählen) — öffnet per Rechtsklick, **zweiter Stift-Taste**, **langem Drücken** (Finger/
+    Stift, bei Lasso/Verschieben/Hand) oder automatisch nach einer Auswahl; ganz ohne Tastatur
+  - **Textstärke per Zahlenblock**: langes Drücken auf den Größen-Regler (oder Klick auf den
+    Wert) öffnet ein Numpad zur direkten Eingabe (Vorbild Adobe Fresco)
+  - **OCR** (Texterkennung, offline via Tesseract, Deutsch/Englisch): erkennt gedruckten Text in
+    ausgewählten Bildern oder importierten PDF-Seiten; Ergebnis kopieren oder als Notizzettel einfügen
   - Formen (Linie, Pfeil, Rechteck, Ellipse, Dreieck) mit Füllfarbe und Deckkraft —
     Einstellungen in der Seitenleiste rechts
   - **Textfelder** mit wählbarer Schriftart, Text- und Hintergrundfarbe
@@ -45,18 +54,23 @@ ohne Cloud, ohne Installation, ohne Adminrechte.
 - **Einstellungs-Seitenleiste rechts** (Zahnrad): Seitenmuster und -farbton, Format
   (A4/A3, Hoch-/Querformat, Vorlage für neue Seiten), Formen-Optionen, Text-Optionen
   und Cover-Gestaltung — Änderungen wirken sofort
-- **Texteditor** im Ribbon-Layout (Start / Einfügen / Layout / Verweise):
+- **Texteditor** im Ribbon-Layout (Start / Einfügen / Layout / Verweise, plus Kontext-Tab
+  **Tabelle**, wenn der Cursor in einer Tabelle steht):
   - Zeichen-/Absatzformate, Formatvorlagen (Standard, Überschrift 1–4, Titel, Zitat,
     Kopf-/Fußzeile), Format übertragen, Listen mit Stil-Bibliothek, Suchen & Ersetzen
-  - **Seiteneinrichtung** (A4/A5/A3/Letter, Hoch-/Querformat, Ränder in cm inkl.
-    Lernblatt-Vorlage), Kopf-/Fußzeile mit Platzhaltern, Wasserzeichen — in einer
-    ausklappbaren Einstellungs-Seitenleiste
+  - **Erweiterte Einstellungen** (ausklappbare Seitenleiste): Seiteneinrichtung (A4/A5/A3/Letter,
+    Hoch-/Querformat, Ränder in cm inkl. Lernblatt-Vorlage), Absätze, Kopf-/Fußzeile mit
+    Platzhaltern, Wasserzeichen, sowie Tabellen-Design/Rahmen — jeweils über ihren Ribbon-Button geöffnet
   - **Inhaltsverzeichnis** aus den Überschriften, Hyperlinks, Sonderzeichen, Beschriftungen
-  - **Tabellen** (Struktur im Rechtsklick-Menü, Rahmen/Zellen in der Seitenleiste, wirkt auf
-    die ausgewählten Zellen) und **Diagramme** (Säulen, Balken, Linie, Punkt, Punkt+Linie,
-    Kuchen, Radar — mit mehreren Reihen und anpassbaren Farben)
+  - **Tabellen wie in Word** (Kontext-Tab „Tabelle"): Raster-Einfügen, Text↔Tabelle, Schnell­tabellen,
+    Zeilen/Spalten, Zellen verbinden (auch senkrecht)/teilen, Tabelle teilen, AutoAnpassen,
+    Sortieren, Formeln (`=SUMME(ABOVE)` …), Formatvorlagen mit Kopf-/Ergebniszeile und
+    Zeilen-/Spaltenbändern, Rahmen und Füllung
+  - **Diagramme** (Säulen, Balken, Linie, Punkt, Punkt+Linie, Kuchen, Radar — mehrere Reihen,
+    Farben per „+" erweiterbar und per Rechtsklick löschbar)
   - Rechtschreibprüfung (Deutsch/Englisch) mit Korrekturvorschlägen, Lineal, Statusleiste
     (Wörter, Zoom), Überschriften-Navigator, Seitenumbruch-Marken
+- **Import**: Bilder, PDF, DOCX und **Markdown (`.md`)** — DOCX/Markdown als neue Textdokumente
 - **Export**: Textdokument → PDF / DOCX / Markdown / PNG, Whiteboard/Notizbuch → PDF / PNG
 - **Dark-/Light-Mode** (`Strg+T`) fürs App-Design — Seiten und Schreibflächen bleiben
   standardmäßig hell; Seitenleiste einklappbar (`Strg+B`)
@@ -82,7 +96,8 @@ ohne Cloud, ohne Installation, ohne Adminrechte.
 | `H` | Hand (Leinwand verschieben) |
 
 Auswahl: verschieben, skalieren, drehen · `Strg+C/X/V` kopieren/ausschneiden/einfügen ·
-`Strg+D` duplizieren · `Strg+A` alles auswählen · `Entf` löschen · Rechtsklick = Kontextmenü.
+`Strg+D` duplizieren · `Strg+A` alles auswählen · `Entf` löschen · Rechtsklick, zweite
+Stift-Taste oder langes Drücken = Quick-Options-Menü.
 
 ## Build
 
@@ -122,15 +137,16 @@ GonkNote/
 
 ## Roadmap
 
-- **Phase 2 — Import/Export** ✔: Bilder-/DOCX-/PDF-Import, Export nach PDF/DOCX/Markdown/PNG,
-  Datei-Einfüge-Tool mit Seitenvorschau
+- **Phase 2 — Import/Export** ✔: Bilder-/DOCX-/PDF-/Markdown-Import, Export nach
+  PDF/DOCX/Markdown/PNG, Datei-Einfüge-Tool mit Seitenvorschau
 - **Phase 3 — Feinschliff**:
-  - ✔ Sticker, Notizzettel, Lineal/Geodreieck, Diagramme, Tabellen, Whiteboard-Kontextmenü
+  - ✔ Sticker, Notizzettel, Lineal/Geodreieck, Diagramme, Tabellen (Word-artiger Kontext-Tab),
+    Quick-Options-Menü, **OCR** (Tesseract, Deutsch/Englisch), Markdown-Import, Cover-Vorlagen,
+    Ordner-Farbvererbung, Zahlenblock für die Strichstärke
   - **Nächster Schritt (nach der Testphase):** RAM-Optimierung. Leitlinie: *Features vor RAM* —
     Ziel wären ~200 MB, akzeptabel bis in den mittleren dreistelligen MB-Bereich, **harte
     Obergrenze 1 GB**, die nie überschritten werden darf.
   - **Render-Caching**: nur, falls die RAM-Auslastung nach der Optimierung noch zu hoch ist
     (oder vorgezogen, falls es technisch sinnvoller vor der Optimierung liegt)
-  - **OCR** (geplant): Umsetzung mit **Tesseract** (offline, Deutsch/Englisch) für gedruckten
-    Text in Bild-/PDF-Seiten; Handschrift-Erkennung optional
+  - **Handschrift-Erkennung** (optional, aufbauend auf der OCR-Grundlage)
   - **Keine Obfuskierung** — das Projekt soll so offen wie möglich bleiben

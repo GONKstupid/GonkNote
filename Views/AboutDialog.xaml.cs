@@ -12,7 +12,7 @@ public partial class AboutDialog : Window
         InitializeComponent();
 
         var version = Assembly.GetExecutingAssembly().GetName().Version;
-        VersionText.Text = $"Version {version?.ToString(3) ?? "?"} – Phase 2";
+        VersionText.Text = $"Version {version?.ToString(3) ?? "?"} – Phase 3";
 
         try
         {

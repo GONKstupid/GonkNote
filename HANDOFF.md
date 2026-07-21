@@ -1,6 +1,23 @@
 # Gonk Note — Projektübergabe (Stand: 2026-07-19, Phase 3 laufend)
 
-> **Fixes-Runde 13 (2026-07-19) zuletzt umgesetzt:**
+> **📌 Doku-Pflege (Nutzer-Wunsch, dauerhaft):** Wird das **README** aktualisiert,
+> muss auch **Hilfe → Über Gonk Note** (`Views/AboutDialog`) mitgezogen werden. Das
+> README wird dort zur Laufzeit als eingebettete Resource geladen → Textänderungen
+> erscheinen automatisch; **manuell** zu pflegen ist nur die Versions-/Phasenzeile in
+> `AboutDialog.xaml.cs` (`VersionText.Text`, aktuell „Phase 3") sowie ggf. Layout/Über-
+> Texte im Dialog selbst. Kurz: README ändern ⇒ Über-Dialog gegenprüfen.
+>
+> **Fixes-Runde 14 (2026-07-19) zuletzt umgesetzt:**
+> - **Zahlenblock für die Strichstärke (Vorbild Adobe Fresco).** Langes Drücken auf
+>   den Größen-Slider (`WidthSlider`, ~500 ms, Finger/Stift/Maus) – oder ein Klick auf
+>   die Wertanzeige daneben (jetzt ein Button) – öffnet ein **Numpad-Popup**
+>   (`SizeNumpad`) im App-Stil: Display + 7-8-9/4-5-6/1-2-3/0-,-⌫. Eingabe wird live
+>   auf den Slider (1–20) geclampt und angewandt. Code: `Views/WhiteboardView.Numpad.cs`
+>   (Langdruck-Timer + Numpad-Logik), Style `NumpadKey` in `WhiteboardView.xaml`.
+>   `WidthLabel` ist jetzt ein Button (Content statt Text – `WidthSlider_ValueChanged`
+>   angepasst). README/Über-Dialog aktualisiert (s. o.).
+>
+> **Fixes-Runde 13 (2026-07-19):**
 > - **Ordner-Tree: Farbvererbung.** Elemente/Unterordner ohne eigene (händisch
 >   gesetzte) Symbolfarbe erben automatisch die Farbe des übergeordneten Ordners
 >   (rekursiv). `IconColor` = manuell (bleibt), sonst geerbt. Berechnung zentral in

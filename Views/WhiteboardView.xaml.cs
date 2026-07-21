@@ -429,7 +429,7 @@ public partial class WhiteboardView : UserControl
     private void WidthSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
     {
         _width = (float)e.NewValue;
-        if (WidthLabel != null) WidthLabel.Text = _width.ToString("0.#");
+        if (WidthLabel != null) WidthLabel.Content = _width.ToString("0.#");
     }
 
     private void Undo_Click(object sender, RoutedEventArgs e) => DoUndo();

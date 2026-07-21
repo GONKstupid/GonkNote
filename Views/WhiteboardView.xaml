@@ -3,6 +3,37 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:skia="clr-namespace:SkiaSharp.Views.WPF;assembly=SkiaSharp.Views.WPF"
              Focusable="True">
+    <UserControl.Resources>
+        <!-- Numpad-Taste (Strichstärke per Zahlenblock, Vorbild Adobe Fresco) -->
+        <Style x:Key="NumpadKey" TargetType="Button">
+            <Setter Property="Height" Value="44"/>
+            <Setter Property="Margin" Value="3"/>
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="Foreground" Value="{DynamicResource Brush.Text}"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}"
+                                BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1"
+                                CornerRadius="8" SnapsToDevicePixels="True">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="{DynamicResource Brush.Hover}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="{DynamicResource Brush.AccentSoft}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
     <DockPanel>
 
         <!-- ===== Werkzeugleiste ===== -->
@@ -160,10 +191,49 @@
                     <!-- Strichstärke -->
                     <TextBlock Text="&#xE76D;" FontFamily="{StaticResource IconFont}" FontSize="12"
                                Foreground="{DynamicResource Brush.TextMuted}" VerticalAlignment="Center" Margin="2,0"/>
+                    <!-- Langes Drücken auf Slider oder Wert öffnet den Zahlenblock -->
                     <Slider x:Name="WidthSlider" Width="90" Minimum="1" Maximum="20" Value="2.5"
-                            VerticalAlignment="Center" ValueChanged="WidthSlider_ValueChanged"/>
-                    <TextBlock x:Name="WidthLabel" Text="2,5" Width="26" VerticalAlignment="Center" Margin="4,0,0,0"
-                               Foreground="{DynamicResource Brush.TextMuted}" FontSize="11"/>
+                            VerticalAlignment="Center" ValueChanged="WidthSlider_ValueChanged"
+                            ToolTip="Strichstärke – lange drücken für Zahleneingabe"
+                            PreviewMouseLeftButtonDown="SizeInput_Down" PreviewMouseMove="SizeInput_Move"
+                            PreviewMouseLeftButtonUp="SizeInput_Up"
+                            TouchDown="SizeInput_TouchDown" TouchMove="SizeInput_TouchMove" TouchUp="SizeInput_TouchUp"/>
+                    <Button x:Name="WidthLabel" Content="2,5" MinWidth="26" VerticalAlignment="Center" Margin="4,0,0,0"
+                            Style="{StaticResource FlatButton}" Padding="4,2" FontSize="11"
+                            Foreground="{DynamicResource Brush.TextMuted}"
+                            ToolTip="Strichstärke per Zahlenblock eingeben" Click="OpenSizeNumpad_Click"/>
+
+                    <!-- Zahlenblock (Popup) – Vorbild Adobe Fresco, im App-Stil -->
+                    <Popup x:Name="SizeNumpad" PlacementTarget="{Binding ElementName=WidthSlider}"
+                           Placement="Bottom" StaysOpen="False" AllowsTransparency="True">
+                        <Border Background="{DynamicResource Brush.CardBg}"
+                                BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1"
+                                CornerRadius="12" Padding="10" Margin="8" Width="196">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="16" ShadowDepth="2" Opacity="0.28"/>
+                            </Border.Effect>
+                            <StackPanel>
+                                <TextBlock x:Name="NumpadDisplay" Text="2,5" FontSize="28" Margin="8,2,8,10"
+                                           Foreground="{DynamicResource Brush.Text}"/>
+                                <UniformGrid Columns="3" Rows="4">
+                                    <Button Style="{StaticResource NumpadKey}" Content="7" Click="NumpadKey_Click"/>
+                                    <Button Style="{StaticResource NumpadKey}" Content="8" Click="NumpadKey_Click"/>
+                                    <Button Style="{StaticResource NumpadKey}" Content="9" Click="NumpadKey_Click"/>
+                                    <Button Style="{StaticResource NumpadKey}" Content="4" Click="NumpadKey_Click"/>
+                                    <Button Style="{StaticResource NumpadKey}" Content="5" Click="NumpadKey_Click"/>
+                                    <Button Style="{StaticResource NumpadKey}" Content="6" Click="NumpadKey_Click"/>
+                                    <Button Style="{StaticResource NumpadKey}" Content="1" Click="NumpadKey_Click"/>
+                                    <Button Style="{StaticResource NumpadKey}" Content="2" Click="NumpadKey_Click"/>
+                                    <Button Style="{StaticResource NumpadKey}" Content="3" Click="NumpadKey_Click"/>
+                                    <Button Style="{StaticResource NumpadKey}" Content="0" Click="NumpadKey_Click"/>
+                                    <Button Style="{StaticResource NumpadKey}" Content="," Click="NumpadKey_Click"/>
+                                    <Button Style="{StaticResource NumpadKey}" Content="&#xE750;"
+                                            FontFamily="{StaticResource IconFont}" FontSize="16"
+                                            Click="NumpadBack_Click" ToolTip="Löschen"/>
+                                </UniformGrid>
+                            </StackPanel>
+                        </Border>
+                    </Popup>
 
                     <Border Width="1" Background="{DynamicResource Brush.Border}" Margin="6,4"/>
 

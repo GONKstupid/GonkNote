@@ -65,6 +65,43 @@ public partial class WhiteboardView
         _numpadEntry = "";
         NumpadDisplay.Text = _width.ToString("0.#");
         SizeNumpad.IsOpen = true;
+        // Bleibt offen (StaysOpen=True); schließt nur bei einem Klick klar außerhalb –
+        // nicht im Popup (eigenes Fenster) und nicht auf den Größen-Steuerelementen.
+        PreviewMouseDown -= SizeNumpad_OutsideDown;
+        PreviewMouseDown += SizeNumpad_OutsideDown;
+        PreviewTouchDown -= SizeNumpad_OutsideTouch;
+        PreviewTouchDown += SizeNumpad_OutsideTouch;
+    }
+
+    private void CloseSizeNumpad()
+    {
+        SizeNumpad.IsOpen = false;
+        PreviewMouseDown -= SizeNumpad_OutsideDown;
+        PreviewTouchDown -= SizeNumpad_OutsideTouch;
+    }
+
+    private void SizeNumpad_OutsideDown(object sender, MouseButtonEventArgs e)
+    {
+        if (!IsSizeTrigger(e.OriginalSource)) CloseSizeNumpad();
+    }
+
+    private void SizeNumpad_OutsideTouch(object sender, TouchEventArgs e)
+    {
+        if (!IsSizeTrigger(e.OriginalSource)) CloseSizeNumpad();
+    }
+
+    /// <summary>Gehört das Element zu den Größen-Auslösern (Slider, Icon, Wertanzeige)?</summary>
+    private bool IsSizeTrigger(object? src)
+    {
+        var d = src as DependencyObject;
+        while (d != null)
+        {
+            if (ReferenceEquals(d, WidthSlider) || ReferenceEquals(d, WidthLabel) || ReferenceEquals(d, WidthIcon))
+                return true;
+            d = d is System.Windows.Media.Visual ? System.Windows.Media.VisualTreeHelper.GetParent(d)
+                                                  : LogicalTreeHelper.GetParent(d);
+        }
+        return false;
     }
 
     private void NumpadKey_Click(object sender, RoutedEventArgs e)

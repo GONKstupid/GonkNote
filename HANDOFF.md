@@ -16,6 +16,11 @@
 >   (Langdruck-Timer + Numpad-Logik), Style `NumpadKey` in `WhiteboardView.xaml`.
 >   `WidthLabel` ist jetzt ein Button (Content statt Text – `WidthSlider_ValueChanged`
 >   angepasst). README/Über-Dialog aktualisiert (s. o.).
+>   **Nachtrag:** Auslöser jetzt auch das **Strichstärke-Icon** (`WidthIcon`, Langdruck),
+>   nicht nur Slider/Wert. Popup ist `StaysOpen=True` und schließt **nur bei Klick klar
+>   außerhalb** (eigener `PreviewMouseDown`/`PreviewTouchDown`-Handler; `IsSizeTrigger`
+>   nimmt Slider/Icon/Wert aus) – Klicks im Popup oder auf die Größen-Steuerelemente
+>   lassen es offen. Verifiziert (Slider-Klick → bleibt offen, Canvas-Klick → schließt).
 >
 > **Fixes-Runde 13 (2026-07-19):**
 > - **Ordner-Tree: Farbvererbung.** Elemente/Unterordner ohne eigene (händisch

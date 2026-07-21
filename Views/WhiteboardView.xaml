@@ -188,9 +188,14 @@
 
                     <Border Width="1" Background="{DynamicResource Brush.Border}" Margin="6,4"/>
 
-                    <!-- Strichstärke -->
-                    <TextBlock Text="&#xE76D;" FontFamily="{StaticResource IconFont}" FontSize="12"
-                               Foreground="{DynamicResource Brush.TextMuted}" VerticalAlignment="Center" Margin="2,0"/>
+                    <!-- Strichstärke (Icon ist ebenfalls Langdruck-Auslöser für den Zahlenblock) -->
+                    <TextBlock x:Name="WidthIcon" Text="&#xE76D;" FontFamily="{StaticResource IconFont}" FontSize="12"
+                               Background="Transparent" Cursor="Hand"
+                               Foreground="{DynamicResource Brush.TextMuted}" VerticalAlignment="Center" Margin="2,0"
+                               ToolTip="Strichstärke – lange drücken für Zahleneingabe"
+                               PreviewMouseLeftButtonDown="SizeInput_Down" PreviewMouseMove="SizeInput_Move"
+                               PreviewMouseLeftButtonUp="SizeInput_Up"
+                               TouchDown="SizeInput_TouchDown" TouchMove="SizeInput_TouchMove" TouchUp="SizeInput_TouchUp"/>
                     <!-- Langes Drücken auf Slider oder Wert öffnet den Zahlenblock -->
                     <Slider x:Name="WidthSlider" Width="90" Minimum="1" Maximum="20" Value="2.5"
                             VerticalAlignment="Center" ValueChanged="WidthSlider_ValueChanged"
@@ -205,7 +210,7 @@
 
                     <!-- Zahlenblock (Popup) – Vorbild Adobe Fresco, im App-Stil -->
                     <Popup x:Name="SizeNumpad" PlacementTarget="{Binding ElementName=WidthSlider}"
-                           Placement="Bottom" StaysOpen="False" AllowsTransparency="True">
+                           Placement="Bottom" StaysOpen="True" AllowsTransparency="True">
                         <Border Background="{DynamicResource Brush.CardBg}"
                                 BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1"
                                 CornerRadius="12" Padding="10" Margin="8" Width="196">

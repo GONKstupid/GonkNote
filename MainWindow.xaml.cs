@@ -1,7 +1,9 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using GonkNote.Services;
 using GonkNote.ViewModels;
 
@@ -25,6 +27,7 @@ public partial class MainWindow : Window
         Closing += (_, _) => _vm.SaveAll();
         Closing += (_, _) => ThemeService.ThemeChanged -= ApplyTitleBarTheme;
         PreviewKeyDown += Window_PreviewKeyDown;
+        PreviewMouseMove += Root_MouseMove;
         StateChanged += (_, _) => ApplyMaximizedChrome();
         ThemeService.ThemeChanged += ApplyTitleBarTheme;
 
@@ -70,12 +73,126 @@ public partial class MainWindow : Window
         if (WindowState == WindowState.Maximized)
         {
             WindowStyle = WindowStyle.None;
+            // Einblendbare Titelleiste aktivieren (startet eingefahren, kommt bei Mauskontakt am oberen Rand)
+            AutoTitleBar.Visibility = Visibility.Visible;
+            HideAutoTitleBar(animate: false);
         }
         else if (WindowState == WindowState.Normal)
         {
             WindowStyle = WindowStyle.SingleBorderWindow;
             ApplyTitleBarTheme(); // Farbe nach dem Stilwechsel neu setzen
+            AutoTitleBar.Visibility = Visibility.Collapsed;
+            _titleBarRevealed = false;
         }
+    }
+
+    // ==================== Einblendbare Titelleiste (maximiert) ====================
+
+    private bool _titleBarRevealed;
+    private const double AutoTitleBarHidden = -40; // vollständig eingefahren (Höhe 34 + Rand)
+
+    /// <summary>Blendet die Titelleiste ein/aus, wenn die Maus im maximierten Fenster den oberen Rand erreicht/verlässt.</summary>
+    private void Root_MouseMove(object sender, MouseEventArgs e)
+    {
+        if (WindowState != WindowState.Maximized) return;
+        double y = e.GetPosition(this).Y;
+        if (!_titleBarRevealed && y <= 12) RevealAutoTitleBar();
+        else if (_titleBarRevealed && y > 48) HideAutoTitleBar(animate: true);
+    }
+
+    private void RevealAutoTitleBar()
+    {
+        if (_titleBarRevealed) return;
+        _titleBarRevealed = true;
+        AnimateTitleBar(0);
+    }
+
+    private void HideAutoTitleBar(bool animate)
+    {
+        _titleBarRevealed = false;
+        if (animate)
+        {
+            AnimateTitleBar(AutoTitleBarHidden);
+        }
+        else
+        {
+            // Ohne Animation direkt setzen (laufende Animation zuerst lösen)
+            AutoTitleBarTransform.BeginAnimation(TranslateTransform.YProperty, null);
+            AutoTitleBarTransform.Y = AutoTitleBarHidden;
+        }
+    }
+
+    private void AnimateTitleBar(double toY)
+    {
+        var anim = new DoubleAnimation(toY, TimeSpan.FromMilliseconds(170))
+        {
+            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut },
+        };
+        AutoTitleBarTransform.BeginAnimation(TranslateTransform.YProperty, anim);
+    }
+
+    private void Caption_Minimize(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
+    private void Caption_Restore(object sender, RoutedEventArgs e) => WindowState = WindowState.Normal;
+    private void Caption_Close(object sender, RoutedEventArgs e) => Close();
+
+    /// <summary>Doppelklick auf die eingeblendete Titelleiste stellt das Fenster wieder her.</summary>
+    private void AutoTitleBar_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ClickCount == 2) { WindowState = WindowState.Normal; e.Handled = true; }
+    }
+
+    // ==================== Galerie (Big-Picture-Modus) ====================
+
+    /// <summary>Öffnet das „Neu"-Menü der Galerie (Ordner/Notizbuch/Whiteboard/Textdokument).</summary>
+    private void GalleryNew_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button { ContextMenu: { } menu } b)
+        {
+            menu.PlacementTarget = b;
+            menu.Placement = PlacementMode.Bottom;
+            menu.IsOpen = true;
+        }
+    }
+
+    private void GalleryChevron_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement { DataContext: GalleryItemViewModel g } fe)
+            ShowGalleryMenu(fe, g);
+        e.Handled = true;
+    }
+
+    private void GalleryTile_RightClick(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is FrameworkElement { DataContext: GalleryItemViewModel g } fe)
+        {
+            ShowGalleryMenu(fe, g);
+            e.Handled = true;
+        }
+    }
+
+    /// <summary>Kontextmenü einer Galerie-Kachel (Öffnen/Umbenennen/Anpinnen/Favorit/Löschen).</summary>
+    private void ShowGalleryMenu(FrameworkElement anchor, GalleryItemViewModel g)
+    {
+        var t = g.Tree;
+        var menu = new ContextMenu { PlacementTarget = anchor, Placement = PlacementMode.Bottom };
+
+        void Add(string header, Action act)
+        {
+            var mi = new MenuItem { Header = header };
+            mi.Click += (_, _) => act();
+            menu.Items.Add(mi);
+        }
+
+        Add("Öffnen", () => { if (t.IsFolder) _vm.NavigateGallery(t); else _vm.OpenItem(t); });
+        Add("Umbenennen", () => _vm.BeginRename(t));
+        if (t.IsFolder)
+        {
+            Add(t.PinMenuHeader, () => _vm.TogglePinned(t));
+            Add(t.FavoriteMenuHeader, () => _vm.ToggleFavorite(t));
+        }
+        menu.Items.Add(new Separator());
+        Add("Löschen", () => _vm.DeleteCommand.Execute(t));
+        menu.IsOpen = true;
     }
 
     private void Window_PreviewKeyDown(object sender, KeyEventArgs e)

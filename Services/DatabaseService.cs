@@ -66,6 +66,17 @@ public sealed class DatabaseService : IDisposable
 
     public void SaveBoard(WhiteboardDoc doc) => Boards.Upsert(doc);
 
+    /// <summary>
+    /// Lädt nur die Cover-Gestaltung eines Notizbuchs (ohne die Seiten) für die
+    /// Galerie-Vorschau – projiziert das Cover-Feld, damit nicht das ganze Board mit
+    /// allen (ggf. bildlastigen) Seiten deserialisiert werden muss.
+    /// </summary>
+    public CoverStyle? GetCover(Guid id)
+    {
+        try { return Boards.Query().Where(x => x.Id == id).Select(x => x.Cover).FirstOrDefault(); }
+        catch { return Boards.FindById(id)?.Cover; }
+    }
+
     public TextDoc GetText(Guid id) => Texts.FindById(id) ?? new TextDoc { Id = id };
 
     public void SaveText(TextDoc doc) => Texts.Upsert(doc);

@@ -11,6 +11,10 @@ ohne Cloud, ohne Installation, ohne Adminrechte.
   Unterordner **erben automatisch die Farbe ihres Ordners**, solange sie keine eigene Farbe haben
 - **Anpinnen & Favoriten**: angepinnte Ordner erscheinen im Schnellzugriff-Bereich der
   Seitenleiste; Favoriten werden in ihrem Ordner zuerst angezeigt
+- **Galerie-Startansicht** (wenn kein Dokument geöffnet ist): der Inhalt des aktuellen Ordners
+  in großen Kacheln (GoodNotes-artig) – farbige Ordnersymbole, Notizbuch-Cover als Vorschau,
+  Karten für Whiteboard/Textdokument, jeweils mit Name, Datum und Kontextmenü. Ein Ordner im
+  Baum wählen oder eine Ordnerkachel öffnen navigiert hinein (Breadcrumb + Zurück)
 - **Drei Dokumenttypen**, jeder in eigener Registerkarte:
   - **Notizbuch** — A4/A3-Seiten mit anpassbarem Cover (Farbverlauf, Schrift oder eigenes Bild;
     mitgelieferte Cover-Vorlagen in den Kategorien „Basic", „Muster" und „Pixel Art" sowie
@@ -77,8 +81,10 @@ ohne Cloud, ohne Installation, ohne Adminrechte.
   standardmäßig hell; die Fenster-Titelleiste folgt dem Theme (im Dark Mode dunkel).
   Seitenleiste einklappbar (`Strg+B`)
 - **Maximiertes Fenster ohne Titelleiste**: Wird das Fenster maximiert („in Groß"),
-  blendet sich die Titelleiste aus und die Menüleiste rückt nach oben; Doppelklick auf
-  die Menüleiste (oder die Windows-Standardbefehle) stellt das Fenster wieder her
+  blendet sich die Titelleiste aus und die Menüleiste rückt nach oben. Fährst du mit der
+  Maus an den oberen Fensterrand, gleitet eine Titelleiste (Minimieren/Wiederherstellen/
+  Schließen) sanft wieder ein. Doppelklick auf die Menüleiste (oder die Windows-Standard-
+  befehle) stellt das Fenster wieder her
 - **Persistenz**: LiteDB-Datei unter `%APPDATA%\GonkNote\gonknote.db`, Autosave alle 30 s,
   Speichern beim Schließen von Tabs und der App
 

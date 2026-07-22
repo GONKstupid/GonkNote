@@ -21,6 +21,51 @@
         <DataTemplate DataType="{x:Type vm:TextTabViewModel}">
             <views:TextEditorView/>
         </DataTemplate>
+
+        <!-- Fensterknöpfe der einblendbaren Titelleiste (im maximierten Fenster) -->
+        <Style x:Key="CaptionButton" TargetType="Button">
+            <Setter Property="Width" Value="46"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource Brush.TextMuted}"/>
+            <Setter Property="FontFamily" Value="{StaticResource IconFont}"/>
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bg" Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bg" Property="Background" Value="#22808080"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="CaptionCloseButton" TargetType="Button">
+            <Setter Property="Width" Value="46"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource Brush.TextMuted}"/>
+            <Setter Property="FontFamily" Value="{StaticResource IconFont}"/>
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bg" Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bg" Property="Background" Value="#E81123"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
 
     <Window.InputBindings>
@@ -31,6 +76,8 @@
                     CommandParameter="{Binding SelectedTab}"/>
     </Window.InputBindings>
 
+    <!-- Wurzel-Grid: normaler Inhalt + darüberliegende einblendbare Titelleiste -->
+    <Grid>
     <DockPanel>
 
         <!-- ===== Menüleiste ===== -->
@@ -311,18 +358,197 @@
             <!-- ===== Arbeitsbereich ===== -->
             <Grid Grid.Column="2">
 
-                <!-- Leerer Zustand -->
-                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"
-                            Visibility="{Binding OpenTabs.Count, Converter={StaticResource ZeroToVis}}">
-                    <Image Source="/Assets/gonk-note-Icon.png" Width="64" Height="64"
-                           RenderOptions.BitmapScalingMode="HighQuality" HorizontalAlignment="Center"/>
-                    <TextBlock Text="Willkommen bei Gonk Note" FontSize="20" FontWeight="SemiBold"
-                               Foreground="{DynamicResource Brush.Text}" Margin="0,14,0,6"
-                               HorizontalAlignment="Center"/>
-                    <TextBlock Text="Erstelle links ein Notizbuch, Whiteboard oder Textdokument – oder öffne eines per Klick (Doppelklick zum Umbenennen)."
-                               Foreground="{DynamicResource Brush.TextMuted}" HorizontalAlignment="Center"
-                               TextWrapping="Wrap" MaxWidth="420" TextAlignment="Center"/>
-                </StackPanel>
+                <!-- „Big Picture"-Galerie: Inhalt des aktuellen Ordners, wenn kein Dokument offen ist -->
+                <Grid Background="{DynamicResource Brush.WindowBg}"
+                      Visibility="{Binding OpenTabs.Count, Converter={StaticResource ZeroToVis}}">
+                    <DockPanel Margin="28,18,20,0">
+
+                        <!-- Kopf: Breadcrumb, Zurück + Titel, „Neu" -->
+                        <Grid DockPanel.Dock="Top" Margin="0,0,8,14">
+                            <StackPanel HorizontalAlignment="Left">
+                                <ItemsControl ItemsSource="{Binding Breadcrumb}" Margin="0,0,0,2"
+                                              Visibility="{Binding ShowBreadcrumb, Converter={StaticResource BoolToVis}}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal">
+                                                <Button Content="{Binding Label}" Style="{StaticResource FlatButton}"
+                                                        Padding="2,0" Foreground="{DynamicResource Brush.TextMuted}"
+                                                        Command="{Binding DataContext.GalleryNavigateCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                        CommandParameter="{Binding Folder}"/>
+                                                <TextBlock Text="&#160;›&#160;" VerticalAlignment="Center"
+                                                           Foreground="{DynamicResource Brush.TextMuted}"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Style="{StaticResource IconButton}" Content="&#xE72B;" FontSize="18"
+                                            ToolTip="Zurück" Margin="0,0,6,0" VerticalAlignment="Center"
+                                            Visibility="{Binding CanGoBack, Converter={StaticResource BoolToVis}}"
+                                            Command="{Binding GalleryBackCommand}"/>
+                                    <TextBlock Text="{Binding GalleryTitle}" FontSize="26" FontWeight="SemiBold"
+                                               Foreground="{DynamicResource Brush.Text}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </StackPanel>
+
+                            <Button HorizontalAlignment="Right" VerticalAlignment="Bottom" Click="GalleryNew_Click"
+                                    Style="{StaticResource FlatButton}" Padding="14,7"
+                                    Background="{DynamicResource Brush.Accent}">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="&#xE710;" FontFamily="{StaticResource IconFont}" FontSize="12"
+                                               Foreground="White" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Neu" Margin="7,0,2,0" Foreground="White" VerticalAlignment="Center"/>
+                                    <TextBlock Text="&#xE70D;" FontFamily="{StaticResource IconFont}" FontSize="9"
+                                               Foreground="White" VerticalAlignment="Center" Margin="4,1,0,0"/>
+                                </StackPanel>
+                                <Button.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="Neuer Ordner" Command="{Binding NewFolderCommand}" CommandParameter="{Binding GalleryFolder}"/>
+                                        <MenuItem Header="Neues Notizbuch" Command="{Binding NewNotebookCommand}" CommandParameter="{Binding GalleryFolder}"/>
+                                        <MenuItem Header="Neues Whiteboard" Command="{Binding NewWhiteboardCommand}" CommandParameter="{Binding GalleryFolder}"/>
+                                        <MenuItem Header="Neues Textdokument" Command="{Binding NewTextDocCommand}" CommandParameter="{Binding GalleryFolder}"/>
+                                    </ContextMenu>
+                                </Button.ContextMenu>
+                            </Button>
+                        </Grid>
+
+                        <!-- Leerer Ordner -->
+                        <StackPanel DockPanel.Dock="Top" Margin="2,30,0,0" HorizontalAlignment="Center"
+                                    Visibility="{Binding GalleryItems.Count, Converter={StaticResource ZeroToVis}}">
+                            <Image Source="/Assets/gonk-note-Icon.png" Width="56" Height="56"
+                                   RenderOptions.BitmapScalingMode="HighQuality" HorizontalAlignment="Center" Opacity="0.7"/>
+                            <TextBlock Text="Noch nichts hier" FontSize="17" FontWeight="SemiBold" Margin="0,12,0,4"
+                                       Foreground="{DynamicResource Brush.Text}" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Erstelle etwas über „Neu“ oder die Seitenleiste."
+                                       Foreground="{DynamicResource Brush.TextMuted}" HorizontalAlignment="Center"/>
+                        </StackPanel>
+
+                        <!-- Kachelraster -->
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                            <ItemsControl ItemsSource="{Binding GalleryItems}" Margin="0,0,0,24">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate><WrapPanel Orientation="Horizontal"/></ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate DataType="{x:Type vm:GalleryItemViewModel}">
+                                        <Button Width="168" Margin="8,8,8,4" Cursor="Hand"
+                                                HorizontalContentAlignment="Stretch"
+                                                Command="{Binding DataContext.GalleryOpenCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                CommandParameter="{Binding}"
+                                                MouseRightButtonUp="GalleryTile_RightClick">
+                                            <Button.Template>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Border x:Name="tileBg" Background="Transparent" CornerRadius="10" Padding="6">
+                                                        <ContentPresenter/>
+                                                    </Border>
+                                                    <ControlTemplate.Triggers>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter TargetName="tileBg" Property="Background" Value="#18808080"/>
+                                                        </Trigger>
+                                                    </ControlTemplate.Triggers>
+                                                </ControlTemplate>
+                                            </Button.Template>
+                                            <StackPanel>
+                                                <!-- Vorschau -->
+                                                <Grid Height="152" Margin="0,4,0,10">
+                                                    <!-- Ordner: großes farbiges Symbol -->
+                                                    <Viewbox Width="118" Visibility="{Binding IsFolder, Converter={StaticResource BoolToVis}}">
+                                                        <TextBlock Text="{Binding IconGlyph}" FontFamily="{StaticResource IconFont}"
+                                                                   Foreground="{Binding IconBrush}">
+                                                            <TextBlock.Effect>
+                                                                <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.3" Color="Black"/>
+                                                            </TextBlock.Effect>
+                                                        </TextBlock>
+                                                    </Viewbox>
+                                                    <!-- Notizbuch: Cover-Vorschau -->
+                                                    <Border Visibility="{Binding IsNotebook, Converter={StaticResource BoolToVis}}"
+                                                            Width="112" Height="150" CornerRadius="8" ClipToBounds="True"
+                                                            Background="{Binding CoverBrush}"
+                                                            HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                        <Border.Effect>
+                                                            <DropShadowEffect BlurRadius="12" ShadowDepth="3" Opacity="0.35" Color="Black"/>
+                                                        </Border.Effect>
+                                                        <Grid>
+                                                            <Image Source="{Binding CoverImage}" Stretch="UniformToFill"
+                                                                   Visibility="{Binding HasCoverImage, Converter={StaticResource BoolToVis}}"/>
+                                                            <TextBlock Text="{Binding Name}" Foreground="White" FontSize="13" FontWeight="SemiBold"
+                                                                       TextWrapping="Wrap" TextAlignment="Center" Margin="10"
+                                                                       VerticalAlignment="Center" HorizontalAlignment="Center"
+                                                                       Visibility="{Binding HasCoverImage, Converter={StaticResource InverseBoolToVis}}"/>
+                                                        </Grid>
+                                                    </Border>
+                                                    <!-- Whiteboard: helle Karte mit Punktraster -->
+                                                    <Border Visibility="{Binding IsWhiteboard, Converter={StaticResource BoolToVis}}"
+                                                            Width="150" Height="112" CornerRadius="8" ClipToBounds="True"
+                                                            Background="White" BorderBrush="#22000000" BorderThickness="1"
+                                                            HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                        <Border.Effect>
+                                                            <DropShadowEffect BlurRadius="12" ShadowDepth="3" Opacity="0.3" Color="Black"/>
+                                                        </Border.Effect>
+                                                        <Rectangle>
+                                                            <Rectangle.Fill>
+                                                                <DrawingBrush TileMode="Tile" Viewport="0,0,15,15" ViewportUnits="Absolute" Stretch="None">
+                                                                    <DrawingBrush.Drawing>
+                                                                        <GeometryDrawing Brush="#22000000">
+                                                                            <GeometryDrawing.Geometry>
+                                                                                <EllipseGeometry Center="2,2" RadiusX="1.1" RadiusY="1.1"/>
+                                                                            </GeometryDrawing.Geometry>
+                                                                        </GeometryDrawing>
+                                                                    </DrawingBrush.Drawing>
+                                                                </DrawingBrush>
+                                                            </Rectangle.Fill>
+                                                        </Rectangle>
+                                                    </Border>
+                                                    <!-- Textdokument: Blatt mit angedeuteten Zeilen -->
+                                                    <Border Visibility="{Binding IsText, Converter={StaticResource BoolToVis}}"
+                                                            Width="112" Height="150" CornerRadius="4"
+                                                            Background="White" BorderBrush="#22000000" BorderThickness="1"
+                                                            HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                        <Border.Effect>
+                                                            <DropShadowEffect BlurRadius="12" ShadowDepth="3" Opacity="0.3" Color="Black"/>
+                                                        </Border.Effect>
+                                                        <StackPanel Margin="12,14">
+                                                            <TextBlock Text="{Binding Name}" FontSize="9" FontWeight="SemiBold"
+                                                                       Foreground="#333" TextTrimming="CharacterEllipsis"/>
+                                                            <Rectangle Height="2" Fill="#E5E5E5" Margin="0,9,0,0"/>
+                                                            <Rectangle Height="2" Fill="#E5E5E5" Margin="0,6,0,0"/>
+                                                            <Rectangle Height="2" Fill="#E5E5E5" Margin="0,6,8,0"/>
+                                                            <Rectangle Height="2" Fill="#E5E5E5" Margin="0,6,0,0"/>
+                                                            <Rectangle Height="2" Fill="#E5E5E5" Margin="0,6,14,0"/>
+                                                            <Rectangle Height="2" Fill="#E5E5E5" Margin="0,6,0,0"/>
+                                                        </StackPanel>
+                                                    </Border>
+                                                    <!-- Favoritenstern -->
+                                                    <TextBlock Text="&#xE735;" FontFamily="{StaticResource IconFont}" FontSize="15"
+                                                               Foreground="#EAB308" HorizontalAlignment="Right" VerticalAlignment="Top"
+                                                               Margin="0,2,6,0" Visibility="{Binding StarVisibility}">
+                                                        <TextBlock.Effect>
+                                                            <DropShadowEffect BlurRadius="3" ShadowDepth="0" Opacity="0.6" Color="Black"/>
+                                                        </TextBlock.Effect>
+                                                    </TextBlock>
+                                                </Grid>
+                                                <!-- Name + Chevron -->
+                                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                                    <TextBlock Text="{Binding Name}" Foreground="{DynamicResource Brush.Text}"
+                                                               FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
+                                                               MaxWidth="128" TextAlignment="Center" VerticalAlignment="Center"/>
+                                                    <Button Style="{StaticResource IconButton}" Content="&#xE70D;" FontSize="9"
+                                                            Width="18" Height="18" Margin="3,0,0,0" ToolTip="Optionen"
+                                                            Click="GalleryChevron_Click"/>
+                                                </StackPanel>
+                                                <TextBlock Text="{Binding DateText}" Foreground="{DynamicResource Brush.TextMuted}"
+                                                           FontSize="11" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                                            </StackPanel>
+                                        </Button>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </DockPanel>
+                </Grid>
 
                 <TabControl ItemsSource="{Binding OpenTabs}" SelectedItem="{Binding SelectedTab}">
                     <TabControl.Style>
@@ -350,4 +576,32 @@
             </Grid>
         </Grid>
     </DockPanel>
+
+    <!-- Einblendbare Titelleiste: nur im maximierten Fenster (dort ist die native Leiste aus).
+         Gleitet bei Mauskontakt am oberen Rand animiert herein (siehe Root_MouseMove). -->
+    <Border x:Name="AutoTitleBar" VerticalAlignment="Top" Height="34" Panel.ZIndex="50"
+            Background="{DynamicResource Brush.SidebarBg}"
+            BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,0,0,1"
+            Visibility="Collapsed" MouseLeftButtonDown="AutoTitleBar_MouseLeftButtonDown">
+        <Border.RenderTransform>
+            <TranslateTransform x:Name="AutoTitleBarTransform" Y="-40"/>
+        </Border.RenderTransform>
+        <DockPanel>
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                <Button Style="{StaticResource CaptionButton}" Content="&#xE921;"
+                        ToolTip="Minimieren" Click="Caption_Minimize"/>
+                <Button Style="{StaticResource CaptionButton}" Content="&#xE923;"
+                        ToolTip="Wiederherstellen" Click="Caption_Restore"/>
+                <Button Style="{StaticResource CaptionCloseButton}" Content="&#xE8BB;"
+                        ToolTip="Schließen" Click="Caption_Close"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="12,0,0,0" VerticalAlignment="Center">
+                <Image Source="/Assets/gonk-note-Icon.png" Width="16" Height="16"
+                       RenderOptions.BitmapScalingMode="HighQuality"/>
+                <TextBlock Text="Gonk Note" Margin="8,0,0,0" VerticalAlignment="Center"
+                           Foreground="{DynamicResource Brush.TextMuted}"/>
+            </StackPanel>
+        </DockPanel>
+    </Border>
+    </Grid>
 </Window>

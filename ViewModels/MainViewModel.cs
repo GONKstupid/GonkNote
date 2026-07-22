@@ -12,6 +12,7 @@ public sealed class MainViewModel : ObservableObject
     private readonly DispatcherTimer _autosave;
     private DocumentTabViewModel? _selectedTab;
     private TreeItemViewModel? _selectedTreeItem;
+    private TreeItemViewModel? _galleryFolder;
 
     public ObservableCollection<TreeItemViewModel> RootItems { get; } = new();
     public ObservableCollection<DocumentTabViewModel> OpenTabs { get; } = new();
@@ -19,10 +20,18 @@ public sealed class MainViewModel : ObservableObject
     /// <summary>Angepinnte Ordner für den Schnellzugriff-Bereich der Seitenleiste.</summary>
     public ObservableCollection<TreeItemViewModel> PinnedFolders { get; } = new();
 
+    /// <summary>Kacheln des „Big Picture"-Galeriemodus (Inhalt des aktuellen Ordners).</summary>
+    public ObservableCollection<GalleryItemViewModel> GalleryItems { get; } = new();
+
+    /// <summary>Breadcrumb-Pfad im Galeriemodus (Wurzel „Dokumente" + Vorfahren).</summary>
+    public ObservableCollection<BreadcrumbEntry> Breadcrumb { get; } = new();
+
     public MainViewModel(DatabaseService db)
     {
         _db = db;
         BuildTree();
+        RebuildGallery();
+        RebuildBreadcrumb();
 
         NewFolderCommand = new RelayCommand(p => CreateItem(ItemKind.Folder, p as TreeItemViewModel));
         NewNotebookCommand = new RelayCommand(p => CreateItem(ItemKind.Notebook, p as TreeItemViewModel));
@@ -35,7 +44,10 @@ public sealed class MainViewModel : ObservableObject
         ExportCommand = new RelayCommand(ExportActiveTab);
         TogglePinCommand = new RelayCommand(p => TogglePinned(p as TreeItemViewModel));
         ToggleFavoriteCommand = new RelayCommand(p => ToggleFavorite(p as TreeItemViewModel));
-        OpenPinnedCommand = new RelayCommand(p => { if (p is TreeItemViewModel t) RevealItem(t); });
+        OpenPinnedCommand = new RelayCommand(p => { if (p is TreeItemViewModel t) { NavigateGallery(t); RevealItem(t); } });
+        GalleryOpenCommand = new RelayCommand(p => GalleryOpen(p as GalleryItemViewModel));
+        GalleryBackCommand = new RelayCommand(_ => NavigateGallery(_galleryFolder == null ? null : FindParent(_galleryFolder)));
+        GalleryNavigateCommand = new RelayCommand(p => NavigateGallery(p as TreeItemViewModel));
         CloseTabCommand = new RelayCommand(p => { if (p is DocumentTabViewModel t) CloseTab(t); });
         SaveCommand = new RelayCommand(() => SelectedTab?.Save());
         SaveAllCommand = new RelayCommand(SaveAll);
@@ -70,6 +82,7 @@ public sealed class MainViewModel : ObservableObject
         vm.Item.IconColor = hex;
         _db.UpsertItem(vm.Item);
         ApplyInheritedColors();
+        RebuildGallery();   // Ordnerfarbe in der Galerie mitziehen
     }
 
     public RelayCommand NewFolderCommand { get; }
@@ -84,6 +97,9 @@ public sealed class MainViewModel : ObservableObject
     public RelayCommand TogglePinCommand { get; }
     public RelayCommand ToggleFavoriteCommand { get; }
     public RelayCommand OpenPinnedCommand { get; }
+    public RelayCommand GalleryOpenCommand { get; }
+    public RelayCommand GalleryBackCommand { get; }
+    public RelayCommand GalleryNavigateCommand { get; }
     public RelayCommand CloseTabCommand { get; }
     public RelayCommand SaveCommand { get; }
     public RelayCommand SaveAllCommand { get; }
@@ -99,7 +115,89 @@ public sealed class MainViewModel : ObservableObject
     public TreeItemViewModel? SelectedTreeItem
     {
         get => _selectedTreeItem;
-        set => Set(ref _selectedTreeItem, value);
+        set
+        {
+            if (!Set(ref _selectedTreeItem, value)) return;
+            // Ordnerauswahl im Baum zieht den Galeriemodus mit (zeigt den Ordnerinhalt).
+            // Dokumente lassen die Galerie unverändert (sie wird beim Öffnen ohnehin ausgeblendet).
+            if (!_suppressGallerySync && value is { IsFolder: true }) GalleryFolder = value;
+        }
+    }
+
+    /// <summary>Unterdrückt vorübergehend die Baum→Galerie-Synchronisierung (z. B. beim Umbenennen).</summary>
+    private bool _suppressGallerySync;
+
+    /// <summary>Startet die Umbenennung eines Eintrags aus der Galerie, ohne die Galerie in den Ordner zu navigieren.</summary>
+    public void BeginRename(TreeItemViewModel t)
+    {
+        _suppressGallerySync = true;
+        RevealItem(t);            // im Baum sichtbar machen + auswählen (ohne Galerie-Navigation)
+        _suppressGallerySync = false;
+        t.IsRenaming = true;
+    }
+
+    // ---------- Big-Picture-Galeriemodus ----------
+
+    /// <summary>Der Ordner, dessen Inhalt die Galerie zeigt; null = Wurzelebene („Dokumente").</summary>
+    public TreeItemViewModel? GalleryFolder
+    {
+        get => _galleryFolder;
+        private set
+        {
+            if (!Set(ref _galleryFolder, value)) return;
+            OnPropertyChanged(nameof(GalleryTitle));
+            OnPropertyChanged(nameof(CanGoBack));
+            RebuildGallery();
+            RebuildBreadcrumb();
+        }
+    }
+
+    public string GalleryTitle => _galleryFolder?.Name ?? "Dokumente";
+    public bool CanGoBack => _galleryFolder != null;
+    public bool GalleryIsEmpty => GalleryItems.Count == 0;
+    public bool ShowBreadcrumb => _galleryFolder != null;
+
+    /// <summary>Wechselt den Galerie-Ordner und zieht die Auswahl im Baum mit.</summary>
+    public void NavigateGallery(TreeItemViewModel? folder)
+    {
+        GalleryFolder = folder;
+        if (folder != null) RevealItem(folder);
+    }
+
+    private void GalleryOpen(GalleryItemViewModel? item)
+    {
+        if (item == null) return;
+        if (item.IsFolder) NavigateGallery(item.Tree);
+        else OpenItem(item.Tree);
+    }
+
+    /// <summary>Baut die Galerie-Kacheln aus dem aktuellen Ordner (bzw. der Wurzel) neu auf.</summary>
+    public void RebuildGallery()
+    {
+        GalleryItems.Clear();
+        var children = _galleryFolder?.Children ?? RootItems;
+        foreach (var c in children)
+            GalleryItems.Add(new GalleryItemViewModel(c, _db));
+        OnPropertyChanged(nameof(GalleryIsEmpty));
+    }
+
+    private void RebuildBreadcrumb()
+    {
+        Breadcrumb.Clear();
+        Breadcrumb.Add(new BreadcrumbEntry("Dokumente", null));
+        // Vorfahren des aktuellen Ordners (ohne ihn selbst – der ist der große Titel)
+        var chain = new List<TreeItemViewModel>();
+        for (var p = _galleryFolder == null ? null : FindParent(_galleryFolder); p != null; p = FindParent(p))
+            chain.Insert(0, p);
+        foreach (var f in chain) Breadcrumb.Add(new BreadcrumbEntry(f.Name, f));
+        OnPropertyChanged(nameof(ShowBreadcrumb));
+    }
+
+    /// <summary>Zeigt den angegebenen Ordner in der Galerie (baut immer neu, auch wenn gleich).</summary>
+    private void ShowFolderInGallery(TreeItemViewModel? folder)
+    {
+        if (_galleryFolder == folder) RebuildGallery();
+        else GalleryFolder = folder;
     }
 
     // ---------- Baum ----------
@@ -165,6 +263,7 @@ public sealed class MainViewModel : ObservableObject
         vm.RefreshPinFavorite();
         FindParent(vm)?.SortChildren();
         if (vm.Item.ParentId == null) SortRoot();
+        RebuildGallery();   // Stern + Sortierung in der Galerie mitziehen
     }
 
     /// <summary>Baut die Schnellzugriff-Liste neu auf (alle angepinnten Ordner, alphabetisch).</summary>
@@ -263,6 +362,10 @@ public sealed class MainViewModel : ObservableObject
         vm.IsRenaming = true;
         // Erst nach dem Benennen öffnen, sonst stiehlt der neue Tab der Namensbox den Fokus
         _pendingOpen = item.IsFolder ? null : vm;
+
+        // Galerie zeigt den Zielordner mit der neuen Kachel (nicht in den neuen, leeren Ordner
+        // hineinnavigieren – die Auswahl im Baum steht fürs Umbenennen auf dem neuen Element).
+        ShowFolderInGallery(parent);
     }
 
     private TreeItemViewModel? _pendingOpen;
@@ -471,6 +574,12 @@ public sealed class MainViewModel : ObservableObject
         var parent = FindParent(vm);
         (parent?.Children ?? RootItems).Remove(vm);
         RefreshPinned();
+
+        // Wurde der gezeigte Galerie-Ordner (oder ein Vorfahre) gelöscht, zum Elternordner hoch
+        if (_galleryFolder != null && FindById(_galleryFolder.Id) == null)
+            GalleryFolder = parent;
+        else
+            RebuildGallery();
     }
 
     private void CloseTabsRecursive(TreeItemViewModel vm)
@@ -507,6 +616,8 @@ public sealed class MainViewModel : ObservableObject
             else SortRoot();
             ApplyInheritedColors();   // verschobenes Element erbt die neue Ordnerfarbe
         }
+
+        RebuildGallery();   // Galerie ggf. neu (Element hat den aktuellen Ordner verlassen/betreten)
     }
 
     private void CopyRecursive(TreeItemViewModel source, TreeItemViewModel? targetFolder)
@@ -554,6 +665,11 @@ public sealed class MainViewModel : ObservableObject
 
         OpenTabs.FirstOrDefault(t => t.Id == vm.Id)?.NotifyRenamed();
         if (vm.IsPinned) RefreshPinned();
+
+        // Galerie/Breadcrumb spiegeln den neuen Namen/Sortierung
+        OnPropertyChanged(nameof(GalleryTitle));
+        RebuildGallery();
+        RebuildBreadcrumb();
 
         if (_pendingOpen == vm)
         {

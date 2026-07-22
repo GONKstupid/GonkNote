@@ -12,7 +12,40 @@
 > ausführlichen Tabellen als Standard). **Ausführlich nur** bei **offenen Fragen und
 > Entscheidungen**, die der Nutzer treffen muss — die weiterhin klar begründen.
 >
-> **Fixes-Runde 16 (2026-07-22) zuletzt umgesetzt:**
+> **Fixes-Runde 17 (2026-07-22) zuletzt umgesetzt:**
+> - **Einblendbare Titelleiste im maximierten Fenster.** Im maximierten (titelleistenlosen)
+>   Fenster gleitet bei Mauskontakt am oberen Rand eine eigene Titelleiste herein (Overlay-
+>   Streifen `AutoTitleBar` in `MainWindow.xaml`, animiert per `TranslateTransform` +
+>   `DoubleAnimation`, weil die **native** Leiste nicht animierbar ist). Enthält Gonk-Note-
+>   Titel + Minimieren/Wiederherstellen/Schließen (Styles `CaptionButton`/`CaptionCloseButton`).
+>   Logik in `MainWindow.xaml.cs`: `Root_MouseMove` (PreviewMouseMove; einblenden bei y≤12,
+>   ausblenden bei y>48 – Hysterese gegen Flackern, großzügig wegen des ~7-px-Überstands),
+>   nur aktiv wenn `WindowState==Maximized` (Umschaltung in `ApplyMaximizedChrome`).
+>   Doppelklick auf den Streifen stellt wieder her. Verifiziert (Screenshot: Streifen gleitet
+>   bei Maus oben herein).
+> - **Big-Picture-Galeriemodus (an GoodNotes angelehnt).** Ist **kein Dokument offen**, zeigt
+>   der Arbeitsbereich den Inhalt des aktuellen Ordners als große Kacheln (ersetzt den alten
+>   „Willkommen"-Leerzustand): **farbige Ordner** (großes Symbol in Ordnerfarbe + Favoritenstern),
+>   **Notizbuch-Cover als Vorschau** (Bild oder Farbverlauf+Titel), **Karten** für Whiteboard
+>   (Punktraster) und Textdokument (Blatt mit Zeilen); je Kachel Name + Chevron-Menü + Datum.
+>   Kopf mit Breadcrumb („Dokumente > …"), Zurück-Pfeil, großem Ordnertitel und „Neu"-Menü.
+>   - Ordner im Baum wählen ⇒ Galerie zeigt seinen Inhalt (`SelectedTreeItem`-Setter →
+>     `GalleryFolder`); Ordnerkachel/Breadcrumb/Zurück navigieren (`NavigateGallery`).
+>   - Neu: `ViewModels/GalleryItemViewModel.cs` (+ `BreadcrumbEntry`), Galerie-Zustand/Befehle
+>     in `MainViewModel` (`GalleryItems`, `Breadcrumb`, `GalleryOpen/Back/Navigate`,
+>     `RebuildGallery` nach Anlegen/Löschen/Verschieben/Umbenennen/Favorit/Farbe).
+>   - Cover werden **schlank** geladen: `DatabaseService.GetCover(id)` projiziert nur das
+>     Cover-Feld (nicht alle Seiten) – wichtig fürs RAM. Kachelmenü/„Neu" laufen über Code-behind
+>     (`ShowGalleryMenu`, `GalleryNew_Click`) bzw. gebundene Befehle.
+>   - Verifiziert per geseedeter Test-DB (`%TEMP%\gonk-gallery-seed`, referenziert die echte
+>     GonkNote.dll): Galerie rendert Ordner/Cover/Textkarte, Cover-Projektion lädt den gesetzten
+>     Farbverlauf. **Ordner-Navigation (Breadcrumb/Zurück) und Dark Mode nur per Logik/Theme-
+>     Brushes abgesichert, nicht klick-getestet.**
+>   - **Bewusst v1:** Whiteboard/Text zeigen stilisierte Karten (kein echtes Inhalts-Thumbnail);
+>     Favoritenstern nur für Ordner (Modell kennt Favoriten nur bei Ordnern). Echte
+>     Seiten-Thumbnails wären ein späterer Ausbau über die `WhiteboardView.Draw*`-Routinen.
+>
+> **Fixes-Runde 16 (2026-07-22):**
 > - **Titelleiste: folgt dem Theme + verschwindet beim Maximieren.** Das Fenster nutzt
 >   weiterhin die native Windows-Titelleiste (kein Custom-Chrome).
 >   - *Dark Mode:* Leiste wird dunkel via DWM-Attribut `DWMWA_USE_IMMERSIVE_DARK_MODE`

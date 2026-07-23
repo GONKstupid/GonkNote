@@ -117,6 +117,10 @@ public partial class TextEditorView : UserControl
         UpdateWordCount();
         RefreshNavigator();
         Editor_SelectionChanged(this, new RoutedEventArgs());  // Toolbar initial befüllen
+
+        // Geladenes Dokument einheitlich in der gewählten Sprache prüfen (überschreibt
+        // beim Import/aus früheren Sitzungen gespeicherte, teils gemischte Sprach-Tags).
+        SetSpellLanguage(CurrentSpellLanguage());
     }
 
     private void FlushToModel()
@@ -274,9 +278,100 @@ public partial class TextEditorView : UserControl
     private void Language_Changed(object s, SelectionChangedEventArgs e)
     {
         if (Editor == null || LanguageCombo.SelectedItem is not ComboBoxItem item) return;
-        var lang = XmlLanguage.GetLanguage((string)item.Tag);
+        SetSpellLanguage(XmlLanguage.GetLanguage((string)item.Tag));
+    }
+
+    /// <summary>Aktuelle Prüfsprache aus der Combo (Standard Deutsch).</summary>
+    private XmlLanguage CurrentSpellLanguage()
+    {
+        var tag = (LanguageCombo?.SelectedItem as ComboBoxItem)?.Tag as string ?? "de-DE";
+        return XmlLanguage.GetLanguage(tag);
+    }
+
+    /// <summary>
+    /// Setzt die Sprache der Rechtschreibprüfung fürs ganze Dokument. WPF vergibt die
+    /// Sprache sonst pro Textabschnitt anhand der Eingabesprache (Tastaturlayout) bzw.
+    /// übernimmt sie beim DOCX-Import – dann werden Teile mit dem falschen Wörterbuch geprüft
+    /// (Wörter fälschlich/nicht angestrichen) und ein reiner Sprachwechsel bliebe wirkungslos.
+    /// Deshalb überschreiben wir die Sprache aller Runs/Blöcke und stoßen die Prüfung neu an.
+    /// </summary>
+    private void SetSpellLanguage(XmlLanguage lang)
+    {
+        if (Editor == null) return;
         Editor.Language = lang;
         Editor.Document.Language = lang;
+        ApplyLanguageToBlocks(Editor.Document.Blocks, lang);
+        ForceSpellRecheck();
+        UpdateSpellLangWarning(lang);
+    }
+
+    /// <summary>
+    /// Zeigt einen Hinweis, wenn Windows für die gewählte Sprache kein Wörterbuch hat
+    /// (dann bleiben Markierungen aus – z. B. Englisch ohne installiertes Sprachpaket).
+    /// </summary>
+    private void UpdateSpellLangWarning(XmlLanguage lang)
+    {
+        if (SpellLangWarn == null) return;
+        bool ok = SpellCheckSupport.IsSupported(lang.IetfLanguageTag);
+        SpellLangWarn.Visibility = ok ? Visibility.Collapsed : Visibility.Visible;
+        if (!ok)
+        {
+            string name = (LanguageCombo?.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? lang.IetfLanguageTag;
+            SpellLangWarn.ToolTip =
+                $"Für {name} ist in Windows kein Rechtschreib-Wörterbuch installiert – daher werden keine "
+                + "Fehler angestrichen. Sprache in den Windows-Einstellungen ergänzen: "
+                + "Zeit und Sprache → Sprache und Region → Sprache hinzufügen (inkl. Rechtschreibung).";
+        }
+    }
+
+    private static void ApplyLanguageToBlocks(BlockCollection blocks, XmlLanguage lang)
+    {
+        foreach (Block b in blocks) ApplyLanguageToBlock(b, lang);
+    }
+
+    private static void ApplyLanguageToBlock(Block b, XmlLanguage lang)
+    {
+        b.Language = lang;
+        switch (b)
+        {
+            case Paragraph p:
+                ApplyLanguageToInlines(p.Inlines, lang);
+                break;
+            case Section sec:
+                ApplyLanguageToBlocks(sec.Blocks, lang);
+                break;
+            case List list:
+                foreach (ListItem li in list.ListItems) { li.Language = lang; ApplyLanguageToBlocks(li.Blocks, lang); }
+                break;
+            case Table table:
+                foreach (TableRowGroup rg in table.RowGroups)
+                    foreach (TableRow row in rg.Rows)
+                        foreach (TableCell cell in row.Cells) { cell.Language = lang; ApplyLanguageToBlocks(cell.Blocks, lang); }
+                break;
+        }
+    }
+
+    private static void ApplyLanguageToInlines(InlineCollection inlines, XmlLanguage lang)
+    {
+        foreach (Inline inline in inlines)
+        {
+            inline.Language = lang;
+            if (inline is Span span) ApplyLanguageToInlines(span.Inlines, lang);
+        }
+    }
+
+    /// <summary>
+    /// Zwingt die WPF-Rechtschreibprüfung, den gesamten Text neu zu bewerten (kurz aus/ein):
+    /// Ein reiner Sprachwechsel markiert bereits geprüften Text sonst nicht neu.
+    /// </summary>
+    private void ForceSpellRecheck()
+    {
+        if (Editor == null || BtnSpell?.IsChecked != true) return;
+        Editor.SpellCheck.IsEnabled = false;
+        Dispatcher.BeginInvoke(new Action(() =>
+        {
+            if (BtnSpell?.IsChecked == true) Editor.SpellCheck.IsEnabled = true;
+        }), DispatcherPriority.Background);
     }
 
     private void Spell_Click(object s, RoutedEventArgs e) =>

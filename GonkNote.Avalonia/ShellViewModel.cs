@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Windows.Input;
 using GonkNote.Models;
 using GonkNote.Services;
 
@@ -20,6 +21,12 @@ public sealed class ShellViewModel : ObservableObject
 
     public ObservableCollection<TreeItemVM> Roots { get; } = new();
 
+    /// <summary>Kacheln der „Big-Picture"-Galerie: Inhalt des gewählten Ordners bzw. die Wurzeln.</summary>
+    public ObservableCollection<TreeItemVM> GalleryItems { get; } = new();
+
+    /// <summary>Öffnet ein Element (Kachel- oder Baumklick): Ordner rein-navigieren, Dokument = Kontext.</summary>
+    public ICommand OpenItem { get; }
+
     private TreeItemVM? _selected;
     public TreeItemVM? Selected
     {
@@ -32,6 +39,10 @@ public sealed class ShellViewModel : ObservableObject
                 OnPropertyChanged(nameof(HasNoSelection));
                 OnPropertyChanged(nameof(SelectedTitle));
                 OnPropertyChanged(nameof(SelectedKindText));
+                OnPropertyChanged(nameof(ShowGallery));
+                OnPropertyChanged(nameof(ShowDocument));
+                OnPropertyChanged(nameof(GalleryTitle));
+                RebuildGallery();
             }
         }
     }
@@ -41,11 +52,37 @@ public sealed class ShellViewModel : ObservableObject
     public string SelectedTitle => _selected?.Name ?? "";
     public string SelectedKindText => _selected is null ? "" : KindText(_selected.Kind);
 
+    /// <summary>Galerie zeigen, wenn nichts oder ein Ordner gewählt ist.</summary>
+    public bool ShowGallery => _selected is null || _selected.IsFolder;
+
+    /// <summary>Dokument-Kontext zeigen, wenn ein Nicht-Ordner gewählt ist.</summary>
+    public bool ShowDocument => _selected is { IsFolder: false };
+
+    public string GalleryTitle => _selected is null ? "Alle Dokumente" : _selected.Name;
+
+    public bool GalleryEmpty => GalleryItems.Count == 0;
+
     public ShellViewModel(string dbPath)
     {
         _db = new DatabaseService(dbPath);
+        OpenItem = new RelayCommand(p =>
+        {
+            if (p is not TreeItemVM vm) return;
+            if (vm.IsFolder) vm.IsExpanded = true; // im Baum aufklappen
+            Selected = vm;
+        });
         SeedIfEmpty();
         LoadTree();
+        RebuildGallery();
+    }
+
+    /// <summary>Füllt die Galerie mit den Kindern des gewählten Ordners (bzw. den Wurzeln).</summary>
+    private void RebuildGallery()
+    {
+        GalleryItems.Clear();
+        var source = _selected is { IsFolder: true } ? _selected.Children : Roots;
+        foreach (var vm in source) GalleryItems.Add(vm);
+        OnPropertyChanged(nameof(GalleryEmpty));
     }
 
     private void SeedIfEmpty()

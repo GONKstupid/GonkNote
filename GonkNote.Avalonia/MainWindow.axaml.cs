@@ -1,4 +1,5 @@
 using System;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Styling;
 
@@ -25,7 +26,10 @@ public partial class MainWindow : Window
         // Workaround gegen den Fill-Panel-Measure-Quirk (§9.5): dem Inhaltsbereich eine
         // explizite Breite geben (= Fensterbreite − Seitenleiste), damit Umbruch/Zentrierung
         // greifen. Die Arrange-Breite stimmt ohnehin; nur der Measure braucht die feste Breite.
-        this.GetObservable(ClientSizeProperty).Subscribe(sz =>
-            ContentHost.Width = Math.Max(0, sz.Width - SidebarWidth - 1)); // -1 = Trennlinie
+        SizeChanged += (_, _) => UpdateContentWidth();
+        Loaded += (_, _) => UpdateContentWidth();
     }
+
+    private void UpdateContentWidth() =>
+        ContentHost.Width = Math.Max(0, ClientSize.Width - SidebarWidth - 1); // -1 = Trennlinie
 }

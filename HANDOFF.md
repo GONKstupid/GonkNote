@@ -911,14 +911,32 @@ danach fein machen; der Prototyp nutzt vorerst **Reiter Bearbeiten/Vorschau** st
   an die Fenstergröße gekoppelte Breite geben — oder beim Linux-Build prüfen, ob der Quirk dort
   gar nicht auftritt (dann entfällt der Workaround).
 
+### 9.3d Shell-Baustein 3b — „Big-Picture"-Galerie (2026-07-24, Runde 20)
+- Rechter Inhaltsbereich zeigt jetzt den **Ordnerinhalt als Kacheln** (GoodNotes-Stil): farbige
+  Karte je Element (Ordnerfarbe/geerbte Farbe als Kartenhintergrund, Emoji-Glyph, Name, Typ).
+  Keine Auswahl / Ordner gewählt ⇒ Galerie (`ShowGallery`); Nicht-Ordner gewählt ⇒ Doku-Kontext.
+- `ShellViewModel`: `GalleryItems` (+ `RebuildGallery`), `ShowGallery`/`ShowDocument`,
+  `GalleryTitle`, `GalleryEmpty`, **`OpenItem`-`ICommand`** (Kachel-/Baumklick: Ordner rein +
+  aufklappen, sonst Kontext). `TreeItemVM.KindLabel` für Kacheln. Kachel = `Button.tile`
+  (flache Karte + Hover, Style im `MainWindow.axaml`), gebunden per
+  `{Binding DataContext.OpenItem, RelativeSource={RelativeSource AncestorType=Window}}`.
+- **WrapPanel braucht endliche Breite** → funktioniert nur dank des `ContentHost.Width`-Workarounds
+  (§9.3c/§9.5). `MainWindow.axaml.cs` braucht `using Avalonia;` + `SizeChanged`/`Loaded` (statt
+  `GetObservable(...).Subscribe(Action)` — die Overload fehlt in 11.0.10).
+- **Verifiziert per Screenshot:** Startansicht „Alle Dokumente" mit farbiger Ordner-Kachel
+  (`AV3-gallery.png`); Ordnerauswahl „Projekte" ⇒ Galerie zeigt Kinder Ideen/Skizzen als Kacheln
+  (`AV3-gallery-sub.png`). **Kachel-Klick-Navigation nur per Logik/Vorauswahl geprüft** — echte
+  Maus-Klicks ließen sich in der Testumgebung nicht automatisieren (Foreground-Sperre); der
+  `OpenItem`-Command ist Standard-MVVM und baut ohne Binding-Fehler.
+
 ### 9.4 Gestaffelter Plan
 1. ✅ **PoC/Scaffold + Kernlogik-Reuse** (fertig, §9.1).
 2. ✅ **`GonkNote.Core` extrahiert** (Models + DB + Undo + ImageCache); WPF + Avalonia
    referenzieren es per ProjectReference; Links im Avalonia-Projekt entfernt (fertig, §9.1b).
-3. 🟡 **Shell portieren** (Nutzer-Priorität 2026-07-23) — **Baustein 3a erledigt (§9.3c)**:
-   Ordnerbaum aus `DatabaseService` mit Farbvererbung + Auswahl-Navigation + Theme-Umschalter,
-   Avalonia-native VMs. **Offen (3b+):** „Big-Picture"-Galerie, echte Doku-Tabs, Anpinnen/
-   Favoriten-Kacheln, Umbenennen, Drag&Drop, Breadcrumb.
+3. 🟡 **Shell portieren** (Nutzer-Priorität 2026-07-23) — **3a + 3b-Galerie erledigt (§9.3c/§9.3d)**:
+   Ordnerbaum + Farbvererbung + Navigation + Theme (3a); **„Big-Picture"-Galerie** (3b) — rechter
+   Bereich zeigt Ordnerinhalt als farbige Kacheln, Kachelklick navigiert. **Offen (3b-Rest):** echte
+   Doku-Tabs, Anpinnen/Favoriten-Kacheln, Umbenennen (Baum-Doppelklick), Drag&Drop, Breadcrumb.
 4. **Whiteboard** auf Avalonia-Skia-Control (Zeichenroutinen wiederverwenden); Stylus/Touch über
    Avalonia-Pointer-Events.
 5. 🟡 **Text-Editor: Ansatz entschieden, Bau zurückgestellt** (Prototyp fertig, §9.3b):

@@ -3,6 +3,19 @@
         x:Class="GonkNote.Avalonia.MainWindow"
         Width="960" Height="660"
         Title="Gonk Note — Avalonia-Port (Linux-ready)">
+    <Window.Styles>
+        <!-- Galerie-Kachel: flache Karte statt Standard-Button-Chrome -->
+        <Style Selector="Button.tile">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="6"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Button.tile:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#22808080"/>
+            <Setter Property="CornerRadius" Value="10"/>
+        </Style>
+    </Window.Styles>
     <DockPanel>
 
         <!-- Kopfleiste -->
@@ -51,23 +64,56 @@
              Fensterbreite gekoppelt — Workaround gegen den Fill-Panel-Measure-Quirk (§9.5),
              damit Inhalt korrekt umbricht/zentriert statt rechts überzulaufen. -->
         <Panel Name="ContentHost" HorizontalAlignment="Left">
-            <!-- Leerzustand -->
-            <StackPanel IsVisible="{Binding HasNoSelection}" Spacing="6"
-                        HorizontalAlignment="Center" VerticalAlignment="Center">
-                <TextBlock Text="📂" FontSize="40" Opacity="0.5" HorizontalAlignment="Center"/>
-                <TextBlock Text="Wähle links ein Dokument." Opacity="0.6"/>
-            </StackPanel>
-            <!-- Auswahl -->
-            <StackPanel IsVisible="{Binding HasSelection}" Margin="28,26" Spacing="6"
-                        HorizontalAlignment="Left" VerticalAlignment="Top">
+
+            <!-- Big-Picture-Galerie (Ordner-Inhalt als Kacheln) -->
+            <ScrollViewer IsVisible="{Binding ShowGallery}">
+                <StackPanel Margin="28,22" Spacing="16">
+                    <TextBlock Text="{Binding GalleryTitle}" FontSize="24" FontWeight="SemiBold"/>
+                    <ItemsControl ItemsSource="{Binding GalleryItems}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Classes="tile" Margin="0,0,16,16"
+                                        Command="{Binding DataContext.OpenItem, RelativeSource={RelativeSource AncestorType=Window}}"
+                                        CommandParameter="{Binding}">
+                                    <StackPanel Width="150" Spacing="8">
+                                        <!-- Karte: Ordner farbig, Dokument neutral -->
+                                        <Border Height="96" CornerRadius="10">
+                                            <Border.Background>
+                                                <SolidColorBrush Color="{Binding IconBrush.Color}" Opacity="0.85"/>
+                                            </Border.Background>
+                                            <TextBlock Text="{Binding Glyph}" FontSize="40"
+                                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold"
+                                                   TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Text="{Binding KindLabel}" Opacity="0.6" FontSize="11"/>
+                                    </StackPanel>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <TextBlock IsVisible="{Binding GalleryEmpty}" Opacity="0.5"
+                               Text="Dieser Ordner ist leer."/>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Dokument-Kontext (echte Ansicht folgt Schritt 4/5) -->
+            <StackPanel IsVisible="{Binding ShowDocument}" Margin="28,26" Spacing="6"
+                        VerticalAlignment="Top">
                 <TextBlock Text="{Binding SelectedKindText}" Opacity="0.6" FontSize="12"/>
                 <TextBlock Text="{Binding SelectedTitle}" FontSize="26" FontWeight="SemiBold"/>
                 <Border Margin="0,14,0,0" Padding="14" CornerRadius="8" Background="#1A808080"
                         HorizontalAlignment="Left">
                     <TextBlock Opacity="0.75" MaxWidth="440" TextWrapping="Wrap"
-                               Text="Die echte Dokumentansicht (Whiteboard / Notizbuch / Text) folgt in Schritt 4/5 des Ports. Dieser Bereich beweist die Navigation: Auswahl im Baum ⇒ Kontext hier."/>
+                               Text="Die echte Dokumentansicht (Whiteboard / Notizbuch / Text) folgt in Schritt 4/5 des Ports."/>
                 </Border>
             </StackPanel>
+
         </Panel>
 
     </DockPanel>

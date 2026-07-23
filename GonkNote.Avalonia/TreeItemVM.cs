@@ -48,6 +48,16 @@ public sealed class TreeItemVM : ObservableObject
 
     public string Label => $"{Glyph}  {Name}";
 
+    /// <summary>Typ-Beschriftung für Galerie-Kacheln.</summary>
+    public string KindLabel => Kind switch
+    {
+        ItemKind.Folder => "Ordner",
+        ItemKind.Notebook => "Notizbuch",
+        ItemKind.Whiteboard => "Whiteboard",
+        ItemKind.TextDocument => "Textdokument",
+        _ => "",
+    };
+
     /// <summary>Vom Elternordner geerbte Farbe (greift nur ohne eigene <see cref="NoteItem.IconColor"/>).</summary>
     public string? InheritedColorHex { get; set; }
 

@@ -1,4 +1,4 @@
-# Gonk Note — Projektübergabe (Stand: 2026-07-22, Phase 3 laufend)
+# Gonk Note — Projektübergabe (Stand: 2026-07-23, Phase 3 laufend)
 
 > **📌 Doku-Pflege (Nutzer-Wunsch, dauerhaft):** Wird das **README** aktualisiert,
 > muss auch **Hilfe → Über Gonk Note** (`Views/AboutDialog`) mitgezogen werden. Das
@@ -12,7 +12,27 @@
 > ausführlichen Tabellen als Standard). **Ausführlich nur** bei **offenen Fragen und
 > Entscheidungen**, die der Nutzer treffen muss — die weiterhin klar begründen.
 >
-> **Fixes-Runde 17 (2026-07-22) zuletzt umgesetzt:**
+> **Fixes-Runde 18 (2026-07-23) zuletzt umgesetzt:**
+> - **Rechtschreibprüfung: Erkennung + Sprach-Swap repariert.** Ursache: WPF vergibt die
+>   Sprache (`xml:lang`) **pro Textabschnitt** anhand der Eingabesprache (Tastaturlayout) bzw.
+>   übernimmt sie beim DOCX-Import → Teile wurden mit dem falschen Wörterbuch geprüft (Wörter
+>   fälschlich/nicht angestrichen), und die Combo änderte nur `Editor.Language`, nicht die
+>   vorhandenen Runs (Swap wirkungslos, WPF prüft laufenden Text bei Sprachwechsel nicht neu).
+>   - Fix in `TextEditorView.xaml.cs`: neue `SetSpellLanguage(lang)` setzt die Sprache auf
+>     **alle** Runs/Blöcke (`ApplyLanguageToBlocks`, rekursiv über Paragraph/Section/List/Table/
+>     Span) und stößt die Prüfung neu an (`ForceSpellRecheck` = kurz SpellCheck aus/ein). Wird
+>     beim **Sprachwechsel** und **beim Laden** (`LoadFromModel`) aufgerufen (Standard Deutsch).
+>   - **Englisch braucht ein Windows-Wörterbuch.** Auf dem Testrechner ist nur **de-DE**
+>     installiert (`Get-WinUserLanguageList` → 1 Sprache), daher zeigt Englisch keine Markierungen
+>     – das ist eine OS-Grenze, kein App-Bug (WPF nutzt ab Win8.1 die Plattform-Rechtschreibung).
+>     Neu `Services/SpellCheckSupport.cs` (COM `ISpellCheckerFactory.IsSupported`) prüft die
+>     Verfügbarkeit; fehlt das Wörterbuch, erscheint in der Statusleiste ein **Warndreieck**
+>     (`SpellLangWarn`) mit Tooltip (Sprache in den Windows-Einstellungen ergänzen).
+>   - Verifiziert (geseedetes Test-Dokument dt./engl. mit Tippfehlern, `%TEMP%\gonk-titlebar`):
+>     Deutsch markiert „Tset/Fehlren/Woertern" korrekt; Swap auf Englisch prüft neu (die zuvor
+>     im Deutsch-Modus markierten englischen Wörter verschwinden) und blendet das Warndreieck ein.
+>
+> **Fixes-Runde 17 (2026-07-22):**
 > - **Einblendbare Titelleiste im maximierten Fenster.** Im maximierten (titelleistenlosen)
 >   Fenster gleitet bei Mauskontakt am oberen Rand eine eigene Titelleiste herein (Overlay-
 >   Streifen `AutoTitleBar` in `MainWindow.xaml`, animiert per `TranslateTransform` +
@@ -202,8 +222,9 @@
 > interner Element-Zwischenablage. Alle Commits `…`→HEAD, Build 0 Warnungen.
 >
 > **⇒ Aktueller Arbeitsmodus:** Der Nutzer **testet die App ausführlich** und schickt
-> laufend kleine Änderungs-/Fix-Wünsche — die zuerst erledigen. **RAM-Optimierung erst,
-> wenn der Nutzer zufrieden ist** (Leitlinie & Schwellenwerte in §5, Ablauf in §6).
+> laufend kleine Änderungs-/Fix-Wünsche — die zuerst erledigen. **Danach in dieser Reihenfolge:
+> Code-Cleanup → zweite Sprache (DE/EN) → RAM-Optimierung → GitHub-Veröffentlichung (MIT)**
+> (Leitlinie & Schwellenwerte in §5, Ablauf in §6).
 
 
 Diese Datei ist für den Einstieg in einen **neuen Chat-Thread** gedacht. Sie fasst
@@ -498,9 +519,54 @@ Nutzer-Test mit Stift.
   Hilfe mit (aufrecht war eine frühere Variante). Prototyp/Sichtprüfung:
   `%TEMP%\gonk-geotest` und `%TEMP%\gonk-rulertest` (portieren die Zeichenlogik 1:1).
 - **Nutzer-Strategie & Phase-3-Rest (Stand 2026-07-16, verbindlich):**
-  - **Reihenfolge:** Der Nutzer testet die App gerade ausführlich und schickt
-    **laufend Änderungs-/Fix-Wünsche**. Diese haben Vorrang. **Erst wenn der Nutzer
-    zufrieden ist, wird die RAM-Optimierung angegangen** — nicht vorher anfangen.
+  - **Reihenfolge (Nutzer-verbindlich, Stand 2026-07-23):** laufende Fixes (Vorrang) →
+    **Code-Cleanup** → **zweite Sprache (DE/EN, i18n)** → **RAM-Optimierung** →
+    **GitHub-Veröffentlichung (MIT)** → Render-Caching nur bei Bedarf. RAM nicht vor dem
+    Aufräumen anfangen; i18n bewusst nach dem Cleanup.
+  - **Code-Cleanup / Projekt aufräumen (vor der RAM-Optimierung, Nutzer-Wunsch):** den
+    bestehenden Code durchgehen und aufräumen, bevor RAM angegangen wird. Ansatzpunkte:
+    tote/ungenutzte Pfade und Altlasten entfernen, die 6 `CS8622`-Warnungen in
+    `WhiteboardView.Numpad.cs` beheben (0-Warnungen-Ziel halten), große partial-Dateien/
+    Methoden entwirren, Namensgebung/Kommentare vereinheitlichen, überflüssige `TestAssets`/
+    Wegwerf-Harnesses aufräumen, Doppelungen zusammenführen. **Verhalten unverändert lassen**
+    (reines Aufräumen, keine Feature-Änderung); nach jedem Schritt Build 0 Warnungen + kurzer
+    Sichttest. Beim Aufräumen **Kernlogik (Models/Services/DB) sauber von den Views entkoppeln**
+    – das erleichtert i18n *und* einen möglichen späteren Cross-Platform-Port.
+  - **Zweite Sprache (DE/EN, i18n) — nach dem Cleanup (Nutzer-Wunsch 2026-07-23):** Umschaltung
+    unter „Ansicht → Sprache", zur Laufzeit (kein Neustart). Empfohlenes Muster: zentraler
+    `LocalizationManager` (`INotifyPropertyChanged`) + Markup-Extension `{loc:T Key}`, alle
+    Texte darauf umstellen; Sprachwechsel feuert PropertyChanged → UI aktualisiert live. Der
+    Umbau ist klein, das **Extrahieren der vielen hartcodierten deutschen Strings** ist der
+    Aufwand (MainWindow, großes Text-Editor-Ribbon, Whiteboard, Dialoge, `MessageBox`-Texte,
+    dynamisch gebaute Menüs). Beim Cleanup Strings gleich zentralisieren. Kleinkram: dynamische
+    Menüs müssen die aktuelle Sprache lesen; Über-Dialog lädt das dt. README (EN-Variante oder
+    DE lassen); Datums-/Zahlenformate über `CultureInfo`. Grob 1–3 Tage für Vollabdeckung.
+  - **GitHub-Veröffentlichung — NACH fertiger RAM-Optimierung (Nutzer-Wunsch 2026-07-23):**
+    Ziel Open Source, **MIT-Lizenz** (Copyright Manuel Toegel). Vor dem Public-Schalten:
+    - **`LICENSE` (MIT)** anlegen + README-Abschnitt „Lizenz" (+ optional „Third-party": alle
+      Deps permissiv — LiteDB/SkiaSharp/Svg.Skia/OpenXML MIT, Docnet/PDFium BSD-3, Tesseract +
+      tessdata Apache-2.0).
+    - **Alle Sticker löschen** (`Assets/Stickers/*.png`, 14 Stück, u. a. Meme-/Fremdmaterial) –
+      Nutzer hat **keine Lizenz** dafür. **Auch aus der Git-History entfernen** (sonst per altem
+      Commit auscheckbar): am einfachsten **neues Repo mit einem sauberen Initial-Commit** (ohne
+      Alt-History) oder `git filter-repo`/BFG auf `Assets/Stickers/**`. csproj-Include Zeile 46
+      kann bleiben (matcht dann nichts) oder mit raus. Sticker-Feature bleibt (Nutzer-Sticker in
+      %APPDATA%), nur die mitgelieferten Basis-Sticker entfallen.
+    - **Cover bleiben** (`Assets/Covers/**` – vom Nutzer selbst erstellt, unbedenklich).
+    - **`TestAssets/`** ist schon in `.gitignore` (GoodNotes-Screenshots/Test-PDF gehen nicht mit
+      hoch) und wird ohnehin nach der RAM-Optimierung gelöscht.
+    - Keine echten Notizdaten/Namen im Repo **oder in der History** (echte DB liegt in %APPDATA%).
+    - Keine Segoe-Font-Dateien einchecken (App nutzt System-Font – bundlet keine `.ttf`).
+  - **Cross-Platform (offen, Priorität Linux) — Nutzer-Frage 2026-07-23:** WPF ist Windows-only,
+    die UI-Schicht müsste also neu. Empfehlung, wenn Linux Priorität hat und C# bleiben soll:
+    **Avalonia UI** (WPF-nahes XAML; Windows/Linux/macOS/iOS/Android). Reuse: Modelle, DB
+    (LiteDB), **Whiteboard-Rendering (SkiaSharp)**, Kernlogik. **Harter Brocken:** der
+    Text-Editor (WPF `RichTextBox`/`FlowDocument` hat kein Avalonia-Äquivalent → Neubau) – zuerst
+    als Prototyp abklopfen. Windows-Spezifika ersetzen: DWM-Titelleiste/P-Invoke (Avalonia-
+    Chrome), WPF-Rechtschreibung → **WeCantSpell.Hunspell** (pure C#, plattformunabhängig – löst
+    nebenbei das Windows-Wörterbuch-Problem, s. Runde 18), Tesseract/PDFium haben Linux-Builds.
+    Aufwand: groß (Port, kein Rewrite wie bei Flutter), Wochen. Deshalb beim Cleanup UI/Kernlogik
+    entkoppeln. **Entscheidung steht aus** – vor weiteren WPF-only-Features klären.
   - **RAM-Leitlinie: „Features vor RAM".** Zielwunsch ~200 MB. Als akzeptabel nannte
     der Nutzer „unter 80 MB" — das ist angesichts der ~190-MB-Basis mit ~96 MB
     Bild-Cache **mit hoher Wahrscheinlichkeit ein Tippfehler für ~800 MB**; die
@@ -600,14 +666,22 @@ Nutzer-Test mit Stift.
 
 1. **Laufende Änderungs-/Fix-Wünsche des Nutzers zuerst** einarbeiten (kommen in
    Batches während seiner Testphase). Sie haben Vorrang vor allem anderen.
-2. **Erst wenn der Nutzer ausdrücklich zufrieden ist → RAM-Optimierung** (Details/
-   Schwellenwerte in §5, „Nutzer-Strategie"). **Vorher den 1-GB-/800-MB-Wert einmal
-   rückversichern** und die Leitlinie „Features vor RAM" beachten.
-3. **Render-Caching** nur bei Bedarf **nach** der RAM-Optimierung (§5).
-4. **OCR ✔ umgesetzt (2026-07-17) mit Tesseract** (§5) — Kontextmenü „Text erkennen
+2. **Ist der Nutzer zufrieden → Code-Cleanup / Projekt aufräumen** (Nutzer-Wunsch
+   2026-07-23, Details in §5): Altlasten/tote Pfade raus, `CS8622`-Warnungen beheben,
+   große partials entwirren, Doppelungen zusammenführen, **Kernlogik von den Views
+   entkoppeln** — **Verhalten unverändert**, Build 0 Warnungen.
+3. **Zweite Sprache (DE/EN, i18n)** — vom Nutzer **nach dem Cleanup** gewünscht
+   (2026-07-23): „Ansicht → Sprache", zur Laufzeit umschaltbar (§5).
+4. **RAM-Optimierung** (Details/Schwellenwerte in §5, „Nutzer-Strategie"). **Vorher
+   den 1-GB-/800-MB-Wert einmal rückversichern** und die Leitlinie „Features vor RAM" beachten.
+5. **GitHub-Veröffentlichung (MIT) — NACH fertiger RAM-Optimierung** (Nutzer-Wunsch
+   2026-07-23): `LICENSE` (MIT), **alle Sticker löschen inkl. Git-History** (keine Lizenz),
+   **Cover bleiben** (selbst erstellt), `TestAssets/` ohnehin gelöscht. Volle Checkliste in §5.
+6. **Render-Caching** nur bei Bedarf **nach** der RAM-Optimierung (§5).
+7. **OCR ✔ umgesetzt (2026-07-17) mit Tesseract** (§5) — Kontextmenü „Text erkennen
    (OCR)" auf Bildern/PDF-Seiten. In-App-UI-Fluss noch im echten Fenster zu testen;
    `InkAnalyzer` für Handschrift bleibt offen.
-5. **Obfuskierung ist gestrichen** (Open-Source-Ziel).
+8. **Obfuskierung ist gestrichen** (Open-Source-Ziel).
 
 Export sitzt in `Datei → Exportieren`; `ExportActiveTab` wählt anhand des aktiven
 Tabs die Formate.

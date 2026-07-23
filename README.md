@@ -73,8 +73,12 @@ ohne Cloud, ohne Installation, ohne Adminrechte.
     Zeilen-/Spaltenbändern, Rahmen und Füllung
   - **Diagramme** (Säulen, Balken, Linie, Punkt, Punkt+Linie, Kuchen, Radar — mehrere Reihen,
     Farben per „+" erweiterbar und per Rechtsklick löschbar)
-  - Rechtschreibprüfung (Deutsch/Englisch) mit Korrekturvorschlägen, Lineal, Statusleiste
-    (Wörter, Zoom), Überschriften-Navigator, Seitenumbruch-Marken
+  - Rechtschreibprüfung (Deutsch/Englisch umschaltbar in der Statusleiste; die gewählte
+    Sprache gilt fürs ganze Dokument und wird sofort neu geprüft) mit Korrekturvorschlägen.
+    Hinweis: Die Markierungen kommen von Windows – ist für eine Sprache kein Wörterbuch
+    installiert (z. B. Englisch auf einem rein deutschen Windows), erscheint ein Warnsymbol
+    und es wird nichts angestrichen; die Sprache lässt sich in den Windows-Einstellungen
+    ergänzen. Lineal, Statusleiste (Wörter, Zoom), Überschriften-Navigator, Seitenumbruch-Marken
 - **Import**: Bilder, PDF, DOCX und **Markdown (`.md`)** — DOCX/Markdown als neue Textdokumente
 - **Export**: Textdokument → PDF / DOCX / Markdown / PNG, Whiteboard/Notizbuch → PDF / PNG
 - **Dark-/Light-Mode** (`Strg+T`) fürs App-Design — Seiten und Schreibflächen bleiben
@@ -154,9 +158,12 @@ GonkNote/
   - ✔ Sticker, Notizzettel, Lineal/Geodreieck, Diagramme, Tabellen (Word-artiger Kontext-Tab),
     Quick-Options-Menü, **OCR** (Tesseract, Deutsch/Englisch), Markdown-Import, Cover-Vorlagen,
     Ordner-Farbvererbung, Zahlenblock für die Strichstärke
-  - **Nächster Schritt (nach der Testphase):** RAM-Optimierung. Leitlinie: *Features vor RAM* —
-    Ziel wären ~200 MB, akzeptabel bis in den mittleren dreistelligen MB-Bereich, **harte
-    Obergrenze 1 GB**, die nie überschritten werden darf.
+  - **Nächste Schritte (nach der Testphase):** **Code-Cleanup / Projekt aufräumen**
+    (Altlasten entfernen, Warnungen beheben, Struktur straffen – ohne Verhaltensänderung) →
+    **zweite Sprache** (Deutsch/Englisch, umschaltbar unter „Ansicht") → **RAM-Optimierung**
+    (Leitlinie *Features vor RAM* — Ziel ~200 MB, akzeptabel bis mittlerer dreistelliger
+    MB-Bereich, **harte Obergrenze 1 GB**) → **Veröffentlichung auf GitHub unter der
+    MIT-Lizenz**.
   - **Render-Caching**: nur, falls die RAM-Auslastung nach der Optimierung noch zu hoch ist
     (oder vorgezogen, falls es technisch sinnvoller vor der Optimierung liegt)
   - **Handschrift-Erkennung** (optional, aufbauend auf der OCR-Grundlage)

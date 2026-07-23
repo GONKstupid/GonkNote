@@ -12,7 +12,14 @@
 > ausführlichen Tabellen als Standard). **Ausführlich nur** bei **offenen Fragen und
 > Entscheidungen**, die der Nutzer treffen muss — die weiterhin klar begründen.
 >
-> **Fixes-Runde 18 (2026-07-23) zuletzt umgesetzt:**
+> **Runde 19 (2026-07-23) zuletzt:** **Cross-Platform-Port (Linux) begonnen** — auf
+> Nutzer-Wunsch vorgezogen. Neues Avalonia-Projekt `GonkNote.Avalonia/` (net8.0, kein Flutter)
+> als PoC, das die echte Kernlogik (Models + `DatabaseService` + LiteDB) wiederverwendet und
+> den Ordnerbaum lädt; WPF-App unangetastet. **Vollständiger Leitfaden für einen neuen Thread
+> in §9** (Stand, Architektur, Reuse-Karte, gestaffelter Plan, Fallstricke). Außerdem: ein
+> versehentlich (vom Nutzer) nach `Views/` verschobenes `Themes/Dark.xaml` zurückgestellt.
+>
+> **Fixes-Runde 18 (2026-07-23):**
 > - **Rechtschreibprüfung: Erkennung + Sprach-Swap repariert.** Ursache: WPF vergibt die
 >   Sprache (`xml:lang`) **pro Textabschnitt** anhand der Eingabesprache (Tastaturlayout) bzw.
 >   übernimmt sie beim DOCX-Import → Teile wurden mit dem falschen Wörterbuch geprüft (Wörter
@@ -566,7 +573,8 @@ Nutzer-Test mit Stift.
     Chrome), WPF-Rechtschreibung → **WeCantSpell.Hunspell** (pure C#, plattformunabhängig – löst
     nebenbei das Windows-Wörterbuch-Problem, s. Runde 18), Tesseract/PDFium haben Linux-Builds.
     Aufwand: groß (Port, kein Rewrite wie bei Flutter), Wochen. Deshalb beim Cleanup UI/Kernlogik
-    entkoppeln. **Entscheidung steht aus** – vor weiteren WPF-only-Features klären.
+    entkoppeln. **PoC am 2026-07-23 begonnen (Avalonia, `GonkNote.Avalonia/`); vollständiger
+    Umsetzungs-Leitfaden in §9.**
   - **RAM-Leitlinie: „Features vor RAM".** Zielwunsch ~200 MB. Als akzeptabel nannte
     der Nutzer „unter 80 MB" — das ist angesichts der ~190-MB-Basis mit ~96 MB
     Bild-Cache **mit hoher Wahrscheinlichkeit ein Tippfehler für ~800 MB**; die
@@ -750,3 +758,89 @@ dotnet build
 dotnet publish -c Release                           # Single-File-Exe
 # → bin/Release/net8.0-windows/win-x64/publish/GonkNote.exe
 ```
+
+---
+
+## 9. Cross-Platform-Port (Linux, Avalonia) — Leitfaden für einen neuen Thread
+
+**Ziel (Nutzer 2026-07-23): die App auch unter Linux nutzbar machen — Priorität Linux, C#
+behalten, KEIN Flutter.** iPad wäre „eventuell später". Entscheidung: **Avalonia UI**
+(WPF-nahes XAML, ein .NET-Code für Windows/Linux/macOS/iOS/Android). MAUI raus (kein
+offizielles Linux), Flutter raus (kompletter Rewrite, kein C#-Reuse).
+
+> **Einstieg im neuen Thread:** „Lies HANDOFF.md §9 und mach mit dem Avalonia-Port weiter."
+> Der PoC liegt schon im Repo unter `GonkNote.Avalonia/`.
+
+### 9.1 Stand: PoC bereits gebaut & verifiziert (2026-07-23)
+- Neues, **eigenständiges** Projekt **`GonkNote.Avalonia/`** (Avalonia **11.0.10**,
+  **`net8.0` — plattformneutral, NICHT `-windows`**). Reines NuGet, **kein Workload nötig**.
+- Verwendet die **echten Kernklassen der WPF-App per `<Compile Include>`-Link** (keine Kopie):
+  `..\Models\NoteItem.cs`, `..\Models\Whiteboard.cs`, `..\Services\DatabaseService.cs` (+ `LiteDB`).
+- Dateien: `GonkNote.Avalonia.csproj`, `Program.cs`, `App.axaml(.cs)`, `MainWindow.axaml(.cs)`,
+  `app.manifest`. `MainWindow` lädt den Ordnerbaum über den **echten `DatabaseService`** aus
+  einer LiteDB und zeigt ihn (Demo-DB `%TEMP%\gonk-avalonia-demo.db`, wird bei Erststart geseedet).
+- **Verifiziert (Windows):** baut 0 Fehler; Fenster rendert den Baum im Fluent-Dark-Theme
+  (Screenshot `%TEMP%\gonk-titlebar\AV2-avalonia.png`).
+- **WPF-App unangetastet** und weiter grün: `GonkNote.csproj` schließt den Ordner aus
+  (`<Compile Remove="GonkNote.Avalonia\**\*.cs"/>` + None/Page/Resource-Remove) — sonst greift
+  dessen `**/*.cs`-Glob hinein.
+- **Bewiesen:** Avalonia + Models + DatabaseService + LiteDB laufen auf `net8.0` → Cross-Platform-fähig.
+
+Bauen/Starten:
+```bash
+dotnet build GonkNote.Avalonia/GonkNote.Avalonia.csproj
+GonkNote.Avalonia/bin/Debug/net8.0/GonkNote.Avalonia.exe      # Linux: dotnet …/GonkNote.Avalonia.dll
+```
+
+### 9.2 Architektur-Zielbild
+- Der Cleanup-Schritt zieht die **plattformneutrale Kernlogik** in ein echtes Projekt
+  **`GonkNote.Core`** (`net8.0`): Models + DB + reine Services (Undo, ImageCache, ggf.
+  WPF-freie Export-Kernlogik). WPF **und** Avalonia referenzieren `Core` (ProjectReference) →
+  die `<Compile Include>`-Links im Avalonia-Projekt fallen dann weg.
+- UI bleibt pro Plattform getrennt: `GonkNote` (WPF, Windows) + `GonkNote.Avalonia` (überall).
+  Optional später WPF ganz durch Avalonia ersetzen (eine UI für alle Plattformen).
+
+### 9.3 Reuse-Karte — portierbar vs. Neubau
+**Gut wiederverwendbar (kein/kaum WPF):**
+- Modelle (`Models/*`), `DatabaseService` (LiteDB), Enums/Logik.
+- **Whiteboard-Rendering** läuft schon über **SkiaSharp** (`WhiteboardView.Draw*` sind
+  `internal static`). Avalonia nutzt selbst Skia → die Zeichenroutinen lassen sich auf eine
+  Avalonia-Custom-Control heben. **Größter Reuse-Gewinn.**
+- OCR (Tesseract) und PDF (Docnet/PDFium) haben **Linux-Builds** (native Libs pro RID mitliefern).
+
+**Muss neu gebaut werden (Windows/WPF-spezifisch):**
+- **Text-Editor = der harte Brocken.** WPF `RichTextBox`/`FlowDocument` gibt es in Avalonia
+  nicht. Optionen: (a) eigenes Rich-Text-Modell auf Avalonias Text-Stack, (b) Markdown-Editor,
+  (c) HTML-Editor via WebView. **Zuerst prototypen** — davon hängt ab, wie viel vom aktuellen
+  Editor (Formatvorlagen, Tabellen, Export) sich retten lässt. Aufwendigstes Teil des Ports.
+- **Fenster-Chrome**: DWM-Titelleiste + `WindowBounds`/`TitleBarTheme` (P/Invoke, Runde 16/17)
+  → Avalonias `ExtendClientAreaToDecorationsHint`/Fenster-APIs. Einblendbare Titelleiste (Runde 17)
+  neu, aber einfacher.
+- **Rechtschreibung**: WPF-`SpellCheck` ist Windows-Plattform → **WeCantSpell.Hunspell** (pure C#)
+  + Hunspell-Wörterbücher (de_DE/en_US) mitliefern. **Bonus:** löst zugleich das Englisch-Problem
+  auf Windows (Runde 18) und macht die Prüfung unabhängig vom Windows-Sprachpaket.
+- WPF-Only-Pfade rund um `FlowDocument` (`PdfExporter` Text-Teil, `DocxImporter/Exporter`,
+  `MarkdownExporter`, `TextStyles`) hängen am Editor-Ansatz und werden mitgezogen.
+
+### 9.4 Gestaffelter Plan
+1. ✅ **PoC/Scaffold + Kernlogik-Reuse** (fertig, §9.1).
+2. **`GonkNote.Core` extrahieren** (Models + plattformneutrale Services); WPF + Avalonia
+   referenzieren es; Links im Avalonia-Projekt entfernen.
+3. **Shell portieren**: MainWindow (Ordnerbaum + „Big Picture"-Galerie), Navigation, Tabs, Theme.
+4. **Whiteboard** auf Avalonia-Skia-Control (Zeichenroutinen wiederverwenden); Stylus/Touch über
+   Avalonia-Pointer-Events.
+5. **Text-Editor**-Ansatz entscheiden + bauen (§9.3) — Risiko-Teil, früh prototypen.
+6. **Plattform-Teile**: Fenster-Chrome, Hunspell-Rechtschreibung, OCR/PDF mit Linux-Native-Libs.
+7. **Auf echtem Linux** bauen/testen (X11 + Wayland), `dotnet publish -r linux-x64`.
+
+### 9.5 Fallstricke / Notizen
+- **`net8.0` (nicht `-windows`)** für Core + Avalonia — sonst kein Linux.
+- **`ImplicitUsings` müssen übereinstimmen:** die verlinkten Kernklassen nutzen implizite Usings
+  (System.Linq etc.) → Avalonia-Projekt hat `ImplicitUsings=enable`; im Core-Projekt genauso.
+- **WPF-csproj-Ausschluss** für `GonkNote.Avalonia\**` beibehalten, solange beide im selben
+  Ordnerbaum liegen.
+- **Bisher nur auf Windows entwickelt/verifiziert** — der echte Linux-Build/-Test steht aus
+  (kein Linux in dieser Umgebung).
+- Reihenfolge laut Roadmap (§5/§6): eigentlich Cleanup → i18n → RAM → GitHub; der Port wurde auf
+  **ausdrücklichen Nutzer-Wunsch vorgezogen begonnen** (nur Scaffold). Die Hauptumsetzung verzahnt
+  sich sinnvoll mit dem Cleanup (die `GonkNote.Core`-Extraktion ist beides zugleich).

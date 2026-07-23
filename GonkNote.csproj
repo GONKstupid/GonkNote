@@ -54,4 +54,13 @@
     <Content Include="tessdata\*.traineddata" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
+  <!-- Der Avalonia-Port ist ein eigenes Projekt (GonkNote.Avalonia\) und darf nicht in den
+       WPF-Build hineingezogen werden (dessen **/*.cs-Glob würde sonst zugreifen). -->
+  <ItemGroup>
+    <Compile Remove="GonkNote.Avalonia\**\*.cs" />
+    <None Remove="GonkNote.Avalonia\**" />
+    <Page Remove="GonkNote.Avalonia\**" />
+    <Resource Remove="GonkNote.Avalonia\**" />
+  </ItemGroup>
+
 </Project>

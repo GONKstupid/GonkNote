@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <!-- Plattformneutral (net8.0, NICHT net8.0-windows) → läuft auch unter Linux -->
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>12</LangVersion>
+    <RootNamespace>GonkNote.Avalonia</RootNamespace>
+    <AssemblyName>GonkNote.Avalonia</AssemblyName>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="11.0.10" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.0.10" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.10" />
+    <PackageReference Include="Avalonia.Diagnostics" Version="11.0.10" Condition="'$(Configuration)' == 'Debug'" />
+    <PackageReference Include="LiteDB" Version="5.0.21" />
+  </ItemGroup>
+
+  <!-- Gemeinsame, plattformneutrale Kernklassen aus der bestehenden App (per Link, ohne
+       Kopie). Der spätere „Cleanup"-Schritt zieht diese in ein echtes GonkNote.Core-Projekt,
+       das WPF und Avalonia gemeinsam referenzieren. -->
+  <ItemGroup>
+    <Compile Include="..\Models\NoteItem.cs" Link="Shared\NoteItem.cs" />
+    <Compile Include="..\Models\Whiteboard.cs" Link="Shared\Whiteboard.cs" />
+    <Compile Include="..\Services\DatabaseService.cs" Link="Shared\DatabaseService.cs" />
+  </ItemGroup>
+
+</Project>

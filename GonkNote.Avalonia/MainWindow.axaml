@@ -1,0 +1,22 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="GonkNote.Avalonia.MainWindow"
+        Width="820" Height="620"
+        Title="Gonk Note — Avalonia-Port (Linux-ready)">
+    <DockPanel Margin="18">
+        <StackPanel DockPanel.Dock="Top" Spacing="4" Margin="0,0,0,14">
+            <TextBlock Text="Gonk Note — Avalonia-Port" FontSize="22" FontWeight="SemiBold"/>
+            <TextBlock Opacity="0.7" TextWrapping="Wrap"
+                       Text="Proof of Concept: dieselbe Kernlogik (Models + DatabaseService + LiteDB) unter Avalonia – ein Code, lauffähig auf Windows und Linux."/>
+        </StackPanel>
+        <Border BorderBrush="#33808080" BorderThickness="1" CornerRadius="8" Padding="8">
+            <TreeView Name="Tree">
+                <TreeView.ItemTemplate>
+                    <TreeDataTemplate ItemsSource="{Binding Children}">
+                        <TextBlock Text="{Binding Label}" FontSize="15" Padding="2"/>
+                    </TreeDataTemplate>
+                </TreeView.ItemTemplate>
+            </TreeView>
+        </Border>
+    </DockPanel>
+</Window>

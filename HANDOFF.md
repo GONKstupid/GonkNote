@@ -903,11 +903,13 @@ danach fein machen; der Prototyp nutzt vorerst **Reiter Bearbeiten/Vorschau** st
 - **Verifiziert per Screenshot** (`%TEMP%\gonk-titlebar\AV3-shell3a-sel2.png`): Baum rendert,
   **Farbvererbung sichtbar** (Ordner „Projekte" blau → Kinder blau, „Schule" rot → Kinder rot),
   Sortierung stimmt, **Auswahl „Ideen" → rechts „Notizbuch / Ideen"** (Navigation end-to-end).
-- **Quirk-Auswirkung (wichtig):** Der in §9.3b/§9.5 notierte **Fill-Panel-Breiten-Effekt** trifft
-  auch den rechten Inhaltsbereich (zentrierter Inhalt wird rausgeschoben; `TextBlock`-`Wrap`/
-  `MaxWidth` greifen dort nicht) → Inhalt vorerst **linksbündig**. Der Baum (feste Panelbreite
-  links) ist unbetroffen. Beim Linux-Port / mit gepinnter Avalonia-Version gezielt lösen, bevor
-  3b (Galerie/Tabs) fein gebaut wird.
+- **Quirk-Workaround angewandt:** Der in §9.5 beschriebene Fill-Panel-Measure-Effekt traf auch den
+  rechten Inhaltsbereich (Inhalt wurde rausgeschoben). **Gelöst:** `MainWindow.axaml.cs` koppelt
+  `ContentHost.Width` an `ClientSize.Width − Seitenleiste` (`GetObservable(ClientSizeProperty)`) →
+  Inhalt bricht/zentriert wieder korrekt (per Screenshot `AV3-shell3a-fix.png` verifiziert:
+  Leerzustand zentriert). **Muster für 3b/Doku-Ansichten:** Fill/Star-Bereichen eine explizite,
+  an die Fenstergröße gekoppelte Breite geben — oder beim Linux-Build prüfen, ob der Quirk dort
+  gar nicht auftritt (dann entfällt der Workaround).
 
 ### 9.4 Gestaffelter Plan
 1. ✅ **PoC/Scaffold + Kernlogik-Reuse** (fertig, §9.1).

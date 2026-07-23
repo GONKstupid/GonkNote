@@ -47,13 +47,14 @@
             </DockPanel>
         </Border>
 
-        <!-- Inhaltsbereich (Platzhalter bis Schritt 4/5); linksbündig wegen des
-             Fill-Panel-Breiten-Quirks (§9.3b/§9.5) -->
-        <Panel>
+        <!-- Inhaltsbereich (Platzhalter bis Schritt 4/5). Breite wird im Code-behind an die
+             Fensterbreite gekoppelt — Workaround gegen den Fill-Panel-Measure-Quirk (§9.5),
+             damit Inhalt korrekt umbricht/zentriert statt rechts überzulaufen. -->
+        <Panel Name="ContentHost" HorizontalAlignment="Left">
             <!-- Leerzustand -->
-            <StackPanel IsVisible="{Binding HasNoSelection}" Margin="28,26" Spacing="6"
-                        HorizontalAlignment="Left" VerticalAlignment="Top">
-                <TextBlock Text="📂" FontSize="40" Opacity="0.5"/>
+            <StackPanel IsVisible="{Binding HasNoSelection}" Spacing="6"
+                        HorizontalAlignment="Center" VerticalAlignment="Center">
+                <TextBlock Text="📂" FontSize="40" Opacity="0.5" HorizontalAlignment="Center"/>
                 <TextBlock Text="Wähle links ein Dokument." Opacity="0.6"/>
             </StackPanel>
             <!-- Auswahl -->

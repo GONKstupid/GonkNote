@@ -933,10 +933,16 @@ danach fein machen; der Prototyp nutzt vorerst **Reiter Bearbeiten/Vorschau** st
   Ordnerbaum liegen.
 - **Bisher nur auf Windows entwickelt/verifiziert** — der echte Linux-Build/-Test steht aus
   (kein Linux in dieser Umgebung).
-- **Mehrzeilige `TextBox` bricht nicht um** (Avalonia 11.0.10 @ 200 % DPI, Windows): `TextWrapping=
-  "Wrap"` wird auf einer multiline-`TextBox` hier ignoriert (Text läuft rechts über), während
-  `TextBlock`-Wrapping und das übrige Layout korrekt sind. Beim Linux-Port / mit gepinnter Version
-  gegenprüfen. Details/Kontext in **§9.3b**.
+- **DockPanel-Fill / Grid-Star bekommen unendliche Messbreite** (Avalonia @ 200 % DPI, Windows) —
+  der Kern des „Layout-Quirks". Eingegrenzt (Runde 20, LayoutProbe-Wegwerftests): ein
+  **vertikales StackPanel** gibt Kindern endliche Breite (Umbruch ok), aber das **LastChildFill-
+  Kind eines DockPanels** und **Grid-`*`-Spalten/Zeilen** werden mit unendlicher Breite gemessen
+  (Text bricht nicht um, `MaxWidth` greift nicht, zentrierter Inhalt wird rausgeschoben).
+  **Fixe Breiten (Dock=Left Width=…, Grid-Pixelspalten) sind unbetroffen** → Workaround für die
+  Shell: feste Panelbreiten statt Fill/Star. **`Avalonia 11.2.3`-Bump getestet → behebt es NICHT**
+  (also kein reiner Versionsbug; vmtl. DPI-spezifisch). Beim echten **Linux-Build** gegenprüfen
+  (dort evtl. gar nicht vorhanden). Auch die multiline-`TextBox` (ignoriert `TextWrapping=Wrap`)
+  hängt vermutlich an derselben Ursache.
 - **`Markdown.Avalonia`-Style `"Standard"` ist nicht dark-mode-aware** (Überschriften unsichtbar,
   Tabelle hell) → eigener dunkler Markdown-Style beim Editor-Bau nötig (§9.3b).
 - Reihenfolge laut Roadmap (§5/§6): eigentlich Cleanup → i18n → RAM → GitHub; der Port wurde auf

@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Plattformneutrale Kernbibliothek (Models + DB + reine Services): net8.0, KEIN WPF,
+       KEIN -windows → wird von der WPF-App (Windows) und dem Avalonia-Port (überall)
+       gemeinsam referenziert. Siehe HANDOFF.md §9.2. -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>12</LangVersion>
+    <RootNamespace>GonkNote</RootNamespace>
+    <AssemblyName>GonkNote.Core</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="LiteDB" Version="5.0.21" />
+    <PackageReference Include="SkiaSharp" Version="2.88.9" />
+  </ItemGroup>
+
+</Project>

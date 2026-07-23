@@ -12,7 +12,19 @@
 > ausführlichen Tabellen als Standard). **Ausführlich nur** bei **offenen Fragen und
 > Entscheidungen**, die der Nutzer treffen muss — die weiterhin klar begründen.
 >
-> **Runde 19 (2026-07-23) zuletzt:** **Cross-Platform-Port (Linux) begonnen** — auf
+> **Runde 20 (2026-07-23) zuletzt:** **Avalonia-Port — Schritt 2 (Core) + Schritt 5 (Editor-Prototyp).**
+> (1) Plattformneutrale Kernlogik (Models + DatabaseService + UndoStack + ImageCache) in ein echtes
+> `net8.0`-Projekt `GonkNote.Core/` verschoben (`git mv`); WPF **und** Avalonia referenzieren es
+> per `ProjectReference` (Avalonia-`<Compile Include>`-Links weg) — Details **§9.1b**. (2) Auf
+> Nutzer-Wunsch den **Text-Editor-Ansatz prototypt** (Risiko-Teil): `Markdown.Avalonia` **rendert
+> formatierten Rich-Text** (Screenshot verifiziert) → **Markdown-Editor (Ansatz b) empfohlen**;
+> Entscheidungsmatrix + ehrlicher Feature-Preis in **§9.3b**. **Nutzer-Entscheidung: Editor-Bau
+> zurückstellen** → stattdessen (3) **Shell-Baustein 3a gebaut** (§9.3c): Ordnerbaum aus der echten
+> LiteDB mit **Farbvererbung** + Auswahl-Navigation + Theme-Umschalter (Avalonia-native VMs);
+> per Screenshot verifiziert. Alle drei Projekte bauen grün. **Noch nicht committet.**
+> Nächster Schritt: **Shell 3b** (Galerie/Tabs/Pins/Umbenennen/DnD) oder **Whiteboard (§9.4 Punkt 4)**.
+>
+> **Runde 19 (2026-07-23):** **Cross-Platform-Port (Linux) begonnen** — auf
 > Nutzer-Wunsch vorgezogen. Neues Avalonia-Projekt `GonkNote.Avalonia/` (net8.0, kein Flutter)
 > als PoC, das die echte Kernlogik (Models + `DatabaseService` + LiteDB) wiederverwendet und
 > den Ordnerbaum lädt; WPF-App unangetastet. **Vollständiger Leitfaden für einen neuen Thread
@@ -792,11 +804,27 @@ dotnet build GonkNote.Avalonia/GonkNote.Avalonia.csproj
 GonkNote.Avalonia/bin/Debug/net8.0/GonkNote.Avalonia.exe      # Linux: dotnet …/GonkNote.Avalonia.dll
 ```
 
+### 9.1b Schritt 2 erledigt: `GonkNote.Core` extrahiert (2026-07-23, Runde 20)
+- Neues **`GonkNote.Core/`** (`net8.0`, kein WPF): enthält die **echten, verschobenen**
+  Dateien (per `git mv`, Historie erhalten) — `Models/NoteItem.cs`, `Models/Whiteboard.cs`,
+  `Services/DatabaseService.cs`, `Services/UndoStack.cs`, `Services/ImageCache.cs`.
+  Namespaces unverändert (`GonkNote.Models`/`GonkNote.Services`) → WPF-Views brauchen **keine**
+  `using`-Änderung. NuGet: **LiteDB 5.0.21 + SkiaSharp 2.88.9** (für `ImageCache`).
+- **WPF (`GonkNote.csproj`)** referenziert Core per `ProjectReference`; die verschobenen Typen
+  kommen jetzt aus `Core.dll`. **Root-Glob-Falle:** der WPF-Root-Glob greift in `GonkNote.Core\`
+  hinein → zusätzlich `Compile/None/Page/Resource Remove="GonkNote.Core\**"` (wie bei Avalonia).
+- **Avalonia** referenziert Core per `ProjectReference`; die alten `<Compile Include>`-Links
+  **entfernt**, LiteDB-`PackageReference` entfernt (kommt transitiv aus Core).
+- **Verifiziert (Windows):** Core baut isoliert (0/0), WPF baut 0 Fehler (nur die 6 bekannten
+  `CS8622`-Alt-Warnungen aus `WhiteboardView.Numpad.cs`, unberührt), Avalonia baut 0/0;
+  `Core.dll`+`LiteDB.dll`+`SkiaSharp.dll` liegen im Avalonia-Output; Avalonia-Exe startet und
+  läuft stabil (kein TypeLoad-Fehler). **Reste-Verweise auf `..\Models`/`..\Services` weg.**
+
 ### 9.2 Architektur-Zielbild
-- Der Cleanup-Schritt zieht die **plattformneutrale Kernlogik** in ein echtes Projekt
-  **`GonkNote.Core`** (`net8.0`): Models + DB + reine Services (Undo, ImageCache, ggf.
-  WPF-freie Export-Kernlogik). WPF **und** Avalonia referenzieren `Core` (ProjectReference) →
-  die `<Compile Include>`-Links im Avalonia-Projekt fallen dann weg.
+- ✅ **Umgesetzt (§9.1b):** die **plattformneutrale Kernlogik** liegt im echten Projekt
+  **`GonkNote.Core`** (`net8.0`): Models + DB + reine Services (Undo, ImageCache). WPF **und**
+  Avalonia referenzieren `Core` (ProjectReference); die `<Compile Include>`-Links im Avalonia-
+  Projekt sind weg. *Später ggf. weitere WPF-freie Kernlogik nachziehen (z. B. Export-Kernteile).*
 - UI bleibt pro Plattform getrennt: `GonkNote` (WPF, Windows) + `GonkNote.Avalonia` (überall).
   Optional später WPF ganz durch Avalonia ersetzen (eine UI für alle Plattformen).
 
@@ -822,14 +850,78 @@ GonkNote.Avalonia/bin/Debug/net8.0/GonkNote.Avalonia.exe      # Linux: dotnet �
 - WPF-Only-Pfade rund um `FlowDocument` (`PdfExporter` Text-Teil, `DocxImporter/Exporter`,
   `MarkdownExporter`, `TextStyles`) hängen am Editor-Ansatz und werden mitgezogen.
 
+### 9.3b Text-Editor-Prototyp (Schritt 5) — Ergebnis & Entscheidung (2026-07-23, Runde 20)
+**Auf Nutzer-Wunsch vorgezogen prototypt** (der Risiko-Teil). Umgesetzt im Avalonia-Projekt:
+`EditorPrototypeWindow.axaml(.cs)` (Editor mit Formatier-Toolbar Fett/Kursiv/Code/H1–H3/Listen/
+Zitat/Tabelle + Markdown-Datei-Roundtrip) und `MarkdownProbe.axaml(.cs)` (isolierter Render-Test);
+beide über Buttons in `MainWindow` erreichbar. Neues Paket: **`Markdown.Avalonia` 11.0.2**.
+
+**Kernbefund (verifiziert per Screenshot `%TEMP%\gonk-titlebar\AV3-mdprobe.png`):**
+`Markdown.Avalonia` **rendert formatierten Rich-Text** (Überschriften, **fett**, *kursiv*, `Code`,
+Aufzählungen, nummerierte Listen, Zitatblöcke, **Tabellen**) sauber auf `net8.0` → cross-platform-
+tauglich, schlank, offline, **ohne** WPF/FlowDocument/WebView. **Das beantwortet die Machbarkeits-
+frage: JA.** Zwei Styling-To-dos: der Style `"Standard"` ist nicht dark-mode-aware (Überschriften
+unsichtbar auf dunklem Grund, Tabelle mit hellem Hintergrund) → eigener/dunkler Markdown-Style nötig.
+
+**Entscheidungsmatrix der drei Ansätze:**
+| Ansatz | Cross-Platform/schlank | Feature-Deckung ggü. WPF-Editor | Aufwand | Urteil |
+|---|---|---|---|---|
+| **(b) Markdown + Live-Vorschau** | ★★★ (pure C#, klein, offline) | mittel (kein WYSIWYG, keine Seiten-Layout/Kopf-Fußzeile; Tabellen/Listen/Überschriften ja) | niedrig | **empfohlen als Start** |
+| (a) Eigenes Rich-Text auf Avalonia-Text-Stack | ★★★ | potenziell hoch (WYSIWYG möglich) | **sehr hoch** (Caret/Selektion/Layout/Tabellen selbst bauen — Wochen) | später, nur wenn WYSIWYG zwingend |
+| (c) HTML-Editor via WebView (CEF) | ★ (CEF ~100 MB, Linux-Packaging, Single-File-Bruch) | hoch | mittel | **verworfen** (widerspricht offline/schlank/Single-File) |
+
+**Empfehlung:** **Ansatz (b) Markdown** als Editor der Avalonia-Version. Passt zu den Kern-
+vorgaben (offline, Single-File, schlank, Linux-Priorität) und nutzt den **schon vorhandenen
+Markdown-Weg** (`MarkdownExporter`/`MarkdownImporter`). **Preis (ehrlich):** Der Avalonia-Editor
+wird **nicht** die Word-artige WYSIWYG-Fülle des WPF-Editors haben (kein freies Seiten-Layout,
+Kopf-/Fußzeilen, Wasserzeichen, Format­vorlagen-Galerie). Rettbar sind: **Tabellen, Listen,
+Überschriften, Fett/Kursiv/Code, Export nach Markdown/PDF** (PDF über Markdown→Render).
+Die plattformneutralen **Seiteneinrichtungs-Felder** in `TextDoc` (Format/Ränder/Kopf-Fuß) bleiben
+im Modell nutzbar. **Speicherung:** UTF-8-Markdown in `TextDoc.Rtf` (statt WPF-XamlPackage).
+**Offene Nutzer-Entscheidung:** ob dieser bewusste Feature-Verlust für Linux ok ist, oder ob der
+WPF-Editor Windows-exklusiv bleibt und Avalonia nur den schlanken Markdown-Editor bekommt.
+
+**Beobachteter Avalonia-Layout-Quirk (Notiz für Schritt 3/5):** In dieser Dev-Umgebung
+(Avalonia 11.0.10 @ **200 % DPI**, Windows) bricht eine **mehrzeilige `TextBox` mit
+`TextWrapping="Wrap"`** nicht auf Containerbreite um (läuft rechts über); `TextBlock`-Wrapping und
+das übrige Layout (Shell, Baum, Toolbar) funktionieren dagegen einwandfrei, und der reine
+`MarkdownScrollViewer` beschränkt sich korrekt. Vermutlich ein DPI/Version-spezifischer Effekt →
+beim echten Port auf Linux / mit gepinnter Avalonia-Version gegenprüfen (Zwei-Spalten-Split erst
+danach fein machen; der Prototyp nutzt vorerst **Reiter Bearbeiten/Vorschau** statt Side-by-side).
+
+### 9.3c Shell-Baustein 3a (2026-07-23, Runde 20) — Ordnerbaum + Navigation + Theme
+**Avalonia-native VMs** (kein Wholesale-Port des 711-Zeilen-WPF-`MainViewModel`):
+- `Mvvm.cs` (ObservableObject + RelayCommand **ohne** WPF-`CommandManager`),
+  `TreeItemVM.cs` (Glyph als Emoji — Segoe-Fluent gibt's unter Linux nicht; Icon-Farbe als
+  Avalonia-`SolidColorBrush`, eigen→geerbt→Türkis; Sortierung Ordner→Favorit→Name),
+  `ShellViewModel.cs` (lädt Baum über echten `DatabaseService`, baut **Farbvererbung** nach,
+  hält `Selected`). Seed farbig in `%TEMP%\gonk-avalonia-shell.db`.
+- `MainWindow`: Zwei-Panel-Shell (`DockPanel`: Baum links `Width=300`, Inhalt rechts) +
+  Kopfleiste mit **Theme-Umschalter** (`RequestedThemeVariant` Light/Dark) und Buttons zu
+  Editor-Prototyp/Render-Probe. Auswahl im Baum ⇒ rechts Kontext (Typ + Titel; echte Doku-
+  Ansicht folgt 4/5).
+- **Verifiziert per Screenshot** (`%TEMP%\gonk-titlebar\AV3-shell3a-sel2.png`): Baum rendert,
+  **Farbvererbung sichtbar** (Ordner „Projekte" blau → Kinder blau, „Schule" rot → Kinder rot),
+  Sortierung stimmt, **Auswahl „Ideen" → rechts „Notizbuch / Ideen"** (Navigation end-to-end).
+- **Quirk-Auswirkung (wichtig):** Der in §9.3b/§9.5 notierte **Fill-Panel-Breiten-Effekt** trifft
+  auch den rechten Inhaltsbereich (zentrierter Inhalt wird rausgeschoben; `TextBlock`-`Wrap`/
+  `MaxWidth` greifen dort nicht) → Inhalt vorerst **linksbündig**. Der Baum (feste Panelbreite
+  links) ist unbetroffen. Beim Linux-Port / mit gepinnter Avalonia-Version gezielt lösen, bevor
+  3b (Galerie/Tabs) fein gebaut wird.
+
 ### 9.4 Gestaffelter Plan
 1. ✅ **PoC/Scaffold + Kernlogik-Reuse** (fertig, §9.1).
-2. **`GonkNote.Core` extrahieren** (Models + plattformneutrale Services); WPF + Avalonia
-   referenzieren es; Links im Avalonia-Projekt entfernen.
-3. **Shell portieren**: MainWindow (Ordnerbaum + „Big Picture"-Galerie), Navigation, Tabs, Theme.
+2. ✅ **`GonkNote.Core` extrahiert** (Models + DB + Undo + ImageCache); WPF + Avalonia
+   referenzieren es per ProjectReference; Links im Avalonia-Projekt entfernt (fertig, §9.1b).
+3. 🟡 **Shell portieren** (Nutzer-Priorität 2026-07-23) — **Baustein 3a erledigt (§9.3c)**:
+   Ordnerbaum aus `DatabaseService` mit Farbvererbung + Auswahl-Navigation + Theme-Umschalter,
+   Avalonia-native VMs. **Offen (3b+):** „Big-Picture"-Galerie, echte Doku-Tabs, Anpinnen/
+   Favoriten-Kacheln, Umbenennen, Drag&Drop, Breadcrumb.
 4. **Whiteboard** auf Avalonia-Skia-Control (Zeichenroutinen wiederverwenden); Stylus/Touch über
    Avalonia-Pointer-Events.
-5. **Text-Editor**-Ansatz entscheiden + bauen (§9.3) — Risiko-Teil, früh prototypen.
+5. 🟡 **Text-Editor: Ansatz entschieden, Bau zurückgestellt** (Prototyp fertig, §9.3b):
+   **Markdown (Ansatz b) empfohlen**. **Nutzer-Entscheidung 2026-07-23: Editor-Bau vorerst
+   zurückstellen** — erst Shell (3) + Whiteboard (4) portieren, Editor-Scope später festlegen.
 6. **Plattform-Teile**: Fenster-Chrome, Hunspell-Rechtschreibung, OCR/PDF mit Linux-Native-Libs.
 7. **Auf echtem Linux** bauen/testen (X11 + Wayland), `dotnet publish -r linux-x64`.
 
@@ -841,6 +933,12 @@ GonkNote.Avalonia/bin/Debug/net8.0/GonkNote.Avalonia.exe      # Linux: dotnet �
   Ordnerbaum liegen.
 - **Bisher nur auf Windows entwickelt/verifiziert** — der echte Linux-Build/-Test steht aus
   (kein Linux in dieser Umgebung).
+- **Mehrzeilige `TextBox` bricht nicht um** (Avalonia 11.0.10 @ 200 % DPI, Windows): `TextWrapping=
+  "Wrap"` wird auf einer multiline-`TextBox` hier ignoriert (Text läuft rechts über), während
+  `TextBlock`-Wrapping und das übrige Layout korrekt sind. Beim Linux-Port / mit gepinnter Version
+  gegenprüfen. Details/Kontext in **§9.3b**.
+- **`Markdown.Avalonia`-Style `"Standard"` ist nicht dark-mode-aware** (Überschriften unsichtbar,
+  Tabelle hell) → eigener dunkler Markdown-Style beim Editor-Bau nötig (§9.3b).
 - Reihenfolge laut Roadmap (§5/§6): eigentlich Cleanup → i18n → RAM → GitHub; der Port wurde auf
   **ausdrücklichen Nutzer-Wunsch vorgezogen begonnen** (nur Scaffold). Die Hauptumsetzung verzahnt
   sich sinnvoll mit dem Cleanup (die `GonkNote.Core`-Extraktion ist beides zugleich).

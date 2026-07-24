@@ -27,6 +27,11 @@
         <Style Selector="Button.crumb:pointerover">
             <Setter Property="Opacity" Value="1"/>
         </Style>
+        <!-- Aktives Werkzeug in der Whiteboard-Leiste -->
+        <Style Selector="Button.active">
+            <Setter Property="Background" Value="#5B21B6"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
         <!-- Farbkachel der Stift-Werkzeugleiste -->
         <Style Selector="Button.ink">
             <Setter Property="Width" Value="26"/>

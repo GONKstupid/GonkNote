@@ -1009,9 +1009,11 @@ danach fein machen; der Prototyp nutzt vorerst **Reiter Bearbeiten/Vorschau** st
 **Schritt 4b (Teil 2): Werkzeuge, Radierer, Undo/Redo, Zoom/Pan (2026-07-24).**
 - **Werkzeugauswahl** über `ToolProperty` (`Models.ToolType`): Stift / Bleistift / Textmarker
   (setzen `StrokeKind` und beim Marker die 5-fache Breite) / **Radierer** / **Hand**.
-- **Radierer:** elementweise (`EraseAt`/`HitsElement` — Striche über Punktnähe, sonst über
-  `WbRenderer.ElementBounds`). Ein Radier-Zug = **ein** Undo-Schritt. **Bewusst einfacher als die
-  WPF-App**, die Striche punktgenau auftrennt (`PartialEraseAction`) — offen.
+- **Radierer:** **punktgenau** (Nutzer-Meldung „radiert immer ganze Linien" behoben). Neue
+  plattformneutrale Klasse **`GonkNote.Core/Editing/WbErase.cs`** (`SplitStroke`,
+  `SegmentDistance`, `HitsStroke`, `HitsOther`) — aus der WPF-Logik gehoben: Striche werden am
+  Radierkreis **aufgetrennt**, die Reststücke bleiben stehen; Formen/Text/Zettel gehen als Ganzes,
+  Bilder bleiben (wie in WPF). Ein Radier-Zug = **ein** Undo-Schritt via `PartialEraseAction`.
 - **Undo/Redo** über den **Core-`UndoStack`**: `AddElementsAction` je Strich,
   `RemoveElementsAction` je Radier-Zug; Stack liegt im `ShellViewModel` **je Dokument** (wird beim
   Laden neu erzeugt). Nach Undo/Redo wird gespeichert und der Canvas neu gezeichnet.
@@ -1022,8 +1024,18 @@ danach fein machen; der Prototyp nutzt vorerst **Reiter Bearbeiten/Vorschau** st
 - **Verifiziert:** Undo exakt — zwei Teststriche angelegt, **einmal** rückgängig: der erste
   (magenta) bleibt sichtbar, der zweite (cyan) verschwindet (`AV3-undo2.png`).
   ⚠️ Zeichnen/Radieren/Pan **mit echter Maus/Stift weiterhin ungetestet** (Foreground-Sperre).
-- **Offen (4b-Rest):** Lasso/Verschieben/Auswahl, punktgenaues Radieren, Mehrseitigkeit,
-  Touch-Gesten (Pinch-Zoom), Werkzeug-Zustand sichtbar machen (aktives Werkzeug hervorheben).
+**Schritt 4b (Teil 3): Fixes aus dem Nutzer-Test (2026-07-24).**
+- **Radierer radierte ganze Linien** → jetzt punktgenau (s. o., `WbErase.SplitStroke`).
+- **Bleistift sah aus wie ein Stift mit zackigen Kanten** → neue `WbRenderer.DrawPencil`:
+  Graphit-Anmutung in **drei günstigen Skia-Durchgängen** statt einer `CreateDiscrete`-Zackenlinie —
+  halbtransparente Kernlinie (Alpha 80), fein aufgerauter Rand (kleine Discrete-Amplitude) und eine
+  **gestempelte Körnung** (`Create1DPath`-Punkte auf einem leicht verrauschten Pfad via
+  `CreateCompose`). Wirkt auf WPF **und** Avalonia, da geteilter Renderer.
+- Aktives Werkzeug wird in der Leiste hervorgehoben (`Button.active`).
+- **Verifiziert per Screenshot** (`AV3-pencil.png`): Bleistift-Linie deutlich körnig gegenüber der
+  Stift-Linie; aufgetrennter Strich zeigt die Lücke mit stehen gebliebenen Enden.
+- **Offen (4b-Rest):** Lasso/Verschieben/Auswahl, Mehrseitigkeit, Touch-Gesten (Pinch-Zoom),
+  Formen-/Text-/Notizzettel-Werkzeuge.
 
 ### 9.4 Gestaffelter Plan
 1. ✅ **PoC/Scaffold + Kernlogik-Reuse** (fertig, §9.1).

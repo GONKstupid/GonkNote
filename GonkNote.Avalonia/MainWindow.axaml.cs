@@ -112,8 +112,16 @@ public partial class MainWindow : Window
 
     private void Tool_Click(object? sender, RoutedEventArgs e)
     {
-        if (sender is Button { Tag: string tag } && Enum.TryParse<ToolType>(tag, out var tool))
-            Board.Tool = tool;
+        if (sender is not Button { Tag: string tag } btn) return;
+        if (!Enum.TryParse<ToolType>(tag, out var tool)) return;
+
+        Board.Tool = tool;
+
+        // Aktives Werkzeug hervorheben (alle Geschwister zurücksetzen).
+        if (btn.Parent is Panel row)
+            foreach (var child in row.Children)
+                if (child is Button b && b.Tag is string t && Enum.TryParse<ToolType>(t, out _))
+                    b.Classes.Set("active", ReferenceEquals(b, btn));
     }
 
     private void Ink_Click(object? sender, RoutedEventArgs e)

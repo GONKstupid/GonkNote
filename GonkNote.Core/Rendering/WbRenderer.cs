@@ -235,11 +235,7 @@ public static class WbRenderer
                 break;
 
             case StrokeKind.Pencil:
-                paint.Color = color.WithAlpha(185);
-                paint.StrokeWidth = s.Width;
-                paint.PathEffect = SKPathEffect.CreateDiscrete(3f, 0.55f);
-                using (var path = BuildSmoothPath(s.Points))
-                    canvas.DrawPath(path, paint);
+                DrawPencil(canvas, s, color);
                 break;
 
             default: // Stift: Druck steuert die Strichbreite je Segment
@@ -261,6 +257,61 @@ public static class WbRenderer
                 }
                 break;
         }
+    }
+
+    /// <summary>
+    /// Bleistift-Anmutung: Graphit deckt nie voll und setzt sich körnig in die Papierstruktur.
+    /// Umgesetzt in drei günstigen Skia-Durchgängen (statt einer zackigen Discrete-Linie):
+    /// weiche Kernlinie, fein aufgerauter Rand und eine gestempelte Körnung entlang eines
+    /// leicht verrauschten Pfades.
+    /// </summary>
+    private static void DrawPencil(SKCanvas canvas, StrokeElement s, SKColor color)
+    {
+        float w = Math.Max(s.Width, 0.6f);
+        using var path = BuildSmoothPath(s.Points);
+
+        // 1) Kernlinie – halbtransparent, damit der Untergrund durchscheint
+        using (var core = new SKPaint
+        {
+            IsAntialias = true,
+            Style = SKPaintStyle.Stroke,
+            StrokeCap = SKStrokeCap.Round,
+            StrokeJoin = SKStrokeJoin.Round,
+            Color = color.WithAlpha(80),
+            StrokeWidth = w * 0.9f,
+        })
+            canvas.DrawPath(path, core);
+
+        // 2) fein aufgerauter Rand (kleine Amplitude – kein Zacken-Look)
+        using (var edgeFx = SKPathEffect.CreateDiscrete(1.4f, w * 0.20f))
+        using (var edge = new SKPaint
+        {
+            IsAntialias = true,
+            Style = SKPaintStyle.Stroke,
+            StrokeCap = SKStrokeCap.Round,
+            StrokeJoin = SKStrokeJoin.Round,
+            Color = color.WithAlpha(55),
+            StrokeWidth = w * 0.72f,
+            PathEffect = edgeFx,
+        })
+            canvas.DrawPath(path, edge);
+
+        // 3) Körnung: kleine Punkte werden entlang eines verrauschten Pfades gestempelt
+        using var dot = new SKPath();
+        dot.AddCircle(0, 0, Math.Max(0.45f, w * 0.13f));
+        using (var jitter = SKPathEffect.CreateDiscrete(1.8f, w * 0.38f))
+        using (var stamp = SKPathEffect.Create1DPath(dot, Math.Max(1.1f, w * 0.42f), 0,
+                                                     SKPath1DPathEffectStyle.Translate))
+        using (var grainFx = SKPathEffect.CreateCompose(stamp, jitter))
+        using (var grain = new SKPaint
+        {
+            IsAntialias = true,
+            Style = SKPaintStyle.Stroke,
+            Color = color.WithAlpha(140),
+            StrokeWidth = w * 0.85f,
+            PathEffect = grainFx,
+        })
+            canvas.DrawPath(path, grain);
     }
 
     public static void DrawShape(SKCanvas canvas, ShapeElement sh, string colorHex, float strokeWidth)

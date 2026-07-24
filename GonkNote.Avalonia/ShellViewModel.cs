@@ -121,11 +121,11 @@ public sealed class ShellViewModel : ObservableObject
         RaiseUndoState();
     }
 
-    /// <summary>Registriert einen Radier-Zug als einen Undo-Schritt und speichert.</summary>
-    public void OnElementsErased(List<(WbElement El, int Index)> removed)
+    /// <summary>Registriert einen Radier-Zug (punktgenau) als einen Undo-Schritt und speichert.</summary>
+    public void OnElementsErased(List<EraseStep> steps)
     {
         if (_currentPage is not { } page) return;
-        Undo.Push(page, new RemoveElementsAction(removed));
+        Undo.Push(page, new PartialEraseAction(steps));
         SaveCurrentBoard();
         RaiseUndoState();
     }

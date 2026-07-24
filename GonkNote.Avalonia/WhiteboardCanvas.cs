@@ -5,8 +5,11 @@ using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Rendering.SceneGraph;
 using Avalonia.Skia;
+using System.Collections.Generic;
+using GonkNote.Editing;
 using GonkNote.Models;
 using GonkNote.Rendering;
+using GonkNote.Services;
 using SkiaSharp;
 
 namespace GonkNote.Avalonia;
@@ -81,14 +84,14 @@ public class WhiteboardCanvas : Control
     /// <summary>Feuert mit dem fertigen Strich (Speichern + Undo-Eintrag).</summary>
     public event EventHandler<StrokeElement>? StrokeCompleted;
 
-    /// <summary>Feuert mit den wegradierten Elementen samt ihrer Ursprungs-Indizes.</summary>
-    public event EventHandler<List<(WbElement El, int Index)>>? ElementsErased;
+    /// <summary>Feuert mit den Radier-Schritten eines Zuges (ein Undo-Schritt).</summary>
+    public event EventHandler<List<EraseStep>>? ElementsErased;
 
     /// <summary>Der gerade gezeichnete Strich (noch nicht Teil der Seite).</summary>
     private StrokeElement? _active;
 
-    /// <summary>Im laufenden Radier-Zug entfernte Elemente (für einen einzigen Undo-Schritt).</summary>
-    private List<(WbElement El, int Index)>? _erased;
+    /// <summary>Radier-Schritte des laufenden Zuges (für einen einzigen Undo-Schritt).</summary>
+    private List<EraseStep>? _eraseSteps;
 
     private bool _panning;
     private Point _panStart;
@@ -141,7 +144,7 @@ public class WhiteboardCanvas : Control
 
         if (Tool == ToolType.Eraser)
         {
-            _erased = new List<(WbElement, int)>();
+            _eraseSteps = new List<EraseStep>();
             EraseAt(ToPage(pt.Position));
             e.Pointer.Capture(this);
             e.Handled = true;
@@ -179,7 +182,7 @@ public class WhiteboardCanvas : Control
             return;
         }
 
-        if (_erased is not null)
+        if (_eraseSteps is not null)
         {
             EraseAt(ToPage(pt.Position));
             e.Handled = true;
@@ -205,12 +208,12 @@ public class WhiteboardCanvas : Control
             return;
         }
 
-        if (_erased is { } erased)
+        if (_eraseSteps is { } steps)
         {
-            _erased = null;
+            _eraseSteps = null;
             e.Pointer.Capture(null);
             e.Handled = true;
-            if (erased.Count > 0) ElementsErased?.Invoke(this, erased);
+            if (steps.Count > 0) ElementsErased?.Invoke(this, steps);
             InvalidateVisual();
             return;
         }
@@ -247,35 +250,40 @@ public class WhiteboardCanvas : Control
         new((float)((p.X - PanX) / Zoom), (float)((p.Y - PanY) / Zoom));
 
     /// <summary>
-    /// Elementweises Radieren: entfernt Elemente unter dem Zeiger. Bewusst einfacher als die
-    /// WPF-App, die Striche punktgenau auftrennt (siehe HANDOFF §9.3e, offen).
+    /// **Punktgenaues** Radieren wie in der WPF-App: Striche werden an der berührten Stelle
+    /// aufgetrennt, die Reststücke bleiben stehen. Formen/Text/Zettel gehen als Ganzes,
+    /// Bilder sind nicht radierbar (per Lasso löschen).
     /// </summary>
-    private void EraseAt(SKPoint p)
+    private void EraseAt(SKPoint c)
     {
-        if (Page is not { } page || _erased is null) return;
+        if (Page is not { } page || _eraseSteps is null) return;
 
-        float radius = Math.Max((float)InkWidth, 6f);
+        float r = 14f / (float)Zoom;    // Radiergummi-Radius in Seiten-Koordinaten
+
         for (int i = page.Elements.Count - 1; i >= 0; i--)
         {
             var el = page.Elements[i];
-            if (!HitsElement(el, p, radius)) continue;
-            _erased.Add((el, i));
-            page.Elements.RemoveAt(i);
-        }
-    }
+            switch (el)
+            {
+                case StrokeElement s:
+                {
+                    if (!WbErase.HitsStroke(s, c, r)) break;
+                    var parts = WbErase.SplitStroke(s, c, r + s.Width / 2f);
+                    page.Elements.RemoveAt(i);
+                    page.Elements.InsertRange(i, parts);
+                    _eraseSteps.Add(new EraseStep(s, i, parts));
+                    break;
+                }
 
-    private static bool HitsElement(WbElement el, SKPoint p, float radius)
-    {
-        if (el is StrokeElement s)
-        {
-            float r = radius + s.Width / 2f;
-            foreach (var q in s.Points)
-                if (MathF.Abs(q.X - p.X) <= r && MathF.Abs(q.Y - p.Y) <= r) return true;
-            return false;
+                case ShapeElement or GonkNote.Models.TextElement or StickyNoteElement:
+                    if (!WbErase.HitsOther(el, c, r)) break;
+                    page.Elements.RemoveAt(i);
+                    _eraseSteps.Add(new EraseStep(el, i, new List<WbElement>()));
+                    break;
+
+                // Bilder/PDF-Seiten bleiben stehen (wie in der WPF-App)
+            }
         }
-        var b = WbRenderer.ElementBounds(el);
-        b.Inflate(radius, radius);
-        return b.Contains(p.X, p.Y);
     }
 
     /// <summary>Übernimmt einen Zeigerpunkt inkl. Druckstärke (Maus/Finger ohne Druck ⇒ 0,5).</summary>

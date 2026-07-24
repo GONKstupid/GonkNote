@@ -929,14 +929,33 @@ danach fein machen; der Prototyp nutzt vorerst **Reiter Bearbeiten/Vorschau** st
   Maus-Klicks ließen sich in der Testumgebung nicht automatisieren (Foreground-Sperre); der
   `OpenItem`-Command ist Standard-MVVM und baut ohne Binding-Fehler.
 
+**Nachtrag 3b: Breadcrumb + Umbenennen (2026-07-24).**
+- **Breadcrumb** über der Galerie: „Alle Dokumente › Ordner › …", Segmente sind Buttons
+  (`Button.crumb`, Link-Optik) mit `NavigateCrumb`-Command; `BreadcrumbEntry(Label, Target)`,
+  `Target=null` = Wurzelansicht. Aufbau in `RebuildBreadcrumb()` über die neue
+  **`TreeItemVM.Parent`**-Kette (in `LoadTree` gesetzt); bei gewähltem Dokument zählt dessen
+  Elternordner als Position.
+- **Inline-Umbenennen** im Baum: **Doppelklick** startet die Bearbeitung (`TreeItemVM.BeginRename`,
+  `IsRenaming`/`IsNotRenaming`/`EditName`); im Template wechselt TextBlock ⇄ TextBox.
+  **Enter** übernimmt, **Escape** verwirft, **Fokusverlust** übernimmt
+  (`Tree_DoubleTapped`/`Tree_KeyDown`/`Tree_LostFocus` in `MainWindow.axaml.cs`).
+  `ShellViewModel.CommitRename` schreibt via **`_db.UpsertItem`** in dieselbe LiteDB, sortiert die
+  Ebene neu (`SortCollection`/`SortRoots`) und frischt Galerie/Breadcrumb auf; leerer oder
+  unveränderter Name = verwerfen.
+- **Verifiziert:** Breadcrumb „Alle Dokumente › Projekte ›" + Umbenennung „Skizzen" → „Skizzen NEU"
+  in Baum *und* Kachel (`AV3-breadcrumb-rename.png`); **Persistenz end-to-end bestätigt** — nach
+  Neustart ohne Temp-Code steht „Skizzen NEU" weiterhin im Baum (`AV3-persist.png`).
+  *Nicht klick-getestet* (Foreground-Sperre): Doppelklick-Auslöser und Breadcrumb-Klick.
+
 ### 9.4 Gestaffelter Plan
 1. ✅ **PoC/Scaffold + Kernlogik-Reuse** (fertig, §9.1).
 2. ✅ **`GonkNote.Core` extrahiert** (Models + DB + Undo + ImageCache); WPF + Avalonia
    referenzieren es per ProjectReference; Links im Avalonia-Projekt entfernt (fertig, §9.1b).
 3. 🟡 **Shell portieren** (Nutzer-Priorität 2026-07-23) — **3a + 3b-Galerie erledigt (§9.3c/§9.3d)**:
    Ordnerbaum + Farbvererbung + Navigation + Theme (3a); **„Big-Picture"-Galerie** (3b) — rechter
-   Bereich zeigt Ordnerinhalt als farbige Kacheln, Kachelklick navigiert. **Offen (3b-Rest):** echte
-   Doku-Tabs, Anpinnen/Favoriten-Kacheln, Umbenennen (Baum-Doppelklick), Drag&Drop, Breadcrumb.
+   Bereich zeigt Ordnerinhalt als farbige Kacheln, Kachelklick navigiert; **+ Breadcrumb und
+   Inline-Umbenennen (Doppelklick, DB-persistent)**. **Offen (3b-Rest):** echte Doku-Tabs,
+   Anpinnen/Favoriten-Kacheln, Drag&Drop, Neu-Anlegen/Löschen.
 4. **Whiteboard** auf Avalonia-Skia-Control (Zeichenroutinen wiederverwenden); Stylus/Touch über
    Avalonia-Pointer-Events.
 5. 🟡 **Text-Editor: Ansatz entschieden, Bau zurückgestellt** (Prototyp fertig, §9.3b):

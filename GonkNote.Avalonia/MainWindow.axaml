@@ -15,6 +15,17 @@
             <Setter Property="Background" Value="#22808080"/>
             <Setter Property="CornerRadius" Value="10"/>
         </Style>
+        <!-- Breadcrumb-Segment: wie ein Link, ohne Button-Chrome -->
+        <Style Selector="Button.crumb">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="4,2"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Opacity" Value="0.75"/>
+        </Style>
+        <Style Selector="Button.crumb:pointerover">
+            <Setter Property="Opacity" Value="1"/>
+        </Style>
     </Window.Styles>
     <DockPanel>
 
@@ -52,7 +63,12 @@
                                 <Ellipse Width="12" Height="12" VerticalAlignment="Center"
                                          Fill="{Binding IconBrush}"/>
                                 <TextBlock Text="{Binding Glyph}" FontSize="14" VerticalAlignment="Center"/>
-                                <TextBlock Text="{Binding Name}" FontSize="14" VerticalAlignment="Center"/>
+                                <!-- Anzeige bzw. Inline-Umbenennung (Doppelklick startet sie) -->
+                                <TextBlock Text="{Binding Name}" FontSize="14" VerticalAlignment="Center"
+                                           IsVisible="{Binding IsNotRenaming}"/>
+                                <TextBox Name="RenameBox" Text="{Binding EditName, Mode=TwoWay}"
+                                         FontSize="14" MinWidth="140" Padding="4,1"
+                                         IsVisible="{Binding IsRenaming}"/>
                             </StackPanel>
                         </TreeDataTemplate>
                     </TreeView.ItemTemplate>
@@ -68,6 +84,24 @@
             <!-- Big-Picture-Galerie (Ordner-Inhalt als Kacheln) -->
             <ScrollViewer IsVisible="{Binding ShowGallery}">
                 <StackPanel Margin="28,22" Spacing="16">
+                    <!-- Breadcrumb-Pfadleiste (klickbare Segmente) -->
+                    <ItemsControl ItemsSource="{Binding Breadcrumb}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Classes="crumb" Content="{Binding Label}"
+                                            Command="{Binding DataContext.NavigateCrumb, RelativeSource={RelativeSource AncestorType=Window}}"
+                                            CommandParameter="{Binding}"/>
+                                    <TextBlock Text="›" Opacity="0.4" Margin="4,0" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
                     <TextBlock Text="{Binding GalleryTitle}" FontSize="24" FontWeight="SemiBold"/>
                     <ItemsControl ItemsSource="{Binding GalleryItems}">
                         <ItemsControl.ItemsPanel>

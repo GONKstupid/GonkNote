@@ -27,6 +27,12 @@ public sealed class ShellViewModel : ObservableObject
     /// <summary>Öffnet ein Element (Kachel- oder Baumklick): Ordner rein-navigieren, Dokument = Kontext.</summary>
     public ICommand OpenItem { get; }
 
+    /// <summary>Pfadleiste über der Galerie („Alle Dokumente › Ordner › …"), Segmente sind klickbar.</summary>
+    public ObservableCollection<BreadcrumbEntry> Breadcrumb { get; } = new();
+
+    /// <summary>Springt zu einem Breadcrumb-Segment (Ziel <c>null</c> = Wurzelansicht).</summary>
+    public ICommand NavigateCrumb { get; }
+
     private TreeItemVM? _selected;
     public TreeItemVM? Selected
     {
@@ -43,6 +49,7 @@ public sealed class ShellViewModel : ObservableObject
                 OnPropertyChanged(nameof(ShowDocument));
                 OnPropertyChanged(nameof(GalleryTitle));
                 RebuildGallery();
+                RebuildBreadcrumb();
             }
         }
     }
@@ -71,10 +78,53 @@ public sealed class ShellViewModel : ObservableObject
             if (vm.IsFolder) vm.IsExpanded = true; // im Baum aufklappen
             Selected = vm;
         });
+        NavigateCrumb = new RelayCommand(p =>
+        {
+            if (p is not BreadcrumbEntry crumb) return;
+            if (crumb.Target is { } t) t.IsExpanded = true;
+            Selected = crumb.Target; // null = Wurzelansicht
+        });
         SeedIfEmpty();
         LoadTree();
         RebuildGallery();
+        RebuildBreadcrumb();
     }
+
+    /// <summary>
+    /// Baut die Pfadleiste zur aktuellen Galerie-Position: „Alle Dokumente" + Ordnerkette.
+    /// Bei einem gewählten Dokument zählt dessen Elternordner als Position.
+    /// </summary>
+    private void RebuildBreadcrumb()
+    {
+        Breadcrumb.Clear();
+        Breadcrumb.Add(new BreadcrumbEntry("Alle Dokumente", null));
+
+        var folder = _selected is { IsFolder: true } ? _selected : _selected?.Parent;
+        var chain = new List<TreeItemVM>();
+        for (var n = folder; n is not null; n = n.Parent) chain.Add(n);
+        chain.Reverse();
+        foreach (var n in chain) Breadcrumb.Add(new BreadcrumbEntry(n.Name, n));
+    }
+
+    /// <summary>Übernimmt eine Inline-Umbenennung (leer/unverändert = verwerfen) und speichert.</summary>
+    public void CommitRename(TreeItemVM vm)
+    {
+        if (!vm.IsRenaming) return;
+        string neu = (vm.EditName ?? "").Trim();
+        vm.IsRenaming = false;
+        if (neu.Length == 0 || neu == vm.Name) return;
+
+        vm.Name = neu;
+        _db.UpsertItem(vm.Item);                 // Persistenz in dieselbe LiteDB wie die WPF-App
+        vm.Parent?.SortChildren();
+        if (vm.Parent is null) SortRoots();
+        RebuildGallery();
+        RebuildBreadcrumb();
+        OnPropertyChanged(nameof(SelectedTitle));
+        OnPropertyChanged(nameof(GalleryTitle));
+    }
+
+    public void CancelRename(TreeItemVM vm) => vm.IsRenaming = false;
 
     /// <summary>Füllt die Galerie mit den Kindern des gewählten Ordners (bzw. den Wurzeln).</summary>
     private void RebuildGallery()
@@ -107,9 +157,15 @@ public sealed class ShellViewModel : ObservableObject
         foreach (var vm in byId.Values)
         {
             if (vm.Item.ParentId is Guid pid && byId.TryGetValue(pid, out var parent))
+            {
+                vm.Parent = parent;          // für Breadcrumb/Aufwärtsnavigation
                 parent.Children.Add(vm);
+            }
             else
+            {
+                vm.Parent = null;
                 Roots.Add(vm);
+            }
         }
 
         // Farbvererbung: Kinder ohne eigene Farbe erben die (eigene oder geerbte) Ordnerfarbe.
@@ -131,21 +187,26 @@ public sealed class ShellViewModel : ObservableObject
     private static void SortRecursive(IList<TreeItemVM> level)
     {
         foreach (var n in level) SortRecursive(n.Children);
-        if (level is ObservableCollection<TreeItemVM> roots)
-        {
-            var sorted = roots
-                .OrderByDescending(c => c.IsFolder)
-                .ThenByDescending(c => c.IsFavorite)
-                .ThenBy(c => c.Name, StringComparer.CurrentCultureIgnoreCase)
-                .ToList();
-            for (int i = 0; i < sorted.Count; i++)
-            {
-                int cur = roots.IndexOf(sorted[i]);
-                if (cur != i) roots.Move(cur, i);
-            }
-        }
+        if (level is ObservableCollection<TreeItemVM> roots) SortCollection(roots);
         foreach (var n in level) n.SortChildren();
     }
+
+    /// <summary>Sortiert eine Ebene in situ: Ordner → Favoriten → Name.</summary>
+    private static void SortCollection(ObservableCollection<TreeItemVM> level)
+    {
+        var sorted = level
+            .OrderByDescending(c => c.IsFolder)
+            .ThenByDescending(c => c.IsFavorite)
+            .ThenBy(c => c.Name, StringComparer.CurrentCultureIgnoreCase)
+            .ToList();
+        for (int i = 0; i < sorted.Count; i++)
+        {
+            int cur = level.IndexOf(sorted[i]);
+            if (cur != i) level.Move(cur, i);
+        }
+    }
+
+    private void SortRoots() => SortCollection(Roots);
 
     private static string KindText(ItemKind k) => k switch
     {
@@ -158,4 +219,17 @@ public sealed class ShellViewModel : ObservableObject
 
     public static string DefaultDbPath =>
         Path.Combine(Path.GetTempPath(), "gonk-avalonia-shell.db");
+}
+
+/// <summary>Ein Segment der Pfadleiste. <see cref="Target"/> <c>null</c> = Wurzelansicht.</summary>
+public sealed class BreadcrumbEntry
+{
+    public string Label { get; }
+    public TreeItemVM? Target { get; }
+
+    public BreadcrumbEntry(string label, TreeItemVM? target)
+    {
+        Label = label;
+        Target = target;
+    }
 }

@@ -18,8 +18,13 @@ public sealed class TreeItemVM : ObservableObject
     public NoteItem Item { get; }
     public ObservableCollection<TreeItemVM> Children { get; } = new();
 
+    /// <summary>Elternknoten (in <c>LoadTree</c> gesetzt) — für Breadcrumb/Aufwärtsnavigation.</summary>
+    public TreeItemVM? Parent { get; set; }
+
     private bool _isExpanded;
     private bool _isSelected;
+    private bool _isRenaming;
+    private string _editName = "";
 
     public TreeItemVM(NoteItem item) => Item = item;
 
@@ -35,6 +40,25 @@ public sealed class TreeItemVM : ObservableObject
 
     public bool IsExpanded { get => _isExpanded; set => Set(ref _isExpanded, value); }
     public bool IsSelected { get => _isSelected; set => Set(ref _isSelected, value); }
+
+    /// <summary>Inline-Umbenennung aktiv (Baum zeigt dann eine TextBox statt des Namens).</summary>
+    public bool IsRenaming
+    {
+        get => _isRenaming;
+        set { if (Set(ref _isRenaming, value)) OnPropertyChanged(nameof(IsNotRenaming)); }
+    }
+
+    public bool IsNotRenaming => !_isRenaming;
+
+    /// <summary>Puffer der Inline-Bearbeitung (Escape verwirft, Enter übernimmt).</summary>
+    public string EditName { get => _editName; set => Set(ref _editName, value); }
+
+    /// <summary>Startet die Inline-Umbenennung mit dem aktuellen Namen als Vorgabe.</summary>
+    public void BeginRename()
+    {
+        EditName = Name;
+        IsRenaming = true;
+    }
 
     /// <summary>Cross-platform-Glyph (Emoji) je Typ — Segoe-Fluent-Font gibt es unter Linux nicht.</summary>
     public string Glyph => Kind switch

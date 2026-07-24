@@ -985,10 +985,15 @@ danach fein machen; der Prototyp nutzt vorerst **Reiter Bearbeiten/Vorschau** st
   2. **`SKCanvas.Clear()` löscht die gesamte Fensteroberfläche**, nicht nur das Control — es
      überdeckte anfangs Baum und Kopfleiste. Stattdessen auf `Bounds` **clippen** und den
      Hintergrund als Rechteck füllen.
+- ✅ **De-Duplizierung erledigt (2026-07-24):** die WPF-`WhiteboardView` leitet ihre Draw-/Helfer-
+  Methoden jetzt an `WbRenderer` weiter (`DrawElementCore`, `DrawImage/Stroke/Shape/Text/Sticky/
+  StickyCard`, `ElementBounds`, `TextBounds`, `TrianglePoints`, `ParseColor`, `WrapText`,
+  `DrawCachedShadow`; `Fonts` → `WbFonts`). Die eigenen Kopien (inkl. `BuildSmoothPath`,
+  `ShadowNinePatch`, `BreakLongWord`) sind entfallen: **`WhiteboardView.xaml.cs` 4457 → 4077
+  Zeilen (−380)**. WPF baut 0 Fehler (nur die 6 bekannten CS8622 aus `Numpad.cs`). Damit nutzen
+  WPF, PDF-Export und Avalonia **eine** Implementierung.
 - **Offen (4b):** Stift-/Touch-Eingabe und Werkzeuge (Zeichnen/Radieren/Lasso), Zoom/Pan,
-  Mehrseitigkeit, Speichern der Änderungen. **Ausserdem offen:** die WPF-`WhiteboardView` nutzt
-  noch ihre **eigene Kopie** der Routinen — sie sollte auf `WbRenderer` **weitergeleitet** werden
-  (Forwarder), damit es nur eine Wahrheit gibt.
+  Mehrseitigkeit, Speichern der Änderungen.
 
 ### 9.4 Gestaffelter Plan
 1. ✅ **PoC/Scaffold + Kernlogik-Reuse** (fertig, §9.1).

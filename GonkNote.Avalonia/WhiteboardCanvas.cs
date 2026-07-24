@@ -1,6 +1,7 @@
 using System;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Rendering.SceneGraph;
 using Avalonia.Skia;
@@ -37,16 +38,119 @@ public class WhiteboardCanvas : Control
         set => SetValue(ZoomProperty, value);
     }
 
+    /// <summary>Aktuelle Stiftfarbe (Hex).</summary>
+    public static readonly StyledProperty<string> InkColorProperty =
+        AvaloniaProperty.Register<WhiteboardCanvas, string>(nameof(InkColor), "#111827");
+
+    /// <summary>Aktuelle Strichstärke.</summary>
+    public static readonly StyledProperty<double> InkWidthProperty =
+        AvaloniaProperty.Register<WhiteboardCanvas, double>(nameof(InkWidth), 3.0);
+
+    public string InkColor
+    {
+        get => GetValue(InkColorProperty);
+        set => SetValue(InkColorProperty, value);
+    }
+
+    public double InkWidth
+    {
+        get => GetValue(InkWidthProperty);
+        set => SetValue(InkWidthProperty, value);
+    }
+
+    /// <summary>Feuert, wenn ein Strich fertig gezeichnet wurde (zum Speichern).</summary>
+    public event EventHandler? StrokeCompleted;
+
+    /// <summary>Der gerade gezeichnete Strich (noch nicht Teil der Seite).</summary>
+    private StrokeElement? _active;
+
     static WhiteboardCanvas()
     {
         // Neu zeichnen, wenn sich Seite oder Zoom ändern.
         AffectsRender<WhiteboardCanvas>(PageProperty, ZoomProperty);
     }
 
+    public WhiteboardCanvas()
+    {
+        // Zeigereignisse kommen über die HitTest-Methode der Draw-Operation (füllt Bounds).
+        Focusable = true;
+    }
+
     public override void Render(DrawingContext context)
     {
+        // Transparente Füllung macht das Control zuverlässig hit-testbar (sonst kommen
+        // je nach Avalonia-Version keine Pointer-Events an).
+        context.FillRectangle(Brushes.Transparent, new Rect(Bounds.Size));
+
         if (Page is not { } page) return;
-        context.Custom(new PageDrawOperation(new Rect(Bounds.Size), page, Zoom));
+        context.Custom(new PageDrawOperation(new Rect(Bounds.Size), page, Zoom, _active));
+    }
+
+    // ---- Zeigereingabe (Stift / Maus / Finger) ------------------------------------------
+
+    protected override void OnPointerPressed(PointerPressedEventArgs e)
+    {
+        base.OnPointerPressed(e);
+        if (Page is null) return;
+
+        var pt = e.GetCurrentPoint(this);
+        if (!pt.Properties.IsLeftButtonPressed) return;   // Stiftspitze bzw. linke Maustaste
+
+        _active = new StrokeElement
+        {
+            Color = InkColor,
+            Width = (float)InkWidth,
+            Kind = StrokeKind.Pen,
+        };
+        AddPoint(pt);
+        e.Pointer.Capture(this);
+        e.Handled = true;
+        InvalidateVisual();
+    }
+
+    protected override void OnPointerMoved(PointerEventArgs e)
+    {
+        base.OnPointerMoved(e);
+        if (_active is null) return;
+
+        AddPoint(e.GetCurrentPoint(this));
+        e.Handled = true;
+        InvalidateVisual();
+    }
+
+    protected override void OnPointerReleased(PointerReleasedEventArgs e)
+    {
+        base.OnPointerReleased(e);
+        if (_active is null) return;
+
+        AddPoint(e.GetCurrentPoint(this));
+        var finished = _active;
+        _active = null;
+        e.Pointer.Capture(null);
+        e.Handled = true;
+
+        // Sehr kurze „Tupfer" trotzdem übernehmen (ergibt einen Punkt, s. WbRenderer).
+        if (finished.Points.Count > 0 && Page is { } page)
+        {
+            if (finished.Points.Count == 1) finished.Points.Add(finished.Points[0]);
+            page.Elements.Add(finished);
+            StrokeCompleted?.Invoke(this, EventArgs.Empty);
+        }
+        InvalidateVisual();
+    }
+
+    /// <summary>Übernimmt einen Zeigerpunkt inkl. Druckstärke (Maus/Finger ohne Druck ⇒ 0,5).</summary>
+    private void AddPoint(PointerPoint pt)
+    {
+        if (_active is null) return;
+        float pressure = pt.Properties.Pressure;
+        if (pressure <= 0f || float.IsNaN(pressure)) pressure = 0.5f;   // kein Drucksensor
+        _active.Points.Add(new WbPoint
+        {
+            X = (float)(pt.Position.X / Zoom),
+            Y = (float)(pt.Position.Y / Zoom),
+            P = pressure,
+        });
     }
 
     /// <summary>Custom-Draw-Operation: leiht sich Avalonias SKCanvas und nutzt den Core-Renderer.</summary>
@@ -54,12 +158,14 @@ public class WhiteboardCanvas : Control
     {
         private readonly WbPage _page;
         private readonly double _zoom;
+        private readonly StrokeElement? _active;
 
-        public PageDrawOperation(Rect bounds, WbPage page, double zoom)
+        public PageDrawOperation(Rect bounds, WbPage page, double zoom, StrokeElement? active)
         {
             Bounds = bounds;
             _page = page;
             _zoom = zoom;
+            _active = active;
         }
 
         public Rect Bounds { get; }
@@ -118,6 +224,10 @@ public class WhiteboardCanvas : Control
 
             foreach (var el in _page.Elements)
                 WbRenderer.DrawElement(canvas, el);   // <- gemeinsame Routinen aus GonkNote.Core
+
+            // Laufender Strich (noch nicht Teil der Seite)
+            if (_active is { Points.Count: > 0 })
+                WbRenderer.DrawStroke(canvas, _active);
         }
 
         /// <summary>Linien-/Raster-/Punktmuster der Seite (vereinfacht ggü. WPF, gleiche Optik).</summary>

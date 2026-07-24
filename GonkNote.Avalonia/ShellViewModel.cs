@@ -80,15 +80,28 @@ public sealed class ShellViewModel : ObservableObject
         private set { if (Set(ref _currentPage, value)) OnPropertyChanged(nameof(ShowWhiteboard)); }
     }
 
+    private WhiteboardDoc? _currentDoc;
+
     /// <summary>Lädt die erste Seite des gewählten Boards (bzw. leert die Ansicht).</summary>
     private void LoadBoardPage()
     {
         if (_selected is { Kind: ItemKind.Whiteboard or ItemKind.Notebook } item)
         {
-            var doc = _db.GetBoard(item.Item);
-            CurrentPage = doc.Pages.Count > 0 ? doc.Pages[0] : null;
+            _currentDoc = _db.GetBoard(item.Item);
+            if (_currentDoc.Pages.Count == 0) _currentDoc.Pages.Add(new WbPage());
+            CurrentPage = _currentDoc.Pages[0];
         }
-        else CurrentPage = null;
+        else
+        {
+            _currentDoc = null;
+            CurrentPage = null;
+        }
+    }
+
+    /// <summary>Speichert das aktuell geöffnete Board (nach jedem fertigen Strich).</summary>
+    public void SaveCurrentBoard()
+    {
+        if (_currentDoc is { } doc) _db.SaveBoard(doc);
     }
 
     public string GalleryTitle => _selected is null ? "Alle Dokumente" : _selected.Name;

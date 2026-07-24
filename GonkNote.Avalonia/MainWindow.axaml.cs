@@ -41,6 +41,9 @@ public partial class MainWindow : Window
         OpenEditor.Click += (_, _) => new EditorPrototypeWindow().Show(this);
         OpenProbe.Click += (_, _) => new MarkdownProbe().Show(this);
 
+        // Jeder fertige Strich landet sofort in der LiteDB.
+        Board.StrokeCompleted += (_, _) => Vm.SaveCurrentBoard();
+
         // Workaround gegen den Fill-Panel-Measure-Quirk (§9.5): dem Inhaltsbereich eine
         // explizite Breite geben (= Fensterbreite − Seitenleiste), damit Umbruch/Zentrierung
         // greifen. Die Arrange-Breite stimmt ohnehin; nur der Measure braucht die feste Breite.
@@ -102,6 +105,19 @@ public partial class MainWindow : Window
         _renameHadFocus = false;
         if (sender is TextBox { DataContext: TreeItemVM vm } && vm.IsRenaming)
             Vm.CommitRename(vm);
+    }
+
+    // ---- Whiteboard (Schritt 4b) ---------------------------------------------------------
+
+    private void Ink_Click(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Button { Tag: string hex }) Board.InkColor = hex;
+    }
+
+    private void Width_Click(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Button { Tag: string tag } && double.TryParse(tag, out double w))
+            Board.InkWidth = w;
     }
 
     // ---- Anlegen / Kontextmenü ----------------------------------------------------------

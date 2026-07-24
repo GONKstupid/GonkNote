@@ -27,6 +27,14 @@
         <Style Selector="Button.crumb:pointerover">
             <Setter Property="Opacity" Value="1"/>
         </Style>
+        <!-- Farbkachel der Stift-Werkzeugleiste -->
+        <Style Selector="Button.ink">
+            <Setter Property="Width" Value="26"/>
+            <Setter Property="Height" Value="26"/>
+            <Setter Property="CornerRadius" Value="13"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
     </Window.Styles>
     <DockPanel>
 
@@ -160,9 +168,23 @@
                 </StackPanel>
             </ScrollViewer>
 
-            <!-- Whiteboard / Notizbuch: echte Skia-Ansicht (Schritt 4) -->
-            <local:WhiteboardCanvas IsVisible="{Binding ShowWhiteboard}"
-                                    Page="{Binding CurrentPage}"/>
+            <!-- Whiteboard / Notizbuch: echte Skia-Ansicht + Stift-Eingabe (Schritt 4) -->
+            <DockPanel IsVisible="{Binding ShowWhiteboard}">
+                <Border DockPanel.Dock="Top" Padding="10,6" Background="#18808080">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <TextBlock Text="Stift:" VerticalAlignment="Center" Opacity="0.7" Margin="0,0,4,0"/>
+                        <Button Classes="ink" Tag="#111827" Click="Ink_Click" Background="#111827"/>
+                        <Button Classes="ink" Tag="#2563EB" Click="Ink_Click" Background="#2563EB"/>
+                        <Button Classes="ink" Tag="#DC2626" Click="Ink_Click" Background="#DC2626"/>
+                        <Button Classes="ink" Tag="#16A34A" Click="Ink_Click" Background="#16A34A"/>
+                        <Border Width="1" Background="#33808080" Margin="6,2"/>
+                        <Button Content="dünn"   Tag="2"  Click="Width_Click" Padding="8,3"/>
+                        <Button Content="mittel" Tag="4"  Click="Width_Click" Padding="8,3"/>
+                        <Button Content="dick"   Tag="9"  Click="Width_Click" Padding="8,3"/>
+                    </StackPanel>
+                </Border>
+                <local:WhiteboardCanvas Name="Board" Page="{Binding CurrentPage}"/>
+            </DockPanel>
 
             <!-- Dokument-Kontext (echte Ansicht folgt Schritt 5) -->
             <StackPanel IsVisible="{Binding ShowDocument}" Margin="28,26" Spacing="6"

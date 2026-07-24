@@ -992,8 +992,22 @@ danach fein machen; der Prototyp nutzt vorerst **Reiter Bearbeiten/Vorschau** st
   `ShadowNinePatch`, `BreakLongWord`) sind entfallen: **`WhiteboardView.xaml.cs` 4457 → 4077
   Zeilen (−380)**. WPF baut 0 Fehler (nur die 6 bekannten CS8622 aus `Numpad.cs`). Damit nutzen
   WPF, PDF-Export und Avalonia **eine** Implementierung.
-- **Offen (4b):** Stift-/Touch-Eingabe und Werkzeuge (Zeichnen/Radieren/Lasso), Zoom/Pan,
-  Mehrseitigkeit, Speichern der Änderungen.
+**Schritt 4b (Teil 1): Stift-Eingabe (2026-07-24).**
+- `WhiteboardCanvas` verarbeitet jetzt `OnPointerPressed/Moved/Released`: baut einen
+  `StrokeElement` mit **Druckstärke** (`PointerPoint.Properties.Pressure`; ohne Drucksensor 0,5),
+  zeichnet ihn live als Overlay (`WbRenderer.DrawStroke`) und hängt ihn beim Loslassen an die
+  Seite. Zeigererfassung via `Pointer.Capture`; Koordinaten werden durch den Zoom geteilt.
+- Neue Properties `InkColor`/`InkWidth`; Event **`StrokeCompleted`** → `MainWindow` ruft
+  `ShellViewModel.SaveCurrentBoard()` → **jeder fertige Strich landet sofort in der LiteDB**
+  (der geladene `WhiteboardDoc` wird dafür im VM gehalten).
+- Kompakte **Stift-Werkzeugleiste** über dem Canvas: 4 Farben + dünn/mittel/dick.
+- **Hit-Testing:** `Control` hat kein `Background`; damit Pointer-Events zuverlässig ankommen,
+  füllt `Render` zusätzlich ein **transparentes Rechteck** über `Bounds`.
+- **Verifiziert:** Werkzeugleiste + Canvas rendern korrekt (`AV3-pen.png`). ⚠️ **Das eigentliche
+  Zeichnen ist NICHT getestet** — programmatische Mausklicks kommen in dieser Umgebung nicht am
+  Fenster an (Foreground-Sperre). **Vom Nutzer zu prüfen.**
+- **Offen (4b-Rest):** Radierer/Lasso/Verschieben, Zoom/Pan, Mehrseitigkeit, Undo/Redo
+  (`UndoStack` liegt bereits in Core), Werkzeugauswahl wie in der WPF-Toolbar.
 
 ### 9.4 Gestaffelter Plan
 1. ✅ **PoC/Scaffold + Kernlogik-Reuse** (fertig, §9.1).

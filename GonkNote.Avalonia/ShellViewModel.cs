@@ -48,6 +48,8 @@ public sealed class ShellViewModel : ObservableObject
                 OnPropertyChanged(nameof(ShowGallery));
                 OnPropertyChanged(nameof(ShowDocument));
                 OnPropertyChanged(nameof(GalleryTitle));
+                LoadBoardPage();                       // vor ShowDocument/ShowWhiteboard-Meldung
+                OnPropertyChanged(nameof(ShowWhiteboard));
                 RebuildGallery();
                 RebuildBreadcrumb();
             }
@@ -62,8 +64,32 @@ public sealed class ShellViewModel : ObservableObject
     /// <summary>Galerie zeigen, wenn nichts oder ein Ordner gewählt ist.</summary>
     public bool ShowGallery => _selected is null || _selected.IsFolder;
 
-    /// <summary>Dokument-Kontext zeigen, wenn ein Nicht-Ordner gewählt ist.</summary>
-    public bool ShowDocument => _selected is { IsFolder: false };
+    /// <summary>Dokument-Kontext (Platzhalter) für Typen ohne eigene Ansicht (z. B. Text).</summary>
+    public bool ShowDocument => _selected is { IsFolder: false } && !ShowWhiteboard;
+
+    /// <summary>Whiteboard-/Notizbuch-Ansicht zeigen (Schritt 4).</summary>
+    public bool ShowWhiteboard =>
+        _selected is { Kind: ItemKind.Whiteboard or ItemKind.Notebook } && _currentPage is not null;
+
+    private WbPage? _currentPage;
+
+    /// <summary>Aktuell dargestellte Seite des gewählten Whiteboards/Notizbuchs.</summary>
+    public WbPage? CurrentPage
+    {
+        get => _currentPage;
+        private set { if (Set(ref _currentPage, value)) OnPropertyChanged(nameof(ShowWhiteboard)); }
+    }
+
+    /// <summary>Lädt die erste Seite des gewählten Boards (bzw. leert die Ansicht).</summary>
+    private void LoadBoardPage()
+    {
+        if (_selected is { Kind: ItemKind.Whiteboard or ItemKind.Notebook } item)
+        {
+            var doc = _db.GetBoard(item.Item);
+            CurrentPage = doc.Pages.Count > 0 ? doc.Pages[0] : null;
+        }
+        else CurrentPage = null;
+    }
 
     public string GalleryTitle => _selected is null ? "Alle Dokumente" : _selected.Name;
 
@@ -209,8 +235,57 @@ public sealed class ShellViewModel : ObservableObject
         _db.UpsertItem(new NoteItem { Kind = ItemKind.TextDocument, Name = "Notizen", ParentId = schule.Id });
         var projekte = new NoteItem { Kind = ItemKind.Folder, Name = "Projekte", IconColor = "#3D82E2" };
         _db.UpsertItem(projekte);
-        _db.UpsertItem(new NoteItem { Kind = ItemKind.Whiteboard, Name = "Skizzen", ParentId = projekte.Id });
+        var skizzen = new NoteItem { Kind = ItemKind.Whiteboard, Name = "Skizzen", ParentId = projekte.Id };
+        _db.UpsertItem(skizzen);
         _db.UpsertItem(new NoteItem { Kind = ItemKind.Notebook, Name = "Ideen", ParentId = projekte.Id, IsFavorite = true });
+
+        SeedDemoBoard(skizzen);
+    }
+
+    /// <summary>Legt ein Beispiel-Whiteboard an, damit die Skia-Ansicht etwas zu zeigen hat.</summary>
+    private void SeedDemoBoard(NoteItem item)
+    {
+        var doc = _db.GetBoard(item);
+        if (doc.Pages.Count == 0) doc.Pages.Add(new WbPage());
+        var page = doc.Pages[0];
+        page.Background = PageBackground.Dots;
+
+        // Freihand-Strich (mit Druckverlauf)
+        var stroke = new StrokeElement { Color = "#2563EB", Width = 4f, Kind = StrokeKind.Pen };
+        for (int i = 0; i <= 40; i++)
+        {
+            float t = i / 40f;
+            stroke.Points.Add(new WbPoint
+            {
+                X = 80 + t * 320,
+                Y = 150 + MathF.Sin(t * MathF.PI * 2) * 60,
+                P = 0.35f + 0.65f * MathF.Sin(t * MathF.PI),
+            });
+        }
+        page.Elements.Add(stroke);
+
+        page.Elements.Add(new ShapeElement
+        {
+            Shape = ShapeKind.Rectangle, X1 = 90, Y1 = 250, X2 = 260, Y2 = 350,
+            Color = "#DC2626", StrokeWidth = 3f,
+        });
+        page.Elements.Add(new ShapeElement
+        {
+            Shape = ShapeKind.Arrow, X1 = 280, Y1 = 300, X2 = 400, Y2 = 260,
+            Color = "#16A34A", StrokeWidth = 3f,
+        });
+        page.Elements.Add(new GonkNote.Models.TextElement
+        {
+            X = 90, Y = 80, Text = "Gemeinsamer Skia-Renderer", Color = "#111827", FontSize = 22f,
+        });
+        page.Elements.Add(new StickyNoteElement
+        {
+            X = 430, Y = 150, Width = 190, Height = 130, Color = "#FDE68A",
+            Text = "Dieselben Zeichenroutinen wie in der WPF-App — aus GonkNote.Core.",
+            TextColor = "#3F3F46", FontSize = 14f,
+        });
+
+        _db.SaveBoard(doc);
     }
 
     private void LoadTree()

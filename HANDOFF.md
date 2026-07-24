@@ -963,6 +963,33 @@ danach fein machen; der Prototyp nutzt vorerst **Reiter Bearbeiten/Vorschau** st
 - **Verifiziert per Screenshot** (`AV3-crud.png`): „Neues Notizbuch" in „Schule" mit geerbter Farbe,
   „Biologie" mit ★ nach oben sortiert, „Notizen" gelöscht.
 
+### 9.3e Schritt 4 (Whiteboard) — gemeinsamer Skia-Renderer + Avalonia-Canvas (2026-07-24)
+- **`GonkNote.Core/Rendering/WbRenderer.cs`** (neu, `namespace GonkNote.Rendering`): die reinen
+  SkiaSharp-Zeichenroutinen aus `Views/WhiteboardView.xaml.cs` — `DrawElement`(+Rotation)/
+  `DrawElementCore`, `DrawStroke` (Druckverlauf, Pencil, Highlighter), `DrawShape` (Linie/Pfeil/
+  Rechteck/Ellipse/Dreieck), `DrawText`, `DrawSticky`(+`DrawStickyCard` mit gecachtem
+  Nine-Patch-Schatten), `DrawImage` (über `ImageCache`), plus Helfer `ParseColor`,
+  `BuildSmoothPath`, `TrianglePoints`, `TextBounds`, `ElementBounds`, `WrapText` und
+  **`WbFonts`**. Enthält **keine** Eingabe-/Werkzeuglogik.
+- **`GonkNote.Avalonia/WhiteboardCanvas.cs`** (neu): Avalonia-`Control` mit
+  `ICustomDrawOperation`; leiht sich über `ISkiaSharpApiLeaseFeature` **direkt Avalonias SKCanvas**
+  (kein Zwischenbild) und zeichnet Seite + Elemente mit `WbRenderer`. Properties `Page`/`Zoom`
+  (`AffectsRender`). Seitenmuster (Linien/Raster/Punkte) vereinfacht nachgebaut.
+- Shell-Anbindung: Auswahl eines Whiteboards/Notizbuchs lädt via `DatabaseService.GetBoard` die
+  erste Seite (`ShellViewModel.CurrentPage`/`ShowWhiteboard`); Seed legt ein Beispiel-Board an.
+- **Verifiziert per Screenshot** (`AV3-whiteboard2.png`): Strich mit Druckverlauf, Rechteck,
+  Pfeil, Text und Punktraster rendern im rechten Bereich, Baum/Kopfleiste bleiben sichtbar.
+- **Zwei Fallstricke (gelöst, für später merken):**
+  1. `ImmediateDrawingContext.TryGetFeature` ist in Avalonia 11.0.x **nicht generisch**
+     (`TryGetFeature(typeof(ISkiaSharpApiLeaseFeature)) is ISkiaSharpApiLeaseFeature`).
+  2. **`SKCanvas.Clear()` löscht die gesamte Fensteroberfläche**, nicht nur das Control — es
+     überdeckte anfangs Baum und Kopfleiste. Stattdessen auf `Bounds` **clippen** und den
+     Hintergrund als Rechteck füllen.
+- **Offen (4b):** Stift-/Touch-Eingabe und Werkzeuge (Zeichnen/Radieren/Lasso), Zoom/Pan,
+  Mehrseitigkeit, Speichern der Änderungen. **Ausserdem offen:** die WPF-`WhiteboardView` nutzt
+  noch ihre **eigene Kopie** der Routinen — sie sollte auf `WbRenderer` **weitergeleitet** werden
+  (Forwarder), damit es nur eine Wahrheit gibt.
+
 ### 9.4 Gestaffelter Plan
 1. ✅ **PoC/Scaffold + Kernlogik-Reuse** (fertig, §9.1).
 2. ✅ **`GonkNote.Core` extrahiert** (Models + DB + Undo + ImageCache); WPF + Avalonia
@@ -972,8 +999,10 @@ danach fein machen; der Prototyp nutzt vorerst **Reiter Bearbeiten/Vorschau** st
    Bereich zeigt Ordnerinhalt als farbige Kacheln, Kachelklick navigiert; **+ Breadcrumb,
    Inline-Umbenennen, Neu-Anlegen/Löschen, Favoriten** (alles DB-persistent). **Bewusst offen:**
    echte Doku-Tabs (sinnvoll erst mit echten Ansichten ⇒ Schritt 4/5), Drag&Drop, Anpinnen-Kacheln.
-4. **Whiteboard** auf Avalonia-Skia-Control (Zeichenroutinen wiederverwenden); Stylus/Touch über
-   Avalonia-Pointer-Events.
+4. 🟡 **Whiteboard** — **4a erledigt (§9.3e):** Zeichenroutinen als `WbRenderer` nach Core gehoben,
+   Avalonia-`WhiteboardCanvas` rendert Seiten über Avalonias eigenen Skia-Canvas. **Offen (4b):**
+   Stylus/Touch über Avalonia-Pointer-Events, Werkzeuge, Zoom/Pan, Speichern; WPF auf `WbRenderer`
+   weiterleiten (De-Duplizierung).
 5. 🟡 **Text-Editor: Ansatz entschieden, Bau zurückgestellt** (Prototyp fertig, §9.3b):
    **Markdown (Ansatz b) empfohlen**. **Nutzer-Entscheidung 2026-07-23: Editor-Bau vorerst
    zurückstellen** — erst Shell (3) + Whiteboard (4) portieren, Editor-Scope später festlegen.

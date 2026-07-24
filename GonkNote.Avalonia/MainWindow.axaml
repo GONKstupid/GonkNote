@@ -1,5 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:GonkNote.Avalonia"
         x:Class="GonkNote.Avalonia.MainWindow"
         Width="960" Height="660"
         Title="Gonk Note — Avalonia-Port (Linux-ready)">
@@ -159,7 +160,11 @@
                 </StackPanel>
             </ScrollViewer>
 
-            <!-- Dokument-Kontext (echte Ansicht folgt Schritt 4/5) -->
+            <!-- Whiteboard / Notizbuch: echte Skia-Ansicht (Schritt 4) -->
+            <local:WhiteboardCanvas IsVisible="{Binding ShowWhiteboard}"
+                                    Page="{Binding CurrentPage}"/>
+
+            <!-- Dokument-Kontext (echte Ansicht folgt Schritt 5) -->
             <StackPanel IsVisible="{Binding ShowDocument}" Margin="28,26" Spacing="6"
                         VerticalAlignment="Top">
                 <TextBlock Text="{Binding SelectedKindText}" Opacity="0.6" FontSize="12"/>

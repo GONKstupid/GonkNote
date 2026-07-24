@@ -1006,8 +1006,24 @@ danach fein machen; der Prototyp nutzt vorerst **Reiter Bearbeiten/Vorschau** st
 - **Verifiziert:** Werkzeugleiste + Canvas rendern korrekt (`AV3-pen.png`). ⚠️ **Das eigentliche
   Zeichnen ist NICHT getestet** — programmatische Mausklicks kommen in dieser Umgebung nicht am
   Fenster an (Foreground-Sperre). **Vom Nutzer zu prüfen.**
-- **Offen (4b-Rest):** Radierer/Lasso/Verschieben, Zoom/Pan, Mehrseitigkeit, Undo/Redo
-  (`UndoStack` liegt bereits in Core), Werkzeugauswahl wie in der WPF-Toolbar.
+**Schritt 4b (Teil 2): Werkzeuge, Radierer, Undo/Redo, Zoom/Pan (2026-07-24).**
+- **Werkzeugauswahl** über `ToolProperty` (`Models.ToolType`): Stift / Bleistift / Textmarker
+  (setzen `StrokeKind` und beim Marker die 5-fache Breite) / **Radierer** / **Hand**.
+- **Radierer:** elementweise (`EraseAt`/`HitsElement` — Striche über Punktnähe, sonst über
+  `WbRenderer.ElementBounds`). Ein Radier-Zug = **ein** Undo-Schritt. **Bewusst einfacher als die
+  WPF-App**, die Striche punktgenau auftrennt (`PartialEraseAction`) — offen.
+- **Undo/Redo** über den **Core-`UndoStack`**: `AddElementsAction` je Strich,
+  `RemoveElementsAction` je Radier-Zug; Stack liegt im `ShellViewModel` **je Dokument** (wird beim
+  Laden neu erzeugt). Nach Undo/Redo wird gespeichert und der Canvas neu gezeichnet.
+- **Zoom/Pan:** Mausrad zoomt (0,2×–8×), Hand-Werkzeug **oder mittlere Maustaste** verschiebt;
+  `PanX`/`PanY` gehen als `canvas.Translate` in die Draw-Operation. Bildschirm→Seite über
+  `ToPage()`. Das Seitenmuster rastet aufs **Seiten**raster (sonst wandert es beim Pan).
+- Werkzeugleiste erweitert (Werkzeuge · Farben · Breiten · Rückgängig/Wiederholen · 100 %).
+- **Verifiziert:** Undo exakt — zwei Teststriche angelegt, **einmal** rückgängig: der erste
+  (magenta) bleibt sichtbar, der zweite (cyan) verschwindet (`AV3-undo2.png`).
+  ⚠️ Zeichnen/Radieren/Pan **mit echter Maus/Stift weiterhin ungetestet** (Foreground-Sperre).
+- **Offen (4b-Rest):** Lasso/Verschieben/Auswahl, punktgenaues Radieren, Mehrseitigkeit,
+  Touch-Gesten (Pinch-Zoom), Werkzeug-Zustand sichtbar machen (aktives Werkzeug hervorheben).
 
 ### 9.4 Gestaffelter Plan
 1. ✅ **PoC/Scaffold + Kernlogik-Reuse** (fertig, §9.1).

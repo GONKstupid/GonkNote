@@ -171,17 +171,32 @@
             <!-- Whiteboard / Notizbuch: echte Skia-Ansicht + Stift-Eingabe (Schritt 4) -->
             <DockPanel IsVisible="{Binding ShowWhiteboard}">
                 <Border DockPanel.Dock="Top" Padding="10,6" Background="#18808080">
-                    <StackPanel Orientation="Horizontal" Spacing="6">
-                        <TextBlock Text="Stift:" VerticalAlignment="Center" Opacity="0.7" Margin="0,0,4,0"/>
+                    <WrapPanel>
+                        <WrapPanel.Styles>
+                            <Style Selector="Button">
+                                <Setter Property="Margin" Value="0,0,6,0"/>
+                                <Setter Property="Padding" Value="8,3"/>
+                            </Style>
+                        </WrapPanel.Styles>
+                        <Button Content="✒ Stift"     Tag="Pen"         Click="Tool_Click"/>
+                        <Button Content="✏ Bleistift" Tag="Pencil"      Click="Tool_Click"/>
+                        <Button Content="🖍 Marker"    Tag="Highlighter" Click="Tool_Click"/>
+                        <Button Content="⌫ Radierer"  Tag="Eraser"      Click="Tool_Click"/>
+                        <Button Content="✋ Hand"      Tag="Pan"         Click="Tool_Click"/>
+                        <Border Width="1" Background="#33808080" Margin="4,2"/>
                         <Button Classes="ink" Tag="#111827" Click="Ink_Click" Background="#111827"/>
                         <Button Classes="ink" Tag="#2563EB" Click="Ink_Click" Background="#2563EB"/>
                         <Button Classes="ink" Tag="#DC2626" Click="Ink_Click" Background="#DC2626"/>
                         <Button Classes="ink" Tag="#16A34A" Click="Ink_Click" Background="#16A34A"/>
-                        <Border Width="1" Background="#33808080" Margin="6,2"/>
-                        <Button Content="dünn"   Tag="2"  Click="Width_Click" Padding="8,3"/>
-                        <Button Content="mittel" Tag="4"  Click="Width_Click" Padding="8,3"/>
-                        <Button Content="dick"   Tag="9"  Click="Width_Click" Padding="8,3"/>
-                    </StackPanel>
+                        <Border Width="1" Background="#33808080" Margin="4,2"/>
+                        <Button Content="dünn"   Tag="2" Click="Width_Click"/>
+                        <Button Content="mittel" Tag="4" Click="Width_Click"/>
+                        <Button Content="dick"   Tag="9" Click="Width_Click"/>
+                        <Border Width="1" Background="#33808080" Margin="4,2"/>
+                        <Button Content="↶ Rückgängig" Click="Undo_Click"/>
+                        <Button Content="↷ Wiederholen" Click="Redo_Click"/>
+                        <Button Content="⤢ 100 %" Click="ZoomReset_Click"/>
+                    </WrapPanel>
                 </Border>
                 <local:WhiteboardCanvas Name="Board" Page="{Binding CurrentPage}"/>
             </DockPanel>

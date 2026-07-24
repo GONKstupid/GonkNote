@@ -90,6 +90,8 @@ public sealed class ShellViewModel : ObservableObject
             _currentDoc = _db.GetBoard(item.Item);
             if (_currentDoc.Pages.Count == 0) _currentDoc.Pages.Add(new WbPage());
             CurrentPage = _currentDoc.Pages[0];
+            Undo = new UndoStack();          // Undo-Verlauf gilt je Dokument
+            RaiseUndoState();
         }
         else
         {
@@ -102,6 +104,53 @@ public sealed class ShellViewModel : ObservableObject
     public void SaveCurrentBoard()
     {
         if (_currentDoc is { } doc) _db.SaveBoard(doc);
+    }
+
+    /// <summary>Undo/Redo des aktuell geöffneten Boards (Stack aus GonkNote.Core).</summary>
+    public UndoStack Undo { get; private set; } = new();
+
+    public bool CanUndo => Undo.CanUndo;
+    public bool CanRedo => Undo.CanRedo;
+
+    /// <summary>Registriert einen neu gezeichneten Strich als Undo-Schritt und speichert.</summary>
+    public void OnStrokeDrawn(StrokeElement stroke)
+    {
+        if (_currentPage is not { } page) return;
+        Undo.Push(page, new AddElementsAction(new[] { stroke }));
+        SaveCurrentBoard();
+        RaiseUndoState();
+    }
+
+    /// <summary>Registriert einen Radier-Zug als einen Undo-Schritt und speichert.</summary>
+    public void OnElementsErased(List<(WbElement El, int Index)> removed)
+    {
+        if (_currentPage is not { } page) return;
+        Undo.Push(page, new RemoveElementsAction(removed));
+        SaveCurrentBoard();
+        RaiseUndoState();
+    }
+
+    /// <summary>Macht den letzten Schritt rückgängig; liefert true, wenn sich etwas geändert hat.</summary>
+    public bool UndoLast()
+    {
+        if (Undo.Undo() is null) return false;
+        SaveCurrentBoard();
+        RaiseUndoState();
+        return true;
+    }
+
+    public bool RedoLast()
+    {
+        if (Undo.Redo() is null) return false;
+        SaveCurrentBoard();
+        RaiseUndoState();
+        return true;
+    }
+
+    private void RaiseUndoState()
+    {
+        OnPropertyChanged(nameof(CanUndo));
+        OnPropertyChanged(nameof(CanRedo));
     }
 
     public string GalleryTitle => _selected is null ? "Alle Dokumente" : _selected.Name;

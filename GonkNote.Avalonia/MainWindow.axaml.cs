@@ -41,8 +41,9 @@ public partial class MainWindow : Window
         OpenEditor.Click += (_, _) => new EditorPrototypeWindow().Show(this);
         OpenProbe.Click += (_, _) => new MarkdownProbe().Show(this);
 
-        // Jeder fertige Strich landet sofort in der LiteDB.
-        Board.StrokeCompleted += (_, _) => Vm.SaveCurrentBoard();
+        // Jeder fertige Strich / Radier-Zug: Undo-Eintrag + sofort in die LiteDB.
+        Board.StrokeCompleted += (_, stroke) => Vm.OnStrokeDrawn(stroke);
+        Board.ElementsErased += (_, removed) => Vm.OnElementsErased(removed);
 
         // Workaround gegen den Fill-Panel-Measure-Quirk (§9.5): dem Inhaltsbereich eine
         // explizite Breite geben (= Fensterbreite − Seitenleiste), damit Umbruch/Zentrierung
@@ -109,6 +110,12 @@ public partial class MainWindow : Window
 
     // ---- Whiteboard (Schritt 4b) ---------------------------------------------------------
 
+    private void Tool_Click(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Button { Tag: string tag } && Enum.TryParse<ToolType>(tag, out var tool))
+            Board.Tool = tool;
+    }
+
     private void Ink_Click(object? sender, RoutedEventArgs e)
     {
         if (sender is Button { Tag: string hex }) Board.InkColor = hex;
@@ -118,6 +125,23 @@ public partial class MainWindow : Window
     {
         if (sender is Button { Tag: string tag } && double.TryParse(tag, out double w))
             Board.InkWidth = w;
+    }
+
+    private void Undo_Click(object? sender, RoutedEventArgs e)
+    {
+        if (Vm.UndoLast()) Board.InvalidateVisual();
+    }
+
+    private void Redo_Click(object? sender, RoutedEventArgs e)
+    {
+        if (Vm.RedoLast()) Board.InvalidateVisual();
+    }
+
+    private void ZoomReset_Click(object? sender, RoutedEventArgs e)
+    {
+        Board.Zoom = 1.0;
+        Board.PanX = 0;
+        Board.PanY = 0;
     }
 
     // ---- Anlegen / Kontextmenü ----------------------------------------------------------

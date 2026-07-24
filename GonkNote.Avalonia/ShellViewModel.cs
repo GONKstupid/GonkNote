@@ -126,6 +126,71 @@ public sealed class ShellViewModel : ObservableObject
 
     public void CancelRename(TreeItemVM vm) => vm.IsRenaming = false;
 
+    // ---- Anlegen / Löschen / Favorit ---------------------------------------------------
+
+    /// <summary>Legt ein neues Element im aktuellen Ordner an (Wurzel, wenn keiner gewählt).</summary>
+    public TreeItemVM CreateItem(ItemKind kind)
+    {
+        var parent = _selected is { IsFolder: true } ? _selected : _selected?.Parent;
+
+        var item = new NoteItem { Kind = kind, Name = DefaultName(kind), ParentId = parent?.Id };
+        _db.UpsertItem(item);
+
+        var vm = new TreeItemVM(item)
+        {
+            Parent = parent,
+            InheritedColorHex = parent?.Item.IconColor ?? parent?.InheritedColorHex,
+        };
+        vm.RefreshIcon();
+
+        if (parent is null) { Roots.Add(vm); SortRoots(); }
+        else { parent.Children.Add(vm); parent.SortChildren(); parent.IsExpanded = true; }
+
+        RebuildGallery();
+        return vm;
+    }
+
+    /// <summary>Löscht ein Element samt Unterbaum (DB + Ansicht).</summary>
+    public void DeleteItem(TreeItemVM vm)
+    {
+        _db.DeleteItemRecursive(vm.Id);
+
+        var parent = vm.Parent;
+        if (parent is null) Roots.Remove(vm); else parent.Children.Remove(vm);
+
+        // War das Gelöschte (oder ein Vorfahre davon) ausgewählt? → auf den Elternordner zurück.
+        if (_selected is not null && (_selected == vm || IsDescendantOf(_selected, vm)))
+            Selected = parent;                      // löst Galerie/Breadcrumb-Neuaufbau aus
+        else { RebuildGallery(); RebuildBreadcrumb(); }
+    }
+
+    /// <summary>Schaltet den Favoriten-Status um (wirkt auf Sortierung) und speichert.</summary>
+    public void ToggleFavorite(TreeItemVM vm)
+    {
+        vm.Item.IsFavorite = !vm.Item.IsFavorite;
+        _db.UpsertItem(vm.Item);
+        vm.RefreshFavorite();
+
+        if (vm.Parent is { } p) p.SortChildren(); else SortRoots();
+        RebuildGallery();
+    }
+
+    private static bool IsDescendantOf(TreeItemVM node, TreeItemVM ancestor)
+    {
+        for (var n = node.Parent; n is not null; n = n.Parent)
+            if (n == ancestor) return true;
+        return false;
+    }
+
+    private static string DefaultName(ItemKind kind) => kind switch
+    {
+        ItemKind.Folder => "Neuer Ordner",
+        ItemKind.Notebook => "Neues Notizbuch",
+        ItemKind.Whiteboard => "Neues Whiteboard",
+        ItemKind.TextDocument => "Neues Textdokument",
+        _ => "Neu",
+    };
+
     /// <summary>Füllt die Galerie mit den Kindern des gewählten Ordners (bzw. den Wurzeln).</summary>
     private void RebuildGallery()
     {

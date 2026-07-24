@@ -947,15 +947,31 @@ danach fein machen; der Prototyp nutzt vorerst **Reiter Bearbeiten/Vorschau** st
   Neustart ohne Temp-Code steht „Skizzen NEU" weiterhin im Baum (`AV3-persist.png`).
   *Nicht klick-getestet* (Foreground-Sperre): Doppelklick-Auslöser und Breadcrumb-Klick.
 
+**Nachtrag 3b: Umbenennen-Fokus-Fix + Anlegen/Löschen/Favoriten (2026-07-24).**
+- **Bugfix Umbenennen** (Nutzer-Meldung: „nach Doppelklick nur ~1 s bearbeitbar"): Ursache war ein
+  `LostFocus`-Handler am **ganzen Baum** (feuerte bei fremden Fokuswechseln) plus ein Fokus-Rückgriff
+  der TreeView. Fix: Handler (`KeyDown`/`GotFocus`/`LostFocus`) hängen jetzt **an der TextBox**;
+  der Fokus wird mit `DispatcherPriority.Background` **nach** der TreeView-Fokuslogik gesetzt
+  (+ `SelectAll`), und der `LostFocus`-Commit greift erst, wenn die Box **wirklich Fokus hatte**
+  (`_renameHadFocus`). **Vom Nutzer gegenzuprüfen** — Klicks sind hier nicht automatisierbar.
+- **Neu anlegen**: „＋ Neu"-Button (MenuFlyout: Ordner/Notizbuch/Whiteboard/Textdokument) legt im
+  aktuellen Ordner an (`ShellViewModel.CreateItem`), erbt die Ordnerfarbe, speichert via
+  `UpsertItem` und springt direkt in die Umbenennung.
+- **Löschen** (`DeleteItem` → `DatabaseService.DeleteItemRecursive`, inkl. Unterbaum) und
+  **Favorit umschalten** (`ToggleFavorite`, Stern ★ im Baum, wirkt auf die Sortierung) über das
+  **Kontextmenü** im Baum (Umbenennen/Favorit/Löschen).
+- **Verifiziert per Screenshot** (`AV3-crud.png`): „Neues Notizbuch" in „Schule" mit geerbter Farbe,
+  „Biologie" mit ★ nach oben sortiert, „Notizen" gelöscht.
+
 ### 9.4 Gestaffelter Plan
 1. ✅ **PoC/Scaffold + Kernlogik-Reuse** (fertig, §9.1).
 2. ✅ **`GonkNote.Core` extrahiert** (Models + DB + Undo + ImageCache); WPF + Avalonia
    referenzieren es per ProjectReference; Links im Avalonia-Projekt entfernt (fertig, §9.1b).
 3. 🟡 **Shell portieren** (Nutzer-Priorität 2026-07-23) — **3a + 3b-Galerie erledigt (§9.3c/§9.3d)**:
    Ordnerbaum + Farbvererbung + Navigation + Theme (3a); **„Big-Picture"-Galerie** (3b) — rechter
-   Bereich zeigt Ordnerinhalt als farbige Kacheln, Kachelklick navigiert; **+ Breadcrumb und
-   Inline-Umbenennen (Doppelklick, DB-persistent)**. **Offen (3b-Rest):** echte Doku-Tabs,
-   Anpinnen/Favoriten-Kacheln, Drag&Drop, Neu-Anlegen/Löschen.
+   Bereich zeigt Ordnerinhalt als farbige Kacheln, Kachelklick navigiert; **+ Breadcrumb,
+   Inline-Umbenennen, Neu-Anlegen/Löschen, Favoriten** (alles DB-persistent). **Bewusst offen:**
+   echte Doku-Tabs (sinnvoll erst mit echten Ansichten ⇒ Schritt 4/5), Drag&Drop, Anpinnen-Kacheln.
 4. **Whiteboard** auf Avalonia-Skia-Control (Zeichenroutinen wiederverwenden); Stylus/Touch über
    Avalonia-Pointer-Events.
 5. 🟡 **Text-Editor: Ansatz entschieden, Bau zurückgestellt** (Prototyp fertig, §9.3b):

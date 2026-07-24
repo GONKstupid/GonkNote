@@ -33,6 +33,16 @@
         <Border DockPanel.Dock="Top" Background="#22808080" Padding="14,10">
             <DockPanel>
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <Button Name="NewButton" Content="＋ Neu" Padding="10,5">
+                        <Button.Flyout>
+                            <MenuFlyout>
+                                <MenuItem Header="Ordner"        Click="New_Click" Tag="Folder"/>
+                                <MenuItem Header="Notizbuch"     Click="New_Click" Tag="Notebook"/>
+                                <MenuItem Header="Whiteboard"    Click="New_Click" Tag="Whiteboard"/>
+                                <MenuItem Header="Textdokument"  Click="New_Click" Tag="TextDocument"/>
+                            </MenuFlyout>
+                        </Button.Flyout>
+                    </Button>
                     <Button Name="ThemeToggle" Content="🌓 Theme" Padding="10,5"/>
                     <Button Name="OpenEditor" Content="Editor-Prototyp →" Padding="10,5"/>
                     <Button Name="OpenProbe" Content="Render-Probe" Padding="10,5"/>
@@ -60,15 +70,28 @@
                     <TreeView.ItemTemplate>
                         <TreeDataTemplate ItemsSource="{Binding Children}">
                             <StackPanel Orientation="Horizontal" Spacing="8">
+                                <StackPanel.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="Umbenennen" Click="Ctx_Rename_Click"/>
+                                        <MenuItem Header="{Binding FavoriteMenuHeader}" Click="Ctx_Favorite_Click"/>
+                                        <Separator/>
+                                        <MenuItem Header="Löschen" Click="Ctx_Delete_Click"/>
+                                    </ContextMenu>
+                                </StackPanel.ContextMenu>
                                 <Ellipse Width="12" Height="12" VerticalAlignment="Center"
                                          Fill="{Binding IconBrush}"/>
                                 <TextBlock Text="{Binding Glyph}" FontSize="14" VerticalAlignment="Center"/>
                                 <!-- Anzeige bzw. Inline-Umbenennung (Doppelklick startet sie) -->
                                 <TextBlock Text="{Binding Name}" FontSize="14" VerticalAlignment="Center"
                                            IsVisible="{Binding IsNotRenaming}"/>
+                                <TextBlock Text="{Binding FavoriteMark}" Foreground="#F5C542"
+                                           FontSize="13" VerticalAlignment="Center"/>
                                 <TextBox Name="RenameBox" Text="{Binding EditName, Mode=TwoWay}"
                                          FontSize="14" MinWidth="140" Padding="4,1"
-                                         IsVisible="{Binding IsRenaming}"/>
+                                         IsVisible="{Binding IsRenaming}"
+                                         KeyDown="RenameBox_KeyDown"
+                                         GotFocus="RenameBox_GotFocus"
+                                         LostFocus="RenameBox_LostFocus"/>
                             </StackPanel>
                         </TreeDataTemplate>
                     </TreeView.ItemTemplate>

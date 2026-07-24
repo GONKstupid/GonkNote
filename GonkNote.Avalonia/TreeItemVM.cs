@@ -104,6 +104,18 @@ public sealed class TreeItemVM : ObservableObject
 
     public bool IsFavorite => Item.IsFavorite;
 
+    /// <summary>Stern-Markierung für Baum/Kachel (leer, wenn kein Favorit).</summary>
+    public string FavoriteMark => Item.IsFavorite ? "★" : "";
+
+    public string FavoriteMenuHeader => Item.IsFavorite ? "Favorit entfernen" : "Als Favorit";
+
+    public void RefreshFavorite()
+    {
+        OnPropertyChanged(nameof(IsFavorite));
+        OnPropertyChanged(nameof(FavoriteMark));
+        OnPropertyChanged(nameof(FavoriteMenuHeader));
+    }
+
     /// <summary>Ordner zuerst, dann Favoriten, dann alphabetisch — wie in der WPF-App.</summary>
     public void SortChildren()
     {

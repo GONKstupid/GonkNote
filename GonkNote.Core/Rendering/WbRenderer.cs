@@ -270,48 +270,63 @@ public static class WbRenderer
         float w = Math.Max(s.Width, 0.6f);
         using var path = BuildSmoothPath(s.Points);
 
-        // 1) Kernlinie – halbtransparent, damit der Untergrund durchscheint
-        using (var core = new SKPaint
+        // Graphit besteht aus einzelnen Körnern — es gibt KEINEN deckenden Kern. Deshalb wird
+        // die Farbe von feinem prozeduralem Rauschen maskiert (Perlin): wo das Rauschen dunkel
+        // ist, bleibt Papier frei. Drei Durchgänge von breit+zart nach schmal+dicht erzeugen
+        // die nach außen ausdünnende Dichte und die ausgefransten Ränder.
+        // (freq hoch = feine Körnung; kostet nur drei Draw-Aufrufe.)
+        const float freq = 1.1f;
+
+        // breit & zart: Streuung in der Randzone
+        DrawGrainPass(canvas, path, color, 130, w * 1.30f, freq, wobble: w * 0.22f);
+        // mittlere Lage
+        DrawGrainPass(canvas, path, color, 205, w * 0.92f, freq, wobble: w * 0.13f);
+        // schmal & dicht: Kern, wie stärkerer Andruck
+        DrawGrainPass(canvas, path, color, 255, w * 0.48f, freq, wobble: 0f);
+    }
+
+    /// <summary>
+    /// Alpha-Kennlinie, die weiches Rauschen in **deutliche Körner** verwandelt: Werte unter der
+    /// Schwelle werden transparent, darüber schnell deckend. Ohne das mittelt sich feines
+    /// Rauschen zu einer glatten grauen Linie.
+    /// </summary>
+    private static readonly SKColorFilter GrainContrast = BuildGrainContrast();
+
+    private static SKColorFilter BuildGrainContrast()
+    {
+        var table = new byte[256];
+        for (int i = 0; i < 256; i++)
+        {
+            float v = i / 255f;
+            // Fractal-Noise liegt um 0,5 — diese Rampe spreizt den mittleren Bereich stark,
+            // sodass klar getrennte Körner entstehen (statt eines weichen Grauverlaufs).
+            float t = Math.Clamp((v - 0.32f) / 0.26f, 0f, 1f);
+            table[i] = (byte)(t * 255f);
+        }
+        return SKColorFilter.CreateTable(table, null, null, null);
+    }
+
+    /// <summary>Ein Körnungs-Durchgang des Bleistifts (Farbe × Rausch-Turbulenz als Alpha-Maske).</summary>
+    private static void DrawGrainPass(SKCanvas canvas, SKPath path, SKColor color,
+                                      byte alpha, float width, float freq, float wobble)
+    {
+        using var noise = SKShader.CreatePerlinNoiseFractalNoise(freq, freq, 3, 0f);
+        using var tint = SKShader.CreateColor(color.WithAlpha(alpha));
+        using var grain = SKShader.CreateCompose(tint, noise, SKBlendMode.DstIn);
+        using var fx = wobble > 0f ? SKPathEffect.CreateDiscrete(1.3f, wobble) : null;
+
+        using var paint = new SKPaint
         {
             IsAntialias = true,
             Style = SKPaintStyle.Stroke,
             StrokeCap = SKStrokeCap.Round,
             StrokeJoin = SKStrokeJoin.Round,
-            Color = color.WithAlpha(80),
-            StrokeWidth = w * 0.9f,
-        })
-            canvas.DrawPath(path, core);
-
-        // 2) fein aufgerauter Rand (kleine Amplitude – kein Zacken-Look)
-        using (var edgeFx = SKPathEffect.CreateDiscrete(1.4f, w * 0.20f))
-        using (var edge = new SKPaint
-        {
-            IsAntialias = true,
-            Style = SKPaintStyle.Stroke,
-            StrokeCap = SKStrokeCap.Round,
-            StrokeJoin = SKStrokeJoin.Round,
-            Color = color.WithAlpha(55),
-            StrokeWidth = w * 0.72f,
-            PathEffect = edgeFx,
-        })
-            canvas.DrawPath(path, edge);
-
-        // 3) Körnung: kleine Punkte werden entlang eines verrauschten Pfades gestempelt
-        using var dot = new SKPath();
-        dot.AddCircle(0, 0, Math.Max(0.45f, w * 0.13f));
-        using (var jitter = SKPathEffect.CreateDiscrete(1.8f, w * 0.38f))
-        using (var stamp = SKPathEffect.Create1DPath(dot, Math.Max(1.1f, w * 0.42f), 0,
-                                                     SKPath1DPathEffectStyle.Translate))
-        using (var grainFx = SKPathEffect.CreateCompose(stamp, jitter))
-        using (var grain = new SKPaint
-        {
-            IsAntialias = true,
-            Style = SKPaintStyle.Stroke,
-            Color = color.WithAlpha(140),
-            StrokeWidth = w * 0.85f,
-            PathEffect = grainFx,
-        })
-            canvas.DrawPath(path, grain);
+            StrokeWidth = Math.Max(width, 0.4f),
+            Shader = grain,
+            PathEffect = fx,
+            ColorFilter = GrainContrast,
+        };
+        canvas.DrawPath(path, paint);
     }
 
     public static void DrawShape(SKCanvas canvas, ShapeElement sh, string colorHex, float strokeWidth)

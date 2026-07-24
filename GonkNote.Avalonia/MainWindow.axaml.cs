@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Styling;
@@ -27,9 +28,10 @@ public partial class MainWindow : Window
         DataContext = new ShellViewModel(ShellViewModel.DefaultDbPath);
 
         // Umbenennen: Doppelklick im Baum startet die Inline-Bearbeitung (wie in der WPF-App).
-        // Enter/Escape/Fokusverlust werden an der TextBox selbst behandelt (siehe XAML) —
-        // ein Handler am ganzen Baum würde bei fremden Fokuswechseln vorzeitig übernehmen.
-        Tree.DoubleTapped += Tree_DoubleTapped;
+        // Muss im TUNNEL laufen: sonst hat der TreeViewItem den Doppelklick schon verarbeitet
+        // und klappt Ordner auf/zu, statt sie umzubenennen.
+        // Enter/Escape/Fokusverlust werden an der TextBox selbst behandelt (siehe XAML).
+        Tree.AddHandler(PointerPressedEvent, Tree_PointerPressed, RoutingStrategies.Tunnel);
 
         ThemeToggle.Click += (_, _) =>
             RequestedThemeVariant = RequestedThemeVariant == ThemeVariant.Dark
@@ -51,12 +53,27 @@ public partial class MainWindow : Window
 
     // ---- Inline-Umbenennen im Ordnerbaum ------------------------------------------------
 
-    private void Tree_DoubleTapped(object? sender, TappedEventArgs e)
+    private void Tree_PointerPressed(object? sender, PointerPressedEventArgs e)
     {
+        if (e.ClickCount != 2) return;
+
+        // Doppelklick auf den Aufklapp-Pfeil soll weiterhin auf-/zuklappen.
+        for (var v = e.Source as Visual; v is not null; v = v.GetVisualParent())
+        {
+            if (v is ToggleButton) return;
+            if (v is TreeViewItem) break;
+        }
+
         if (ItemFrom(e.Source) is not { } vm) return;
+        StartRename(vm);
+        e.Handled = true;   // verhindert das Auf-/Zuklappen durch den TreeViewItem
+    }
+
+    /// <summary>Startet die Inline-Umbenennung und setzt den Fokus in die eingeblendete TextBox.</summary>
+    private void StartRename(TreeItemVM vm)
+    {
         _renameHadFocus = false;
         vm.BeginRename();
-        e.Handled = true;
 
         // Fokus erst setzen, wenn die TreeView ihre eigene Fokuslogik abgeschlossen hat —
         // sonst holt sich der TreeViewItem den Fokus sofort zurück und die Bearbeitung endet.
@@ -96,15 +113,7 @@ public partial class MainWindow : Window
 
         var vm = Vm.CreateItem(kind);
         Vm.Selected = vm;                       // neues Element gleich anzeigen
-        // Direkt in die Umbenennung springen, damit der Standardname ersetzt werden kann.
-        _renameHadFocus = false;
-        vm.BeginRename();
-        Dispatcher.UIThread.Post(() =>
-        {
-            if (FindRenameBox() is not { } box) return;
-            box.Focus();
-            box.SelectAll();
-        }, DispatcherPriority.Background);
+        StartRename(vm);                        // Standardname gleich ersetzbar
     }
 
     /// <summary>Das <see cref="TreeItemVM"/> hinter einem Kontextmenü-Eintrag.</summary>
@@ -113,15 +122,7 @@ public partial class MainWindow : Window
 
     private void Ctx_Rename_Click(object? sender, RoutedEventArgs e)
     {
-        if (CtxItem(sender) is not { } vm) return;
-        _renameHadFocus = false;
-        vm.BeginRename();
-        Dispatcher.UIThread.Post(() =>
-        {
-            if (FindRenameBox() is not { } box) return;
-            box.Focus();
-            box.SelectAll();
-        }, DispatcherPriority.Background);
+        if (CtxItem(sender) is { } vm) StartRename(vm);
     }
 
     private void Ctx_Favorite_Click(object? sender, RoutedEventArgs e)

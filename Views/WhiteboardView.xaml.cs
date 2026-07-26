@@ -164,8 +164,17 @@ public partial class WhiteboardView : UserControl
         foreach (var b in ToolButtons) b.Unchecked += Tool_Unchecked;
 
         DataContextChanged += OnDataContextChanged;
-        Loaded += (_, _) => { ThemeService.ThemeChanged += OnThemeChanged; Skia.InvalidateVisual(); };
-        Unloaded += (_, _) => ThemeService.ThemeChanged -= OnThemeChanged;
+        Loaded += (_, _) =>
+        {
+            ThemeService.ThemeChanged += OnThemeChanged;
+            Loc.LanguageChanged += OnLanguageChanged;
+            Skia.InvalidateVisual();
+        };
+        Unloaded += (_, _) =>
+        {
+            ThemeService.ThemeChanged -= OnThemeChanged;
+            Loc.LanguageChanged -= OnLanguageChanged;
+        };
 
         // Eingabe
         CanvasHost.MouseDown += OnMouseDown;
@@ -453,14 +462,23 @@ public partial class WhiteboardView : UserControl
         if (_eraserVisible) Skia.InvalidateVisual();   // Radierkreis sofort mitwachsen lassen
     }
 
+    /// <summary>
+    /// Texte, die der Code setzt (Seitenzähler, Größen-Tooltips), tragen die Sprache nicht
+    /// über eine Bindung – nach einem Sprachwechsel werden sie neu geschrieben.
+    /// </summary>
+    private void OnLanguageChanged()
+    {
+        UpdatePageLabel();
+        SyncSizeControls();
+    }
+
     /// <summary>Stellt Schieber, Anzeige und Beschriftung auf das aktive Werkzeug um.</summary>
     private void SyncSizeControls()
     {
         if (WidthSlider == null || WidthLabel == null || WidthIcon == null) return;
 
-        string what = SizeControlsEraser ? "Radierergröße" : "Strichstärke";
         WidthSlider.ToolTip = WidthIcon.ToolTip = WidthLabel.ToolTip =
-            $"{what} – lange drücken für Zahleneingabe";
+            Loc.T(SizeControlsEraser ? "Size.Eraser.Tip" : "Size.Tip");
 
         WidthSlider.Value = ActiveSize;
         WidthLabel.Content = ActiveSize.ToString("0.#");
@@ -651,14 +669,14 @@ public partial class WhiteboardView : UserControl
 
         if (pages[_vm.PageIndex].IsCover)
         {
-            PageLabel.Text = "Cover";
+            PageLabel.Text = Loc.T("Page.Cover");
         }
         else
         {
             int num = 0;
             for (int i = 0; i <= _vm.PageIndex; i++)
                 if (!pages[i].IsCover) num++;
-            PageLabel.Text = $"Seite {num} / {contentTotal}";
+            PageLabel.Text = Loc.T("Page.Label", num, contentTotal);
         }
     }
 

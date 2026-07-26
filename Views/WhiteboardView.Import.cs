@@ -286,9 +286,9 @@ public partial class WhiteboardView
         var anchor = _page;
 
         _importing = true;
-        ShowBusy("PDF wird importiert…");
+        ShowBusy(Loc.T("Busy.Pdf"));
         var progress = new Progress<(int Done, int Total)>(t =>
-            BusyText.Text = t.Total > 0 ? $"PDF wird importiert…  {t.Done} / {t.Total}" : "PDF wird importiert…");
+            BusyText.Text = t.Total > 0 ? Loc.T("Busy.Pdf.Progress", t.Done, t.Total) : Loc.T("Busy.Pdf"));
 
         try
         {
@@ -346,7 +346,7 @@ public partial class WhiteboardView
         var anchor = _page;
 
         _importing = true;
-        ShowBusy("Word-Dokument wird eingefügt…");
+        ShowBusy(Loc.T("Busy.Docx"));
         try
         {
             // Kurz Zeit geben, damit das Busy-Overlay sichtbar wird

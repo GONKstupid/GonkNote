@@ -12,7 +12,28 @@
 > ausführlichen Tabellen als Standard). **Ausführlich nur** bei **offenen Fragen und
 > Entscheidungen**, die der Nutzer treffen muss — die weiterhin klar begründen.
 >
-> **Runde 23 (2026-07-26) zuletzt: Cleanup abgeschlossen + zweite Sprache (DE/EN).**
+> **Runde 24 (2026-07-26) zuletzt: Render-Caching (vom Nutzer vorgezogen).**
+> Während ein Strich gezogen wird, ändert sich am bereits Gezeichneten nichts — die Punkte
+> laufen bis zum Absetzen in `_activePoints`, nicht in die Seite. Trotzdem wurde pro Bild die
+> ganze Seite neu gerastert. Jetzt wird der fertige Stand **einmal** in ein Zwischenbild
+> gerendert und danach nur kopiert (`WhiteboardView.Render.cs`, Abschnitt „Zwischenbild").
+> Gemessen (Harness `%TEMP%\gonk-cache`): 25 Striche 14,7 → 2,1 ms · 100 Striche 56,8 → 3,1 ms ·
+> 300 Striche 167,7 → 5,5 ms · 50 Bleistift-Striche 62,5 → 2,6 ms. **Die Kosten hängen nicht
+> mehr am Seiteninhalt.** Im echten Fenster gegengeprüft: die Zeichenfläche während des Strichs
+> ist **pixelgleich** mit dem frisch gezeichneten Stand danach (0 abweichende Pixel).
+>
+> **Die Invariante, auf der das steht:** gecacht wird nur, solange eine Interaktion **nur das
+> Overlay** verändert — `ContentFrozen` = Strich zeichnen, Form aufziehen, Lasso, Zeichenhilfe
+> schieben. Radieren, Verschieben, Skalieren und Drehen ändern den Inhalt und zeichnen weiterhin
+> jedes Bild neu. Deshalb kann das Zwischenbild nicht stillschweigend veralten — es braucht
+> keine Invalidierungs-Aufrufe, die man vergessen könnte.
+> Speicher: ein Bild in Viewport-Größe (~20 MB bei Vollbild), nur während der Geste; danach
+> sofort freigegeben.
+>
+> **Nächster Schritt: RAM-Optimierung. Zielwert vom Nutzer bestätigt (2026-07-26): 800 MB,
+> harte Obergrenze 1 GB.**
+>
+> **Runde 23 (2026-07-26): Cleanup abgeschlossen + zweite Sprache (DE/EN).**
 > - **Namensräume der Kernbibliothek** heißen jetzt `GonkNote.Core.*`. Vorher bezeichnete
 >   `GonkNote.Services` zwei verschiedene Dinge (4 UI-freie Klassen in Core, 11 WPF-nahe in der
 >   App) — am `using` war die Schichtgrenze nicht zu sehen. **Wichtig:** der `ModelTypeBinder`
@@ -669,16 +690,13 @@ Nutzer-Test mit Stift.
   - **Nützlich unabhängig davon:** die WPF-Rechtschreibung hängt am Windows-Sprachpaket
     (Englisch fehlt auf dem Testrechner, s. Runde 18). **WeCantSpell.Hunspell** (pure C#) würde
     das lösen — eigenständig sinnvoll, nicht nur für einen Port.
-  - **RAM-Leitlinie: „Features vor RAM".** Zielwunsch ~200 MB. Als akzeptabel nannte
-    der Nutzer „unter 80 MB" — das ist angesichts der ~190-MB-Basis mit ~96 MB
-    Bild-Cache **mit hoher Wahrscheinlichkeit ein Tippfehler für ~800 MB**; die
-    **harte, nie zu überschreitende Obergrenze ist 1 GB**. Vor dem RAM-Thema den
-    Schwellenwert **einmal beim Nutzer rückversichern**. RAM ist ausdrücklich
-    zweitrangig — kein Feature dafür opfern.
-  - **Render-Caching:** erst umsetzen, **wenn nach der RAM-Optimierung** die
-    Auslastung noch zu hoch ist. Ausnahme: wäre es technisch unsinnig, es *nach* der
-    RAM-Optimierung zu machen, dann vorziehen — aber **immer erst nach** den
-    laufenden Änderungen/Fixes.
+  - **RAM-Leitlinie: „Features vor RAM".** Zielwert **800 MB** — am 2026-07-26 vom Nutzer
+    bestätigt (die früher notierten „unter 80 MB" waren ein Tippfehler). Die **harte, nie zu
+    überschreitende Obergrenze ist 1 GB**. RAM ist ausdrücklich zweitrangig — kein Feature
+    dafür opfern.
+  - **Render-Caching: ✔ umgesetzt am 2026-07-26** (vom Nutzer vor die RAM-Optimierung
+    gezogen, nachdem der Bleistift-Fix die Trägheit nur zur Hälfte erklärt hatte).
+    Einzelheiten oben in der Runde-24-Notiz.
   - **OCR: ✔ umgesetzt (2026-07-17) mit Tesseract** (Nutzer-Entscheidung 2026-07-16).
     - `Tesseract` 5.2.0 (NuGet) + native `tesseract50.dll`/`leptonica`-DLLs (kommen
       über das Paket in den `x64`-/`x86`-Unterordner neben der Exe).

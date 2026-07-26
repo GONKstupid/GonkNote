@@ -174,6 +174,7 @@ public partial class WhiteboardView : UserControl
         {
             ThemeService.ThemeChanged -= OnThemeChanged;
             Loc.LanguageChanged -= OnLanguageChanged;
+            DropContentCache();
         };
 
         // Eingabe

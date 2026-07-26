@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Media;
 using GonkNote.Core.Models;
 using GonkNote.Core.Rendering;
+using GonkNote.Services;
 using GonkNote.Core.Services;
 using SkiaSharp;
 using SkiaSharp.Views.Desktop;
@@ -25,12 +26,7 @@ public partial class WhiteboardView
     private void Skia_PaintSurface(object sender, SKPaintSurfaceEventArgs e)
     {
         var canvas = e.Surface.Canvas;
-        var clearColor = ResColor("Color.CanvasBg");
-        if (_page is { IsInfinite: true } p && p.Shade != PageShade.Auto)
-            clearColor = EffectiveShade(p) == PageShade.Dark
-                ? SKColor.Parse("#12161F")
-                : SKColor.Parse("#EEF2F8");
-        canvas.Clear(clearColor);
+        canvas.Clear(CanvasBackColor());
         if (_page == null || _vm == null) return;
 
         if (!_vm.ViewInitialized && CanvasHost.ActualWidth > 0)
@@ -40,17 +36,43 @@ public partial class WhiteboardView
         }
 
         float pixelScale = (float)(e.Info.Width / Math.Max(1.0, Skia.ActualWidth));
+        RefreshAutoSwatch();
+
+        DrawContent(canvas, e.Info, pixelScale);
+
+        canvas.Save();
+        ApplyViewTransform(canvas, pixelScale);
+        DrawActiveOverlays(canvas);
+        canvas.Restore();
+    }
+
+    /// <summary>Farbe hinter der Seite – im unendlichen Whiteboard folgt sie dem Seitenton.</summary>
+    private SKColor CanvasBackColor()
+    {
+        if (_page is not { IsInfinite: true } p || p.Shade == PageShade.Auto)
+            return ResColor("Color.CanvasBg");
+        return EffectiveShade(p) == PageShade.Dark
+            ? SKColor.Parse("#12161F")
+            : SKColor.Parse("#EEF2F8");
+    }
+
+    /// <summary>Bildschirmpunkte → Leinwandkoordinaten (Gerätepixel, Verschiebung, Zoom).</summary>
+    private void ApplyViewTransform(SKCanvas canvas, float pixelScale)
+    {
         canvas.Scale(pixelScale);
         canvas.Translate(PanX, PanY);
         canvas.Scale(Zoom);
+    }
 
-        RefreshAutoSwatch();
+    /// <summary>Seitenhintergrund und alle fertigen Elemente.</summary>
+    private void DrawPageAndElements(SKCanvas canvas)
+    {
         DrawPageBackground(canvas);
 
         // Viewport-Culling: nur sichtbare Elemente zeichnen. Das verhindert, dass
         // bei vielen (hochauflösenden) Bildern jedes Frame alle dekodiert werden.
         var visible = VisibleCanvasRect();
-        foreach (var el in _page.Elements)
+        foreach (var el in _page!.Elements)
         {
             if (el == _editingText) continue;
             // Zettel in Bearbeitung: nur die Karte zeichnen, den Text übernimmt die EditBox
@@ -59,8 +81,71 @@ public partial class WhiteboardView
             if (!b.IsEmpty && !visible.IntersectsWith(b)) continue;
             DrawElement(canvas, el);
         }
+    }
 
-        DrawActiveOverlays(canvas);
+    // ==================== Zwischenbild für die fertigen Elemente ====================
+    // Während ein Strich gezogen wird, ändert sich am bereits Gezeichneten nichts – die
+    // Punkte laufen bis zum Absetzen in _activePoints, nicht in die Seite. Trotzdem wurde
+    // bisher pro Bild die komplette Seite neu gerastert, und genau das kostet: bei rund
+    // 100 Strichen ~27 ms, mit Bleistift deutlich mehr. Jetzt wird der fertige Stand
+    // einmal in ein Zwischenbild gerendert und danach nur noch kopiert; pro Bild bleibt
+    // der laufende Strich übrig. Die Kosten hängen damit nicht mehr am Seiteninhalt.
+
+    private SKImage? _contentCache;
+    private ContentKey _contentKey;
+
+    /// <summary>Alles, was das Zwischenbild ungültig macht.</summary>
+    private readonly record struct ContentKey(
+        WbPage? Page, float Zoom, float PanX, float PanY, int Width, int Height,
+        WbElement? EditingText, WbElement? EditingSticky, AppTheme Theme);
+
+    /// <summary>
+    /// Läuft gerade eine Interaktion, die **nur** das Overlay verändert? Dann stehen die
+    /// fertigen Elemente nachweislich still und dürfen aus dem Zwischenbild kommen.
+    /// Radieren, Verschieben, Skalieren und Drehen ändern den Inhalt – die zählen bewusst
+    /// nicht dazu und zeichnen weiterhin jedes Bild neu.
+    /// </summary>
+    private bool ContentFrozen =>
+        _drawing || _shapeActive || _lassoPts != null || _rulerDrag != RulerDrag.None;
+
+    private void DrawContent(SKCanvas canvas, SKImageInfo info, float pixelScale)
+    {
+        if (!ContentFrozen)
+        {
+            DropContentCache();
+            canvas.Save();
+            ApplyViewTransform(canvas, pixelScale);
+            DrawPageAndElements(canvas);
+            canvas.Restore();
+            return;
+        }
+
+        var key = new ContentKey(_page, Zoom, PanX, PanY, info.Width, info.Height,
+                                 _editingText, _editingSticky, ThemeService.Current);
+        if (_contentCache == null || !_contentKey.Equals(key))
+        {
+            DropContentCache();
+            _contentCache = RenderContent(info, pixelScale);
+            _contentKey = key;
+        }
+        canvas.DrawImage(_contentCache, 0, 0);
+    }
+
+    private SKImage RenderContent(SKImageInfo info, float pixelScale)
+    {
+        using var surface = SKSurface.Create(info);
+        var c = surface.Canvas;
+        c.Clear(CanvasBackColor());
+        ApplyViewTransform(c, pixelScale);
+        DrawPageAndElements(c);
+        return surface.Snapshot();
+    }
+
+    /// <summary>Gibt das Zwischenbild frei (rund 20 MB bei Vollbild – nichts, was liegen bleiben soll).</summary>
+    private void DropContentCache()
+    {
+        _contentCache?.Dispose();
+        _contentCache = null;
     }
 
     // ==================== Schatten (gecacht statt Live-Blur) ====================

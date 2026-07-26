@@ -183,7 +183,8 @@ GonkNote.Core/               Kernlogik ohne UI-Bezug (net8.0), Namensraum GonkNo
     (Leitlinie *Features vor RAM* — Ziel ~200 MB, akzeptabel bis mittlerer dreistelliger
     MB-Bereich, **harte Obergrenze 1 GB**) → **Veröffentlichung auf GitHub unter der
     MIT-Lizenz**.
-  - **Render-Caching**: nur, falls die RAM-Auslastung nach der Optimierung noch zu hoch ist
-    (oder vorgezogen, falls es technisch sinnvoller vor der Optimierung liegt)
+  - **Render-Caching** ✔: Beim Zeichnen wird der fertige Seiteninhalt zwischengespeichert
+    statt in jedem Bild neu gerastert — die Verzögerung wächst dadurch nicht mehr mit der
+    Menge auf der Seite (gemessen: 300 Striche 168 ms → 5,5 ms pro Bild)
   - **Handschrift-Erkennung** (optional, aufbauend auf der OCR-Grundlage)
   - **Keine Obfuskierung** — das Projekt soll so offen wie möglich bleiben

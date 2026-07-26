@@ -48,6 +48,8 @@ public partial class MainWindow : Window
         Board.ElementAdded += (_, el) => Vm.OnElementAdded(el);
         Board.SelectionMoved += (_, m) => Vm.OnSelectionMoved(m.Els, m.Dx, m.Dy);
         Board.SelectionScaled += (_, s) => Vm.OnSelectionScaled(s.Els, s.Factor, s.Px, s.Py);
+        Board.ElementRotated += (_, r) => Vm.OnElementRotated(r.El, r.OldDeg, r.NewDeg);
+        Board.UndoRequested += (_, _) => Undo_Click(this, new RoutedEventArgs());
         Board.TextRequested += (_, txt) => OnTextRequested(txt);
 
         // Tastenkürzel des Whiteboards (Entf, Strg+C/V/D, Strg+Z/Y).
@@ -206,6 +208,11 @@ public partial class MainWindow : Window
             Board.CopySelection();
             e.Handled = true;
         }
+        else if (ctrl && e.Key == Key.X)
+        {
+            CutSelection();
+            e.Handled = true;
+        }
         else if (ctrl && e.Key == Key.V)
         {
             var added = Board.Paste();
@@ -279,6 +286,20 @@ public partial class MainWindow : Window
     }
 
     private void Copy_Click(object? sender, RoutedEventArgs e) => Board.CopySelection();
+
+    private void Cut_Click(object? sender, RoutedEventArgs e) => CutSelection();
+
+    private void CutSelection()
+    {
+        var removed = Board.CutSelection();
+        if (removed.Count > 0) Vm.OnSelectionDeleted(removed);
+    }
+
+    private void Duplicate_Click(object? sender, RoutedEventArgs e)
+    {
+        var added = Board.DuplicateSelection();
+        if (added.Count > 0) Vm.OnElementsAdded(added);
+    }
 
     private void Paste_Click(object? sender, RoutedEventArgs e)
     {

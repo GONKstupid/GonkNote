@@ -138,6 +138,18 @@ public class WhiteboardCanvas : Control
     /// <summary>Kantenlänge der Skalier-Griffe (Bildschirm-Pixel).</summary>
     private const float HandleSize = 10f;
 
+    /// <summary>Abstand des Dreh-Griffs über der Auswahl (Bildschirm-Pixel).</summary>
+    private const float RotateHandleGap = 28f;
+
+    /// <summary>Feuert nach dem Drehen eines Elements (alt/neu in Grad) — für Undo+Speichern.</summary>
+    public event EventHandler<(WbElement El, float OldDeg, float NewDeg)>? ElementRotated;
+
+    private bool _rotating;
+    private WbElement? _rotateTarget;
+    private SKPoint _rotateCenter;
+    private float _rotateStartDeg;      // Winkel des Zeigers bei Beginn
+    private float _rotateOrigDeg;       // ursprüngliche Rotation des Elements
+
     /// <summary>Feuert, wenn Text eingegeben werden soll (die Shell öffnet dafür einen Dialog).</summary>
     public event EventHandler<GonkNote.Models.TextElement>? TextRequested;
 
@@ -172,10 +184,47 @@ public class WhiteboardCanvas : Control
 
         if (Page is not { } page) return;
         context.Custom(new PageDrawOperation(new Rect(Bounds.Size), page, Zoom, _active, PanX, PanY,
-                                             _shape, _lasso, SelectionBounds()));
+                                             _shape, _lasso, SelectionBounds(),
+                                             _selection.Count == 1 ? RotateHandlePos() : null));
     }
 
     // ---- Zeigereingabe (Stift / Maus / Finger) ------------------------------------------
+
+    // ---- Finger-Gesten ------------------------------------------------------------------
+    // Rohe Touch-Kontakte werden selbst verfolgt (wie in der WPF-App): 1 Finger schiebt die
+    // Leinwand, 2 Finger zoomen+schieben, 3 Finger tippen macht rückgängig. Stift und Maus
+    // laufen unverändert durch die Werkzeuglogik.
+
+    private readonly Dictionary<int, Point> _touches = new();
+    private int _maxTouches;            // höchste gleichzeitige Fingerzahl der Geste
+    private double _gestureStartDist;
+    private double _gestureStartZoom;
+    private Point _gestureStartMid;
+    private double _gestureOriginX, _gestureOriginY;
+
+    /// <summary>Rückgängig per 3-Finger-Tipp (die Shell hängt sich hier ein).</summary>
+    public event EventHandler? UndoRequested;
+
+    private bool IsTouch(PointerEventArgs e) => e.Pointer.Type == PointerType.Touch;
+
+    private void BeginGesture()
+    {
+        if (_touches.Count < 2) return;
+        var pts = _touches.Values.ToList();
+        _gestureStartDist = Math.Max(Distance(pts[0], pts[1]), 1);
+        _gestureStartZoom = Zoom;
+        _gestureStartMid = Mid(pts[0], pts[1]);
+        _gestureOriginX = PanX;
+        _gestureOriginY = PanY;
+    }
+
+    private static double Distance(Point a, Point b)
+    {
+        double dx = a.X - b.X, dy = a.Y - b.Y;
+        return Math.Sqrt(dx * dx + dy * dy);
+    }
+
+    private static Point Mid(Point a, Point b) => new((a.X + b.X) / 2, (a.Y + b.Y) / 2);
 
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
@@ -183,6 +232,36 @@ public class WhiteboardCanvas : Control
         if (Page is null) return;
 
         var pt = e.GetCurrentPoint(this);
+
+        if (IsTouch(e))
+        {
+            _touches[e.Pointer.Id] = pt.Position;
+            _maxTouches = Math.Max(_maxTouches, _touches.Count);
+
+            // Ab dem zweiten Finger: laufende Zeichnung abbrechen, Geste übernimmt.
+            if (_touches.Count >= 2)
+            {
+                _active = null;
+                _eraseSteps = null;
+                _lasso = null;
+                _shape = null;
+                _movingSelection = _scaling = _rotating = false;
+                BeginGesture();
+                e.Pointer.Capture(this);
+                e.Handled = true;
+                InvalidateVisual();
+                return;
+            }
+
+            // Ein Finger schiebt die Leinwand (Zeichnen bleibt dem Stift vorbehalten).
+            _panning = true;
+            _panStart = pt.Position;
+            _panOriginX = PanX;
+            _panOriginY = PanY;
+            e.Pointer.Capture(this);
+            e.Handled = true;
+            return;
+        }
 
         // Pan: Hand-Werkzeug oder mittlere Maustaste
         if (Tool == ToolType.Pan || pt.Properties.IsMiddleButtonPressed)
@@ -210,6 +289,21 @@ public class WhiteboardCanvas : Control
 
         var page0 = Page!;
         var hit = ToPage(pt.Position);
+
+        // ---- Dreh-Griff (nur bei Einzelauswahl) ----
+        if ((Tool == ToolType.Move || Tool == ToolType.Lasso) &&
+            _selection.Count == 1 && IsOnRotateHandle(hit))
+        {
+            _rotating = true;
+            _rotateTarget = _selection[0];
+            var rb = WbRenderer.ElementBounds(_rotateTarget);
+            _rotateCenter = new SKPoint(rb.MidX, rb.MidY);
+            _rotateOrigDeg = _rotateTarget.Rotation;
+            _rotateStartDeg = AngleDeg(_rotateCenter, hit);
+            e.Pointer.Capture(this);
+            e.Handled = true;
+            return;
+        }
 
         // ---- Skalier-Griff der Auswahl (hat Vorrang vor allem anderen) ----
         if ((Tool == ToolType.Move || Tool == ToolType.Lasso) && HandleAt(hit) is { } pivot)
@@ -329,6 +423,29 @@ public class WhiteboardCanvas : Control
         base.OnPointerMoved(e);
         var pt = e.GetCurrentPoint(this);
 
+        if (IsTouch(e) && _touches.ContainsKey(e.Pointer.Id))
+        {
+            _touches[e.Pointer.Id] = pt.Position;
+
+            if (_touches.Count >= 2)
+            {
+                var pts = _touches.Values.ToList();
+                double dist = Math.Max(Distance(pts[0], pts[1]), 1);
+                var mid = Mid(pts[0], pts[1]);
+
+                // Zoom um die Fingermitte, zusätzlich der Versatz der Mitte = Zwei-Finger-Pan
+                double newZoom = Math.Clamp(_gestureStartZoom * (dist / _gestureStartDist), 0.2, 8.0);
+                double k = newZoom / _gestureStartZoom;
+                Zoom = newZoom;
+                PanX = mid.X - (_gestureStartMid.X - _gestureOriginX) * k;
+                PanY = mid.Y - (_gestureStartMid.Y - _gestureOriginY) * k;
+
+                e.Handled = true;
+                InvalidateVisual();
+                return;
+            }
+        }
+
         if (_panning)
         {
             PanX = _panOriginX + (pt.Position.X - _panStart.X);
@@ -340,6 +457,20 @@ public class WhiteboardCanvas : Control
         if (_eraseSteps is not null)
         {
             EraseAt(ToPage(pt.Position));
+            e.Handled = true;
+            InvalidateVisual();
+            return;
+        }
+
+        if (_rotating && _rotateTarget is { } rt)
+        {
+            var now = ToPage(pt.Position);
+            float delta = AngleDeg(_rotateCenter, now) - _rotateStartDeg;
+            float deg = _rotateOrigDeg + delta;
+            // Shift rastet auf 15°-Schritte (wie die Zeichenhilfen der WPF-App)
+            if (e.KeyModifiers.HasFlag(KeyModifiers.Shift))
+                deg = MathF.Round(deg / 15f) * 15f;
+            rt.Rotation = deg;
             e.Handled = true;
             InvalidateVisual();
             return;
@@ -398,6 +529,33 @@ public class WhiteboardCanvas : Control
     {
         base.OnPointerReleased(e);
 
+        if (IsTouch(e) && _touches.Remove(e.Pointer.Id))
+        {
+            // Drei gleichzeitige Finger, kurz getippt ⇒ rückgängig (wie in der WPF-App).
+            if (_maxTouches >= 3)
+            {
+                if (_touches.Count == 0)
+                {
+                    _maxTouches = 0;
+                    UndoRequested?.Invoke(this, EventArgs.Empty);
+                }
+                _panning = false;
+                e.Pointer.Capture(null);
+                e.Handled = true;
+                return;
+            }
+
+            if (_touches.Count == 1) BeginGesture();     // zurück auf einen Finger
+            if (_touches.Count == 0)
+            {
+                _maxTouches = 0;
+                _panning = false;
+            }
+            e.Pointer.Capture(null);
+            e.Handled = true;
+            return;
+        }
+
         if (_panning)
         {
             _panning = false;
@@ -412,6 +570,18 @@ public class WhiteboardCanvas : Control
             e.Pointer.Capture(null);
             e.Handled = true;
             if (steps.Count > 0) ElementsErased?.Invoke(this, steps);
+            InvalidateVisual();
+            return;
+        }
+
+        if (_rotating)
+        {
+            _rotating = false;
+            e.Pointer.Capture(null);
+            e.Handled = true;
+            if (_rotateTarget is { } rt && Math.Abs(rt.Rotation - _rotateOrigDeg) > 0.01f)
+                ElementRotated?.Invoke(this, (rt, _rotateOrigDeg, rt.Rotation));
+            _rotateTarget = null;
             InvalidateVisual();
             return;
         }
@@ -604,6 +774,21 @@ public class WhiteboardCanvas : Control
         return null;
     }
 
+    private static float AngleDeg(SKPoint center, SKPoint p) =>
+        MathF.Atan2(p.Y - center.Y, p.X - center.X) * 180f / MathF.PI;
+
+    /// <summary>Position des Dreh-Griffs (mittig über dem Auswahlrahmen), null ohne Auswahl.</summary>
+    private SKPoint? RotateHandlePos()
+    {
+        if (SelectionBounds() is not { } b) return null;
+        float pad = 4f / (float)Zoom;
+        b.Inflate(pad, pad);
+        return new SKPoint(b.MidX, b.Top - RotateHandleGap / (float)Zoom);
+    }
+
+    private bool IsOnRotateHandle(SKPoint p) =>
+        RotateHandlePos() is { } h && Dist(h, p) <= HandleSize / (float)Zoom;
+
     // ---- Zwischenablage (intern, wie in der WPF-App) -------------------------------------
 
     private static readonly List<WbElement> Clipboard = new();
@@ -636,6 +821,13 @@ public class WhiteboardCanvas : Control
         foreach (var el in Clipboard) el.Translate(offset, offset);
         InvalidateVisual();
         return added;
+    }
+
+    /// <summary>Kopiert die Auswahl und entfernt sie (Ausschneiden).</summary>
+    public List<(WbElement El, int Index)> CutSelection()
+    {
+        CopySelection();
+        return DeleteSelection();
     }
 
     /// <summary>Dupliziert die Auswahl direkt (Kopieren + Einfügen in einem Schritt).</summary>
@@ -763,11 +955,13 @@ public class WhiteboardCanvas : Control
         private readonly ShapeElement? _shape;
         private readonly List<SKPoint>? _lasso;
         private readonly SKRect? _selBounds;
+        private readonly SKPoint? _rotateHandle;
 
         public PageDrawOperation(Rect bounds, WbPage page, double zoom, StrokeElement? active,
                                  double panX, double panY, ShapeElement? shape,
-                                 List<SKPoint>? lasso, SKRect? selBounds)
+                                 List<SKPoint>? lasso, SKRect? selBounds, SKPoint? rotateHandle)
         {
+            _rotateHandle = rotateHandle;
             Bounds = bounds;
             _page = page;
             _zoom = zoom;
@@ -915,6 +1109,14 @@ public class WhiteboardCanvas : Control
                     var h = SKRect.Create(c.X - hs, c.Y - hs, hs * 2, hs * 2);
                     canvas.DrawRect(h, fill);
                     canvas.DrawRect(h, edge);
+                }
+
+                // Dreh-Griff: runder Knauf mittig über der Auswahl, mit Verbindungslinie
+                if (_rotateHandle is { } rh)
+                {
+                    canvas.DrawLine(r.MidX, r.Top, rh.X, rh.Y, edge);
+                    canvas.DrawCircle(rh.X, rh.Y, hs * 1.15f, fill);
+                    canvas.DrawCircle(rh.X, rh.Y, hs * 1.15f, edge);
                 }
             }
         }

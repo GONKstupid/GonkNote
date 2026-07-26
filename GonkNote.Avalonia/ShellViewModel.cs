@@ -189,6 +189,15 @@ public sealed class ShellViewModel : ObservableObject
         RaiseUndoState();
     }
 
+    /// <summary>Registriert das Drehen eines Elements als einen Undo-Schritt.</summary>
+    public void OnElementRotated(WbElement el, float oldDeg, float newDeg)
+    {
+        if (_currentPage is not { } page) return;
+        Undo.Push(page, new RotateElementAction(el, oldDeg, newDeg));
+        SaveCurrentBoard();
+        RaiseUndoState();
+    }
+
     /// <summary>Registriert eingefügte Elemente (Einfügen/Duplizieren) als einen Undo-Schritt.</summary>
     public void OnElementsAdded(List<WbElement> els)
     {

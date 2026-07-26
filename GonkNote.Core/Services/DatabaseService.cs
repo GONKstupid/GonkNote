@@ -1,8 +1,39 @@
+using System.Collections.Concurrent;
 using System.IO;
+using System.Reflection;
 using GonkNote.Models;
 using LiteDB;
 
 namespace GonkNote.Services;
+
+/// <summary>
+/// Löst die Typnamen polymorpher Felder auf – auch die aus älteren Programmständen.
+/// <para>
+/// LiteDB schreibt für jedes Whiteboard-Element ein Feld <c>_type</c> im Format
+/// "Namensraum.Typ, Assembly". Als die Models nach GonkNote.Core umgezogen sind, hat sich
+/// der Assembly-Teil geändert ("GonkNote" → "GonkNote.Core") – bestehende Whiteboards und
+/// Notizbücher ließen sich dadurch nicht mehr öffnen (die App stürzte ab).
+/// </para>
+/// Deshalb zählt beim Lesen nur der Typname selbst; in welcher Assembly er steht, ist egal.
+/// </summary>
+internal sealed class ModelTypeBinder : ITypeNameBinder
+{
+    public static readonly ModelTypeBinder Instance = new();
+
+    private static readonly Assembly Models = typeof(WbElement).Assembly;
+    private readonly ConcurrentDictionary<string, Type?> _cache = new();
+
+    public string GetName(Type type) => DefaultTypeNameBinder.Instance.GetName(type);
+
+    public Type? GetType(string name) =>
+        _cache.GetOrAdd(name, n => Type.GetType(n) ?? Models.GetType(WithoutAssembly(n)));
+
+    private static string WithoutAssembly(string name)
+    {
+        int comma = name.IndexOf(',');
+        return comma < 0 ? name : name[..comma].TrimEnd();
+    }
+}
 
 /// <summary>
 /// Lokale Persistenz über LiteDB. Eine Datei unter %APPDATA%\GonkNote, keine Adminrechte nötig.
@@ -16,13 +47,16 @@ public sealed class DatabaseService : IDisposable
 
     public DatabaseService(string? path = null)
     {
-        // LiteDB macht aus "" standardmäßig BSON-Null (EmptyStringToNull) – das hat
-        // beim Laden null-Strings erzeugt (Crash beim Öffnen von Textdokumenten).
-        BsonMapper.Global.EmptyStringToNull = false;
+        var mapper = new BsonMapper(null, ModelTypeBinder.Instance)
+        {
+            // LiteDB macht aus "" standardmäßig BSON-Null (EmptyStringToNull) – das hat
+            // beim Laden null-Strings erzeugt (Crash beim Öffnen von Textdokumenten).
+            EmptyStringToNull = false,
+        };
 
         path ??= DefaultPath;
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-        _db = new LiteDatabase(new ConnectionString { Filename = path, Connection = ConnectionType.Shared });
+        _db = new LiteDatabase(new ConnectionString { Filename = path, Connection = ConnectionType.Shared }, mapper);
 
         Items.EnsureIndex(x => x.ParentId);
     }

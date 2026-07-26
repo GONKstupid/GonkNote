@@ -271,18 +271,16 @@ public static class WbRenderer
         using var path = BuildSmoothPath(s.Points);
 
         // Graphit besteht aus einzelnen Körnern — es gibt KEINEN deckenden Kern. Deshalb wird
-        // die Farbe von feinem prozeduralem Rauschen maskiert (Perlin): wo das Rauschen dunkel
-        // ist, bleibt Papier frei. Drei Durchgänge von breit+zart nach schmal+dicht erzeugen
-        // die nach außen ausdünnende Dichte und die ausgefransten Ränder.
-        // (freq hoch = feine Körnung; kostet nur drei Draw-Aufrufe.)
-        const float freq = 1.1f;
+        // die Farbe von der Körnungs-Textur maskiert: wo die Textur dunkel ist, bleibt Papier
+        // frei. Drei Durchgänge von breit+zart nach schmal+dicht erzeugen die nach außen
+        // ausdünnende Dichte und die ausgefransten Ränder.
 
         // breit & zart: Streuung in der Randzone
-        DrawGrainPass(canvas, path, color, 130, w * 1.30f, freq, wobble: w * 0.22f);
+        DrawGrainPass(canvas, path, color, 130, w * 1.30f, wobble: w * 0.22f);
         // mittlere Lage
-        DrawGrainPass(canvas, path, color, 205, w * 0.92f, freq, wobble: w * 0.13f);
+        DrawGrainPass(canvas, path, color, 205, w * 0.92f, wobble: w * 0.13f);
         // schmal & dicht: Kern, wie stärkerer Andruck
-        DrawGrainPass(canvas, path, color, 255, w * 0.48f, freq, wobble: 0f);
+        DrawGrainPass(canvas, path, color, 255, w * 0.48f, wobble: 0f);
     }
 
     /// <summary>
@@ -306,13 +304,37 @@ public static class WbRenderer
         return SKColorFilter.CreateTable(table, null, null, null);
     }
 
-    /// <summary>Ein Körnungs-Durchgang des Bleistifts (Farbe × Rausch-Turbulenz als Alpha-Maske).</summary>
-    private static void DrawGrainPass(SKCanvas canvas, SKPath path, SKColor color,
-                                      byte alpha, float width, float freq, float wobble)
+    /// <summary>
+    /// Kachelbare Körnungs-Textur. Der Perlin-Shader wird **einmal** ausgewertet statt in jedem
+    /// Bild neu: als Live-Shader kostete die Körnung pro Strich drei volle Rausch-Durchgänge —
+    /// bei rund 50 Bleistift-Strichen waren das ~100 ms pro Bild (spürbarer Stift-Nachlauf).
+    /// Als Textur ist es ein einfacher Speicherzugriff bei gleicher Optik. Die Kachel liegt in
+    /// Canvas-Koordinaten, die Körnung klebt also wie bisher am Papier (nicht am Bildschirm).
+    /// </summary>
+    private static readonly SKShader GrainTexture = BuildGrainTexture();
+
+    private static SKShader BuildGrainTexture()
     {
-        using var noise = SKShader.CreatePerlinNoiseFractalNoise(freq, freq, 3, 0f);
+        // 512 px: bei der feinen Körnung (Periode < 1 px) ist die Wiederholung nicht sichtbar.
+        const int size = 512;
+        const float freq = 1.1f;   // hoch = feine Körnung
+
+        using var surface = SKSurface.Create(new SKImageInfo(size, size, SKColorType.Bgra8888, SKAlphaType.Premul));
+        surface.Canvas.Clear(SKColors.Transparent);
+        using (var noise = SKShader.CreatePerlinNoiseFractalNoise(freq, freq, 3, 0f))
+        using (var paint = new SKPaint { Shader = noise })
+            surface.Canvas.DrawRect(SKRect.Create(0, 0, size, size), paint);
+
+        using var image = surface.Snapshot();
+        return SKShader.CreateImage(image, SKShaderTileMode.Repeat, SKShaderTileMode.Repeat);
+    }
+
+    /// <summary>Ein Körnungs-Durchgang des Bleistifts (Farbe × Körnung als Alpha-Maske).</summary>
+    private static void DrawGrainPass(SKCanvas canvas, SKPath path, SKColor color,
+                                      byte alpha, float width, float wobble)
+    {
         using var tint = SKShader.CreateColor(color.WithAlpha(alpha));
-        using var grain = SKShader.CreateCompose(tint, noise, SKBlendMode.DstIn);
+        using var grain = SKShader.CreateCompose(tint, GrainTexture, SKBlendMode.DstIn);
         using var fx = wobble > 0f ? SKPathEffect.CreateDiscrete(1.3f, wobble) : null;
 
         using var paint = new SKPaint

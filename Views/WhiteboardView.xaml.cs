@@ -50,6 +50,12 @@ public partial class WhiteboardView : UserControl
     private List<EraseStep>? _eraseSteps;
     private SKPoint _eraserPos;
     private bool _eraserVisible;
+    /// <summary>
+    /// Radius des Radierkreises in Bildschirmpunkten (bleibt beim Zoomen gleich groß, wie eine
+    /// echte Radiergummi-Spitze). Eigener Wert, damit der Radierer die Strichstärke der Stifte
+    /// nicht überschreibt; der Größen-Schieber bedient je nach Werkzeug den einen oder anderen.
+    /// </summary>
+    private float _eraserRadius = 14f;
 
     // Lasso / Auswahl
     private List<SKPoint>? _lassoPts;
@@ -303,6 +309,7 @@ public partial class WhiteboardView : UserControl
 
         _tool = tool;
         _eraserVisible = false;
+        SyncSizeControls();
 
         // Formen-/Notizzettel-Werkzeug: Einstellungs-Panel mit passender Sektion öffnen
         if (tool == ToolType.Shape && SettingsPanel.Visibility != Visibility.Visible)
@@ -428,10 +435,35 @@ public partial class WhiteboardView : UserControl
         CustomSwatch.IsChecked = true;
     }
 
+    // ---- Größen-Schieber / Zahlenblock ----
+    // Beim Radierer stellt der Schieber dessen Radius ein, sonst die Strichstärke. Beide Werte
+    // werden getrennt gemerkt, damit ein Werkzeugwechsel den jeweils anderen nicht überschreibt.
+
+    private bool SizeControlsEraser => _tool == ToolType.Eraser;
+
+    /// <summary>Die Größe, die Schieber und Zahlenblock gerade bedienen.</summary>
+    private float ActiveSize => SizeControlsEraser ? _eraserRadius : _width;
+
     private void WidthSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
     {
-        _width = (float)e.NewValue;
-        if (WidthLabel != null) WidthLabel.Content = _width.ToString("0.#");
+        if (SizeControlsEraser) _eraserRadius = (float)e.NewValue;
+        else _width = (float)e.NewValue;
+
+        if (WidthLabel != null) WidthLabel.Content = ActiveSize.ToString("0.#");
+        if (_eraserVisible) Skia.InvalidateVisual();   // Radierkreis sofort mitwachsen lassen
+    }
+
+    /// <summary>Stellt Schieber, Anzeige und Beschriftung auf das aktive Werkzeug um.</summary>
+    private void SyncSizeControls()
+    {
+        if (WidthSlider == null || WidthLabel == null || WidthIcon == null) return;
+
+        string what = SizeControlsEraser ? "Radierergröße" : "Strichstärke";
+        WidthSlider.ToolTip = WidthIcon.ToolTip = $"{what} – lange drücken für Zahleneingabe";
+        WidthLabel.ToolTip = $"{what} per Zahlenblock eingeben";
+
+        WidthSlider.Value = ActiveSize;
+        WidthLabel.Content = ActiveSize.ToString("0.#");
     }
 
     private void Undo_Click(object sender, RoutedEventArgs e) => DoUndo();
@@ -2358,7 +2390,7 @@ public partial class WhiteboardView : UserControl
     private void EraseAt(SKPoint c)
     {
         if (_page == null || _eraseSteps == null) return;
-        float r = 14f / Zoom;
+        float r = _eraserRadius / Zoom;
 
         for (int i = _page.Elements.Count - 1; i >= 0; i--)
         {
@@ -3946,7 +3978,7 @@ public partial class WhiteboardView : UserControl
                 StrokeWidth = 1.2f / Zoom,
                 IsAntialias = true,
             };
-            canvas.DrawCircle(_eraserPos, 14f / Zoom, ring);
+            canvas.DrawCircle(_eraserPos, _eraserRadius / Zoom, ring);
         }
 
         // Zeichenhilfe zuletzt (liegt über allem)

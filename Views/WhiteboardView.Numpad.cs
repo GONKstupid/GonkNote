@@ -7,10 +7,10 @@ using System.Windows.Threading;
 namespace GonkNote.Views;
 
 /// <summary>
-/// Zahleneingabe für die Strichstärke (Vorbild Adobe Fresco): Langes Drücken auf den
+/// Zahleneingabe für die Werkzeuggröße (Vorbild Adobe Fresco): Langes Drücken auf den
 /// Größen-Slider – oder ein Klick auf die Wertanzeige daneben – öffnet einen kleinen
-/// Zahlenblock im App-Stil. Die Eingabe wird direkt auf den Slider (und damit die
-/// aktive Strichstärke) angewandt und auf den Slider-Bereich begrenzt.
+/// Zahlenblock im App-Stil. Die Eingabe wird direkt auf den Slider angewandt und auf dessen
+/// Bereich begrenzt; gesteuert wird damit die Strichstärke bzw. – beim Radierer – seine Größe.
 /// </summary>
 public partial class WhiteboardView
 {
@@ -63,7 +63,7 @@ public partial class WhiteboardView
     private void OpenSizeNumpad()
     {
         _numpadEntry = "";
-        NumpadDisplay.Text = _width.ToString("0.#");
+        NumpadDisplay.Text = ActiveSize.ToString("0.#");
         SizeNumpad.IsOpen = true;
         // Bleibt offen (StaysOpen=True); schließt nur bei einem Klick klar außerhalb –
         // nicht im Popup (eigenes Fenster) und nicht auf den Größen-Steuerelementen.
@@ -85,7 +85,8 @@ public partial class WhiteboardView
         if (!IsSizeTrigger(e.OriginalSource)) CloseSizeNumpad();
     }
 
-    private void SizeNumpad_OutsideTouch(object sender, TouchEventArgs e)
+    // sender ist nullable, weil PreviewTouchDown ein EventHandler<TouchEventArgs> ist
+    private void SizeNumpad_OutsideTouch(object? sender, TouchEventArgs e)
     {
         if (!IsSizeTrigger(e.OriginalSource)) CloseSizeNumpad();
     }

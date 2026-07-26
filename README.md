@@ -138,16 +138,26 @@ eine alternative Datenbank verwendet werden.
 | UI | WPF (.NET 8), MVVM, dynamische Theme-ResourceDictionaries |
 | Whiteboard-Rendering | SkiaSharp (`SKElement`), WPF-Stylus-Events mit Druckstärke |
 | Persistenz | LiteDB (eine lokale Datei, polymorphe Element-Serialisierung) |
+| Kernlogik | eigene Bibliothek `GonkNote.Core` (net8.0) — ohne UI-Abhängigkeiten |
+
+Die Anwendung besteht aus zwei Projekten: der WPF-Oberfläche und einer Kernbibliothek
+ohne UI-Bezug. Das hält die Schichten sauber — Datenmodell, Persistenz und die
+Zeichenroutinen des Whiteboards sind unabhängig von der Oberfläche.
 
 ```
-GonkNote/
+GonkNote/                    WPF-Oberfläche (net8.0-windows)
 ├─ App.xaml(.cs)           Einstieg, Theme-Initialisierung, --db-Argument
 ├─ MainWindow.xaml(.cs)    Menü, Ordnerbaum (Drag & Drop, Anpinnen), Tab-Verwaltung
-├─ Models/                 NoteItem (Baum), Whiteboard-Elemente, Enums
 ├─ ViewModels/             MainViewModel, Tab-VMs, Baum-VM, MVVM-Basis
 ├─ Views/                  WhiteboardView (Skia-Canvas), TextEditorView, Dialoge
-├─ Services/               DatabaseService (LiteDB), ThemeService, UndoStack, ImageCache
+├─ Services/               Import/Export (DOCX, PDF, Markdown), OCR, Theme, Textstile
 └─ Themes/                 Light.xaml, Dark.xaml, Styles.xaml
+
+GonkNote.Core/               Kernlogik ohne UI-Bezug (net8.0)
+├─ Models/                 NoteItem (Baum), Whiteboard-Elemente, Enums
+├─ Services/               DatabaseService (LiteDB), UndoStack, ImageCache, PDF-Import
+├─ Rendering/              Skia-Zeichenroutinen des Whiteboards, Geodreieck-Overlay
+└─ Editing/                Punktgenaues Radieren
 ```
 
 ## Roadmap
@@ -158,9 +168,11 @@ GonkNote/
   - ✔ Sticker, Notizzettel, Lineal/Geodreieck, Diagramme, Tabellen (Word-artiger Kontext-Tab),
     Quick-Options-Menü, **OCR** (Tesseract, Deutsch/Englisch), Markdown-Import, Cover-Vorlagen,
     Ordner-Farbvererbung, Zahlenblock für die Strichstärke
-  - **Nächste Schritte (nach der Testphase):** **Code-Cleanup / Projekt aufräumen**
-    (Altlasten entfernen, Warnungen beheben, Struktur straffen – ohne Verhaltensänderung) →
-    **zweite Sprache** (Deutsch/Englisch, umschaltbar unter „Ansicht") → **RAM-Optimierung**
+  - **Nächste Schritte (nach der Testphase):** **Code-Cleanup / Projekt aufräumen** —
+    die Kernlogik ist bereits in `GonkNote.Core` entkoppelt und doppelte Zeichenroutinen
+    sind zusammengeführt; offen sind Warnungen, große Dateien und Altlasten (ohne
+    Verhaltensänderung) → **zweite Sprache** (Deutsch/Englisch, umschaltbar unter
+    „Ansicht") → **RAM-Optimierung**
     (Leitlinie *Features vor RAM* — Ziel ~200 MB, akzeptabel bis mittlerer dreistelliger
     MB-Bereich, **harte Obergrenze 1 GB**) → **Veröffentlichung auf GitHub unter der
     MIT-Lizenz**.

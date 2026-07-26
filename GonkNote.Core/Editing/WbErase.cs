@@ -1,15 +1,14 @@
 using System;
 using System.Collections.Generic;
 using GonkNote.Models;
-using GonkNote.Rendering;
 using SkiaSharp;
 
 namespace GonkNote.Editing;
 
 /// <summary>
 /// Geometrie fürs **punktgenaue** Radieren: ein Strich wird an der berührten Stelle
-/// aufgetrennt, die Reststücke bleiben stehen (wie in der WPF-App). Plattformneutral,
-/// damit WPF und der Avalonia-Port dieselbe Logik nutzen (HANDOFF §9.3e).
+/// aufgetrennt, die Reststücke bleiben stehen. Liegt in Core, weil es Editier- und keine
+/// View-Logik ist (Leitlinie §5: Kernlogik von den Views entkoppeln).
 /// </summary>
 public static class WbErase
 {
@@ -23,35 +22,9 @@ public static class WbErase
         return MathF.Sqrt(px * px + py * py);
     }
 
-    /// <summary>Berührt der Radierkreis (Mittelpunkt c, Radius r) den Strich?</summary>
-    public static bool HitsStroke(StrokeElement s, SKPoint c, float r)
-    {
-        float rr = r + s.Width / 2f;
-        var pts = s.Points;
-        if (pts.Count == 1)
-        {
-            float dx0 = pts[0].X - c.X, dy0 = pts[0].Y - c.Y;
-            return MathF.Sqrt(dx0 * dx0 + dy0 * dy0) <= rr;
-        }
-        for (int i = 0; i + 1 < pts.Count; i++)
-        {
-            var a = new SKPoint(pts[i].X, pts[i].Y);
-            var b = new SKPoint(pts[i + 1].X, pts[i + 1].Y);
-            if (SegmentDistance(a, b, c) <= rr) return true;
-        }
-        return false;
-    }
-
-    /// <summary>Berührt der Radierkreis ein Nicht-Strich-Element (grob über seine Fläche)?</summary>
-    public static bool HitsOther(WbElement el, SKPoint c, float r)
-    {
-        var b = WbRenderer.ElementBounds(el);
-        b.Inflate(r, r);
-        return b.Contains(c.X, c.Y);
-    }
-
     /// <summary>
-    /// Zerlegt einen Strich in die Teilstücke **außerhalb** des Radierkreises.
+    /// Zerlegt einen Strich in die Teilstücke **außerhalb** des Radierkreises
+    /// (Mittelpunkt <paramref name="c"/>, Radius <paramref name="rr"/>).
     /// Leere Liste = der Strich wird komplett entfernt.
     /// </summary>
     public static List<WbElement> SplitStroke(StrokeElement s, SKPoint c, float rr)

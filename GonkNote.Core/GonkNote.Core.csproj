@@ -1,8 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <!-- Plattformneutrale Kernbibliothek (Models + DB + reine Services): net8.0, KEIN WPF,
-       KEIN -windows → wird von der WPF-App (Windows) und dem Avalonia-Port (überall)
-       gemeinsam referenziert. Siehe HANDOFF.md §9.2. -->
+  <!-- Kernbibliothek ohne UI-Bezug: Models, LiteDB-Zugriff, Undo, Bild-Cache, PDF-Import
+       und die SkiaSharp-Zeichenroutinen des Whiteboards. Bewusst `net8.0` (kein `-windows`,
+       kein WPF), damit die Kernlogik von der Oberfläche entkoppelt bleibt — siehe die
+       Cleanup-Leitlinie in HANDOFF §5. Die WPF-App referenziert dieses Projekt. -->
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
@@ -10,6 +11,12 @@
     <LangVersion>12</LangVersion>
     <RootNamespace>GonkNote</RootNamespace>
     <AssemblyName>GonkNote.Core</AssemblyName>
+  </PropertyGroup>
+
+  <!-- Symbole einbetten, damit im Single-File-Publish keine lose .pdb neben der Exe liegt
+       (die WPF-App macht dasselbe). -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <DebugType>embedded</DebugType>
   </PropertyGroup>
 
   <ItemGroup>

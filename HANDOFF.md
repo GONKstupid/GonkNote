@@ -1,4 +1,4 @@
-# Gonk Note — Projektübergabe (Stand: 2026-07-23, Phase 3 laufend)
+# Gonk Note — Projektübergabe (Stand: 2026-07-24, Phase 3 laufend)
 
 > **📌 Doku-Pflege (Nutzer-Wunsch, dauerhaft):** Wird das **README** aktualisiert,
 > muss auch **Hilfe → Über Gonk Note** (`Views/AboutDialog`) mitgezogen werden. Das
@@ -12,24 +12,24 @@
 > ausführlichen Tabellen als Standard). **Ausführlich nur** bei **offenen Fragen und
 > Entscheidungen**, die der Nutzer treffen muss — die weiterhin klar begründen.
 >
-> **Runde 20 (2026-07-23) zuletzt:** **Avalonia-Port — Schritt 2 (Core) + Schritt 5 (Editor-Prototyp).**
-> (1) Plattformneutrale Kernlogik (Models + DatabaseService + UndoStack + ImageCache) in ein echtes
-> `net8.0`-Projekt `GonkNote.Core/` verschoben (`git mv`); WPF **und** Avalonia referenzieren es
-> per `ProjectReference` (Avalonia-`<Compile Include>`-Links weg) — Details **§9.1b**. (2) Auf
-> Nutzer-Wunsch den **Text-Editor-Ansatz prototypt** (Risiko-Teil): `Markdown.Avalonia` **rendert
-> formatierten Rich-Text** (Screenshot verifiziert) → **Markdown-Editor (Ansatz b) empfohlen**;
-> Entscheidungsmatrix + ehrlicher Feature-Preis in **§9.3b**. **Nutzer-Entscheidung: Editor-Bau
-> zurückstellen** → stattdessen (3) **Shell-Baustein 3a gebaut** (§9.3c): Ordnerbaum aus der echten
-> LiteDB mit **Farbvererbung** + Auswahl-Navigation + Theme-Umschalter (Avalonia-native VMs);
-> per Screenshot verifiziert. Alle drei Projekte bauen grün. **Noch nicht committet.**
-> Nächster Schritt: **Shell 3b** (Galerie/Tabs/Pins/Umbenennen/DnD) oder **Whiteboard (§9.4 Punkt 4)**.
+> **Runde 21 (2026-07-24) zuletzt: Linux-Port abgebrochen, Projekt aufgeräumt.**
+> Der Nutzer hat sich die Entwicklung des Avalonia-Ports angesehen und ihn **abgebrochen**.
+> `GonkNote.Avalonia/` ist **vollständig entfernt**; Gonk Note bleibt eine reine WPF-App.
+> **Behalten wurde, was der App unabhängig davon nützt** (= der in §5 geforderte Cleanup):
+> - **`GonkNote.Core/`** (`net8.0`, kein WPF): Models, `DatabaseService`, `UndoStack`,
+>   `ImageCache`, `PdfImporter`, Zeichenroutinen (`WbRenderer`), Geodreieck-Renderer
+>   (`WbAidRenderer`), Radier-Geometrie (`WbErase`). **Jede** Klasse wird von der WPF-App
+>   genutzt — kein toter Code.
+> - **De-Duplizierung:** `WhiteboardView` leitet an Core weiter statt eigener Kopien →
+>   **~440 Zeilen** Doppelcode weg (4457 → ~4010).
+> - **Verbesserter Bleistift** (echte Graphit-Körnung nach Nutzer-Referenzbild).
 >
-> **Runde 19 (2026-07-23):** **Cross-Platform-Port (Linux) begonnen** — auf
-> Nutzer-Wunsch vorgezogen. Neues Avalonia-Projekt `GonkNote.Avalonia/` (net8.0, kein Flutter)
-> als PoC, das die echte Kernlogik (Models + `DatabaseService` + LiteDB) wiederverwendet und
-> den Ordnerbaum lädt; WPF-App unangetastet. **Vollständiger Leitfaden für einen neuen Thread
-> in §9** (Stand, Architektur, Reuse-Karte, gestaffelter Plan, Fallstricke). Außerdem: ein
-> versehentlich (vom Nutzer) nach `Views/` verschobenes `Themes/Dark.xaml` zurückgestellt.
+> Verifiziert: WPF baut 0 Fehler (nur die 6 bekannten `CS8622` aus `Numpad.cs`),
+> **Single-File-Publish erzeugt weiterhin eine 79,6-MB-`GonkNote.exe`** (publish-Ordner sauber:
+> Exe + Assets + tessdata). Details in **§9**.
+>
+> **Runden 19–20 (2026-07-23/24): Avalonia-Port** — mit Runde 21 rückgängig gemacht,
+> siehe §9. (Die Zwischenstände sind nur noch in der Git-Historie.)
 >
 > **Fixes-Runde 18 (2026-07-23):**
 > - **Rechtschreibprüfung: Erkennung + Sprach-Swap repariert.** Ursache: WPF vergibt die
@@ -275,7 +275,10 @@ durchgehend Deutsch (UI, Kommentare, Commits). Ehrliches Scoping statt Übercomm
 ## 2. Repo-Status
 
 - Pfad: `C:\Dev\Zed\gonk-note`, Branch `main`, sauber committet
-- Build: `dotnet build` fehlerfrei (0 Warnungen)
+- **Zwei Projekte:** `GonkNote.csproj` (WPF-App, `net8.0-windows`) referenziert
+  `GonkNote.Core/GonkNote.Core.csproj` (Kernlogik, `net8.0`). Siehe §3.
+- Build: `dotnet build` fehlerfrei; **6 bekannte `CS8622`-Warnungen** in
+  `WhiteboardView.Numpad.cs` (im Cleanup zu beheben, §5). Single-File-Publish geprüft.
 - Commit-Historie (neueste zuerst):
   - **Fixes-Runde 7 (2026-07-15)** – große Wunschliste des Nutzers abgearbeitet
     (Ordner `Änderungen` war die Quelle, danach gelöscht):
@@ -336,13 +339,6 @@ GonkNote/
 ├─ MainWindow.xaml(.cs)       Menü (inkl. DOCX-Import), Seitenleiste mit
 │                             Schnellzugriff (angepinnte Ordner), Ordnerbaum
 │                             (Drag&Drop, Favoriten-Stern), Tab-Host, Über-Dialog
-├─ Models/
-│  ├─ NoteItem.cs             Baum-Eintrag inkl. IconColor, IsPinned, IsFavorite
-│  └─ Whiteboard.cs           WbPage (inkl. BackgroundImage/-Id für PDF-Seiten),
-│                             Elemente (Stroke/Shape/Text/Image/**StickyNote**),
-│                             `IBoxElement` (Bild+Zettel: Pos+Größe für Resize),
-│                             Enums (ToolType inkl. **Sticky**), CoverStyle,
-│                             WhiteboardDoc, PageTemplate, TextDoc
 ├─ ViewModels/                Mvvm-Basis, MainViewModel (Baum, Tabs, Autosave 30s,
 │                             Pin/Favorit, DOCX-Import), TreeItemViewModel, Tab-VMs
 ├─ Views/
@@ -376,24 +372,48 @@ GonkNote/
 │  ├─ ColorPickerDialog.xaml(.cs) HSV-Farbrad + Hex + Alpha
 │  ├─ AboutDialog.xaml(.cs)      Version + eingebettetes README (scrollbar)
 │  ├─ PageSetupDialog / TableSizeDialog / Converters
-├─ Services/
-│  ├─ DatabaseService.cs      LiteDB (items/boards/texts/settings), --db-fähig
+├─ Services/                  (WPF-nahe Dienste — alles mit FlowDocument-/UI-Bezug)
 │  ├─ DocxImporter.cs         DOCX → FlowDocument → XamlPackage
 │  ├─ DocxExporter.cs         FlowDocument → DOCX (OpenXML, Gegenrichtung)
 │  ├─ MarkdownExporter.cs     FlowDocument → Markdown (best-effort)
-│  ├─ PdfImporter.cs          PDF → JPEG-Seiten via Docnet.Core/PDFium
 │  ├─ PdfExporter.cs          Whiteboard→SKDocument, Text→Paginator-Raster→PDF
-│  ├─ ImageCache.cs           Byte-Budget-Cache (96 MB) dekodierter Bilder
 │  ├─ TextStyles.cs           Zentrale Formatvorlagen/Seitenformate/Heading-Erkennung/
 │  │                          Ink-Normalisierung des Text-Editors (eine Wahrheit für
 │  │                          Editor, TOC, PDF-/DOCX-Export, Import, Markdown)
-│  ├─ ThemeService.cs, UndoStack.cs (PartialErase/ResizeImage-Actions)
+│  ├─ OcrService.cs           Tesseract-Anbindung (Text aus Bildern/PDF-Seiten)
+│  ├─ ThemeService.cs, TitleBarTheme.cs, WindowBounds.cs, SpellCheckSupport.cs
 ├─ Themes/                    Light/Dark.xaml, Styles.xaml (inkl. Vektor-Icons)
 └─ TestAssets/               testdokument.pdf (20 Seiten, gitignored) für UI-Tests
+
+GonkNote.Core/                Kernbibliothek OHNE UI-Bezug (net8.0, kein WPF).
+├─ Models/                    NoteItem (IconColor/IsPinned/IsFavorite),
+│                             Whiteboard.cs: WbPage (inkl. BackgroundImage/-Id für
+│                             PDF-Seiten), Elemente (Stroke/Shape/Text/Image/
+│                             StickyNote), IBoxElement, Enums (ToolType), CoverStyle,
+│                             WhiteboardDoc, PageTemplate, TextDoc
+├─ Services/
+│  ├─ DatabaseService.cs      LiteDB (items/boards/texts/settings), --db-fähig
+│  ├─ ImageCache.cs           Byte-Budget-Cache (96 MB) dekodierter Bilder
+│  ├─ UndoStack.cs            Undo/Redo (PartialErase/Resize/Rotate/Scale-Actions)
+│  └─ PdfImporter.cs          PDF → JPEG-Seiten via Docnet.Core/PDFium
+├─ Rendering/
+│  ├─ WbRenderer.cs           **Alle** Skia-Zeichenroutinen des Whiteboards
+│  │                          (Stroke/Shape/Text/Image/Sticky, Bounds, Schatten-
+│  │                          Cache, Textumbruch, Graphit-Bleistift). WhiteboardView
+│  │                          und der PDF-Export leiten hierher → eine Wahrheit.
+│  └─ WbAidRenderer.cs        Geodreieck aus den eingebetteten Nutzer-SVGs
+└─ Editing/
+   └─ WbErase.cs              Punktgenaues Radieren (Strich am Radierkreis auftrennen)
 ```
 
-Pakete: LiteDB, SkiaSharp.Views.WPF, Svg.Skia (SVG-Rasterung),
-DocumentFormat.OpenXml (DOCX), **Docnet.Core** (PDFium-Rendering).
+**Warum zwei Projekte:** Die Kernlogik ist bewusst von der Oberfläche entkoppelt (Leitlinie
+§5). `GonkNote.Core` kennt kein WPF — das hält die Schichten sauber, entfernte ~440 Zeilen
+doppelte Zeichenroutinen und erleichtert die geplante i18n- und RAM-Arbeit.
+*(Das Projekt entstand als Nebenprodukt des abgebrochenen Linux-Ports, siehe §9.)*
+
+Pakete — **GonkNote (WPF):** SkiaSharp.Views.WPF, DocumentFormat.OpenXml (DOCX),
+Tesseract (OCR) · **GonkNote.Core:** LiteDB, SkiaSharp, Docnet.Core (PDFium),
+Svg.Skia (SVG-Rasterung).
 
 **Wichtige Eigenheiten:**
 - **LiteDB-Stolperfalle**: `BsonMapper.Global.EmptyStringToNull` ist bei LiteDB
@@ -542,15 +562,17 @@ Nutzer-Test mit Stift.
     **Code-Cleanup** → **zweite Sprache (DE/EN, i18n)** → **RAM-Optimierung** →
     **GitHub-Veröffentlichung (MIT)** → Render-Caching nur bei Bedarf. RAM nicht vor dem
     Aufräumen anfangen; i18n bewusst nach dem Cleanup.
-  - **Code-Cleanup / Projekt aufräumen (vor der RAM-Optimierung, Nutzer-Wunsch):** den
-    bestehenden Code durchgehen und aufräumen, bevor RAM angegangen wird. Ansatzpunkte:
-    tote/ungenutzte Pfade und Altlasten entfernen, die 6 `CS8622`-Warnungen in
-    `WhiteboardView.Numpad.cs` beheben (0-Warnungen-Ziel halten), große partial-Dateien/
-    Methoden entwirren, Namensgebung/Kommentare vereinheitlichen, überflüssige `TestAssets`/
-    Wegwerf-Harnesses aufräumen, Doppelungen zusammenführen. **Verhalten unverändert lassen**
-    (reines Aufräumen, keine Feature-Änderung); nach jedem Schritt Build 0 Warnungen + kurzer
-    Sichttest. Beim Aufräumen **Kernlogik (Models/Services/DB) sauber von den Views entkoppeln**
-    – das erleichtert i18n *und* einen möglichen späteren Cross-Platform-Port.
+  - **Code-Cleanup / Projekt aufräumen (vor der RAM-Optimierung, Nutzer-Wunsch) — teilweise
+    erledigt:**
+    - ✅ **Kernlogik von den Views entkoppelt** (2026-07-24): Models/DB/Undo/Bild-Cache/
+      PDF-Import liegen in **`GonkNote.Core`** (kein WPF), siehe §3.
+    - ✅ **Doppelte Zeichenroutinen zusammengeführt**: `WhiteboardView` leitet an
+      `WbRenderer`/`WbAidRenderer`/`WbErase` weiter — **~440 Zeilen** weniger (4457 → ~4010).
+    - ⬜ **Offen:** die 6 `CS8622`-Warnungen in `WhiteboardView.Numpad.cs` beheben
+      (0-Warnungen-Ziel), große partial-Dateien/Methoden entwirren, Namensgebung/Kommentare
+      vereinheitlichen, überflüssige `TestAssets`/Wegwerf-Harnesses aufräumen, weitere
+      Doppelungen suchen. **Verhalten unverändert lassen** (reines Aufräumen, keine
+      Feature-Änderung); nach jedem Schritt Build 0 Warnungen + kurzer Sichttest.
   - **Zweite Sprache (DE/EN, i18n) — nach dem Cleanup (Nutzer-Wunsch 2026-07-23):** Umschaltung
     unter „Ansicht → Sprache", zur Laufzeit (kein Neustart). Empfohlenes Muster: zentraler
     `LocalizationManager` (`INotifyPropertyChanged`) + Markup-Extension `{loc:T Key}`, alle
@@ -576,17 +598,14 @@ Nutzer-Test mit Stift.
       hoch) und wird ohnehin nach der RAM-Optimierung gelöscht.
     - Keine echten Notizdaten/Namen im Repo **oder in der History** (echte DB liegt in %APPDATA%).
     - Keine Segoe-Font-Dateien einchecken (App nutzt System-Font – bundlet keine `.ttf`).
-  - **Cross-Platform (offen, Priorität Linux) — Nutzer-Frage 2026-07-23:** WPF ist Windows-only,
-    die UI-Schicht müsste also neu. Empfehlung, wenn Linux Priorität hat und C# bleiben soll:
-    **Avalonia UI** (WPF-nahes XAML; Windows/Linux/macOS/iOS/Android). Reuse: Modelle, DB
-    (LiteDB), **Whiteboard-Rendering (SkiaSharp)**, Kernlogik. **Harter Brocken:** der
-    Text-Editor (WPF `RichTextBox`/`FlowDocument` hat kein Avalonia-Äquivalent → Neubau) – zuerst
-    als Prototyp abklopfen. Windows-Spezifika ersetzen: DWM-Titelleiste/P-Invoke (Avalonia-
-    Chrome), WPF-Rechtschreibung → **WeCantSpell.Hunspell** (pure C#, plattformunabhängig – löst
-    nebenbei das Windows-Wörterbuch-Problem, s. Runde 18), Tesseract/PDFium haben Linux-Builds.
-    Aufwand: groß (Port, kein Rewrite wie bei Flutter), Wochen. Deshalb beim Cleanup UI/Kernlogik
-    entkoppeln. **PoC am 2026-07-23 begonnen (Avalonia, `GonkNote.Avalonia/`); vollständiger
-    Umsetzungs-Leitfaden in §9.**
+  - **Cross-Platform (Linux): am 2026-07-24 vom Nutzer abgebrochen.** Der Avalonia-Port ist
+    komplett aus dem Repo entfernt; Gonk Note bleibt eine **reine Windows-/WPF-App**. Was aus
+    dem Versuch geblieben ist (`GonkNote.Core`, De-Duplizierung, Bleistift-Textur) und was die
+    Erfahrung war, steht in **§9**. Nicht erneut anfangen, ohne dass der Nutzer es ausdrücklich
+    wünscht.
+  - **Nützlich unabhängig davon:** die WPF-Rechtschreibung hängt am Windows-Sprachpaket
+    (Englisch fehlt auf dem Testrechner, s. Runde 18). **WeCantSpell.Hunspell** (pure C#) würde
+    das lösen — eigenständig sinnvoll, nicht nur für einen Port.
   - **RAM-Leitlinie: „Features vor RAM".** Zielwunsch ~200 MB. Als akzeptabel nannte
     der Nutzer „unter 80 MB" — das ist angesichts der ~190-MB-Basis mit ~96 MB
     Bild-Cache **mit hoher Wahrscheinlichkeit ein Tippfehler für ~800 MB**; die
@@ -687,9 +706,10 @@ Nutzer-Test mit Stift.
 1. **Laufende Änderungs-/Fix-Wünsche des Nutzers zuerst** einarbeiten (kommen in
    Batches während seiner Testphase). Sie haben Vorrang vor allem anderen.
 2. **Ist der Nutzer zufrieden → Code-Cleanup / Projekt aufräumen** (Nutzer-Wunsch
-   2026-07-23, Details in §5): Altlasten/tote Pfade raus, `CS8622`-Warnungen beheben,
-   große partials entwirren, Doppelungen zusammenführen, **Kernlogik von den Views
-   entkoppeln** — **Verhalten unverändert**, Build 0 Warnungen.
+   2026-07-23, Details in §5). **Kernlogik-Entkopplung (`GonkNote.Core`) und die
+   De-Duplizierung der Zeichenroutinen sind am 2026-07-24 erledigt.** Offen bleiben:
+   `CS8622`-Warnungen beheben, große partials entwirren, weitere Doppelungen/Altlasten —
+   **Verhalten unverändert**, Build 0 Warnungen.
 3. **Zweite Sprache (DE/EN, i18n)** — vom Nutzer **nach dem Cleanup** gewünscht
    (2026-07-23): „Ansicht → Sprache", zur Laufzeit umschaltbar (§5).
 4. **RAM-Optimierung** (Details/Schwellenwerte in §5, „Nutzer-Strategie"). **Vorher
@@ -764,419 +784,39 @@ Tabs die Formate.
 ```bash
 cd "C:\Dev\Zed\gonk-note"
 taskkill //IM GonkNote.exe //F                     # vor jedem Build
-dotnet build
+dotnet build GonkNote.csproj                        # zieht GonkNote.Core mit
 ./bin/Debug/net8.0-windows/GonkNote.exe            # Debug-Start (ECHTE DB!)
 ./bin/Debug/net8.0-windows/GonkNote.exe --db X.db  # Test-DB (fuer UI-Tests)
-dotnet publish -c Release                           # Single-File-Exe
+dotnet publish GonkNote.csproj -c Release           # Single-File-Exe (~80 MB)
 # → bin/Release/net8.0-windows/win-x64/publish/GonkNote.exe
 ```
 
 ---
+## 9. Cross-Platform (Linux) — Versuch abgebrochen (2026-07-24)
 
-## 9. Cross-Platform-Port (Linux, Avalonia) — Leitfaden für einen neuen Thread
+**Entscheidung des Nutzers am 2026-07-24: Der Avalonia-Port wird abgebrochen und ist
+vollständig aus dem Repo entfernt.** Das Projekt bleibt eine **reine Windows-/WPF-App**.
 
-**Ziel (Nutzer 2026-07-23): die App auch unter Linux nutzbar machen — Priorität Linux, C#
-behalten, KEIN Flutter.** iPad wäre „eventuell später". Entscheidung: **Avalonia UI**
-(WPF-nahes XAML, ein .NET-Code für Windows/Linux/macOS/iOS/Android). MAUI raus (kein
-offizielles Linux), Flutter raus (kompletter Rewrite, kein C#-Reuse).
+**Was entfernt wurde:** das gesamte Projekt `GonkNote.Avalonia/` (Shell, Whiteboard-Canvas,
+Markdown-Editor-Prototyp, Sticker-/Text-Dialoge) samt seiner Doku.
 
-> **Einstieg im neuen Thread:** „Lies HANDOFF.md §9 und mach mit dem Avalonia-Port weiter."
-> Der PoC liegt schon im Repo unter `GonkNote.Avalonia/`.
+**Was bewusst geblieben ist**, weil es der App unabhängig vom Port nützt — es ist genau der
+Cleanup-Schritt, den §5 fordert („Kernlogik sauber von den Views entkoppeln"):
 
-### 9.1 Stand: PoC bereits gebaut & verifiziert (2026-07-23)
-- Neues, **eigenständiges** Projekt **`GonkNote.Avalonia/`** (Avalonia **11.0.10**,
-  **`net8.0` — plattformneutral, NICHT `-windows`**). Reines NuGet, **kein Workload nötig**.
-- Verwendet die **echten Kernklassen der WPF-App per `<Compile Include>`-Link** (keine Kopie):
-  `..\Models\NoteItem.cs`, `..\Models\Whiteboard.cs`, `..\Services\DatabaseService.cs` (+ `LiteDB`).
-- Dateien: `GonkNote.Avalonia.csproj`, `Program.cs`, `App.axaml(.cs)`, `MainWindow.axaml(.cs)`,
-  `app.manifest`. `MainWindow` lädt den Ordnerbaum über den **echten `DatabaseService`** aus
-  einer LiteDB und zeigt ihn (Demo-DB `%TEMP%\gonk-avalonia-demo.db`, wird bei Erststart geseedet).
-- **Verifiziert (Windows):** baut 0 Fehler; Fenster rendert den Baum im Fluent-Dark-Theme
-  (Screenshot `%TEMP%\gonk-titlebar\AV2-avalonia.png`).
-- **WPF-App unangetastet** und weiter grün: `GonkNote.csproj` schließt den Ordner aus
-  (`<Compile Remove="GonkNote.Avalonia\**\*.cs"/>` + None/Page/Resource-Remove) — sonst greift
-  dessen `**/*.cs`-Glob hinein.
-- **Bewiesen:** Avalonia + Models + DatabaseService + LiteDB laufen auf `net8.0` → Cross-Platform-fähig.
+- **`GonkNote.Core/`** (`net8.0`, kein WPF) mit Models, `DatabaseService`, `UndoStack`,
+  `ImageCache`, `PdfImporter`, den Skia-Zeichenroutinen (`WbRenderer`), dem Geodreieck-
+  Renderer (`WbAidRenderer`) und der Radier-Geometrie (`WbErase`). **Jede** dieser Klassen
+  wird von der WPF-App genutzt — kein toter Code.
+- **De-Duplizierung:** `WhiteboardView` hatte eine eigene Kopie aller Zeichenroutinen; sie
+  leitet jetzt an `WbRenderer`/`WbAidRenderer`/`WbErase` weiter. Das hat rund **440 Zeilen
+  Doppelcode** entfernt (4457 → ~4010 Zeilen) und sorgt dafür, dass Anzeige, PDF-Export und
+  Harnesses garantiert identisch zeichnen.
+- **Verbesserter Bleistift** (`WbRenderer.DrawPencil`): echte Graphit-Körnung nach dem
+  Referenzbild des Nutzers (Perlin-Rauschen als Alpha-Maske + Kontrastkurve, drei Durchgänge
+  von breit/zart nach schmal/dicht). Wirkt in der WPF-App.
 
-Bauen/Starten:
-```bash
-dotnet build GonkNote.Avalonia/GonkNote.Avalonia.csproj
-GonkNote.Avalonia/bin/Debug/net8.0/GonkNote.Avalonia.exe      # Linux: dotnet …/GonkNote.Avalonia.dll
-```
-
-### 9.1b Schritt 2 erledigt: `GonkNote.Core` extrahiert (2026-07-23, Runde 20)
-- Neues **`GonkNote.Core/`** (`net8.0`, kein WPF): enthält die **echten, verschobenen**
-  Dateien (per `git mv`, Historie erhalten) — `Models/NoteItem.cs`, `Models/Whiteboard.cs`,
-  `Services/DatabaseService.cs`, `Services/UndoStack.cs`, `Services/ImageCache.cs`.
-  Namespaces unverändert (`GonkNote.Models`/`GonkNote.Services`) → WPF-Views brauchen **keine**
-  `using`-Änderung. NuGet: **LiteDB 5.0.21 + SkiaSharp 2.88.9** (für `ImageCache`).
-- **WPF (`GonkNote.csproj`)** referenziert Core per `ProjectReference`; die verschobenen Typen
-  kommen jetzt aus `Core.dll`. **Root-Glob-Falle:** der WPF-Root-Glob greift in `GonkNote.Core\`
-  hinein → zusätzlich `Compile/None/Page/Resource Remove="GonkNote.Core\**"` (wie bei Avalonia).
-- **Avalonia** referenziert Core per `ProjectReference`; die alten `<Compile Include>`-Links
-  **entfernt**, LiteDB-`PackageReference` entfernt (kommt transitiv aus Core).
-- **Verifiziert (Windows):** Core baut isoliert (0/0), WPF baut 0 Fehler (nur die 6 bekannten
-  `CS8622`-Alt-Warnungen aus `WhiteboardView.Numpad.cs`, unberührt), Avalonia baut 0/0;
-  `Core.dll`+`LiteDB.dll`+`SkiaSharp.dll` liegen im Avalonia-Output; Avalonia-Exe startet und
-  läuft stabil (kein TypeLoad-Fehler). **Reste-Verweise auf `..\Models`/`..\Services` weg.**
-
-### 9.2 Architektur-Zielbild
-- ✅ **Umgesetzt (§9.1b):** die **plattformneutrale Kernlogik** liegt im echten Projekt
-  **`GonkNote.Core`** (`net8.0`): Models + DB + reine Services (Undo, ImageCache). WPF **und**
-  Avalonia referenzieren `Core` (ProjectReference); die `<Compile Include>`-Links im Avalonia-
-  Projekt sind weg. *Später ggf. weitere WPF-freie Kernlogik nachziehen (z. B. Export-Kernteile).*
-- UI bleibt pro Plattform getrennt: `GonkNote` (WPF, Windows) + `GonkNote.Avalonia` (überall).
-  Optional später WPF ganz durch Avalonia ersetzen (eine UI für alle Plattformen).
-
-### 9.3 Reuse-Karte — portierbar vs. Neubau
-**Gut wiederverwendbar (kein/kaum WPF):**
-- Modelle (`Models/*`), `DatabaseService` (LiteDB), Enums/Logik.
-- **Whiteboard-Rendering** läuft schon über **SkiaSharp** (`WhiteboardView.Draw*` sind
-  `internal static`). Avalonia nutzt selbst Skia → die Zeichenroutinen lassen sich auf eine
-  Avalonia-Custom-Control heben. **Größter Reuse-Gewinn.**
-- OCR (Tesseract) und PDF (Docnet/PDFium) haben **Linux-Builds** (native Libs pro RID mitliefern).
-
-**Muss neu gebaut werden (Windows/WPF-spezifisch):**
-- **Text-Editor = der harte Brocken.** WPF `RichTextBox`/`FlowDocument` gibt es in Avalonia
-  nicht. Optionen: (a) eigenes Rich-Text-Modell auf Avalonias Text-Stack, (b) Markdown-Editor,
-  (c) HTML-Editor via WebView. **Zuerst prototypen** — davon hängt ab, wie viel vom aktuellen
-  Editor (Formatvorlagen, Tabellen, Export) sich retten lässt. Aufwendigstes Teil des Ports.
-- **Fenster-Chrome**: DWM-Titelleiste + `WindowBounds`/`TitleBarTheme` (P/Invoke, Runde 16/17)
-  → Avalonias `ExtendClientAreaToDecorationsHint`/Fenster-APIs. Einblendbare Titelleiste (Runde 17)
-  neu, aber einfacher.
-- **Rechtschreibung**: WPF-`SpellCheck` ist Windows-Plattform → **WeCantSpell.Hunspell** (pure C#)
-  + Hunspell-Wörterbücher (de_DE/en_US) mitliefern. **Bonus:** löst zugleich das Englisch-Problem
-  auf Windows (Runde 18) und macht die Prüfung unabhängig vom Windows-Sprachpaket.
-- WPF-Only-Pfade rund um `FlowDocument` (`PdfExporter` Text-Teil, `DocxImporter/Exporter`,
-  `MarkdownExporter`, `TextStyles`) hängen am Editor-Ansatz und werden mitgezogen.
-
-### 9.3b Text-Editor-Prototyp (Schritt 5) — Ergebnis & Entscheidung (2026-07-23, Runde 20)
-**Auf Nutzer-Wunsch vorgezogen prototypt** (der Risiko-Teil). Umgesetzt im Avalonia-Projekt:
-`EditorPrototypeWindow.axaml(.cs)` (Editor mit Formatier-Toolbar Fett/Kursiv/Code/H1–H3/Listen/
-Zitat/Tabelle + Markdown-Datei-Roundtrip) und `MarkdownProbe.axaml(.cs)` (isolierter Render-Test);
-beide über Buttons in `MainWindow` erreichbar. Neues Paket: **`Markdown.Avalonia` 11.0.2**.
-
-**Kernbefund (verifiziert per Screenshot `%TEMP%\gonk-titlebar\AV3-mdprobe.png`):**
-`Markdown.Avalonia` **rendert formatierten Rich-Text** (Überschriften, **fett**, *kursiv*, `Code`,
-Aufzählungen, nummerierte Listen, Zitatblöcke, **Tabellen**) sauber auf `net8.0` → cross-platform-
-tauglich, schlank, offline, **ohne** WPF/FlowDocument/WebView. **Das beantwortet die Machbarkeits-
-frage: JA.** Zwei Styling-To-dos: der Style `"Standard"` ist nicht dark-mode-aware (Überschriften
-unsichtbar auf dunklem Grund, Tabelle mit hellem Hintergrund) → eigener/dunkler Markdown-Style nötig.
-
-**Entscheidungsmatrix der drei Ansätze:**
-| Ansatz | Cross-Platform/schlank | Feature-Deckung ggü. WPF-Editor | Aufwand | Urteil |
-|---|---|---|---|---|
-| **(b) Markdown + Live-Vorschau** | ★★★ (pure C#, klein, offline) | mittel (kein WYSIWYG, keine Seiten-Layout/Kopf-Fußzeile; Tabellen/Listen/Überschriften ja) | niedrig | **empfohlen als Start** |
-| (a) Eigenes Rich-Text auf Avalonia-Text-Stack | ★★★ | potenziell hoch (WYSIWYG möglich) | **sehr hoch** (Caret/Selektion/Layout/Tabellen selbst bauen — Wochen) | später, nur wenn WYSIWYG zwingend |
-| (c) HTML-Editor via WebView (CEF) | ★ (CEF ~100 MB, Linux-Packaging, Single-File-Bruch) | hoch | mittel | **verworfen** (widerspricht offline/schlank/Single-File) |
-
-**Empfehlung:** **Ansatz (b) Markdown** als Editor der Avalonia-Version. Passt zu den Kern-
-vorgaben (offline, Single-File, schlank, Linux-Priorität) und nutzt den **schon vorhandenen
-Markdown-Weg** (`MarkdownExporter`/`MarkdownImporter`). **Preis (ehrlich):** Der Avalonia-Editor
-wird **nicht** die Word-artige WYSIWYG-Fülle des WPF-Editors haben (kein freies Seiten-Layout,
-Kopf-/Fußzeilen, Wasserzeichen, Format­vorlagen-Galerie). Rettbar sind: **Tabellen, Listen,
-Überschriften, Fett/Kursiv/Code, Export nach Markdown/PDF** (PDF über Markdown→Render).
-Die plattformneutralen **Seiteneinrichtungs-Felder** in `TextDoc` (Format/Ränder/Kopf-Fuß) bleiben
-im Modell nutzbar. **Speicherung:** UTF-8-Markdown in `TextDoc.Rtf` (statt WPF-XamlPackage).
-**Offene Nutzer-Entscheidung:** ob dieser bewusste Feature-Verlust für Linux ok ist, oder ob der
-WPF-Editor Windows-exklusiv bleibt und Avalonia nur den schlanken Markdown-Editor bekommt.
-
-**Beobachteter Avalonia-Layout-Quirk (Notiz für Schritt 3/5):** In dieser Dev-Umgebung
-(Avalonia 11.0.10 @ **200 % DPI**, Windows) bricht eine **mehrzeilige `TextBox` mit
-`TextWrapping="Wrap"`** nicht auf Containerbreite um (läuft rechts über); `TextBlock`-Wrapping und
-das übrige Layout (Shell, Baum, Toolbar) funktionieren dagegen einwandfrei, und der reine
-`MarkdownScrollViewer` beschränkt sich korrekt. Vermutlich ein DPI/Version-spezifischer Effekt →
-beim echten Port auf Linux / mit gepinnter Avalonia-Version gegenprüfen (Zwei-Spalten-Split erst
-danach fein machen; der Prototyp nutzt vorerst **Reiter Bearbeiten/Vorschau** statt Side-by-side).
-
-### 9.3c Shell-Baustein 3a (2026-07-23, Runde 20) — Ordnerbaum + Navigation + Theme
-**Avalonia-native VMs** (kein Wholesale-Port des 711-Zeilen-WPF-`MainViewModel`):
-- `Mvvm.cs` (ObservableObject + RelayCommand **ohne** WPF-`CommandManager`),
-  `TreeItemVM.cs` (Glyph als Emoji — Segoe-Fluent gibt's unter Linux nicht; Icon-Farbe als
-  Avalonia-`SolidColorBrush`, eigen→geerbt→Türkis; Sortierung Ordner→Favorit→Name),
-  `ShellViewModel.cs` (lädt Baum über echten `DatabaseService`, baut **Farbvererbung** nach,
-  hält `Selected`). Seed farbig in `%TEMP%\gonk-avalonia-shell.db`.
-- `MainWindow`: Zwei-Panel-Shell (`DockPanel`: Baum links `Width=300`, Inhalt rechts) +
-  Kopfleiste mit **Theme-Umschalter** (`RequestedThemeVariant` Light/Dark) und Buttons zu
-  Editor-Prototyp/Render-Probe. Auswahl im Baum ⇒ rechts Kontext (Typ + Titel; echte Doku-
-  Ansicht folgt 4/5).
-- **Verifiziert per Screenshot** (`%TEMP%\gonk-titlebar\AV3-shell3a-sel2.png`): Baum rendert,
-  **Farbvererbung sichtbar** (Ordner „Projekte" blau → Kinder blau, „Schule" rot → Kinder rot),
-  Sortierung stimmt, **Auswahl „Ideen" → rechts „Notizbuch / Ideen"** (Navigation end-to-end).
-- **Quirk-Workaround angewandt:** Der in §9.5 beschriebene Fill-Panel-Measure-Effekt traf auch den
-  rechten Inhaltsbereich (Inhalt wurde rausgeschoben). **Gelöst:** `MainWindow.axaml.cs` koppelt
-  `ContentHost.Width` an `ClientSize.Width − Seitenleiste` (`GetObservable(ClientSizeProperty)`) →
-  Inhalt bricht/zentriert wieder korrekt (per Screenshot `AV3-shell3a-fix.png` verifiziert:
-  Leerzustand zentriert). **Muster für 3b/Doku-Ansichten:** Fill/Star-Bereichen eine explizite,
-  an die Fenstergröße gekoppelte Breite geben — oder beim Linux-Build prüfen, ob der Quirk dort
-  gar nicht auftritt (dann entfällt der Workaround).
-
-### 9.3d Shell-Baustein 3b — „Big-Picture"-Galerie (2026-07-24, Runde 20)
-- Rechter Inhaltsbereich zeigt jetzt den **Ordnerinhalt als Kacheln** (GoodNotes-Stil): farbige
-  Karte je Element (Ordnerfarbe/geerbte Farbe als Kartenhintergrund, Emoji-Glyph, Name, Typ).
-  Keine Auswahl / Ordner gewählt ⇒ Galerie (`ShowGallery`); Nicht-Ordner gewählt ⇒ Doku-Kontext.
-- `ShellViewModel`: `GalleryItems` (+ `RebuildGallery`), `ShowGallery`/`ShowDocument`,
-  `GalleryTitle`, `GalleryEmpty`, **`OpenItem`-`ICommand`** (Kachel-/Baumklick: Ordner rein +
-  aufklappen, sonst Kontext). `TreeItemVM.KindLabel` für Kacheln. Kachel = `Button.tile`
-  (flache Karte + Hover, Style im `MainWindow.axaml`), gebunden per
-  `{Binding DataContext.OpenItem, RelativeSource={RelativeSource AncestorType=Window}}`.
-- **WrapPanel braucht endliche Breite** → funktioniert nur dank des `ContentHost.Width`-Workarounds
-  (§9.3c/§9.5). `MainWindow.axaml.cs` braucht `using Avalonia;` + `SizeChanged`/`Loaded` (statt
-  `GetObservable(...).Subscribe(Action)` — die Overload fehlt in 11.0.10).
-- **Verifiziert per Screenshot:** Startansicht „Alle Dokumente" mit farbiger Ordner-Kachel
-  (`AV3-gallery.png`); Ordnerauswahl „Projekte" ⇒ Galerie zeigt Kinder Ideen/Skizzen als Kacheln
-  (`AV3-gallery-sub.png`). **Kachel-Klick-Navigation nur per Logik/Vorauswahl geprüft** — echte
-  Maus-Klicks ließen sich in der Testumgebung nicht automatisieren (Foreground-Sperre); der
-  `OpenItem`-Command ist Standard-MVVM und baut ohne Binding-Fehler.
-
-**Nachtrag 3b: Breadcrumb + Umbenennen (2026-07-24).**
-- **Breadcrumb** über der Galerie: „Alle Dokumente › Ordner › …", Segmente sind Buttons
-  (`Button.crumb`, Link-Optik) mit `NavigateCrumb`-Command; `BreadcrumbEntry(Label, Target)`,
-  `Target=null` = Wurzelansicht. Aufbau in `RebuildBreadcrumb()` über die neue
-  **`TreeItemVM.Parent`**-Kette (in `LoadTree` gesetzt); bei gewähltem Dokument zählt dessen
-  Elternordner als Position.
-- **Inline-Umbenennen** im Baum: **Doppelklick** startet die Bearbeitung (`TreeItemVM.BeginRename`,
-  `IsRenaming`/`IsNotRenaming`/`EditName`); im Template wechselt TextBlock ⇄ TextBox.
-  **Enter** übernimmt, **Escape** verwirft, **Fokusverlust** übernimmt
-  (`Tree_DoubleTapped`/`Tree_KeyDown`/`Tree_LostFocus` in `MainWindow.axaml.cs`).
-  `ShellViewModel.CommitRename` schreibt via **`_db.UpsertItem`** in dieselbe LiteDB, sortiert die
-  Ebene neu (`SortCollection`/`SortRoots`) und frischt Galerie/Breadcrumb auf; leerer oder
-  unveränderter Name = verwerfen.
-- **Verifiziert:** Breadcrumb „Alle Dokumente › Projekte ›" + Umbenennung „Skizzen" → „Skizzen NEU"
-  in Baum *und* Kachel (`AV3-breadcrumb-rename.png`); **Persistenz end-to-end bestätigt** — nach
-  Neustart ohne Temp-Code steht „Skizzen NEU" weiterhin im Baum (`AV3-persist.png`).
-  *Nicht klick-getestet* (Foreground-Sperre): Doppelklick-Auslöser und Breadcrumb-Klick.
-
-**Nachtrag 3b: Umbenennen-Fokus-Fix + Anlegen/Löschen/Favoriten (2026-07-24).**
-- **Bugfix Umbenennen** (Nutzer-Meldung: „nach Doppelklick nur ~1 s bearbeitbar"): Ursache war ein
-  `LostFocus`-Handler am **ganzen Baum** (feuerte bei fremden Fokuswechseln) plus ein Fokus-Rückgriff
-  der TreeView. Fix: Handler (`KeyDown`/`GotFocus`/`LostFocus`) hängen jetzt **an der TextBox**;
-  der Fokus wird mit `DispatcherPriority.Background` **nach** der TreeView-Fokuslogik gesetzt
-  (+ `SelectAll`), und der `LostFocus`-Commit greift erst, wenn die Box **wirklich Fokus hatte**
-  (`_renameHadFocus`). **Vom Nutzer gegenzuprüfen** — Klicks sind hier nicht automatisierbar.
-- **Neu anlegen**: „＋ Neu"-Button (MenuFlyout: Ordner/Notizbuch/Whiteboard/Textdokument) legt im
-  aktuellen Ordner an (`ShellViewModel.CreateItem`), erbt die Ordnerfarbe, speichert via
-  `UpsertItem` und springt direkt in die Umbenennung.
-- **Löschen** (`DeleteItem` → `DatabaseService.DeleteItemRecursive`, inkl. Unterbaum) und
-  **Favorit umschalten** (`ToggleFavorite`, Stern ★ im Baum, wirkt auf die Sortierung) über das
-  **Kontextmenü** im Baum (Umbenennen/Favorit/Löschen).
-- **Verifiziert per Screenshot** (`AV3-crud.png`): „Neues Notizbuch" in „Schule" mit geerbter Farbe,
-  „Biologie" mit ★ nach oben sortiert, „Notizen" gelöscht.
-
-### 9.3e Schritt 4 (Whiteboard) — gemeinsamer Skia-Renderer + Avalonia-Canvas (2026-07-24)
-- **`GonkNote.Core/Rendering/WbRenderer.cs`** (neu, `namespace GonkNote.Rendering`): die reinen
-  SkiaSharp-Zeichenroutinen aus `Views/WhiteboardView.xaml.cs` — `DrawElement`(+Rotation)/
-  `DrawElementCore`, `DrawStroke` (Druckverlauf, Pencil, Highlighter), `DrawShape` (Linie/Pfeil/
-  Rechteck/Ellipse/Dreieck), `DrawText`, `DrawSticky`(+`DrawStickyCard` mit gecachtem
-  Nine-Patch-Schatten), `DrawImage` (über `ImageCache`), plus Helfer `ParseColor`,
-  `BuildSmoothPath`, `TrianglePoints`, `TextBounds`, `ElementBounds`, `WrapText` und
-  **`WbFonts`**. Enthält **keine** Eingabe-/Werkzeuglogik.
-- **`GonkNote.Avalonia/WhiteboardCanvas.cs`** (neu): Avalonia-`Control` mit
-  `ICustomDrawOperation`; leiht sich über `ISkiaSharpApiLeaseFeature` **direkt Avalonias SKCanvas**
-  (kein Zwischenbild) und zeichnet Seite + Elemente mit `WbRenderer`. Properties `Page`/`Zoom`
-  (`AffectsRender`). Seitenmuster (Linien/Raster/Punkte) vereinfacht nachgebaut.
-- Shell-Anbindung: Auswahl eines Whiteboards/Notizbuchs lädt via `DatabaseService.GetBoard` die
-  erste Seite (`ShellViewModel.CurrentPage`/`ShowWhiteboard`); Seed legt ein Beispiel-Board an.
-- **Verifiziert per Screenshot** (`AV3-whiteboard2.png`): Strich mit Druckverlauf, Rechteck,
-  Pfeil, Text und Punktraster rendern im rechten Bereich, Baum/Kopfleiste bleiben sichtbar.
-- **Zwei Fallstricke (gelöst, für später merken):**
-  1. `ImmediateDrawingContext.TryGetFeature` ist in Avalonia 11.0.x **nicht generisch**
-     (`TryGetFeature(typeof(ISkiaSharpApiLeaseFeature)) is ISkiaSharpApiLeaseFeature`).
-  2. **`SKCanvas.Clear()` löscht die gesamte Fensteroberfläche**, nicht nur das Control — es
-     überdeckte anfangs Baum und Kopfleiste. Stattdessen auf `Bounds` **clippen** und den
-     Hintergrund als Rechteck füllen.
-- ✅ **De-Duplizierung erledigt (2026-07-24):** die WPF-`WhiteboardView` leitet ihre Draw-/Helfer-
-  Methoden jetzt an `WbRenderer` weiter (`DrawElementCore`, `DrawImage/Stroke/Shape/Text/Sticky/
-  StickyCard`, `ElementBounds`, `TextBounds`, `TrianglePoints`, `ParseColor`, `WrapText`,
-  `DrawCachedShadow`; `Fonts` → `WbFonts`). Die eigenen Kopien (inkl. `BuildSmoothPath`,
-  `ShadowNinePatch`, `BreakLongWord`) sind entfallen: **`WhiteboardView.xaml.cs` 4457 → 4077
-  Zeilen (−380)**. WPF baut 0 Fehler (nur die 6 bekannten CS8622 aus `Numpad.cs`). Damit nutzen
-  WPF, PDF-Export und Avalonia **eine** Implementierung.
-**Schritt 4b (Teil 1): Stift-Eingabe (2026-07-24).**
-- `WhiteboardCanvas` verarbeitet jetzt `OnPointerPressed/Moved/Released`: baut einen
-  `StrokeElement` mit **Druckstärke** (`PointerPoint.Properties.Pressure`; ohne Drucksensor 0,5),
-  zeichnet ihn live als Overlay (`WbRenderer.DrawStroke`) und hängt ihn beim Loslassen an die
-  Seite. Zeigererfassung via `Pointer.Capture`; Koordinaten werden durch den Zoom geteilt.
-- Neue Properties `InkColor`/`InkWidth`; Event **`StrokeCompleted`** → `MainWindow` ruft
-  `ShellViewModel.SaveCurrentBoard()` → **jeder fertige Strich landet sofort in der LiteDB**
-  (der geladene `WhiteboardDoc` wird dafür im VM gehalten).
-- Kompakte **Stift-Werkzeugleiste** über dem Canvas: 4 Farben + dünn/mittel/dick.
-- **Hit-Testing:** `Control` hat kein `Background`; damit Pointer-Events zuverlässig ankommen,
-  füllt `Render` zusätzlich ein **transparentes Rechteck** über `Bounds`.
-- **Verifiziert:** Werkzeugleiste + Canvas rendern korrekt (`AV3-pen.png`). ⚠️ **Das eigentliche
-  Zeichnen ist NICHT getestet** — programmatische Mausklicks kommen in dieser Umgebung nicht am
-  Fenster an (Foreground-Sperre). **Vom Nutzer zu prüfen.**
-**Schritt 4b (Teil 2): Werkzeuge, Radierer, Undo/Redo, Zoom/Pan (2026-07-24).**
-- **Werkzeugauswahl** über `ToolProperty` (`Models.ToolType`): Stift / Bleistift / Textmarker
-  (setzen `StrokeKind` und beim Marker die 5-fache Breite) / **Radierer** / **Hand**.
-- **Radierer:** **punktgenau** (Nutzer-Meldung „radiert immer ganze Linien" behoben). Neue
-  plattformneutrale Klasse **`GonkNote.Core/Editing/WbErase.cs`** (`SplitStroke`,
-  `SegmentDistance`, `HitsStroke`, `HitsOther`) — aus der WPF-Logik gehoben: Striche werden am
-  Radierkreis **aufgetrennt**, die Reststücke bleiben stehen; Formen/Text/Zettel gehen als Ganzes,
-  Bilder bleiben (wie in WPF). Ein Radier-Zug = **ein** Undo-Schritt via `PartialEraseAction`.
-- **Undo/Redo** über den **Core-`UndoStack`**: `AddElementsAction` je Strich,
-  `RemoveElementsAction` je Radier-Zug; Stack liegt im `ShellViewModel` **je Dokument** (wird beim
-  Laden neu erzeugt). Nach Undo/Redo wird gespeichert und der Canvas neu gezeichnet.
-- **Zoom/Pan:** Mausrad zoomt (0,2×–8×), Hand-Werkzeug **oder mittlere Maustaste** verschiebt;
-  `PanX`/`PanY` gehen als `canvas.Translate` in die Draw-Operation. Bildschirm→Seite über
-  `ToPage()`. Das Seitenmuster rastet aufs **Seiten**raster (sonst wandert es beim Pan).
-- Werkzeugleiste erweitert (Werkzeuge · Farben · Breiten · Rückgängig/Wiederholen · 100 %).
-- **Verifiziert:** Undo exakt — zwei Teststriche angelegt, **einmal** rückgängig: der erste
-  (magenta) bleibt sichtbar, der zweite (cyan) verschwindet (`AV3-undo2.png`).
-  ⚠️ Zeichnen/Radieren/Pan **mit echter Maus/Stift weiterhin ungetestet** (Foreground-Sperre).
-**Schritt 4b (Teil 3): Fixes aus dem Nutzer-Test (2026-07-24).**
-- **Radierer radierte ganze Linien** → jetzt punktgenau (s. o., `WbErase.SplitStroke`).
-- **Bleistift sah aus wie ein Stift mit zackigen Kanten** → neue `WbRenderer.DrawPencil`:
-  Graphit-Anmutung in **drei günstigen Skia-Durchgängen** statt einer `CreateDiscrete`-Zackenlinie —
-  halbtransparente Kernlinie (Alpha 80), fein aufgerauter Rand (kleine Discrete-Amplitude) und eine
-  **gestempelte Körnung** (`Create1DPath`-Punkte auf einem leicht verrauschten Pfad via
-  `CreateCompose`). Wirkt auf WPF **und** Avalonia, da geteilter Renderer.
-- Aktives Werkzeug wird in der Leiste hervorgehoben (`Button.active`).
-- **Verifiziert per Screenshot** (`AV3-pencil.png`): Bleistift-Linie deutlich körnig gegenüber der
-  Stift-Linie; aufgetrennter Strich zeigt die Lücke mit stehen gebliebenen Enden.
-**Schritt 4b (Teil 4): restliche Werkzeuge (2026-07-24).**
-- **Auswahl/Verschieben (`Move`)**: Klick greift das oberste Element (`TopElementAt`, nutzt
-  `WbErase.HitsStroke/HitsOther`), Ziehen verschiebt es (`WbElement.Translate`); ein Zug =
-  **ein** Undo-Schritt (`MoveElementsAction`).
-- **Lasso**: freies Polygon, Auswahl über Punkt-in-Polygon (Ray-Casting) auf den Element-
-  Mittelpunkt; Klick **in** eine bestehende Auswahl verschiebt sie stattdessen. Gestrichelte
-  Lasso-Spur + Auswahlrahmen werden als **transientes Overlay** gezeichnet (nicht Teil der Seite,
-  Strichbreite zoom-kompensiert).
-- **Formen** (`Shape` + `ComboBox`: Rechteck/Ellipse/Linie/Pfeil/Dreieck): Aufziehen mit
-  Live-Vorschau, beim Loslassen als `ShapeElement` übernommen (Fehlklicks < 2 px verworfen).
-- **Notizzettel** (`Sticky`): Klick platziert eine 200×160-Karte. **Text** (`Text`): Klick öffnet
-  den neuen Mini-Dialog **`TextPrompt`** (Code-only, feste Breiten → umgeht den Quirk aus §9.5).
-- **Auswahl löschen** per Button oder **Entf**-Taste (`RemoveElementsAction`).
-- **Pinch-Zoom** über `Gestures.AddPinchHandler` (Skalierung relativ zum Zoom bei Gestenbeginn).
-- **Mehrseitigkeit**: `‹ / ›`-Navigation, `＋ Seite` (übernimmt Format/Muster der aktuellen Seite),
-  Anzeige „Seite X / Y". **Undo-Verlauf gilt je Seite** (beim Wechsel neuer `UndoStack`).
-- **Robustheit:** Das Zeichnen jedes Elements läuft in `try/catch` — Custom-DrawOperations
-  verschlucken Ausnahmen sonst still, ein defektes Element hätte das ganze Bild gekostet.
-- **Verifiziert per Screenshot** (`AV3-tools-final.png`): Rechteck, Ellipse, Pfeil, Notizzettel
-  (mit Schatten + Textumbruch) und Text-Element rendern korrekt.
-- ⚠️ **DPI-Falle beim Testen** (kostete hier Zeit): Avalonia rechnet in **DIPs**. Auf dem
-  Testrechner (200 %) ist der sichtbare Canvas nur ~410×290 DIP — Testkoordinaten > ~400 liegen
-  außerhalb und wirken wie ein Render-Bug. Erst prüfen, bevor man Fehler in `WbRenderer` sucht.
-**Schritt 4b (Teil 5): Skalieren, Zwischenablage, Bild-Import (2026-07-24).**
-- **Skalieren der Auswahl**: vier **Eckgriffe** am Auswahlrahmen (weiß mit Akzentrand,
-  bildschirmgroß via `1/Zoom`). Ziehen skaliert um die **gegenüberliegende Ecke** als Pivot
-  (`HandleAt` liefert sie); Faktor = Abstandsverhältnis, geklemmt auf 0,05–20. Der Zug wird
-  inkrementell angewandt, aber als **ein** `ScaleElementsAction` gebucht. Griffe haben Vorrang
-  vor Verschieben/Lasso.
-- **Zwischenablage** (intern, wie in der WPF-App): **Strg+C / Strg+V / Strg+D** und Buttons.
-  `CloneElement` macht echte Tiefkopien je Typ; Einfügen versetzt um 18 px und wählt das
-  Eingefügte aus, mehrfaches Einfügen versetzt weiter. Ein `AddElementsAction` je Vorgang.
-- **Bild-Import**: Button (`StorageProvider.OpenFilePickerAsync`, Mehrfachauswahl) **und
-  Drag&Drop** (`DragDrop.AllowDrop` am Fenster, Filter auf Bildendungen). Das Bild wird auf
-  max. 340 px lange Kante skaliert, in der Ansichtsmitte platziert, ausgewählt, und das
-  Werkzeug wechselt auf **Auswahl** → sofort verschieb-/skalierbar.
-- **Verifiziert per Screenshot** (`AV3-scale-img.png`): Bild-Element rendert, Auswahlrahmen
-  gestrichelt, vier Eckgriffe korrekt platziert.
-**Schritt 4b (Teil 6): Ausschneiden, Drehen, Finger-Gesten, Seitenmuster, Sticker (2026-07-24).**
-- **Ausschneiden** (Strg+X) und **Duplizieren** als Buttons nachgereicht (fehlten in der Leiste).
-- **Drehen**: runder Dreh-Griff mittig über der Auswahl (mit Verbindungslinie), **nur bei
-  Einzelauswahl**. Ziehen dreht um den Elementmittelpunkt, **Shift rastet auf 15°**;
-  ein Zug = ein `RotateElementAction`. Griff-Reihenfolge: Drehen → Skalieren → Verschieben.
-- **Finger-Gesten** (rohe Touch-Kontakte selbst verfolgt, wie in der WPF-App, `PointerType.Touch`):
-  **1 Finger** schiebt die Leinwand · **2 Finger** zoomen um die Fingermitte **und** schieben
-  zugleich · **3 Finger tippen** = rückgängig (`_maxTouches` merkt sich die höchste Fingerzahl).
-  Ab dem zweiten Finger wird eine laufende Zeichnung/Auswahl **abgebrochen**, damit die Geste
-  sauber übernimmt. Stift und Maus laufen unverändert durch die Werkzeuglogik.
-- **Seitenmuster + Farbton** über zwei ComboBoxen (Blanko/Linien/Raster/Punkte · Hell/Dunkel);
-  wirkt auf die aktuelle Seite, wird sofort gespeichert. `SyncPagePickers` gleicht die Auswahl
-  beim Seiten-/Dokumentwechsel an (`_syncingPickers`-Flag verhindert Rückschreiben).
-- **Sticker-Werkzeug**: neuer `StickerPicker` (Code-only-Dialog) liest dieselben Quellen wie die
-  WPF-App — `Assets/Stickers` neben der Exe **und** `%APPDATA%\GonkNote\Stickers` (Linux:
-  `~/.config/GonkNote/Stickers`), rekursiv, Endungen png/jpg/jpeg/webp. Klick fügt den Sticker
-  als Bild-Element ein (gleicher Pfad wie der Bild-Import). Ohne Sticker: Hinweis mit den Pfaden.
-- **Verifiziert per Screenshot:** Dreh-Griff an gedrehtem Zettel (`AV3-rotate.png`),
-  Linien-Muster hell (`AV3-pattern-lines.png`) und **Punkte-Muster auf dunkler Seite**
-  (`AV3-pattern-dark.png`, zugleich Beleg für die Mehrseitigkeit „Seite 3 / 3").
-- ⚠️ **Nicht getestet (braucht Hardware/Interaktion):** die **Finger-Gesten** (Touch-Gerät nötig)
-  und der Sticker-Dialog (in der Testumgebung liegen keine Sticker-Dateien neben der Exe).
-**Schritt 4b (Teil 7): Rotations-Fix + PDF-Import (2026-07-24).**
-- **Fix (Nutzer-Test): Auswahlrahmen drehte nicht mit.** Das Overlay (Rahmen, Eckgriffe,
-  Dreh-Griff) wird jetzt um denselben Mittelpunkt gedreht wie das Element. Damit die Griffe
-  weiter treffen, rechnen `HandleAt`/`IsOnRotateHandle` **und die Skalierung** den Zeigerpunkt
-  über **`ToLocal()`** in den ungedrehten Raum zurück — dort liegt auch der Skalier-Pivot, den
-  `WbElement.Scale` erwartet. Bei Mehrfachauswahl bleibt der Rahmen bewusst achsenparallel.
-  *(Damit ist die in §5 als „vertagt" notierte WPF-Näherung im Avalonia-Port gelöst.)*
-- **Fix (Nutzer-Test): Sticker-Ordner existierte nicht.** `StickerPicker.UserDir` **legt ihn an**;
-  der Dialog hat jetzt einen Knopf **„＋ Sticker hinzufügen…"** (Dateiauswahl, kopiert
-  kollisionssicher — „ (2)", „ (3)" …). Der Leerzustand erklärt beide Quellen mit vollem Pfad.
-- **PDF-Import**: `PdfImporter` nach **`GonkNote.Core/Services/`** verschoben (ist reines
-  Docnet+Skia, kein WPF) — `Docnet.Core` ist jetzt Core-Abhängigkeit. Button **📕 PDF** und
-  **Drag&Drop**: Seiten werden mit 1400 px langer Kante gerendert (**im Hintergrund-Thread**,
-  Fortschritt „PDF-Seite X / Y" in der Leiste) und **zweispaltig** als Bild-Elemente eingefügt;
-  ein `AddElementsAction` für alles, danach Werkzeug = Auswahl.
-- **Verifiziert per Screenshot:** Rahmen/Griffe liegen exakt auf dem 30°-Zettel
-  (`AV3-rotframe.png`); PDF-Seiten 1–2 des Testdokuments scharf im Raster (`AV3-pdf.png`).
-- 🐧 **Linux-relevant:** Die nativen PDFium-Bibliotheken liegen im Build-Output für **alle** RIDs
-  (`runtimes/linux-x64/native/pdfium.so` usw.) — PDF-Import sollte unter Linux ohne Zusatzarbeit
-  laufen.
-**Schritt 4b (Teil 8): Zeichenhilfen Lineal + Geodreieck (2026-07-24).**
-- **Geometrie nach Core gehoben:** neue **`GonkNote.Core/Editing/WbDrawAid.cs`** — Polygon,
-  Achsen, Kanten-Einrasten (`TryActivateSnap`/`ApplySnap`), Dreh-Griff, 15°-Winkelrastung.
-  Konstanten wie in WPF (`PxPerCm=37,795`, Lineal 680×52, Geodreieck 16 cm).
-- **Rendering nach Core:** neue **`GonkNote.Core/Rendering/WbAidRenderer.cs`** zeichnet Lineal
-  (Glasfläche + cm-Skala) und Geodreieck. Die **SVG-Assets des Nutzers** sind jetzt in
-  **Core** eingebettet (`LogicalName=GonkNote.Core.Assets.Geodreieck-*.svg`, Dateien bleiben
-  in `Assets/`); `Svg.Skia` ist Core-Abhängigkeit. **WPF leitet `DrawSetSquare` dorthin weiter**
-  → eine Wahrheit, `WhiteboardView.xaml.cs` 4077 → **4013 Zeilen**.
-- **Avalonia:** Buttons **📏 Lineal** / **📐 Geodreieck** (aktiver Zustand hervorgehoben).
-  Die Hilfe lässt sich **verschieben** (Körper ziehen) und **drehen** (Griff, 15°-Rastung);
-  beides hat Vorrang vor den Werkzeugen. Beim Zeichnen rastet der Strich an der nächsten Kante
-  ein (`AddPoint` projiziert über `ApplySnap`), das Einrasten endet mit dem Strich.
-- **Zwei Fehler dabei gefunden und behoben:**
-  1. **Doku-Platzhalter lag über dem Whiteboard** — `ShowDocument` wurde gemeldet, *bevor*
-     `LoadBoardPage()` die Seite setzte (und `ShowWhiteboard` davon abhängt). Reihenfolge
-     korrigiert.
-  2. **`ViewCenter()` bei ungemessenem Control** lieferte (0,0) → Hilfen landeten am Rand.
-     Fällt jetzt auf eine Ersatzgröße zurück.
-- **Verifiziert per Screenshot:** Geodreieck rendert **vollständig aus den SVG-Assets**
-  (Gradskala, Winkellinien, pinkes Band, cm-Skala — `AV3-setsquare4.png`); Lineal mit
-  cm-Skala und Akzentkante (`AV3-ruler.png`).
-- **Offen (4b-Rest):** Notizbuch-Cover.
-
-### 9.4 Gestaffelter Plan
-1. ✅ **PoC/Scaffold + Kernlogik-Reuse** (fertig, §9.1).
-2. ✅ **`GonkNote.Core` extrahiert** (Models + DB + Undo + ImageCache); WPF + Avalonia
-   referenzieren es per ProjectReference; Links im Avalonia-Projekt entfernt (fertig, §9.1b).
-3. 🟡 **Shell portieren** (Nutzer-Priorität 2026-07-23) — **3a + 3b-Galerie erledigt (§9.3c/§9.3d)**:
-   Ordnerbaum + Farbvererbung + Navigation + Theme (3a); **„Big-Picture"-Galerie** (3b) — rechter
-   Bereich zeigt Ordnerinhalt als farbige Kacheln, Kachelklick navigiert; **+ Breadcrumb,
-   Inline-Umbenennen, Neu-Anlegen/Löschen, Favoriten** (alles DB-persistent). **Bewusst offen:**
-   echte Doku-Tabs (sinnvoll erst mit echten Ansichten ⇒ Schritt 4/5), Drag&Drop, Anpinnen-Kacheln.
-4. 🟡 **Whiteboard** — **4a erledigt (§9.3e):** Zeichenroutinen als `WbRenderer` nach Core gehoben,
-   Avalonia-`WhiteboardCanvas` rendert Seiten über Avalonias eigenen Skia-Canvas. **Offen (4b):**
-   Stylus/Touch über Avalonia-Pointer-Events, Werkzeuge, Zoom/Pan, Speichern; WPF auf `WbRenderer`
-   weiterleiten (De-Duplizierung).
-5. 🟡 **Text-Editor: Ansatz entschieden, Bau zurückgestellt** (Prototyp fertig, §9.3b):
-   **Markdown (Ansatz b) empfohlen**. **Nutzer-Entscheidung 2026-07-23: Editor-Bau vorerst
-   zurückstellen** — erst Shell (3) + Whiteboard (4) portieren, Editor-Scope später festlegen.
-6. **Plattform-Teile**: Fenster-Chrome, Hunspell-Rechtschreibung, OCR/PDF mit Linux-Native-Libs.
-7. **Auf echtem Linux** bauen/testen (X11 + Wayland), `dotnet publish -r linux-x64`.
-
-### 9.5 Fallstricke / Notizen
-- **`net8.0` (nicht `-windows`)** für Core + Avalonia — sonst kein Linux.
-- **`ImplicitUsings` müssen übereinstimmen:** die verlinkten Kernklassen nutzen implizite Usings
-  (System.Linq etc.) → Avalonia-Projekt hat `ImplicitUsings=enable`; im Core-Projekt genauso.
-- **WPF-csproj-Ausschluss** für `GonkNote.Avalonia\**` beibehalten, solange beide im selben
-  Ordnerbaum liegen.
-- **Bisher nur auf Windows entwickelt/verifiziert** — der echte Linux-Build/-Test steht aus
-  (kein Linux in dieser Umgebung).
-- **DockPanel-Fill / Grid-Star bekommen unendliche Messbreite** (Avalonia @ 200 % DPI, Windows) —
-  der Kern des „Layout-Quirks". Eingegrenzt (Runde 20, LayoutProbe-Wegwerftests): ein
-  **vertikales StackPanel** gibt Kindern endliche Breite (Umbruch ok), aber das **LastChildFill-
-  Kind eines DockPanels** und **Grid-`*`-Spalten/Zeilen** werden mit unendlicher Breite gemessen
-  (Text bricht nicht um, `MaxWidth` greift nicht, zentrierter Inhalt wird rausgeschoben).
-  **Fixe Breiten (Dock=Left Width=…, Grid-Pixelspalten) sind unbetroffen** → Workaround für die
-  Shell: feste Panelbreiten statt Fill/Star. **`Avalonia 11.2.3`-Bump getestet → behebt es NICHT**
-  (also kein reiner Versionsbug; vmtl. DPI-spezifisch). Beim echten **Linux-Build** gegenprüfen
-  (dort evtl. gar nicht vorhanden). Auch die multiline-`TextBox` (ignoriert `TextWrapping=Wrap`)
-  hängt vermutlich an derselben Ursache.
-- **`Markdown.Avalonia`-Style `"Standard"` ist nicht dark-mode-aware** (Überschriften unsichtbar,
-  Tabelle hell) → eigener dunkler Markdown-Style beim Editor-Bau nötig (§9.3b).
-- Reihenfolge laut Roadmap (§5/§6): eigentlich Cleanup → i18n → RAM → GitHub; der Port wurde auf
-  **ausdrücklichen Nutzer-Wunsch vorgezogen begonnen** (nur Scaffold). Die Hauptumsetzung verzahnt
-  sich sinnvoll mit dem Cleanup (die `GonkNote.Core`-Extraktion ist beides zugleich).
+**Falls das Thema je wieder aufkommt:** Die Erfahrung aus dem Versuch war, dass die UI-Schicht
+komplett neu gebaut werden muss (WPF-`FlowDocument` hat kein Avalonia-Äquivalent → der
+Text-Editor wäre ein Neubau, praktisch nur als Markdown-Editor mit spürbarem Feature-Verlust)
+und dass unter 200 % DPI hartnäckige Layout-Eigenheiten auftraten. Der Kern-Reuse
+(`GonkNote.Core`) ist dank der Entkopplung aber jederzeit wieder nutzbar.

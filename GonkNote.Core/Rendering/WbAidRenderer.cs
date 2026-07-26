@@ -1,22 +1,23 @@
 using System;
-using System.Reflection;
-using GonkNote.Editing;
 using SkiaSharp;
 
 namespace GonkNote.Rendering;
 
 /// <summary>
-/// Zeichnet die Zeichenhilfen (Lineal &amp; Geodreieck). Aus der WPF-App gehoben, damit WPF und
-/// der Avalonia-Port dieselbe Darstellung nutzen (HANDOFF §9.3e).
+/// Zeichnet das Geodreieck-Overlay aus den SVG-Assets des Nutzers (je Theme eine Variante,
+/// Unterschied ist die Bandfarbe).
 ///
-/// Das Geodreieck kommt aus den SVG-Assets des Nutzers (je Theme eine Variante, Unterschied ist
-/// die Bandfarbe). Vermessene SVG-Geometrie (viewBox 2520×1680): Hypotenuse 2515,2 units =
-/// 16-cm-Geodreieck → 157,2 units/cm; der Hypotenusen-Mittelpunkt wird auf das Interaktions-
-/// zentrum gelegt und auf 1 Geodreieck-cm = 1 Seiten-cm skaliert. Dadurch deckt sich der
-/// Aufdruck exakt mit dem Einrast-/Dreh-Polygon (<see cref="WbDrawAid.SetSquareHalfHyp"/>).
+/// Vermessene SVG-Geometrie (viewBox 2520×1680): Hypotenuse von (2,2|1468,9) bis
+/// (2517,5|1468,9) = 2515,2 units, Spitze bei (1259,8|210) → 16-cm-Geodreieck →
+/// 157,2 units/cm. Beim Zeichnen kommt der Hypotenusen-Mittelpunkt des SVG auf das
+/// Interaktionszentrum, skaliert auf 1 Geodreieck-cm = 1 Seiten-cm. Dadurch deckt sich der
+/// Aufdruck exakt mit dem Einrast-/Dreh-Polygon der View (halbe Hypotenuse = 8 cm).
 /// </summary>
 public static class WbAidRenderer
 {
+    /// <summary>Umrechnung Zentimeter → Canvas-Einheiten (96 dpi).</summary>
+    public const float PxPerCm = 37.795f;
+
     private const float SvgUnitsPerCm = 157.2f;
     private static readonly SKPoint SvgMid = new(1259.85f, 1468.85f);
 
@@ -49,14 +50,17 @@ public static class WbAidRenderer
         return cached?.Picture;
     }
 
-    /// <summary>Zeichnet das Geodreieck um <paramref name="center"/> mit der Drehung in Grad.</summary>
+    /// <summary>
+    /// Zeichnet das Geodreieck um <paramref name="center"/> mit der Drehung
+    /// <paramref name="angleDeg"/> (Grad).
+    /// </summary>
     public static void DrawSetSquare(SKCanvas canvas, SKPoint center, float angleDeg,
                                      float zoom, bool dark)
     {
         var picture = SetSquarePicture(dark);
         if (picture != null)
         {
-            float s = WbDrawAid.PxPerCm / SvgUnitsPerCm;
+            float s = PxPerCm / SvgUnitsPerCm;
             canvas.Save();
             canvas.Translate(center.X, center.Y);
             canvas.RotateDegrees(angleDeg);
@@ -72,7 +76,7 @@ public static class WbAidRenderer
         float cos = MathF.Cos(rad), sin = MathF.Sin(rad);
         SKPoint P(float u, float v)
         {
-            float x = u * WbDrawAid.PxPerCm, y = -v * WbDrawAid.PxPerCm;
+            float x = u * PxPerCm, y = -v * PxPerCm;
             return new SKPoint(center.X + x * cos - y * sin, center.Y + x * sin + y * cos);
         }
 
@@ -88,70 +92,5 @@ public static class WbAidRenderer
             IsAntialias = true,
         };
         canvas.DrawPath(path, edge);
-    }
-
-    /// <summary>Zeichnet die aktive Hilfe samt Dreh-Griff.</summary>
-    public static void DrawAid(SKCanvas canvas, WbDrawAid aid, double zoom, SKColor accent, bool dark)
-    {
-        if (!aid.IsActive) return;
-        float z = (float)zoom;
-
-        if (aid.Kind == DrawAidKind.SetSquare)
-        {
-            // Das Geodreieck zeichnet sich komplett selbst (Körper, Kanten, Aufdruck)
-            DrawSetSquare(canvas, aid.Center, aid.AngleDeg, z, dark);
-        }
-        else
-        {
-            var poly = aid.WorldPolygon();
-            using var path = new SKPath();
-            path.MoveTo(poly[0]);
-            for (int i = 1; i < poly.Length; i++) path.LineTo(poly[i]);
-            path.Close();
-
-            using (var fill = new SKPaint { Color = new SKColor(30, 41, 59, 40), IsAntialias = true })
-                canvas.DrawPath(path, fill);
-            using (var edge = new SKPaint
-            {
-                Color = accent, Style = SKPaintStyle.Stroke,
-                StrokeWidth = 1.5f / z, IsAntialias = true,
-            })
-                canvas.DrawPath(path, edge);
-
-            DrawCmScale(canvas, aid, accent, WbDrawAid.RulerHalfWidth, WbDrawAid.RulerLength / 2f, z);
-        }
-
-        // Dreh-Griff
-        var h = aid.HandleCenter(zoom);
-        using (var hf = new SKPaint { Color = accent, IsAntialias = true })
-            canvas.DrawCircle(h, 6f / z, hf);
-        using (var hr = new SKPaint
-        {
-            Color = SKColors.White, Style = SKPaintStyle.Stroke,
-            StrokeWidth = 1.4f / z, IsAntialias = true,
-        })
-            canvas.DrawCircle(h, 6f / z, hr);
-    }
-
-    /// <summary>cm-Skala entlang einer Kante (lokal bei y=edgeY), Ticks nach innen (−y).</summary>
-    private static void DrawCmScale(SKCanvas canvas, WbDrawAid aid, SKColor accent,
-                                    float edgeY, float halfLen, float zoom)
-    {
-        using var tick = new SKPaint
-        {
-            Color = accent.WithAlpha(210),
-            Style = SKPaintStyle.Stroke,
-            StrokeWidth = 1f / zoom,
-            IsAntialias = true,
-        };
-
-        int k = 0;
-        for (float u = 0; u <= halfLen; u += WbDrawAid.PxPerCm, k++)
-        {
-            float len = (k % 5 == 0) ? 9f : 5f;
-            canvas.DrawLine(aid.LocalToWorld(u, edgeY), aid.LocalToWorld(u, edgeY - len), tick);
-            if (u > 0)
-                canvas.DrawLine(aid.LocalToWorld(-u, edgeY), aid.LocalToWorld(-u, edgeY - len), tick);
-        }
     }
 }

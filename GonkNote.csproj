@@ -60,15 +60,10 @@
     <Content Include="tessdata\*.traineddata" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
-  <!-- Der Avalonia-Port (GonkNote.Avalonia\) und die Kernbibliothek (GonkNote.Core\) sind
-       eigene Projekte und dürfen nicht in den WPF-Build hineingezogen werden (dessen
-       **/*.cs-Glob vom Repo-Root aus würde sonst zugreifen; Core-Typen kommen per
-       ProjectReference). -->
+  <!-- Die Kernbibliothek (GonkNote.Core\) ist ein eigenes Projekt und darf nicht in den
+       WPF-Build hineingezogen werden — der **/*.cs-Glob vom Repo-Root aus würde sonst
+       zugreifen. Die Core-Typen kommen über die ProjectReference oben. -->
   <ItemGroup>
-    <Compile Remove="GonkNote.Avalonia\**\*.cs" />
-    <None Remove="GonkNote.Avalonia\**" />
-    <Page Remove="GonkNote.Avalonia\**" />
-    <Resource Remove="GonkNote.Avalonia\**" />
     <Compile Remove="GonkNote.Core\**\*.cs" />
     <None Remove="GonkNote.Core\**" />
     <Page Remove="GonkNote.Core\**" />

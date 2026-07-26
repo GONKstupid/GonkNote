@@ -1,5 +1,5 @@
 using System.Windows;
-using GonkNote.Models;
+using GonkNote.Core.Models;
 
 namespace GonkNote.Views;
 

@@ -1,4 +1,4 @@
-namespace GonkNote.Models;
+namespace GonkNote.Core.Models;
 
 /// <summary>Typ eines Eintrags im Ordnerbaum.</summary>
 public enum ItemKind

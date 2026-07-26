@@ -1,6 +1,6 @@
 using SkiaSharp;
 
-namespace GonkNote.Services;
+namespace GonkNote.Core.Services;
 
 /// <summary>
 /// Cache dekodierter Bilder fürs Canvas-Rendering. Begrenzt über ein Byte-Budget
@@ -15,7 +15,13 @@ public static class ImageCache
     private static readonly LinkedList<Guid> _lru = new();
     private static long _bytes;
 
-    public static SKImage? Get(Guid id, byte[] data)
+    /// <summary>
+    /// Dekodiertes Bild, oder null wenn die Daten fehlen oder unbrauchbar sind. Null ist ein
+    /// gültiges Ergebnis: der Aufrufer zeichnet dann einen Platzhalter. Ohne diese Prüfung warf
+    /// <c>SKBitmap.Decode(null)</c> mitten im Zeichnen – ein einziges kaputtes Bild ließ damit
+    /// die ganze Seite leer.
+    /// </summary>
+    public static SKImage? Get(Guid id, byte[]? data)
     {
         if (_cache.TryGetValue(id, out var entry))
         {
@@ -23,6 +29,8 @@ public static class ImageCache
             _lru.AddFirst(id);
             return entry.Img;
         }
+
+        if (data is not { Length: > 0 }) return null;
 
         using var bmp = SKBitmap.Decode(data);
         if (bmp == null) return null;

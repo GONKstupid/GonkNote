@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using GonkNote.Models;
+using GonkNote.Core.Models;
 using SkiaSharp;
 
-namespace GonkNote.Editing;
+namespace GonkNote.Core.Editing;
 
 /// <summary>
 /// Geometrie fürs **punktgenaue** Radieren: ein Strich wird an der berührten Stelle

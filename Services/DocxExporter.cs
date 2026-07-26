@@ -7,7 +7,7 @@ using System.Windows.Media.Imaging;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Validation;
-using TextDoc = GonkNote.Models.TextDoc;  // Models.TextElement würde mit WPF kollidieren
+using TextDoc = GonkNote.Core.Models.TextDoc;  // Models.TextElement würde mit WPF kollidieren
 using A = DocumentFormat.OpenXml.Drawing;
 using DW = DocumentFormat.OpenXml.Drawing.Wordprocessing;
 using PIC = DocumentFormat.OpenXml.Drawing.Pictures;

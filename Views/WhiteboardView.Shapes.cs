@@ -1,5 +1,5 @@
 using System.Windows.Media;
-using GonkNote.Models;
+using GonkNote.Core.Models;
 using GonkNote.Services;
 using SkiaSharp;
 

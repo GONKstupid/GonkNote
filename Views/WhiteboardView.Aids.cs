@@ -1,5 +1,5 @@
 using System.Windows;
-using GonkNote.Rendering;
+using GonkNote.Core.Rendering;
 using GonkNote.Services;
 using SkiaSharp;
 

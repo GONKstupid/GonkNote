@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
-using GonkNote.Models;
-using GonkNote.Services;
+using GonkNote.Core.Models;
+using GonkNote.Core.Services;
 using SkiaSharp;
 
-namespace GonkNote.Rendering;
+namespace GonkNote.Core.Rendering;
 
 /// <summary>Gemeinsame Schriften für Canvas-Text (SkiaSharp, plattformneutral).</summary>
 public static class WbFonts

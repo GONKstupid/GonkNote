@@ -1,7 +1,7 @@
 using System;
 using SkiaSharp;
 
-namespace GonkNote.Rendering;
+namespace GonkNote.Core.Rendering;
 
 /// <summary>
 /// Zeichnet das Geodreieck-Overlay aus den SVG-Assets des Nutzers (je Theme eine Variante,

@@ -3,9 +3,10 @@ using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using GonkNote.Models;
+using GonkNote.Core.Models;
+using GonkNote.Core.Rendering;
+using GonkNote.Core.Services;
 using GonkNote.Views;
-using GonkNote.Rendering;
 using SkiaSharp;
 
 namespace GonkNote.Services;
@@ -121,7 +122,7 @@ public static class PdfExporter
         {
             case StrokeElement s: WhiteboardView.DrawStroke(canvas, s); break;
             case ShapeElement sh: WhiteboardView.DrawShape(canvas, sh, sh.Color, sh.StrokeWidth); break;
-            case GonkNote.Models.TextElement t: WhiteboardView.DrawText(canvas, t); break;
+            case GonkNote.Core.Models.TextElement t: WhiteboardView.DrawText(canvas, t); break;
             case ImageElement im: DrawImage(canvas, SKRect.Create(im.X, im.Y, im.Width, im.Height), im.Data); break;
             case StickyNoteElement sn: WhiteboardView.DrawSticky(canvas, sn); break;
         }

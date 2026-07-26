@@ -1,8 +1,9 @@
 using System.IO;
 using System.Windows;
 using System.Windows.Media.Imaging;
-using GonkNote.Models;
+using GonkNote.Core.Models;
 using GonkNote.Services;
+using GonkNote.Core.Services;
 using GonkNote.ViewModels;
 using SkiaSharp;
 

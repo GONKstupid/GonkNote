@@ -2,9 +2,9 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using GonkNote.Models;
-using GonkNote.Rendering;
-using GonkNote.Services;
+using GonkNote.Core.Models;
+using GonkNote.Core.Rendering;
+using GonkNote.Core.Services;
 using SkiaSharp;
 
 namespace GonkNote.Views;

@@ -1,8 +1,8 @@
 using System.Windows;
 using System.Windows.Input;
-using GonkNote.Models;
-using GonkNote.Editing;
-using GonkNote.Services;
+using GonkNote.Core.Models;
+using GonkNote.Core.Editing;
+using GonkNote.Core.Services;
 using SkiaSharp;
 
 namespace GonkNote.Views;

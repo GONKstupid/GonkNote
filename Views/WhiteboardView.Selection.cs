@@ -1,7 +1,7 @@
-using GonkNote.Models;
-using GonkNote.Editing;
-using GonkNote.Rendering;
-using GonkNote.Services;
+using GonkNote.Core.Models;
+using GonkNote.Core.Editing;
+using GonkNote.Core.Rendering;
+using GonkNote.Core.Services;
 using SkiaSharp;
 
 namespace GonkNote.Views;

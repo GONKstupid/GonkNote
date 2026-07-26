@@ -156,7 +156,7 @@ GonkNote/                    WPF-Oberfläche (net8.0-windows)
 ├─ Services/               Import/Export (DOCX, PDF, Markdown), OCR, Theme, Textstile
 └─ Themes/                 Light.xaml, Dark.xaml, Styles.xaml
 
-GonkNote.Core/               Kernlogik ohne UI-Bezug (net8.0)
+GonkNote.Core/               Kernlogik ohne UI-Bezug (net8.0), Namensraum GonkNote.Core.*
 ├─ Models/                 NoteItem (Baum), Whiteboard-Elemente, Enums
 ├─ Services/               DatabaseService (LiteDB), UndoStack, ImageCache, PDF-Import
 ├─ Rendering/              Skia-Zeichenroutinen des Whiteboards, Geodreieck-Overlay

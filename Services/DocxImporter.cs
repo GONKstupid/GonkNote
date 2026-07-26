@@ -6,6 +6,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
+using TextDoc = GonkNote.Core.Models.TextDoc;  // Models.TextElement würde mit WPF kollidieren
 using A = DocumentFormat.OpenXml.Drawing;
 using W = DocumentFormat.OpenXml.Wordprocessing;
 
@@ -27,7 +28,7 @@ public static class DocxImporter
     /// Import inkl. Seiteneinrichtung: Ist <paramref name="target"/> gesetzt, werden
     /// Papierformat, Orientierung, Ränder und Kopf-/Fußzeilentext übernommen.
     /// </summary>
-    public static byte[] ToXamlPackage(string path, Models.TextDoc? target)
+    public static byte[] ToXamlPackage(string path, TextDoc? target)
     {
         var flow = Convert(path, target);
         var range = new TextRange(flow.ContentStart, flow.ContentEnd);
@@ -40,10 +41,10 @@ public static class DocxImporter
     /// DOCX als FlowDocument (für das Datei-Einfüge-Tool: Rendern zu Bildseiten).
     /// <paramref name="target"/> erhält optional die Seiteneinrichtung des Dokuments.
     /// </summary>
-    public static FlowDocument ToFlowDocument(string path, Models.TextDoc? target = null) =>
+    public static FlowDocument ToFlowDocument(string path, TextDoc? target = null) =>
         Convert(path, target);
 
-    private static FlowDocument Convert(string path, Models.TextDoc? target = null)
+    private static FlowDocument Convert(string path, TextDoc? target = null)
     {
         var flow = new FlowDocument
         {
@@ -419,7 +420,7 @@ public static class DocxImporter
     // ==================== Seiteneinrichtung ====================
 
     /// <summary>Papierformat, Orientierung, Ränder und Kopf-/Fußzeilentext übernehmen.</summary>
-    private static void ReadPageSettings(MainDocumentPart main, W.Body body, Models.TextDoc target)
+    private static void ReadPageSettings(MainDocumentPart main, W.Body body, TextDoc target)
     {
         try
         {

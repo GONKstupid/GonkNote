@@ -9,7 +9,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>12</LangVersion>
-    <RootNamespace>GonkNote</RootNamespace>
+    <RootNamespace>GonkNote.Core</RootNamespace>
     <AssemblyName>GonkNote.Core</AssemblyName>
   </PropertyGroup>
 

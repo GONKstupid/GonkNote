@@ -1,6 +1,6 @@
-using GonkNote.Models;
+using GonkNote.Core.Models;
 
-namespace GonkNote.Services;
+namespace GonkNote.Core.Services;
 
 public interface IEditAction
 {

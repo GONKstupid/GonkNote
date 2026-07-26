@@ -398,7 +398,8 @@ GonkNote/
 │  ├─ ColorPickerDialog.xaml(.cs) HSV-Farbrad + Hex + Alpha
 │  ├─ AboutDialog.xaml(.cs)      Version + eingebettetes README (scrollbar)
 │  ├─ PageSetupDialog / TableSizeDialog / Converters
-├─ Services/                  (WPF-nahe Dienste — alles mit FlowDocument-/UI-Bezug)
+├─ Services/                  (WPF-nahe Dienste — alles mit FlowDocument-/UI-Bezug;
+│                             Namensraum `GonkNote.Services`)
 │  ├─ DocxImporter.cs         DOCX → FlowDocument → XamlPackage
 │  ├─ DocxExporter.cs         FlowDocument → DOCX (OpenXML, Gegenrichtung)
 │  ├─ MarkdownExporter.cs     FlowDocument → Markdown (best-effort)
@@ -409,9 +410,11 @@ GonkNote/
 │  ├─ OcrService.cs           Tesseract-Anbindung (Text aus Bildern/PDF-Seiten)
 │  ├─ ThemeService.cs, TitleBarTheme.cs, WindowBounds.cs, SpellCheckSupport.cs
 ├─ Themes/                    Light/Dark.xaml, Styles.xaml (inkl. Vektor-Icons)
-└─ TestAssets/               testdokument.pdf (20 Seiten, gitignored) für UI-Tests
 
 GonkNote.Core/                Kernbibliothek OHNE UI-Bezug (net8.0, kein WPF).
+                              Namensraum durchgehend `GonkNote.Core.*` — am Namen im
+                              `using` ist damit sofort zu sehen, auf welcher Seite der
+                              Schichtgrenze man steht (Cleanup Runde 22).
 ├─ Models/                    NoteItem (IconColor/IsPinned/IsFavorite),
 │                             Whiteboard.cs: WbPage (inkl. BackgroundImage/-Id für
 │                             PDF-Seiten), Elemente (Stroke/Shape/Text/Image/
@@ -435,6 +438,13 @@ GonkNote.Core/                Kernbibliothek OHNE UI-Bezug (net8.0, kein WPF).
 **Warum zwei Projekte:** Die Kernlogik ist bewusst von der Oberfläche entkoppelt (Leitlinie
 §5). `GonkNote.Core` kennt kein WPF — das hält die Schichten sauber, entfernte ~440 Zeilen
 doppelte Zeichenroutinen und erleichtert die geplante i18n- und RAM-Arbeit.
+
+**⚠️ Beim Verschieben von Models an das `_type`-Feld denken:** LiteDB speichert für jedes
+Whiteboard-Element „Namensraum.Typ, Assembly". Ändert sich eines von beiden, lassen sich
+**alle** Bestandsdokumente nicht mehr öffnen. Die Übersetzung alter Namen steht an genau einer
+Stelle: `ModelTypeBinder` in `DatabaseService`. Er deckt heute ab: `…, GonkNote` (vor dem
+Core-Umzug), `GonkNote.Models.*` (vor der Namensraum-Umbenennung) und den aktuellen Stand.
+Ein Harness prüft alle drei Formate (`%TEMP%\gonk-dbfix`).
 *(Das Projekt entstand als Nebenprodukt des abgebrochenen Linux-Ports, siehe §9.)*
 
 Pakete — **GonkNote (WPF):** SkiaSharp.Views.WPF, DocumentFormat.OpenXml (DOCX),
@@ -594,7 +604,7 @@ Nutzer-Test mit Stift.
       PDF-Import liegen in **`GonkNote.Core`** (kein WPF), siehe §3.
     - ✅ **Doppelte Zeichenroutinen zusammengeführt**: `WhiteboardView` leitet an
       `WbRenderer`/`WbAidRenderer`/`WbErase` weiter — **~440 Zeilen** weniger (4457 → ~4010).
-    - ✅ **Runde 22 (2026-07-26), Leitlinie = `TestAssets/coding-style.rst` (Torvalds):**
+    - ✅ **Runde 22 (2026-07-26), Leitlinie = Torvalds' `coding-style.rst`:**
       6 `CS8622`-Warnungen weg (**Build 0 Warnungen**); `WhiteboardView.xaml.cs` (4007 Zeilen)
       nach Themen in partials geteilt (größte Datei jetzt ~690 Zeilen); keine Methode mehr
       über 100 Zeilen (vorher `ToFlowDocument` 140, `DrawActiveOverlays` 127, `BeginInput` 125,
@@ -605,9 +615,9 @@ Nutzer-Test mit Stift.
     - ⬜ **Offen:** Restliche Methoden im Bereich 60–85 Zeilen (`RenderTextPages`,
       `ConvertTable`, `MoveInput`, `DrawRuler`, `BuildImage`, `ExportActiveTab` …) prüfen —
       die meisten sind lange, aber flache `switch`-Verteiler, die Torvalds ausdrücklich
-      erlaubt. Außerdem: ~155 Zeilen über 110 Zeichen, `TestAssets/`-Wegwerfmaterial,
-      weitere Doppelungen suchen. **Verhalten unverändert lassen** (reines Aufräumen);
-      nach jedem Schritt Build 0 Warnungen + kurzer Sichttest.
+      erlaubt (Nutzer-Entscheidung 2026-07-26: **nicht anfassen**). Außerdem offen: ~155 Zeilen
+      über 110 Zeichen, weitere Doppelungen suchen. **Verhalten unverändert lassen** (reines
+      Aufräumen); nach jedem Schritt Build 0 Warnungen + kurzer Sichttest.
   - **Zweite Sprache (DE/EN, i18n) — nach dem Cleanup (Nutzer-Wunsch 2026-07-23):** Umschaltung
     unter „Ansicht → Sprache", zur Laufzeit (kein Neustart). Empfohlenes Muster: zentraler
     `LocalizationManager` (`INotifyPropertyChanged`) + Markup-Extension `{loc:T Key}`, alle
@@ -629,8 +639,7 @@ Nutzer-Test mit Stift.
       kann bleiben (matcht dann nichts) oder mit raus. Sticker-Feature bleibt (Nutzer-Sticker in
       %APPDATA%), nur die mitgelieferten Basis-Sticker entfallen.
     - **Cover bleiben** (`Assets/Covers/**` – vom Nutzer selbst erstellt, unbedenklich).
-    - **`TestAssets/`** ist schon in `.gitignore` (GoodNotes-Screenshots/Test-PDF gehen nicht mit
-      hoch) und wird ohnehin nach der RAM-Optimierung gelöscht.
+    - **`TestAssets/`** ist am 2026-07-26 gelöscht (war ohnehin in `.gitignore`).
     - Keine echten Notizdaten/Namen im Repo **oder in der History** (echte DB liegt in %APPDATA%).
     - Keine Segoe-Font-Dateien einchecken (App nutzt System-Font – bundlet keine `.ttf`).
   - **Cross-Platform (Linux): am 2026-07-24 vom Nutzer abgebrochen.** Der Avalonia-Port ist
@@ -751,7 +760,7 @@ Nutzer-Test mit Stift.
    den 1-GB-/800-MB-Wert einmal rückversichern** und die Leitlinie „Features vor RAM" beachten.
 5. **GitHub-Veröffentlichung (MIT) — NACH fertiger RAM-Optimierung** (Nutzer-Wunsch
    2026-07-23): `LICENSE` (MIT), **alle Sticker löschen inkl. Git-History** (keine Lizenz),
-   **Cover bleiben** (selbst erstellt), `TestAssets/` ohnehin gelöscht. Volle Checkliste in §5.
+   **Cover bleiben** (selbst erstellt), `TestAssets/` ist bereits gelöscht. Volle Checkliste in §5.
 6. **Render-Caching** nur bei Bedarf **nach** der RAM-Optimierung (§5).
 7. **OCR ✔ umgesetzt (2026-07-17) mit Tesseract** (§5) — Kontextmenü „Text erkennen
    (OCR)" auf Bildern/PDF-Seiten. In-App-UI-Fluss noch im echten Fenster zu testen;

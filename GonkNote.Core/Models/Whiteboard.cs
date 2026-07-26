@@ -1,4 +1,4 @@
-namespace GonkNote.Models;
+namespace GonkNote.Core.Models;
 
 /// <summary>Aktives Zeichenwerkzeug im Whiteboard.</summary>
 public enum ToolType

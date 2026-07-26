@@ -1,7 +1,7 @@
 using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Media;
-using TextDoc = GonkNote.Models.TextDoc;  // Models.TextElement würde mit WPF kollidieren
+using TextDoc = GonkNote.Core.Models.TextDoc;  // Models.TextElement würde mit WPF kollidieren
 
 namespace GonkNote.Services;
 

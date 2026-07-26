@@ -3,8 +3,9 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
-using GonkNote.Models;
+using GonkNote.Core.Models;
 using GonkNote.Services;
+using GonkNote.Core.Services;
 using GonkNote.ViewModels;
 using SkiaSharp;
 

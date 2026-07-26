@@ -4,7 +4,7 @@ using Docnet.Core;
 using Docnet.Core.Models;
 using SkiaSharp;
 
-namespace GonkNote.Services;
+namespace GonkNote.Core.Services;
 
 /// <summary>
 /// Rendert PDF-Seiten über PDFium (Docnet.Core) zu hochauflösenden JPEG-Bildern —

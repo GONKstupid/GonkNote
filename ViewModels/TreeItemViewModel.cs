@@ -1,7 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Media;
-using GonkNote.Models;
+using GonkNote.Core.Models;
 
 namespace GonkNote.ViewModels;
 

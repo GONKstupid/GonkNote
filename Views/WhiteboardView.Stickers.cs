@@ -3,8 +3,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using GonkNote.Models;
-using GonkNote.Services;
+using GonkNote.Core.Models;
+using GonkNote.Core.Services;
 using Microsoft.Win32;
 
 namespace GonkNote.Views;

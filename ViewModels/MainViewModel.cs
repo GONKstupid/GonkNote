@@ -1,8 +1,9 @@
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Threading;
-using GonkNote.Models;
+using GonkNote.Core.Models;
 using GonkNote.Services;
+using GonkNote.Core.Services;
 
 namespace GonkNote.ViewModels;
 

@@ -1,5 +1,5 @@
-using GonkNote.Models;
-using GonkNote.Services;
+using GonkNote.Core.Models;
+using GonkNote.Core.Services;
 
 namespace GonkNote.ViewModels;
 

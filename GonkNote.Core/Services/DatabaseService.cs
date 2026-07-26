@@ -1,32 +1,55 @@
 using System.Collections.Concurrent;
 using System.IO;
 using System.Reflection;
-using GonkNote.Models;
+using GonkNote.Core.Models;
 using LiteDB;
 
-namespace GonkNote.Services;
+namespace GonkNote.Core.Services;
 
 /// <summary>
 /// Löst die Typnamen polymorpher Felder auf – auch die aus älteren Programmständen.
 /// <para>
 /// LiteDB schreibt für jedes Whiteboard-Element ein Feld <c>_type</c> im Format
-/// "Namensraum.Typ, Assembly". Als die Models nach GonkNote.Core umgezogen sind, hat sich
-/// der Assembly-Teil geändert ("GonkNote" → "GonkNote.Core") – bestehende Whiteboards und
-/// Notizbücher ließen sich dadurch nicht mehr öffnen (die App stürzte ab).
+/// "Namensraum.Typ, Assembly". Beides hat sich beim Aufräumen geändert: erst zog die
+/// Assembly um ("GonkNote" → "GonkNote.Core"), dann der Namensraum
+/// ("GonkNote.Models" → "GonkNote.Core.Models"). Ohne Übersetzung ließe sich **kein**
+/// bestehendes Whiteboard mehr öffnen – die App stürzte dabei ab.
 /// </para>
-/// Deshalb zählt beim Lesen nur der Typname selbst; in welcher Assembly er steht, ist egal.
+/// Deshalb wird die Assembly beim Lesen ignoriert und der alte Namensraum auf den neuen
+/// abgebildet. Neu geschriebene Dokumente tragen immer den aktuellen Namen.
 /// </summary>
 internal sealed class ModelTypeBinder : ITypeNameBinder
 {
     public static readonly ModelTypeBinder Instance = new();
 
     private static readonly Assembly Models = typeof(WbElement).Assembly;
+
+    /// <summary>Namensräume aus früheren Ständen → heutiger Namensraum.</summary>
+    private static readonly (string Old, string New)[] Renamed =
+    {
+        ("GonkNote.Models.", "GonkNote.Core.Models."),
+    };
+
     private readonly ConcurrentDictionary<string, Type?> _cache = new();
 
     public string GetName(Type type) => DefaultTypeNameBinder.Instance.GetName(type);
 
-    public Type? GetType(string name) =>
-        _cache.GetOrAdd(name, n => Type.GetType(n) ?? Models.GetType(WithoutAssembly(n)));
+    public Type? GetType(string name) => _cache.GetOrAdd(name, Resolve);
+
+    private static Type? Resolve(string name)
+    {
+        if (Type.GetType(name) is { } exact) return exact;
+
+        string plain = WithoutAssembly(name);
+        if (Models.GetType(plain) is { } byName) return byName;
+
+        foreach (var (old, current) in Renamed)
+            if (plain.StartsWith(old, StringComparison.Ordinal) &&
+                Models.GetType(current + plain[old.Length..]) is { } moved)
+                return moved;
+
+        return null;   // LiteDB meldet den unbekannten Typ selbst
+    }
 
     private static string WithoutAssembly(string name)
     {

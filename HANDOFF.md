@@ -1094,7 +1094,27 @@ danach fein machen; der Prototyp nutzt vorerst **Reiter Bearbeiten/Vorschau** st
   (`AV3-pattern-dark.png`, zugleich Beleg für die Mehrseitigkeit „Seite 3 / 3").
 - ⚠️ **Nicht getestet (braucht Hardware/Interaktion):** die **Finger-Gesten** (Touch-Gerät nötig)
   und der Sticker-Dialog (in der Testumgebung liegen keine Sticker-Dateien neben der Exe).
-- **Offen (4b-Rest):** Zeichenhilfen (Lineal/Geodreieck), PDF-Import, Notizbuch-Cover.
+**Schritt 4b (Teil 7): Rotations-Fix + PDF-Import (2026-07-24).**
+- **Fix (Nutzer-Test): Auswahlrahmen drehte nicht mit.** Das Overlay (Rahmen, Eckgriffe,
+  Dreh-Griff) wird jetzt um denselben Mittelpunkt gedreht wie das Element. Damit die Griffe
+  weiter treffen, rechnen `HandleAt`/`IsOnRotateHandle` **und die Skalierung** den Zeigerpunkt
+  über **`ToLocal()`** in den ungedrehten Raum zurück — dort liegt auch der Skalier-Pivot, den
+  `WbElement.Scale` erwartet. Bei Mehrfachauswahl bleibt der Rahmen bewusst achsenparallel.
+  *(Damit ist die in §5 als „vertagt" notierte WPF-Näherung im Avalonia-Port gelöst.)*
+- **Fix (Nutzer-Test): Sticker-Ordner existierte nicht.** `StickerPicker.UserDir` **legt ihn an**;
+  der Dialog hat jetzt einen Knopf **„＋ Sticker hinzufügen…"** (Dateiauswahl, kopiert
+  kollisionssicher — „ (2)", „ (3)" …). Der Leerzustand erklärt beide Quellen mit vollem Pfad.
+- **PDF-Import**: `PdfImporter` nach **`GonkNote.Core/Services/`** verschoben (ist reines
+  Docnet+Skia, kein WPF) — `Docnet.Core` ist jetzt Core-Abhängigkeit. Button **📕 PDF** und
+  **Drag&Drop**: Seiten werden mit 1400 px langer Kante gerendert (**im Hintergrund-Thread**,
+  Fortschritt „PDF-Seite X / Y" in der Leiste) und **zweispaltig** als Bild-Elemente eingefügt;
+  ein `AddElementsAction` für alles, danach Werkzeug = Auswahl.
+- **Verifiziert per Screenshot:** Rahmen/Griffe liegen exakt auf dem 30°-Zettel
+  (`AV3-rotframe.png`); PDF-Seiten 1–2 des Testdokuments scharf im Raster (`AV3-pdf.png`).
+- 🐧 **Linux-relevant:** Die nativen PDFium-Bibliotheken liegen im Build-Output für **alle** RIDs
+  (`runtimes/linux-x64/native/pdfium.so` usw.) — PDF-Import sollte unter Linux ohne Zusatzarbeit
+  laufen.
+- **Offen (4b-Rest):** Zeichenhilfen (Lineal/Geodreieck), Notizbuch-Cover.
 
 ### 9.4 Gestaffelter Plan
 1. ✅ **PoC/Scaffold + Kernlogik-Reuse** (fertig, §9.1).

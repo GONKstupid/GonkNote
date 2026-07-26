@@ -222,6 +222,9 @@
                         <Button Content="⎘ Duplizieren" Click="Duplicate_Click" ToolTip.Tip="Auswahl duplizieren (Strg+D)"/>
                         <Button Content="🖼 Bild" Click="InsertImage_Click" ToolTip.Tip="Bild einfügen (auch per Drag&amp;Drop)"/>
                         <Button Content="🌟 Sticker" Click="InsertSticker_Click" ToolTip.Tip="Sticker aus der Sammlung"/>
+                        <Button Content="📕 PDF" Click="InsertPdf_Click" ToolTip.Tip="PDF-Seiten als Bilder einfügen"/>
+                        <TextBlock Name="PdfStatus" IsVisible="False" VerticalAlignment="Center"
+                                   Margin="8,0" Opacity="0.8" FontSize="12"/>
                         <Button Content="⤢ 100 %" Click="ZoomReset_Click"/>
                         <Border Width="1" Background="#33808080" Margin="4,2"/>
                         <Button Content="‹" Click="PrevPage_Click" ToolTip.Tip="Vorherige Seite"/>

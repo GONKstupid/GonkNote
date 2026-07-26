@@ -10,6 +10,7 @@ using Avalonia.Styling;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using GonkNote.Models;
+using GonkNote.Services;
 
 namespace GonkNote.Avalonia;
 
@@ -283,8 +284,9 @@ public partial class MainWindow : Window
         {
             if (item is not IStorageFile file) continue;
             string path = file.Path.LocalPath;
-            if (!IsImagePath(path)) continue;
-            InsertImageFile(path);
+
+            if (IsImagePath(path)) InsertImageFile(path);
+            else if (path.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase)) _ = ImportPdfAsync(path);
         }
         e.Handled = true;
     }
@@ -330,6 +332,80 @@ public partial class MainWindow : Window
         });
 
         foreach (var f in files) InsertImageFile(f.Path.LocalPath);
+    }
+
+    /// <summary>
+    /// PDF importieren: jede Seite wird über PDFium gerendert und als Bild-Element eingefügt
+    /// (zweispaltig wie in der WPF-App). Läuft im Hintergrund, das Fenster bleibt bedienbar.
+    /// </summary>
+    private async void InsertPdf_Click(object? sender, RoutedEventArgs e)
+    {
+        var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = "PDF einfügen",
+            AllowMultiple = false,
+            FileTypeFilter = new[]
+            {
+                new FilePickerFileType("PDF") { Patterns = new[] { "*.pdf" } },
+            },
+        });
+        if (files.Count == 0) return;
+
+        await ImportPdfAsync(files[0].Path.LocalPath);
+    }
+
+    private async System.Threading.Tasks.Task ImportPdfAsync(string path)
+    {
+        if (Vm.CurrentPage is not { } page) return;
+
+        PdfStatus.IsVisible = true;
+        PdfStatus.Text = "PDF wird gelesen…";
+
+        var progress = new Progress<(int Done, int Total)>(p =>
+            PdfStatus.Text = $"PDF-Seite {p.Done} / {p.Total}…");
+
+        try
+        {
+            // 1400 px lange Kante: scharf genug zum Draufschreiben, ohne die DB zu sprengen.
+            var pages = await System.Threading.Tasks.Task.Run(
+                () => PdfImporter.RenderPages(path, 1400, progress));
+
+            if (pages.Count == 0) { PdfStatus.Text = "PDF enthält keine Seiten."; return; }
+
+            // Zweispaltiges Raster ab der Ansichtsmitte
+            var origin = Board.ViewCenter();
+            const float gap = 24f;
+            float colW = 380f;
+            var added = new System.Collections.Generic.List<WbElement>();
+
+            for (int i = 0; i < pages.Count; i++)
+            {
+                var p = pages[i];
+                float scale = colW / p.Width;
+                float w = colW, h = p.Height * scale;
+                float x = origin.X + (i % 2) * (colW + gap);
+                float y = origin.Y + (i / 2) * (h + gap);
+
+                var el = new ImageElement { X = x, Y = y, Width = w, Height = h, Data = p.Data };
+                page.Elements.Add(el);
+                added.Add(el);
+            }
+
+            Vm.OnElementsAdded(added);
+            Board.Tool = ToolType.Move;
+            Board.InvalidateVisual();
+            PdfStatus.Text = $"{pages.Count} Seite(n) eingefügt.";
+        }
+        catch (Exception ex)
+        {
+            PdfStatus.Text = "PDF-Import fehlgeschlagen: " + ex.Message;
+        }
+        finally
+        {
+            // Meldung nach kurzer Zeit ausblenden
+            await System.Threading.Tasks.Task.Delay(4000);
+            PdfStatus.IsVisible = false;
+        }
     }
 
     /// <summary>Sticker aus der Sammlung wählen und einfügen (technisch ein Bild-Element).</summary>

@@ -458,8 +458,8 @@ public partial class WhiteboardView : UserControl
         if (WidthSlider == null || WidthLabel == null || WidthIcon == null) return;
 
         string what = SizeControlsEraser ? "Radierergröße" : "Strichstärke";
-        WidthSlider.ToolTip = WidthIcon.ToolTip = $"{what} – lange drücken für Zahleneingabe";
-        WidthLabel.ToolTip = $"{what} per Zahlenblock eingeben";
+        WidthSlider.ToolTip = WidthIcon.ToolTip = WidthLabel.ToolTip =
+            $"{what} – lange drücken für Zahleneingabe";
 
         WidthSlider.Value = ActiveSize;
         WidthLabel.Content = ActiveSize.ToString("0.#");

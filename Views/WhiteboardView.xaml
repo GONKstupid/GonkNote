@@ -188,7 +188,8 @@
 
                     <Border Width="1" Background="{DynamicResource Brush.Border}" Margin="6,4"/>
 
-                    <!-- Strichstärke (Icon ist ebenfalls Langdruck-Auslöser für den Zahlenblock) -->
+                    <!-- Werkzeuggröße. Alle drei Bedienelemente (Icon, Schieber, Wertanzeige)
+                         öffnen per Langdruck denselben Zahlenblock. -->
                     <TextBlock x:Name="WidthIcon" Text="&#xE76D;" FontFamily="{StaticResource IconFont}" FontSize="12"
                                Background="Transparent" Cursor="Hand"
                                Foreground="{DynamicResource Brush.TextMuted}" VerticalAlignment="Center" Margin="2,0"
@@ -196,7 +197,6 @@
                                PreviewMouseLeftButtonDown="SizeInput_Down" PreviewMouseMove="SizeInput_Move"
                                PreviewMouseLeftButtonUp="SizeInput_Up"
                                TouchDown="SizeInput_TouchDown" TouchMove="SizeInput_TouchMove" TouchUp="SizeInput_TouchUp"/>
-                    <!-- Langes Drücken auf Slider oder Wert öffnet den Zahlenblock -->
                     <Slider x:Name="WidthSlider" Width="90" Minimum="1" Maximum="20" Value="2.5"
                             VerticalAlignment="Center" ValueChanged="WidthSlider_ValueChanged"
                             ToolTip="Strichstärke – lange drücken für Zahleneingabe"
@@ -206,7 +206,10 @@
                     <Button x:Name="WidthLabel" Content="2,5" MinWidth="26" VerticalAlignment="Center" Margin="4,0,0,0"
                             Style="{StaticResource FlatButton}" Padding="4,2" FontSize="11"
                             Foreground="{DynamicResource Brush.TextMuted}"
-                            ToolTip="Strichstärke per Zahlenblock eingeben" Click="OpenSizeNumpad_Click"/>
+                            ToolTip="Strichstärke – lange drücken für Zahleneingabe"
+                            PreviewMouseLeftButtonDown="SizeInput_Down" PreviewMouseMove="SizeInput_Move"
+                            PreviewMouseLeftButtonUp="SizeInput_Up"
+                            TouchDown="SizeInput_TouchDown" TouchMove="SizeInput_TouchMove" TouchUp="SizeInput_TouchUp"/>
 
                     <!-- Zahlenblock (Popup) – Vorbild Adobe Fresco, im App-Stil -->
                     <Popup x:Name="SizeNumpad" PlacementTarget="{Binding ElementName=WidthSlider}"

@@ -9,6 +9,7 @@ using Avalonia.Platform.Storage;
 using Avalonia.Styling;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using GonkNote.Editing;
 using GonkNote.Models;
 using GonkNote.Services;
 
@@ -185,6 +186,19 @@ public partial class MainWindow : Window
             4 => ShapeKind.Triangle,
             _ => ShapeKind.Rectangle,
         };
+    }
+
+    // ---- Zeichenhilfen (Lineal / Geodreieck) ---------------------------------------------
+
+    private void Ruler_Click(object? sender, RoutedEventArgs e) => ToggleAid(DrawAidKind.Ruler);
+
+    private void SetSquare_Click(object? sender, RoutedEventArgs e) => ToggleAid(DrawAidKind.SetSquare);
+
+    private void ToggleAid(DrawAidKind kind)
+    {
+        Board.ToggleAid(kind);
+        BtnRuler.Classes.Set("active", Board.Aid.Kind == DrawAidKind.Ruler);
+        BtnSetSquare.Classes.Set("active", Board.Aid.Kind == DrawAidKind.SetSquare);
     }
 
     private void DeleteSel_Click(object? sender, RoutedEventArgs e) => DeleteSelection();

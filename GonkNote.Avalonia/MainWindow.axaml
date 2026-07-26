@@ -223,6 +223,11 @@
                         <Button Content="🖼 Bild" Click="InsertImage_Click" ToolTip.Tip="Bild einfügen (auch per Drag&amp;Drop)"/>
                         <Button Content="🌟 Sticker" Click="InsertSticker_Click" ToolTip.Tip="Sticker aus der Sammlung"/>
                         <Button Content="📕 PDF" Click="InsertPdf_Click" ToolTip.Tip="PDF-Seiten als Bilder einfügen"/>
+                        <Border Width="1" Background="#33808080" Margin="4,2"/>
+                        <Button Name="BtnRuler" Content="📏 Lineal" Click="Ruler_Click"
+                                ToolTip.Tip="Lineal ein-/ausblenden (Striche rasten an der Kante ein)"/>
+                        <Button Name="BtnSetSquare" Content="📐 Geodreieck" Click="SetSquare_Click"
+                                ToolTip.Tip="Geodreieck ein-/ausblenden"/>
                         <TextBlock Name="PdfStatus" IsVisible="False" VerticalAlignment="Center"
                                    Margin="8,0" Opacity="0.8" FontSize="12"/>
                         <Button Content="⤢ 100 %" Click="ZoomReset_Click"/>

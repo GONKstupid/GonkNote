@@ -1114,7 +1114,29 @@ danach fein machen; der Prototyp nutzt vorerst **Reiter Bearbeiten/Vorschau** st
 - 🐧 **Linux-relevant:** Die nativen PDFium-Bibliotheken liegen im Build-Output für **alle** RIDs
   (`runtimes/linux-x64/native/pdfium.so` usw.) — PDF-Import sollte unter Linux ohne Zusatzarbeit
   laufen.
-- **Offen (4b-Rest):** Zeichenhilfen (Lineal/Geodreieck), Notizbuch-Cover.
+**Schritt 4b (Teil 8): Zeichenhilfen Lineal + Geodreieck (2026-07-24).**
+- **Geometrie nach Core gehoben:** neue **`GonkNote.Core/Editing/WbDrawAid.cs`** — Polygon,
+  Achsen, Kanten-Einrasten (`TryActivateSnap`/`ApplySnap`), Dreh-Griff, 15°-Winkelrastung.
+  Konstanten wie in WPF (`PxPerCm=37,795`, Lineal 680×52, Geodreieck 16 cm).
+- **Rendering nach Core:** neue **`GonkNote.Core/Rendering/WbAidRenderer.cs`** zeichnet Lineal
+  (Glasfläche + cm-Skala) und Geodreieck. Die **SVG-Assets des Nutzers** sind jetzt in
+  **Core** eingebettet (`LogicalName=GonkNote.Core.Assets.Geodreieck-*.svg`, Dateien bleiben
+  in `Assets/`); `Svg.Skia` ist Core-Abhängigkeit. **WPF leitet `DrawSetSquare` dorthin weiter**
+  → eine Wahrheit, `WhiteboardView.xaml.cs` 4077 → **4013 Zeilen**.
+- **Avalonia:** Buttons **📏 Lineal** / **📐 Geodreieck** (aktiver Zustand hervorgehoben).
+  Die Hilfe lässt sich **verschieben** (Körper ziehen) und **drehen** (Griff, 15°-Rastung);
+  beides hat Vorrang vor den Werkzeugen. Beim Zeichnen rastet der Strich an der nächsten Kante
+  ein (`AddPoint` projiziert über `ApplySnap`), das Einrasten endet mit dem Strich.
+- **Zwei Fehler dabei gefunden und behoben:**
+  1. **Doku-Platzhalter lag über dem Whiteboard** — `ShowDocument` wurde gemeldet, *bevor*
+     `LoadBoardPage()` die Seite setzte (und `ShowWhiteboard` davon abhängt). Reihenfolge
+     korrigiert.
+  2. **`ViewCenter()` bei ungemessenem Control** lieferte (0,0) → Hilfen landeten am Rand.
+     Fällt jetzt auf eine Ersatzgröße zurück.
+- **Verifiziert per Screenshot:** Geodreieck rendert **vollständig aus den SVG-Assets**
+  (Gradskala, Winkellinien, pinkes Band, cm-Skala — `AV3-setsquare4.png`); Lineal mit
+  cm-Skala und Akzentkante (`AV3-ruler.png`).
+- **Offen (4b-Rest):** Notizbuch-Cover.
 
 ### 9.4 Gestaffelter Plan
 1. ✅ **PoC/Scaffold + Kernlogik-Reuse** (fertig, §9.1).

@@ -46,10 +46,14 @@ public sealed class ShellViewModel : ObservableObject
                 OnPropertyChanged(nameof(SelectedTitle));
                 OnPropertyChanged(nameof(SelectedKindText));
                 OnPropertyChanged(nameof(ShowGallery));
-                OnPropertyChanged(nameof(ShowDocument));
                 OnPropertyChanged(nameof(GalleryTitle));
-                LoadBoardPage();                       // vor ShowDocument/ShowWhiteboard-Meldung
+
+                // Erst die Seite laden, dann melden: ShowDocument hängt von ShowWhiteboard ab,
+                // und das wiederum von CurrentPage. Andersherum bliebe der Doku-Platzhalter
+                // sichtbar und läge über dem Whiteboard.
+                LoadBoardPage();
                 OnPropertyChanged(nameof(ShowWhiteboard));
+                OnPropertyChanged(nameof(ShowDocument));
                 RebuildGallery();
                 RebuildBreadcrumb();
             }

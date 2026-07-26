@@ -3378,79 +3378,15 @@ public partial class WhiteboardView : UserControl
     // zentrum, skaliert auf 1 Geodreieck-cm = 1 Seiten-cm (PxPerCm). Dadurch deckt
     // sich der Aufdruck exakt mit dem Einrast-/Dreh-Polygon (SsHalfHyp = 8 cm).
 
-    private const float SsSvgUnitsPerCm = 157.2f;
-    private static readonly SKPoint SsSvgMid = new(1259.85f, 1468.85f);
-
-    private static Svg.Skia.SKSvg? _ssSvgLight, _ssSvgDark;
-
-    /// <summary>SVG des aktuellen Themes, beim ersten Zugriff aus der Ressource geladen.</summary>
-    private static SKPicture? SetSquarePicture()
-    {
-        bool dark = ThemeService.Current == AppTheme.Dark;
-        var cached = dark ? _ssSvgDark : _ssSvgLight;
-        if (cached == null)
-        {
-            try
-            {
-                string name = dark
-                    ? "GonkNote.Assets.Geodreieck-Dark.svg"
-                    : "GonkNote.Assets.Geodreieck-Light.svg";
-                using var stream = typeof(WhiteboardView).Assembly.GetManifestResourceStream(name);
-                if (stream == null) return null;
-                var svg = new Svg.Skia.SKSvg();
-                svg.Load(stream);
-                if (dark) _ssSvgDark = svg;
-                else _ssSvgLight = svg;
-                cached = svg;
-            }
-            catch
-            {
-                return null;   // kaputte/fehlende Ressource -> Notnagel unten
-            }
-        }
-        return cached?.Picture;
-    }
-
     /// <summary>
     /// Zeichnet das Geodreieck-SVG um <paramref name="center"/> mit Drehung
-    /// <paramref name="angleDeg"/>. Statisch, damit der Render-Harness exakt
-    /// denselben Code aufrufen kann wie die App.
+    /// <paramref name="angleDeg"/>. Leitet auf <see cref="WbAidRenderer"/> in GonkNote.Core
+    /// weiter, damit WPF und der Avalonia-Port dieselben Assets und dieselbe Geometrie
+    /// nutzen (HANDOFF §9.3e). Statisch, damit der Render-Harness denselben Code aufruft.
     /// </summary>
-    public static void DrawSetSquare(SKCanvas canvas, SKPoint center, float angleDeg, float zoom)
-    {
-        var picture = SetSquarePicture();
-        if (picture != null)
-        {
-            float s = PxPerCm / SsSvgUnitsPerCm;
-            canvas.Save();
-            canvas.Translate(center.X, center.Y);
-            canvas.RotateDegrees(angleDeg);
-            canvas.Scale(s);
-            canvas.Translate(-SsSvgMid.X, -SsSvgMid.Y);
-            canvas.DrawPicture(picture);
-            canvas.Restore();
-            return;
-        }
-
-        // Notnagel: schlichte Glas-Kontur, falls die SVG-Ressource nicht ladbar ist
-        float rad = angleDeg * MathF.PI / 180f;
-        float cos = MathF.Cos(rad), sin = MathF.Sin(rad);
-        SKPoint P(float u, float v)
-        {
-            float x = u * PxPerCm, y = -v * PxPerCm;
-            return new SKPoint(center.X + x * cos - y * sin, center.Y + x * sin + y * cos);
-        }
-        using var path = new SKPath();
-        path.MoveTo(P(-8f, 0)); path.LineTo(P(8f, 0)); path.LineTo(P(0, 8f)); path.Close();
-        using (var fill = new SKPaint { Color = new SKColor(0xF2, 0xF3, 0xF8, 165), IsAntialias = true })
-            canvas.DrawPath(path, fill);
-        using var edge = new SKPaint
-        {
-            Color = new SKColor(46, 49, 82), Style = SKPaintStyle.Stroke,
-            StrokeWidth = 1.5f / zoom, IsAntialias = true,
-        };
-        canvas.DrawPath(path, edge);
-    }
+    public static void DrawSetSquare(SKCanvas canvas, SKPoint center, float angleDeg, float zoom) =>
+        WbAidRenderer.DrawSetSquare(canvas, center, angleDeg, zoom,
+                                    ThemeService.Current == AppTheme.Dark);
 
     private void DrawAidAngle(SKCanvas canvas)
     {

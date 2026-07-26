@@ -5,6 +5,7 @@ using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Rendering.SceneGraph;
 using Avalonia.Skia;
+using Avalonia.Styling;
 using System.Collections.Generic;
 using GonkNote.Editing;
 using GonkNote.Models;
@@ -186,7 +187,9 @@ public class WhiteboardCanvas : Control
         context.Custom(new PageDrawOperation(new Rect(Bounds.Size), page, Zoom, _active, PanX, PanY,
                                              _shape, _lasso, SelectionBounds(),
                                              _selection.Count == 1 ? RotateHandlePos() : null,
-                                             SelectionRotation()));
+                                             SelectionRotation(),
+                                             Aid.IsActive ? Aid : null,
+                                             ActualThemeVariant == ThemeVariant.Dark));
     }
 
     // ---- Zeigereingabe (Stift / Maus / Finger) ------------------------------------------
@@ -205,6 +208,22 @@ public class WhiteboardCanvas : Control
 
     /// <summary>Rückgängig per 3-Finger-Tipp (die Shell hängt sich hier ein).</summary>
     public event EventHandler? UndoRequested;
+
+    // ---- Zeichenhilfen (Lineal / Geodreieck) --------------------------------------------
+
+    /// <summary>Transiente Zeichenhilfe; Geometrie/Einrasten liegen in GonkNote.Core.</summary>
+    public WbDrawAid Aid { get; } = new();
+
+    private enum AidDrag { None, Move, Rotate }
+    private AidDrag _aidDrag = AidDrag.None;
+    private SKPoint _aidDragLast;
+
+    /// <summary>Schaltet eine Zeichenhilfe ein/aus (erneuter Aufruf schaltet sie ab).</summary>
+    public void ToggleAid(DrawAidKind kind)
+    {
+        Aid.Toggle(kind, ViewCenter());
+        InvalidateVisual();
+    }
 
     private bool IsTouch(PointerEventArgs e) => e.Pointer.Type == PointerType.Touch;
 
@@ -290,6 +309,26 @@ public class WhiteboardCanvas : Control
 
         var page0 = Page!;
         var hit = ToPage(pt.Position);
+
+        // ---- Zeichenhilfe bewegen/drehen (hat Vorrang, solange sie aktiv ist) ----
+        if (Aid.IsActive)
+        {
+            if (Aid.HandleHit(hit, Zoom))
+            {
+                _aidDrag = AidDrag.Rotate;
+                e.Pointer.Capture(this);
+                e.Handled = true;
+                return;
+            }
+            if (Aid.BodyContains(hit))
+            {
+                _aidDrag = AidDrag.Move;
+                _aidDragLast = hit;
+                e.Pointer.Capture(this);
+                e.Handled = true;
+                return;
+            }
+        }
 
         // ---- Dreh-Griff (nur bei Einzelauswahl) ----
         if ((Tool == ToolType.Move || Tool == ToolType.Lasso) &&
@@ -402,6 +441,9 @@ public class WhiteboardCanvas : Control
             return;
         }
 
+        // Strichstart nahe einer Hilfskante ⇒ ab jetzt an dieser Linie entlangzeichnen
+        Aid.TryActivateSnap(hit);
+
         _active = new StrokeElement
         {
             Color = InkColor,
@@ -458,6 +500,25 @@ public class WhiteboardCanvas : Control
         if (_eraseSteps is not null)
         {
             EraseAt(ToPage(pt.Position));
+            e.Handled = true;
+            InvalidateVisual();
+            return;
+        }
+
+        if (_aidDrag != AidDrag.None)
+        {
+            var now = ToPage(pt.Position);
+            if (_aidDrag == AidDrag.Move)
+            {
+                Aid.Center = new SKPoint(Aid.Center.X + (now.X - _aidDragLast.X),
+                                         Aid.Center.Y + (now.Y - _aidDragLast.Y));
+                _aidDragLast = now;
+            }
+            else
+            {
+                float raw = MathF.Atan2(now.Y - Aid.Center.Y, now.X - Aid.Center.X) * 180f / MathF.PI;
+                Aid.AngleDeg = WbDrawAid.SnapAngle(raw);   // 15°-Rastung
+            }
             e.Handled = true;
             InvalidateVisual();
             return;
@@ -575,6 +636,15 @@ public class WhiteboardCanvas : Control
             return;
         }
 
+        if (_aidDrag != AidDrag.None)
+        {
+            _aidDrag = AidDrag.None;
+            e.Pointer.Capture(null);
+            e.Handled = true;
+            InvalidateVisual();
+            return;
+        }
+
         if (_rotating)
         {
             _rotating = false;
@@ -640,6 +710,7 @@ public class WhiteboardCanvas : Control
         AddPoint(e.GetCurrentPoint(this));
         var finished = _active;
         _active = null;
+        Aid.ClearSnap();          // Einrasten gilt nur für den gerade gezogenen Strich
         e.Pointer.Capture(null);
         e.Handled = true;
 
@@ -926,9 +997,17 @@ public class WhiteboardCanvas : Control
         return img;
     }
 
-    /// <summary>Mitte des sichtbaren Bereichs in Seiten-Koordinaten (Standard-Einfügeort).</summary>
-    public SKPoint ViewCenter() =>
-        ToPage(new Point(Bounds.Width / 2, Bounds.Height / 2));
+    /// <summary>
+    /// Mitte des sichtbaren Bereichs in Seiten-Koordinaten (Standard-Einfügeort).
+    /// Ist das Control noch nicht gemessen (z. B. direkt nach <c>Loaded</c>), wird eine
+    /// sinnvolle Ersatzgröße benutzt — sonst landet alles bei (0,0) am Rand.
+    /// </summary>
+    public SKPoint ViewCenter()
+    {
+        double w = Bounds.Width > 1 ? Bounds.Width : 800;
+        double h = Bounds.Height > 1 ? Bounds.Height : 600;
+        return ToPage(new Point(w / 2, h / 2));
+    }
 
     /// <summary>
     /// **Punktgenaues** Radieren wie in der WPF-App: Striche werden an der berührten Stelle
@@ -973,7 +1052,7 @@ public class WhiteboardCanvas : Control
         if (_active is null) return;
         float pressure = pt.Properties.Pressure;
         if (pressure <= 0f || float.IsNaN(pressure)) pressure = 0.5f;   // kein Drucksensor
-        var p = ToPage(pt.Position);
+        var p = Aid.ApplySnap(ToPage(pt.Position));   // ggf. auf die Hilfskante projizieren
         _active.Points.Add(new WbPoint { X = p.X, Y = p.Y, P = pressure });
     }
 
@@ -989,14 +1068,18 @@ public class WhiteboardCanvas : Control
         private readonly SKRect? _selBounds;
         private readonly SKPoint? _rotateHandle;
         private readonly float _selRotation;
+        private readonly WbDrawAid? _aid;
+        private readonly bool _dark;
 
         public PageDrawOperation(Rect bounds, WbPage page, double zoom, StrokeElement? active,
                                  double panX, double panY, ShapeElement? shape,
                                  List<SKPoint>? lasso, SKRect? selBounds, SKPoint? rotateHandle,
-                                 float selRotation)
+                                 float selRotation, WbDrawAid? aid, bool dark)
         {
             _rotateHandle = rotateHandle;
             _selRotation = selRotation;
+            _aid = aid;
+            _dark = dark;
             Bounds = bounds;
             _page = page;
             _zoom = zoom;
@@ -1084,6 +1167,10 @@ public class WhiteboardCanvas : Control
                 WbRenderer.DrawShape(canvas, sh, sh.Color, sh.StrokeWidth);
 
             DrawOverlays(canvas);
+
+            // Zeichenhilfen ganz oben (transient, nicht Teil der Seite)
+            if (_aid is { } aid)
+                WbAidRenderer.DrawAid(canvas, aid, _zoom, new SKColor(0x5B, 0x21, 0xB6), _dark);
         }
 
         /// <summary>Lasso-Spur und Auswahlrahmen (transient, nicht Teil der Seite).</summary>

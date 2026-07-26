@@ -17,6 +17,15 @@
     <PackageReference Include="SkiaSharp" Version="2.88.9" />
     <!-- PDF-Rendering (PDFium); hat Linux-Builds → bleibt cross-platform -->
     <PackageReference Include="Docnet.Core" Version="2.6.0" />
+    <!-- SVG-Rendering für das Geodreieck-Overlay -->
+    <PackageReference Include="Svg.Skia" Version="1.0.0.18" />
+  </ItemGroup>
+
+  <!-- Geodreieck-Overlays (Nutzer-SVGs, je Theme). Liegen weiterhin im WPF-Assets-Ordner,
+       werden aber HIER eingebettet, damit beide UIs sie über GonkNote.Core laden. -->
+  <ItemGroup>
+    <EmbeddedResource Include="..\Assets\Geodreieck-Light.svg" LogicalName="GonkNote.Core.Assets.Geodreieck-Light.svg" />
+    <EmbeddedResource Include="..\Assets\Geodreieck-Dark.svg" LogicalName="GonkNote.Core.Assets.Geodreieck-Dark.svg" />
   </ItemGroup>
 
 </Project>

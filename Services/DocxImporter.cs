@@ -1,9 +1,9 @@
+using GonkNote.Core.Services;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using TextDoc = GonkNote.Core.Models.TextDoc;  // Models.TextElement würde mit WPF kollidieren
@@ -35,7 +35,7 @@ public static class DocxImporter
         using var ms = new MemoryStream();
 
         // Bilder bleiben draußen – im Paket steht nur der Verweis auf das Original
-        using (DocumentImages.Detach(flow, App.Db.Blobs))
+        using (DocumentImages.Detach(flow, BlobStore.Current!))
             range.Save(ms, DataFormats.XamlPackage, true);
 
         if (target != null) target.Images = DocumentImages.UsedBlobs(flow).ToList();
@@ -337,7 +337,7 @@ public static class DocxImporter
             }
 
             var image = new Image { Source = proxy, Width = width, Height = height, Stretch = Stretch.Uniform };
-            DocumentImages.Remember(image, original, ExtensionOf(part), App.Db.Blobs);
+            DocumentImages.Remember(image, original, ExtensionOf(part), BlobStore.Current!);
             return image;
         }
         catch

@@ -123,7 +123,10 @@ public static class PdfExporter
             case StrokeElement s: WhiteboardView.DrawStroke(canvas, s); break;
             case ShapeElement sh: WhiteboardView.DrawShape(canvas, sh, sh.Color, sh.StrokeWidth); break;
             case GonkNote.Core.Models.TextElement t: WhiteboardView.DrawText(canvas, t); break;
-            case ImageElement im: DrawImage(canvas, SKRect.Create(im.X, im.Y, im.Width, im.Height), im.Data); break;
+            case ImageElement im:
+                DrawImage(canvas, SKRect.Create(im.X, im.Y, im.Width, im.Height),
+                          ImageCache.Bytes(im.Id, im.Data));
+                break;
             case StickyNoteElement sn: WhiteboardView.DrawSticky(canvas, sn); break;
         }
     }
@@ -173,7 +176,7 @@ public static class PdfExporter
 
         // Importierte PDF-Seite bzw. Cover haben Vorrang vor dem Muster.
         // Aus Original-Bytes zeichnen (nicht aus ImageCache) → verlustfreier Export.
-        if (page.BackgroundImage is { Length: > 0 } bgData)
+        if (ImageCache.Bytes(page.BackgroundImageId, page.BackgroundImage) is { Length: > 0 } bgData)
         {
             DrawImage(canvas, SKRect.Create(0, 0, page.Width, page.Height), bgData);
             return;
@@ -340,7 +343,7 @@ public static class PdfExporter
         // Für die Kopie die Originale einsetzen: gerastert wird aus dem Original, nicht aus
         // der Anzeige-Ableitung (siehe DocumentImages).
         FlowDocument doc;
-        using (DocumentImages.WithFullResolution(flow, App.Db.Blobs))
+        using (DocumentImages.WithFullResolution(flow, BlobStore.Current!))
             doc = CloneForPrint(flow, pw, margin);
 
         var paginator = ((IDocumentPaginatorSource)doc).DocumentPaginator;

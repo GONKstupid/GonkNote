@@ -12,6 +12,34 @@
 > ausführlichen Tabellen als Standard). **Ausführlich nur** bei **offenen Fragen und
 > Entscheidungen**, die der Nutzer treffen muss — die weiterhin klar begründen.
 >
+> **Runde 26 (2026-07-27) zuletzt: Grosse Dokumente — Bilder raus aus dem Datensatz.**
+> Der in Runde 25 gefundene Befund (§11) ist behoben. Neuer `BlobStore` (Core): je Bild bzw.
+> PDF **eine Datei neben der Datenbank** (`gonknote.blobs\`), im Datensatz steht nur die Id.
+> Das Original wird **unveraendert** abgelegt, angezeigt wird eine auf 2048 px dekodierte
+> Ableitung, exportiert wird aus dem Original.
+>
+> | | vorher | nachher |
+> |---|---|---|
+> | Word mit 3 Fotos: in der Datenbank | 16 787 KB (nicht speicherbar) | **2 KB** |
+> | Word mit 3 Fotos: wieder exportiert | 16 793 KB (Faktor 8,2) | **2 050 KB (1,00)** |
+> | Notizbuch mit importierten Seiten | Schluss bei ~17 Seiten | **120 Seiten / 118 MB** |
+> | RAM, Notizbuch offen + durchgeblaettert | 418 MB privat (bei 16 Seiten) | **267 MB (bei 120)** |
+>
+> **Der Speicherbedarf haengt nicht mehr an der Dokumentgroesse** — nur die sichtbaren Seiten
+> liegen dekodiert im `ImageCache` (Budget 96 MB). Eine RAM-Optimierung war deshalb nicht
+> noetig; das Verfahren hat den Bedarf gesenkt statt erhoeht.
+>
+> **Sicherung ab jetzt: Datenbankdatei UND Blob-Ordner.**
+>
+> **Migration laeuft von selbst:** Bestandsdokumente bringen ihre Bytes noch im Datensatz mit,
+> die haben Vorrang und wandern beim naechsten Speichern in den Blob-Speicher
+> (`DatabaseService.SaveBoard` bzw. der Editor beim Flush).
+>
+> **Verwaiste Blobs** (geloeschte Dokumente, abgebrochene Importe) raeumt ein Hintergrundlauf
+> 10 s nach dem Start weg (`DatabaseService.RemoveOrphanBlobs`). Er fasst nur Blobs an, die
+> aelter als eine Stunde sind — ein laufender Import hat seine Bilder sonst schon geschrieben,
+> aber noch in keinem gespeicherten Dokument eingetragen.
+>
 > **Runde 25 (2026-07-26) zuletzt: RAM gemessen und die unbegrenzten Pfade geschlossen.**
 > **Erst gemessen (Release, Vollbild bei 200 % DPI, `%TEMP%\gonk-verify\mem2.ps1`):**
 >
@@ -485,6 +513,7 @@ GonkNote.Core/                Kernbibliothek OHNE UI-Bezug (net8.0, kein WPF).
 │                             WhiteboardDoc, PageTemplate, TextDoc
 ├─ Services/
 │  ├─ DatabaseService.cs      LiteDB (items/boards/texts/settings), --db-fähig
+│  ├─ BlobStore.cs            Bilder/PDFs als eigene Dateien neben der DB (§11)
 │  ├─ ImageCache.cs           Byte-Budget-Cache (96 MB) dekodierter Bilder
 │  ├─ UndoStack.cs            Undo/Redo (PartialErase/Resize/Rotate/Scale-Actions)
 │  └─ PdfImporter.cs          PDF → JPEG-Seiten via Docnet.Core/PDFium
@@ -966,37 +995,50 @@ gleiche Platzhalter `{0}`, `{1}`). Es hat schon einen echten Fehler gefunden: de
 
 
 ---
-## 11. ⚠️ Offener Befund: LiteDB speichert ein Dokument nur bis ~16 MB
+## 11. Grosse Dokumente: Bilder liegen neben der Datenbank
 
-Beim Aufbau der RAM-Messung (Runde 25) gefunden, **noch nicht behoben**:
-
-Ein `WhiteboardDoc` wird als **ein** LiteDB-Dokument gespeichert — mit allen Seiten und deren
-Bildbytes darin. LiteDB begrenzt ein Dokument auf **16 683 050 Bytes**. Wird das überschritten,
-wirft `SaveBoard` eine `LiteException`:
+**Erledigt am 2026-07-27** (der frueher hier beschriebene 16-MB-Fehler ist damit weg).
 
 ```
-LiteDB.LiteException: Document size exceed 16683050 limit
-   at LiteDB.Engine.DataService.Insert(BsonDocument doc)
-   at GonkNote.Core.Services.DatabaseService.SaveBoard(WhiteboardDoc doc)
+%APPDATA%\GonkNote\
+├─ gonknote.db          Struktur, Texte, Striche, Verweise
+└─ gonknote.blobs\      je Bild/PDF eine Datei, nach den ersten zwei Zeichen der Id sortiert
 ```
 
-**Wann es zuschlägt:** Import eines längeren PDFs in *ein* Notizbuch. Bei den Testseiten des
-Harness (`%TEMP%\gonk-heavy`, Textseiten mit ~950 KB JPEG) ist bei **17 Seiten** Schluss; bei
-den ~400 KB, die §5 für typische Seiten nennt, bei etwa 38. Dasselbe gilt für viele eingefügte
-Bilder in einem Whiteboard.
+**Die Regel:** Das Original wird nie angefasst. Angezeigt wird eine Ableitung. Exportiert wird
+aus dem Original.
 
-**Warum das ernst ist:** Das Dokument lässt sich danach **nicht mehr speichern** — Autosave und
-Schließen scheitern jedes Mal. Seit Runde 22 sieht der Nutzer wenigstens eine Meldung und die
-App bleibt offen (vorher hätte es sie beendet und die Arbeit war weg), aber die Seiten sind
-verloren, sobald die App zugeht.
+**Textdokumente.** XamlPackage speichert nur wenige Eigenschaften mit — das wurde vorher
+durchgemessen: `Tag`, `Name` und `Uid` ueberleben **nicht**, `ToolTip` schon, und ein Bild ohne
+Quelle wird beim Speichern ganz verworfen. Deshalb fuehrt `DocumentImages` den Verweis zur
+Laufzeit im `Tag` und beim Speichern kurzzeitig im `ToolTip`, mit einem 1x1-Platzhalter als
+Quelle. Der ToolTip existiert nur in der gespeicherten Fassung, nie im offenen Dokument.
+**Wer dort etwas aendert, muss diese Messung wiederholen** — die Liste, was XamlPackage
+mitspeichert, ist nirgends dokumentiert.
 
-**Vorgeschlagene Lösung (mit dem Nutzer abzustimmen, weil es das Speicherformat ändert):**
-Bilder nicht mehr im Dokument mitschreiben, sondern **je Bild ein eigener Datensatz**
-(LiteDB-`FileStorage` oder eine Sammlung `images`), im Dokument bleibt nur die Id. Vorteile:
-- die 16-MB-Grenze fällt weg (jedes Bild ist weit darunter),
-- Öffnen wird billiger (Bildbytes erst beim Anzeigen),
-- der Speicherbedarf hängt nur noch am `ImageCache`-Budget.
+**Whiteboard/Notizbuch.** `ImageElement`, `WbPage.BackgroundImage` und `CoverStyle.Image`
+tragen alle schon eine Id — die ist jetzt zugleich die Blob-Id. `ImageCache.Bytes(id, inline)`
+ist der eine Zugang: inline (Bestandsdokument) hat Vorrang, sonst kommt es aus dem Blob-Speicher.
+`BlobStore.Current` ist der kanonische Verweis; die Services greifen bewusst **nicht** mehr auf
+`App.Db` zu.
 
-Zu bedenken: Migration der Bestandsdokumente (inline vorhandene Bytes beim nächsten Speichern
-auslagern), und alle Stellen, die heute direkt an die Bytes gehen — `WbRenderer.DrawImage`,
-PDF-/PNG-Export, OCR, Galerie-Cover.
+**Beim Hinzufuegen eines neuen Bildtraegers dran denken:**
+1. eine stabile Id am Modell,
+2. Bytes in `DatabaseService.SaveBoard` (bzw. beim Speichern des Dokuments) auslagern,
+3. die Id in `UsedBlobs` eintragen — sonst raeumt der Aufraeumlauf das Bild weg,
+4. Lesen ueber `ImageCache.Bytes`, nie direkt am Byte-Feld.
+
+**Harnesses:** `%TEMP%\gonk-roundtrip` (Word mit Fotos: Datenbankgroesse, Exportgroesse,
+Neuladen), `%TEMP%\gonk-heavy` (Notizbuch mit 40/120 importierten Seiten).
+
+### Noch offen fuer den GB-Bereich
+
+- **PDF nur referenzieren statt Seiten zu rastern.** Heute rendert `PdfImporter.RenderPages`
+  das ganze PDF auf einmal (`File.ReadAllBytes` plus alle Seiten in einer Liste). Fuer 1-GB-PDFs
+  muesste die Datei als Blob liegen bleiben und je Seite bei Bedarf gerendert werden — PDFium
+  kann ueber einen **Dateipfad** oeffnen (`GetDocReader(string, PageDimensions)`, geprueft),
+  also ohne die Datei in den Speicher zu holen. Damit waere der Import ausserdem sofort fertig.
+- **Selektierbarer Text im exportierten PDF.** Importierte Seiten bleiben Bilder; echtes
+  Durchreichen braeuchte eine zweite PDF-Bibliothek (PdfSharp, MIT).
+- **Sehr lange Textdokumente.** Die Dateigroesse ist geloest, aber die WPF-`RichTextBox` wird
+  bei vielen hundert Seiten selbst traege. Noch nicht ausgemessen.

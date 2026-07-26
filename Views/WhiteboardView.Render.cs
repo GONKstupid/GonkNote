@@ -286,8 +286,7 @@ public partial class WhiteboardView
         var cs = _vm?.Doc.Cover;
 
         // Bild-Cover: füllt die Seite formatfüllend (mittig beschnitten)
-        if (cs?.Image is { Length: > 0 } imgData &&
-            ImageCache.Get(cs.ImageId, imgData) is { } coverImg)
+        if (cs != null && ImageCache.Get(cs.ImageId, cs.Image) is { } coverImg)
         {
             float scale = Math.Max(rect.Width / coverImg.Width, rect.Height / coverImg.Height);
             float w = coverImg.Width * scale, h = coverImg.Height * scale;

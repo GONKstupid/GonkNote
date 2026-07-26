@@ -93,12 +93,19 @@ ohne Cloud, ohne Installation, ohne Adminrechte.
   Maus an den oberen Fensterrand, gleitet eine Titelleiste (Minimieren/Wiederherstellen/
   Schließen) sanft wieder ein. Doppelklick auf die Menüleiste (oder die Windows-Standard-
   befehle) stellt das Fenster wieder her
-- **Persistenz**: LiteDB-Datei unter `%APPDATA%\GonkNote\gonknote.db`, Autosave alle 30 s,
-  Speichern beim Schließen von Tabs und der App
-- **Speicherbedarf**: rund 200 MB nach dem Start, im Härtefall (Notizbuch mit 16 importierten
-  Seiten, alle angesehen) etwa 420 MB. Beim Schließen einer Registerkarte wird der Speicher
-  wieder freigegeben; der Undo-Verlauf ist auf 200 Schritte begrenzt, damit er in langen
-  Sitzungen nicht unbegrenzt wächst
+- **Persistenz**: LiteDB-Datei unter `%APPDATA%\GonkNote\gonknote.db` für Texte, Striche und
+  Struktur; **Bilder, importierte PDF- und Word-Seiten liegen daneben** in
+  `%APPDATA%\GonkNote\gonknote.blobs\` — je Bild eine Datei. Autosave alle 30 s, Speichern
+  beim Schließen von Tabs und der App.
+  **Für eine Sicherung beides mitnehmen: die Datei *und* den Ordner.**
+- **Große Dokumente**: Originale werden unverändert abgelegt und beim Export unverändert
+  zurückgeschrieben; angezeigt wird eine verkleinerte Ableitung. Ein Word-Dokument mit Fotos
+  kommt dadurch genauso groß wieder heraus, wie es hereinkam (vorher das Achtfache), und ein
+  Notizbuch mit 120 importierten Seiten (118 MB) lässt sich speichern und öffnen
+- **Speicherbedarf**: rund 180 MB nach dem Start, mit einem geöffneten Notizbuch etwa 290 MB —
+  unabhängig davon, wie groß das Dokument ist, weil nur die gerade sichtbaren Seiten im
+  Speicher liegen (Budget 96 MB). Beim Schließen einer Registerkarte wird freigegeben; der
+  Undo-Verlauf ist auf 200 Schritte begrenzt, damit er in langen Sitzungen nicht wächst
 
 ### Tastenkürzel im Whiteboard
 
@@ -166,29 +173,8 @@ GonkNote/                    WPF-Oberfläche (net8.0-windows)
 
 GonkNote.Core/               Kernlogik ohne UI-Bezug (net8.0), Namensraum GonkNote.Core.*
 ├─ Models/                 NoteItem (Baum), Whiteboard-Elemente, Enums
-├─ Services/               DatabaseService (LiteDB), UndoStack, ImageCache, PDF-Import
+├─ Services/               DatabaseService (LiteDB), BlobStore (Bilder/PDFs neben der
+│                          Datenbank), UndoStack, ImageCache, PDF-Import
 ├─ Rendering/              Skia-Zeichenroutinen des Whiteboards, Geodreieck-Overlay
 └─ Editing/                Punktgenaues Radieren
 ```
-
-## Roadmap
-
-- **Phase 2 — Import/Export** ✔: Bilder-/DOCX-/PDF-/Markdown-Import, Export nach
-  PDF/DOCX/Markdown/PNG, Datei-Einfüge-Tool mit Seitenvorschau
-- **Phase 3 — Feinschliff**:
-  - ✔ Sticker, Notizzettel, Lineal/Geodreieck, Diagramme, Tabellen (Word-artiger Kontext-Tab),
-    Quick-Options-Menü, **OCR** (Tesseract, Deutsch/Englisch), Markdown-Import, Cover-Vorlagen,
-    Ordner-Farbvererbung, Zahlenblock für die Strichstärke
-  - **Nächste Schritte (nach der Testphase):** **Code-Cleanup / Projekt aufräumen** —
-    die Kernlogik liegt in `GonkNote.Core`, doppelte Zeichenroutinen sind zusammengeführt,
-    die große Whiteboard-Datei ist nach Themen geteilt und der Build ist warnungsfrei;
-    offen sind noch weitere Altlasten (ohne Verhaltensänderung)
-    → **zweite Sprache** ✔ (Deutsch/Englisch, umschaltbar unter „Ansicht") → **RAM-Optimierung**
-    (Leitlinie *Features vor RAM* — Ziel ~200 MB, akzeptabel bis mittlerer dreistelliger
-    MB-Bereich, **harte Obergrenze 1 GB**) → **Veröffentlichung auf GitHub unter der
-    MIT-Lizenz**.
-  - **Render-Caching** ✔: Beim Zeichnen wird der fertige Seiteninhalt zwischengespeichert
-    statt in jedem Bild neu gerastert — die Verzögerung wächst dadurch nicht mehr mit der
-    Menge auf der Seite (gemessen: 300 Striche 168 ms → 5,5 ms pro Bild)
-  - **Handschrift-Erkennung** (optional, aufbauend auf der OCR-Grundlage)
-  - **Keine Obfuskierung** — das Projekt soll so offen wie möglich bleiben

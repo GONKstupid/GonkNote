@@ -1,3 +1,4 @@
+using GonkNote.Core.Services;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -597,7 +598,7 @@ public static class DocxExporter
     /// </summary>
     private static (byte[] Data, PartTypeInfo Type)? ImageBytes(Image img)
     {
-        if (img.Tag is BlobRef reference && App.Db.Blobs.Read(reference.Id) is { } original)
+        if (img.Tag is BlobRef reference && BlobStore.Current!.Read(reference.Id) is { } original)
             return (original, PartTypeOf(reference.Extension));
 
         if (img.Source is not BitmapSource src) return null;

@@ -17,6 +17,13 @@ namespace GonkNote.Core.Services;
 /// </summary>
 public sealed class BlobStore
 {
+    /// <summary>
+    /// Der Speicher der geöffneten Datenbank. Einmal beim Start gesetzt; alles, was Bilder
+    /// liest oder schreibt, greift hierauf zu – damit gibt es genau einen Weg zu den Daten
+    /// und nicht mehrere, die auseinanderlaufen können.
+    /// </summary>
+    public static BlobStore? Current { get; internal set; }
+
     private readonly string _root;
 
     /// <summary>Legt den Speicher neben die Datenbank: <c>gonknote.db</c> → <c>gonknote.blobs\</c>.</summary>

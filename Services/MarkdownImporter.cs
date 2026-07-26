@@ -1,10 +1,10 @@
+using GonkNote.Core.Services;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
 
 namespace GonkNote.Services;
 
@@ -30,7 +30,7 @@ public static class MarkdownImporter
         using var ms = new MemoryStream();
 
         // Bilder bleiben draußen – im Paket steht nur der Verweis auf das Original
-        using (DocumentImages.Detach(flow, App.Db.Blobs))
+        using (DocumentImages.Detach(flow, BlobStore.Current!))
             range.Save(ms, DataFormats.XamlPackage, true);
 
         return ms.ToArray();
@@ -373,7 +373,7 @@ public static class MarkdownImporter
                 Stretch = Stretch.Uniform,
             };
             DocumentImages.Remember(image, original,
-                Path.GetExtension(full).TrimStart('.').ToLowerInvariant(), App.Db.Blobs);
+                Path.GetExtension(full).TrimStart('.').ToLowerInvariant(), BlobStore.Current!);
             return image;
         }
         catch

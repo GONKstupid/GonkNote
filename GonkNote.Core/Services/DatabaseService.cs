@@ -81,6 +81,7 @@ public sealed class DatabaseService : IDisposable
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
         _db = new LiteDatabase(new ConnectionString { Filename = path, Connection = ConnectionType.Shared }, mapper);
         Blobs = new BlobStore(path);
+        BlobStore.Current = Blobs;
 
         Items.EnsureIndex(x => x.ParentId);
     }
@@ -128,7 +129,40 @@ public sealed class DatabaseService : IDisposable
             : WhiteboardDoc.NewWhiteboard(item.Id);
     }
 
-    public void SaveBoard(WhiteboardDoc doc) => Boards.Upsert(doc);
+    /// <summary>
+    /// Speichert ein Whiteboard/Notizbuch. Bilder wandern dabei **aus** dem Datensatz in den
+    /// Blob-Speicher: ein Notizbuch mit importierten PDF-Seiten sprengte sonst die 16-MB-Grenze
+    /// von LiteDB und ließ sich überhaupt nicht mehr speichern.
+    /// <para>
+    /// Das leert die Byte-Felder am übergebenen Dokument – gewollt: ab dann liefert der
+    /// <see cref="ImageCache"/> die Daten aus dem Blob-Speicher. Bestandsdokumente ziehen so
+    /// beim ersten Speichern von selbst um.
+    /// </para>
+    /// </summary>
+    public void SaveBoard(WhiteboardDoc doc)
+    {
+        MoveImagesToBlobs(doc);
+        Boards.Upsert(doc);
+    }
+
+    private void MoveImagesToBlobs(WhiteboardDoc doc)
+    {
+        Move(doc.Cover?.ImageId, doc.Cover?.Image, () => doc.Cover!.Image = null);
+
+        foreach (var page in doc.Pages)
+        {
+            Move(page.BackgroundImageId, page.BackgroundImage, () => page.BackgroundImage = null);
+            foreach (var image in page.Elements.OfType<ImageElement>())
+                Move(image.Id, image.Data, () => image.Data = Array.Empty<byte>());
+        }
+
+        void Move(Guid? id, byte[]? data, Action clear)
+        {
+            if (id is not { } key || data is not { Length: > 0 }) return;
+            Blobs.Put(key, data);
+            clear();
+        }
+    }
 
     /// <summary>
     /// Lädt nur die Cover-Gestaltung eines Notizbuchs (ohne die Seiten) für die
@@ -152,8 +186,20 @@ public sealed class DatabaseService : IDisposable
     /// </summary>
     public long RemoveOrphanBlobs()
     {
-        var used = Texts.FindAll().SelectMany(t => t.Images);
+        var used = Texts.FindAll().SelectMany(t => t.Images)
+            .Concat(Boards.FindAll().SelectMany(UsedBlobs));
         return Blobs.RemoveOrphans(used, TimeSpan.FromHours(1));
+    }
+
+    private static IEnumerable<Guid> UsedBlobs(WhiteboardDoc doc)
+    {
+        if (doc.Cover != null) yield return doc.Cover.ImageId;
+        foreach (var page in doc.Pages)
+        {
+            yield return page.BackgroundImageId;
+            foreach (var image in page.Elements.OfType<ImageElement>())
+                yield return image.Id;
+        }
     }
 
     // ---- Einstellungen ----

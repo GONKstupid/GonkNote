@@ -11,6 +11,18 @@ public static class ImageCache
 {
     private const long MaxBytes = 96L * 1024 * 1024;
 
+    /// <summary>
+    /// Wo die Originale liegen. Whiteboard-Bilder und Seitenhintergründe stehen seit dem
+    /// Umbau nicht mehr im Dokument, sondern als eigene Datei daneben – der Datensatz würde
+    /// sonst die 16-MB-Grenze von LiteDB reißen. Bestandsdokumente bringen ihre Bytes noch
+    /// mit; die haben Vorrang und wandern beim nächsten Speichern in den Blob-Speicher.
+    /// </summary>
+    public static BlobStore? Source { get; set; }
+
+    /// <summary>Bilddaten zu einer Id: aus dem Dokument, sonst aus dem Blob-Speicher.</summary>
+    public static byte[]? Bytes(Guid id, byte[]? inline) =>
+        inline is { Length: > 0 } ? inline : Source?.Read(id);
+
     private static readonly Dictionary<Guid, (SKImage Img, long Bytes)> _cache = new();
     private static readonly LinkedList<Guid> _lru = new();
     private static long _bytes;
@@ -30,9 +42,10 @@ public static class ImageCache
             return entry.Img;
         }
 
-        if (data is not { Length: > 0 }) return null;
+        byte[]? encoded = Bytes(id, data);
+        if (encoded is not { Length: > 0 }) return null;
 
-        using var bmp = SKBitmap.Decode(data);
+        using var bmp = SKBitmap.Decode(encoded);
         if (bmp == null) return null;
         var img = SKImage.FromBitmap(bmp);
         long bytes = (long)bmp.Width * bmp.Height * 4;

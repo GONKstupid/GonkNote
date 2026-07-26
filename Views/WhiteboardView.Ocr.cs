@@ -25,10 +25,12 @@ public partial class WhiteboardView
 
         // Quelle bestimmen: ausgewählte Bilder, sonst der Seitenhintergrund.
         var images = _selection.OfType<ImageElement>()
-            .Select(im => im.Data)
+            .Select(im => ImageCache.Bytes(im.Id, im.Data))
+            .OfType<byte[]>()
             .Where(d => d.Length > 0)
             .ToList();
-        if (images.Count == 0 && _page.BackgroundImage is { Length: > 0 } bg)
+        if (images.Count == 0 &&
+            ImageCache.Bytes(_page.BackgroundImageId, _page.BackgroundImage) is { Length: > 0 } bg)
             images.Add(bg);
         if (images.Count == 0) return;
 

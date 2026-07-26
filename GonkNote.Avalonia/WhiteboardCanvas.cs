@@ -126,6 +126,18 @@ public class WhiteboardCanvas : Control
     /// <summary>Feuert nach dem Verschieben einer Auswahl (dx, dy) — für Undo+Speichern.</summary>
     public event EventHandler<(List<WbElement> Els, float Dx, float Dy)>? SelectionMoved;
 
+    /// <summary>Feuert nach dem Skalieren einer Auswahl (Faktor + Pivot) — für Undo+Speichern.</summary>
+    public event EventHandler<(List<WbElement> Els, float Factor, float Px, float Py)>? SelectionScaled;
+
+    /// <summary>Läuft gerade eine Skalierung über einen Eckgriff?</summary>
+    private bool _scaling;
+    private SKPoint _scalePivot;        // gegenüberliegende Ecke (bleibt fest)
+    private float _scaleStartDist;      // Abstand Pivot→Zeiger bei Beginn
+    private float _scaleTotal = 1f;     // aufsummierter Faktor für einen Undo-Schritt
+
+    /// <summary>Kantenlänge der Skalier-Griffe (Bildschirm-Pixel).</summary>
+    private const float HandleSize = 10f;
+
     /// <summary>Feuert, wenn Text eingegeben werden soll (die Shell öffnet dafür einen Dialog).</summary>
     public event EventHandler<GonkNote.Models.TextElement>? TextRequested;
 
@@ -198,6 +210,18 @@ public class WhiteboardCanvas : Control
 
         var page0 = Page!;
         var hit = ToPage(pt.Position);
+
+        // ---- Skalier-Griff der Auswahl (hat Vorrang vor allem anderen) ----
+        if ((Tool == ToolType.Move || Tool == ToolType.Lasso) && HandleAt(hit) is { } pivot)
+        {
+            _scaling = true;
+            _scalePivot = pivot;
+            _scaleStartDist = Math.Max(Dist(pivot, hit), 1f);
+            _scaleTotal = 1f;
+            e.Pointer.Capture(this);
+            e.Handled = true;
+            return;
+        }
 
         // ---- Auswahl / Verschieben ----
         if (Tool == ToolType.Move)
@@ -321,6 +345,20 @@ public class WhiteboardCanvas : Control
             return;
         }
 
+        if (_scaling)
+        {
+            var now = ToPage(pt.Position);
+            float f = Math.Max(Dist(_scalePivot, now), 1f) / _scaleStartDist;
+            f = Math.Clamp(f, 0.05f, 20f);
+            // relativ zum bereits angewandten Faktor skalieren
+            float step = f / _scaleTotal;
+            foreach (var el in _selection) el.Scale(step, _scalePivot.X, _scalePivot.Y);
+            _scaleTotal = f;
+            e.Handled = true;
+            InvalidateVisual();
+            return;
+        }
+
         if (_movingSelection)
         {
             var now = ToPage(pt.Position);
@@ -374,6 +412,18 @@ public class WhiteboardCanvas : Control
             e.Pointer.Capture(null);
             e.Handled = true;
             if (steps.Count > 0) ElementsErased?.Invoke(this, steps);
+            InvalidateVisual();
+            return;
+        }
+
+        if (_scaling)
+        {
+            _scaling = false;
+            e.Pointer.Capture(null);
+            e.Handled = true;
+            if (_selection.Count > 0 && Math.Abs(_scaleTotal - 1f) > 0.001f)
+                SelectionScaled?.Invoke(this,
+                    (new List<WbElement>(_selection), _scaleTotal, _scalePivot.X, _scalePivot.Y));
             InvalidateVisual();
             return;
         }
@@ -515,6 +565,146 @@ public class WhiteboardCanvas : Control
     }
 
     public bool HasSelection => _selection.Count > 0;
+
+    /// <summary>Setzt die Auswahl programmatisch (z. B. nach dem Einfügen eines Bildes).</summary>
+    public void SelectOnly(WbElement el)
+    {
+        _selection.Clear();
+        _selection.Add(el);
+        InvalidateVisual();
+    }
+
+    private static float Dist(SKPoint a, SKPoint b)
+    {
+        float dx = a.X - b.X, dy = a.Y - b.Y;
+        return MathF.Sqrt(dx * dx + dy * dy);
+    }
+
+    /// <summary>
+    /// Liegt der Punkt auf einem der vier Eckgriffe? Liefert dann die **gegenüberliegende**
+    /// Ecke als Pivot (die beim Skalieren fest bleibt), sonst null.
+    /// </summary>
+    private SKPoint? HandleAt(SKPoint p)
+    {
+        if (SelectionBounds() is not { } b) return null;
+
+        float pad = 4f / (float)Zoom;
+        b.Inflate(pad, pad);
+        float r = HandleSize / (float)Zoom;   // Griffe bleiben bildschirmgroß
+
+        var corners = new (SKPoint Handle, SKPoint Pivot)[]
+        {
+            (new SKPoint(b.Left,  b.Top),    new SKPoint(b.Right, b.Bottom)),
+            (new SKPoint(b.Right, b.Top),    new SKPoint(b.Left,  b.Bottom)),
+            (new SKPoint(b.Left,  b.Bottom), new SKPoint(b.Right, b.Top)),
+            (new SKPoint(b.Right, b.Bottom), new SKPoint(b.Left,  b.Top)),
+        };
+        foreach (var (handle, pivot) in corners)
+            if (Dist(handle, p) <= r) return pivot;
+        return null;
+    }
+
+    // ---- Zwischenablage (intern, wie in der WPF-App) -------------------------------------
+
+    private static readonly List<WbElement> Clipboard = new();
+
+    /// <summary>Kopiert die Auswahl in die interne Zwischenablage.</summary>
+    public void CopySelection()
+    {
+        if (_selection.Count == 0) return;
+        Clipboard.Clear();
+        foreach (var el in _selection) Clipboard.Add(CloneElement(el));
+    }
+
+    /// <summary>Fügt die Zwischenablage leicht versetzt ein und wählt das Eingefügte aus.</summary>
+    public List<WbElement> Paste()
+    {
+        var added = new List<WbElement>();
+        if (Page is not { } page || Clipboard.Count == 0) return added;
+
+        const float offset = 18f;
+        _selection.Clear();
+        foreach (var el in Clipboard)
+        {
+            var copy = CloneElement(el);
+            copy.Translate(offset, offset);
+            page.Elements.Add(copy);
+            _selection.Add(copy);
+            added.Add(copy);
+        }
+        // Mehrfaches Einfügen versetzt weiter
+        foreach (var el in Clipboard) el.Translate(offset, offset);
+        InvalidateVisual();
+        return added;
+    }
+
+    /// <summary>Dupliziert die Auswahl direkt (Kopieren + Einfügen in einem Schritt).</summary>
+    public List<WbElement> DuplicateSelection()
+    {
+        if (_selection.Count == 0) return new List<WbElement>();
+        CopySelection();
+        return Paste();
+    }
+
+    /// <summary>Tiefe Kopie eines Elements (neue Id, damit der Bild-Cache sauber bleibt).</summary>
+    private static WbElement CloneElement(WbElement el) => el switch
+    {
+        StrokeElement s => new StrokeElement
+        {
+            Points = new List<WbPoint>(s.Points),
+            Color = s.Color, Width = s.Width, Kind = s.Kind, Rotation = s.Rotation,
+        },
+        ShapeElement sh => new ShapeElement
+        {
+            Shape = sh.Shape, X1 = sh.X1, Y1 = sh.Y1, X2 = sh.X2, Y2 = sh.Y2,
+            Color = sh.Color, StrokeWidth = sh.StrokeWidth, Fill = sh.Fill, Rotation = sh.Rotation,
+        },
+        GonkNote.Models.TextElement t => new GonkNote.Models.TextElement
+        {
+            X = t.X, Y = t.Y, Text = t.Text, Color = t.Color, FontSize = t.FontSize,
+            Background = t.Background, FontFamily = t.FontFamily, Rotation = t.Rotation,
+        },
+        ImageElement im => new ImageElement
+        {
+            X = im.X, Y = im.Y, Width = im.Width, Height = im.Height,
+            Data = im.Data, Rotation = im.Rotation,
+        },
+        StickyNoteElement sn => new StickyNoteElement
+        {
+            X = sn.X, Y = sn.Y, Width = sn.Width, Height = sn.Height,
+            Text = sn.Text, Color = sn.Color, TextColor = sn.TextColor,
+            FontSize = sn.FontSize, FontFamily = sn.FontFamily, Rotation = sn.Rotation,
+        },
+        _ => el,
+    };
+
+    /// <summary>Fügt ein Bild ein (skaliert auf eine sinnvolle Anzeigegröße) und wählt es aus.</summary>
+    public ImageElement? InsertImage(byte[] data, SKPoint at)
+    {
+        if (Page is not { } page || data.Length == 0) return null;
+
+        float w = 300f, h = 200f;
+        using (var bmp = SKBitmap.Decode(data))
+        {
+            if (bmp is null) return null;
+            float max = 340f;
+            float scale = Math.Min(max / bmp.Width, max / bmp.Height);
+            if (scale > 1f) scale = 1f;
+            w = bmp.Width * scale;
+            h = bmp.Height * scale;
+        }
+
+        var img = new ImageElement { X = at.X, Y = at.Y, Width = w, Height = h, Data = data };
+        page.Elements.Add(img);
+        _selection.Clear();
+        _selection.Add(img);
+        InvalidateVisual();
+        return img;
+    }
+
+    /// <summary>Mitte des sichtbaren Bereichs in Seiten-Koordinaten (Standard-Einfügeort).</summary>
+    public SKPoint ViewCenter() =>
+        ToPage(new Point(Bounds.Width / 2, Bounds.Height / 2));
 
     /// <summary>
     /// **Punktgenaues** Radieren wie in der WPF-App: Striche werden an der berührten Stelle
@@ -693,16 +883,39 @@ public class WhiteboardCanvas : Control
             {
                 var r = b;
                 r.Inflate(4f * px, 4f * px);
-                using var dash = SKPathEffect.CreateDash(new[] { 5f * px, 4f * px }, 0);
-                using var p = new SKPaint
+                var accent = new SKColor(0x5B, 0x21, 0xB6);
+
+                using (var dash = SKPathEffect.CreateDash(new[] { 5f * px, 4f * px }, 0))
+                using (var p = new SKPaint
                 {
                     IsAntialias = true,
                     Style = SKPaintStyle.Stroke,
                     StrokeWidth = 1.5f * px,
-                    Color = new SKColor(0x5B, 0x21, 0xB6),
+                    Color = accent,
                     PathEffect = dash,
+                })
+                    canvas.DrawRect(r, p);
+
+                // Eckgriffe zum Skalieren (bildschirmgroß, unabhängig vom Zoom)
+                float hs = 5f * px;
+                using var fill = new SKPaint { IsAntialias = true, Color = SKColors.White };
+                using var edge = new SKPaint
+                {
+                    IsAntialias = true,
+                    Style = SKPaintStyle.Stroke,
+                    StrokeWidth = 1.5f * px,
+                    Color = accent,
                 };
-                canvas.DrawRect(r, p);
+                foreach (var c in new[]
+                {
+                    new SKPoint(r.Left, r.Top), new SKPoint(r.Right, r.Top),
+                    new SKPoint(r.Left, r.Bottom), new SKPoint(r.Right, r.Bottom),
+                })
+                {
+                    var h = SKRect.Create(c.X - hs, c.Y - hs, hs * 2, hs * 2);
+                    canvas.DrawRect(h, fill);
+                    canvas.DrawRect(h, edge);
+                }
             }
         }
 

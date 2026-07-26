@@ -1057,8 +1057,23 @@ danach fein machen; der Prototyp nutzt vorerst **Reiter Bearbeiten/Vorschau** st
 - ⚠️ **DPI-Falle beim Testen** (kostete hier Zeit): Avalonia rechnet in **DIPs**. Auf dem
   Testrechner (200 %) ist der sichtbare Canvas nur ~410×290 DIP — Testkoordinaten > ~400 liegen
   außerhalb und wirken wie ein Render-Bug. Erst prüfen, bevor man Fehler in `WbRenderer` sucht.
-- **Offen (4b-Rest):** Skalieren/Drehen der Auswahl, Sticker-Werkzeug, Kopieren/Einfügen,
-  Zeichenhilfen (Lineal/Geodreieck), Bild-/PDF-Import.
+**Schritt 4b (Teil 5): Skalieren, Zwischenablage, Bild-Import (2026-07-24).**
+- **Skalieren der Auswahl**: vier **Eckgriffe** am Auswahlrahmen (weiß mit Akzentrand,
+  bildschirmgroß via `1/Zoom`). Ziehen skaliert um die **gegenüberliegende Ecke** als Pivot
+  (`HandleAt` liefert sie); Faktor = Abstandsverhältnis, geklemmt auf 0,05–20. Der Zug wird
+  inkrementell angewandt, aber als **ein** `ScaleElementsAction` gebucht. Griffe haben Vorrang
+  vor Verschieben/Lasso.
+- **Zwischenablage** (intern, wie in der WPF-App): **Strg+C / Strg+V / Strg+D** und Buttons.
+  `CloneElement` macht echte Tiefkopien je Typ; Einfügen versetzt um 18 px und wählt das
+  Eingefügte aus, mehrfaches Einfügen versetzt weiter. Ein `AddElementsAction` je Vorgang.
+- **Bild-Import**: Button (`StorageProvider.OpenFilePickerAsync`, Mehrfachauswahl) **und
+  Drag&Drop** (`DragDrop.AllowDrop` am Fenster, Filter auf Bildendungen). Das Bild wird auf
+  max. 340 px lange Kante skaliert, in der Ansichtsmitte platziert, ausgewählt, und das
+  Werkzeug wechselt auf **Auswahl** → sofort verschieb-/skalierbar.
+- **Verifiziert per Screenshot** (`AV3-scale-img.png`): Bild-Element rendert, Auswahlrahmen
+  gestrichelt, vier Eckgriffe korrekt platziert.
+- **Offen (4b-Rest):** Drehen der Auswahl, Sticker-Werkzeug, Zeichenhilfen (Lineal/Geodreieck),
+  PDF-Import, Seiten-Hintergrundmuster/Cover-Einstellungen.
 
 ### 9.4 Gestaffelter Plan
 1. ✅ **PoC/Scaffold + Kernlogik-Reuse** (fertig, §9.1).

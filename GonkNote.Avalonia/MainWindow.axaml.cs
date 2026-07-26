@@ -5,6 +5,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Platform.Storage;
 using Avalonia.Styling;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
@@ -46,17 +47,16 @@ public partial class MainWindow : Window
         Board.ElementsErased += (_, removed) => Vm.OnElementsErased(removed);
         Board.ElementAdded += (_, el) => Vm.OnElementAdded(el);
         Board.SelectionMoved += (_, m) => Vm.OnSelectionMoved(m.Els, m.Dx, m.Dy);
+        Board.SelectionScaled += (_, s) => Vm.OnSelectionScaled(s.Els, s.Factor, s.Px, s.Py);
         Board.TextRequested += (_, txt) => OnTextRequested(txt);
 
-        // Entf löscht die aktuelle Auswahl (nur wenn das Whiteboard sichtbar ist).
-        AddHandler(KeyDownEvent, (_, e) =>
-        {
-            if (e.Key == Key.Delete && Board.IsVisible && Board.HasSelection)
-            {
-                DeleteSelection();
-                e.Handled = true;
-            }
-        }, RoutingStrategies.Bubble);
+        // Tastenkürzel des Whiteboards (Entf, Strg+C/V/D, Strg+Z/Y).
+        AddHandler(KeyDownEvent, Board_KeyDown, RoutingStrategies.Bubble);
+
+        // Bilder per Drag&Drop einfügen.
+        AddHandler(DragDrop.DragOverEvent, (_, e) =>
+            e.DragEffects = e.Data.Contains(DataFormats.Files) ? DragDropEffects.Copy : DragDropEffects.None);
+        AddHandler(DragDrop.DropEvent, Board_Drop);
 
         // Workaround gegen den Fill-Panel-Measure-Quirk (§9.5): dem Inhaltsbereich eine
         // explizite Breite geben (= Fensterbreite − Seitenleiste), damit Umbruch/Zentrierung
@@ -189,6 +189,102 @@ public partial class MainWindow : Window
     private void PrevPage_Click(object? sender, RoutedEventArgs e) { Vm.PrevPage(); Board.InvalidateVisual(); }
     private void NextPage_Click(object? sender, RoutedEventArgs e) { Vm.NextPage(); Board.InvalidateVisual(); }
     private void AddPage_Click(object? sender, RoutedEventArgs e) { Vm.AddPage(); Board.InvalidateVisual(); }
+
+    /// <summary>Tastenkürzel im Whiteboard: Entf, Strg+C/V/D.</summary>
+    private void Board_KeyDown(object? sender, KeyEventArgs e)
+    {
+        if (!Board.IsVisible) return;
+        bool ctrl = e.KeyModifiers.HasFlag(KeyModifiers.Control);
+
+        if (e.Key == Key.Delete && Board.HasSelection)
+        {
+            DeleteSelection();
+            e.Handled = true;
+        }
+        else if (ctrl && e.Key == Key.C)
+        {
+            Board.CopySelection();
+            e.Handled = true;
+        }
+        else if (ctrl && e.Key == Key.V)
+        {
+            var added = Board.Paste();
+            if (added.Count > 0) Vm.OnElementsAdded(added);
+            e.Handled = true;
+        }
+        else if (ctrl && e.Key == Key.D)
+        {
+            var added = Board.DuplicateSelection();
+            if (added.Count > 0) Vm.OnElementsAdded(added);
+            e.Handled = true;
+        }
+    }
+
+    /// <summary>Bilder per Drag&amp;Drop auf das Whiteboard legen.</summary>
+    private void Board_Drop(object? sender, DragEventArgs e)
+    {
+        if (!Board.IsVisible || !e.Data.Contains(DataFormats.Files)) return;
+
+        foreach (var item in e.Data.GetFiles() ?? Enumerable.Empty<IStorageItem>())
+        {
+            if (item is not IStorageFile file) continue;
+            string path = file.Path.LocalPath;
+            if (!IsImagePath(path)) continue;
+            InsertImageFile(path);
+        }
+        e.Handled = true;
+    }
+
+    private static bool IsImagePath(string path)
+    {
+        string ext = System.IO.Path.GetExtension(path).ToLowerInvariant();
+        return ext is ".png" or ".jpg" or ".jpeg" or ".bmp" or ".gif" or ".webp";
+    }
+
+    private void InsertImageFile(string path)
+    {
+        try
+        {
+            var data = System.IO.File.ReadAllBytes(path);
+            var img = Board.InsertImage(data, Board.ViewCenter());
+            if (img is null) return;
+
+            Vm.OnElementAdded(img);
+            Board.Tool = ToolType.Move;   // direkt verschieb-/skalierbar
+            Board.Focus();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Bild-Import fehlgeschlagen: {ex.Message}");
+        }
+    }
+
+    /// <summary>Bild über den Dateidialog einfügen.</summary>
+    private async void InsertImage_Click(object? sender, RoutedEventArgs e)
+    {
+        var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = "Bild einfügen",
+            AllowMultiple = true,
+            FileTypeFilter = new[]
+            {
+                new FilePickerFileType("Bilder")
+                {
+                    Patterns = new[] { "*.png", "*.jpg", "*.jpeg", "*.bmp", "*.gif", "*.webp" },
+                },
+            },
+        });
+
+        foreach (var f in files) InsertImageFile(f.Path.LocalPath);
+    }
+
+    private void Copy_Click(object? sender, RoutedEventArgs e) => Board.CopySelection();
+
+    private void Paste_Click(object? sender, RoutedEventArgs e)
+    {
+        var added = Board.Paste();
+        if (added.Count > 0) Vm.OnElementsAdded(added);
+    }
 
     /// <summary>Fragt den Text ab und fügt das Text-Element ein.</summary>
     private async void OnTextRequested(GonkNote.Models.TextElement txt)

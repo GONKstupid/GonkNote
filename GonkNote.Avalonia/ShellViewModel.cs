@@ -180,6 +180,24 @@ public sealed class ShellViewModel : ObservableObject
         RaiseUndoState();
     }
 
+    /// <summary>Registriert das Skalieren einer Auswahl als einen Undo-Schritt.</summary>
+    public void OnSelectionScaled(List<WbElement> els, float factor, float px, float py)
+    {
+        if (_currentPage is not { } page) return;
+        Undo.Push(page, new ScaleElementsAction(els, factor, px, py));
+        SaveCurrentBoard();
+        RaiseUndoState();
+    }
+
+    /// <summary>Registriert eingefügte Elemente (Einfügen/Duplizieren) als einen Undo-Schritt.</summary>
+    public void OnElementsAdded(List<WbElement> els)
+    {
+        if (_currentPage is not { } page || els.Count == 0) return;
+        Undo.Push(page, new AddElementsAction(els));
+        SaveCurrentBoard();
+        RaiseUndoState();
+    }
+
     /// <summary>Registriert das Löschen einer Auswahl als einen Undo-Schritt.</summary>
     public void OnSelectionDeleted(List<(WbElement El, int Index)> removed)
     {

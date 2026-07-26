@@ -207,10 +207,19 @@ public sealed class StickyTextChangeAction : IEditAction
 /// <summary>Undo/Redo pro Dokument; jede Aktion kennt ihre Seite.</summary>
 public sealed class UndoStack
 {
+    /// <summary>
+    /// Tiefe des Verlaufs. Nötig, weil ein Schritt Elemente **am Leben hält**: gelöschte
+    /// Striche, Bilder und Notizzettel hängen nur noch am Verlauf. Ohne Grenze wuchs der
+    /// Speicherbedarf einer langen Sitzung immer weiter. 200 Schritte sind mehr, als je
+    /// jemand zurücknimmt, und decken den Bedarf reichlich ab.
+    /// </summary>
+    private const int MaxSteps = 200;
+
     private readonly record struct Entry(WbPage Page, IEditAction Action);
 
-    private readonly Stack<Entry> _undo = new();
-    private readonly Stack<Entry> _redo = new();
+    // Liste statt Stack: der älteste Schritt muss beim Überlauf vorne herausfallen.
+    private readonly List<Entry> _undo = new();
+    private readonly List<Entry> _redo = new();
 
     public bool CanUndo => _undo.Count > 0;
     public bool CanRedo => _redo.Count > 0;
@@ -220,28 +229,29 @@ public sealed class UndoStack
     /// <summary>Registriert eine bereits ausgeführte Aktion.</summary>
     public void Push(WbPage page, IEditAction action)
     {
-        _undo.Push(new Entry(page, action));
+        _undo.Add(new Entry(page, action));
+        if (_undo.Count > MaxSteps) _undo.RemoveAt(0);
         _redo.Clear();
         Changed?.Invoke();
     }
 
     /// <summary>Macht die letzte Aktion rückgängig und liefert deren Seite (für die Anzeige).</summary>
-    public WbPage? Undo()
-    {
-        if (_undo.Count == 0) return null;
-        var e = _undo.Pop();
-        e.Action.Undo(e.Page);
-        _redo.Push(e);
-        Changed?.Invoke();
-        return e.Page;
-    }
+    public WbPage? Undo() => Move(_undo, _redo, redo: false);
 
-    public WbPage? Redo()
+    public WbPage? Redo() => Move(_redo, _undo, redo: true);
+
+    private WbPage? Move(List<Entry> from, List<Entry> to, bool redo)
     {
-        if (_redo.Count == 0) return null;
-        var e = _redo.Pop();
-        e.Action.Redo(e.Page);
-        _undo.Push(e);
+        if (from.Count == 0) return null;
+
+        var e = from[^1];
+        from.RemoveAt(from.Count - 1);
+        if (redo) e.Action.Redo(e.Page);
+        else e.Action.Undo(e.Page);
+
+        to.Add(e);
+        if (to.Count > MaxSteps) to.RemoveAt(0);
+
         Changed?.Invoke();
         return e.Page;
     }

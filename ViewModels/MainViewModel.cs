@@ -1,3 +1,4 @@
+using System.Runtime;
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Threading;
@@ -718,6 +719,29 @@ public sealed class MainViewModel : ObservableObject
         OpenTabs.Remove(tab);
         if (SelectedTab == null && OpenTabs.Count > 0)
             SelectedTab = OpenTabs[Math.Min(idx, OpenTabs.Count - 1)];
+
+        ReleaseMemory(tab);
+    }
+
+    /// <summary>
+    /// Gibt nach dem Schließen frei, was nur für dieses Dokument im Speicher lag: die
+    /// dekodierten Bilder aus dem Cache (bis zu 96 MB) und die Seiten samt Bildbytes am
+    /// Dokument selbst. Anschließend ein verdichtender Sammellauf, damit der Speicher auch
+    /// beim Betriebssystem ankommt und nicht nur im Heap frei wird.
+    /// </summary>
+    private static void ReleaseMemory(DocumentTabViewModel tab)
+    {
+        if (tab is WhiteboardTabViewModel wb)
+        {
+            ImageCache.Forget(wb.Doc.Pages.Select(p => p.BackgroundImageId));
+            ImageCache.Forget(wb.Doc.Pages
+                .SelectMany(p => p.Elements)
+                .OfType<ImageElement>()
+                .Select(im => im.Id));
+        }
+
+        GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
+        GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, blocking: true, compacting: true);
     }
 
     public void SaveAll()

@@ -95,6 +95,10 @@ ohne Cloud, ohne Installation, ohne Adminrechte.
   befehle) stellt das Fenster wieder her
 - **Persistenz**: LiteDB-Datei unter `%APPDATA%\GonkNote\gonknote.db`, Autosave alle 30 s,
   Speichern beim Schließen von Tabs und der App
+- **Speicherbedarf**: rund 200 MB nach dem Start, im Härtefall (Notizbuch mit 16 importierten
+  Seiten, alle angesehen) etwa 420 MB. Beim Schließen einer Registerkarte wird der Speicher
+  wieder freigegeben; der Undo-Verlauf ist auf 200 Schritte begrenzt, damit er in langen
+  Sitzungen nicht unbegrenzt wächst
 
 ### Tastenkürzel im Whiteboard
 

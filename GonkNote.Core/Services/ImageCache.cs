@@ -54,4 +54,21 @@ public static class ImageCache
         }
         return img;
     }
+
+    /// <summary>
+    /// Vergisst ein Bild. Wird beim Schließen eines Dokuments für dessen Bilder aufgerufen –
+    /// sonst blieben bis zu 96 MB dekodierter Seiten liegen, obwohl niemand sie mehr ansieht.
+    /// </summary>
+    public static void Forget(Guid id)
+    {
+        if (!_cache.Remove(id, out var entry)) return;
+        _lru.Remove(id);
+        _bytes -= entry.Bytes;
+        entry.Img.Dispose();
+    }
+
+    public static void Forget(IEnumerable<Guid> ids)
+    {
+        foreach (var id in ids) Forget(id);
+    }
 }

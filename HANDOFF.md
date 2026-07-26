@@ -12,7 +12,31 @@
 > ausführlichen Tabellen als Standard). **Ausführlich nur** bei **offenen Fragen und
 > Entscheidungen**, die der Nutzer treffen muss — die weiterhin klar begründen.
 >
-> **Runde 24 (2026-07-26) zuletzt: Render-Caching (vom Nutzer vorgezogen).**
+> **Runde 25 (2026-07-26) zuletzt: RAM gemessen und die unbegrenzten Pfade geschlossen.**
+> **Erst gemessen (Release, Vollbild bei 200 % DPI, `%TEMP%\gonk-verify\mem2.ps1`):**
+>
+> | | Arbeitssatz | privat |
+> |---|---|---|
+> | nach dem Start | 259 MB | 199 MB |
+> | Notizbuch (16 importierte Seiten, 15 MB JPEG) offen | 420 MB | 355 MB |
+> | alle 16 Seiten angesehen (Bild-Cache voll) | 485 MB | 418 MB |
+> | Tab geschlossen | **377 MB** | **306 MB** |
+>
+> **Ergebnis: rund 60 % des 800-MB-Ziels im Härtefall — es gibt keinen Engpass.** Deshalb wurde
+> kein Feature beschnitten (Leitlinie „Features vor RAM"); gearbeitet wurde nur an den Stellen,
+> an denen der Bedarf **unbegrenzt** wuchs:
+> - **Undo-Verlauf auf 200 Schritte begrenzt.** Er hielt gelöschte Elemente am Leben (der
+>   einzige echte Wachstumspfad einer langen Sitzung). Harness `%TEMP%\gonk-undo` prüft:
+>   genau 200 Schritte zurück, die älteren bleiben angewandt, 200 wieder vorwärts.
+> - **Beim Schließen eines Tabs wird freigegeben, was nur zu ihm gehörte**
+>   (`MainViewModel.ReleaseMemory`): die dekodierten Seiten aus `ImageCache` (neu:
+>   `ImageCache.Forget`) plus ein verdichtender Sammellauf. **Vorher gab das Schließen
+>   0 MB zurück** (489 → 489 MB, per A/B gegen den Stand ohne die Änderung gemessen),
+>   jetzt 110 MB.
+>
+> **Was noch offen ist — und schwerer wiegt als RAM: siehe §11 (16-MB-Grenze von LiteDB).**
+>
+> **Runde 24 (2026-07-26): Render-Caching (vom Nutzer vorgezogen).**
 > Während ein Strich gezogen wird, ändert sich am bereits Gezeichneten nichts — die Punkte
 > laufen bis zum Absetzen in `_activePoints`, nicht in die Seite. Trotzdem wurde pro Bild die
 > ganze Seite neu gerastert. Jetzt wird der fertige Stand **einmal** in ein Zwischenbild
@@ -939,3 +963,40 @@ sind `MainViewModel`, `WhiteboardView` und `TextEditorView`.
 **Prüfskript:** `%TEMP%\gonk-perf\loc_check.py` vergleicht beide Tabellen (gleiche Schlüssel,
 gleiche Platzhalter `{0}`, `{1}`). Es hat schon einen echten Fehler gefunden: dem deutschen
 `Page.Label` fehlten die Platzhalter.
+
+
+---
+## 11. ⚠️ Offener Befund: LiteDB speichert ein Dokument nur bis ~16 MB
+
+Beim Aufbau der RAM-Messung (Runde 25) gefunden, **noch nicht behoben**:
+
+Ein `WhiteboardDoc` wird als **ein** LiteDB-Dokument gespeichert — mit allen Seiten und deren
+Bildbytes darin. LiteDB begrenzt ein Dokument auf **16 683 050 Bytes**. Wird das überschritten,
+wirft `SaveBoard` eine `LiteException`:
+
+```
+LiteDB.LiteException: Document size exceed 16683050 limit
+   at LiteDB.Engine.DataService.Insert(BsonDocument doc)
+   at GonkNote.Core.Services.DatabaseService.SaveBoard(WhiteboardDoc doc)
+```
+
+**Wann es zuschlägt:** Import eines längeren PDFs in *ein* Notizbuch. Bei den Testseiten des
+Harness (`%TEMP%\gonk-heavy`, Textseiten mit ~950 KB JPEG) ist bei **17 Seiten** Schluss; bei
+den ~400 KB, die §5 für typische Seiten nennt, bei etwa 38. Dasselbe gilt für viele eingefügte
+Bilder in einem Whiteboard.
+
+**Warum das ernst ist:** Das Dokument lässt sich danach **nicht mehr speichern** — Autosave und
+Schließen scheitern jedes Mal. Seit Runde 22 sieht der Nutzer wenigstens eine Meldung und die
+App bleibt offen (vorher hätte es sie beendet und die Arbeit war weg), aber die Seiten sind
+verloren, sobald die App zugeht.
+
+**Vorgeschlagene Lösung (mit dem Nutzer abzustimmen, weil es das Speicherformat ändert):**
+Bilder nicht mehr im Dokument mitschreiben, sondern **je Bild ein eigener Datensatz**
+(LiteDB-`FileStorage` oder eine Sammlung `images`), im Dokument bleibt nur die Id. Vorteile:
+- die 16-MB-Grenze fällt weg (jedes Bild ist weit darunter),
+- Öffnen wird billiger (Bildbytes erst beim Anzeigen),
+- der Speicherbedarf hängt nur noch am `ImageCache`-Budget.
+
+Zu bedenken: Migration der Bestandsdokumente (inline vorhandene Bytes beim nächsten Speichern
+auslagern), und alle Stellen, die heute direkt an die Bytes gehen — `WbRenderer.DrawImage`,
+PDF-/PNG-Export, OCR, Galerie-Cover.

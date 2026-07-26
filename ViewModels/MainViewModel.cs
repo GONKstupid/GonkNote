@@ -61,6 +61,17 @@ public sealed class MainViewModel : ObservableObject
 
         // Standard-Symbolfarbe hängt am Theme
         ThemeService.ThemeChanged += RefreshAllIcons;
+
+        // Texte, die der Code erzeugt (Galerietitel, Pfadleiste, Datumsangaben), tragen die
+        // Sprache nicht über eine Bindung – sie werden beim Wechsel neu aufgebaut.
+        Loc.LanguageChanged += RefreshLanguage;
+    }
+
+    private void RefreshLanguage()
+    {
+        RebuildBreadcrumb();
+        RebuildGallery();
+        OnPropertyChanged(nameof(GalleryTitle));
     }
 
     private void RefreshAllIcons()
@@ -153,7 +164,7 @@ public sealed class MainViewModel : ObservableObject
         }
     }
 
-    public string GalleryTitle => _galleryFolder?.Name ?? "Dokumente";
+    public string GalleryTitle => _galleryFolder?.Name ?? Loc.T("Gallery.Root");
     public bool CanGoBack => _galleryFolder != null;
     public bool GalleryIsEmpty => GalleryItems.Count == 0;
     public bool ShowBreadcrumb => _galleryFolder != null;
@@ -185,7 +196,7 @@ public sealed class MainViewModel : ObservableObject
     private void RebuildBreadcrumb()
     {
         Breadcrumb.Clear();
-        Breadcrumb.Add(new BreadcrumbEntry("Dokumente", null));
+        Breadcrumb.Add(new BreadcrumbEntry(Loc.T("Gallery.Root"), null));
         // Vorfahren des aktuellen Ordners (ohne ihn selbst – der ist der große Titel)
         var chain = new List<TreeItemViewModel>();
         for (var p = _galleryFolder == null ? null : FindParent(_galleryFolder); p != null; p = FindParent(p))
@@ -309,14 +320,18 @@ public sealed class MainViewModel : ObservableObject
         }
     }
 
-    private static string DefaultName(ItemKind kind) => kind switch
+    /// <summary>
+    /// Name eines frisch angelegten Eintrags – in der Sprache, die beim Anlegen aktiv ist.
+    /// Bestehende Namen bleiben unberührt: sie gehören dem Nutzer, nicht der Oberfläche.
+    /// </summary>
+    private static string DefaultName(ItemKind kind) => Loc.T(kind switch
     {
-        ItemKind.Folder => "Neuer Ordner",
-        ItemKind.Notebook => "Neues Notizbuch",
-        ItemKind.Whiteboard => "Neues Whiteboard",
-        ItemKind.TextDocument => "Neues Textdokument",
-        _ => "Neu",
-    };
+        ItemKind.Folder => "New.Folder",
+        ItemKind.Notebook => "New.Notebook",
+        ItemKind.Whiteboard => "New.Whiteboard",
+        ItemKind.TextDocument => "New.Text",
+        _ => "Gallery.New",
+    });
 
     /// <summary>Beendet eine laufende Umbenennung, bevor eine andere Aktion Fokus stiehlt.</summary>
     public void CommitPendingRename()
@@ -380,7 +395,7 @@ public sealed class MainViewModel : ObservableObject
         var dlg = new Microsoft.Win32.OpenFileDialog
         {
             Title = "Dokument importieren",
-            Filter = "Dokumente (*.docx;*.md)|*.docx;*.md|Word-Dokumente (*.docx)|*.docx"
+            Filter = Loc.T("Import.Filter")
                    + "|Markdown (*.md)|*.md|Alle Dateien (*.*)|*.*",
             Multiselect = true,
         };
@@ -626,7 +641,7 @@ public sealed class MainViewModel : ObservableObject
         var clone = new NoteItem
         {
             Kind = source.Kind,
-            Name = source.Item.ParentId == targetFolder?.Id ? source.Name + " (Kopie)" : source.Name,
+            Name = source.Item.ParentId == targetFolder?.Id ? source.Name + Loc.T("Item.CopySuffix") : source.Name,
             ParentId = targetFolder?.Id,
         };
         _db.UpsertItem(clone);

@@ -32,6 +32,25 @@ public partial class MainWindow : Window
         ThemeService.ThemeChanged += ApplyTitleBarTheme;
 
         if (App.Db.GetSetting("sidebar") == "0") SetSidebarVisible(false);
+        ShowActiveLanguage();
+    }
+
+    // ==================== Sprache ====================
+
+    /// <summary>Sprachwahl aus „Ansicht → Sprache": umschalten und merken.</summary>
+    private void Language_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not MenuItem item) return;
+
+        Loc.Apply(Loc.FromCode((string)item.Tag));
+        App.Db.SetSetting("language", Loc.Code);
+        ShowActiveLanguage();
+    }
+
+    private void ShowActiveLanguage()
+    {
+        LangGerman.IsChecked = Loc.Current == AppLanguage.German;
+        LangEnglish.IsChecked = Loc.Current == AppLanguage.English;
     }
 
     protected override void OnSourceInitialized(EventArgs e)

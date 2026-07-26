@@ -30,6 +30,8 @@ public partial class App : Application
 
         Db = new DatabaseService(dbPath);
 
+        Loc.Apply(Loc.FromCode(Db.GetSetting("language")));
+
         var theme = Db.GetSetting("theme") == "dark" ? AppTheme.Dark : AppTheme.Light;
         ThemeService.Apply(theme);
         ThemeService.ThemeChanged += () =>

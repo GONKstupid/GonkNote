@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using GonkNote.Core.Models;
+using GonkNote.Services;
 using GonkNote.Core.Services;
 
 namespace GonkNote.ViewModels;
@@ -37,7 +38,7 @@ public sealed class GalleryItemViewModel : ObservableObject
     public string IconGlyph => Tree.IconGlyph;
 
     /// <summary>Zuletzt geändert, wie in GoodNotes unter der Kachel.</summary>
-    public string DateText => Tree.Item.ModifiedUtc.ToLocalTime().ToString("d. MMM yyyy, HH:mm");
+    public string DateText => Tree.Item.ModifiedUtc.ToLocalTime().ToString(Loc.T("Gallery.DateFormat"), Loc.Culture);
 
     // ---------- Notizbuch-Cover (lazy) ----------
     private bool _coverLoaded;

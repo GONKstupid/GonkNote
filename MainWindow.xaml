@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="clr-namespace:GonkNote.ViewModels"
         xmlns:views="clr-namespace:GonkNote.Views"
+        xmlns:loc="clr-namespace:GonkNote.Services"
         Title="Gonk Note" Width="1280" Height="820"
         MinWidth="760" MinHeight="480"
         WindowStartupLocation="CenterScreen"
@@ -87,29 +88,35 @@
                 MouseLeftButtonDown="TopBar_MouseLeftButtonDown">
             <DockPanel>
             <Button DockPanel.Dock="Left" Style="{StaticResource IconButton}" Content="&#xE700;"
-                    ToolTip="Seitenleiste ein-/ausblenden (Strg+B)" Margin="4,2"
+                    ToolTip="{loc:T Sidebar.Toggle}" Margin="4,2"
                     Click="ToggleSidebar_Click"/>
             <Menu Padding="0,2">
-                <MenuItem Header="_Datei">
-                    <MenuItem Header="Neuer _Ordner" Command="{Binding NewFolderCommand}"/>
-                    <MenuItem Header="Neues _Notizbuch" Command="{Binding NewNotebookCommand}"/>
-                    <MenuItem Header="Neues _Whiteboard" Command="{Binding NewWhiteboardCommand}"/>
-                    <MenuItem Header="Neues _Textdokument" Command="{Binding NewTextDocCommand}"/>
+                <MenuItem Header="{loc:T Menu.File}">
+                    <MenuItem Header="{loc:T Menu.File.NewFolder}" Command="{Binding NewFolderCommand}"/>
+                    <MenuItem Header="{loc:T Menu.File.NewNotebook}" Command="{Binding NewNotebookCommand}"/>
+                    <MenuItem Header="{loc:T Menu.File.NewWhiteboard}" Command="{Binding NewWhiteboardCommand}"/>
+                    <MenuItem Header="{loc:T Menu.File.NewText}" Command="{Binding NewTextDocCommand}"/>
                     <Separator/>
-                    <MenuItem Header="Dokument _importieren… (DOCX / Markdown)" Command="{Binding ImportDocxCommand}"/>
-                    <MenuItem Header="_Exportieren… (PDF / DOCX / Markdown)" Command="{Binding ExportCommand}"/>
+                    <MenuItem Header="{loc:T Menu.File.Import}" Command="{Binding ImportDocxCommand}"/>
+                    <MenuItem Header="{loc:T Menu.File.Export}" Command="{Binding ExportCommand}"/>
                     <Separator/>
-                    <MenuItem Header="_Speichern" Command="{Binding SaveCommand}" InputGestureText="Strg+S"/>
-                    <MenuItem Header="_Alle speichern" Command="{Binding SaveAllCommand}" InputGestureText="Strg+Umschalt+S"/>
+                    <MenuItem Header="{loc:T Menu.File.Save}" Command="{Binding SaveCommand}" InputGestureText="{loc:T Shortcut.Save}"/>
+                    <MenuItem Header="{loc:T Menu.File.SaveAll}" Command="{Binding SaveAllCommand}" InputGestureText="{loc:T Shortcut.SaveAll}"/>
                     <Separator/>
-                    <MenuItem Header="_Beenden" Command="{Binding ExitCommand}" InputGestureText="Alt+F4"/>
+                    <MenuItem Header="{loc:T Menu.File.Quit}" Command="{Binding ExitCommand}" InputGestureText="{loc:T Shortcut.Quit}"/>
                 </MenuItem>
-                <MenuItem Header="_Ansicht">
-                    <MenuItem Header="_Seitenleiste" Click="ToggleSidebar_Click" InputGestureText="Strg+B"/>
-                    <MenuItem Header="_Dark/Light Mode umschalten" Command="{Binding ToggleThemeCommand}" InputGestureText="Strg+T"/>
+                <MenuItem Header="{loc:T Menu.View}">
+                    <MenuItem Header="{loc:T Menu.View.Sidebar}" Click="ToggleSidebar_Click" InputGestureText="{loc:T Shortcut.Sidebar}"/>
+                    <MenuItem Header="{loc:T Menu.View.Theme}" Command="{Binding ToggleThemeCommand}" InputGestureText="{loc:T Shortcut.Theme}"/>
+                    <MenuItem Header="{loc:T Menu.View.Language}">
+                        <MenuItem x:Name="LangGerman" Header="{loc:T Menu.View.Language.German}"
+                                  IsCheckable="True" Click="Language_Click" Tag="de"/>
+                        <MenuItem x:Name="LangEnglish" Header="{loc:T Menu.View.Language.English}"
+                                  IsCheckable="True" Click="Language_Click" Tag="en"/>
+                    </MenuItem>
                 </MenuItem>
-                <MenuItem Header="_Hilfe">
-                    <MenuItem Header="Über _Gonk Note" Click="About_Click"/>
+                <MenuItem Header="{loc:T Menu.Help}">
+                    <MenuItem Header="{loc:T Menu.Help.About}" Click="About_Click"/>
                 </MenuItem>
             </Menu>
             </DockPanel>
@@ -136,18 +143,18 @@
 
                     <!-- Schnellzugriff: Neu -->
                     <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="2,0,0,8">
-                        <Button Style="{StaticResource IconButton}" Content="&#xE8F4;" ToolTip="Neuer Ordner"
+                        <Button Style="{StaticResource IconButton}" Content="&#xE8F4;" ToolTip="{loc:T New.Folder}"
                                 Command="{Binding NewFolderCommand}"/>
-                        <Button Style="{StaticResource IconButton}" Content="&#xE82D;" ToolTip="Neues Notizbuch"
+                        <Button Style="{StaticResource IconButton}" Content="&#xE82D;" ToolTip="{loc:T New.Notebook}"
                                 Command="{Binding NewNotebookCommand}"/>
-                        <Button Style="{StaticResource IconButton}" ToolTip="Neues Whiteboard"
+                        <Button Style="{StaticResource IconButton}" ToolTip="{loc:T New.Whiteboard}"
                                 Command="{Binding NewWhiteboardCommand}">
                             <Path Data="{StaticResource Icon.Whiteboard}" StrokeThickness="1.3"
                                   StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
                                   Width="16" Height="16"
                                   Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
                         </Button>
-                        <Button Style="{StaticResource IconButton}" Content="&#xE8A5;" ToolTip="Neues Textdokument"
+                        <Button Style="{StaticResource IconButton}" Content="&#xE8A5;" ToolTip="{loc:T New.Text}"
                                 Command="{Binding NewTextDocCommand}"/>
                     </StackPanel>
 
@@ -162,7 +169,7 @@
                                 </Style.Triggers>
                             </Style>
                         </StackPanel.Style>
-                        <TextBlock Text="ANGEPINNT" FontSize="10" FontWeight="SemiBold" Margin="6,2,0,5"
+                        <TextBlock Text="{loc:T Sidebar.Pinned}" FontSize="10" FontWeight="SemiBold" Margin="6,2,0,5"
                                    Foreground="{DynamicResource Brush.TextMuted}"/>
                         <!-- Icon-Kachel-Raster (angelehnt an Zen-Browser-Pinned-Tabs) -->
                         <ItemsControl ItemsSource="{Binding PinnedFolders}">
@@ -213,11 +220,11 @@
                     <!-- Fußzeile -->
                     <Button DockPanel.Dock="Bottom" Style="{StaticResource FlatButton}"
                             HorizontalAlignment="Left" Margin="2,8,0,0"
-                            Command="{Binding ToggleThemeCommand}" ToolTip="Dark/Light Mode (Strg+T)">
+                            Command="{Binding ToggleThemeCommand}" ToolTip="{loc:T Sidebar.ThemeTooltip}">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="&#xE793;" FontFamily="{StaticResource IconFont}" FontSize="14"
                                        Foreground="{DynamicResource Brush.TextMuted}" VerticalAlignment="Center"/>
-                            <TextBlock Text="Design wechseln" Margin="8,0,0,0"
+                            <TextBlock Text="{loc:T Sidebar.SwitchTheme}" Margin="8,0,0,0"
                                        Foreground="{DynamicResource Brush.TextMuted}"/>
                         </StackPanel>
                     </Button>
@@ -236,18 +243,18 @@
                               VirtualizingPanel.IsVirtualizing="False">
                         <TreeView.ContextMenu>
                             <ContextMenu>
-                                <MenuItem Header="Neuer Ordner" Command="{Binding NewFolderCommand}"
+                                <MenuItem Header="{loc:T New.Folder}" Command="{Binding NewFolderCommand}"
                                           CommandParameter="{Binding SelectedTreeItem}"/>
-                                <MenuItem Header="Neues Notizbuch" Command="{Binding NewNotebookCommand}"
+                                <MenuItem Header="{loc:T New.Notebook}" Command="{Binding NewNotebookCommand}"
                                           CommandParameter="{Binding SelectedTreeItem}"/>
-                                <MenuItem Header="Neues Whiteboard" Command="{Binding NewWhiteboardCommand}"
+                                <MenuItem Header="{loc:T New.Whiteboard}" Command="{Binding NewWhiteboardCommand}"
                                           CommandParameter="{Binding SelectedTreeItem}"/>
-                                <MenuItem Header="Neues Textdokument" Command="{Binding NewTextDocCommand}"
+                                <MenuItem Header="{loc:T New.Text}" Command="{Binding NewTextDocCommand}"
                                           CommandParameter="{Binding SelectedTreeItem}"/>
                                 <Separator/>
-                                <MenuItem Header="Öffnen" Command="{Binding OpenItemCommand}"
+                                <MenuItem Header="{loc:T Tree.Open}" Command="{Binding OpenItemCommand}"
                                           CommandParameter="{Binding SelectedTreeItem}"/>
-                                <MenuItem Header="Umbenennen" InputGestureText="F2"
+                                <MenuItem Header="{loc:T Tree.Rename}" InputGestureText="{loc:T Shortcut.Rename}"
                                           Command="{Binding RenameCommand}"
                                           CommandParameter="{Binding SelectedTreeItem}"/>
                                 <MenuItem Header="{Binding SelectedTreeItem.PinMenuHeader}"
@@ -270,45 +277,45 @@
                                                    Foreground="#EAB308"/>
                                     </MenuItem.Icon>
                                 </MenuItem>
-                                <MenuItem Header="Symbolfarbe">
-                                    <MenuItem Header="Automatisch (Ordnerfarbe)" Click="IconColor_Click" Tag=""
-                                              ToolTip="Übernimmt die Farbe des übergeordneten Ordners">
+                                <MenuItem Header="{loc:T Tree.IconColor}">
+                                    <MenuItem Header="{loc:T Tree.IconColor.Auto}" Click="IconColor_Click" Tag=""
+                                              ToolTip="{loc:T Tree.IconColor.AutoTooltip}">
                                         <MenuItem.Icon>
                                             <Ellipse Width="12" Height="12" Fill="{DynamicResource Brush.Turquoise}"/>
                                         </MenuItem.Icon>
                                     </MenuItem>
                                     <Separator/>
-                                    <MenuItem Header="Blau" Click="IconColor_Click" Tag="#2563EB">
+                                    <MenuItem Header="{loc:T Color.Blue}" Click="IconColor_Click" Tag="#2563EB">
                                         <MenuItem.Icon><Ellipse Width="12" Height="12" Fill="#2563EB"/></MenuItem.Icon>
                                     </MenuItem>
-                                    <MenuItem Header="Türkis" Click="IconColor_Click" Tag="#14B8A6">
+                                    <MenuItem Header="{loc:T Color.Teal}" Click="IconColor_Click" Tag="#14B8A6">
                                         <MenuItem.Icon><Ellipse Width="12" Height="12" Fill="#14B8A6"/></MenuItem.Icon>
                                     </MenuItem>
-                                    <MenuItem Header="Pink" Click="IconColor_Click" Tag="#EC4899">
+                                    <MenuItem Header="{loc:T Color.Pink}" Click="IconColor_Click" Tag="#EC4899">
                                         <MenuItem.Icon><Ellipse Width="12" Height="12" Fill="#EC4899"/></MenuItem.Icon>
                                     </MenuItem>
-                                    <MenuItem Header="Lila" Click="IconColor_Click" Tag="#8B5CF6">
+                                    <MenuItem Header="{loc:T Color.Purple}" Click="IconColor_Click" Tag="#8B5CF6">
                                         <MenuItem.Icon><Ellipse Width="12" Height="12" Fill="#8B5CF6"/></MenuItem.Icon>
                                     </MenuItem>
-                                    <MenuItem Header="Rot" Click="IconColor_Click" Tag="#EF4444">
+                                    <MenuItem Header="{loc:T Color.Red}" Click="IconColor_Click" Tag="#EF4444">
                                         <MenuItem.Icon><Ellipse Width="12" Height="12" Fill="#EF4444"/></MenuItem.Icon>
                                     </MenuItem>
-                                    <MenuItem Header="Orange" Click="IconColor_Click" Tag="#F97316">
+                                    <MenuItem Header="{loc:T Color.Orange}" Click="IconColor_Click" Tag="#F97316">
                                         <MenuItem.Icon><Ellipse Width="12" Height="12" Fill="#F97316"/></MenuItem.Icon>
                                     </MenuItem>
-                                    <MenuItem Header="Gelb" Click="IconColor_Click" Tag="#EAB308">
+                                    <MenuItem Header="{loc:T Color.Yellow}" Click="IconColor_Click" Tag="#EAB308">
                                         <MenuItem.Icon><Ellipse Width="12" Height="12" Fill="#EAB308"/></MenuItem.Icon>
                                     </MenuItem>
-                                    <MenuItem Header="Grün" Click="IconColor_Click" Tag="#22C55E">
+                                    <MenuItem Header="{loc:T Color.Green}" Click="IconColor_Click" Tag="#22C55E">
                                         <MenuItem.Icon><Ellipse Width="12" Height="12" Fill="#22C55E"/></MenuItem.Icon>
                                     </MenuItem>
-                                    <MenuItem Header="Grau" Click="IconColor_Click" Tag="#94A3B8">
+                                    <MenuItem Header="{loc:T Color.Gray}" Click="IconColor_Click" Tag="#94A3B8">
                                         <MenuItem.Icon><Ellipse Width="12" Height="12" Fill="#94A3B8"/></MenuItem.Icon>
                                     </MenuItem>
                                     <Separator/>
-                                    <MenuItem Header="Eigene Farbe…" Click="IconColorCustom_Click"/>
+                                    <MenuItem Header="{loc:T Tree.IconColor.Custom}" Click="IconColorCustom_Click"/>
                                 </MenuItem>
-                                <MenuItem Header="Löschen" InputGestureText="Entf"
+                                <MenuItem Header="{loc:T Tree.Delete}" InputGestureText="{loc:T Shortcut.Delete}"
                                           Command="{Binding DeleteCommand}"
                                           CommandParameter="{Binding SelectedTreeItem}"/>
                             </ContextMenu>
@@ -332,7 +339,7 @@
                                                Visibility="{Binding IsRenaming, Converter={StaticResource InverseBoolToVis}}"/>
                                     <TextBlock Text="&#xE735;" FontFamily="{StaticResource IconFont}" FontSize="10"
                                                Margin="2,0,0,0" VerticalAlignment="Center" Foreground="#EAB308"
-                                               ToolTip="Favorit" Visibility="{Binding FavoriteVisibility}"/>
+                                               ToolTip="{loc:T Tree.Favorite}" Visibility="{Binding FavoriteVisibility}"/>
                                     <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
                                              Margin="6,0,4,0" MinWidth="110" Padding="2,1"
                                              Visibility="{Binding IsRenaming, Converter={StaticResource BoolToVis}}"
@@ -386,7 +393,7 @@
                                 </ItemsControl>
                                 <StackPanel Orientation="Horizontal">
                                     <Button Style="{StaticResource IconButton}" Content="&#xE72B;" FontSize="18"
-                                            ToolTip="Zurück" Margin="0,0,6,0" VerticalAlignment="Center"
+                                            ToolTip="{loc:T Gallery.Back}" Margin="0,0,6,0" VerticalAlignment="Center"
                                             Visibility="{Binding CanGoBack, Converter={StaticResource BoolToVis}}"
                                             Command="{Binding GalleryBackCommand}"/>
                                     <TextBlock Text="{Binding GalleryTitle}" FontSize="26" FontWeight="SemiBold"
@@ -400,16 +407,16 @@
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="&#xE710;" FontFamily="{StaticResource IconFont}" FontSize="12"
                                                Foreground="White" VerticalAlignment="Center"/>
-                                    <TextBlock Text="Neu" Margin="7,0,2,0" Foreground="White" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{loc:T Gallery.New}" Margin="7,0,2,0" Foreground="White" VerticalAlignment="Center"/>
                                     <TextBlock Text="&#xE70D;" FontFamily="{StaticResource IconFont}" FontSize="9"
                                                Foreground="White" VerticalAlignment="Center" Margin="4,1,0,0"/>
                                 </StackPanel>
                                 <Button.ContextMenu>
                                     <ContextMenu>
-                                        <MenuItem Header="Neuer Ordner" Command="{Binding NewFolderCommand}" CommandParameter="{Binding GalleryFolder}"/>
-                                        <MenuItem Header="Neues Notizbuch" Command="{Binding NewNotebookCommand}" CommandParameter="{Binding GalleryFolder}"/>
-                                        <MenuItem Header="Neues Whiteboard" Command="{Binding NewWhiteboardCommand}" CommandParameter="{Binding GalleryFolder}"/>
-                                        <MenuItem Header="Neues Textdokument" Command="{Binding NewTextDocCommand}" CommandParameter="{Binding GalleryFolder}"/>
+                                        <MenuItem Header="{loc:T New.Folder}" Command="{Binding NewFolderCommand}" CommandParameter="{Binding GalleryFolder}"/>
+                                        <MenuItem Header="{loc:T New.Notebook}" Command="{Binding NewNotebookCommand}" CommandParameter="{Binding GalleryFolder}"/>
+                                        <MenuItem Header="{loc:T New.Whiteboard}" Command="{Binding NewWhiteboardCommand}" CommandParameter="{Binding GalleryFolder}"/>
+                                        <MenuItem Header="{loc:T New.Text}" Command="{Binding NewTextDocCommand}" CommandParameter="{Binding GalleryFolder}"/>
                                     </ContextMenu>
                                 </Button.ContextMenu>
                             </Button>
@@ -420,9 +427,9 @@
                                     Visibility="{Binding GalleryItems.Count, Converter={StaticResource ZeroToVis}}">
                             <Image Source="/Assets/gonk-note-Icon.png" Width="56" Height="56"
                                    RenderOptions.BitmapScalingMode="HighQuality" HorizontalAlignment="Center" Opacity="0.7"/>
-                            <TextBlock Text="Noch nichts hier" FontSize="17" FontWeight="SemiBold" Margin="0,12,0,4"
+                            <TextBlock Text="{loc:T Gallery.Empty.Title}" FontSize="17" FontWeight="SemiBold" Margin="0,12,0,4"
                                        Foreground="{DynamicResource Brush.Text}" HorizontalAlignment="Center"/>
-                            <TextBlock Text="Erstelle etwas über „Neu“ oder die Seitenleiste."
+                            <TextBlock Text="{loc:T Gallery.Empty.Hint}"
                                        Foreground="{DynamicResource Brush.TextMuted}" HorizontalAlignment="Center"/>
                         </StackPanel>
 
@@ -536,7 +543,7 @@
                                                                FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
                                                                MaxWidth="128" TextAlignment="Center" VerticalAlignment="Center"/>
                                                     <Button Style="{StaticResource IconButton}" Content="&#xE70D;" FontSize="9"
-                                                            Width="18" Height="18" Margin="3,0,0,0" ToolTip="Optionen"
+                                                            Width="18" Height="18" Margin="3,0,0,0" ToolTip="{loc:T Gallery.Options}"
                                                             Click="GalleryChevron_Click"/>
                                                 </StackPanel>
                                                 <TextBlock Text="{Binding DateText}" Foreground="{DynamicResource Brush.TextMuted}"
@@ -566,7 +573,7 @@
                                 <TextBlock Text="{Binding TabHeader}" VerticalAlignment="Center" MaxWidth="180"
                                            TextTrimming="CharacterEllipsis"/>
                                 <Button Style="{StaticResource IconButton}" Content="&#xE711;" FontSize="9"
-                                        Width="20" Height="20" Margin="8,0,0,0" ToolTip="Schließen (Strg+W)"
+                                        Width="20" Height="20" Margin="8,0,0,0" ToolTip="{loc:T Window.CloseTab}"
                                         Command="{Binding DataContext.CloseTabCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                         CommandParameter="{Binding}"/>
                             </StackPanel>
@@ -589,11 +596,11 @@
         <DockPanel>
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
                 <Button Style="{StaticResource CaptionButton}" Content="&#xE921;"
-                        ToolTip="Minimieren" Click="Caption_Minimize"/>
+                        ToolTip="{loc:T Window.Minimize}" Click="Caption_Minimize"/>
                 <Button Style="{StaticResource CaptionButton}" Content="&#xE923;"
-                        ToolTip="Wiederherstellen" Click="Caption_Restore"/>
+                        ToolTip="{loc:T Window.Restore}" Click="Caption_Restore"/>
                 <Button Style="{StaticResource CaptionCloseButton}" Content="&#xE8BB;"
-                        ToolTip="Schließen" Click="Caption_Close"/>
+                        ToolTip="{loc:T Window.Close}" Click="Caption_Close"/>
             </StackPanel>
             <StackPanel Orientation="Horizontal" Margin="12,0,0,0" VerticalAlignment="Center">
                 <Image Source="/Assets/gonk-note-Icon.png" Width="16" Height="16"

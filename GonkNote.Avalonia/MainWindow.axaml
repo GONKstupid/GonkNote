@@ -188,6 +188,20 @@
                         <Button Content="🖍 Marker"    Tag="Highlighter" Click="Tool_Click"/>
                         <Button Content="⌫ Radierer"  Tag="Eraser"      Click="Tool_Click"/>
                         <Button Content="✋ Hand"      Tag="Pan"         Click="Tool_Click"/>
+                        <Button Content="↖ Auswahl"   Tag="Move"        Click="Tool_Click"/>
+                        <Button Content="◌ Lasso"     Tag="Lasso"       Click="Tool_Click"/>
+                        <Button Content="▭ Form"      Tag="Shape"       Click="Tool_Click"/>
+                        <Button Content="🗒 Zettel"    Tag="Sticky"      Click="Tool_Click"/>
+                        <Button Content="T Text"      Tag="Text"        Click="Tool_Click"/>
+                        <Border Width="1" Background="#33808080" Margin="4,2"/>
+                        <ComboBox Name="ShapePicker" SelectedIndex="0" Width="120"
+                                  SelectionChanged="ShapePicker_Changed" ToolTip.Tip="Form">
+                            <ComboBoxItem Content="Rechteck"/>
+                            <ComboBoxItem Content="Ellipse"/>
+                            <ComboBoxItem Content="Linie"/>
+                            <ComboBoxItem Content="Pfeil"/>
+                            <ComboBoxItem Content="Dreieck"/>
+                        </ComboBox>
                         <Border Width="1" Background="#33808080" Margin="4,2"/>
                         <Button Classes="ink" Tag="#111827" Click="Ink_Click" Background="#111827"/>
                         <Button Classes="ink" Tag="#2563EB" Click="Ink_Click" Background="#2563EB"/>
@@ -200,7 +214,14 @@
                         <Border Width="1" Background="#33808080" Margin="4,2"/>
                         <Button Content="↶ Rückgängig" Click="Undo_Click"/>
                         <Button Content="↷ Wiederholen" Click="Redo_Click"/>
+                        <Button Content="🗑 Löschen" Click="DeleteSel_Click" ToolTip.Tip="Auswahl löschen (Entf)"/>
                         <Button Content="⤢ 100 %" Click="ZoomReset_Click"/>
+                        <Border Width="1" Background="#33808080" Margin="4,2"/>
+                        <Button Content="‹" Click="PrevPage_Click" ToolTip.Tip="Vorherige Seite"/>
+                        <TextBlock Text="{Binding PageLabel}" VerticalAlignment="Center"
+                                   Margin="4,0" Opacity="0.8"/>
+                        <Button Content="›" Click="NextPage_Click" ToolTip.Tip="Nächste Seite"/>
+                        <Button Content="＋ Seite" Click="AddPage_Click"/>
                     </WrapPanel>
                 </Border>
                 <local:WhiteboardCanvas Name="Board" Page="{Binding CurrentPage}"/>

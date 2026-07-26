@@ -44,6 +44,19 @@ public partial class MainWindow : Window
         // Jeder fertige Strich / Radier-Zug: Undo-Eintrag + sofort in die LiteDB.
         Board.StrokeCompleted += (_, stroke) => Vm.OnStrokeDrawn(stroke);
         Board.ElementsErased += (_, removed) => Vm.OnElementsErased(removed);
+        Board.ElementAdded += (_, el) => Vm.OnElementAdded(el);
+        Board.SelectionMoved += (_, m) => Vm.OnSelectionMoved(m.Els, m.Dx, m.Dy);
+        Board.TextRequested += (_, txt) => OnTextRequested(txt);
+
+        // Entf löscht die aktuelle Auswahl (nur wenn das Whiteboard sichtbar ist).
+        AddHandler(KeyDownEvent, (_, e) =>
+        {
+            if (e.Key == Key.Delete && Board.IsVisible && Board.HasSelection)
+            {
+                DeleteSelection();
+                e.Handled = true;
+            }
+        }, RoutingStrategies.Bubble);
 
         // Workaround gegen den Fill-Panel-Measure-Quirk (§9.5): dem Inhaltsbereich eine
         // explizite Breite geben (= Fensterbreite − Seitenleiste), damit Umbruch/Zentrierung
@@ -150,6 +163,44 @@ public partial class MainWindow : Window
         Board.Zoom = 1.0;
         Board.PanX = 0;
         Board.PanY = 0;
+    }
+
+    private void ShapePicker_Changed(object? sender, SelectionChangedEventArgs e)
+    {
+        if (Board is null) return;
+        Board.Shape = ShapePicker.SelectedIndex switch
+        {
+            1 => ShapeKind.Ellipse,
+            2 => ShapeKind.Line,
+            3 => ShapeKind.Arrow,
+            4 => ShapeKind.Triangle,
+            _ => ShapeKind.Rectangle,
+        };
+    }
+
+    private void DeleteSel_Click(object? sender, RoutedEventArgs e) => DeleteSelection();
+
+    private void DeleteSelection()
+    {
+        var removed = Board.DeleteSelection();
+        if (removed.Count > 0) Vm.OnSelectionDeleted(removed);
+    }
+
+    private void PrevPage_Click(object? sender, RoutedEventArgs e) { Vm.PrevPage(); Board.InvalidateVisual(); }
+    private void NextPage_Click(object? sender, RoutedEventArgs e) { Vm.NextPage(); Board.InvalidateVisual(); }
+    private void AddPage_Click(object? sender, RoutedEventArgs e) { Vm.AddPage(); Board.InvalidateVisual(); }
+
+    /// <summary>Fragt den Text ab und fügt das Text-Element ein.</summary>
+    private async void OnTextRequested(GonkNote.Models.TextElement txt)
+    {
+        string? text = await TextPrompt.ShowAsync(this, "Text einfügen", "");
+        if (string.IsNullOrWhiteSpace(text)) return;
+        if (Vm.CurrentPage is not { } page) return;
+
+        txt.Text = text;
+        page.Elements.Add(txt);
+        Vm.OnElementAdded(txt);
+        Board.InvalidateVisual();
     }
 
     // ---- Anlegen / Kontextmenü ----------------------------------------------------------

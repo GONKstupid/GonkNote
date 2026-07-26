@@ -1034,8 +1034,31 @@ danach fein machen; der Prototyp nutzt vorerst **Reiter Bearbeiten/Vorschau** st
 - Aktives Werkzeug wird in der Leiste hervorgehoben (`Button.active`).
 - **Verifiziert per Screenshot** (`AV3-pencil.png`): Bleistift-Linie deutlich körnig gegenüber der
   Stift-Linie; aufgetrennter Strich zeigt die Lücke mit stehen gebliebenen Enden.
-- **Offen (4b-Rest):** Lasso/Verschieben/Auswahl, Mehrseitigkeit, Touch-Gesten (Pinch-Zoom),
-  Formen-/Text-/Notizzettel-Werkzeuge.
+**Schritt 4b (Teil 4): restliche Werkzeuge (2026-07-24).**
+- **Auswahl/Verschieben (`Move`)**: Klick greift das oberste Element (`TopElementAt`, nutzt
+  `WbErase.HitsStroke/HitsOther`), Ziehen verschiebt es (`WbElement.Translate`); ein Zug =
+  **ein** Undo-Schritt (`MoveElementsAction`).
+- **Lasso**: freies Polygon, Auswahl über Punkt-in-Polygon (Ray-Casting) auf den Element-
+  Mittelpunkt; Klick **in** eine bestehende Auswahl verschiebt sie stattdessen. Gestrichelte
+  Lasso-Spur + Auswahlrahmen werden als **transientes Overlay** gezeichnet (nicht Teil der Seite,
+  Strichbreite zoom-kompensiert).
+- **Formen** (`Shape` + `ComboBox`: Rechteck/Ellipse/Linie/Pfeil/Dreieck): Aufziehen mit
+  Live-Vorschau, beim Loslassen als `ShapeElement` übernommen (Fehlklicks < 2 px verworfen).
+- **Notizzettel** (`Sticky`): Klick platziert eine 200×160-Karte. **Text** (`Text`): Klick öffnet
+  den neuen Mini-Dialog **`TextPrompt`** (Code-only, feste Breiten → umgeht den Quirk aus §9.5).
+- **Auswahl löschen** per Button oder **Entf**-Taste (`RemoveElementsAction`).
+- **Pinch-Zoom** über `Gestures.AddPinchHandler` (Skalierung relativ zum Zoom bei Gestenbeginn).
+- **Mehrseitigkeit**: `‹ / ›`-Navigation, `＋ Seite` (übernimmt Format/Muster der aktuellen Seite),
+  Anzeige „Seite X / Y". **Undo-Verlauf gilt je Seite** (beim Wechsel neuer `UndoStack`).
+- **Robustheit:** Das Zeichnen jedes Elements läuft in `try/catch` — Custom-DrawOperations
+  verschlucken Ausnahmen sonst still, ein defektes Element hätte das ganze Bild gekostet.
+- **Verifiziert per Screenshot** (`AV3-tools-final.png`): Rechteck, Ellipse, Pfeil, Notizzettel
+  (mit Schatten + Textumbruch) und Text-Element rendern korrekt.
+- ⚠️ **DPI-Falle beim Testen** (kostete hier Zeit): Avalonia rechnet in **DIPs**. Auf dem
+  Testrechner (200 %) ist der sichtbare Canvas nur ~410×290 DIP — Testkoordinaten > ~400 liegen
+  außerhalb und wirken wie ein Render-Bug. Erst prüfen, bevor man Fehler in `WbRenderer` sucht.
+- **Offen (4b-Rest):** Skalieren/Drehen der Auswahl, Sticker-Werkzeug, Kopieren/Einfügen,
+  Zeichenhilfen (Lineal/Geodreieck), Bild-/PDF-Import.
 
 ### 9.4 Gestaffelter Plan
 1. ✅ **PoC/Scaffold + Kernlogik-Reuse** (fertig, §9.1).

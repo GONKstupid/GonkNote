@@ -89,9 +89,10 @@ public sealed class ShellViewModel : ObservableObject
         {
             _currentDoc = _db.GetBoard(item.Item);
             if (_currentDoc.Pages.Count == 0) _currentDoc.Pages.Add(new WbPage());
+            _pageIndex = 0;
             CurrentPage = _currentDoc.Pages[0];
-            Undo = new UndoStack();          // Undo-Verlauf gilt je Dokument
-            RaiseUndoState();
+            Undo = new UndoStack();          // Undo-Verlauf gilt je Seite
+            RaisePageState();
         }
         else
         {
@@ -111,6 +112,82 @@ public sealed class ShellViewModel : ObservableObject
 
     public bool CanUndo => Undo.CanUndo;
     public bool CanRedo => Undo.CanRedo;
+
+    // ---- Seiten (Mehrseitigkeit) --------------------------------------------------------
+
+    private int _pageIndex;
+
+    public int PageIndex => _pageIndex;
+    public int PageCount => _currentDoc?.Pages.Count ?? 0;
+    public string PageLabel => PageCount == 0 ? "" : $"Seite {_pageIndex + 1} / {PageCount}";
+
+    public bool CanPrevPage => _pageIndex > 0;
+    public bool CanNextPage => _currentDoc is { } d && _pageIndex + 1 < d.Pages.Count;
+
+    public void GoToPage(int index)
+    {
+        if (_currentDoc is not { } doc || index < 0 || index >= doc.Pages.Count) return;
+        _pageIndex = index;
+        CurrentPage = doc.Pages[index];
+        Undo = new UndoStack();          // Undo gilt je Seite
+        RaisePageState();
+    }
+
+    public void PrevPage() => GoToPage(_pageIndex - 1);
+    public void NextPage() => GoToPage(_pageIndex + 1);
+
+    /// <summary>Hängt eine neue Seite an (übernimmt Format/Muster der aktuellen) und springt hin.</summary>
+    public void AddPage()
+    {
+        if (_currentDoc is not { } doc) return;
+        var cur = CurrentPage;
+        doc.Pages.Add(new WbPage
+        {
+            Width = cur?.Width ?? 0,
+            Height = cur?.Height ?? 0,
+            Background = cur?.Background ?? PageBackground.Blank,
+            Shade = cur?.Shade ?? PageShade.Light,
+        });
+        SaveCurrentBoard();
+        GoToPage(doc.Pages.Count - 1);
+    }
+
+    private void RaisePageState()
+    {
+        OnPropertyChanged(nameof(PageIndex));
+        OnPropertyChanged(nameof(PageCount));
+        OnPropertyChanged(nameof(PageLabel));
+        OnPropertyChanged(nameof(CanPrevPage));
+        OnPropertyChanged(nameof(CanNextPage));
+        RaiseUndoState();
+    }
+
+    /// <summary>Registriert ein neu eingefügtes Element (Form/Zettel/Text) als Undo-Schritt.</summary>
+    public void OnElementAdded(WbElement el)
+    {
+        if (_currentPage is not { } page) return;
+        Undo.Push(page, new AddElementsAction(new[] { el }));
+        SaveCurrentBoard();
+        RaiseUndoState();
+    }
+
+    /// <summary>Registriert das Verschieben einer Auswahl als einen Undo-Schritt.</summary>
+    public void OnSelectionMoved(List<WbElement> els, float dx, float dy)
+    {
+        if (_currentPage is not { } page) return;
+        Undo.Push(page, new MoveElementsAction(els, dx, dy));
+        SaveCurrentBoard();
+        RaiseUndoState();
+    }
+
+    /// <summary>Registriert das Löschen einer Auswahl als einen Undo-Schritt.</summary>
+    public void OnSelectionDeleted(List<(WbElement El, int Index)> removed)
+    {
+        if (_currentPage is not { } page || removed.Count == 0) return;
+        Undo.Push(page, new RemoveElementsAction(removed));
+        SaveCurrentBoard();
+        RaiseUndoState();
+    }
 
     /// <summary>Registriert einen neu gezeichneten Strich als Undo-Schritt und speichert.</summary>
     public void OnStrokeDrawn(StrokeElement stroke)

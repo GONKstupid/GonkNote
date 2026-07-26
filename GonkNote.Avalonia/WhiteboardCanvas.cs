@@ -97,6 +97,38 @@ public class WhiteboardCanvas : Control
     private Point _panStart;
     private double _panOriginX, _panOriginY;
 
+    /// <summary>Aktuell ausgewählte Elemente (Lasso / Verschieben).</summary>
+    private readonly List<WbElement> _selection = new();
+
+    private bool _movingSelection;
+    private SKPoint _moveLast;
+    private float _moveDx, _moveDy;          // Summe für einen einzigen Undo-Schritt
+
+    /// <summary>Laufendes Lasso-Polygon (Seiten-Koordinaten).</summary>
+    private List<SKPoint>? _lasso;
+
+    /// <summary>Gerade aufgezogene Form (Vorschau bis zum Loslassen).</summary>
+    private ShapeElement? _shape;
+
+    /// <summary>Zu zeichnende Form beim Formen-Werkzeug.</summary>
+    public static readonly StyledProperty<ShapeKind> ShapeKindProperty =
+        AvaloniaProperty.Register<WhiteboardCanvas, ShapeKind>(nameof(Shape), ShapeKind.Rectangle);
+
+    public ShapeKind Shape
+    {
+        get => GetValue(ShapeKindProperty);
+        set => SetValue(ShapeKindProperty, value);
+    }
+
+    /// <summary>Feuert, wenn Elemente hinzugefügt wurden (Form/Zettel/Text) — für Undo+Speichern.</summary>
+    public event EventHandler<WbElement>? ElementAdded;
+
+    /// <summary>Feuert nach dem Verschieben einer Auswahl (dx, dy) — für Undo+Speichern.</summary>
+    public event EventHandler<(List<WbElement> Els, float Dx, float Dy)>? SelectionMoved;
+
+    /// <summary>Feuert, wenn Text eingegeben werden soll (die Shell öffnet dafür einen Dialog).</summary>
+    public event EventHandler<GonkNote.Models.TextElement>? TextRequested;
+
     static WhiteboardCanvas()
     {
         // Neu zeichnen, wenn sich Seite, Zoom oder Verschiebung ändern.
@@ -107,7 +139,18 @@ public class WhiteboardCanvas : Control
     {
         // Zeigereignisse kommen über die HitTest-Methode der Draw-Operation (füllt Bounds).
         Focusable = true;
+
+        // Touch: Pinch zum Zoomen (zwei Finger).
+        Gestures.AddPinchHandler(this, (_, e) =>
+        {
+            Zoom = Math.Clamp(_pinchStart * e.Scale, 0.2, 8.0);
+            e.Handled = true;
+        });
+        Gestures.AddPinchEndedHandler(this, (_, _) => _pinchStart = Zoom);
     }
+
+    /// <summary>Zoom zu Beginn einer Pinch-Geste (Skalierung ist relativ dazu).</summary>
+    private double _pinchStart = 1.0;
 
     public override void Render(DrawingContext context)
     {
@@ -116,7 +159,8 @@ public class WhiteboardCanvas : Control
         context.FillRectangle(Brushes.Transparent, new Rect(Bounds.Size));
 
         if (Page is not { } page) return;
-        context.Custom(new PageDrawOperation(new Rect(Bounds.Size), page, Zoom, _active, PanX, PanY));
+        context.Custom(new PageDrawOperation(new Rect(Bounds.Size), page, Zoom, _active, PanX, PanY,
+                                             _shape, _lasso, SelectionBounds()));
     }
 
     // ---- Zeigereingabe (Stift / Maus / Finger) ------------------------------------------
@@ -149,6 +193,93 @@ public class WhiteboardCanvas : Control
             e.Pointer.Capture(this);
             e.Handled = true;
             InvalidateVisual();
+            return;
+        }
+
+        var page0 = Page!;
+        var hit = ToPage(pt.Position);
+
+        // ---- Auswahl / Verschieben ----
+        if (Tool == ToolType.Move)
+        {
+            var el = TopElementAt(hit);
+            if (el is null) _selection.Clear();
+            else if (!_selection.Contains(el)) { _selection.Clear(); _selection.Add(el); }
+
+            if (_selection.Count > 0)
+            {
+                _movingSelection = true;
+                _moveLast = hit;
+                _moveDx = _moveDy = 0f;
+                e.Pointer.Capture(this);
+            }
+            e.Handled = true;
+            InvalidateVisual();
+            return;
+        }
+
+        // ---- Lasso ----
+        if (Tool == ToolType.Lasso)
+        {
+            // Klick in eine bestehende Auswahl ⇒ verschieben, sonst neues Lasso
+            if (_selection.Count > 0 && SelectionBounds() is { } sb && sb.Contains(hit.X, hit.Y))
+            {
+                _movingSelection = true;
+                _moveLast = hit;
+                _moveDx = _moveDy = 0f;
+            }
+            else
+            {
+                _selection.Clear();
+                _lasso = new List<SKPoint> { hit };
+            }
+            e.Pointer.Capture(this);
+            e.Handled = true;
+            InvalidateVisual();
+            return;
+        }
+
+        // ---- Formen ----
+        if (Tool == ToolType.Shape)
+        {
+            _shape = new ShapeElement
+            {
+                Shape = Shape,
+                X1 = hit.X, Y1 = hit.Y, X2 = hit.X, Y2 = hit.Y,
+                Color = InkColor,
+                StrokeWidth = (float)InkWidth,
+            };
+            e.Pointer.Capture(this);
+            e.Handled = true;
+            InvalidateVisual();
+            return;
+        }
+
+        // ---- Notizzettel ----
+        if (Tool == ToolType.Sticky)
+        {
+            var note = new StickyNoteElement
+            {
+                X = hit.X, Y = hit.Y, Width = 200f, Height = 160f,
+                Color = "#FDE68A", TextColor = "#3F3F46", FontSize = 15f,
+                Text = "",
+            };
+            page0.Elements.Add(note);
+            ElementAdded?.Invoke(this, note);
+            e.Handled = true;
+            InvalidateVisual();
+            return;
+        }
+
+        // ---- Text ----
+        if (Tool == ToolType.Text)
+        {
+            var txt = new GonkNote.Models.TextElement
+            {
+                X = hit.X, Y = hit.Y, Text = "", Color = InkColor, FontSize = 22f,
+            };
+            TextRequested?.Invoke(this, txt);   // Shell fragt den Text ab und fügt ihn ein
+            e.Handled = true;
             return;
         }
 
@@ -190,6 +321,35 @@ public class WhiteboardCanvas : Control
             return;
         }
 
+        if (_movingSelection)
+        {
+            var now = ToPage(pt.Position);
+            float dx = now.X - _moveLast.X, dy = now.Y - _moveLast.Y;
+            foreach (var el in _selection) el.Translate(dx, dy);
+            _moveDx += dx; _moveDy += dy;
+            _moveLast = now;
+            e.Handled = true;
+            InvalidateVisual();
+            return;
+        }
+
+        if (_lasso is not null)
+        {
+            _lasso.Add(ToPage(pt.Position));
+            e.Handled = true;
+            InvalidateVisual();
+            return;
+        }
+
+        if (_shape is not null)
+        {
+            var now = ToPage(pt.Position);
+            _shape.X2 = now.X; _shape.Y2 = now.Y;
+            e.Handled = true;
+            InvalidateVisual();
+            return;
+        }
+
         if (_active is null) return;
         AddPoint(pt);
         e.Handled = true;
@@ -214,6 +374,42 @@ public class WhiteboardCanvas : Control
             e.Pointer.Capture(null);
             e.Handled = true;
             if (steps.Count > 0) ElementsErased?.Invoke(this, steps);
+            InvalidateVisual();
+            return;
+        }
+
+        if (_movingSelection)
+        {
+            _movingSelection = false;
+            e.Pointer.Capture(null);
+            e.Handled = true;
+            if (_selection.Count > 0 && (Math.Abs(_moveDx) > 0.01f || Math.Abs(_moveDy) > 0.01f))
+                SelectionMoved?.Invoke(this, (new List<WbElement>(_selection), _moveDx, _moveDy));
+            InvalidateVisual();
+            return;
+        }
+
+        if (_lasso is { } poly)
+        {
+            _lasso = null;
+            e.Pointer.Capture(null);
+            e.Handled = true;
+            SelectInsideLasso(poly);
+            InvalidateVisual();
+            return;
+        }
+
+        if (_shape is { } sh)
+        {
+            _shape = null;
+            e.Pointer.Capture(null);
+            e.Handled = true;
+            // Winzige Formen (Fehlklick) verwerfen
+            if (Page is { } pg && (Math.Abs(sh.X2 - sh.X1) > 2f || Math.Abs(sh.Y2 - sh.Y1) > 2f))
+            {
+                pg.Elements.Add(sh);
+                ElementAdded?.Invoke(this, sh);
+            }
             InvalidateVisual();
             return;
         }
@@ -248,6 +444,77 @@ public class WhiteboardCanvas : Control
     /// <summary>Bildschirm- in Seitenkoordinaten (Pan + Zoom herausrechnen).</summary>
     private SKPoint ToPage(Point p) =>
         new((float)((p.X - PanX) / Zoom), (float)((p.Y - PanY) / Zoom));
+
+    // ---- Auswahl -------------------------------------------------------------------------
+
+    /// <summary>Oberstes Element unter dem Punkt (Vordergrund zuerst).</summary>
+    private WbElement? TopElementAt(SKPoint c)
+    {
+        if (Page is not { } page) return null;
+        float tol = 5f / (float)Zoom;
+        for (int i = page.Elements.Count - 1; i >= 0; i--)
+        {
+            var el = page.Elements[i];
+            bool hit = el is StrokeElement s
+                ? WbErase.HitsStroke(s, c, tol)
+                : WbErase.HitsOther(el, c, tol);
+            if (hit) return el;
+        }
+        return null;
+    }
+
+    /// <summary>Wählt alle Elemente, deren Mittelpunkt im Lasso-Polygon liegt.</summary>
+    private void SelectInsideLasso(List<SKPoint> poly)
+    {
+        _selection.Clear();
+        if (Page is not { } page || poly.Count < 3) return;
+
+        foreach (var el in page.Elements)
+        {
+            var b = WbRenderer.ElementBounds(el);
+            if (PointInPolygon(poly, b.MidX, b.MidY)) _selection.Add(el);
+        }
+    }
+
+    private static bool PointInPolygon(List<SKPoint> poly, float x, float y)
+    {
+        bool inside = false;
+        for (int i = 0, j = poly.Count - 1; i < poly.Count; j = i++)
+        {
+            if (poly[i].Y > y != poly[j].Y > y &&
+                x < (poly[j].X - poly[i].X) * (y - poly[i].Y) / (poly[j].Y - poly[i].Y) + poly[i].X)
+                inside = !inside;
+        }
+        return inside;
+    }
+
+    /// <summary>Umschließendes Rechteck der Auswahl (null, wenn nichts gewählt ist).</summary>
+    private SKRect? SelectionBounds()
+    {
+        if (_selection.Count == 0) return null;
+        var r = WbRenderer.ElementBounds(_selection[0]);
+        for (int i = 1; i < _selection.Count; i++)
+            r.Union(WbRenderer.ElementBounds(_selection[i]));
+        return r;
+    }
+
+    /// <summary>Löscht die aktuelle Auswahl (Entf-Taste).</summary>
+    public List<(WbElement El, int Index)> DeleteSelection()
+    {
+        var removed = new List<(WbElement, int)>();
+        if (Page is not { } page || _selection.Count == 0) return removed;
+
+        foreach (var el in _selection)
+        {
+            int idx = page.Elements.IndexOf(el);
+            if (idx >= 0) { removed.Add((el, idx)); page.Elements.RemoveAt(idx); }
+        }
+        _selection.Clear();
+        InvalidateVisual();
+        return removed;
+    }
+
+    public bool HasSelection => _selection.Count > 0;
 
     /// <summary>
     /// **Punktgenaues** Radieren wie in der WPF-App: Striche werden an der berührten Stelle
@@ -303,9 +570,13 @@ public class WhiteboardCanvas : Control
         private readonly double _zoom;
         private readonly StrokeElement? _active;
         private readonly double _panX, _panY;
+        private readonly ShapeElement? _shape;
+        private readonly List<SKPoint>? _lasso;
+        private readonly SKRect? _selBounds;
 
         public PageDrawOperation(Rect bounds, WbPage page, double zoom, StrokeElement? active,
-                                 double panX, double panY)
+                                 double panX, double panY, ShapeElement? shape,
+                                 List<SKPoint>? lasso, SKRect? selBounds)
         {
             Bounds = bounds;
             _page = page;
@@ -313,6 +584,9 @@ public class WhiteboardCanvas : Control
             _active = active;
             _panX = panX;
             _panY = panY;
+            _shape = shape;
+            _lasso = lasso;
+            _selBounds = selBounds;
         }
 
         public Rect Bounds { get; }
@@ -371,12 +645,65 @@ public class WhiteboardCanvas : Control
 
             DrawPattern(canvas, pageRect, dark);
 
+            // Pro Element abgesichert: ein defektes Element darf nicht das ganze Bild kosten
+            // (Custom-DrawOperations verschlucken Ausnahmen sonst stillschweigend).
             foreach (var el in _page.Elements)
-                WbRenderer.DrawElement(canvas, el);   // <- gemeinsame Routinen aus GonkNote.Core
+            {
+                try { WbRenderer.DrawElement(canvas, el); }   // gemeinsame Routinen aus GonkNote.Core
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Render {el.GetType().Name}: {ex.Message}");
+                }
+            }
 
             // Laufender Strich (noch nicht Teil der Seite)
             if (_active is { Points.Count: > 0 })
                 WbRenderer.DrawStroke(canvas, _active);
+
+            // Vorschau der gerade aufgezogenen Form
+            if (_shape is { } sh)
+                WbRenderer.DrawShape(canvas, sh, sh.Color, sh.StrokeWidth);
+
+            DrawOverlays(canvas);
+        }
+
+        /// <summary>Lasso-Spur und Auswahlrahmen (transient, nicht Teil der Seite).</summary>
+        private void DrawOverlays(SKCanvas canvas)
+        {
+            float px = 1f / (float)_zoom;   // konstante Strichbreite unabhängig vom Zoom
+
+            if (_lasso is { Count: > 1 })
+            {
+                using var path = new SKPath();
+                path.MoveTo(_lasso[0]);
+                for (int i = 1; i < _lasso.Count; i++) path.LineTo(_lasso[i]);
+                using var dash = SKPathEffect.CreateDash(new[] { 6f * px, 4f * px }, 0);
+                using var p = new SKPaint
+                {
+                    IsAntialias = true,
+                    Style = SKPaintStyle.Stroke,
+                    StrokeWidth = 1.5f * px,
+                    Color = new SKColor(0x5B, 0x21, 0xB6),
+                    PathEffect = dash,
+                };
+                canvas.DrawPath(path, p);
+            }
+
+            if (_selBounds is { } b)
+            {
+                var r = b;
+                r.Inflate(4f * px, 4f * px);
+                using var dash = SKPathEffect.CreateDash(new[] { 5f * px, 4f * px }, 0);
+                using var p = new SKPaint
+                {
+                    IsAntialias = true,
+                    Style = SKPaintStyle.Stroke,
+                    StrokeWidth = 1.5f * px,
+                    Color = new SKColor(0x5B, 0x21, 0xB6),
+                    PathEffect = dash,
+                };
+                canvas.DrawRect(r, p);
+            }
         }
 
         /// <summary>Linien-/Raster-/Punktmuster der Seite (vereinfacht ggü. WPF, gleiche Optik).</summary>

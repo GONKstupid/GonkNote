@@ -185,7 +185,8 @@ public class WhiteboardCanvas : Control
         if (Page is not { } page) return;
         context.Custom(new PageDrawOperation(new Rect(Bounds.Size), page, Zoom, _active, PanX, PanY,
                                              _shape, _lasso, SelectionBounds(),
-                                             _selection.Count == 1 ? RotateHandlePos() : null));
+                                             _selection.Count == 1 ? RotateHandlePos() : null,
+                                             SelectionRotation()));
     }
 
     // ---- Zeigereingabe (Stift / Maus / Finger) ------------------------------------------
@@ -309,8 +310,8 @@ public class WhiteboardCanvas : Control
         if ((Tool == ToolType.Move || Tool == ToolType.Lasso) && HandleAt(hit) is { } pivot)
         {
             _scaling = true;
-            _scalePivot = pivot;
-            _scaleStartDist = Math.Max(Dist(pivot, hit), 1f);
+            _scalePivot = pivot;                       // liegt bereits im lokalen Raum
+            _scaleStartDist = Math.Max(Dist(pivot, ToLocal(hit)), 1f);
             _scaleTotal = 1f;
             e.Pointer.Capture(this);
             e.Handled = true;
@@ -478,7 +479,7 @@ public class WhiteboardCanvas : Control
 
         if (_scaling)
         {
-            var now = ToPage(pt.Position);
+            var now = ToLocal(ToPage(pt.Position));
             float f = Math.Max(Dist(_scalePivot, now), 1f) / _scaleStartDist;
             f = Math.Clamp(f, 0.05f, 20f);
             // relativ zum bereits angewandten Faktor skalieren
@@ -708,7 +709,10 @@ public class WhiteboardCanvas : Control
         return inside;
     }
 
-    /// <summary>Umschließendes Rechteck der Auswahl (null, wenn nichts gewählt ist).</summary>
+    /// <summary>
+    /// Umschließendes Rechteck der Auswahl im **lokalen** (ungedrehten) Raum — genau der Raum,
+    /// in dem auch <see cref="WbRenderer.DrawElement"/> zeichnet, bevor es rotiert.
+    /// </summary>
     private SKRect? SelectionBounds()
     {
         if (_selection.Count == 0) return null;
@@ -716,6 +720,33 @@ public class WhiteboardCanvas : Control
         for (int i = 1; i < _selection.Count; i++)
             r.Union(WbRenderer.ElementBounds(_selection[i]));
         return r;
+    }
+
+    /// <summary>
+    /// Drehwinkel des Auswahlrahmens: nur bei Einzelauswahl sinnvoll (bei mehreren Elementen
+    /// mit unterschiedlichen Winkeln bleibt der Rahmen achsenparallel).
+    /// </summary>
+    private float SelectionRotation() =>
+        _selection.Count == 1 ? _selection[0].Rotation : 0f;
+
+    /// <summary>
+    /// Rechnet einen Zeigerpunkt in den lokalen Raum der Auswahl zurück (Rotation herausdrehen),
+    /// damit Griff-Treffer und Skalier-Pivot bei gedrehten Elementen stimmen.
+    /// </summary>
+    private SKPoint ToLocal(SKPoint p)
+    {
+        float rot = SelectionRotation();
+        if (rot == 0f || SelectionBounds() is not { } b) return p;
+        return RotatePoint(p, new SKPoint(b.MidX, b.MidY), -rot);
+    }
+
+    private static SKPoint RotatePoint(SKPoint p, SKPoint center, float deg)
+    {
+        float rad = deg * MathF.PI / 180f;
+        float cos = MathF.Cos(rad), sin = MathF.Sin(rad);
+        float dx = p.X - center.X, dy = p.Y - center.Y;
+        return new SKPoint(center.X + dx * cos - dy * sin,
+                           center.Y + dx * sin + dy * cos);
     }
 
     /// <summary>Löscht die aktuelle Auswahl (Entf-Taste).</summary>
@@ -758,6 +789,7 @@ public class WhiteboardCanvas : Control
     {
         if (SelectionBounds() is not { } b) return null;
 
+        p = ToLocal(p);           // gedrehte Auswahl: im lokalen Raum prüfen
         float pad = 4f / (float)Zoom;
         b.Inflate(pad, pad);
         float r = HandleSize / (float)Zoom;   // Griffe bleiben bildschirmgroß
@@ -787,7 +819,7 @@ public class WhiteboardCanvas : Control
     }
 
     private bool IsOnRotateHandle(SKPoint p) =>
-        RotateHandlePos() is { } h && Dist(h, p) <= HandleSize / (float)Zoom;
+        RotateHandlePos() is { } h && Dist(h, ToLocal(p)) <= HandleSize / (float)Zoom;
 
     // ---- Zwischenablage (intern, wie in der WPF-App) -------------------------------------
 
@@ -956,12 +988,15 @@ public class WhiteboardCanvas : Control
         private readonly List<SKPoint>? _lasso;
         private readonly SKRect? _selBounds;
         private readonly SKPoint? _rotateHandle;
+        private readonly float _selRotation;
 
         public PageDrawOperation(Rect bounds, WbPage page, double zoom, StrokeElement? active,
                                  double panX, double panY, ShapeElement? shape,
-                                 List<SKPoint>? lasso, SKRect? selBounds, SKPoint? rotateHandle)
+                                 List<SKPoint>? lasso, SKRect? selBounds, SKPoint? rotateHandle,
+                                 float selRotation)
         {
             _rotateHandle = rotateHandle;
+            _selRotation = selRotation;
             Bounds = bounds;
             _page = page;
             _zoom = zoom;
@@ -1079,6 +1114,14 @@ public class WhiteboardCanvas : Control
                 r.Inflate(4f * px, 4f * px);
                 var accent = new SKColor(0x5B, 0x21, 0xB6);
 
+                // Gedrehtes Element: Rahmen und Griffe mitdrehen (gleiche Achse wie DrawElement).
+                bool rotated = Math.Abs(_selRotation) > 0.01f;
+                if (rotated)
+                {
+                    canvas.Save();
+                    canvas.RotateDegrees(_selRotation, b.MidX, b.MidY);
+                }
+
                 using (var dash = SKPathEffect.CreateDash(new[] { 5f * px, 4f * px }, 0))
                 using (var p = new SKPaint
                 {
@@ -1118,6 +1161,8 @@ public class WhiteboardCanvas : Control
                     canvas.DrawCircle(rh.X, rh.Y, hs * 1.15f, fill);
                     canvas.DrawCircle(rh.X, rh.Y, hs * 1.15f, edge);
                 }
+
+                if (rotated) canvas.Restore();
             }
         }
 

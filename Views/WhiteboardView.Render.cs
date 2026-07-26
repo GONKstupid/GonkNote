@@ -305,132 +305,152 @@ public partial class WhiteboardView
     private static IEnumerable<string> WrapText(string text, SKPaint paint, float maxWidth) =>
         WbRenderer.WrapText(text, paint, maxWidth);
 
+    /// <summary>Alles, was nur während einer Aktion zu sehen ist – liegt über den Elementen.</summary>
     private void DrawActiveOverlays(SKCanvas canvas)
     {
-        // Laufender Strich
-        if (_drawing && _activePoints is { Count: > 0 })
-        {
-            var kind = _tool switch
-            {
-                ToolType.Pencil => StrokeKind.Pencil,
-                ToolType.Highlighter => StrokeKind.Highlighter,
-                _ => StrokeKind.Pen,
-            };
-            DrawStroke(canvas, new StrokeElement
-            {
-                Points = _activePoints,
-                Color = CurrentInkHex(),
-                Width = kind == StrokeKind.Highlighter ? Math.Max(_width * 5f, 10f) : _width,
-                Kind = kind,
-            });
-        }
-
-        // Formvorschau
-        if (_shapeActive)
-        {
-            DrawShape(canvas, new ShapeElement
-            {
-                Shape = _shape,
-                X1 = _shapeStart.X, Y1 = _shapeStart.Y,
-                X2 = _shapeCur.X, Y2 = _shapeCur.Y,
-                Color = CurrentInkHex(),
-                StrokeWidth = _width,
-                Fill = CurrentFill(),
-            }, CurrentInkHex(), _width);
-        }
+        DrawActiveStroke(canvas);
+        DrawShapePreview(canvas);
 
         var accent = ResColorFromBrush("Brush.Accent");
-
-        // Lasso-Pfad
-        if (_lassoPts is { Count: > 1 })
-        {
-            using var path = new SKPath();
-            path.MoveTo(_lassoPts[0]);
-            for (int i = 1; i < _lassoPts.Count; i++) path.LineTo(_lassoPts[i]);
-
-            using var fill = new SKPaint { Color = accent.WithAlpha(25), IsAntialias = true };
-            canvas.DrawPath(path, fill);
-
-            using var stroke = new SKPaint
-            {
-                Color = accent,
-                Style = SKPaintStyle.Stroke,
-                StrokeWidth = 1.4f / Zoom,
-                IsAntialias = true,
-                PathEffect = SKPathEffect.CreateDash(new[] { 6f / Zoom, 4f / Zoom }, 0),
-            };
-            canvas.DrawPath(path, stroke);
-        }
-
-        // Auswahlrahmen
-        if (_selection.Count > 0)
-        {
-            using var fill = new SKPaint { Color = accent.WithAlpha(18) };
-            using var stroke = new SKPaint
-            {
-                Color = accent, Style = SKPaintStyle.Stroke, StrokeWidth = 1.4f / Zoom, IsAntialias = true,
-                PathEffect = SKPathEffect.CreateDash(new[] { 6f / Zoom, 4f / Zoom }, 0),
-            };
-            using var handleFill = new SKPaint { Color = accent, IsAntialias = true };
-            using var handleRing = new SKPaint
-            {
-                Color = SKColors.White, Style = SKPaintStyle.Stroke, StrokeWidth = 1.4f / Zoom, IsAntialias = true,
-            };
-            float hs = 6f / Zoom;
-
-            void Handle(SKPoint p, bool circle)
-            {
-                if (circle) { canvas.DrawCircle(p, hs, handleFill); canvas.DrawCircle(p, hs, handleRing); }
-                else
-                {
-                    var r = SKRect.Create(p.X - hs, p.Y - hs, hs * 2, hs * 2);
-                    canvas.DrawRect(r, handleFill); canvas.DrawRect(r, handleRing);
-                }
-            }
-
-            if (_selection.Count == 1)
-            {
-                // Einzelauswahl: mitgedrehte Box mit Dreh- (oben) und Skalier-Griff (Ecke)
-                var el = _selection.First();
-                var h = SingleHandles(el);
-                using (var box = new SKPath())
-                {
-                    box.MoveTo(h.TL); box.LineTo(h.TR); box.LineTo(h.BR); box.LineTo(h.BL); box.Close();
-                    canvas.DrawPath(box, fill);
-                    canvas.DrawPath(box, stroke);
-                }
-                // Linie zum Dreh-Griff
-                var topMid = new SKPoint((h.TL.X + h.TR.X) / 2f, (h.TL.Y + h.TR.Y) / 2f);
-                using (var line = new SKPaint { Color = accent, Style = SKPaintStyle.Stroke, StrokeWidth = 1.4f / Zoom, IsAntialias = true })
-                    canvas.DrawLine(topMid, h.Rotate, line);
-                Handle(h.Rotate, circle: true);   // Drehen = Kreis
-                Handle(h.Scale, circle: false);   // Skalieren = Quadrat
-            }
-            else
-            {
-                // Mehrfachauswahl: achsen­paralleler Rahmen + Skalier-Griff
-                var b = InflatedSelectionBounds();
-                canvas.DrawRect(b, fill);
-                canvas.DrawRect(b, stroke);
-                Handle(new SKPoint(b.Right, b.Bottom), circle: false);
-            }
-        }
-
-        // Radierer-Cursor
-        if (_eraserVisible && EffectiveTool == ToolType.Eraser)
-        {
-            using var ring = new SKPaint
-            {
-                Color = ResColorFromBrush("Brush.Text").WithAlpha(160),
-                Style = SKPaintStyle.Stroke,
-                StrokeWidth = 1.2f / Zoom,
-                IsAntialias = true,
-            };
-            canvas.DrawCircle(_eraserPos, _eraserRadius / Zoom, ring);
-        }
+        DrawLassoPath(canvas, accent);
+        DrawSelectionFrame(canvas, accent);
+        DrawEraserCursor(canvas);
 
         // Zeichenhilfe zuletzt (liegt über allem)
         if (_aid != DrawAid.None) DrawActiveAid(canvas);
+    }
+
+    /// <summary>Der Strich, der gerade gezogen wird (noch nicht im Dokument).</summary>
+    private void DrawActiveStroke(SKCanvas canvas)
+    {
+        if (!_drawing || _activePoints is not { Count: > 0 }) return;
+
+        var kind = _tool switch
+        {
+            ToolType.Pencil => StrokeKind.Pencil,
+            ToolType.Highlighter => StrokeKind.Highlighter,
+            _ => StrokeKind.Pen,
+        };
+        DrawStroke(canvas, new StrokeElement
+        {
+            Points = _activePoints,
+            Color = CurrentInkHex(),
+            Width = kind == StrokeKind.Highlighter ? Math.Max(_width * 5f, 10f) : _width,
+            Kind = kind,
+        });
+    }
+
+    /// <summary>Vorschau der Form, die gerade aufgezogen wird.</summary>
+    private void DrawShapePreview(SKCanvas canvas)
+    {
+        if (!_shapeActive) return;
+
+        DrawShape(canvas, new ShapeElement
+        {
+            Shape = _shape,
+            X1 = _shapeStart.X, Y1 = _shapeStart.Y,
+            X2 = _shapeCur.X, Y2 = _shapeCur.Y,
+            Color = CurrentInkHex(),
+            StrokeWidth = _width,
+            Fill = CurrentFill(),
+        }, CurrentInkHex(), _width);
+    }
+
+    private void DrawLassoPath(SKCanvas canvas, SKColor accent)
+    {
+        if (_lassoPts is not { Count: > 1 }) return;
+
+        using var path = new SKPath();
+        path.MoveTo(_lassoPts[0]);
+        for (int i = 1; i < _lassoPts.Count; i++) path.LineTo(_lassoPts[i]);
+
+        using var fill = new SKPaint { Color = accent.WithAlpha(25), IsAntialias = true };
+        canvas.DrawPath(path, fill);
+
+        using var stroke = new SKPaint
+        {
+            Color = accent,
+            Style = SKPaintStyle.Stroke,
+            StrokeWidth = 1.4f / Zoom,
+            IsAntialias = true,
+            PathEffect = SKPathEffect.CreateDash(new[] { 6f / Zoom, 4f / Zoom }, 0),
+        };
+        canvas.DrawPath(path, stroke);
+    }
+
+    /// <summary>
+    /// Auswahlrahmen mit Griffen: bei einem einzelnen Element dreht der Rahmen mit und trägt
+    /// Dreh- und Skalier-Griff, bei mehreren gibt es einen achsenparallelen Kasten.
+    /// </summary>
+    private void DrawSelectionFrame(SKCanvas canvas, SKColor accent)
+    {
+        if (_selection.Count == 0) return;
+
+        using var fill = new SKPaint { Color = accent.WithAlpha(18) };
+        using var stroke = new SKPaint
+        {
+            Color = accent, Style = SKPaintStyle.Stroke, StrokeWidth = 1.4f / Zoom, IsAntialias = true,
+            PathEffect = SKPathEffect.CreateDash(new[] { 6f / Zoom, 4f / Zoom }, 0),
+        };
+        using var handleFill = new SKPaint { Color = accent, IsAntialias = true };
+        using var handleRing = new SKPaint
+        {
+            Color = SKColors.White, Style = SKPaintStyle.Stroke, StrokeWidth = 1.4f / Zoom, IsAntialias = true,
+        };
+        float hs = 6f / Zoom;
+
+        void Handle(SKPoint p, bool circle)
+        {
+            if (circle) { canvas.DrawCircle(p, hs, handleFill); canvas.DrawCircle(p, hs, handleRing); }
+            else
+            {
+                var r = SKRect.Create(p.X - hs, p.Y - hs, hs * 2, hs * 2);
+                canvas.DrawRect(r, handleFill); canvas.DrawRect(r, handleRing);
+            }
+        }
+
+        if (_selection.Count > 1)
+        {
+            var b = InflatedSelectionBounds();
+            canvas.DrawRect(b, fill);
+            canvas.DrawRect(b, stroke);
+            Handle(new SKPoint(b.Right, b.Bottom), circle: false);
+            return;
+        }
+
+        var h = SingleHandles(_selection.First());
+        using (var box = new SKPath())
+        {
+            box.MoveTo(h.TL); box.LineTo(h.TR); box.LineTo(h.BR); box.LineTo(h.BL); box.Close();
+            canvas.DrawPath(box, fill);
+            canvas.DrawPath(box, stroke);
+        }
+
+        // Linie zum Dreh-Griff
+        var topMid = new SKPoint((h.TL.X + h.TR.X) / 2f, (h.TL.Y + h.TR.Y) / 2f);
+        using (var line = new SKPaint
+               {
+                   Color = accent, Style = SKPaintStyle.Stroke, StrokeWidth = 1.4f / Zoom, IsAntialias = true,
+               })
+            canvas.DrawLine(topMid, h.Rotate, line);
+
+        Handle(h.Rotate, circle: true);   // Drehen = Kreis
+        Handle(h.Scale, circle: false);   // Skalieren = Quadrat
+    }
+
+    /// <summary>Radierer statt Mauszeiger: ein Ring in der eingestellten Größe.</summary>
+    private void DrawEraserCursor(SKCanvas canvas)
+    {
+        if (!_eraserVisible || EffectiveTool != ToolType.Eraser) return;
+
+        using var ring = new SKPaint
+        {
+            Color = ResColorFromBrush("Brush.Text").WithAlpha(160),
+            Style = SKPaintStyle.Stroke,
+            StrokeWidth = 1.2f / Zoom,
+            IsAntialias = true,
+        };
+        canvas.DrawCircle(_eraserPos, _eraserRadius / Zoom, ring);
     }
 
     private static SKColor ResColorFromBrush(string key)

@@ -68,7 +68,9 @@ public partial class App : Application
         try
         {
             Directory.CreateDirectory(Path.GetDirectoryName(LogPath)!);
-            File.AppendAllText(LogPath, $"--- {DateTime.Now:yyyy-MM-dd HH:mm:ss} ---{Environment.NewLine}{ex}{Environment.NewLine}{Environment.NewLine}");
+            File.AppendAllText(LogPath,
+                $"--- {DateTime.Now:yyyy-MM-dd HH:mm:ss} ---{Environment.NewLine}" +
+                $"{ex}{Environment.NewLine}{Environment.NewLine}");
         }
         catch
         {

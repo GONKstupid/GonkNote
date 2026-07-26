@@ -15,6 +15,15 @@ public partial class WhiteboardView
 {
     // ==================== Eingabe (Stylus + Maus) ====================
 
+    /// <summary>
+    /// Läuft gerade eine Aktion, die jede Zeigerbewegung braucht (zeichnen, radieren,
+    /// Lasso ziehen, verschieben, skalieren, drehen, Form aufziehen, Zeichenhilfe schieben)?
+    /// Wenn nicht, ist die Bewegung bloßes Schweben über der Fläche.
+    /// </summary>
+    private bool InputInProgress =>
+        _drawing || _eraseSteps != null || _lassoPts != null || _movingSelection
+        || _scalingSelection || _rotatingEl != null || _shapeActive || _rulerDrag != RulerDrag.None;
+
     private void OnStylusDown(object sender, StylusDownEventArgs e)
     {
         Focus();
@@ -58,7 +67,7 @@ public partial class WhiteboardView
             e.Handled = true;
             return;
         }
-        if (!_drawing && _eraseSteps == null && _lassoPts == null && !_movingSelection && !_shapeActive && !_scalingSelection && _rotatingEl == null && _rulerDrag == RulerDrag.None)
+        if (!InputInProgress)
         {
             HoverInput(ToCanvas(e.GetPosition(CanvasHost)));
             return;
@@ -111,15 +120,10 @@ public partial class WhiteboardView
         var screen = e.GetPosition(CanvasHost);
         if (_panning) { MovePan(screen); return; }
 
-        if (e.LeftButton == MouseButtonState.Pressed &&
-            (_drawing || _eraseSteps != null || _lassoPts != null || _movingSelection || _scalingSelection || _rotatingEl != null || _shapeActive || _rulerDrag != RulerDrag.None))
-        {
+        if (e.LeftButton == MouseButtonState.Pressed && InputInProgress)
             MoveInput(ToCanvas(screen), 0.5f);
-        }
         else
-        {
             HoverInput(ToCanvas(screen));
-        }
     }
 
     private void OnMouseUp(object sender, MouseButtonEventArgs e)
@@ -267,10 +271,7 @@ public partial class WhiteboardView
             case ToolType.SmoothPen:
             case ToolType.Pencil:
             case ToolType.Highlighter:
-                _drawing = true;
-                TryActivateAidSnap(c);
-                var start = ApplyAidSnap(c);
-                _activePoints = new List<WbPoint> { new(start.X, start.Y, Math.Clamp(pressure, 0.05f, 1f)) };
+                BeginStroke(c, pressure);
                 break;
 
             case ToolType.Eraser:
@@ -282,68 +283,11 @@ public partial class WhiteboardView
 
             case ToolType.Lasso:
             case ToolType.Move:
-                if (_selection.Count == 1)
-                {
-                    var el = _selection.First();
-                    var h = SingleHandles(el);
-                    var ctr = new SKPoint(ElementBounds(el).MidX, ElementBounds(el).MidY);
-                    if (NearHandle(c, h.Rotate))
-                    {
-                        // Drehen um den Elementmittelpunkt
-                        _rotatingEl = el;
-                        _rotStartDeg = el.Rotation;
-                        _rotStartPointer = AngleDeg(ctr, c);
-                    }
-                    else if (NearHandle(c, h.Scale))
-                    {
-                        // Gleichmäßig um den Mittelpunkt skalieren
-                        _scalingSelection = true;
-                        _scalePivot = ctr;
-                        _scaleStartDist = Math.Max(1f, SKPoint.Distance(ctr, c));
-                        _scaleAccum = 1f;
-                    }
-                    else if (SelectionContains(c))
-                    {
-                        _movingSelection = true;
-                        _moveLast = c;
-                        _movedX = _movedY = 0;
-                    }
-                    else
-                    {
-                        BeginSelectOrLasso(c);
-                    }
-                }
-                else if (_selection.Count > 1 && HitSelectionScaleHandle(c))
-                {
-                    _scalingSelection = true;
-                    _scalePivot = new SKPoint(_selectionBounds.Left, _selectionBounds.Top);
-                    _scaleStartDist = Math.Max(1f, SKPoint.Distance(_scalePivot, c));
-                    _scaleAccum = 1f;
-                }
-                else if (_selection.Count > 1 && InflatedSelectionBounds().Contains(c))
-                {
-                    _movingSelection = true;
-                    _moveLast = c;
-                    _movedX = _movedY = 0;
-                }
-                else
-                {
-                    BeginSelectOrLasso(c);
-                }
+                BeginSelectionDrag(c);
                 break;
 
             case ToolType.Text:
-                var hit = _page.Elements.OfType<TextElement>()
-                    .LastOrDefault(t => TextBounds(t).Contains(c));
-                if (hit != null) StartTextEdit(hit, isNew: false);
-                else StartTextEdit(new TextElement
-                {
-                    X = c.X, Y = c.Y,
-                    Color = EnsureReadableTextColor(CurrentInkHex(), _textBgHex),
-                    FontSize = 18f,
-                    Background = _textBgHex,
-                    FontFamily = _textFont,
-                }, isNew: true);
+                BeginTextInput(c);
                 break;
 
             case ToolType.Shape:
@@ -352,23 +296,7 @@ public partial class WhiteboardView
                 break;
 
             case ToolType.Sticky:
-                var hitNote = _page.Elements.OfType<StickyNoteElement>()
-                    .LastOrDefault(s => SKRect.Create(s.X, s.Y, s.Width, s.Height).Contains(c));
-                if (hitNote != null)
-                {
-                    StartStickyEdit(hitNote, isNew: false);
-                }
-                else
-                {
-                    // Neuen Zettel mittig unter dem Zeiger anlegen und gleich beschriften
-                    var note = new StickyNoteElement
-                    {
-                        X = c.X - 100f, Y = c.Y - 100f,
-                        Color = _stickyColorHex,
-                        TextColor = ReadableStickyTextColor(_stickyColorHex),
-                    };
-                    StartStickyEdit(note, isNew: true);
-                }
+                BeginStickyInput(c);
                 break;
 
             case ToolType.Pan:
@@ -376,6 +304,105 @@ public partial class WhiteboardView
                 break;
         }
         Skia.InvalidateVisual();
+    }
+
+    /// <summary>Setzt einen Strich an – ggf. auf die Kante der Zeichenhilfe eingerastet.</summary>
+    private void BeginStroke(SKPoint c, float pressure)
+    {
+        _drawing = true;
+        TryActivateAidSnap(c);
+        var start = ApplyAidSnap(c);
+        _activePoints = new List<WbPoint> { new(start.X, start.Y, Math.Clamp(pressure, 0.05f, 1f)) };
+    }
+
+    /// <summary>
+    /// Auswahl-Werkzeuge: Was unter dem Zeiger liegt, entscheidet – Dreh-Griff, Skalier-Griff,
+    /// die Auswahl selbst (verschieben) oder freie Fläche (neue Auswahl beginnen).
+    /// </summary>
+    private void BeginSelectionDrag(SKPoint c)
+    {
+        if (_selection.Count == 1)
+        {
+            var el = _selection.First();
+            var handles = SingleHandles(el);
+            var bounds = ElementBounds(el);
+            var center = new SKPoint(bounds.MidX, bounds.MidY);
+
+            if (NearHandle(c, handles.Rotate)) BeginRotate(el, center, c);
+            else if (NearHandle(c, handles.Scale)) BeginScale(center, c);
+            else if (SelectionContains(c)) BeginMove(c);
+            else BeginSelectOrLasso(c);
+            return;
+        }
+
+        if (_selection.Count > 1 && HitSelectionScaleHandle(c))
+            BeginScale(new SKPoint(_selectionBounds.Left, _selectionBounds.Top), c);
+        else if (_selection.Count > 1 && InflatedSelectionBounds().Contains(c))
+            BeginMove(c);
+        else
+            BeginSelectOrLasso(c);
+    }
+
+    private void BeginRotate(WbElement el, SKPoint center, SKPoint c)
+    {
+        _rotatingEl = el;
+        _rotStartDeg = el.Rotation;
+        _rotStartPointer = AngleDeg(center, c);
+    }
+
+    private void BeginScale(SKPoint pivot, SKPoint c)
+    {
+        _scalingSelection = true;
+        _scalePivot = pivot;
+        _scaleStartDist = Math.Max(1f, SKPoint.Distance(pivot, c));
+        _scaleAccum = 1f;
+    }
+
+    private void BeginMove(SKPoint c)
+    {
+        _movingSelection = true;
+        _moveLast = c;
+        _movedX = _movedY = 0;
+    }
+
+    /// <summary>Textfeld unter dem Zeiger bearbeiten – sonst ein neues anlegen.</summary>
+    private void BeginTextInput(SKPoint c)
+    {
+        var hit = _page!.Elements.OfType<TextElement>().LastOrDefault(t => TextBounds(t).Contains(c));
+        if (hit != null)
+        {
+            StartTextEdit(hit, isNew: false);
+            return;
+        }
+
+        StartTextEdit(new TextElement
+        {
+            X = c.X, Y = c.Y,
+            Color = EnsureReadableTextColor(CurrentInkHex(), _textBgHex),
+            FontSize = 18f,
+            Background = _textBgHex,
+            FontFamily = _textFont,
+        }, isNew: true);
+    }
+
+    /// <summary>Notizzettel unter dem Zeiger bearbeiten – sonst einen neuen anlegen.</summary>
+    private void BeginStickyInput(SKPoint c)
+    {
+        var hit = _page!.Elements.OfType<StickyNoteElement>()
+            .LastOrDefault(s => SKRect.Create(s.X, s.Y, s.Width, s.Height).Contains(c));
+        if (hit != null)
+        {
+            StartStickyEdit(hit, isNew: false);
+            return;
+        }
+
+        // Neuen Zettel mittig unter dem Zeiger anlegen und gleich beschriften
+        StartStickyEdit(new StickyNoteElement
+        {
+            X = c.X - 100f, Y = c.Y - 100f,
+            Color = _stickyColorHex,
+            TextColor = ReadableStickyTextColor(_stickyColorHex),
+        }, isNew: true);
     }
 
     private void MoveInput(SKPoint c, float pressure)
@@ -501,50 +528,7 @@ public partial class WhiteboardView
 
             case ToolType.Lasso:
             case ToolType.Move:
-                if (_rotatingEl != null)
-                {
-                    var el = _rotatingEl;
-                    _rotatingEl = null;
-                    if (Math.Abs(el.Rotation - _rotStartDeg) > 0.01f)
-                    {
-                        _vm.Undo.Push(_page, new RotateElementAction(el, _rotStartDeg, el.Rotation));
-                        MarkDirty();
-                    }
-                }
-                else if (_scalingSelection)
-                {
-                    _scalingSelection = false;
-                    if (Math.Abs(_scaleAccum - 1f) > 0.001f)
-                    {
-                        _vm.Undo.Push(_page, new ScaleElementsAction(_selection, _scaleAccum, _scalePivot.X, _scalePivot.Y));
-                        MarkDirty();
-                    }
-                    ComputeSelectionBounds();
-                }
-                else if (_movingSelection)
-                {
-                    _movingSelection = false;
-                    if (Math.Abs(_movedX) > 0.01f || Math.Abs(_movedY) > 0.01f)
-                    {
-                        _vm.Undo.Push(_page, new MoveElementsAction(_selection, _movedX, _movedY));
-                        MarkDirty();
-                    }
-                    else
-                    {
-                        // Reiner Tipp aufs Element = Auswahl → Schnellaktionen zeigen
-                        freshSelect = _selection.Count > 0;
-                    }
-                }
-                else if (_lassoPts is { Count: > 2 })
-                {
-                    SelectByLasso(_lassoPts);
-                    _lassoPts = null;
-                    freshSelect = _selection.Count > 0;
-                }
-                else
-                {
-                    _lassoPts = null;
-                }
+                freshSelect = EndSelectionDrag();
                 break;
 
             case ToolType.Shape:
@@ -560,6 +544,60 @@ public partial class WhiteboardView
         Skia.InvalidateVisual();
 
         if (freshSelect) ShowQuickMenuForSelection();
+    }
+
+    /// <summary>
+    /// Schließt Drehen, Skalieren, Verschieben oder Lasso ab und legt den Undo-Schritt an.
+    /// Rückgabe: true, wenn dabei eine frische Auswahl entstanden ist – dann blendet der
+    /// Aufrufer die Schnellaktionen ein.
+    /// </summary>
+    private bool EndSelectionDrag()
+    {
+        if (_rotatingEl != null)
+        {
+            var el = _rotatingEl;
+            _rotatingEl = null;
+            if (Math.Abs(el.Rotation - _rotStartDeg) > 0.01f)
+            {
+                _vm!.Undo.Push(_page!, new RotateElementAction(el, _rotStartDeg, el.Rotation));
+                MarkDirty();
+            }
+            return false;
+        }
+
+        if (_scalingSelection)
+        {
+            _scalingSelection = false;
+            if (Math.Abs(_scaleAccum - 1f) > 0.001f)
+            {
+                _vm!.Undo.Push(_page!,
+                    new ScaleElementsAction(_selection, _scaleAccum, _scalePivot.X, _scalePivot.Y));
+                MarkDirty();
+            }
+            ComputeSelectionBounds();
+            return false;
+        }
+
+        if (_movingSelection)
+        {
+            _movingSelection = false;
+            if (Math.Abs(_movedX) <= 0.01f && Math.Abs(_movedY) <= 0.01f)
+                return _selection.Count > 0;   // reiner Tipp aufs Element = Auswahl
+
+            _vm!.Undo.Push(_page!, new MoveElementsAction(_selection, _movedX, _movedY));
+            MarkDirty();
+            return false;
+        }
+
+        if (_lassoPts is { Count: > 2 })
+        {
+            SelectByLasso(_lassoPts);
+            _lassoPts = null;
+            return _selection.Count > 0;
+        }
+
+        _lassoPts = null;
+        return false;
     }
 
     private static SKPoint Constrain(SKPoint start, SKPoint cur)

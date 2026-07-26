@@ -260,7 +260,9 @@ public partial class WhiteboardView
     private void TextBg_Click(object sender, RoutedEventArgs e)
     {
         var initial = _textBgHex is { } cur ? ParseColor(cur) : new SKColor(255, 249, 196);
-        if (ColorPickerDialog.Pick(Window.GetWindow(this), Color.FromRgb(initial.Red, initial.Green, initial.Blue), allowAlpha: false) is not { } c)
+        if (ColorPickerDialog.Pick(Window.GetWindow(this),
+                Color.FromRgb(initial.Red, initial.Green, initial.Blue),
+                allowAlpha: false) is not { } c)
             return;
 
         _textBgHex = $"#FF{c.R:X2}{c.G:X2}{c.B:X2}";

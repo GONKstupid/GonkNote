@@ -12,7 +12,30 @@
 > ausführlichen Tabellen als Standard). **Ausführlich nur** bei **offenen Fragen und
 > Entscheidungen**, die der Nutzer treffen muss — die weiterhin klar begründen.
 >
-> **Runde 21 (2026-07-24) zuletzt: Linux-Port abgebrochen, Projekt aufgeräumt.**
+> **Runde 22 (2026-07-26) zuletzt: Nutzer-Test nach dem Port-Rückbau — drei Fixes + Cleanup-Start.**
+> - **Absturz beim Öffnen von Bestands-Whiteboards/-Notizbüchern behoben** (die eigentliche
+>   Ursache der drei Abstürze des Nutzers): LiteDB legt für jedes Whiteboard-Element ein Feld
+>   `_type` = „Namensraum.Typ, **Assembly**" ab. Mit dem Umzug der Models nach `GonkNote.Core`
+>   änderte sich der Assembly-Teil (`GonkNote` → `GonkNote.Core`) → `LiteException` beim Laden,
+>   unbehandelt → App weg. Neuer `ModelTypeBinder` in `DatabaseService` löst Typnamen jetzt
+>   **unabhängig von der Assembly** auf. Verifiziert mit einer DB im alten Format (Harness +
+>   echte Exe). **Merksatz: Models nie umziehen, ohne an das `_type`-Feld zu denken.**
+> - **Trägheit: Bleistift war der Bremsklotz.** Der Perlin-Shader wurde pro Strich und Bild
+>   dreimal neu ausgewertet (~100 ms/Bild bei 50 Strichen ≈ 10 fps). Die Körnung wird jetzt
+>   **einmal in eine kachelbare Textur** gerendert (`WbRenderer.GrainTexture`) → 1,7–1,9× schneller
+>   bei identischer Optik (Sichtvergleich 1× und 3× Zoom).
+> - **Radierergröße** über Größen-Schieber bzw. Zahlenblock einstellbar, eigener Wert je
+>   Werkzeug (Strichstärke der Stifte bleibt erhalten), Radierkreis wächst sofort mit.
+> - **Unerwartete Fehler beenden die App nicht mehr kommentarlos** — sie landen in
+>   `%APPDATA%\GonkNote\fehler.log` und werden einmal pro Sitzung gemeldet (`App.OnDispatcherError`).
+> - **Cleanup begonnen** (Vorgabe: Torvalds' `coding-style`, §5): `WhiteboardView.xaml.cs`
+>   (4007 Zeilen) nach Themen in partials geteilt, `Views.Fonts`-Hülle entfernt, 60 unnötige
+>   usings weg, keine Methode mehr über 100 Zeilen (vorher 4), **Build 0 Warnungen**.
+>   Nebenbei gefunden und behoben: der DOCX-Export erzeugte für Tabellen ohne feste
+>   Spaltenbreiten ungültiges OOXML (fehlendes `tblGrid`) — die Validierung meldete das
+>   dem Nutzer nach jedem Export.
+>
+> **Runde 21 (2026-07-24): Linux-Port abgebrochen, Projekt aufgeräumt.**
 > Der Nutzer hat sich die Entwicklung des Avalonia-Ports angesehen und ihn **abgebrochen**.
 > `GonkNote.Avalonia/` ist **vollständig entfernt**; Gonk Note bleibt eine reine WPF-App.
 > **Behalten wurde, was der App unabhängig davon nützt** (= der in §5 geforderte Cleanup):
@@ -342,15 +365,18 @@ GonkNote/
 ├─ ViewModels/                Mvvm-Basis, MainViewModel (Baum, Tabs, Autosave 30s,
 │                             Pin/Favorit, DOCX-Import), TreeItemViewModel, Tab-VMs
 ├─ Views/
-│  ├─ WhiteboardView.xaml(.cs)   SkiaSharp-Canvas: Werkzeuge (Stifte-Gruppe klappbar),
-│  │      + .Stickers.cs          Formen-Stift-Erkennung, punktgenauer Radierer,
-│  │        (partial)             Bild-/PDF-/DOCX-Import (ein Button, Paste, DnD),
-│  │                             Verschieben (V)=Direktauswahl + Lasso (L, nur ~95 %),
-│  │                             Auswahl skalieren (alle Objekttypen), Hand (H)=Pan,
-│  │                             Sticker-Werkzeug (.Stickers.cs), Touch-Gesten,
-│  │                             Einstellungs-Seitenleiste rechts (Seite/Formen/Text/
-│  │                             Sticker/Cover), Undo/Redo, Zoom/Pan, Seiten, Cover,
-│  │                             Viewport-Culling, Busy-Overlay
+│  ├─ WhiteboardView.xaml(.cs)   SkiaSharp-Canvas. Die Datei war 4007 Zeilen lang und ist
+│  │                             seit dem Cleanup nach Themen in partials geteilt:
+│  │      .xaml.cs      (724)     Felder, Werkzeuge/Toolbar, Zoom/Pan, Tastatur, Seiten
+│  │      .Input.cs     (~690)    Stift/Maus/Finger, Radierer
+│  │      .Import.cs    (~480)    Bilder, PDF, DOCX, Zwischenablage, Drag&Drop
+│  │      .Render.cs    (~450)    Seitenhintergrund, Cover, Elemente, Overlays, Culling
+│  │      .Selection.cs (~390)    Treffer-Erkennung, Lasso, Griffe, Kopieren/Einfügen
+│  │      .Settings.cs  (~380)    Einstellungs-Seitenleiste (Seite/Formen/Text/Zettel)
+│  │      .Shapes.cs    (~310)    Formen-Stift-Erkennung
+│  │      .Aids.cs      (~300)    Lineal + Geodreieck
+│  │      .QuickMenu.cs (~260)    Schnellaktionen (floatende Icon-Leiste)
+│  │      .Covers.cs / .Stickers.cs / .Editing.cs / .Numpad.cs / .Ocr.cs
 │  ├─ TextEditorView.xaml(.cs)   Text-Editor im Ribbon-Layout (Tabs Start/Einfügen/
 │  │      + .Format/.Insert/      Layout/Verweise), rechte Einstellungs-Seitenleiste
 │  │        .Layout/.Refs/        (Ränder/Absätze/Hintergrundbild), Listen-Split-Buttons
@@ -568,11 +594,20 @@ Nutzer-Test mit Stift.
       PDF-Import liegen in **`GonkNote.Core`** (kein WPF), siehe §3.
     - ✅ **Doppelte Zeichenroutinen zusammengeführt**: `WhiteboardView` leitet an
       `WbRenderer`/`WbAidRenderer`/`WbErase` weiter — **~440 Zeilen** weniger (4457 → ~4010).
-    - ⬜ **Offen:** die 6 `CS8622`-Warnungen in `WhiteboardView.Numpad.cs` beheben
-      (0-Warnungen-Ziel), große partial-Dateien/Methoden entwirren, Namensgebung/Kommentare
-      vereinheitlichen, überflüssige `TestAssets`/Wegwerf-Harnesses aufräumen, weitere
-      Doppelungen suchen. **Verhalten unverändert lassen** (reines Aufräumen, keine
-      Feature-Änderung); nach jedem Schritt Build 0 Warnungen + kurzer Sichttest.
+    - ✅ **Runde 22 (2026-07-26), Leitlinie = `TestAssets/coding-style.rst` (Torvalds):**
+      6 `CS8622`-Warnungen weg (**Build 0 Warnungen**); `WhiteboardView.xaml.cs` (4007 Zeilen)
+      nach Themen in partials geteilt (größte Datei jetzt ~690 Zeilen); keine Methode mehr
+      über 100 Zeilen (vorher `ToFlowDocument` 140, `DrawActiveOverlays` 127, `BeginInput` 125,
+      `BuildTable` 109); tief verschachtelte Blöcke in benannte Helfer gezogen (Zeilen mit
+      5+ Einrückungsebenen 561 → 434); wiederholte 8-teilige Bedingung als `InputInProgress`
+      benannt; 60 unnötige usings entfernt; leerer Ordner `Models\` gelöscht;
+      Hülle `Views.Fonts` entfernt (kollidierte mit `System.Windows.Media.Fonts`).
+    - ⬜ **Offen:** Restliche Methoden im Bereich 60–85 Zeilen (`RenderTextPages`,
+      `ConvertTable`, `MoveInput`, `DrawRuler`, `BuildImage`, `ExportActiveTab` …) prüfen —
+      die meisten sind lange, aber flache `switch`-Verteiler, die Torvalds ausdrücklich
+      erlaubt. Außerdem: ~155 Zeilen über 110 Zeichen, `TestAssets/`-Wegwerfmaterial,
+      weitere Doppelungen suchen. **Verhalten unverändert lassen** (reines Aufräumen);
+      nach jedem Schritt Build 0 Warnungen + kurzer Sichttest.
   - **Zweite Sprache (DE/EN, i18n) — nach dem Cleanup (Nutzer-Wunsch 2026-07-23):** Umschaltung
     unter „Ansicht → Sprache", zur Laufzeit (kein Neustart). Empfohlenes Muster: zentraler
     `LocalizationManager` (`INotifyPropertyChanged`) + Markup-Extension `{loc:T Key}`, alle

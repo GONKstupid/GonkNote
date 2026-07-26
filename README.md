@@ -27,7 +27,8 @@ ohne Cloud, ohne Installation, ohne Adminrechte.
   - **Formen-Stift** (`G`): erkennt gezeichnete Formen wie in GoodNotes — Geraden
     (mit 45°-Einrasten), Kreise/Ellipsen, Rechtecke, Streckenzüge; sonst wird die Kurve geglättet
   - **Radiergummi** radiert punktgenau: Striche werden an der Berührstelle aufgetrennt,
-    Stift-Rückseite radiert automatisch
+    Stift-Rückseite radiert automatisch. Die Größe stellt der Größen-Schieber ein
+    (oder der Zahlenblock per langem Drücken) und wird getrennt von der Strichstärke gemerkt
   - **Auswahl** mit zwei Werkzeugen: **Lasso** (`L`) umkreist Objekte (nur was ~vollständig
     umschlossen ist) und **Verschieben** (`V`) wählt Objekte direkt per Klick an. Ausgewählte
     Objekte lassen sich verschieben, **skalieren** (Eckgriff) und **drehen** (Dreh-Griff mit
@@ -149,7 +150,9 @@ GonkNote/                    WPF-Oberfläche (net8.0-windows)
 ├─ App.xaml(.cs)           Einstieg, Theme-Initialisierung, --db-Argument
 ├─ MainWindow.xaml(.cs)    Menü, Ordnerbaum (Drag & Drop, Anpinnen), Tab-Verwaltung
 ├─ ViewModels/             MainViewModel, Tab-VMs, Baum-VM, MVVM-Basis
-├─ Views/                  WhiteboardView (Skia-Canvas), TextEditorView, Dialoge
+├─ Views/                  WhiteboardView (Skia-Canvas) und TextEditorView — beide nach
+│                          Themen in partial-Dateien geteilt (Eingabe, Auswahl, Rendern,
+│                          Import, Einstellungen …), dazu die Dialoge
 ├─ Services/               Import/Export (DOCX, PDF, Markdown), OCR, Theme, Textstile
 └─ Themes/                 Light.xaml, Dark.xaml, Styles.xaml
 
@@ -169,10 +172,10 @@ GonkNote.Core/               Kernlogik ohne UI-Bezug (net8.0)
     Quick-Options-Menü, **OCR** (Tesseract, Deutsch/Englisch), Markdown-Import, Cover-Vorlagen,
     Ordner-Farbvererbung, Zahlenblock für die Strichstärke
   - **Nächste Schritte (nach der Testphase):** **Code-Cleanup / Projekt aufräumen** —
-    die Kernlogik ist bereits in `GonkNote.Core` entkoppelt und doppelte Zeichenroutinen
-    sind zusammengeführt; offen sind Warnungen, große Dateien und Altlasten (ohne
-    Verhaltensänderung) → **zweite Sprache** (Deutsch/Englisch, umschaltbar unter
-    „Ansicht") → **RAM-Optimierung**
+    die Kernlogik liegt in `GonkNote.Core`, doppelte Zeichenroutinen sind zusammengeführt,
+    die große Whiteboard-Datei ist nach Themen geteilt und der Build ist warnungsfrei;
+    offen sind noch weitere Altlasten (ohne Verhaltensänderung)
+    → **zweite Sprache** (Deutsch/Englisch, umschaltbar unter „Ansicht") → **RAM-Optimierung**
     (Leitlinie *Features vor RAM* — Ziel ~200 MB, akzeptabel bis mittlerer dreistelliger
     MB-Bereich, **harte Obergrenze 1 GB**) → **Veröffentlichung auf GitHub unter der
     MIT-Lizenz**.

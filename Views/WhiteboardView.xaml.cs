@@ -105,7 +105,11 @@ public partial class WhiteboardView : UserControl
     private const float RulerAngleStep = 15f;
     private const float RulerAngleSnapTol = 4f;
 
-    private ToggleButton[] ToolButtons => new[] { BtnPen, BtnSmoothPen, BtnPencil, BtnHighlighter, BtnEraser, BtnMove, BtnLasso, BtnText, BtnSticky, BtnSticker, BtnPan };
+    private ToggleButton[] ToolButtons => new[]
+    {
+        BtnPen, BtnSmoothPen, BtnPencil, BtnHighlighter, BtnEraser,
+        BtnMove, BtnLasso, BtnText, BtnSticky, BtnSticker, BtnPan,
+    };
 
     // Formen-Gruppe (Kind-Auswahl in der Toolbar, klappbar wie die Stifte)
     private ToggleButton[] ShapeButtons => new[] { BtnShapeRect, BtnShapeLine, BtnShapeArrow, BtnShapeEllipse, BtnShapeTriangle };

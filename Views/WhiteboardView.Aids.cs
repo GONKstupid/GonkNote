@@ -235,7 +235,11 @@ public partial class WhiteboardView
     /// <summary>cm-Skala entlang einer Kante (lokal bei y=edgeY), Ticks nach innen (−y).</summary>
     private void DrawCmScale(SKCanvas canvas, SKColor accent, float edgeY, float halfLen)
     {
-        using var tick = new SKPaint { Color = accent.WithAlpha(210), Style = SKPaintStyle.Stroke, StrokeWidth = 1f / Zoom, IsAntialias = true };
+        using var tick = new SKPaint
+        {
+            Color = accent.WithAlpha(210), Style = SKPaintStyle.Stroke,
+            StrokeWidth = 1f / Zoom, IsAntialias = true,
+        };
         int k = 0;
         for (float u = 0; u <= halfLen; u += PxPerCm, k++)
         {

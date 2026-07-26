@@ -126,7 +126,13 @@ public partial class ChartDialog : Window
         var series = ValuesBox.Text
             .Split('\n').Select(l => l.Trim()).Where(l => l.Length > 0)
             .Select(ParseRow).Where(r => r.Length > 0).ToList();
-        if (series.Count == 0) { ErrorText.Text = "Bitte Werte eingeben (z. B. 4, 7, 3)."; Preview.Source = null; ResultImage = null; return; }
+        if (series.Count == 0)
+        {
+            ErrorText.Text = "Bitte Werte eingeben (z. B. 4, 7, 3).";
+            Preview.Source = null;
+            ResultImage = null;
+            return;
+        }
 
         int maxLen = series.Max(r => r.Length);
         if (cats.Length < maxLen)

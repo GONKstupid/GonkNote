@@ -32,6 +32,9 @@ public static class MarkdownImporter
         return ms.ToArray();
     }
 
+    /// <summary>Trennlinie: drei oder mehr -, * oder _ allein auf einer Zeile.</summary>
+    private const string RulePattern = @"^(-{3,}|\*{3,}|_{3,})\s*$";
+
     public static FlowDocument ToFlowDocument(string path)
     {
         string[] lines = File.ReadAllLines(path);
@@ -47,130 +50,145 @@ public static class MarkdownImporter
 
         int i = 0;
         while (i < lines.Length)
-        {
-            string line = lines[i];
-            string trimmed = line.TrimStart();
-
-            if (trimmed.Length == 0) { i++; continue; }
-
-            // Code-Block (``` … ```)
-            if (trimmed.StartsWith("```"))
-            {
-                var sb = new StringBuilder();
-                i++;
-                while (i < lines.Length && !lines[i].TrimStart().StartsWith("```"))
-                    sb.AppendLine(lines[i++]);
-                i++;   // schließendes ```
-                flow.Blocks.Add(new Paragraph(new Run(sb.ToString().TrimEnd('\r', '\n')))
-                {
-                    FontFamily = new FontFamily("Consolas"),
-                    FontSize = 13,
-                    Background = CodeBg,
-                    Padding = new Thickness(8),
-                    Margin = new Thickness(0, 4, 0, 8),
-                });
-                continue;
-            }
-
-            // Trennlinie
-            if (Regex.IsMatch(trimmed, @"^(-{3,}|\*{3,}|_{3,})\s*$"))
-            {
-                flow.Blocks.Add(new Paragraph
-                {
-                    Margin = new Thickness(0, 8, 0, 8),
-                    BorderBrush = RuleBrush,
-                    BorderThickness = new Thickness(0, 0, 0, 1.5),
-                    FontSize = 2,
-                });
-                i++;
-                continue;
-            }
-
-            // Überschrift (# … ####; mehr Rauten → Ebene 4)
-            var h = Regex.Match(trimmed, @"^(#{1,6})\s+(.*)$");
-            if (h.Success)
-            {
-                int level = Math.Min(4, h.Groups[1].Value.Length);
-                var style = TextStyles.ForHeading(level);
-                var p = new Paragraph
-                {
-                    FontSize = style.Size,
-                    FontWeight = style.Weight,
-                    FontStyle = style.Style,
-                    Margin = style.Margin,
-                };
-                if (style.ColorHex != null)
-                    p.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(style.ColorHex));
-                AddInlines(p.Inlines, h.Groups[2].Value.Trim(), baseDir);
-                flow.Blocks.Add(p);
-                i++;
-                continue;
-            }
-
-            // Tabelle (| a | b | mit Trennzeile in der 2. Zeile)
-            if (trimmed.StartsWith("|") && i + 1 < lines.Length &&
-                Regex.IsMatch(lines[i + 1].Trim(), @"^\|?\s*:?-{2,}.*\|"))
-            {
-                var rows = new List<string[]>();
-                rows.Add(SplitTableRow(trimmed));
-                i += 2;   // Kopfzeile + Trennzeile
-                while (i < lines.Length && lines[i].TrimStart().StartsWith("|"))
-                    rows.Add(SplitTableRow(lines[i++].Trim()));
-                flow.Blocks.Add(BuildTable(rows, baseDir));
-                continue;
-            }
-
-            // Liste (-/*/+ bzw. 1. …), Verschachtelung über Einrückung (2 Leerzeichen/Ebene)
-            if (IsListLine(line, out _, out _, out _))
-            {
-                flow.Blocks.Add(ParseList(lines, ref i, IndentOf(line), baseDir));
-                continue;
-            }
-
-            // Zitat
-            if (trimmed.StartsWith(">"))
-            {
-                var p = new Paragraph
-                {
-                    Foreground = Muted,
-                    FontStyle = FontStyles.Italic,
-                    Margin = new Thickness(12, 4, 0, 6),
-                    Padding = new Thickness(10, 0, 0, 0),
-                    BorderBrush = RuleBrush,
-                    BorderThickness = new Thickness(3, 0, 0, 0),
-                };
-                var quote = new StringBuilder(trimmed.TrimStart('>', ' '));
-                i++;
-                while (i < lines.Length && lines[i].TrimStart().StartsWith(">"))
-                    quote.Append(' ').Append(lines[i++].TrimStart().TrimStart('>', ' '));
-                AddInlines(p.Inlines, quote.ToString(), baseDir);
-                flow.Blocks.Add(p);
-                continue;
-            }
-
-            // Normaler Absatz: Folgezeilen bis zur Leerzeile zusammenfassen;
-            // "  " am Zeilenende = harter Umbruch
-            var para = new Paragraph { Margin = new Thickness(0, 2, 0, 6) };
-            bool first = true;
-            while (i < lines.Length && lines[i].Trim().Length > 0 &&
-                   !lines[i].TrimStart().StartsWith("#") && !lines[i].TrimStart().StartsWith(">") &&
-                   !lines[i].TrimStart().StartsWith("|") && !lines[i].TrimStart().StartsWith("```") &&
-                   !IsListLine(lines[i], out _, out _, out _) &&
-                   !Regex.IsMatch(lines[i].Trim(), @"^(-{3,}|\*{3,}|_{3,})\s*$"))
-            {
-                string text = lines[i].TrimEnd('\r');
-                bool hardBreak = text.EndsWith("  ");
-                if (!first) para.Inlines.Add(new Run(" "));
-                AddInlines(para.Inlines, text.Trim(), baseDir);
-                if (hardBreak) { para.Inlines.Add(new LineBreak()); first = true; }
-                else first = false;
-                i++;
-            }
-            flow.Blocks.Add(para);
-        }
+            if (NextBlock(lines, ref i, baseDir) is { } block)
+                flow.Blocks.Add(block);
 
         if (flow.Blocks.Count == 0) flow.Blocks.Add(new Paragraph());
         return flow;
+    }
+
+    /// <summary>
+    /// Liest den nächsten Block ab Zeile <paramref name="i"/> und stellt den Index dahinter.
+    /// null heißt: die Zeile war leer und liefert keinen Block.
+    /// </summary>
+    private static Block? NextBlock(string[] lines, ref int i, string baseDir)
+    {
+        string line = lines[i];
+        string trimmed = line.TrimStart();
+
+        if (trimmed.Length == 0) { i++; return null; }
+        if (trimmed.StartsWith("```")) return ReadCodeBlock(lines, ref i);
+        if (Regex.IsMatch(trimmed, RulePattern)) { i++; return HorizontalRule(); }
+
+        var heading = Regex.Match(trimmed, @"^(#{1,6})\s+(.*)$");
+        if (heading.Success) { i++; return ReadHeading(heading, baseDir); }
+
+        if (IsTableStart(lines, i)) return ReadTable(lines, ref i, baseDir);
+        // Verschachtelung der Listen über die Einrückung (2 Leerzeichen je Ebene)
+        if (IsListLine(line, out _, out _, out _)) return ParseList(lines, ref i, IndentOf(line), baseDir);
+        if (trimmed.StartsWith(">")) return ReadQuote(lines, ref i, baseDir);
+        return ReadParagraph(lines, ref i, baseDir);
+    }
+
+    /// <summary>Code-Block zwischen ``` und ``` – Inhalt bleibt unangetastet.</summary>
+    private static Block ReadCodeBlock(string[] lines, ref int i)
+    {
+        var sb = new StringBuilder();
+        i++;
+        while (i < lines.Length && !lines[i].TrimStart().StartsWith("```"))
+            sb.AppendLine(lines[i++]);
+        i++;   // schließendes ```
+
+        return new Paragraph(new Run(sb.ToString().TrimEnd('\r', '\n')))
+        {
+            FontFamily = new FontFamily("Consolas"),
+            FontSize = 13,
+            Background = CodeBg,
+            Padding = new Thickness(8),
+            Margin = new Thickness(0, 4, 0, 8),
+        };
+    }
+
+    private static Block HorizontalRule() => new Paragraph
+    {
+        Margin = new Thickness(0, 8, 0, 8),
+        BorderBrush = RuleBrush,
+        BorderThickness = new Thickness(0, 0, 0, 1.5),
+        FontSize = 2,
+    };
+
+    /// <summary>Überschrift # bis ####; mehr Rauten zählen als Ebene 4.</summary>
+    private static Block ReadHeading(Match heading, string baseDir)
+    {
+        var style = TextStyles.ForHeading(Math.Min(4, heading.Groups[1].Value.Length));
+        var p = new Paragraph
+        {
+            FontSize = style.Size,
+            FontWeight = style.Weight,
+            FontStyle = style.Style,
+            Margin = style.Margin,
+        };
+        if (style.ColorHex != null)
+            p.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(style.ColorHex));
+        AddInlines(p.Inlines, heading.Groups[2].Value.Trim(), baseDir);
+        return p;
+    }
+
+    /// <summary>Pipe-Tabelle: Kopfzeile, dann eine Trennzeile aus Strichen.</summary>
+    private static bool IsTableStart(string[] lines, int i) =>
+        lines[i].TrimStart().StartsWith("|") && i + 1 < lines.Length &&
+        Regex.IsMatch(lines[i + 1].Trim(), @"^\|?\s*:?-{2,}.*\|");
+
+    private static Block ReadTable(string[] lines, ref int i, string baseDir)
+    {
+        var rows = new List<string[]> { SplitTableRow(lines[i].TrimStart()) };
+        i += 2;   // Kopfzeile + Trennzeile
+        while (i < lines.Length && lines[i].TrimStart().StartsWith("|"))
+            rows.Add(SplitTableRow(lines[i++].Trim()));
+        return BuildTable(rows, baseDir);
+    }
+
+    private static Block ReadQuote(string[] lines, ref int i, string baseDir)
+    {
+        var p = new Paragraph
+        {
+            Foreground = Muted,
+            FontStyle = FontStyles.Italic,
+            Margin = new Thickness(12, 4, 0, 6),
+            Padding = new Thickness(10, 0, 0, 0),
+            BorderBrush = RuleBrush,
+            BorderThickness = new Thickness(3, 0, 0, 0),
+        };
+
+        var quote = new StringBuilder(lines[i++].TrimStart().TrimStart('>', ' '));
+        while (i < lines.Length && lines[i].TrimStart().StartsWith(">"))
+            quote.Append(' ').Append(lines[i++].TrimStart().TrimStart('>', ' '));
+
+        AddInlines(p.Inlines, quote.ToString(), baseDir);
+        return p;
+    }
+
+    /// <summary>
+    /// Absatz: alle Folgezeilen bis zur Leerzeile (oder bis zum nächsten Blocktyp) gehören
+    /// dazu. Zwei Leerzeichen am Zeilenende sind ein harter Umbruch.
+    /// </summary>
+    private static Block ReadParagraph(string[] lines, ref int i, string baseDir)
+    {
+        var para = new Paragraph { Margin = new Thickness(0, 2, 0, 6) };
+        bool first = true;
+
+        while (i < lines.Length && ContinuesParagraph(lines, i))
+        {
+            string text = lines[i].TrimEnd('\r');
+            bool hardBreak = text.EndsWith("  ");
+            if (!first) para.Inlines.Add(new Run(" "));
+            AddInlines(para.Inlines, text.Trim(), baseDir);
+            if (hardBreak) { para.Inlines.Add(new LineBreak()); first = true; }
+            else first = false;
+            i++;
+        }
+        return para;
+    }
+
+    /// <summary>Gehört die Zeile noch zum laufenden Absatz – oder beginnt ein neuer Block?</summary>
+    private static bool ContinuesParagraph(string[] lines, int i)
+    {
+        string trimmed = lines[i].TrimStart();
+        return trimmed.Length > 0
+            && !trimmed.StartsWith("#") && !trimmed.StartsWith(">")
+            && !trimmed.StartsWith("|") && !trimmed.StartsWith("```")
+            && !IsListLine(lines[i], out _, out _, out _)
+            && !Regex.IsMatch(trimmed, RulePattern);
     }
 
     // ==================== Listen ====================

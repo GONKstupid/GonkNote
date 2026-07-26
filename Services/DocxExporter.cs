@@ -426,10 +426,31 @@ public static class DocxExporter
 
     // ==================== Tabellen ====================
 
+    /// <summary>
+    /// Wo im Gitter jede Zelle sitzt. <paramref name="Continuations"/> hält je Zeile die
+    /// Fortsetzungszellen der Zeilenverbünde (Spalte + Breite).
+    /// </summary>
+    private sealed record GridLayout(
+        Dictionary<TableCell, int> Column,
+        Dictionary<int, List<(int Col, int Span)>> Continuations);
+
     private static W.Table BuildTable(Table table, MainDocumentPart main, Ctx ctx)
     {
-        // Schema-Reihenfolge der Rahmen: top, left, bottom, right, insideH, insideV
-        var t = new W.Table(new W.TableProperties(new W.TableBorders(
+        var t = NewTableWithBorders();
+        AppendColumnGrid(t, table);
+
+        var rows = table.RowGroups.SelectMany(g => g.Rows).ToList();
+        var grid = MapGridPositions(rows);
+
+        for (int r = 0; r < rows.Count; r++)
+            t.AppendChild(BuildRow(rows[r], r, grid, main, ctx));
+
+        return t;
+    }
+
+    /// <summary>Leere Tabelle mit Standardrahmen (Schema-Reihenfolge: top, left, bottom, right, insideH, insideV).</summary>
+    private static W.Table NewTableWithBorders() =>
+        new(new W.TableProperties(new W.TableBorders(
             new W.TopBorder { Val = W.BorderValues.Single, Size = 4, Color = "999999" },
             new W.LeftBorder { Val = W.BorderValues.Single, Size = 4, Color = "999999" },
             new W.BottomBorder { Val = W.BorderValues.Single, Size = 4, Color = "999999" },
@@ -437,103 +458,121 @@ public static class DocxExporter
             new W.InsideHorizontalBorder { Val = W.BorderValues.Single, Size = 4, Color = "999999" },
             new W.InsideVerticalBorder { Val = W.BorderValues.Single, Size = 4, Color = "999999" })));
 
-        // Feste Spaltenbreiten (falls im Editor gesetzt) als tblGrid übernehmen
-        if (table.Columns.Any(c => c.Width.IsAbsolute))
-        {
-            var grid = new W.TableGrid();
-            foreach (var col in table.Columns)
-            {
-                var gc = new W.GridColumn();
-                if (col.Width.IsAbsolute)  // Auto-Spalten: Attribut weglassen (w="" wäre ungültig)
-                    gc.Width = ((int)Math.Round(col.Width.Value * PxToTwip)).ToString();
-                grid.AppendChild(gc);
-            }
-            t.AppendChild(grid);
-        }
+    /// <summary>
+    /// Spaltenraster (tblGrid) mit den im Editor gesetzten Breiten. OOXML verlangt das
+    /// Raster in **jeder** Tabelle – fehlte es (Tabellen mit lauter Auto-Spalten, etwa aus
+    /// dem Markdown-Import), meldete die Validierung beim Export einen Schemafehler.
+    /// </summary>
+    private static void AppendColumnGrid(W.Table t, Table table)
+    {
+        int columns = table.Columns.Count > 0
+            ? table.Columns.Count
+            : table.RowGroups.SelectMany(g => g.Rows).Max(r => r.Cells.Sum(c => c.ColumnSpan));
 
-        // Gitterpositionen (inkl. Zeilenverbünde) bestimmen: Zellen mit RowSpan > 1
-        // brauchen in OOXML vMerge=Restart plus Fortsetzungszellen in den Folgezeilen.
-        var allRows = table.RowGroups.SelectMany(g => g.Rows).ToList();
+        var grid = new W.TableGrid();
+        for (int i = 0; i < columns; i++)
+        {
+            var gc = new W.GridColumn();
+            // Auto-Spalten: Breitenattribut weglassen (w="" wäre ungültig)
+            if (i < table.Columns.Count && table.Columns[i].Width.IsAbsolute)
+                gc.Width = ((int)Math.Round(table.Columns[i].Width.Value * PxToTwip)).ToString();
+            grid.AppendChild(gc);
+        }
+        t.AppendChild(grid);
+    }
+
+    /// <summary>
+    /// Ordnet jede Zelle ihrer Gitterspalte zu. Zellen mit RowSpan &gt; 1 brauchen in OOXML
+    /// vMerge=Restart plus Fortsetzungszellen in den Folgezeilen – die werden hier mitgesammelt.
+    /// </summary>
+    private static GridLayout MapGridPositions(List<TableRow> rows)
+    {
         var occupied = new HashSet<(int Row, int Col)>();
-        var cellCol = new Dictionary<TableCell, int>();
-        var cont = new Dictionary<int, List<(int Col, int Span)>>();   // Zeile → Fortsetzungen
-        for (int r = 0; r < allRows.Count; r++)
+        var column = new Dictionary<TableCell, int>();
+        var continuations = new Dictionary<int, List<(int Col, int Span)>>();
+
+        for (int r = 0; r < rows.Count; r++)
         {
             int col = 0;
-            foreach (var cell in allRows[r].Cells)
+            foreach (var cell in rows[r].Cells)
             {
                 while (occupied.Contains((r, col))) col++;
-                cellCol[cell] = col;
+                column[cell] = col;
+
                 for (int rr = r; rr < r + cell.RowSpan; rr++)
                     for (int cc = col; cc < col + cell.ColumnSpan; cc++)
                         occupied.Add((rr, cc));
+
                 for (int rr = r + 1; rr < r + cell.RowSpan; rr++)
                 {
-                    if (!cont.TryGetValue(rr, out var list)) cont[rr] = list = new();
+                    if (!continuations.TryGetValue(rr, out var list)) continuations[rr] = list = new();
                     list.Add((col, cell.ColumnSpan));
                 }
                 col += cell.ColumnSpan;
             }
         }
+        return new GridLayout(column, continuations);
+    }
 
-        for (int r = 0; r < allRows.Count; r++)
-        {
-            var tr = new W.TableRow();
-            var entries = new List<(int Col, W.TableCell Tc)>();
-            foreach (var cell in allRows[r].Cells)
+    private static W.TableRow BuildRow(TableRow row, int r, GridLayout grid, MainDocumentPart main, Ctx ctx)
+    {
+        var entries = new List<(int Col, W.TableCell Tc)>();
+        foreach (var cell in row.Cells)
+            entries.Add((grid.Column[cell], BuildCell(cell, main, ctx)));
+
+        // Fortsetzungszellen der Zeilenverbünde (vMerge ohne Val = Continue)
+        if (grid.Continuations.TryGetValue(r, out var merges))
+            foreach (var (col, span) in merges)
             {
-                var tc = new W.TableCell();
-                // Schema-Reihenfolge in tcPr: gridSpan → vMerge → tcBorders → shd
                 var tcp = new W.TableCellProperties();
-                if (cell.ColumnSpan > 1)
-                    tcp.AppendChild(new W.GridSpan { Val = cell.ColumnSpan });
-                if (cell.RowSpan > 1)
-                    tcp.AppendChild(new W.VerticalMerge { Val = W.MergedCellValues.Restart });
-
-                // Abweichende Rahmenfarbe/unsichtbare Rahmen je Zelle
-                if (cell.BorderBrush is SolidColorBrush bb)
-                {
-                    bool none = cell.BorderThickness.Left <= 0;
-                    var val = none ? W.BorderValues.None : W.BorderValues.Single;
-                    string color = Hex(bb.Color);
-                    tcp.AppendChild(new W.TableCellBorders(
-                        new W.TopBorder { Val = val, Size = 4, Color = color },
-                        new W.LeftBorder { Val = val, Size = 4, Color = color },
-                        new W.BottomBorder { Val = val, Size = 4, Color = color },
-                        new W.RightBorder { Val = val, Size = 4, Color = color }));
-                }
-
-                // Zellschattierung (farbige Info-Boxen des Lernblatt-Skills)
-                if (cell.Background is SolidColorBrush bg)
-                    tcp.AppendChild(new W.Shading
-                    {
-                        Val = W.ShadingPatternValues.Clear,
-                        Fill = Hex(bg.Color),
-                        Color = "auto",
-                    });
-
-                if (tcp.HasChildren) tc.AppendChild(tcp);
-
-                foreach (var b in cell.Blocks)
-                    WriteBlock(b, tc, main, null, ctx);
-                if (!tc.Elements<W.Paragraph>().Any()) tc.AppendChild(new W.Paragraph());
-                entries.Add((cellCol[cell], tc));
+                if (span > 1) tcp.AppendChild(new W.GridSpan { Val = span });
+                tcp.AppendChild(new W.VerticalMerge());
+                entries.Add((col, new W.TableCell(tcp, new W.Paragraph())));
             }
 
-            // Fortsetzungszellen der Zeilenverbünde (vMerge ohne Val = Continue)
-            if (cont.TryGetValue(r, out var merges))
-                foreach (var (c, span) in merges)
-                {
-                    var tcp = new W.TableCellProperties();
-                    if (span > 1) tcp.AppendChild(new W.GridSpan { Val = span });
-                    tcp.AppendChild(new W.VerticalMerge());
-                    entries.Add((c, new W.TableCell(tcp, new W.Paragraph())));
-                }
+        var tr = new W.TableRow();
+        foreach (var (_, tc) in entries.OrderBy(x => x.Col)) tr.AppendChild(tc);
+        return tr;
+    }
 
-            foreach (var (_, tc) in entries.OrderBy(x => x.Col)) tr.AppendChild(tc);
-            t.AppendChild(tr);
+    private static W.TableCell BuildCell(TableCell cell, MainDocumentPart main, Ctx ctx)
+    {
+        var tc = new W.TableCell();
+
+        // Schema-Reihenfolge in tcPr: gridSpan → vMerge → tcBorders → shd
+        var tcp = new W.TableCellProperties();
+        if (cell.ColumnSpan > 1)
+            tcp.AppendChild(new W.GridSpan { Val = cell.ColumnSpan });
+        if (cell.RowSpan > 1)
+            tcp.AppendChild(new W.VerticalMerge { Val = W.MergedCellValues.Restart });
+
+        // Abweichende Rahmenfarbe/unsichtbare Rahmen je Zelle
+        if (cell.BorderBrush is SolidColorBrush bb)
+        {
+            var val = cell.BorderThickness.Left <= 0 ? W.BorderValues.None : W.BorderValues.Single;
+            string color = Hex(bb.Color);
+            tcp.AppendChild(new W.TableCellBorders(
+                new W.TopBorder { Val = val, Size = 4, Color = color },
+                new W.LeftBorder { Val = val, Size = 4, Color = color },
+                new W.BottomBorder { Val = val, Size = 4, Color = color },
+                new W.RightBorder { Val = val, Size = 4, Color = color }));
         }
-        return t;
+
+        // Zellschattierung (farbige Info-Boxen des Lernblatt-Skills)
+        if (cell.Background is SolidColorBrush bg)
+            tcp.AppendChild(new W.Shading
+            {
+                Val = W.ShadingPatternValues.Clear,
+                Fill = Hex(bg.Color),
+                Color = "auto",
+            });
+
+        if (tcp.HasChildren) tc.AppendChild(tcp);
+
+        foreach (var b in cell.Blocks)
+            WriteBlock(b, tc, main, null, ctx);
+        if (!tc.Elements<W.Paragraph>().Any()) tc.AppendChild(new W.Paragraph());
+        return tc;
     }
 
     // ==================== Bilder ====================

@@ -62,14 +62,41 @@ public partial class ColorPickerDialog : Window
 
     // ---- Eingabeflächen ----
 
-    private void SvArea_MouseDown(object s, MouseButtonEventArgs e) { _dragSv = true; SvArea.CaptureMouse(); ApplySv(e.GetPosition(SvArea)); }
-    private void SvArea_MouseMove(object s, MouseEventArgs e) { if (_dragSv) ApplySv(e.GetPosition(SvArea)); }
+    private void SvArea_MouseDown(object s, MouseButtonEventArgs e)
+    {
+        _dragSv = true;
+        SvArea.CaptureMouse();
+        ApplySv(e.GetPosition(SvArea));
+    }
 
-    private void HueArea_MouseDown(object s, MouseButtonEventArgs e) { _dragHue = true; HueArea.CaptureMouse(); ApplyHue(e.GetPosition(HueArea)); }
-    private void HueArea_MouseMove(object s, MouseEventArgs e) { if (_dragHue) ApplyHue(e.GetPosition(HueArea)); }
+    private void SvArea_MouseMove(object s, MouseEventArgs e)
+    {
+        if (_dragSv) ApplySv(e.GetPosition(SvArea));
+    }
 
-    private void AlphaArea_MouseDown(object s, MouseButtonEventArgs e) { _dragAlpha = true; AlphaArea.CaptureMouse(); ApplyAlpha(e.GetPosition(AlphaArea)); }
-    private void AlphaArea_MouseMove(object s, MouseEventArgs e) { if (_dragAlpha) ApplyAlpha(e.GetPosition(AlphaArea)); }
+    private void HueArea_MouseDown(object s, MouseButtonEventArgs e)
+    {
+        _dragHue = true;
+        HueArea.CaptureMouse();
+        ApplyHue(e.GetPosition(HueArea));
+    }
+
+    private void HueArea_MouseMove(object s, MouseEventArgs e)
+    {
+        if (_dragHue) ApplyHue(e.GetPosition(HueArea));
+    }
+
+    private void AlphaArea_MouseDown(object s, MouseButtonEventArgs e)
+    {
+        _dragAlpha = true;
+        AlphaArea.CaptureMouse();
+        ApplyAlpha(e.GetPosition(AlphaArea));
+    }
+
+    private void AlphaArea_MouseMove(object s, MouseEventArgs e)
+    {
+        if (_dragAlpha) ApplyAlpha(e.GetPosition(AlphaArea));
+    }
 
     private void Area_MouseUp(object s, MouseButtonEventArgs e)
     {

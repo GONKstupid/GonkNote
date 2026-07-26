@@ -325,6 +325,12 @@ public class TextDoc
     public Guid Id { get; set; }
     public byte[] Rtf { get; set; } = Array.Empty<byte>();
 
+    /// <summary>
+    /// Bilder dieses Dokuments im Blob-Speicher. Wird beim Speichern neu geschrieben und
+    /// dient dem Aufräumlauf: Blobs, auf die kein Dokument mehr zeigt, sind Müll.
+    /// </summary>
+    public List<Guid> Images { get; set; } = new();
+
     // ---------- Seiteneinrichtung (Neu: Word-Grundfunktionen) ----------
     // String-Felder haben null-sichere Setter: LiteDB kann leere Strings als
     // BSON-Null speichern (EmptyStringToNull) – null darf hier nie ankommen.

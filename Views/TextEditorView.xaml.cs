@@ -106,6 +106,7 @@ public partial class TextEditorView : UserControl
                 // XamlPackage ist ein ZIP ("PK"), alles andere ist historisches RTF
                 bool isPackage = bytes[0] == 0x50 && bytes[1] == 0x4B;
                 range.Load(ms, isPackage ? DataFormats.XamlPackage : DataFormats.Rtf);
+                DocumentImages.Attach(Editor.Document, App.Db.Blobs);
             }
             else
             {
@@ -136,8 +137,14 @@ public partial class TextEditorView : UserControl
         if (_vm == null) return;
         var range = new TextRange(Editor.Document.ContentStart, Editor.Document.ContentEnd);
         using var ms = new MemoryStream();
-        range.Save(ms, DataFormats.XamlPackage);
+
+        // Bilder bleiben draußen: im Paket steht nur ein Verweis auf das Original im
+        // Blob-Speicher (siehe DocumentImages). Das using stellt sie danach wieder her.
+        using (DocumentImages.Detach(Editor.Document, App.Db.Blobs))
+            range.Save(ms, DataFormats.XamlPackage);
+
         _vm.Doc.Rtf = ms.ToArray();
+        _vm.Doc.Images = DocumentImages.UsedBlobs(Editor.Document).ToList();
     }
 
     private void Editor_TextChanged(object sender, TextChangedEventArgs e)

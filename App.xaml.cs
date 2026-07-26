@@ -39,7 +39,21 @@ public partial class App : Application
 
         MainWindow = new MainWindow();
         MainWindow.Show();
+
+        CleanUpBlobsInBackground();
     }
+
+    /// <summary>
+    /// Räumt im Hintergrund Bilder weg, auf die kein Dokument mehr zeigt – Reste gelöschter
+    /// Dokumente und abgebrochener Importe. Bewusst nach dem Fensterstart und ohne Eile:
+    /// der Start soll davon nichts merken.
+    /// </summary>
+    private static void CleanUpBlobsInBackground() => Task.Run(async () =>
+    {
+        await Task.Delay(TimeSpan.FromSeconds(10));
+        try { Db.RemoveOrphanBlobs(); }
+        catch (Exception ex) { Log(ex); }
+    });
 
     protected override void OnExit(ExitEventArgs e)
     {

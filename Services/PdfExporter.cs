@@ -337,7 +337,12 @@ public static class PdfExporter
         var (pw, ph) = TextStyles.PageSize(settings);
         var margin = TextStyles.PageMarginPx(settings);
 
-        var doc = CloneForPrint(flow, pw, margin);
+        // Für die Kopie die Originale einsetzen: gerastert wird aus dem Original, nicht aus
+        // der Anzeige-Ableitung (siehe DocumentImages).
+        FlowDocument doc;
+        using (DocumentImages.WithFullResolution(flow, App.Db.Blobs))
+            doc = CloneForPrint(flow, pw, margin);
+
         var paginator = ((IDocumentPaginatorSource)doc).DocumentPaginator;
         paginator.PageSize = new Size(pw, ph);
         paginator.ComputePageCount();

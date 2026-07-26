@@ -80,9 +80,16 @@ public sealed class DatabaseService : IDisposable
         path ??= DefaultPath;
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
         _db = new LiteDatabase(new ConnectionString { Filename = path, Connection = ConnectionType.Shared }, mapper);
+        Blobs = new BlobStore(path);
 
         Items.EnsureIndex(x => x.ParentId);
     }
+
+    /// <summary>
+    /// Große Daten (Bilder, importierte PDFs) liegen daneben im Blob-Ordner, nicht im
+    /// Datensatz – siehe <see cref="BlobStore"/>.
+    /// </summary>
+    public BlobStore Blobs { get; }
 
     private ILiteCollection<NoteItem> Items => _db.GetCollection<NoteItem>("items");
     private ILiteCollection<WhiteboardDoc> Boards => _db.GetCollection<WhiteboardDoc>("boards");
@@ -137,6 +144,17 @@ public sealed class DatabaseService : IDisposable
     public TextDoc GetText(Guid id) => Texts.FindById(id) ?? new TextDoc { Id = id };
 
     public void SaveText(TextDoc doc) => Texts.Upsert(doc);
+
+    /// <summary>
+    /// Räumt Bilder auf, auf die kein Dokument mehr zeigt (gelöschte Dokumente, verworfene
+    /// Importe). Liefert den freigegebenen Platz in Bytes. Läuft absichtlich nur über Blobs,
+    /// die schon eine Weile liegen – ein gerade laufender Import ist sonst in Gefahr.
+    /// </summary>
+    public long RemoveOrphanBlobs()
+    {
+        var used = Texts.FindAll().SelectMany(t => t.Images);
+        return Blobs.RemoveOrphans(used, TimeSpan.FromHours(1));
+    }
 
     // ---- Einstellungen ----
 

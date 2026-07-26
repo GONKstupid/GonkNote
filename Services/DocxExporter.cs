@@ -577,19 +577,47 @@ public static class DocxExporter
 
     // ==================== Bilder ====================
 
+    /// <summary>
+    /// Bildtyp aus der Endung des Originals. Unbekanntes geht als PNG raus – lieber ein
+    /// größeres Bild als ein kaputtes.
+    /// </summary>
+    private static PartTypeInfo PartTypeOf(string extension) => extension.ToLowerInvariant() switch
+    {
+        "jpg" or "jpeg" => ImagePartType.Jpeg,
+        "gif" => ImagePartType.Gif,
+        "bmp" => ImagePartType.Bmp,
+        "tif" or "tiff" => ImagePartType.Tiff,
+        _ => ImagePartType.Png,
+    };
+
+    /// <summary>
+    /// Bilddaten fürs DOCX. Liegt das **Original** im Blob-Speicher, geht es unverändert
+    /// hinaus – sonst würde WPF jedes Foto als PNG neu kodieren und die Datei um ein
+    /// Vielfaches aufblähen (gemessen: 2 MB Vorlage → 16,8 MB Export).
+    /// </summary>
+    private static (byte[] Data, PartTypeInfo Type)? ImageBytes(Image img)
+    {
+        if (img.Tag is BlobRef reference && App.Db.Blobs.Read(reference.Id) is { } original)
+            return (original, PartTypeOf(reference.Extension));
+
+        if (img.Source is not BitmapSource src) return null;
+
+        var encoder = new PngBitmapEncoder();
+        encoder.Frames.Add(BitmapFrame.Create(src));
+        using var ms = new MemoryStream();
+        encoder.Save(ms);
+        return (ms.ToArray(), ImagePartType.Png);
+    }
+
     private static W.Drawing? BuildImage(Image img, MainDocumentPart main, Ctx ctx)
     {
         if (img.Source is not BitmapSource src) return null;
         try
         {
-            var encoder = new PngBitmapEncoder();
-            encoder.Frames.Add(BitmapFrame.Create(src));
-            using var ms = new MemoryStream();
-            encoder.Save(ms);
-            ms.Position = 0;
+            if (ImageBytes(img) is not { } bytes) return null;
 
-            var part = main.AddImagePart(ImagePartType.Png);
-            part.FeedData(ms);
+            var part = main.AddImagePart(bytes.Type);
+            using (var ms = new MemoryStream(bytes.Data)) part.FeedData(ms);
             string rId = main.GetIdOfPart(part);
 
             double wPx = double.IsNaN(img.Width) ? src.PixelWidth : img.Width;

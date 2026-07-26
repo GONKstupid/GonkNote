@@ -28,7 +28,11 @@ public static class MarkdownImporter
         var flow = ToFlowDocument(path);
         var range = new TextRange(flow.ContentStart, flow.ContentEnd);
         using var ms = new MemoryStream();
-        range.Save(ms, DataFormats.XamlPackage, true);
+
+        // Bilder bleiben draußen – im Paket steht nur der Verweis auf das Original
+        using (DocumentImages.Detach(flow, App.Db.Blobs))
+            range.Save(ms, DataFormats.XamlPackage, true);
+
         return ms.ToArray();
     }
 
@@ -355,21 +359,22 @@ public static class MarkdownImporter
             string full = Path.IsPathRooted(src) ? src : Path.Combine(baseDir, src);
             if (!File.Exists(full)) return null;
 
-            var bmp = new BitmapImage();
-            bmp.BeginInit();
-            bmp.CacheOption = BitmapCacheOption.OnLoad;
-            bmp.UriSource = new Uri(full);
-            bmp.EndInit();
-            bmp.Freeze();
+            // Original unverändert übernehmen, angezeigt wird eine Ableitung
+            byte[] original = File.ReadAllBytes(full);
+            var bmp = DocumentImages.Proxy(original);
+            if (bmp == null) return null;
 
             double w = Math.Min(600, bmp.PixelWidth);
-            return new System.Windows.Controls.Image
+            var image = new System.Windows.Controls.Image
             {
                 Source = bmp,
                 Width = w,
                 Height = w / Math.Max(1, bmp.PixelWidth) * bmp.PixelHeight,
                 Stretch = Stretch.Uniform,
             };
+            DocumentImages.Remember(image, original,
+                Path.GetExtension(full).TrimStart('.').ToLowerInvariant(), App.Db.Blobs);
+            return image;
         }
         catch
         {

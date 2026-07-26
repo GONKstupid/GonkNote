@@ -33,7 +33,12 @@ public static class DocxImporter
         var flow = Convert(path, target);
         var range = new TextRange(flow.ContentStart, flow.ContentEnd);
         using var ms = new MemoryStream();
-        range.Save(ms, DataFormats.XamlPackage, true);
+
+        // Bilder bleiben draußen – im Paket steht nur der Verweis auf das Original
+        using (DocumentImages.Detach(flow, App.Db.Blobs))
+            range.Save(ms, DataFormats.XamlPackage, true);
+
+        if (target != null) target.Images = DocumentImages.UsedBlobs(flow).ToList();
         return ms.ToArray();
     }
 
@@ -293,6 +298,17 @@ public static class DocxImporter
 
     // ==================== Bilder ====================
 
+    /// <summary>Dateiendung eines eingebetteten Bildes, damit der Export denselben Typ zurückschreibt.</summary>
+    private static string ExtensionOf(ImagePart part) => part.ContentType switch
+    {
+        "image/jpeg" => "jpg",
+        "image/png" => "png",
+        "image/gif" => "gif",
+        "image/bmp" => "bmp",
+        "image/tiff" => "tif",
+        _ => Path.GetExtension(part.Uri.OriginalString).TrimStart('.') is { Length: > 0 } e ? e : "bin",
+    };
+
     private static Image? ConvertImage(W.Drawing drawing, MainDocumentPart main)
     {
         try
@@ -304,26 +320,25 @@ public static class DocxImporter
             using var stream = part.GetStream();
             using var ms = new MemoryStream();
             stream.CopyTo(ms);
-            ms.Position = 0;
+            byte[] original = ms.ToArray();
 
-            var bmp = new BitmapImage();
-            bmp.BeginInit();
-            bmp.CacheOption = BitmapCacheOption.OnLoad;
-            bmp.StreamSource = ms;
-            bmp.EndInit();
-            bmp.Freeze();
+            // Angezeigt wird eine verkleinerte Ableitung; die Originalbytes wandern
+            // unverändert in den Blob-Speicher und gehen beim Export genauso wieder hinaus.
+            var proxy = DocumentImages.Proxy(original);
+            if (proxy == null) return null;
 
             // Größe aus dem Dokument (EMU → Pixel bei 96 DPI: ÷ 9525), sonst Bildgröße
-            double width = bmp.PixelWidth, height = bmp.PixelHeight;
+            double width = proxy.PixelWidth, height = proxy.PixelHeight;
             var extent = drawing.Descendants<DocumentFormat.OpenXml.Drawing.Wordprocessing.Extent>().FirstOrDefault();
             if (extent is { Cx.Value: > 0, Cy.Value: > 0 })
             {
                 width = extent.Cx.Value / 9525.0;
                 height = extent.Cy.Value / 9525.0;
             }
-            if (width > 800) { height *= 800 / width; width = 800; }
 
-            return new Image { Source = bmp, Width = width, Height = height, Stretch = Stretch.Uniform };
+            var image = new Image { Source = proxy, Width = width, Height = height, Stretch = Stretch.Uniform };
+            DocumentImages.Remember(image, original, ExtensionOf(part), App.Db.Blobs);
+            return image;
         }
         catch
         {

@@ -5,6 +5,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using GonkNote.Models;
 using GonkNote.Views;
+using GonkNote.Rendering;
 using SkiaSharp;
 
 namespace GonkNote.Services;
@@ -232,7 +233,7 @@ public static class PdfExporter
             canvas.DrawRect(rect, grad);
         }
 
-        var typeface = SKTypeface.FromFamilyName(cover?.FontFamily ?? "Segoe UI", SKFontStyle.Bold) ?? Views.Fonts.Bold;
+        var typeface = SKTypeface.FromFamilyName(cover?.FontFamily ?? "Segoe UI", SKFontStyle.Bold) ?? WbFonts.Bold;
         using var titlePaint = new SKPaint
         {
             Color = SKColors.White, IsAntialias = true, TextSize = 46,
@@ -251,7 +252,7 @@ public static class PdfExporter
         using var subPaint = new SKPaint
         {
             Color = SKColors.White.WithAlpha(170), IsAntialias = true, TextSize = 15,
-            Typeface = Views.Fonts.Regular, TextAlign = SKTextAlign.Center,
+            Typeface = WbFonts.Regular, TextAlign = SKTextAlign.Center,
         };
         canvas.DrawText("N O T I Z B U C H", page.Width / 2f, page.Height * 0.49f, subPaint);
     }

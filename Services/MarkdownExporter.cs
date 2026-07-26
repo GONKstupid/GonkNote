@@ -2,7 +2,6 @@ using System.IO;
 using System.Text;
 using System.Windows;
 using System.Windows.Documents;
-using System.Windows.Media;
 
 namespace GonkNote.Services;
 

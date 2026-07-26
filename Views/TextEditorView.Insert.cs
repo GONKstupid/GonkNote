@@ -48,7 +48,7 @@ public partial class TextEditorView
         }
         catch (Exception ex)
         {
-            MessageBox.Show(Window.GetWindow(this), $"Bild konnte nicht geladen werden:\n{ex.Message}",
+            MessageBox.Show(Window.GetWindow(this), Loc.T("Msg.ImageLoadFailed", ex.Message),
                 "Gonk Note", MessageBoxButton.OK, MessageBoxImage.Warning);
         }
         Editor.Focus();
@@ -175,14 +175,14 @@ public partial class TextEditorView
         var existing = CurrentHyperlink();
         string initial = existing?.NavigateUri?.ToString() ?? "https://";
 
-        if (PromptDialog.Show(Window.GetWindow(this), "Link einfügen",
-                "Adresse (URL):", initial) is not { } url || url.Trim().Length == 0)
+        if (PromptDialog.Show(Window.GetWindow(this), Loc.T("Ed.Link.Insert"),
+                Loc.T("Msg.UrlPrompt"), initial) is not { } url || url.Trim().Length == 0)
             return;
         url = url.Trim();
         if (!url.Contains("://") && !url.StartsWith("mailto:")) url = "https://" + url;
         if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
         {
-            MessageBox.Show(Window.GetWindow(this), "Die Adresse ist keine gültige URL.",
+            MessageBox.Show(Window.GetWindow(this), Loc.T("Msg.InvalidUrl"),
                 "Gonk Note", MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
@@ -591,7 +591,7 @@ public partial class TextEditorView
             group != endGroup || group.Parent is not Table table)
         {
             MessageBox.Show(Window.GetWindow(this),
-                "Zum Verbinden bitte Zellen innerhalb derselben Tabelle markieren.",
+                Loc.T("Msg.MergeSameTable"),
                 "Gonk Note", MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }

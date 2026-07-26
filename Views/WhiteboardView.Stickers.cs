@@ -1,10 +1,11 @@
 using System.IO;
-using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Media;
+using System.Windows;
 using GonkNote.Core.Models;
 using GonkNote.Core.Services;
+using GonkNote.Services;
 using Microsoft.Win32;
 
 namespace GonkNote.Views;
@@ -147,7 +148,7 @@ public partial class WhiteboardView
         }
         catch (Exception ex)
         {
-            MessageBox.Show(Window.GetWindow(this), $"Sticker konnte nicht eingefügt werden:\n{ex.Message}",
+            MessageBox.Show(Window.GetWindow(this), Loc.T("Msg.StickerFailed", ex.Message),
                 "Gonk Note", MessageBoxButton.OK, MessageBoxImage.Warning);
         }
     }

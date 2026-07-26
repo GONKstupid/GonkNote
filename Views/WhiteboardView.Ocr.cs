@@ -54,7 +54,7 @@ public partial class WhiteboardView
             if (string.IsNullOrWhiteSpace(text))
             {
                 MessageBox.Show(Window.GetWindow(this),
-                    "Es wurde kein Text erkannt.", "Texterkennung",
+                    Loc.T("Msg.OcrNoText"), Loc.T("Ocr.Title"),
                     MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
@@ -67,7 +67,7 @@ public partial class WhiteboardView
         {
             HideBusy();
             MessageBox.Show(Window.GetWindow(this),
-                $"Texterkennung fehlgeschlagen:\n{ex.Message}", "Texterkennung",
+                Loc.T("Msg.OcrFailed", ex.Message), Loc.T("Ocr.Title"),
                 MessageBoxButton.OK, MessageBoxImage.Warning);
         }
         finally

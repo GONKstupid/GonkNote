@@ -81,7 +81,7 @@ public partial class WhiteboardView
 
         if (imported.Count > 0) PlaceImages(imported, at);
         if (failed.Count > 0)
-            MessageBox.Show("Konnte nicht geladen werden:\n" + string.Join("\n", failed),
+            MessageBox.Show(Loc.T("Msg.LoadFailed") + "\n" + string.Join("\n", failed),
                 "Gonk Note", MessageBoxButton.OK, MessageBoxImage.Warning);
     }
 
@@ -295,7 +295,7 @@ public partial class WhiteboardView
             var pages = await Task.Run(() => PdfImporter.RenderPages(path, PdfRenderLongSide, progress));
             if (pages.Count == 0)
             {
-                MessageBox.Show("Das PDF enthält keine darstellbaren Seiten.",
+                MessageBox.Show(Loc.T("Msg.PdfNoPages"),
                     "Gonk Note", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
@@ -309,7 +309,7 @@ public partial class WhiteboardView
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"PDF konnte nicht geladen werden:\n{ex.Message}",
+            MessageBox.Show(Loc.T("Msg.PdfLoadFailed", ex.Message),
                 "Gonk Note", MessageBoxButton.OK, MessageBoxImage.Warning);
         }
         finally
@@ -357,7 +357,7 @@ public partial class WhiteboardView
             var pages = PdfExporter.RenderFlowDocumentPages(flow, settings, Path.GetFileNameWithoutExtension(path));
             if (pages.Count == 0)
             {
-                MessageBox.Show("Das Word-Dokument enthält keine darstellbaren Seiten.",
+                MessageBox.Show(Loc.T("Msg.DocxNoPages"),
                     "Gonk Note", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
@@ -371,7 +371,7 @@ public partial class WhiteboardView
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Word-Dokument konnte nicht geladen werden:\n{ex.Message}",
+            MessageBox.Show(Loc.T("Msg.DocxLoadFailed", ex.Message),
                 "Gonk Note", MessageBoxButton.OK, MessageBoxImage.Warning);
         }
         finally

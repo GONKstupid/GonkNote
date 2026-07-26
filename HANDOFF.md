@@ -12,7 +12,25 @@
 > ausführlichen Tabellen als Standard). **Ausführlich nur** bei **offenen Fragen und
 > Entscheidungen**, die der Nutzer treffen muss — die weiterhin klar begründen.
 >
-> **Runde 22 (2026-07-26) zuletzt: Nutzer-Test nach dem Port-Rückbau — drei Fixes + Cleanup-Start.**
+> **Runde 23 (2026-07-26) zuletzt: Cleanup abgeschlossen + zweite Sprache (DE/EN).**
+> - **Namensräume der Kernbibliothek** heißen jetzt `GonkNote.Core.*`. Vorher bezeichnete
+>   `GonkNote.Services` zwei verschiedene Dinge (4 UI-freie Klassen in Core, 11 WPF-nahe in der
+>   App) — am `using` war die Schichtgrenze nicht zu sehen. **Wichtig:** der `ModelTypeBinder`
+>   übersetzt jetzt Assembly **und** alten Namensraum; ein Harness prüft alle drei historischen
+>   `_type`-Formate (`%TEMP%\gonk-dbfix`).
+> - **`TestAssets/` gelöscht** (Nutzer-Entscheidung). Die 60–85-Zeilen-Methoden bleiben stehen —
+>   flache `switch`-Verteiler, die `coding-style` Kapitel 6 erlaubt (Nutzer-Entscheidung).
+> - **Zahlenblock repariert:** er schloss sich beim ersten Tastendruck, weil der Popup-Inhalt in
+>   einem eigenen Fenster mit eigenem Visual-Baum liegt und die „außerhalb geklickt?"-Prüfung ihn
+>   nie erreichte. Öffnet jetzt einheitlich per Langdruck auf Icon/Schieber/Wertanzeige.
+> - **Zweite Sprache (DE/EN)** unter „Ansicht → Sprache", zur Laufzeit, ohne Neustart:
+>   `Services/Localization/` mit `Loc` + je einer Tabelle pro Sprache (473 Schlüssel).
+>   In XAML `{loc:T Schlüssel}`, im Code `Loc.T("Schlüssel")`. Fehlt ein englischer Eintrag,
+>   erscheint der deutsche Text. Details in §10.
+> - **`ImageCache.Get` liefert jetzt null statt zu werfen**, wenn Bilddaten fehlen — ein einziges
+>   kaputtes Bild ließ vorher die ganze Seite leer.
+>
+> **Runde 22 (2026-07-26): Nutzer-Test nach dem Port-Rückbau — drei Fixes + Cleanup-Start.**
 > - **Absturz beim Öffnen von Bestands-Whiteboards/-Notizbüchern behoben** (die eigentliche
 >   Ursache der drei Abstürze des Nutzers): LiteDB legt für jedes Whiteboard-Element ein Feld
 >   `_type` = „Namensraum.Typ, **Assembly**" ab. Mit dem Umzug der Models nach `GonkNote.Core`
@@ -618,7 +636,8 @@ Nutzer-Test mit Stift.
       erlaubt (Nutzer-Entscheidung 2026-07-26: **nicht anfassen**). Außerdem offen: ~155 Zeilen
       über 110 Zeichen, weitere Doppelungen suchen. **Verhalten unverändert lassen** (reines
       Aufräumen); nach jedem Schritt Build 0 Warnungen + kurzer Sichttest.
-  - **Zweite Sprache (DE/EN, i18n) — nach dem Cleanup (Nutzer-Wunsch 2026-07-23):** Umschaltung
+  - **Zweite Sprache (DE/EN, i18n): ✔ umgesetzt am 2026-07-26 — siehe §10.** Der ursprüngliche
+    Plan lautete: Umschaltung
     unter „Ansicht → Sprache", zur Laufzeit (kein Neustart). Empfohlenes Muster: zentraler
     `LocalizationManager` (`INotifyPropertyChanged`) + Markup-Extension `{loc:T Key}`, alle
     Texte darauf umstellen; Sprachwechsel feuert PropertyChanged → UI aktualisiert live. Der
@@ -864,3 +883,41 @@ komplett neu gebaut werden muss (WPF-`FlowDocument` hat kein Avalonia-Äquivalen
 Text-Editor wäre ein Neubau, praktisch nur als Markdown-Editor mit spürbarem Feature-Verlust)
 und dass unter 200 % DPI hartnäckige Layout-Eigenheiten auftraten. Der Kern-Reuse
 (`GonkNote.Core`) ist dank der Entkopplung aber jederzeit wieder nutzbar.
+
+
+---
+## 10. Zweite Sprache (DE/EN) — Aufbau
+
+**Umgeschaltet wird unter „Ansicht → Sprache"**, zur Laufzeit und ohne Neustart. Die Wahl liegt
+in den Einstellungen (`language` = `de`/`en`) und gilt beim nächsten Start.
+
+```
+Services/Localization/
+├─ Loc.cs           Loc.T(key[, args]) · Loc.Apply(sprache) · Loc.Culture (Datums-/Zahlenformate)
+│                   LocSource  = Bindungsquelle für XAML (meldet beim Wechsel „alles geändert")
+│                   TExtension = Markup-Erweiterung {loc:T Schlüssel}
+├─ LocGerman.cs     die Vorlage — hier steht der maßgebliche Text
+└─ LocEnglish.cs    dieselben Schlüssel auf Englisch
+```
+
+**So fügt man Text hinzu:** Schlüssel in **beide** Tabellen eintragen (Bereichspräfix, z. B.
+`Ed.Table.Sort`), dann in XAML `Header="{loc:T Ed.Table.Sort}"` bzw. im Code `Loc.T(...)`.
+Fehlt der englische Eintrag, erscheint automatisch der deutsche — eine halbfertige Übersetzung
+hinterlässt also nie leere Beschriftungen.
+
+**Die Stolperfalle:** Texte, die der **Code** setzt (Seitenzähler, Wortzähler, Galerietitel,
+Formatvorlagen-Galerie, Tooltips aus `SyncSizeControls`), hängen an keiner Bindung. Sie müssen
+nach einem Sprachwechsel neu geschrieben werden. Dafür gibt es `Loc.LanguageChanged`; angemeldet
+sind `MainViewModel`, `WhiteboardView` und `TextEditorView`.
+
+**Bewusst nicht übersetzt:**
+- der Produktname „Gonk Note";
+- `TextStyles.ParaStyle.Name` und die Namen der Tabellen-Formatvorlagen sind **Kennungen**
+  (intern verglichen, bleiben deutsch) — angezeigt wird `Display` bzw. `Loc.T(Key)`;
+- **bestehende Dokumentnamen**: die gehören dem Nutzer. Nur neu angelegte Dokumente bekommen
+  ihren Namen in der gerade aktiven Sprache;
+- der Über-Dialog lädt weiterhin das deutsche README.
+
+**Prüfskript:** `%TEMP%\gonk-perf\loc_check.py` vergleicht beide Tabellen (gleiche Schlüssel,
+gleiche Platzhalter `{0}`, `{1}`). Es hat schon einen echten Fehler gefunden: dem deutschen
+`Page.Label` fehlten die Platzhalter.

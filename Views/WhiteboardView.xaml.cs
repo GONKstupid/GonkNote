@@ -732,7 +732,7 @@ public partial class WhiteboardView : UserControl
     {
         if (_vm == null || _vm.Doc.Pages.Count <= 1 || _page == null) return;
         if ((_page.Elements.Count > 0 || _page.BackgroundImage != null) &&
-            MessageBox.Show("Diese Seite und ihren Inhalt löschen?", "Gonk Note",
+            MessageBox.Show(Loc.T("Msg.DeletePage"), "Gonk Note",
                 MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
             return;
 

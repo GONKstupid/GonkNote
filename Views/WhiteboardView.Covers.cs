@@ -1,8 +1,9 @@
 using System.IO;
-using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Media;
+using System.Windows;
+using GonkNote.Services;
 
 namespace GonkNote.Views;
 
@@ -151,7 +152,7 @@ public partial class WhiteboardView
         catch (Exception ex)
         {
             MessageBox.Show(Window.GetWindow(this),
-                $"Vorlage konnte nicht gelöscht werden:\n{ex.Message}",
+                Loc.T("Msg.PresetDeleteFailed", ex.Message),
                 "Gonk Note", MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
@@ -233,7 +234,7 @@ public partial class WhiteboardView
         catch (Exception ex)
         {
             MessageBox.Show(Window.GetWindow(this),
-                $"Vorlage konnte nicht geladen werden:\n{ex.Message}",
+                Loc.T("Msg.PresetLoadFailed", ex.Message),
                 "Gonk Note", MessageBoxButton.OK, MessageBoxImage.Warning);
         }
     }

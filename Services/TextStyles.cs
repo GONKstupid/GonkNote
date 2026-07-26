@@ -31,9 +31,18 @@ public static class TextStyles
 
     // ==================== Formatvorlagen ====================
 
+    /// <summary>
+    /// Eine Absatz-Formatvorlage. <paramref name="Name"/> ist die **Kennung** (stabil, wird
+    /// intern verglichen und bleibt deutsch); <paramref name="Key"/> zeigt auf den
+    /// übersetzten Anzeigenamen.
+    /// </summary>
     public sealed record ParaStyle(
-        string Name, double Size, FontWeight Weight, FontStyle Style,
-        string? ColorHex, Thickness Margin, int HeadingLevel);
+        string Name, string Key, double Size, FontWeight Weight, FontStyle Style,
+        string? ColorHex, Thickness Margin, int HeadingLevel)
+    {
+        /// <summary>Beschriftung in der aktuellen Sprache.</summary>
+        public string Display => Loc.T(Key);
+    }
 
     /// <summary>
     /// Überschrift-Farben folgen dem Design-Konzept: Blau/Türkis/Lila/Pink zeigen
@@ -41,17 +50,17 @@ public static class TextStyles
     /// </summary>
     public static readonly ParaStyle[] All =
     {
-        new("Standard", BodySize, FontWeights.Normal, FontStyles.Normal, null, new Thickness(0, 2, 0, 6), 0),
-        new("Kein Abstand", BodySize, FontWeights.Normal, FontStyles.Normal, null, new Thickness(0), 0),
-        new("Überschrift 1", 28, FontWeights.Bold, FontStyles.Normal, "#2563EB", new Thickness(0, 16, 0, 8), 1),
-        new("Überschrift 2", 22, FontWeights.Bold, FontStyles.Normal, "#14B8A6", new Thickness(0, 12, 0, 6), 2),
-        new("Überschrift 3", 18, FontWeights.Bold, FontStyles.Normal, "#8B5CF6", new Thickness(0, 10, 0, 4), 3),
-        new("Überschrift 4", 16, FontWeights.Bold, FontStyles.Italic, "#EC4899", new Thickness(0, 8, 0, 4), 4),
+        new("Standard", "Style.Normal", BodySize, FontWeights.Normal, FontStyles.Normal, null, new Thickness(0, 2, 0, 6), 0),
+        new("Kein Abstand", "Style.NoSpacing", BodySize, FontWeights.Normal, FontStyles.Normal, null, new Thickness(0), 0),
+        new("Überschrift 1", "Style.Heading1", 28, FontWeights.Bold, FontStyles.Normal, "#2563EB", new Thickness(0, 16, 0, 8), 1),
+        new("Überschrift 2", "Style.Heading2", 22, FontWeights.Bold, FontStyles.Normal, "#14B8A6", new Thickness(0, 12, 0, 6), 2),
+        new("Überschrift 3", "Style.Heading3", 18, FontWeights.Bold, FontStyles.Normal, "#8B5CF6", new Thickness(0, 10, 0, 4), 3),
+        new("Überschrift 4", "Style.Heading4", 16, FontWeights.Bold, FontStyles.Italic, "#EC4899", new Thickness(0, 8, 0, 4), 4),
         // Weitere Presets (keine Überschriften → nicht im Inhaltsverzeichnis)
-        new("Titel", 34, FontWeights.Bold, FontStyles.Normal, null, new Thickness(0, 6, 0, 12), 0),
-        new("Zitat", BodySize, FontWeights.Normal, FontStyles.Italic, "#6B7A99", new Thickness(28, 8, 28, 8), 0),
-        new("Kopfzeile", 12, FontWeights.Normal, FontStyles.Normal, "#6B7A99", new Thickness(0, 2, 0, 2), 0),
-        new("Fußzeile", 12, FontWeights.Normal, FontStyles.Normal, "#6B7A99", new Thickness(0, 2, 0, 2), 0),
+        new("Titel", "Style.Title", 34, FontWeights.Bold, FontStyles.Normal, null, new Thickness(0, 6, 0, 12), 0),
+        new("Zitat", "Style.Quote", BodySize, FontWeights.Normal, FontStyles.Italic, "#6B7A99", new Thickness(28, 8, 28, 8), 0),
+        new("Kopfzeile", "Style.Header", 12, FontWeights.Normal, FontStyles.Normal, "#6B7A99", new Thickness(0, 2, 0, 2), 0),
+        new("Fußzeile", "Style.Footer", 12, FontWeights.Normal, FontStyles.Normal, "#6B7A99", new Thickness(0, 2, 0, 2), 0),
     };
 
     public static ParaStyle ForHeading(int level) => All.First(s => s.HeadingLevel == level);

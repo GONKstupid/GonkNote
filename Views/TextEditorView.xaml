@@ -1,6 +1,7 @@
 <UserControl x:Class="GonkNote.Views.TextEditorView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="clr-namespace:GonkNote.Services">
     <UserControl.Resources>
         <!-- Die Dokumentseite bleibt in beiden Themes weiß (Nutzer-Wunsch: Papier ist
              Papier); nur die Umgebung (Canvas) folgt dem Theme. Deshalb sind Seite,
@@ -159,23 +160,23 @@
                 <Grid>
                     <StackPanel Orientation="Horizontal">
                         <Button Style="{StaticResource IconButton}" Content="&#xE7A7;" Width="28" Height="26"
-                                ToolTip="Rückgängig (Strg+Z)" Click="Undo_Click" Margin="6,2,0,0"
-                                AutomationProperties.Name="Rückgängig"/>
+                                ToolTip="{loc:T Action.Undo}" Click="Undo_Click" Margin="6,2,0,0"
+                                AutomationProperties.Name="{loc:T Action.Undo.Short}"/>
                         <Button Style="{StaticResource IconButton}" Content="&#xE7A6;" Width="28" Height="26"
-                                ToolTip="Wiederholen (Strg+Y)" Click="Redo_Click" Margin="0,2,4,0"
-                                AutomationProperties.Name="Wiederholen"/>
+                                ToolTip="{loc:T Action.Redo}" Click="Redo_Click" Margin="0,2,4,0"
+                                AutomationProperties.Name="{loc:T Action.Redo.Short}"/>
                         <Border Style="{StaticResource GroupSep}"/>
-                        <RadioButton x:Name="TabStart" Style="{StaticResource RibbonTab}" Content="Start"
+                        <RadioButton x:Name="TabStart" Style="{StaticResource RibbonTab}" Content="{loc:T Ed.Tab.Home}"
                                      IsChecked="True" Checked="RibbonTab_Checked" Tag="Start"/>
-                        <RadioButton Style="{StaticResource RibbonTab}" Content="Einfügen"
+                        <RadioButton Style="{StaticResource RibbonTab}" Content="{loc:T Ed.Tab.Insert}"
                                      Checked="RibbonTab_Checked" Tag="Einfügen"/>
-                        <RadioButton Style="{StaticResource RibbonTab}" Content="Layout"
+                        <RadioButton Style="{StaticResource RibbonTab}" Content="{loc:T Ed.Tab.Layout}"
                                      Checked="RibbonTab_Checked" Tag="Layout"/>
-                        <RadioButton Style="{StaticResource RibbonTab}" Content="Verweise"
+                        <RadioButton Style="{StaticResource RibbonTab}" Content="{loc:T Ed.Tab.References}"
                                      Checked="RibbonTab_Checked" Tag="Verweise"/>
                         <!-- Kontext-Tab wie Words „Tabellentools": nur sichtbar, wenn der
                              Cursor in einer Tabelle steht (UpdateTableRibbon) -->
-                        <RadioButton x:Name="TabTable" Style="{StaticResource RibbonTab}" Content="Tabelle"
+                        <RadioButton x:Name="TabTable" Style="{StaticResource RibbonTab}" Content="{loc:T Ed.Tab.Table}"
                                      Checked="RibbonTab_Checked" Tag="Tabelle" Visibility="Collapsed"/>
                     </StackPanel>
                 </Grid>
@@ -183,9 +184,9 @@
                 <!-- ============ Werkzeugleiste: Start ============ -->
                 <WrapPanel x:Name="PanelStart" Margin="8,2,8,6">
                     <ToggleButton x:Name="BtnFormatPainter" Style="{StaticResource ToolButton}" Width="32" Height="30"
-                                  Click="FormatPainter_Click" ToolTip="Format übertragen: Klicken, dann Ziel markieren"
-                                  AutomationProperties.Name="Format übertragen" Content="&#xE790;"/>
-                    <Button Style="{StaticResource IconButton}" Height="30" ToolTip="Formatierung löschen" Click="ClearFormat_Click">
+                                  Click="FormatPainter_Click" ToolTip="{loc:T Ed.FormatPainter.Tip}"
+                                  AutomationProperties.Name="{loc:T Ed.FormatPainter}" Content="&#xE790;"/>
+                    <Button Style="{StaticResource IconButton}" Height="30" ToolTip="{loc:T Ed.ClearFormat}" Click="ClearFormat_Click">
                         <TextBlock FontFamily="Segoe UI" FontSize="12">
                             <Run Text="A"/><Run Text="a" FontSize="9"/><Run Text="✕" FontSize="8"/>
                         </TextBlock>
@@ -193,7 +194,7 @@
 
                     <Border Style="{StaticResource GroupSep}"/>
 
-                    <ComboBox x:Name="FontCombo" Width="136" SelectionChanged="FontCombo_Changed" ToolTip="Schriftart">
+                    <ComboBox x:Name="FontCombo" Width="136" SelectionChanged="FontCombo_Changed" ToolTip="{loc:T Ed.Font}">
                         <ComboBox.ItemTemplate>
                             <DataTemplate>
                                 <!-- Vorschau: jeder Eintrag in seiner eigenen Schrift -->
@@ -202,38 +203,38 @@
                         </ComboBox.ItemTemplate>
                     </ComboBox>
                     <ComboBox x:Name="SizeCombo" Width="54" Margin="4,0,0,0" SelectionChanged="SizeCombo_Changed"
-                              ToolTip="Schriftgröße"/>
-                    <Button Style="{StaticResource IconButton}" Height="30" Content="&#xE8E8;" ToolTip="Schrift vergrößern"
+                              ToolTip="{loc:T Ed.FontSize}"/>
+                    <Button Style="{StaticResource IconButton}" Height="30" Content="&#xE8E8;" ToolTip="{loc:T Ed.FontGrow}"
                             Command="EditingCommands.IncreaseFontSize" CommandTarget="{Binding ElementName=Editor}"/>
-                    <Button Style="{StaticResource IconButton}" Height="30" Content="&#xE8E7;" ToolTip="Schrift verkleinern"
+                    <Button Style="{StaticResource IconButton}" Height="30" Content="&#xE8E7;" ToolTip="{loc:T Ed.FontShrink}"
                             Command="EditingCommands.DecreaseFontSize" CommandTarget="{Binding ElementName=Editor}"/>
 
                     <Border Style="{StaticResource GroupSep}"/>
 
                     <ToggleButton x:Name="BtnBold" Style="{StaticResource ToolButton}" Width="30" Height="30"
-                                  Click="Bold_Click" ToolTip="Fett (Strg+B)">
+                                  Click="Bold_Click" ToolTip="{loc:T Ed.Bold}">
                         <TextBlock Text="F" FontWeight="Bold" FontFamily="Segoe UI"/>
                     </ToggleButton>
                     <ToggleButton x:Name="BtnItalic" Style="{StaticResource ToolButton}" Width="30" Height="30"
-                                  Click="Italic_Click" ToolTip="Kursiv (Strg+I)">
+                                  Click="Italic_Click" ToolTip="{loc:T Ed.Italic}">
                         <TextBlock Text="K" FontStyle="Italic" FontFamily="Segoe UI"/>
                     </ToggleButton>
                     <ToggleButton x:Name="BtnUnderline" Style="{StaticResource ToolButton}" Width="30" Height="30"
-                                  Click="Underline_Click" ToolTip="Unterstrichen (Strg+U)">
+                                  Click="Underline_Click" ToolTip="{loc:T Ed.Underline}">
                         <TextBlock Text="U" TextDecorations="Underline" FontFamily="Segoe UI"/>
                     </ToggleButton>
                     <ToggleButton x:Name="BtnStrike" Style="{StaticResource ToolButton}" Width="30" Height="30"
-                                  Click="Strike_Click" ToolTip="Durchgestrichen">
+                                  Click="Strike_Click" ToolTip="{loc:T Ed.Strike}">
                         <TextBlock Text="S" TextDecorations="Strikethrough" FontFamily="Segoe UI"/>
                     </ToggleButton>
                     <ToggleButton x:Name="BtnSub" Style="{StaticResource ToolButton}" Width="30" Height="30" FontFamily="Segoe UI"
-                                  Content="x₂" Click="Sub_Click" ToolTip="Tiefgestellt"/>
+                                  Content="x₂" Click="Sub_Click" ToolTip="{loc:T Ed.Subscript}"/>
                     <ToggleButton x:Name="BtnSuper" Style="{StaticResource ToolButton}" Width="30" Height="30" FontFamily="Segoe UI"
-                                  Content="x²" Click="Super_Click" ToolTip="Hochgestellt"/>
+                                  Content="x²" Click="Super_Click" ToolTip="{loc:T Ed.Superscript}"/>
 
                     <Border Style="{StaticResource GroupSep}"/>
 
-                    <Button Style="{StaticResource IconButton}" Height="30" Click="ApplyTextColor_Click" ToolTip="Textfarbe anwenden">
+                    <Button Style="{StaticResource IconButton}" Height="30" Click="ApplyTextColor_Click" ToolTip="{loc:T Ed.TextColor.Apply}">
                         <StackPanel>
                             <TextBlock Text="A" FontFamily="Segoe UI" FontWeight="SemiBold" FontSize="13"
                                        HorizontalAlignment="Center" Margin="0,-2,0,0"/>
@@ -241,8 +242,8 @@
                         </StackPanel>
                     </Button>
                     <Button Style="{StaticResource IconButton}" Content="&#xE70D;" FontSize="8" Height="30"
-                            ToolTip="Textfarbe wählen" Width="16" Click="PickTextColor_Click"/>
-                    <Button Style="{StaticResource IconButton}" Height="30" Click="ApplyHighlight_Click" ToolTip="Textmarker anwenden">
+                            ToolTip="{loc:T Ed.TextColor.Pick}" Width="16" Click="PickTextColor_Click"/>
+                    <Button Style="{StaticResource IconButton}" Height="30" Click="ApplyHighlight_Click" ToolTip="{loc:T Ed.Highlight.Apply}">
                         <StackPanel>
                             <TextBlock Text="&#xE7E6;" FontFamily="{StaticResource IconFont}" FontSize="11"
                                        HorizontalAlignment="Center"/>
@@ -250,13 +251,13 @@
                         </StackPanel>
                     </Button>
                     <Button Style="{StaticResource IconButton}" Content="&#xE70D;" FontSize="8" Height="30"
-                            ToolTip="Markerfarbe wählen (inkl. „keine“)" Width="16" Click="PickHighlight_Click"/>
+                            ToolTip="{loc:T Ed.Highlight.Pick}" Width="16" Click="PickHighlight_Click"/>
 
                     <Border Style="{StaticResource GroupSep}"/>
 
                     <!-- Ein Sammel-Button für alle Textausrichtungen -->
                     <Button x:Name="BtnAlign" Style="{StaticResource DropButton}" Click="OpenDropdown_Click"
-                            ToolTip="Textausrichtung" AutomationProperties.Name="Textausrichtung">
+                            ToolTip="{loc:T Ed.Align}" AutomationProperties.Name="{loc:T Ed.Align}">
                         <StackPanel Orientation="Horizontal">
                             <Path x:Name="AlignGlyph" Style="{StaticResource PathIcon}"
                                   Data="{StaticResource Icon.AlignL}" VerticalAlignment="Center"
@@ -267,34 +268,34 @@
                         </StackPanel>
                         <Button.ContextMenu>
                             <ContextMenu>
-                                <MenuItem x:Name="AlignItemLeft" Header="Linksbündig" Tag="Left" Click="AlignMenu_Click"/>
-                                <MenuItem x:Name="AlignItemCenter" Header="Zentriert" Tag="Center" Click="AlignMenu_Click"/>
-                                <MenuItem x:Name="AlignItemRight" Header="Rechtsbündig" Tag="Right" Click="AlignMenu_Click"/>
-                                <MenuItem x:Name="AlignItemJustify" Header="Blocksatz" Tag="Justify" Click="AlignMenu_Click"/>
+                                <MenuItem x:Name="AlignItemLeft" Header="{loc:T Ed.Align.Left}" Tag="Left" Click="AlignMenu_Click"/>
+                                <MenuItem x:Name="AlignItemCenter" Header="{loc:T Ed.Align.Center}" Tag="Center" Click="AlignMenu_Click"/>
+                                <MenuItem x:Name="AlignItemRight" Header="{loc:T Ed.Align.Right}" Tag="Right" Click="AlignMenu_Click"/>
+                                <MenuItem x:Name="AlignItemJustify" Header="{loc:T Ed.Align.Justify}" Tag="Justify" Click="AlignMenu_Click"/>
                             </ContextMenu>
                         </Button.ContextMenu>
                     </Button>
 
                     <!-- Aufzählung: Split-Button (Klick = umschalten, Pfeil = Stil-Bibliothek) -->
                     <Button x:Name="BtnBullets" Style="{StaticResource IconButton}" Height="30" Content="&#xE8FD;"
-                            ToolTip="Aufzählung" Click="ToggleBullets_Click"
-                            AutomationProperties.Name="Aufzählung"/>
+                            ToolTip="{loc:T Ed.List.Bullet}" Click="ToggleBullets_Click"
+                            AutomationProperties.Name="{loc:T Ed.List.Bullet}"/>
                     <Button Style="{StaticResource IconButton}" Height="30" Width="16" Content="&#xE70D;" FontSize="8"
-                            ToolTip="Aufzählungszeichen wählen" Click="OpenBulletLibrary_Click"/>
+                            ToolTip="{loc:T Ed.List.BulletPick}" Click="OpenBulletLibrary_Click"/>
 
                     <!-- Nummerierung: Split-Button -->
                     <Button x:Name="BtnNumbering" Style="{StaticResource IconButton}" Height="30" FontFamily="Segoe UI"
-                            Content="№" ToolTip="Nummerierte Liste" Click="ToggleNumbering_Click"
-                            AutomationProperties.Name="Nummerierte Liste"/>
+                            Content="№" ToolTip="{loc:T Ed.List.Number}" Click="ToggleNumbering_Click"
+                            AutomationProperties.Name="{loc:T Ed.List.Number}"/>
                     <Button Style="{StaticResource IconButton}" Height="30" Width="16" Content="&#xE70D;" FontSize="8"
-                            ToolTip="Nummerierungsart wählen" Click="OpenNumberLibrary_Click"/>
+                            ToolTip="{loc:T Ed.List.NumberPick}" Click="OpenNumberLibrary_Click"/>
 
-                    <Button Style="{StaticResource IconButton}" Height="30" ToolTip="Einzug vergrößern"
+                    <Button Style="{StaticResource IconButton}" Height="30" ToolTip="{loc:T Ed.Indent.More}"
                             Click="IndentInc_Click">
                         <Path Style="{StaticResource PathIcon}" Data="{StaticResource Icon.IndentInc}"
                               Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
                     </Button>
-                    <Button Style="{StaticResource IconButton}" Height="30" ToolTip="Einzug verkleinern"
+                    <Button Style="{StaticResource IconButton}" Height="30" ToolTip="{loc:T Ed.Indent.Less}"
                             Click="IndentDec_Click">
                         <Path Style="{StaticResource PathIcon}" Data="{StaticResource Icon.IndentDec}"
                               Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
@@ -305,19 +306,19 @@
                     <!-- Formatvorlagen: 3 Kacheln inline + Aufklapp-Pfeil (Rest im Flyout) -->
                     <StackPanel x:Name="StyleGallery" Orientation="Horizontal"/>
                     <Button x:Name="BtnStyleMore" Style="{StaticResource IconButton}" Height="44" Width="20"
-                            Content="&#xE70D;" FontSize="9" ToolTip="Alle Formatvorlagen"
-                            Click="OpenStyleGallery_Click" AutomationProperties.Name="Alle Formatvorlagen"/>
+                            Content="&#xE70D;" FontSize="9" ToolTip="{loc:T Ed.Styles.All}"
+                            Click="OpenStyleGallery_Click" AutomationProperties.Name="{loc:T Ed.Styles.All}"/>
                 </WrapPanel>
 
                 <!-- ============ Werkzeugleiste: Einfügen ============ -->
                 <WrapPanel x:Name="PanelInsert" Margin="8,2,8,6" Visibility="Collapsed">
                     <!-- Tabelle: Raster-Auswahl (wie Word) + Dialog/Umwandeln/Schnelltabellen -->
                     <Button x:Name="BtnInsertTable" Style="{StaticResource LabelButton}" Click="TableMenu_Click"
-                            AutomationProperties.Name="Tabelle einfügen">
+                            AutomationProperties.Name="{loc:T Ed.Table.Insert}">
                         <StackPanel Orientation="Horizontal">
                             <Path Style="{StaticResource PathIcon}" Data="{StaticResource Icon.Table}"
                                   Stroke="{DynamicResource Brush.TextMuted}"/>
-                            <TextBlock Text="Tabelle" Margin="6,0,0,0"/>
+                            <TextBlock Text="{loc:T Ed.Tab.Table}" Margin="6,0,0,0"/>
                             <TextBlock Text="&#xE70D;" FontFamily="{StaticResource IconFont}" FontSize="9"
                                        Margin="5,2,0,0" VerticalAlignment="Center"/>
                         </StackPanel>
@@ -331,162 +332,162 @@
                                 <DropShadowEffect BlurRadius="12" ShadowDepth="2" Opacity="0.25"/>
                             </Border.Effect>
                             <StackPanel>
-                                <TextBlock x:Name="TableGridLabel" Text="Tabelle einfügen"
+                                <TextBlock x:Name="TableGridLabel" Text="{loc:T Ed.Table.Insert}"
                                            Foreground="{DynamicResource Brush.Text}" Margin="0,0,0,6"/>
                                 <!-- 8×10-Raster; Kacheln entstehen im Code (BuildTableGrid) -->
                                 <UniformGrid x:Name="TableGrid" Columns="10" Rows="8"/>
                                 <Border Height="1" Background="{DynamicResource Brush.Border}" Margin="0,8,0,4"/>
                                 <Button Style="{StaticResource FlatButton}" HorizontalAlignment="Stretch"
-                                        HorizontalContentAlignment="Left" Content="Tabelle einfügen…"
+                                        HorizontalContentAlignment="Left" Content="{loc:T Ed.Table.InsertDialog}"
                                         Click="InsertTableDialog_Click"/>
                                 <Button Style="{StaticResource FlatButton}" HorizontalAlignment="Stretch"
-                                        HorizontalContentAlignment="Left" Content="Text in Tabelle umwandeln"
-                                        ToolTip="Markierten Text (Trennung per Tab, Semikolon oder Komma) in eine Tabelle umwandeln"
+                                        HorizontalContentAlignment="Left" Content="{loc:T Ed.Table.FromText}"
+                                        ToolTip="{loc:T Ed.Table.FromText.Tip}"
                                         Click="TextToTable_Click"/>
-                                <TextBlock Text="Schnelltabellen" Style="{StaticResource RibbonLabel}" Margin="2,6,0,2"/>
+                                <TextBlock Text="{loc:T Ed.Table.Quick}" Style="{StaticResource RibbonLabel}" Margin="2,6,0,2"/>
                                 <Button Style="{StaticResource FlatButton}" HorizontalAlignment="Stretch"
-                                        HorizontalContentAlignment="Left" Content="Kalender (Monat)"
+                                        HorizontalContentAlignment="Left" Content="{loc:T Ed.Table.Quick.Calendar}"
                                         Click="QuickTableCalendar_Click"/>
                                 <Button Style="{StaticResource FlatButton}" HorizontalAlignment="Stretch"
-                                        HorizontalContentAlignment="Left" Content="Einfache Liste (mit Kopfzeile)"
+                                        HorizontalContentAlignment="Left" Content="{loc:T Ed.Table.Quick.List}"
                                         Click="QuickTableList_Click"/>
                             </StackPanel>
                         </Border>
                     </Popup>
                     <Button Style="{StaticResource LabelButton}" Click="InsertImage_Click"
-                            AutomationProperties.Name="Bild einfügen">
+                            AutomationProperties.Name="{loc:T Ed.Image.Insert}">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="&#xE8B9;" FontFamily="{StaticResource IconFont}" VerticalAlignment="Center"/>
-                            <TextBlock Text="Bild" Margin="6,0,0,0"/>
+                            <TextBlock Text="{loc:T Ed.Image}" Margin="6,0,0,0"/>
                         </StackPanel>
                     </Button>
                     <Button Style="{StaticResource LabelButton}" Click="InsertInfoBox_Click"
-                            ToolTip="Farbige Infobox (1×1-Tabelle mit Füllung und Rahmen)"
-                            AutomationProperties.Name="Infobox einfügen">
+                            ToolTip="{loc:T Ed.InfoBox.Tip}"
+                            AutomationProperties.Name="{loc:T Ed.InfoBox.Insert}">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="&#xE8A5;" FontFamily="{StaticResource IconFont}" VerticalAlignment="Center"/>
-                            <TextBlock Text="Infobox" Margin="6,0,0,0"/>
+                            <TextBlock Text="{loc:T Ed.InfoBox}" Margin="6,0,0,0"/>
                         </StackPanel>
                     </Button>
-                    <Button Style="{StaticResource LabelButton}" Content="— Trennlinie" Click="InsertRule_Click"/>
+                    <Button Style="{StaticResource LabelButton}" Content="{loc:T Ed.Rule}" Click="InsertRule_Click"/>
 
                     <Border Style="{StaticResource GroupSep}"/>
 
                     <ToggleButton x:Name="BtnSymbols" Style="{StaticResource ToolButton}" Width="Auto" Height="30"
-                                  Click="ToggleSymbols_Click" ToolTip="Sonderzeichen einfügen"
-                                  AutomationProperties.Name="Sonderzeichen">
-                        <TextBlock Text=" Ω Symbol " FontFamily="Segoe UI"/>
+                                  Click="ToggleSymbols_Click" ToolTip="{loc:T Ed.Symbol.Insert}"
+                                  AutomationProperties.Name="{loc:T Ed.Symbol}">
+                        <TextBlock Text="{loc:T Ed.Symbol.Button}" FontFamily="Segoe UI"/>
                     </ToggleButton>
                     <Button Style="{StaticResource LabelButton}" Click="OpenChart_Click"
-                            ToolTip="Diagramm aus eigenen Werten einfügen (Balken, Linie, Kuchen)"
-                            AutomationProperties.Name="Diagramm">
+                            ToolTip="{loc:T Ed.Chart.Tip}"
+                            AutomationProperties.Name="{loc:T Ed.Chart}">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="&#xE9D2;" FontFamily="{StaticResource IconFont}" VerticalAlignment="Center"/>
-                            <TextBlock Text="Diagramm" Margin="6,0,0,0"/>
+                            <TextBlock Text="{loc:T Ed.Chart}" Margin="6,0,0,0"/>
                         </StackPanel>
                     </Button>
 
                     <Border Style="{StaticResource GroupSep}"/>
 
-                    <Button Style="{StaticResource LabelButton}" Content="Kopf-/Fußzeile…" Click="EditHeaderFooter_Click"
-                            AutomationProperties.Name="Kopf- und Fußzeile"/>
-                    <Button Style="{StaticResource LabelButton}" Content="Seitenzahlen" Click="InsertPageNumbers_Click"
+                    <Button Style="{StaticResource LabelButton}" Content="{loc:T Ed.HeaderFooter.Dialog}" Click="EditHeaderFooter_Click"
+                            AutomationProperties.Name="{loc:T Ed.HeaderFooter}"/>
+                    <Button Style="{StaticResource LabelButton}" Content="{loc:T Ed.PageNumbers}" Click="InsertPageNumbers_Click"
                             ToolTip="Fügt „Seite {SEITE} von {SEITEN}“ in die Fußzeile ein"
-                            AutomationProperties.Name="Seitenzahlen"/>
+                            AutomationProperties.Name="{loc:T Ed.PageNumbers}"/>
                 </WrapPanel>
 
                 <!-- ============ Werkzeugleiste: Layout ============ -->
                 <WrapPanel x:Name="PanelLayout" Margin="8,2,8,6" Visibility="Collapsed">
-                    <TextBlock Text="Format" Style="{StaticResource RibbonLabel}"/>
-                    <ComboBox x:Name="FormatCombo" Width="72" SelectionChanged="PageFormat_Changed" ToolTip="Papierformat">
+                    <TextBlock Text="{loc:T Ed.Layout.Format}" Style="{StaticResource RibbonLabel}"/>
+                    <ComboBox x:Name="FormatCombo" Width="72" SelectionChanged="PageFormat_Changed" ToolTip="{loc:T Ed.Layout.PaperSize}">
                         <ComboBoxItem Content="A4" IsSelected="True"/>
                         <ComboBoxItem Content="A5"/>
                         <ComboBoxItem Content="A3"/>
-                        <ComboBoxItem Content="Letter"/>
+                        <ComboBoxItem Content="{loc:T Ed.Layout.Letter}"/>
                     </ComboBox>
                     <ToggleButton x:Name="BtnPortrait" Style="{StaticResource ToolButton}" Width="Auto" Height="28"
-                                  Margin="6,0,0,0" Click="Orientation_Click" Tag="P" ToolTip="Hochformat">
-                        <TextBlock Text=" Hoch " FontFamily="Segoe UI" FontSize="12"/>
+                                  Margin="6,0,0,0" Click="Orientation_Click" Tag="P" ToolTip="{loc:T Ed.Layout.Portrait}">
+                        <TextBlock Text="{loc:T Ed.Layout.Portrait.Short}" FontFamily="Segoe UI" FontSize="12"/>
                     </ToggleButton>
                     <ToggleButton x:Name="BtnLandscape" Style="{StaticResource ToolButton}" Width="Auto" Height="28"
-                                  Click="Orientation_Click" Tag="L" ToolTip="Querformat">
-                        <TextBlock Text=" Quer " FontFamily="Segoe UI" FontSize="12"/>
+                                  Click="Orientation_Click" Tag="L" ToolTip="{loc:T Ed.Layout.Landscape}">
+                        <TextBlock Text="{loc:T Ed.Layout.Landscape.Short}" FontFamily="Segoe UI" FontSize="12"/>
                     </ToggleButton>
 
                     <Border Style="{StaticResource GroupSep}"/>
 
                     <!-- Detaileinstellungen wandern in die Seitenleiste rechts -->
                     <Button Style="{StaticResource LabelButton}" Click="OpenMargins_Click"
-                            ToolTip="Seitenränder einstellen" AutomationProperties.Name="Ränder">
+                            ToolTip="{loc:T Ed.Layout.Margins.Tip}" AutomationProperties.Name="{loc:T Ed.Layout.Margins}">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="&#xE799;" FontFamily="{StaticResource IconFont}" VerticalAlignment="Center"/>
-                            <TextBlock Text="Ränder" Margin="6,0,0,0"/>
+                            <TextBlock Text="{loc:T Ed.Layout.Margins}" Margin="6,0,0,0"/>
                         </StackPanel>
                     </Button>
                     <Button Style="{StaticResource LabelButton}" Click="OpenSpacing_Click"
-                            ToolTip="Absatz- und Zeilenabstände" AutomationProperties.Name="Abstände">
+                            ToolTip="{loc:T Ed.Layout.Spacing.Tip}" AutomationProperties.Name="{loc:T Ed.Layout.Spacing}">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="&#xE799;" FontFamily="{StaticResource IconFont}" VerticalAlignment="Center"/>
-                            <TextBlock Text="Abstände" Margin="6,0,0,0"/>
+                            <TextBlock Text="{loc:T Ed.Layout.Spacing}" Margin="6,0,0,0"/>
                         </StackPanel>
                     </Button>
                     <Button Style="{StaticResource LabelButton}" Click="OpenWatermark_Click"
-                            ToolTip="Hintergrundbild / Wasserzeichen" AutomationProperties.Name="Hintergrundbild">
+                            ToolTip="{loc:T Ed.Layout.Background.Tip}" AutomationProperties.Name="{loc:T Ed.Layout.Background}">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="&#xE91B;" FontFamily="{StaticResource IconFont}" VerticalAlignment="Center"/>
-                            <TextBlock Text="Hintergrundbild" Margin="6,0,0,0"/>
+                            <TextBlock Text="{loc:T Ed.Layout.Background}" Margin="6,0,0,0"/>
                         </StackPanel>
                     </Button>
 
                     <Border Style="{StaticResource GroupSep}"/>
 
-                    <CheckBox x:Name="BreaksCheck" Content="Seitenumbrüche anzeigen" VerticalAlignment="Center"
+                    <CheckBox x:Name="BreaksCheck" Content="{loc:T Ed.Layout.PageBreaks}" VerticalAlignment="Center"
                               Foreground="{DynamicResource Brush.Text}" Margin="4,0"
                               Checked="PageBreaks_Toggled" Unchecked="PageBreaks_Toggled"
-                              ToolTip="Zeigt als Näherung, wo beim PDF-Export die Seiten umbrechen"
-                              AutomationProperties.Name="Seitenumbrüche anzeigen"/>
+                              ToolTip="{loc:T Ed.Layout.PageBreaks.Tip}"
+                              AutomationProperties.Name="{loc:T Ed.Layout.PageBreaks}"/>
                 </WrapPanel>
 
                 <!-- ============ Werkzeugleiste: Verweise ============ -->
                 <WrapPanel x:Name="PanelRefs" Margin="8,2,8,6" Visibility="Collapsed">
                     <Button Style="{StaticResource LabelButton}" Click="InsertToc_Click"
-                            ToolTip="Erstellt ein Inhaltsverzeichnis aus den Überschriften 1–4"
-                            AutomationProperties.Name="Inhaltsverzeichnis einfügen">
+                            ToolTip="{loc:T Ed.Toc.Insert.Tip}"
+                            AutomationProperties.Name="{loc:T Ed.Toc.Insert}">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="&#xE8FD;" FontFamily="{StaticResource IconFont}" VerticalAlignment="Center"/>
-                            <TextBlock Text="Inhaltsverzeichnis einfügen" Margin="6,0,0,0"/>
+                            <TextBlock Text="{loc:T Ed.Toc.Insert}" Margin="6,0,0,0"/>
                         </StackPanel>
                     </Button>
-                    <Button Style="{StaticResource LabelButton}" Content="Aktualisieren" Click="UpdateToc_Click"
-                            ToolTip="Inhaltsverzeichnis neu aus den Überschriften aufbauen"
-                            AutomationProperties.Name="Inhaltsverzeichnis aktualisieren"/>
+                    <Button Style="{StaticResource LabelButton}" Content="{loc:T Ed.Toc.Update.Short}" Click="UpdateToc_Click"
+                            ToolTip="{loc:T Ed.Toc.Update.Tip}"
+                            AutomationProperties.Name="{loc:T Ed.Toc.Update}"/>
 
                     <Border Style="{StaticResource GroupSep}"/>
 
                     <Button Style="{StaticResource LabelButton}" Click="InsertLink_Click"
-                            ToolTip="Hyperlink einfügen/bearbeiten" AutomationProperties.Name="Link einfügen">
+                            ToolTip="{loc:T Ed.Link.Tip}" AutomationProperties.Name="{loc:T Ed.Link.Insert}">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="&#xE71B;" FontFamily="{StaticResource IconFont}" VerticalAlignment="Center"/>
-                            <TextBlock Text="Link" Margin="6,0,0,0"/>
+                            <TextBlock Text="{loc:T Ed.Link}" Margin="6,0,0,0"/>
                         </StackPanel>
                     </Button>
                     <Button Style="{StaticResource LabelButton}" Click="InsertCaption_Click"
-                            ToolTip="Bildunterschrift „Abbildung N: …“ unter dem Bild/Absatz einfügen"
-                            AutomationProperties.Name="Beschriftung einfügen">
+                            ToolTip="{loc:T Ed.Caption.Tip}"
+                            AutomationProperties.Name="{loc:T Ed.Caption.Insert}">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="&#xE7C3;" FontFamily="{StaticResource IconFont}" VerticalAlignment="Center"/>
-                            <TextBlock Text="Beschriftung" Margin="6,0,0,0"/>
+                            <TextBlock Text="{loc:T Ed.Caption}" Margin="6,0,0,0"/>
                         </StackPanel>
                     </Button>
 
                     <!-- Hinweis hinter Info-i (nur bei Hover/Klick) -->
                     <Button Style="{StaticResource IconButton}" Height="30" Width="26" Content="&#xE946;"
                             Foreground="{DynamicResource Brush.TextMuted}" ToolTipService.InitialShowDelay="150"
-                            ToolTipService.ShowDuration="20000" AutomationProperties.Name="Hinweis Verweise">
+                            ToolTipService.ShowDuration="20000" AutomationProperties.Name="{loc:T Ed.References.NoteName}">
                         <Button.ToolTip>
                             <ToolTip MaxWidth="320">
                                 <TextBlock TextWrapping="Wrap"
-                                           Text="Beim DOCX-Export wird das Inhaltsverzeichnis zu einem echten Word-Feld (mit Seitenzahlen, aktualisiert sich beim Öffnen). Überschriften 1–4 erscheinen automatisch im Verzeichnis."/>
+                                           Text="{loc:T Ed.References.Note}"/>
                             </ToolTip>
                         </Button.ToolTip>
                     </Button>
@@ -502,32 +503,32 @@
                         <StackPanel Orientation="Horizontal">
                             <Path Style="{StaticResource PathIcon}" Width="15" Height="15"
                                   Data="{StaticResource Icon.Table}" Stroke="{DynamicResource Brush.TextMuted}"/>
-                            <TextBlock Text="Zeile" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="{loc:T Ed.Table.Row}" Margin="6,0,0,0" VerticalAlignment="Center"/>
                             <TextBlock Text="&#xE70D;" FontFamily="{StaticResource IconFont}" FontSize="9"
                                        Margin="5,2,0,0" VerticalAlignment="Center"/>
                         </StackPanel>
                         <Button.ContextMenu>
                             <ContextMenu>
-                                <MenuItem Header="Zeile darüber einfügen" Click="TableRowAbove_Click"/>
-                                <MenuItem Header="Zeile darunter einfügen" Click="TableRowBelow_Click"/>
+                                <MenuItem Header="{loc:T Ed.Table.Row.Above}" Click="TableRowAbove_Click"/>
+                                <MenuItem Header="{loc:T Ed.Table.Row.Below}" Click="TableRowBelow_Click"/>
                                 <Separator/>
-                                <MenuItem Header="Zeile löschen" Click="TableDeleteRow_Click"/>
+                                <MenuItem Header="{loc:T Ed.Table.Row.Delete}" Click="TableDeleteRow_Click"/>
                             </ContextMenu>
                         </Button.ContextMenu>
                     </Button>
                     <!-- Spalten (Sammel-Dropdown) -->
                     <Button Style="{StaticResource DropButton}" Click="ColMenu_Click">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="Spalte" VerticalAlignment="Center"/>
+                            <TextBlock Text="{loc:T Ed.Table.Column}" VerticalAlignment="Center"/>
                             <TextBlock Text="&#xE70D;" FontFamily="{StaticResource IconFont}" FontSize="9"
                                        Margin="5,2,0,0" VerticalAlignment="Center"/>
                         </StackPanel>
                         <Button.ContextMenu>
                             <ContextMenu>
-                                <MenuItem Header="Spalte links einfügen" Click="TableColLeft_Click"/>
-                                <MenuItem Header="Spalte rechts einfügen" Click="TableColRight_Click"/>
+                                <MenuItem Header="{loc:T Ed.Table.Column.Left}" Click="TableColLeft_Click"/>
+                                <MenuItem Header="{loc:T Ed.Table.Column.Right}" Click="TableColRight_Click"/>
                                 <Separator/>
-                                <MenuItem Header="Spalte löschen" Click="TableDeleteCol_Click"/>
+                                <MenuItem Header="{loc:T Ed.Table.Column.Delete}" Click="TableDeleteCol_Click"/>
                             </ContextMenu>
                         </Button.ContextMenu>
                     </Button>
@@ -535,20 +536,20 @@
                     <Border Style="{StaticResource GroupSep}"/>
 
                     <!-- Verbinden & Teilen -->
-                    <Button Style="{StaticResource LabelButton}" Content="Verbinden" Click="TableMergeCells_Click"
-                            ToolTip="Markierte Zellen verbinden (waagerecht, senkrecht oder rechteckig)"/>
+                    <Button Style="{StaticResource LabelButton}" Content="{loc:T Ed.Table.Merge}" Click="TableMergeCells_Click"
+                            ToolTip="{loc:T Ed.Table.Merge.Tip}"/>
                     <Button Style="{StaticResource DropButton}" Click="SplitMenu_Click">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="Teilen" VerticalAlignment="Center"/>
+                            <TextBlock Text="{loc:T Ed.Table.Split}" VerticalAlignment="Center"/>
                             <TextBlock Text="&#xE70D;" FontFamily="{StaticResource IconFont}" FontSize="9"
                                        Margin="5,2,0,0" VerticalAlignment="Center"/>
                         </StackPanel>
                         <Button.ContextMenu>
                             <ContextMenu>
-                                <MenuItem Header="Zellverbund aufheben" Click="TableUnmergeCell_Click"/>
-                                <MenuItem Header="Zelle teilen…" Click="TableSplitCell_Click"/>
+                                <MenuItem Header="{loc:T Ed.Table.Unmerge}" Click="TableUnmergeCell_Click"/>
+                                <MenuItem Header="{loc:T Ed.Table.SplitCell}" Click="TableSplitCell_Click"/>
                                 <Separator/>
-                                <MenuItem Header="Tabelle teilen (oberhalb der Zeile)" Click="TableSplitTable_Click"/>
+                                <MenuItem Header="{loc:T Ed.Table.SplitTable}" Click="TableSplitTable_Click"/>
                             </ContextMenu>
                         </Button.ContextMenu>
                     </Button>
@@ -556,36 +557,36 @@
                     <Border Style="{StaticResource GroupSep}"/>
 
                     <!-- Daten -->
-                    <Button Style="{StaticResource LabelButton}" Content="Sortieren…" Click="TableSort_Click"
-                            ToolTip="Zeilen nach einer Spalte sortieren (Text/Zahl/Datum)"/>
-                    <Button Style="{StaticResource LabelButton}" Content="Formel…" Click="TableFormula_Click"
-                            ToolTip="Berechnung einfügen, z. B. =SUMME(ABOVE) oder =MITTELWERT(LEFT)"/>
-                    <Button Style="{StaticResource LabelButton}" Content="In Text…" Click="TableToText_Click"
-                            ToolTip="Tabelle in Text umwandeln"/>
+                    <Button Style="{StaticResource LabelButton}" Content="{loc:T Ed.Table.Sort}" Click="TableSort_Click"
+                            ToolTip="{loc:T Ed.Table.Sort.Tip}"/>
+                    <Button Style="{StaticResource LabelButton}" Content="{loc:T Ed.Table.Formula}" Click="TableFormula_Click"
+                            ToolTip="{loc:T Ed.Table.Formula.Tip}"/>
+                    <Button Style="{StaticResource LabelButton}" Content="{loc:T Ed.Table.ToText}" Click="TableToText_Click"
+                            ToolTip="{loc:T Ed.Table.ToText.Tip}"/>
 
                     <Border Style="{StaticResource GroupSep}"/>
 
                     <!-- Design/Rahmen/Größe → Seitenleiste -->
                     <Button Style="{StaticResource LabelButton}" Click="OpenTableDesign_Click"
-                            ToolTip="Formatvorlage, Rahmen, Füllung und Größe in der Seitenleiste">
+                            ToolTip="{loc:T Ed.Table.Design.Tip}">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="&#xE790;" FontFamily="{StaticResource IconFont}" VerticalAlignment="Center"/>
-                            <TextBlock Text="Design &amp; Rahmen…" Margin="6,0,0,0"/>
+                            <TextBlock Text="{loc:T Ed.Table.Design}" Margin="6,0,0,0"/>
                         </StackPanel>
                     </Button>
 
                     <Border Style="{StaticResource GroupSep}"/>
 
-                    <Button Style="{StaticResource LabelButton}" Content="Tabelle löschen" Click="TableDelete_Click"/>
+                    <Button Style="{StaticResource LabelButton}" Content="{loc:T Ed.Table.Delete}" Click="TableDelete_Click"/>
 
                     <!-- Hinweis: was WPF nicht kann (ehrliches Scoping) -->
                     <Button Style="{StaticResource IconButton}" Height="30" Width="26" Content="&#xE946;"
                             Foreground="{DynamicResource Brush.TextMuted}" ToolTipService.InitialShowDelay="150"
-                            ToolTipService.ShowDuration="20000" AutomationProperties.Name="Hinweis Tabelle">
+                            ToolTipService.ShowDuration="20000" AutomationProperties.Name="{loc:T Ed.Table.NoteName}">
                         <Button.ToolTip>
                             <ToolTip MaxWidth="340">
                                 <TextBlock TextWrapping="Wrap"
-                                           Text="Technische Grenzen der Textengine: Zellränder sind immer durchgezogen (keine Stricharten), Text lässt sich in Zellen nur waagerecht ausrichten (senkrechte Ausrichtung/Zeilenhöhe über Zellenränder annähern), keine Excel-Einbettung und keine Kopfzeilen-Wiederholung beim Seitenumbruch."/>
+                                           Text="{loc:T Ed.Table.Note}"/>
                             </ToolTip>
                         </Button.ToolTip>
                     </Button>
@@ -598,15 +599,15 @@
                 Background="{DynamicResource Brush.SidebarBg}"
                 BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,0,0,1" Padding="8,6">
             <StackPanel Orientation="Horizontal">
-                <TextBox x:Name="FindBox" Width="180" KeyDown="FindBox_KeyDown" ToolTip="Suchbegriff"/>
-                <Button Style="{StaticResource FlatButton}" Content="Weiter" Margin="6,0,0,0" Click="FindNext_Click"/>
-                <TextBox x:Name="ReplaceBox" Width="180" Margin="12,0,0,0" ToolTip="Ersetzen durch"/>
-                <Button Style="{StaticResource FlatButton}" Content="Ersetzen" Margin="6,0,0,0" Click="ReplaceOne_Click"/>
-                <Button Style="{StaticResource FlatButton}" Content="Alle ersetzen" Margin="2,0,0,0" Click="ReplaceAll_Click"/>
+                <TextBox x:Name="FindBox" Width="180" KeyDown="FindBox_KeyDown" ToolTip="{loc:T Ed.Find.Term}"/>
+                <Button Style="{StaticResource FlatButton}" Content="{loc:T Ed.Find.Next}" Margin="6,0,0,0" Click="FindNext_Click"/>
+                <TextBox x:Name="ReplaceBox" Width="180" Margin="12,0,0,0" ToolTip="{loc:T Ed.Find.ReplaceWith}"/>
+                <Button Style="{StaticResource FlatButton}" Content="{loc:T Ed.Find.Replace}" Margin="6,0,0,0" Click="ReplaceOne_Click"/>
+                <Button Style="{StaticResource FlatButton}" Content="{loc:T Ed.Find.ReplaceAll}" Margin="2,0,0,0" Click="ReplaceAll_Click"/>
                 <TextBlock x:Name="FindStatus" VerticalAlignment="Center" Margin="10,0,0,0"
                            Foreground="{DynamicResource Brush.TextMuted}"/>
                 <Button Style="{StaticResource IconButton}" Content="&#xE711;" FontSize="10" Margin="6,0,0,0"
-                        ToolTip="Schließen (Esc)" Click="CloseFind_Click"/>
+                        ToolTip="{loc:T Ed.Find.Close}" Click="CloseFind_Click"/>
             </StackPanel>
         </Border>
 
@@ -614,7 +615,7 @@
         <Border DockPanel.Dock="Bottom" Background="{DynamicResource Brush.SidebarBg}"
                 BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,1,0,0" Padding="10,2">
             <DockPanel>
-                <TextBlock x:Name="WordCountText" DockPanel.Dock="Left" Text="Wörter: 0 · Zeichen: 0"
+                <TextBlock x:Name="WordCountText" DockPanel.Dock="Left" Text="{loc:T Ed.Status.Counts}"
                            Foreground="{DynamicResource Brush.TextMuted}" FontSize="12" VerticalAlignment="Center"/>
 
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
@@ -623,24 +624,24 @@
                                Visibility="Collapsed" Cursor="Help"
                                ToolTipService.ShowDuration="20000"/>
                     <ComboBox x:Name="LanguageCombo" Width="86" Height="24" FontSize="12"
-                              SelectionChanged="Language_Changed" ToolTip="Sprache für die Rechtschreibprüfung">
-                        <ComboBoxItem Content="Deutsch" Tag="de-DE" IsSelected="True"/>
-                        <ComboBoxItem Content="Englisch" Tag="en-US"/>
+                              SelectionChanged="Language_Changed" ToolTip="{loc:T Ed.Spell.Language}">
+                        <ComboBoxItem Content="{loc:T Lang.German}" Tag="de-DE" IsSelected="True"/>
+                        <ComboBoxItem Content="{loc:T Lang.English}" Tag="en-US"/>
                     </ComboBox>
                     <ToggleButton x:Name="BtnSpell" Style="{StaticResource ToolButton}" Width="Auto" Height="24"
                                   Margin="6,0" IsChecked="True" Click="Spell_Click"
-                                  ToolTip="Rechtschreibprüfung ein/aus" AutomationProperties.Name="Rechtschreibprüfung">
-                        <TextBlock Text=" ABC✓ " FontFamily="Segoe UI" FontSize="11"/>
+                                  ToolTip="{loc:T Ed.Spell.Toggle}" AutomationProperties.Name="{loc:T Ed.Spell}">
+                        <TextBlock Text="{loc:T Ed.Spell.Button}" FontFamily="Segoe UI" FontSize="11"/>
                     </ToggleButton>
 
                     <Border Style="{StaticResource GroupSep}"/>
 
                     <Button Style="{StaticResource IconButton}" Content="&#xE949;" Width="24" Height="24" FontSize="11"
-                            Click="ZoomOut_Click" ToolTip="Verkleinern" AutomationProperties.Name="Zoom verkleinern"/>
+                            Click="ZoomOut_Click" ToolTip="{loc:T Zoom.Out}" AutomationProperties.Name="{loc:T Zoom.Out.Long}"/>
                     <Slider x:Name="ZoomSlider" Width="90" Minimum="50" Maximum="200" Value="100"
                             ValueChanged="Zoom_Changed" VerticalAlignment="Center"/>
                     <Button Style="{StaticResource IconButton}" Content="&#xE948;" Width="24" Height="24" FontSize="11"
-                            Click="ZoomIn_Click" ToolTip="Vergrößern" AutomationProperties.Name="Zoom vergrößern"/>
+                            Click="ZoomIn_Click" ToolTip="{loc:T Zoom.In}" AutomationProperties.Name="{loc:T Zoom.In.Long}"/>
                     <TextBlock x:Name="ZoomText" Text="100 %" Width="42" TextAlignment="Right"
                                Foreground="{DynamicResource Brush.TextMuted}" FontSize="12" VerticalAlignment="Center"/>
                 </StackPanel>
@@ -653,11 +654,11 @@
                 BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,0,1,0">
             <StackPanel>
                 <ToggleButton x:Name="BtnSideFind" Style="{StaticResource SideIconButton}" Content="&#xE721;"
-                              Click="ToggleFind_Click" ToolTip="Suchen &amp; Ersetzen (Strg+F)"
-                              AutomationProperties.Name="Suchen"/>
+                              Click="ToggleFind_Click" ToolTip="{loc:T Ed.Find.Tip}"
+                              AutomationProperties.Name="{loc:T Ed.Find}"/>
                 <ToggleButton x:Name="BtnSideNav" Style="{StaticResource SideIconButton}" Content="&#xE8A4;"
-                              Click="ToggleNavigator_Click" ToolTip="Überschriften-Navigator"
-                              AutomationProperties.Name="Überschriften"/>
+                              Click="ToggleNavigator_Click" ToolTip="{loc:T Ed.Navigator.Tip}"
+                              AutomationProperties.Name="{loc:T Ed.Navigator}"/>
             </StackPanel>
         </Border>
 
@@ -666,7 +667,7 @@
                 Background="{DynamicResource Brush.SidebarBg}"
                 BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,0,1,0">
             <DockPanel Margin="10,8">
-                <TextBlock DockPanel.Dock="Top" Text="Überschriften" FontWeight="SemiBold"
+                <TextBlock DockPanel.Dock="Top" Text="{loc:T Ed.Navigator}" FontWeight="SemiBold"
                            Foreground="{DynamicResource Brush.Text}" Margin="0,0,0,6"/>
                 <ListBox x:Name="NavList" Background="Transparent" BorderThickness="0"
                          SelectionChanged="NavList_Selected"
@@ -709,67 +710,67 @@
                 BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1,0,0,0">
             <DockPanel>
                 <Grid DockPanel.Dock="Top" Margin="12,10,8,6">
-                    <TextBlock Text="Erweiterte Einstellungen" FontWeight="SemiBold" FontSize="14"
+                    <TextBlock Text="{loc:T Ed.Advanced}" FontWeight="SemiBold" FontSize="14"
                                Foreground="{DynamicResource Brush.Text}" VerticalAlignment="Center"/>
                     <Button Style="{StaticResource IconButton}" Content="&#xE711;" FontSize="10" Width="26" Height="26"
-                            HorizontalAlignment="Right" ToolTip="Schließen" Click="CloseSettings_Click"/>
+                            HorizontalAlignment="Right" ToolTip="{loc:T Window.Close}" Click="CloseSettings_Click"/>
                 </Grid>
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="12,0,12,12">
 
                         <!-- Es ist immer nur die über den jeweiligen Button geöffnete
                              Sektion sichtbar (OpenSettings steuert die Visibility). -->
-                        <Expander x:Name="SecMargins" Header="Ränder" IsExpanded="True" Visibility="Collapsed">
+                        <Expander x:Name="SecMargins" Header="{loc:T Ed.Layout.Margins}" IsExpanded="True" Visibility="Collapsed">
                             <StackPanel>
-                                <TextBlock Text="Vorlage" Style="{StaticResource RibbonLabel}" Margin="0,0,0,2"/>
+                                <TextBlock Text="{loc:T Ed.Margins.Preset}" Style="{StaticResource RibbonLabel}" Margin="0,0,0,2"/>
                                 <ComboBox x:Name="MarginPresetCombo" SelectionChanged="MarginPreset_Changed">
-                                    <ComboBoxItem Content="Normal (2 cm)"/>
-                                    <ComboBoxItem Content="Schmal (1,27 cm)"/>
-                                    <ComboBoxItem Content="Breit (3 cm)"/>
-                                    <ComboBoxItem Content="Lernblatt (4 cm links)"/>
-                                    <ComboBoxItem Content="Benutzerdefiniert"/>
+                                    <ComboBoxItem Content="{loc:T Ed.Margins.Normal}"/>
+                                    <ComboBoxItem Content="{loc:T Ed.Margins.Narrow}"/>
+                                    <ComboBoxItem Content="{loc:T Ed.Margins.Wide}"/>
+                                    <ComboBoxItem Content="{loc:T Ed.Margins.Study}"/>
+                                    <ComboBoxItem Content="{loc:T Ed.Margins.Custom}"/>
                                 </ComboBox>
                                 <UniformGrid Columns="2" Margin="0,8,0,0">
                                     <DockPanel Margin="0,0,4,6">
-                                        <TextBlock Text="Links" Width="42" Style="{StaticResource RibbonLabel}"/>
+                                        <TextBlock Text="{loc:T Ed.Margins.Left}" Width="42" Style="{StaticResource RibbonLabel}"/>
                                         <TextBox x:Name="MarginL" Style="{StaticResource NumBox}" Width="Auto"
                                                  LostFocus="Margin_Changed" KeyDown="NumBox_KeyDown"/>
                                     </DockPanel>
                                     <DockPanel Margin="0,0,0,6">
-                                        <TextBlock Text="Oben" Width="42" Style="{StaticResource RibbonLabel}"/>
+                                        <TextBlock Text="{loc:T Ed.Margins.Top}" Width="42" Style="{StaticResource RibbonLabel}"/>
                                         <TextBox x:Name="MarginT" Style="{StaticResource NumBox}" Width="Auto"
                                                  LostFocus="Margin_Changed" KeyDown="NumBox_KeyDown"/>
                                     </DockPanel>
                                     <DockPanel Margin="0,0,4,0">
-                                        <TextBlock Text="Rechts" Width="42" Style="{StaticResource RibbonLabel}"/>
+                                        <TextBlock Text="{loc:T Ed.Margins.Right}" Width="42" Style="{StaticResource RibbonLabel}"/>
                                         <TextBox x:Name="MarginR" Style="{StaticResource NumBox}" Width="Auto"
                                                  LostFocus="Margin_Changed" KeyDown="NumBox_KeyDown"/>
                                     </DockPanel>
                                     <DockPanel>
-                                        <TextBlock Text="Unten" Width="42" Style="{StaticResource RibbonLabel}"/>
+                                        <TextBlock Text="{loc:T Ed.Margins.Bottom}" Width="42" Style="{StaticResource RibbonLabel}"/>
                                         <TextBox x:Name="MarginB" Style="{StaticResource NumBox}" Width="Auto"
                                                  LostFocus="Margin_Changed" KeyDown="NumBox_KeyDown"/>
                                     </DockPanel>
                                 </UniformGrid>
-                                <TextBlock Text="Werte in cm" Style="{StaticResource RibbonLabel}" Margin="0,4,0,0"/>
+                                <TextBlock Text="{loc:T Ed.Margins.Unit}" Style="{StaticResource RibbonLabel}" Margin="0,4,0,0"/>
                             </StackPanel>
                         </Expander>
 
-                        <Expander x:Name="SecSpacing" Header="Absätze" Visibility="Collapsed">
+                        <Expander x:Name="SecSpacing" Header="{loc:T Ed.Paragraphs}" Visibility="Collapsed">
                             <StackPanel>
                                 <DockPanel Margin="0,2,0,6">
-                                    <TextBlock Text="Abstand vor" Width="110" Style="{StaticResource RibbonLabel}"/>
+                                    <TextBlock Text="{loc:T Ed.Spacing.Before}" Width="110" Style="{StaticResource RibbonLabel}"/>
                                     <TextBox x:Name="SpaceBefore" Style="{StaticResource NumBox}" Width="Auto"
                                              LostFocus="ParaSpacing_Changed" KeyDown="NumBox_KeyDown"/>
                                 </DockPanel>
                                 <DockPanel Margin="0,0,0,6">
-                                    <TextBlock Text="Abstand nach" Width="110" Style="{StaticResource RibbonLabel}"/>
+                                    <TextBlock Text="{loc:T Ed.Spacing.After}" Width="110" Style="{StaticResource RibbonLabel}"/>
                                     <TextBox x:Name="SpaceAfter" Style="{StaticResource NumBox}" Width="Auto"
                                              LostFocus="ParaSpacing_Changed" KeyDown="NumBox_KeyDown"/>
                                 </DockPanel>
-                                <TextBlock Text="Abstände in pt" Style="{StaticResource RibbonLabel}"/>
+                                <TextBlock Text="{loc:T Ed.Spacing.Unit}" Style="{StaticResource RibbonLabel}"/>
                                 <DockPanel Margin="0,8,0,0">
-                                    <TextBlock Text="Zeilenabstand" Width="110" Style="{StaticResource RibbonLabel}"/>
+                                    <TextBlock Text="{loc:T Ed.Spacing.Line}" Width="110" Style="{StaticResource RibbonLabel}"/>
                                     <ComboBox x:Name="SpacingCombo" SelectionChanged="Spacing_Changed">
                                         <ComboBoxItem Content="1,0" Tag="1.0" IsSelected="True"/>
                                         <ComboBoxItem Content="1,15" Tag="1.15"/>
@@ -780,14 +781,14 @@
                             </StackPanel>
                         </Expander>
 
-                        <Expander x:Name="SecWatermark" Header="Hintergrundbild" Visibility="Collapsed">
+                        <Expander x:Name="SecWatermark" Header="{loc:T Ed.Layout.Background}" Visibility="Collapsed">
                             <StackPanel>
                                 <Button Style="{StaticResource FlatButton}" HorizontalAlignment="Left"
-                                        Content="Bild wählen…" Click="PickWatermark_Click"
-                                        ToolTip="Seitenfüllendes Bild hinter dem Text (Wasserzeichen)"
-                                        AutomationProperties.Name="Hintergrundbild wählen"/>
+                                        Content="{loc:T Ed.Background.Choose}" Click="PickWatermark_Click"
+                                        ToolTip="{loc:T Ed.Background.Tip}"
+                                        AutomationProperties.Name="{loc:T Ed.Background.Pick}"/>
                                 <DockPanel Margin="0,6,0,0">
-                                    <TextBlock Text="Deckkraft" Width="80" Style="{StaticResource RibbonLabel}"/>
+                                    <TextBlock Text="{loc:T Ed.Opacity}" Width="80" Style="{StaticResource RibbonLabel}"/>
                                     <ComboBox x:Name="WatermarkOpacityCombo" SelectionChanged="WatermarkOpacity_Changed">
                                         <ComboBoxItem Content="100 %" Tag="1.0" IsSelected="True"/>
                                         <ComboBoxItem Content="60 %" Tag="0.6"/>
@@ -796,82 +797,82 @@
                                     </ComboBox>
                                 </DockPanel>
                                 <Button Style="{StaticResource FlatButton}" HorizontalAlignment="Left" Margin="0,6,0,0"
-                                        Content="Entfernen" Click="RemoveWatermark_Click"/>
+                                        Content="{loc:T Ed.Remove}" Click="RemoveWatermark_Click"/>
                             </StackPanel>
                         </Expander>
 
                         <!-- Tabelle: Design, Rahmen, Füllung, Größe (aus dem Tabelle-Tab
                              ausgelagert; über „Design & Rahmen…" geöffnet). Wirkt auf die
                              ausgewählten Zellen; Design auf die ganze Tabelle. -->
-                        <Expander x:Name="SecTable" Header="Tabelle" Visibility="Collapsed">
+                        <Expander x:Name="SecTable" Header="{loc:T Ed.Tab.Table}" Visibility="Collapsed">
                             <StackPanel>
-                                <TextBlock Text="Formatvorlage" FontWeight="SemiBold" FontSize="12.5"
+                                <TextBlock Text="{loc:T Ed.Table.Style}" FontWeight="SemiBold" FontSize="12.5"
                                            Foreground="{DynamicResource Brush.Text}" Margin="0,0,0,4"/>
                                 <ComboBox x:Name="TableStyleCombo" SelectionChanged="TableStyle_Changed"/>
                                 <UniformGrid Columns="2" Margin="0,6,0,0">
-                                    <CheckBox x:Name="BtnHeaderRow" Content="Kopfzeile" Margin="0,2"
+                                    <CheckBox x:Name="BtnHeaderRow" Content="{loc:T Ed.Table.HeaderRow}" Margin="0,2"
                                               Click="TableBanding_Click" Foreground="{DynamicResource Brush.Text}"/>
-                                    <CheckBox x:Name="BtnTotalRow" Content="Ergebniszeile" Margin="0,2"
+                                    <CheckBox x:Name="BtnTotalRow" Content="{loc:T Ed.Table.TotalRow}" Margin="0,2"
                                               Click="TableBanding_Click" Foreground="{DynamicResource Brush.Text}"/>
-                                    <CheckBox x:Name="BtnBandRows" Content="Zeilenbänder" Margin="0,2"
+                                    <CheckBox x:Name="BtnBandRows" Content="{loc:T Ed.Table.BandedRows}" Margin="0,2"
                                               Click="TableBanding_Click" Foreground="{DynamicResource Brush.Text}"/>
-                                    <CheckBox x:Name="BtnBandCols" Content="Spaltenbänder" Margin="0,2"
+                                    <CheckBox x:Name="BtnBandCols" Content="{loc:T Ed.Table.BandedColumns}" Margin="0,2"
                                               Click="TableBanding_Click" Foreground="{DynamicResource Brush.Text}"/>
                                 </UniformGrid>
 
                                 <Border Height="1" Background="{DynamicResource Brush.Border}" Margin="0,10"/>
 
-                                <TextBlock Text="Rahmen der Auswahl" FontWeight="SemiBold" FontSize="12.5"
+                                <TextBlock Text="{loc:T Ed.Table.Borders}" FontWeight="SemiBold" FontSize="12.5"
                                            Foreground="{DynamicResource Brush.Text}" Margin="0,0,0,6"/>
                                 <DockPanel Margin="0,0,0,6">
-                                    <TextBlock Text="Dicke" Width="52" Style="{StaticResource RibbonLabel}"/>
+                                    <TextBlock Text="{loc:T Ed.Table.Border.Width}" Width="52" Style="{StaticResource RibbonLabel}"/>
                                     <ComboBox x:Name="TableBorderWidth">
-                                        <ComboBoxItem Content="Dünn (0,5)" Tag="0.5"/>
-                                        <ComboBoxItem Content="Normal (1)" Tag="1" IsSelected="True"/>
-                                        <ComboBoxItem Content="Kräftig (2)" Tag="2"/>
-                                        <ComboBoxItem Content="Dick (3,5)" Tag="3.5"/>
+                                        <ComboBoxItem Content="{loc:T Ed.Table.Border.Thin}" Tag="0.5"/>
+                                        <ComboBoxItem Content="{loc:T Ed.Table.Border.Normal}" Tag="1" IsSelected="True"/>
+                                        <ComboBoxItem Content="{loc:T Ed.Table.Border.Strong}" Tag="2"/>
+                                        <ComboBoxItem Content="{loc:T Ed.Table.Border.Thick}" Tag="3.5"/>
                                     </ComboBox>
                                 </DockPanel>
                                 <UniformGrid Columns="2" Rows="2">
                                     <Button Style="{StaticResource FlatButton}" HorizontalAlignment="Stretch"
-                                            Content="Alle" Tag="all" Click="TableBorders_Click"/>
+                                            Content="{loc:T Ed.Table.Border.All}" Tag="all" Click="TableBorders_Click"/>
                                     <Button Style="{StaticResource FlatButton}" HorizontalAlignment="Stretch"
-                                            Content="Nur außen" Tag="outer" Click="TableBorders_Click"/>
+                                            Content="{loc:T Ed.Table.Border.Outside}" Tag="outer" Click="TableBorders_Click"/>
                                     <Button Style="{StaticResource FlatButton}" HorizontalAlignment="Stretch"
-                                            Content="Nur innen" Tag="inner" Click="TableBorders_Click"/>
+                                            Content="{loc:T Ed.Table.Border.Inside}" Tag="inner" Click="TableBorders_Click"/>
                                     <Button Style="{StaticResource FlatButton}" HorizontalAlignment="Stretch"
-                                            Content="Keine" Tag="none" Click="TableBorders_Click"/>
+                                            Content="{loc:T Ed.Table.Border.None}" Tag="none" Click="TableBorders_Click"/>
                                 </UniformGrid>
                                 <Button Style="{StaticResource FlatButton}" HorizontalAlignment="Left" Margin="0,4,0,0"
-                                        Content="Rahmenfarbe…" Click="TableBorderColor_Click"/>
+                                        Content="{loc:T Ed.Table.Border.Color}" Click="TableBorderColor_Click"/>
 
                                 <Border Height="1" Background="{DynamicResource Brush.Border}" Margin="0,10"/>
 
-                                <TextBlock Text="Füllung" FontWeight="SemiBold" FontSize="12.5"
+                                <TextBlock Text="{loc:T Ed.Table.Fill}" FontWeight="SemiBold" FontSize="12.5"
                                            Foreground="{DynamicResource Brush.Text}" Margin="0,0,0,6"/>
                                 <StackPanel Orientation="Horizontal">
-                                    <Button Style="{StaticResource FlatButton}" Content="Füllfarbe…" Click="TableCellColor_Click"/>
-                                    <Button Style="{StaticResource FlatButton}" Content="Löschen" Click="TableCellColorClear_Click"/>
+                                    <Button Style="{StaticResource FlatButton}" Content="{loc:T Ed.Table.Fill.Color}" Click="TableCellColor_Click"/>
+                                    <Button Style="{StaticResource FlatButton}" Content="{loc:T Action.Delete}" Click="TableCellColorClear_Click"/>
                                 </StackPanel>
 
                                 <Border Height="1" Background="{DynamicResource Brush.Border}" Margin="0,10"/>
 
-                                <TextBlock Text="Größe" FontWeight="SemiBold" FontSize="12.5"
+                                <TextBlock Text="{loc:T Ed.Table.Size}" FontWeight="SemiBold" FontSize="12.5"
                                            Foreground="{DynamicResource Brush.Text}" Margin="0,0,0,6"/>
                                 <Button Style="{StaticResource FlatButton}" HorizontalAlignment="Left"
-                                        Content="Spaltenbreite…" Click="TableColumnWidth_Click"/>
-                                <TextBlock Text="AutoAnpassen" Style="{StaticResource RibbonLabel}" Margin="0,6,0,2"/>
+                                        Content="{loc:T Ed.Table.ColumnWidth}" Click="TableColumnWidth_Click"/>
+                                <TextBlock Text="{loc:T Ed.Table.AutoFit}" Style="{StaticResource RibbonLabel}" Margin="0,6,0,2"/>
                                 <StackPanel Orientation="Horizontal">
-                                    <Button Style="{StaticResource FlatButton}" Content="Inhalt" Click="AutoFitContent_Click"
-                                            ToolTip="Spaltenbreiten an den Inhalt anpassen"/>
-                                    <Button Style="{StaticResource FlatButton}" Content="Seite" Click="AutoFitWindow_Click"
-                                            ToolTip="Tabelle auf Seitenbreite dehnen"/>
-                                    <Button Style="{StaticResource FlatButton}" Content="Fest…" Click="AutoFitFixed_Click"
-                                            ToolTip="Feste Spaltenbreite in cm"/>
+                                    <Button Style="{StaticResource FlatButton}" Content="{loc:T Ed.Table.AutoFit.Content}" Click="AutoFitContent_Click"
+                                            ToolTip="{loc:T Ed.Table.AutoFit.Content.Tip}"/>
+                                    <Button Style="{StaticResource FlatButton}" Content="{loc:T Ed.Table.AutoFit.Page}" Click="AutoFitWindow_Click"
+                                            ToolTip="{loc:T Ed.Table.AutoFit.Page.Tip}"/>
+                                    <Button Style="{StaticResource FlatButton}" Content="{loc:T Ed.Table.AutoFit.Fixed}" Click="AutoFitFixed_Click"
+                                            ToolTip="{loc:T Ed.Table.AutoFit.Fixed.Tip}"/>
                                 </StackPanel>
                                 <Button Style="{StaticResource FlatButton}" HorizontalAlignment="Left" Margin="0,4,0,0"
-                                        Content="Zellenränder…" Click="TableCellPadding_Click"
-                                        ToolTip="Innenabstand der ausgewählten Zellen"/>
+                                        Content="{loc:T Ed.Table.CellPadding}" Click="TableCellPadding_Click"
+                                        ToolTip="{loc:T Ed.Table.CellPadding.Tip}"/>
                             </StackPanel>
                         </Expander>
                     </StackPanel>
@@ -944,45 +945,45 @@
                                              ContextMenuOpening="Editor_ContextMenuOpening">
                                     <RichTextBox.ContextMenu>
                                         <ContextMenu x:Name="EditorMenu">
-                                            <MenuItem Header="Ausschneiden" Command="ApplicationCommands.Cut" InputGestureText="Strg+X"/>
-                                            <MenuItem Header="Kopieren" Command="ApplicationCommands.Copy" InputGestureText="Strg+C"/>
-                                            <MenuItem Header="Einfügen" Command="ApplicationCommands.Paste" InputGestureText="Strg+V"/>
+                                            <MenuItem Header="{loc:T Quick.Cut}" Command="ApplicationCommands.Cut" InputGestureText="Strg+X"/>
+                                            <MenuItem Header="{loc:T Quick.Copy}" Command="ApplicationCommands.Copy" InputGestureText="Strg+C"/>
+                                            <MenuItem Header="{loc:T Ed.Tab.Insert}" Command="ApplicationCommands.Paste" InputGestureText="Strg+V"/>
                                             <Separator/>
-                                            <MenuItem x:Name="MenuLink" Header="Link bearbeiten…" Click="InsertLink_Click"/>
-                                            <MenuItem x:Name="MenuUnlink" Header="Link entfernen" Click="RemoveLink_Click"/>
-                                            <MenuItem Header="Beschriftung einfügen" Click="InsertCaption_Click"/>
+                                            <MenuItem x:Name="MenuLink" Header="{loc:T Ed.Link.Edit}" Click="InsertLink_Click"/>
+                                            <MenuItem x:Name="MenuUnlink" Header="{loc:T Ed.Link.Remove}" Click="RemoveLink_Click"/>
+                                            <MenuItem Header="{loc:T Ed.Caption.Insert}" Click="InsertCaption_Click"/>
                                             <Separator x:Name="MenuObjSep" Visibility="Collapsed"/>
-                                            <MenuItem x:Name="MenuSize" Header="Größe" Visibility="Collapsed">
-                                                <MenuItem Header="Größer" Click="ObjBigger_Click"/>
-                                                <MenuItem Header="Kleiner" Click="ObjSmaller_Click"/>
+                                            <MenuItem x:Name="MenuSize" Header="{loc:T Ed.Table.Size}" Visibility="Collapsed">
+                                                <MenuItem Header="{loc:T Ed.Object.Bigger}" Click="ObjBigger_Click"/>
+                                                <MenuItem Header="{loc:T Ed.Object.Smaller}" Click="ObjSmaller_Click"/>
                                                 <Separator/>
-                                                <MenuItem Header="Breiter" Click="ObjWider_Click"/>
-                                                <MenuItem Header="Schmaler" Click="ObjNarrower_Click"/>
-                                                <MenuItem Header="Höher" Click="ObjTaller_Click"/>
-                                                <MenuItem Header="Flacher" Click="ObjShorter_Click"/>
+                                                <MenuItem Header="{loc:T Ed.Object.Wider}" Click="ObjWider_Click"/>
+                                                <MenuItem Header="{loc:T Ed.Object.Narrower}" Click="ObjNarrower_Click"/>
+                                                <MenuItem Header="{loc:T Ed.Object.Taller}" Click="ObjTaller_Click"/>
+                                                <MenuItem Header="{loc:T Ed.Object.Shorter}" Click="ObjShorter_Click"/>
                                                 <Separator/>
-                                                <MenuItem Header="Genaue Größe…" Click="ObjExactSize_Click"/>
+                                                <MenuItem Header="{loc:T Ed.Object.ExactSize}" Click="ObjExactSize_Click"/>
                                             </MenuItem>
-                                            <MenuItem x:Name="MenuToBack" Header="Hinter den Text legen"
+                                            <MenuItem x:Name="MenuToBack" Header="{loc:T Ed.Object.Behind}"
                                                       Visibility="Collapsed" Click="ShapeToBack_Click"/>
-                                            <MenuItem x:Name="MenuToFront" Header="Vor den Text holen"
+                                            <MenuItem x:Name="MenuToFront" Header="{loc:T Ed.Object.Front}"
                                                       Visibility="Collapsed" Click="ShapeToFront_Click"/>
                                             <Separator x:Name="MenuTableSep"/>
-                                            <MenuItem x:Name="MenuTable" Header="Tabelle">
-                                                <MenuItem Header="Zeile darüber einfügen" Click="TableRowAbove_Click"/>
-                                                <MenuItem Header="Zeile darunter einfügen" Click="TableRowBelow_Click"/>
-                                                <MenuItem Header="Spalte links einfügen" Click="TableColLeft_Click"/>
-                                                <MenuItem Header="Spalte rechts einfügen" Click="TableColRight_Click"/>
+                                            <MenuItem x:Name="MenuTable" Header="{loc:T Ed.Tab.Table}">
+                                                <MenuItem Header="{loc:T Ed.Table.Row.Above}" Click="TableRowAbove_Click"/>
+                                                <MenuItem Header="{loc:T Ed.Table.Row.Below}" Click="TableRowBelow_Click"/>
+                                                <MenuItem Header="{loc:T Ed.Table.Column.Left}" Click="TableColLeft_Click"/>
+                                                <MenuItem Header="{loc:T Ed.Table.Column.Right}" Click="TableColRight_Click"/>
                                                 <Separator/>
-                                                <MenuItem Header="Zeile löschen" Click="TableDeleteRow_Click"/>
-                                                <MenuItem Header="Spalte löschen" Click="TableDeleteCol_Click"/>
+                                                <MenuItem Header="{loc:T Ed.Table.Row.Delete}" Click="TableDeleteRow_Click"/>
+                                                <MenuItem Header="{loc:T Ed.Table.Column.Delete}" Click="TableDeleteCol_Click"/>
                                                 <Separator/>
-                                                <MenuItem Header="Zellen verbinden (Auswahl)" Click="TableMergeCells_Click"/>
-                                                <MenuItem Header="Zellverbund aufheben" Click="TableUnmergeCell_Click"/>
-                                                <MenuItem Header="Zelle teilen…" Click="TableSplitCell_Click"/>
+                                                <MenuItem Header="{loc:T Ed.Table.MergeSelection}" Click="TableMergeCells_Click"/>
+                                                <MenuItem Header="{loc:T Ed.Table.Unmerge}" Click="TableUnmergeCell_Click"/>
+                                                <MenuItem Header="{loc:T Ed.Table.SplitCell}" Click="TableSplitCell_Click"/>
                                                 <Separator/>
-                                                <MenuItem Header="Alle Tabellen-Werkzeuge (Ribbon-Tab)" Click="OpenTableTab_Click"/>
-                                                <MenuItem Header="Tabelle löschen" Click="TableDelete_Click"/>
+                                                <MenuItem Header="{loc:T Ed.Table.AllTools}" Click="OpenTableTab_Click"/>
+                                                <MenuItem Header="{loc:T Ed.Table.Delete}" Click="TableDelete_Click"/>
                                             </MenuItem>
                                         </ContextMenu>
                                     </RichTextBox.ContextMenu>
@@ -1017,7 +1018,7 @@
                         <DropShadowEffect BlurRadius="12" ShadowDepth="2" Opacity="0.25"/>
                     </Border.Effect>
                     <StackPanel>
-                        <TextBlock Text="Formatvorlagen" FontWeight="SemiBold" Margin="2,0,0,8"
+                        <TextBlock Text="{loc:T Ed.Styles}" FontWeight="SemiBold" Margin="2,0,0,8"
                                    Foreground="{DynamicResource Brush.Text}"/>
                         <WrapPanel x:Name="StyleGridFull" Width="320"/>
                     </StackPanel>
@@ -1033,7 +1034,7 @@
                         <DropShadowEffect BlurRadius="12" ShadowDepth="2" Opacity="0.25"/>
                     </Border.Effect>
                     <StackPanel>
-                        <TextBlock Text="Aufzählungszeichen" FontWeight="SemiBold" Margin="2,0,0,8"
+                        <TextBlock Text="{loc:T Ed.List.Bullets}" FontWeight="SemiBold" Margin="2,0,0,8"
                                    Foreground="{DynamicResource Brush.Text}"/>
                         <WrapPanel x:Name="BulletGrid" Width="228"/>
                     </StackPanel>
@@ -1049,7 +1050,7 @@
                         <DropShadowEffect BlurRadius="12" ShadowDepth="2" Opacity="0.25"/>
                     </Border.Effect>
                     <StackPanel>
-                        <TextBlock Text="Nummerierung" FontWeight="SemiBold" Margin="2,0,0,8"
+                        <TextBlock Text="{loc:T Ed.List.Numbering}" FontWeight="SemiBold" Margin="2,0,0,8"
                                    Foreground="{DynamicResource Brush.Text}"/>
                         <WrapPanel x:Name="NumberGrid" Width="228"/>
                     </StackPanel>

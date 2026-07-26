@@ -15,6 +15,9 @@ ohne Cloud, ohne Installation, ohne Adminrechte.
   in großen Kacheln (GoodNotes-artig) – farbige Ordnersymbole, Notizbuch-Cover als Vorschau,
   Karten für Whiteboard/Textdokument, jeweils mit Name, Datum und Kontextmenü. Ein Ordner im
   Baum wählen oder eine Ordnerkachel öffnen navigiert hinein (Breadcrumb + Zurück)
+- **Zwei Sprachen**: Die Oberfläche lässt sich unter **Ansicht → Sprache** zwischen
+  **Deutsch** und **Englisch** umschalten — zur Laufzeit, ohne Neustart. Die Wahl wird
+  gemerkt. Eigene Dokumentnamen bleiben unverändert; nur die Oberfläche wechselt.
 - **Drei Dokumenttypen**, jeder in eigener Registerkarte:
   - **Notizbuch** — A4/A3-Seiten mit anpassbarem Cover (Farbverlauf, Schrift oder eigenes Bild;
     mitgelieferte Cover-Vorlagen in den Kategorien „Basic", „Muster" und „Pixel Art" sowie
@@ -154,6 +157,7 @@ GonkNote/                    WPF-Oberfläche (net8.0-windows)
 │                          Themen in partial-Dateien geteilt (Eingabe, Auswahl, Rendern,
 │                          Import, Einstellungen …), dazu die Dialoge
 ├─ Services/               Import/Export (DOCX, PDF, Markdown), OCR, Theme, Textstile
+│  └─ Localization/        Sprachumschaltung: Loc (Nachschlagen) + je eine Tabelle DE/EN
 └─ Themes/                 Light.xaml, Dark.xaml, Styles.xaml
 
 GonkNote.Core/               Kernlogik ohne UI-Bezug (net8.0), Namensraum GonkNote.Core.*
@@ -175,7 +179,7 @@ GonkNote.Core/               Kernlogik ohne UI-Bezug (net8.0), Namensraum GonkNo
     die Kernlogik liegt in `GonkNote.Core`, doppelte Zeichenroutinen sind zusammengeführt,
     die große Whiteboard-Datei ist nach Themen geteilt und der Build ist warnungsfrei;
     offen sind noch weitere Altlasten (ohne Verhaltensänderung)
-    → **zweite Sprache** (Deutsch/Englisch, umschaltbar unter „Ansicht") → **RAM-Optimierung**
+    → **zweite Sprache** ✔ (Deutsch/Englisch, umschaltbar unter „Ansicht") → **RAM-Optimierung**
     (Leitlinie *Features vor RAM* — Ziel ~200 MB, akzeptabel bis mittlerer dreistelliger
     MB-Bereich, **harte Obergrenze 1 GB**) → **Veröffentlichung auf GitHub unter der
     MIT-Lizenz**.

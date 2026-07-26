@@ -1,8 +1,9 @@
 using System.IO;
-using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows;
 using GonkNote.Core.Models;
+using GonkNote.Services;
 using SkiaSharp;
 
 namespace GonkNote.Views;
@@ -354,7 +355,7 @@ public partial class WhiteboardView
                 : PrepareRaster(File.ReadAllBytes(dlg.FileName));
             if (img == null)
             {
-                MessageBox.Show("Das Bild konnte nicht geladen werden.", "Gonk Note",
+                MessageBox.Show(Loc.T("Msg.ImageLoadSimple"), "Gonk Note",
                     MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
@@ -366,7 +367,7 @@ public partial class WhiteboardView
         }
         catch
         {
-            MessageBox.Show("Das Bild konnte nicht geladen werden.", "Gonk Note",
+            MessageBox.Show(Loc.T("Msg.ImageLoadSimple"), "Gonk Note",
                 MessageBoxButton.OK, MessageBoxImage.Warning);
         }
     }

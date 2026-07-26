@@ -199,7 +199,7 @@ public partial class TextEditorView
         }
         catch (Exception ex)
         {
-            MessageBox.Show(Window.GetWindow(this), $"Bild konnte nicht geladen werden:\n{ex.Message}",
+            MessageBox.Show(Window.GetWindow(this), Loc.T("Msg.ImageLoadFailed", ex.Message),
                 "Gonk Note", MessageBoxButton.OK, MessageBoxImage.Warning);
         }
     }
@@ -329,7 +329,7 @@ public partial class TextEditorView
 
             var label = new TextBlock
             {
-                Text = $"Seite {k + 1}",
+                Text = Loc.T("Msg.PageN", k + 1),
                 FontSize = 10,
                 Foreground = stroke,
                 Opacity = 0.75,

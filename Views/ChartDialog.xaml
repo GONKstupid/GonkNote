@@ -1,7 +1,8 @@
 <Window x:Class="GonkNote.Views.ChartDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Diagramm einfügen" Width="560" SizeToContent="Height"
+        xmlns:loc="clr-namespace:GonkNote.Services"
+        Title="{loc:T Chart.Title}" Width="560" SizeToContent="Height"
         WindowStartupLocation="CenterOwner" ResizeMode="NoResize"
         Background="{DynamicResource Brush.WindowBg}"
         FontFamily="Segoe UI" FontSize="13"
@@ -9,47 +10,47 @@
         ShowInTaskbar="False">
     <StackPanel Margin="18">
         <DockPanel Margin="0,0,0,10">
-            <TextBlock Text="Typ" Width="120" VerticalAlignment="Center"
+            <TextBlock Text="{loc:T Chart.Type}" Width="120" VerticalAlignment="Center"
                        Foreground="{DynamicResource Brush.TextMuted}"/>
             <ComboBox x:Name="TypeCombo" SelectionChanged="Input_Changed">
-                <ComboBoxItem Content="Säulen" Tag="column" IsSelected="True"/>
-                <ComboBoxItem Content="Balken" Tag="bar"/>
-                <ComboBoxItem Content="Linie" Tag="line"/>
-                <ComboBoxItem Content="Punkt (Streuung)" Tag="scatter"/>
-                <ComboBoxItem Content="Punkt + Linie" Tag="scatterline"/>
-                <ComboBoxItem Content="Kuchen" Tag="pie"/>
-                <ComboBoxItem Content="Radar (Netz)" Tag="radar"/>
+                <ComboBoxItem Content="{loc:T Chart.Type.Column}" Tag="column" IsSelected="True"/>
+                <ComboBoxItem Content="{loc:T Chart.Type.Bar}" Tag="bar"/>
+                <ComboBoxItem Content="{loc:T Chart.Type.Line}" Tag="line"/>
+                <ComboBoxItem Content="{loc:T Chart.Type.Scatter}" Tag="scatter"/>
+                <ComboBoxItem Content="{loc:T Chart.Type.ScatterLine}" Tag="scatterline"/>
+                <ComboBoxItem Content="{loc:T Chart.Type.Pie}" Tag="pie"/>
+                <ComboBoxItem Content="{loc:T Chart.Type.Radar}" Tag="radar"/>
             </ComboBox>
         </DockPanel>
         <DockPanel Margin="0,0,0,10">
-            <TextBlock Text="Titel" Width="120" VerticalAlignment="Center"
+            <TextBlock Text="{loc:T Chart.TitleField}" Width="120" VerticalAlignment="Center"
                        Foreground="{DynamicResource Brush.TextMuted}"/>
-            <TextBox x:Name="TitleBox" Text="Diagramm" TextChanged="Input_Changed"/>
+            <TextBox x:Name="TitleBox" Text="{loc:T Ed.Chart}" TextChanged="Input_Changed"/>
         </DockPanel>
         <DockPanel Margin="0,0,0,10">
-            <TextBlock Text="Kategorien" Width="120" VerticalAlignment="Center"
+            <TextBlock Text="{loc:T Chart.Categories}" Width="120" VerticalAlignment="Center"
                        Foreground="{DynamicResource Brush.TextMuted}"/>
-            <TextBox x:Name="LabelsBox" Text="Jan, Feb, Mär, Apr" TextChanged="Input_Changed"
-                     ToolTip="Achsen-Beschriftungen, durch Komma getrennt"/>
+            <TextBox x:Name="LabelsBox" Text="{loc:T Chart.Categories.Example}" TextChanged="Input_Changed"
+                     ToolTip="{loc:T Chart.Categories.Hint}"/>
         </DockPanel>
         <DockPanel Margin="0,0,0,10">
-            <TextBlock Text="Reihen-Namen" Width="120" VerticalAlignment="Center"
+            <TextBlock Text="{loc:T Chart.SeriesNames}" Width="120" VerticalAlignment="Center"
                        Foreground="{DynamicResource Brush.TextMuted}"/>
-            <TextBox x:Name="SeriesBox" Text="Reihe 1" TextChanged="Input_Changed"
-                     ToolTip="ein Name je Reihe, durch Komma getrennt (optional)"/>
+            <TextBox x:Name="SeriesBox" Text="{loc:T Chart.Series.Example}" TextChanged="Input_Changed"
+                     ToolTip="{loc:T Chart.SeriesNames.Hint}"/>
         </DockPanel>
         <DockPanel Margin="0,0,0,4" VerticalAlignment="Top">
-            <TextBlock Text="Werte" Width="120" VerticalAlignment="Top" Margin="0,4,0,0"
+            <TextBlock Text="{loc:T Chart.Values}" Width="120" VerticalAlignment="Top" Margin="0,4,0,0"
                        Foreground="{DynamicResource Brush.TextMuted}"/>
             <TextBox x:Name="ValuesBox" Text="4, 7, 3, 9" TextChanged="Input_Changed"
                      AcceptsReturn="True" Height="58" TextWrapping="Wrap"
                      VerticalScrollBarVisibility="Auto"
-                     ToolTip="eine Zeile je Reihe/Kurve, Werte durch Komma getrennt"/>
+                     ToolTip="{loc:T Chart.Values.Hint}"/>
         </DockPanel>
         <TextBlock Margin="120,2,0,0" FontSize="11" Foreground="{DynamicResource Brush.TextMuted}"
-                   Text="Mehrere Reihen/Kurven: pro Zeile eine Reihe (Enter für neue Zeile)."/>
+                   Text="{loc:T Chart.Values.Note}"/>
         <DockPanel Margin="0,6,0,0">
-            <TextBlock Text="Farben" Width="120" VerticalAlignment="Top" Margin="0,4,0,0"
+            <TextBlock Text="{loc:T Chart.Colors}" Width="120" VerticalAlignment="Top" Margin="0,4,0,0"
                        Foreground="{DynamicResource Brush.TextMuted}"/>
             <!-- WrapPanel: mit dem „+"-Button können beliebig viele Farben dazukommen -->
             <WrapPanel x:Name="ColorRow"/>
@@ -62,9 +63,9 @@
         </Border>
 
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
-            <Button Content="Abbrechen" Style="{StaticResource FlatButton}" MinWidth="90"
+            <Button Content="{loc:T Dlg.Cancel}" Style="{StaticResource FlatButton}" MinWidth="90"
                     IsCancel="True" Margin="0,0,8,0"/>
-            <Button Content="Einfügen" Style="{StaticResource AccentButton}" MinWidth="110"
+            <Button Content="{loc:T Ed.Tab.Insert}" Style="{StaticResource AccentButton}" MinWidth="110"
                     Click="Ok_Click" IsDefault="True"/>
         </StackPanel>
     </StackPanel>

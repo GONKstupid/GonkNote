@@ -1,26 +1,27 @@
 <Window x:Class="GonkNote.Views.HeaderFooterDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Kopf- und Fußzeile" Width="440" SizeToContent="Height"
+        xmlns:loc="clr-namespace:GonkNote.Services"
+        Title="{loc:T Ed.HeaderFooter}" Width="440" SizeToContent="Height"
         WindowStartupLocation="CenterOwner" ResizeMode="NoResize"
         Background="{DynamicResource Brush.WindowBg}"
         FontFamily="Segoe UI" FontSize="13"
         Foreground="{DynamicResource Brush.Text}"
         ShowInTaskbar="False">
     <StackPanel Margin="18">
-        <TextBlock Text="Kopfzeile" Foreground="{DynamicResource Brush.TextMuted}" Margin="0,0,0,4"/>
+        <TextBlock Text="{loc:T Ed.Table.HeaderRow}" Foreground="{DynamicResource Brush.TextMuted}" Margin="0,0,0,4"/>
         <TextBox x:Name="HeaderBox"/>
 
-        <TextBlock Text="Fußzeile" Foreground="{DynamicResource Brush.TextMuted}" Margin="0,12,0,4"/>
+        <TextBlock Text="{loc:T HeaderFooter.Footer}" Foreground="{DynamicResource Brush.TextMuted}" Margin="0,12,0,4"/>
         <TextBox x:Name="FooterBox"/>
 
-        <CheckBox x:Name="FirstPageBox" Content="Auf der ersten Seite ausblenden (Deckblatt)"
+        <CheckBox x:Name="FirstPageBox" Content="{loc:T HeaderFooter.SkipFirst}"
                   Margin="0,12,0,0" Foreground="{DynamicResource Brush.Text}"/>
 
         <Border Background="{DynamicResource Brush.CardBg}" BorderBrush="{DynamicResource Brush.Border}"
                 BorderThickness="1" CornerRadius="6" Padding="10,8" Margin="0,14,0,0">
             <TextBlock Foreground="{DynamicResource Brush.TextMuted}" FontSize="12" TextWrapping="Wrap">
-                <Run Text="Platzhalter:"/><LineBreak/>
+                <Run Text="{loc:T HeaderFooter.Placeholders}"/><LineBreak/>
                 <Run Text="{}{SEITE} = Seitenzahl · {SEITEN} = Seitenanzahl"/><LineBreak/>
                 <Run Text="{}{DATUM} = heutiges Datum · {TITEL} = Dokumentname"/><LineBreak/>
                 <Run Text="Beispiel: Mathe – Brüche · Klasse 6b · Seite {SEITE}/{SEITEN}"/>
@@ -28,9 +29,9 @@
         </Border>
 
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
-            <Button Content="Abbrechen" Style="{StaticResource FlatButton}" MinWidth="90"
+            <Button Content="{loc:T Dlg.Cancel}" Style="{StaticResource FlatButton}" MinWidth="90"
                     IsCancel="True" Margin="0,0,8,0"/>
-            <Button Content="Übernehmen" Style="{StaticResource AccentButton}" MinWidth="110"
+            <Button Content="{loc:T Dlg.Apply}" Style="{StaticResource AccentButton}" MinWidth="110"
                     Click="Ok_Click" IsDefault="True"/>
         </StackPanel>
     </StackPanel>

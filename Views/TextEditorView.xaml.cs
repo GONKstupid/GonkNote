@@ -58,8 +58,16 @@ public partial class TextEditorView : UserControl
             new System.Windows.Navigation.RequestNavigateEventHandler(Hyperlink_RequestNavigate));
 
         DataContextChanged += OnDataContextChanged;
-        Loaded += (_, _) => ThemeService.ThemeChanged += OnThemeChanged;
-        Unloaded += (_, _) => ThemeService.ThemeChanged -= OnThemeChanged;
+        Loaded += (_, _) =>
+        {
+            ThemeService.ThemeChanged += OnThemeChanged;
+            Loc.LanguageChanged += OnLanguageChanged;
+        };
+        Unloaded += (_, _) =>
+        {
+            ThemeService.ThemeChanged -= OnThemeChanged;
+            Loc.LanguageChanged -= OnLanguageChanged;
+        };
     }
 
     // Die Seite bleibt in beiden Themes weiß → Standard-Tinte ist immer die helle Variante.
@@ -272,7 +280,7 @@ public partial class TextEditorView : UserControl
         string text = new TextRange(Editor.Document.ContentStart, Editor.Document.ContentEnd).Text;
         int words = text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries).Length;
         int chars = text.Count(c => c != '\r' && c != '\n');
-        WordCountText.Text = $"Wörter: {words} · Zeichen: {chars}";
+        WordCountText.Text = Loc.T("Ed.Status.Counts.Format", words, chars);
     }
 
     private void Language_Changed(object s, SelectionChangedEventArgs e)
@@ -317,11 +325,22 @@ public partial class TextEditorView : UserControl
         if (!ok)
         {
             string name = (LanguageCombo?.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? lang.IetfLanguageTag;
-            SpellLangWarn.ToolTip =
-                $"Für {name} ist in Windows kein Rechtschreib-Wörterbuch installiert – daher werden keine "
-                + "Fehler angestrichen. Sprache in den Windows-Einstellungen ergänzen: "
-                + "Zeit und Sprache → Sprache und Region → Sprache hinzufügen (inkl. Rechtschreibung).";
+            SpellLangWarn.ToolTip = Loc.T("Msg.NoDictionary", name);
         }
+    }
+
+    /// <summary>
+    /// Texte, die der Code setzt (Formatvorlagen-Galerie, Wortzähler, Rechtschreib-Hinweis),
+    /// hängen nicht an einer Bindung – nach einem Sprachwechsel werden sie neu aufgebaut.
+    /// </summary>
+    private void OnLanguageChanged()
+    {
+        StyleGallery.Children.Clear();
+        StyleGridFull.Children.Clear();
+        _styleCards.Clear();
+        BuildStyleGallery();
+        UpdateWordCount();
+        UpdateSpellLangWarning(Editor.Language);
     }
 
     private static void ApplyLanguageToBlocks(BlockCollection blocks, XmlLanguage lang)

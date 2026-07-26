@@ -97,7 +97,7 @@ public partial class TextEditorView
     {
         var preview = new TextBlock
         {
-            Text = style.Name,
+            Text = style.Display,
             FontFamily = new FontFamily("Segoe UI"),
             FontSize = Math.Min(14, style.Size * 0.5 + 4),
             FontWeight = style.Weight,
@@ -116,10 +116,10 @@ public partial class TextEditorView
             Content = preview,
             Tag = style,
             ToolTip = style.HeadingLevel > 0
-                ? $"{style.Name} (Strg+Alt+{style.HeadingLevel}) – erscheint im Inhaltsverzeichnis"
-                : style.Name,
+                ? Loc.T("Msg.HeadingTip", style.Display, style.HeadingLevel)
+                : style.Display,
         };
-        System.Windows.Automation.AutomationProperties.SetName(card, $"Formatvorlage {style.Name}");
+        System.Windows.Automation.AutomationProperties.SetName(card, Loc.T("Msg.StyleName", style.Display));
         card.Click += (_, _) =>
         {
             ApplyParaStyle((TextStyles.ParaStyle)card.Tag);

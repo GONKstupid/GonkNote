@@ -1,9 +1,10 @@
 using System.IO;
-using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Media;
+using System.Windows;
 using GonkNote.Core.Services;
+using GonkNote.Services;
 
 namespace GonkNote.Views;
 
@@ -23,13 +24,13 @@ public partial class FileInsertDialog : Window
     {
         InitializeComponent();
         Title = $"Seiten auswählen – {fileName}";
-        InfoText.Text = $"{pages.Count} Seiten · Klick auf eine Seite wählt sie an/ab";
+        InfoText.Text = Loc.T("Msg.PagesHint", pages.Count);
 
         for (int i = 0; i < pages.Count; i++)
         {
             var check = new CheckBox
             {
-                Content = $"Seite {i + 1}",
+                Content = Loc.T("Msg.PageN", i + 1),
                 IsChecked = true,
                 Margin = new Thickness(2, 4, 0, 0),
                 Foreground = (Brush)FindResource("Brush.Text"),
@@ -82,7 +83,7 @@ public partial class FileInsertDialog : Window
     private void UpdateOkButton()
     {
         int n = CheckedCount();
-        OkButton.Content = n == 1 ? "1 Seite einfügen" : $"{n} Seiten einfügen";
+        OkButton.Content = n == 1 ? Loc.T("Msg.InsertOnePage") : Loc.T("Msg.InsertPages", n);
         OkButton.IsEnabled = n > 0;
     }
 

@@ -35,7 +35,7 @@ public partial class TextEditorView
         if (FindTocTitle() is not { } title)
         {
             MessageBox.Show(Window.GetWindow(this),
-                "Kein Inhaltsverzeichnis gefunden. Bitte zuerst über „Inhaltsverzeichnis einfügen“ anlegen.",
+                Loc.T("Msg.NoToc"),
                 "Gonk Note", MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }

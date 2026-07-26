@@ -450,7 +450,7 @@ public sealed class MainViewModel : ObservableObject
         }
 
         if (failed.Count > 0)
-            MessageBox.Show("Import fehlgeschlagen:\n" + string.Join("\n", failed),
+            MessageBox.Show(Loc.T("Msg.ImportFailed") + "\n" + string.Join("\n", failed),
                 "Gonk Note", MessageBoxButton.OK, MessageBoxImage.Warning);
     }
 
@@ -462,7 +462,7 @@ public sealed class MainViewModel : ObservableObject
         var tab = SelectedTab;
         if (tab == null)
         {
-            MessageBox.Show("Bitte zuerst ein Dokument öffnen.", "Gonk Note",
+            MessageBox.Show(Loc.T("Msg.OpenDocumentFirst"), "Gonk Note",
                 MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }
@@ -496,7 +496,7 @@ public sealed class MainViewModel : ObservableObject
                         case ".docx":
                             int issues = DocxExporter.Export(flow, text.Doc, text.Title, path);
                             if (issues > 0)
-                                validationInfo = $"\n\nHinweis: OpenXML-Validierung meldet {issues} Punkt(e).";
+                                validationInfo = Loc.T("Msg.ValidationHint", issues);
                             break;
                         case ".md": MarkdownExporter.Export(flow, path); break;
                         case ".png": written = PdfExporter.ExportFlowDocumentPng(flow, text.Doc, text.Title, path); break;
@@ -512,15 +512,15 @@ public sealed class MainViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Export fehlgeschlagen:\n{ex.Message}", "Gonk Note",
+            MessageBox.Show(Loc.T("Msg.ExportFailed", ex.Message), "Gonk Note",
                 MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
 
         string openTarget = written.Count > 0 ? written[0] : path;
         string info = (written.Count > 1
-            ? $"{written.Count} Seiten exportiert nach:\n{System.IO.Path.GetDirectoryName(openTarget)}\n\nErste Datei öffnen?"
-            : $"Exportiert nach:\n{openTarget}\n\nDatei jetzt öffnen?") + validationInfo;
+            ? Loc.T("Msg.ExportedPages", written.Count, System.IO.Path.GetDirectoryName(openTarget))
+            : Loc.T("Msg.ExportedFile", openTarget)) + validationInfo;
 
         if (MessageBox.Show(info, "Gonk Note", MessageBoxButton.YesNo, MessageBoxImage.Information) == MessageBoxResult.Yes)
         {
@@ -579,8 +579,8 @@ public sealed class MainViewModel : ObservableObject
         if (vm == null) return;
 
         var msg = vm.IsFolder
-            ? $"Ordner „{vm.Name}“ und den gesamten Inhalt löschen?"
-            : $"„{vm.Name}“ löschen?";
+            ? Loc.T("Msg.DeleteFolder", vm.Name)
+            : Loc.T("Msg.DeleteItem", vm.Name);
         if (MessageBox.Show(msg, "Gonk Note", MessageBoxButton.YesNo, MessageBoxImage.Warning)
             != MessageBoxResult.Yes) return;
 

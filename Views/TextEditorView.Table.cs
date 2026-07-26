@@ -112,7 +112,7 @@ public partial class TextEditorView
                 };
                 cell.MouseEnter += (_, _) =>
                 {
-                    TableGridLabel.Text = $"{cols} × {rows} Tabelle";
+                    TableGridLabel.Text = Loc.T("Msg.TableSize", cols, rows);
                     foreach (Border b in TableGrid.Children)
                     {
                         var (br, bc) = ((int, int))b.Tag;
@@ -147,7 +147,7 @@ public partial class TextEditorView
         if (string.IsNullOrWhiteSpace(text))
         {
             MessageBox.Show(Window.GetWindow(this),
-                "Bitte zuerst den Text markieren, der umgewandelt werden soll.",
+                Loc.T("Msg.SelectTextFirst"),
                 "Gonk Note", MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }
@@ -304,7 +304,7 @@ public partial class TextEditorView
         if (idx <= 0)
         {
             MessageBox.Show(Window.GetWindow(this),
-                "Der Cursor muss in einer Zeile ab der zweiten stehen (die Tabelle wird oberhalb dieser Zeile getrennt).",
+                Loc.T("Msg.SplitNeedsSecondRow"),
                 "Gonk Note", MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }
@@ -312,7 +312,7 @@ public partial class TextEditorView
         if (pos.Any(kv => kv.Value.Row < idx && kv.Value.Row + kv.Value.RowSpan - 1 >= idx))
         {
             MessageBox.Show(Window.GetWindow(this),
-                "An dieser Stelle verläuft ein Zeilenverbund über die Trennlinie – bitte zuerst den Verbund aufheben.",
+                Loc.T("Msg.SplitAcrossMerge"),
                 "Gonk Note", MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }
@@ -388,7 +388,7 @@ public partial class TextEditorView
         if (rows.SelectMany(r => r.Cells).Any(c => c.RowSpan > 1))
         {
             MessageBox.Show(Window.GetWindow(this),
-                "Tabellen mit Zeilenverbünden lassen sich nicht sortieren – bitte zuerst die Verbünde aufheben.",
+                Loc.T("Msg.SortWithMerge"),
                 "Gonk Note", MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }
@@ -458,7 +458,7 @@ public partial class TextEditorView
         if (!m.Success)
         {
             MessageBox.Show(Window.GetWindow(this),
-                "Formel nicht erkannt. Unterstützt: SUMME, MITTELWERT, MIN, MAX, ANZAHL, PRODUKT über ABOVE, BELOW, LEFT oder RIGHT.",
+                Loc.T("Msg.FormulaUnknown"),
                 "Gonk Note", MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }
@@ -483,7 +483,7 @@ public partial class TextEditorView
 
         if (values.Count == 0)
         {
-            MessageBox.Show(Window.GetWindow(this), "Im gewählten Bereich stehen keine Zahlen.",
+            MessageBox.Show(Window.GetWindow(this), Loc.T("Msg.NoNumbers"),
                 "Gonk Note", MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }
@@ -507,26 +507,32 @@ public partial class TextEditorView
 
     // ==================== Formatvorlagen (Entwurf) ====================
 
-    /// <summary>Farbschema einer Tabellen-Formatvorlage.</summary>
-    private sealed record TableStyleDef(string Name, Color? HeaderBg, Color? HeaderFg,
+    /// <summary>Farbschema einer Tabellen-Formatvorlage (Key = Schlüssel des Anzeigenamens).</summary>
+    private sealed record TableStyleDef(string Key, Color? HeaderBg, Color? HeaderFg,
         Color? Band, Color BorderColor, double BorderWidth);
 
     private static readonly TableStyleDef[] TableStyles =
     {
-        new("Einfach (Raster)", null, null, null, Color.FromRgb(0x9A, 0xA7, 0xBD), 1),
-        new("Blau", Color.FromRgb(0x25, 0x63, 0xEB), Colors.White, Color.FromRgb(0xDB, 0xEA, 0xFE), Color.FromRgb(0x93, 0xB8, 0xF5), 1),
-        new("Türkis", Color.FromRgb(0x0F, 0x76, 0x6E), Colors.White, Color.FromRgb(0xCC, 0xFB, 0xF1), Color.FromRgb(0x5E, 0xEA, 0xD4), 1),
-        new("Lila", Color.FromRgb(0x7C, 0x3A, 0xED), Colors.White, Color.FromRgb(0xED, 0xE9, 0xFE), Color.FromRgb(0xC4, 0xB5, 0xFD), 1),
-        new("Grau", Color.FromRgb(0x47, 0x55, 0x69), Colors.White, Color.FromRgb(0xE2, 0xE8, 0xF0), Color.FromRgb(0x94, 0xA3, 0xB8), 1),
-        new("Warm (Gelb)", Color.FromRgb(0xB4, 0x53, 0x09), Colors.White, Color.FromRgb(0xFE, 0xF3, 0xC7), Color.FromRgb(0xFC, 0xD3, 0x4D), 1),
-        new("Ohne Rahmen", null, null, Color.FromRgb(0xEE, 0xF2, 0xF8), Colors.Transparent, 0),
+        new("TStyle.Plain", null, null, null, Color.FromRgb(0x9A, 0xA7, 0xBD), 1),
+        new("TStyle.Blue", Color.FromRgb(0x25, 0x63, 0xEB), Colors.White, Color.FromRgb(0xDB, 0xEA, 0xFE), Color.FromRgb(0x93, 0xB8, 0xF5), 1),
+        new("TStyle.Teal", Color.FromRgb(0x0F, 0x76, 0x6E), Colors.White, Color.FromRgb(0xCC, 0xFB, 0xF1), Color.FromRgb(0x5E, 0xEA, 0xD4), 1),
+        new("TStyle.Purple", Color.FromRgb(0x7C, 0x3A, 0xED), Colors.White, Color.FromRgb(0xED, 0xE9, 0xFE), Color.FromRgb(0xC4, 0xB5, 0xFD), 1),
+        new("TStyle.Gray", Color.FromRgb(0x47, 0x55, 0x69), Colors.White, Color.FromRgb(0xE2, 0xE8, 0xF0), Color.FromRgb(0x94, 0xA3, 0xB8), 1),
+        new("TStyle.Warm", Color.FromRgb(0xB4, 0x53, 0x09), Colors.White, Color.FromRgb(0xFE, 0xF3, 0xC7), Color.FromRgb(0xFC, 0xD3, 0x4D), 1),
+        new("TStyle.Borderless", null, null, Color.FromRgb(0xEE, 0xF2, 0xF8), Colors.Transparent, 0),
     };
 
+    /// <summary>Füllt die Auswahl der Formatvorlagen (auch neu nach einem Sprachwechsel).</summary>
     private void EnsureTableStyleCombo()
     {
-        if (TableStyleCombo.Items.Count > 0) return;
-        foreach (var st in TableStyles) TableStyleCombo.Items.Add(st.Name);
-        TableStyleCombo.SelectedIndex = 0;
+        if (TableStyleCombo.Items.Count == TableStyles.Length &&
+            (string)TableStyleCombo.Items[0]! == Loc.T(TableStyles[0].Key))
+            return;
+
+        int selected = Math.Max(0, TableStyleCombo.SelectedIndex);
+        TableStyleCombo.Items.Clear();
+        foreach (var st in TableStyles) TableStyleCombo.Items.Add(Loc.T(st.Key));
+        TableStyleCombo.SelectedIndex = selected;
     }
 
     private void TableStyle_Changed(object s, SelectionChangedEventArgs e) => ReapplyTableStyle();

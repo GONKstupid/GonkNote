@@ -1072,8 +1072,29 @@ danach fein machen; der Prototyp nutzt vorerst **Reiter Bearbeiten/Vorschau** st
   Werkzeug wechselt auf **Auswahl** → sofort verschieb-/skalierbar.
 - **Verifiziert per Screenshot** (`AV3-scale-img.png`): Bild-Element rendert, Auswahlrahmen
   gestrichelt, vier Eckgriffe korrekt platziert.
-- **Offen (4b-Rest):** Drehen der Auswahl, Sticker-Werkzeug, Zeichenhilfen (Lineal/Geodreieck),
-  PDF-Import, Seiten-Hintergrundmuster/Cover-Einstellungen.
+**Schritt 4b (Teil 6): Ausschneiden, Drehen, Finger-Gesten, Seitenmuster, Sticker (2026-07-24).**
+- **Ausschneiden** (Strg+X) und **Duplizieren** als Buttons nachgereicht (fehlten in der Leiste).
+- **Drehen**: runder Dreh-Griff mittig über der Auswahl (mit Verbindungslinie), **nur bei
+  Einzelauswahl**. Ziehen dreht um den Elementmittelpunkt, **Shift rastet auf 15°**;
+  ein Zug = ein `RotateElementAction`. Griff-Reihenfolge: Drehen → Skalieren → Verschieben.
+- **Finger-Gesten** (rohe Touch-Kontakte selbst verfolgt, wie in der WPF-App, `PointerType.Touch`):
+  **1 Finger** schiebt die Leinwand · **2 Finger** zoomen um die Fingermitte **und** schieben
+  zugleich · **3 Finger tippen** = rückgängig (`_maxTouches` merkt sich die höchste Fingerzahl).
+  Ab dem zweiten Finger wird eine laufende Zeichnung/Auswahl **abgebrochen**, damit die Geste
+  sauber übernimmt. Stift und Maus laufen unverändert durch die Werkzeuglogik.
+- **Seitenmuster + Farbton** über zwei ComboBoxen (Blanko/Linien/Raster/Punkte · Hell/Dunkel);
+  wirkt auf die aktuelle Seite, wird sofort gespeichert. `SyncPagePickers` gleicht die Auswahl
+  beim Seiten-/Dokumentwechsel an (`_syncingPickers`-Flag verhindert Rückschreiben).
+- **Sticker-Werkzeug**: neuer `StickerPicker` (Code-only-Dialog) liest dieselben Quellen wie die
+  WPF-App — `Assets/Stickers` neben der Exe **und** `%APPDATA%\GonkNote\Stickers` (Linux:
+  `~/.config/GonkNote/Stickers`), rekursiv, Endungen png/jpg/jpeg/webp. Klick fügt den Sticker
+  als Bild-Element ein (gleicher Pfad wie der Bild-Import). Ohne Sticker: Hinweis mit den Pfaden.
+- **Verifiziert per Screenshot:** Dreh-Griff an gedrehtem Zettel (`AV3-rotate.png`),
+  Linien-Muster hell (`AV3-pattern-lines.png`) und **Punkte-Muster auf dunkler Seite**
+  (`AV3-pattern-dark.png`, zugleich Beleg für die Mehrseitigkeit „Seite 3 / 3").
+- ⚠️ **Nicht getestet (braucht Hardware/Interaktion):** die **Finger-Gesten** (Touch-Gerät nötig)
+  und der Sticker-Dialog (in der Testumgebung liegen keine Sticker-Dateien neben der Exe).
+- **Offen (4b-Rest):** Zeichenhilfen (Lineal/Geodreieck), PDF-Import, Notizbuch-Cover.
 
 ### 9.4 Gestaffelter Plan
 1. ✅ **PoC/Scaffold + Kernlogik-Reuse** (fertig, §9.1).

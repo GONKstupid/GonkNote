@@ -221,6 +221,7 @@
                         <Button Content="📋 Einfügen" Click="Paste_Click" ToolTip.Tip="Einfügen (Strg+V)"/>
                         <Button Content="⎘ Duplizieren" Click="Duplicate_Click" ToolTip.Tip="Auswahl duplizieren (Strg+D)"/>
                         <Button Content="🖼 Bild" Click="InsertImage_Click" ToolTip.Tip="Bild einfügen (auch per Drag&amp;Drop)"/>
+                        <Button Content="🌟 Sticker" Click="InsertSticker_Click" ToolTip.Tip="Sticker aus der Sammlung"/>
                         <Button Content="⤢ 100 %" Click="ZoomReset_Click"/>
                         <Border Width="1" Background="#33808080" Margin="4,2"/>
                         <Button Content="‹" Click="PrevPage_Click" ToolTip.Tip="Vorherige Seite"/>
@@ -228,6 +229,19 @@
                                    Margin="4,0" Opacity="0.8"/>
                         <Button Content="›" Click="NextPage_Click" ToolTip.Tip="Nächste Seite"/>
                         <Button Content="＋ Seite" Click="AddPage_Click"/>
+                        <Border Width="1" Background="#33808080" Margin="4,2"/>
+                        <ComboBox Name="PatternPicker" SelectedIndex="0" Width="115"
+                                  SelectionChanged="Pattern_Changed" ToolTip.Tip="Seitenmuster">
+                            <ComboBoxItem Content="Blanko"/>
+                            <ComboBoxItem Content="Linien"/>
+                            <ComboBoxItem Content="Raster"/>
+                            <ComboBoxItem Content="Punkte"/>
+                        </ComboBox>
+                        <ComboBox Name="ShadePicker" SelectedIndex="0" Width="105"
+                                  SelectionChanged="Shade_Changed" ToolTip.Tip="Seitenfarbe">
+                            <ComboBoxItem Content="Hell"/>
+                            <ComboBoxItem Content="Dunkel"/>
+                        </ComboBox>
                     </WrapPanel>
                 </Border>
                 <local:WhiteboardCanvas Name="Board" Page="{Binding CurrentPage}"/>

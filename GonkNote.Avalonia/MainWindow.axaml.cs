@@ -64,7 +64,13 @@ public partial class MainWindow : Window
         // explizite Breite geben (= Fensterbreite − Seitenleiste), damit Umbruch/Zentrierung
         // greifen. Die Arrange-Breite stimmt ohnehin; nur der Measure braucht die feste Breite.
         SizeChanged += (_, _) => UpdateContentWidth();
-        Loaded += (_, _) => UpdateContentWidth();
+        Loaded += (_, _) => { UpdateContentWidth(); SyncPagePickers(); };
+
+        // Muster-/Farbwahl an die jeweils geöffnete Seite angleichen.
+        Vm.PropertyChanged += (_, ev) =>
+        {
+            if (ev.PropertyName == nameof(ShellViewModel.CurrentPage)) SyncPagePickers();
+        };
     }
 
     private void UpdateContentWidth() =>
@@ -188,9 +194,50 @@ public partial class MainWindow : Window
         if (removed.Count > 0) Vm.OnSelectionDeleted(removed);
     }
 
-    private void PrevPage_Click(object? sender, RoutedEventArgs e) { Vm.PrevPage(); Board.InvalidateVisual(); }
-    private void NextPage_Click(object? sender, RoutedEventArgs e) { Vm.NextPage(); Board.InvalidateVisual(); }
-    private void AddPage_Click(object? sender, RoutedEventArgs e) { Vm.AddPage(); Board.InvalidateVisual(); }
+    /// <summary>True, während die Picker programmatisch gesetzt werden (kein Rückschreiben).</summary>
+    private bool _syncingPickers;
+
+    private void Pattern_Changed(object? sender, SelectionChangedEventArgs e)
+    {
+        if (_syncingPickers || Board is null || Vm.CurrentPage is not { } page) return;
+        page.Background = PatternPicker.SelectedIndex switch
+        {
+            1 => PageBackground.Lines,
+            2 => PageBackground.Grid,
+            3 => PageBackground.Dots,
+            _ => PageBackground.Blank,
+        };
+        Vm.SaveCurrentBoard();
+        Board.InvalidateVisual();
+    }
+
+    private void Shade_Changed(object? sender, SelectionChangedEventArgs e)
+    {
+        if (_syncingPickers || Board is null || Vm.CurrentPage is not { } page) return;
+        page.Shade = ShadePicker.SelectedIndex == 1 ? PageShade.Dark : PageShade.Light;
+        Vm.SaveCurrentBoard();
+        Board.InvalidateVisual();
+    }
+
+    /// <summary>Setzt die Muster-/Farbwahl auf die gerade geöffnete Seite.</summary>
+    private void SyncPagePickers()
+    {
+        if (Vm.CurrentPage is not { } page) return;
+        _syncingPickers = true;
+        PatternPicker.SelectedIndex = page.Background switch
+        {
+            PageBackground.Lines => 1,
+            PageBackground.Grid => 2,
+            PageBackground.Dots => 3,
+            _ => 0,
+        };
+        ShadePicker.SelectedIndex = page.Shade == PageShade.Dark ? 1 : 0;
+        _syncingPickers = false;
+    }
+
+    private void PrevPage_Click(object? sender, RoutedEventArgs e) { Vm.PrevPage(); SyncPagePickers(); Board.InvalidateVisual(); }
+    private void NextPage_Click(object? sender, RoutedEventArgs e) { Vm.NextPage(); SyncPagePickers(); Board.InvalidateVisual(); }
+    private void AddPage_Click(object? sender, RoutedEventArgs e) { Vm.AddPage(); SyncPagePickers(); Board.InvalidateVisual(); }
 
     /// <summary>Tastenkürzel im Whiteboard: Entf, Strg+C/V/D.</summary>
     private void Board_KeyDown(object? sender, KeyEventArgs e)
@@ -283,6 +330,13 @@ public partial class MainWindow : Window
         });
 
         foreach (var f in files) InsertImageFile(f.Path.LocalPath);
+    }
+
+    /// <summary>Sticker aus der Sammlung wählen und einfügen (technisch ein Bild-Element).</summary>
+    private async void InsertSticker_Click(object? sender, RoutedEventArgs e)
+    {
+        string? path = await StickerPicker.ShowAsync(this);
+        if (path is not null) InsertImageFile(path);
     }
 
     private void Copy_Click(object? sender, RoutedEventArgs e) => Board.CopySelection();

@@ -48,8 +48,10 @@ ohne Cloud, ohne Installation, ohne Adminrechte.
     Einstellungen in der Seitenleiste rechts
   - **Textfelder** mit wählbarer Schriftart, Text- und Hintergrundfarbe
     (automatischer Kontrastschutz)
-  - **Notizzettel** (farbige Klebezettel) und **Sticker** (Bild-Aufkleber mit eigener,
-    erweiterbarer Sammlung)
+  - **Notizzettel** (farbige Klebezettel) und **Sticker** (Bild-Aufkleber). Sticker bringt
+    Gonk Note aus Lizenzgründen keine mit — lege eigene Bilder in
+    `%APPDATA%\GonkNote\Stickers` ab (oder nutze die „+"-Kachel im Sticker-Werkzeug);
+    Unterordner erscheinen als eigene Gruppen
   - **Zeichenhilfen**: Lineal (`R`) und Holo-Geodreieck (`D`) mit Winkelskala, drehbar/einrastend
   - **Bilder einfügen**: Toolbar-Button, `Strg+V` oder Drag & Drop
     (PNG, JPEG, BMP, GIF, WebP, SVG); mit Eckgriff proportional skalierbar
@@ -184,3 +186,28 @@ GonkNote.Core/               Kernlogik ohne UI-Bezug (net8.0), Namensraum GonkNo
 ├─ Rendering/              Skia-Zeichenroutinen des Whiteboards, Geodreieck-Overlay
 └─ Editing/                Punktgenaues Radieren
 ```
+
+## Lizenz
+
+Gonk Note steht unter der **MIT-Lizenz** — siehe [LICENSE](LICENSE).
+Copyright © 2026 Manuel Toegel.
+
+Kurz gesagt: benutzen, verändern und weitergeben ist erlaubt, auch kommerziell; der
+Lizenztext und der Copyright-Hinweis müssen mitgeliefert werden, und es gibt keine
+Garantie.
+
+Die mitgelieferten **Notizbuch-Cover** (`Assets/Covers/**`) und das **Geodreieck-Overlay**
+(`Assets/Geodreieck-*.svg`) sind eigene Werke und fallen unter dieselbe Lizenz.
+
+### Verwendete Bibliotheken
+
+Alle Abhängigkeiten sind permissiv lizenziert und mit der MIT-Lizenz vereinbar:
+
+| Baustein | Zweck | Lizenz |
+|---|---|---|
+| [LiteDB](https://www.litedb.org/) | Persistenz | MIT |
+| [SkiaSharp](https://github.com/mono/SkiaSharp) | Whiteboard-Rendering | MIT |
+| [Svg.Skia](https://github.com/wieslawsoltes/Svg.Skia) | SVG-Rasterung | MIT |
+| [DocumentFormat.OpenXml](https://github.com/dotnet/Open-XML-SDK) | DOCX-Import/-Export | MIT |
+| [Docnet.Core](https://github.com/GowenGit/docnet) / PDFium | PDF-Import | MIT / BSD-3-Clause |
+| [Tesseract](https://github.com/charlesw/tesseract) + `tessdata` (deu, eng) | OCR | Apache-2.0 |

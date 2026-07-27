@@ -417,7 +417,7 @@ public sealed class MainViewModel : ObservableObject
                 var textDoc = new TextDoc();
                 bool isMd = System.IO.Path.GetExtension(file).Equals(".md", StringComparison.OrdinalIgnoreCase);
                 byte[] bytes = isMd
-                    ? MarkdownImporter.ToXamlPackage(file)
+                    ? MarkdownImporter.ToXamlPackage(file, textDoc)
                     : DocxImporter.ToXamlPackage(file, textDoc);  // liest auch Seiteneinrichtung
 
                 var item = new NoteItem

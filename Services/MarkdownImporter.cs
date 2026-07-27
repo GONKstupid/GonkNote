@@ -1,3 +1,4 @@
+using GonkNote.Core.Models;
 using GonkNote.Core.Services;
 using System.IO;
 using System.Text;
@@ -23,7 +24,13 @@ public static class MarkdownImporter
     private static readonly Brush RuleBrush = new SolidColorBrush(Color.FromRgb(0xD4, 0xDE, 0xEA));
 
     /// <summary>Markdown-Datei als XamlPackage-Bytes (Speicherformat der Textdokumente).</summary>
-    public static byte[] ToXamlPackage(string path)
+    /// <summary>
+    /// Wandelt eine Markdown-Datei ins XamlPackage. <paramref name="target"/> nimmt die Ids der
+    /// abgelegten Bilder auf — ohne diesen Eintrag kennt kein Dokument die frisch geschriebenen
+    /// Blobs, der Aufräumlauf hält sie folgerichtig für Müll und die Bilder eines importierten
+    /// Markdown-Dokuments wären nach einer Stunde weg (der DOCX-Import macht es genauso).
+    /// </summary>
+    public static byte[] ToXamlPackage(string path, TextDoc? target = null)
     {
         var flow = ToFlowDocument(path);
         var range = new TextRange(flow.ContentStart, flow.ContentEnd);
@@ -33,6 +40,7 @@ public static class MarkdownImporter
         using (DocumentImages.Detach(flow, BlobStore.Current!))
             range.Save(ms, DataFormats.XamlPackage, true);
 
+        if (target != null) target.Images = DocumentImages.UsedBlobs(flow).ToList();
         return ms.ToArray();
     }
 

@@ -4,6 +4,11 @@ Moderne, offline-fähige Notiz-App für Windows 11 — eine Alternative zu GoodN
 Notizbüchern, Whiteboards und Textdokumenten. Stylus-freundlich (Wacom, Microsoft Pen, …),
 ohne Cloud, ohne Installation, ohne Adminrechte.
 
+> **Neu hier?** Die Schritt-für-Schritt-Anleitung
+> **[Erste Schritte](ERSTE-SCHRITTE.md)** führt dich in rund 10 Minuten vom Klonen des
+> Repos bis zur ersten beschriebenen, exportierten und gesicherten Notiz. Diese Seite
+> hier beschreibt, *was* Gonk Note kann — die Anleitung zeigt, *wie* du anfängst.
+
 ## Features
 
 - **Ordnerbaum** mit beliebiger Verschachtelung, Drag & Drop (Verschieben, mit `Strg` Kopieren),
@@ -162,6 +167,9 @@ dotnet publish -c Release
 Hinweis: WPF unterstützt kein Assembly-Trimming (`PublishTrimmed`); die Exe wird stattdessen
 komprimiert (`EnableCompressionInSingleFile`). Für Tests kann mit `GonkNote.exe --db <pfad>`
 eine alternative Datenbank verwendet werden.
+
+Was neben der Exe liegen muss (`tessdata` für die Texterkennung) und wie es danach
+weitergeht, steht in [Erste Schritte](ERSTE-SCHRITTE.md).
 
 ## Architektur
 

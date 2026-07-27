@@ -12,7 +12,50 @@
 > ausführlichen Tabellen als Standard). **Ausführlich nur** bei **offenen Fragen und
 > Entscheidungen**, die der Nutzer treffen muss — die weiterhin klar begründen.
 >
-> **Runde 29 (2026-07-27) zuletzt: Datenverlust behoben. GitHub liegt bis auf Weiteres.**
+> **Runde 30 (2026-07-27) zuletzt: derselbe Fehler ein zweites Mal — im Notizbuch.**
+>
+> Nach Runde 29 lief das **Whiteboard** wieder, das **Notizbuch nicht**. Ursache war dieselbe
+> Denkfigur an einer zweiten Stelle (`WhiteboardView.Render.cs`):
+>
+> ```csharp
+> if (_page.BackgroundImage is { Length: > 0 } bgData && ImageCache.Get(...))
+> ```
+>
+> Die Vorpruefung bricht ab, **bevor** der Cache gefragt wird — und nach dem ersten Speichern
+> sind die Bytes im Dokument immer leer. Das Whiteboard hatte diese Vorpruefung nie, deshalb
+> war es sofort in Ordnung.
+>
+> **Merksatz, jetzt zum zweiten Mal: nie die Bytes im Datensatz als „gibt es das Bild?"
+> benutzen.** Die Bytes sagen nur, ob das Bild **noch nicht** ausgelagert ist. Deshalb steht
+> die Frage jetzt genau einmal im Modell: **`WbPage.HasBackgroundImage`**.
+>
+> Dasselbe Muster steckte an **vier weiteren** Stellen und ist ueberall behoben: Cover-Export
+> (`PdfExporter.DrawCover`), Cover-Kachel der Galerie (`GalleryItemViewModel`),
+> OCR-Verfuegbarkeit (`WhiteboardView.QuickMenu`), Knopf „Cover-Bild entfernen"
+> (`WhiteboardView.Settings`).
+>
+> **Weiter umgesetzt:**
+> - **Hinweis statt stiller Verschlechterung:** fehlt beim Export die Bildvorlage, sagt die App
+>   das (`DocumentImages.LastExportMissingOriginals` fuer Text, `MissingImageData` fuer
+>   Whiteboard/Notizbuch). *Das Cover bleibt bewusst ungezaehlt* — `CoverStyle` merkt sich nicht,
+>   ob es je ein Bild-Cover war (`ImageId` ist immer belegt), ein fehlendes Cover-Bild waere von
+>   einem gewollten Farbverlauf nicht zu unterscheiden. **Offen, falls das stoert:** ein
+>   persistiertes Kennzeichen an `CoverStyle`.
+> - **Sektion „Export" in der Einstellungs-Seitenleiste** von Whiteboard und Notizbuch
+>   (PDF/PNG). `ExportActiveTab(string? preferred)` waehlt das Format im Dialog vor.
+>
+> **Zur „Verpixelung ab Seite 12" — gemessen, nicht vermutet:**
+> - Selbst gebautes **25-Seiten-Dokument mit Fotos**: durchgehend 2382x3369 px, Schaerfemass
+>   283–337, **kein Einbruch**. Der Effekt ist **nicht** seitenzahl- oder speicherabhaengig.
+> - Das vom Nutzer genannte `KA2-Checkliste.docx` hat **1078 Zeichen, 62 Absaetze, keine
+>   Seitenumbrueche** und ergibt korrekt **2 Seiten** — es kann den Effekt gar nicht zeigen.
+> - **Rundlauf mit genau dieser Datei** (Import → Speichern → Neustart → Export): **3 von 3
+>   Bildern** ueberleben, Quellen 2048 px, Verweise intakt.
+> - **Bleibt offen:** welches Dokument den Effekt ausgeloest hat. Wahrscheinlich eines der
+>   beschaedigten (Blobs weg → Rueckfall auf die 2048-px-Ableitung bzw. gar kein Bild).
+>   Der neue Hinweis macht genau diesen Fall ab jetzt sichtbar.
+>
+> **Runde 29 (2026-07-27): Datenverlust behoben. GitHub liegt bis auf Weiteres.**
 >
 > **Der Nutzer hat beim Export Bilder verloren.** Symptome: 40 leere Notizbuchseiten, graue
 > Boxen statt Bildern und Stickern, Cover zurueck auf den Standard-Farbverlauf, Text-Export

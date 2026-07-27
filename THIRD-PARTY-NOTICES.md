@@ -106,12 +106,18 @@ Gonk Note setzt auf .NET 8 und WPF (MIT-Lizenz, Microsoft). Beim Single-File-Pub
 | Datei(en) | Herkunft |
 |---|---|
 | `Assets/Covers/**` (Basic, Muster, Pixel Art) | eigene Werke des Autors, MIT wie das Projekt |
-| `Assets/Geodreieck-Light.svg`, `-Dark.svg` | eigene Werke des Autors, MIT wie das Projekt |
 | `Assets/GonkNote.ico`, `Assets/gonk-note-Icon.png` | eigene Werke des Autors, MIT wie das Projekt |
 
-**Sticker liefert Gonk Note bewusst keine mit.** Das Sticker-Werkzeug funktioniert
-ausschließlich mit Bildern, die du selbst unter `%APPDATA%\GonkNote\Stickers` ablegst —
-für deren Rechte bist du selbst verantwortlich.
+Das ist alles, was Gonk Note an Grafik mitbringt. Zwei Dinge werden **bewusst nicht**
+mitgeliefert:
+
+- **Sticker.** Das Sticker-Werkzeug arbeitet ausschließlich mit Bildern, die du selbst unter
+  `%APPDATA%\GonkNote\Stickers` ablegst — für deren Rechte bist du verantwortlich.
+- **Geodreieck-Grafik.** Die Zeichenhilfe zeichnet ihre Kontur selbst. Willst du stattdessen
+  eine eigene Zeichnung, lege sie als `%APPDATA%\GonkNote\Geodreieck-Light.svg` bzw.
+  `-Dark.svg` ab (16-cm-Geodreieck, Hypotenusen-Mitte im Zentrum).
+
+Beides ist so gelöst, weil das Projekt nur Material ausliefert, dessen Herkunft eindeutig ist.
 
 ---
 

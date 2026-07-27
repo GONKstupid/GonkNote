@@ -12,7 +12,27 @@
 > ausführlichen Tabellen als Standard). **Ausführlich nur** bei **offenen Fragen und
 > Entscheidungen**, die der Nutzer treffen muss — die weiterhin klar begründen.
 >
-> **Runde 31 (2026-07-27) zuletzt: Nutzer-Gegentest bestanden. Offen: Traegheit im Editor.**
+> **Runde 32 (2026-07-27) zuletzt: Lizenz-Abnahme vor der Veroeffentlichung.**
+>
+> - **`THIRD-PARTY-NOTICES.md` neu.** Eine Tabelle im README reicht rechtlich nicht:
+>   **Apache-2.0** (Tesseract-Anbindung + die mitgelieferten `tessdata`-Sprachdaten) und
+>   **BSD-3** (PDFium, ueber Docnet.Core) verlangen Lizenztext und Copyright-Vermerk bei der
+>   Weitergabe. Das wiegt hier schwer, weil die **Single-File-Exe** diese Bibliotheken
+>   einbettet. Paketlizenzen aus den NuGet-Metadaten geprueft, nicht geraten.
+> - **Geodreieck-SVGs entfernt** (Arbeitsstand **und** History). Auf Nachfrage sagte der Nutzer,
+>   er habe die Grafik **abgeaendert, kenne die Quelle des Originals aber nicht mehr**. Eine
+>   Bearbeitung erbt die Rechte des Originals — in einem oeffentlichen MIT-Repo nicht haltbar.
+>   **Das Werkzeug bleibt vollstaendig:** `WbAidRenderer.DrawSetSquare` zeichnet die Kontur
+>   selbst; was frueher der Notnagel war, ist jetzt der Normalfall. Eigene Zeichnungen gehen
+>   ueber `%APPDATA%\GonkNote\Geodreieck-Light.svg` / `-Dark.svg` (Muster wie Sticker/Cover).
+>   Verifiziert (`%TEMP%\gonk-geo`): ohne Datei 23 351 gezeichnete Pixel (hell wie dunkel),
+>   mit eigener Datei 61 478 — Eigenbau traegt, eigene Datei gewinnt.
+> - **Cover und App-Icon bleiben** — vom Nutzer bestaetigt als eigene Werke.
+>
+> **Merksatz: Herkunft von Grafik klaeren, bevor sie eingecheckt wird.** „Selbst abgeaendert"
+> ist keine Lizenz. Bei den Stickern und beim Geodreieck kostete das je einen History-Rewrite.
+>
+> **Runde 31 (2026-07-27): Nutzer-Gegentest bestanden. Offen: Traegheit im Editor.**
 >
 > **Der Nutzer hat gegengetestet — Notizbuch, Whiteboard und der Export grosser Dateien laufen.**
 > Sein Datenbestand nach der Sitzung: **162 Blobs (20 MB)** in `gonknote.blobs\`, **63 Dateien

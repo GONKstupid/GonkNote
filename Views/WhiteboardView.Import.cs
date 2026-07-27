@@ -292,8 +292,11 @@ public partial class WhiteboardView
 
         try
         {
-            var pages = await Task.Run(() => PdfImporter.RenderPages(path, PdfRenderLongSide, progress));
-            if (pages.Count == 0)
+            // Erst nur Vorschaubilder: die sind rund 70× billiger als eine volle Seite und
+            // machen den Auswahldialog auch bei hunderten Seiten erträglich.
+            var thumbs = await Task.Run(() =>
+                PdfImporter.RenderPages(path, PdfImporter.ThumbnailLongSide, progress));
+            if (thumbs.Count == 0)
             {
                 MessageBox.Show(Loc.T("Msg.PdfNoPages"),
                     "Gonk Note", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -301,11 +304,16 @@ public partial class WhiteboardView
             }
 
             HideBusy();
-            var chosen = ChoosePages(Path.GetFileName(path), pages);
-            if (chosen == null) return;   // abgebrochen
+            var wanted = ChoosePageNumbers(Path.GetFileName(path), thumbs);
+            if (wanted == null) return;   // abgebrochen
 
-            if (anchor.IsInfinite) InsertPdfIntoWhiteboard(chosen, anchor, vm);
-            else InsertPdfIntoNotebook(chosen, anchor, vm);
+            // Und jetzt nur die gewählten Seiten in voller Auflösung – Seite für Seite.
+            ShowBusy(Loc.T("Busy.Pdf"));
+            var pages = await Task.Run(() =>
+                PdfImporter.StreamPages(path, PdfRenderLongSide, wanted, progress).ToList());
+
+            if (anchor.IsInfinite) InsertPdfIntoWhiteboard(pages, anchor, vm);
+            else InsertPdfIntoNotebook(pages, anchor, vm);
         }
         catch (Exception ex)
         {
@@ -320,9 +328,20 @@ public partial class WhiteboardView
     }
 
     /// <summary>
-    /// Zeigt die Seitenauswahl (ab 2 Seiten) und liefert die gewählten Seiten in
-    /// Reihenfolge; null = abgebrochen. Bei nur einer Seite ohne Dialog durchreichen.
+    /// Zeigt die Seitenauswahl (ab 2 Seiten) und liefert die **Nummern** der gewählten
+    /// Seiten; null = abgebrochen. Nur die Nummern, weil die Seiten danach erst in voller
+    /// Auflösung gerendert werden – der Dialog arbeitet mit Vorschaubildern.
     /// </summary>
+    private IReadOnlyCollection<int>? ChoosePageNumbers(string fileName, List<PdfImporter.PdfPageImage> thumbs)
+    {
+        if (thumbs.Count <= 1) return new[] { 0 };
+
+        var dlg = new FileInsertDialog(fileName, thumbs) { Owner = Window.GetWindow(this) };
+        if (dlg.ShowDialog() != true || dlg.SelectedPages.Count == 0) return null;
+        return dlg.SelectedPages.OrderBy(i => i).ToList();
+    }
+
+    /// <summary>Wie <see cref="ChoosePageNumbers"/>, aber für bereits gerenderte Seiten (DOCX).</summary>
     private List<PdfImporter.PdfPageImage>? ChoosePages(string fileName, List<PdfImporter.PdfPageImage> pages)
     {
         if (pages.Count <= 1) return pages;

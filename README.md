@@ -55,7 +55,10 @@ ohne Cloud, ohne Installation, ohne Adminrechte.
     (PNG, JPEG, BMP, GIF, WebP, SVG); mit Eckgriff proportional skalierbar
   - **PDF & Word einfügen** (Toolbar-Button oder Drag & Drop): mit Seitenauswahl-Dialog;
     im Notizbuch wird jede Seite eine eigene Seite zum Draufschreiben und Markieren (wie
-    GoodNotes), im Whiteboard landen die Seiten als hochauflösende, skalierbare Bilder
+    GoodNotes), im Whiteboard landen die Seiten als hochauflösende, skalierbare Bilder.
+    **Auch sehr große PDFs**: die Datei wird nie am Stück geladen, die Auswahl zeigt
+    schnelle Vorschaubilder, und in voller Auflösung gerendert werden nur die Seiten, die
+    du wirklich einfügst (aus 600 Seiten fünf auszuwählen dauert Sekunden statt Minuten)
   - Undo/Redo (`Strg+Z` / `Strg+Y`), Zoom (`Strg+Mausrad`), Pan (mittlere Maustaste,
     Leertaste, Hand-Werkzeug)
 - **Touch-Gesten**: 1 Finger verschiebt die Ansicht, 2 Finger zoomen (Pinch) und
@@ -101,7 +104,10 @@ ohne Cloud, ohne Installation, ohne Adminrechte.
 - **Große Dokumente**: Originale werden unverändert abgelegt und beim Export unverändert
   zurückgeschrieben; angezeigt wird eine verkleinerte Ableitung. Ein Word-Dokument mit Fotos
   kommt dadurch genauso groß wieder heraus, wie es hereinkam (vorher das Achtfache), und ein
-  Notizbuch mit 120 importierten Seiten (118 MB) lässt sich speichern und öffnen
+  Notizbuch mit 120 importierten Seiten (118 MB) lässt sich speichern und öffnen.
+  Beim PDF-Import bleibt der Speicherbedarf flach: 530 MB gerenderte Seiten laufen mit rund
+  114 MB Spitze durch. Im Text-Editor sind mehrere hundert Seiten kein Problem — ein
+  500-Seiten-Dokument öffnet in etwa 1,8 Sekunden
 - **Speicherbedarf**: rund 180 MB nach dem Start, mit einem geöffneten Notizbuch etwa 290 MB —
   unabhängig davon, wie groß das Dokument ist, weil nur die gerade sichtbaren Seiten im
   Speicher liegen (Budget 96 MB). Beim Schließen einer Registerkarte wird freigegeben; der

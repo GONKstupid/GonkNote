@@ -12,7 +12,43 @@
 > ausführlichen Tabellen als Standard). **Ausführlich nur** bei **offenen Fragen und
 > Entscheidungen**, die der Nutzer treffen muss — die weiterhin klar begründen.
 >
-> **Runde 26 (2026-07-27) zuletzt: Grosse Dokumente — Bilder raus aus dem Datensatz.**
+> **Runde 27 (2026-07-27) zuletzt: Grosse PDFs, und der Text-Editor ist ausgemessen.**
+>
+> **PDF-Import laedt nichts mehr am Stueck.** PDFium oeffnet die Datei jetzt ueber ihren
+> **Pfad** (vorher `File.ReadAllBytes`), und `PdfImporter.StreamPages` gibt die Seiten einzeln
+> heraus, statt alle in einer Liste zu sammeln. Der Ablauf ist ausserdem zweistufig: erst
+> **Vorschaubilder** (260 px) fuer die Seitenauswahl, danach nur die **gewaehlten** Seiten in
+> voller Aufloesung.
+>
+> | 600-Seiten-PDF (66 MB) | Zeit | Speicherspitze |
+> |---|---|---|
+> | Seitenzahl lesen | sofort | 24 MB |
+> | Vorschau aller 600 Seiten | 13,6 s | 100 MB |
+> | **5 Seiten in voller Aufloesung** | **0,9 s** | 19 MB |
+> | alle 600 in voller Aufloesung (530 MB Bilddaten) | 94,3 s | **114 MB** |
+>
+> Der letzte Wert ist der Punkt: **530 MB Bilddaten laufen mit 114 MB Spitze durch.** Vorher
+> lagen die Datei und alle gerenderten Seiten gleichzeitig im Speicher — bei diesem Dokument
+> rund 600 MB, bei einem Gigabyte-PDF schlicht zu viel. Und der uebliche Fall (aus 600 Seiten
+> fuenf einfuegen) dauert jetzt Sekunden statt anderthalb Minuten, weil nur noch gerendert
+> wird, was auch gebraucht wird.
+>
+> **Text-Editor ausgemessen** (die in Runde 26 offene Frage; `%TEMP%\gonk-longtext`):
+>
+> | ~Seiten | Anzeigen | Cursor ans Ende | Tippen | Woerter zaehlen | privat |
+> |---|---|---|---|---|---|
+> | 12 | 253 ms | 25 ms | 11 ms | 4 ms | 165 MB |
+> | 125 | 1 012 ms | 19 ms | 15 ms | 43 ms | 192 MB |
+> | 250 | 1 302 ms | 19 ms | 23 ms | 50 ms | 214 MB |
+> | 500 | 1 846 ms | 25 ms | 62 ms | 38 ms | 245 MB |
+>
+> **Deutlich besser als befuerchtet:** 500 Seiten oeffnen in 1,8 s, der Cursor bleibt bei
+> ~20 ms. Was mitwaechst, ist das Tippen (11 → 62 ms). Die WPF-`RichTextBox` traegt also
+> problemlos mehrere hundert Seiten; eine Grenze, vor der man warnen muesste, gibt es in dem
+> Bereich nicht. Im Auge behalten: nach dem Tippen laufen entprellt (600 ms) Wortzahl,
+> Navigator und Umbruch-Marken — bei 500 Seiten zusammen gut 100 ms.
+>
+> **Runde 26 (2026-07-27): Grosse Dokumente — Bilder raus aus dem Datensatz.**
 > Der in Runde 25 gefundene Befund (§11) ist behoben. Neuer `BlobStore` (Core): je Bild bzw.
 > PDF **eine Datei neben der Datenbank** (`gonknote.blobs\`), im Datensatz steht nur die Id.
 > Das Original wird **unveraendert** abgelegt, angezeigt wird eine auf 2048 px dekodierte
@@ -1031,14 +1067,25 @@ ist der eine Zugang: inline (Bestandsdokument) hat Vorrang, sonst kommt es aus d
 **Harnesses:** `%TEMP%\gonk-roundtrip` (Word mit Fotos: Datenbankgroesse, Exportgroesse,
 Neuladen), `%TEMP%\gonk-heavy` (Notizbuch mit 40/120 importierten Seiten).
 
-### Noch offen fuer den GB-Bereich
+### PDF-Import: zweistufig und stroemend (Runde 27)
 
-- **PDF nur referenzieren statt Seiten zu rastern.** Heute rendert `PdfImporter.RenderPages`
-  das ganze PDF auf einmal (`File.ReadAllBytes` plus alle Seiten in einer Liste). Fuer 1-GB-PDFs
-  muesste die Datei als Blob liegen bleiben und je Seite bei Bedarf gerendert werden — PDFium
-  kann ueber einen **Dateipfad** oeffnen (`GetDocReader(string, PageDimensions)`, geprueft),
-  also ohne die Datei in den Speicher zu holen. Damit waere der Import ausserdem sofort fertig.
+`PdfImporter.StreamPages(path, langeKante, only, progress, ct)` ist der Weg. Wichtig:
+
+- oeffnen **ueber den Pfad**, nie ueber `File.ReadAllBytes` — sonst liegt die ganze Datei im
+  Speicher;
+- `yield return` je Seite statt einer Liste — sonst liegen alle gerenderten Seiten im Speicher;
+- `only` einschraenken, wenn die Auswahl feststeht.
+
+Der Import macht daraus zwei Durchgaenge: Vorschaubilder (`ThumbnailLongSide`, 260 px) fuer
+`FileInsertDialog`, danach die gewaehlten Seiten mit `PdfRenderLongSide` (2246 px).
+`RenderPages` (alles als Liste) gibt es weiterhin, ist aber **nur fuer kleine Aufloesungen**
+gedacht — bei voller Aufloesung waere man wieder beim alten Verhalten.
+
+### Noch offen
+
 - **Selektierbarer Text im exportierten PDF.** Importierte Seiten bleiben Bilder; echtes
-  Durchreichen braeuchte eine zweite PDF-Bibliothek (PdfSharp, MIT).
-- **Sehr lange Textdokumente.** Die Dateigroesse ist geloest, aber die WPF-`RichTextBox` wird
-  bei vielen hundert Seiten selbst traege. Noch nicht ausgemessen.
+  Durchreichen braeuchte eine zweite PDF-Bibliothek (PdfSharp, MIT) **und** einen zweiten
+  Zeichenpfad fuer die Anmerkungen (heute alles Skia). Bewusst nicht gebaut: viel Aufwand und
+  zwei parallele PDF-Wege fuer einen Komfortgewinn.
+- **PNG-Export sehr grosser Flaechen** ergibt Bilder, die kaum ein Programm oeffnet. PDF
+  skaliert seitenweise, PNG nicht.

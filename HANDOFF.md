@@ -12,6 +12,13 @@
 > ausführlichen Tabellen als Standard). **Ausführlich nur** bei **offenen Fragen und
 > Entscheidungen**, die der Nutzer treffen muss — die weiterhin klar begründen.
 >
+> **Stand: das Repo ist veroeffentlichungsfertig.** `main`, sauberes Arbeitsverzeichnis,
+> 116 Commits, 12 MB, `LICENSE` + `README.md` + `THIRD-PARTY-NOTICES.md` liegen bereit, kein
+> Remote gesetzt. Verifiziert, dass **weder Sticker noch die Geodreieck-SVGs noch der alte
+> Ordner `Änderungen`** in irgendeinem Git-Objekt stecken (`git fsck` sauber, praezise Suche
+> ueber `cat-file --batch-all-objects`). Build Release: 0 Fehler, 0 Warnungen.
+> **Offen ist nur noch: Repo anlegen und pushen.**
+>
 > **Runde 32 (2026-07-27) zuletzt: Lizenz-Abnahme vor der Veroeffentlichung.**
 >
 > - **`THIRD-PARTY-NOTICES.md` neu.** Eine Tabelle im README reicht rechtlich nicht:
@@ -589,9 +596,16 @@
 > interner Element-Zwischenablage. Alle Commits `…`→HEAD, Build 0 Warnungen.
 >
 > **⇒ Aktueller Arbeitsmodus:** Der Nutzer **testet die App ausführlich** und schickt
-> laufend kleine Änderungs-/Fix-Wünsche — die zuerst erledigen. **Danach in dieser Reihenfolge:
-> Code-Cleanup → zweite Sprache (DE/EN) → RAM-Optimierung → GitHub-Veröffentlichung (MIT)**
-> (Leitlinie & Schwellenwerte in §5, Ablauf in §6).
+> laufend kleine Änderungs-/Fix-Wünsche — die zuerst erledigen.
+>
+> Die lange Reihenfolge aus §5 ist **abgearbeitet**: Code-Cleanup ✔ · zweite Sprache (DE/EN) ✔ ·
+> Render-Caching ✔ · RAM ✔ (60 % des Ziels) · große Dokumente ✔ · Lizenz-Abnahme ✔.
+> **Als Nächstes:**
+> 1. **Repo anlegen und pushen** — alles Vorgelagerte ist erledigt (§5, Punkte 1–7).
+> 2. **Trägheit im Text-Editor bei großen DOCX** — vermessen, aber **nicht reproduziert**;
+>    Messwerte und der konkrete nächste Schritt stehen in der Runde-31-Notiz.
+> 3. Vom Nutzer gewünscht, noch offen: eine **selbst gezeichnete Geodreieck-Grafik** mit
+>    Winkelskala als Ersatz für die entfernte Vorlage (eigenes Werk, damit lizenzfrei).
 
 
 Diese Datei ist für den Einstieg in einen **neuen Chat-Thread** gedacht. Sie fasst
@@ -968,8 +982,25 @@ Nutzer-Test mit Stift.
        nie committet, `TestAssets/` nie im Repo, seit 2026-07-27 zusätzlich in `.gitignore`).
     5. ✅ **Keine Schriftdateien**, Schlüssel oder Zertifikate in der History.
 
-    **Offen ist nur noch das Anlegen und Pushen des Repos** (`gh` 2.96.0 ist installiert,
-    Login steht aus). Danach: `git remote add origin …` + `git push -u origin main`.
+    Nach dem Nutzer-Gegentest kamen in Runde 32 zwei Punkte dazu, die die ursprüngliche
+    Checkliste nicht hatte:
+
+    6. ✅ **`THIRD-PARTY-NOTICES.md`** — die Bibliotheks-Tabelle im README genügt rechtlich
+       nicht. **Apache-2.0** (Tesseract-Anbindung + mitgelieferte `tessdata`-Sprachdaten) und
+       **BSD-3** (PDFium via Docnet.Core) verlangen Lizenztext und Copyright-Vermerk bei der
+       Weitergabe — und die **Single-File-Exe bettet beides ein**.
+    7. ✅ **Geodreieck-SVGs entfernt** (Arbeitsstand und History). Der Nutzer hatte die Grafik
+       abgeändert, kennt die Quelle des Originals aber nicht mehr. Das Werkzeug bleibt
+       vollständig: die Kontur wird selbst gezeichnet, eigene SVGs gehen über
+       `%APPDATA%\GonkNote\Geodreieck-*.svg`.
+
+    **Offen ist nur noch das Anlegen und Pushen des Repos.** Zwei gleichwertige Wege:
+    - `gh auth login` (die CLI 2.96.0 ist installiert), danach `gh repo create gonk-note
+      --public --source=. --push`.
+    - Oder das Repo leer über die Weboberfläche anlegen (**ohne** README/LICENSE/.gitignore,
+      sonst kollidiert es mit der lokalen History), dann `git remote add origin …` und
+      `git push -u origin main`. Git-Zugangsdaten für das Konto liegen bereits im Windows
+      Credential Manager, `gh` wird für diesen Weg nicht gebraucht.
   - **Cross-Platform (Linux): am 2026-07-24 vom Nutzer abgebrochen.** Der Avalonia-Port ist
     komplett aus dem Repo entfernt; Gonk Note bleibt eine **reine Windows-/WPF-App**. Was aus
     dem Versuch geblieben ist (`GonkNote.Core`, De-Duplizierung, Bleistift-Textur) und was die

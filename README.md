@@ -68,8 +68,9 @@ ohne Cloud, ohne Installation, ohne Adminrechte.
 - **Touch-Gesten**: 1 Finger verschiebt die Ansicht, 2 Finger zoomen (Pinch) und
   verschieben, Drei-Finger-Doppeltipp = Rückgängig
 - **Einstellungs-Seitenleiste rechts** (Zahnrad): Seitenmuster und -farbton, Format
-  (A4/A3, Hoch-/Querformat, Vorlage für neue Seiten), Formen-Optionen, Text-Optionen
-  und Cover-Gestaltung — Änderungen wirken sofort
+  (A4/A3, Hoch-/Querformat, Vorlage für neue Seiten), Formen-Optionen, Text-Optionen,
+  Cover-Gestaltung und ein **Export-Abschnitt** (PDF/PNG direkt aus der Leiste) —
+  Änderungen wirken sofort
 - **Texteditor** im Ribbon-Layout (Start / Einfügen / Layout / Verweise, plus Kontext-Tab
   **Tabelle**, wenn der Cursor in einer Tabelle steht):
   - Zeichen-/Absatzformate, Formatvorlagen (Standard, Überschrift 1–4, Titel, Zitat,
@@ -91,7 +92,10 @@ ohne Cloud, ohne Installation, ohne Adminrechte.
     und es wird nichts angestrichen; die Sprache lässt sich in den Windows-Einstellungen
     ergänzen. Lineal, Statusleiste (Wörter, Zoom), Überschriften-Navigator, Seitenumbruch-Marken
 - **Import**: Bilder, PDF, DOCX und **Markdown (`.md`)** — DOCX/Markdown als neue Textdokumente
-- **Export**: Textdokument → PDF / DOCX / Markdown / PNG, Whiteboard/Notizbuch → PDF / PNG
+- **Export**: Textdokument → PDF / DOCX / Markdown / PNG, Whiteboard/Notizbuch → PDF / PNG —
+  über „Datei → Exportieren" oder den Export-Abschnitt der Einstellungs-Seitenleiste. Fehlen
+  zu einem Bild die Originaldaten, sagt Gonk Note das nach dem Export, statt stillschweigend
+  in schlechterer Qualität zu exportieren
 - **Dark-/Light-Mode** (`Strg+T`) fürs App-Design — Seiten und Schreibflächen bleiben
   standardmäßig hell; die Fenster-Titelleiste folgt dem Theme (im Dark Mode dunkel).
   Seitenleiste einklappbar (`Strg+B`)

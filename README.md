@@ -202,9 +202,14 @@ Garantie.
 Die mitgelieferten **Notizbuch-Cover** (`Assets/Covers/**`) und das **Geodreieck-Overlay**
 (`Assets/Geodreieck-*.svg`) sind eigene Werke und fallen unter dieselbe Lizenz.
 
+**Sticker liefert Gonk Note bewusst keine mit** — das Werkzeug arbeitet nur mit Bildern, die
+du selbst unter `%APPDATA%\GonkNote\Stickers` ablegst.
+
 ### Verwendete Bibliotheken
 
-Alle Abhängigkeiten sind permissiv lizenziert und mit der MIT-Lizenz vereinbar:
+Alle Abhängigkeiten sind permissiv lizenziert und mit der MIT-Lizenz vereinbar. Die
+Vermerke, die Apache-2.0 und BSD-3 bei einer Weitergabe verlangen (insbesondere für die
+Single-File-Exe), stehen in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md):
 
 | Baustein | Zweck | Lizenz |
 |---|---|---|

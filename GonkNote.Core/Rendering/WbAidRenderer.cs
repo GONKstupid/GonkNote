@@ -1,11 +1,12 @@
 using System;
+using System.IO;
 using SkiaSharp;
 
 namespace GonkNote.Core.Rendering;
 
 /// <summary>
-/// Zeichnet das Geodreieck-Overlay aus den SVG-Assets des Nutzers (je Theme eine Variante,
-/// Unterschied ist die Bandfarbe).
+/// Zeichnet das Geodreieck-Overlay. Standardmäßig als eigene Kontur; liegt unter
+/// <c>%APPDATA%\GonkNote</c> eine eigene SVG (je Theme eine Variante), wird die genommen.
 ///
 /// Vermessene SVG-Geometrie (viewBox 2520×1680): Hypotenuse von (2,2|1468,9) bis
 /// (2517,5|1468,9) = 2515,2 units, Spitze bei (1259,8|210) → 16-cm-Geodreieck →
@@ -23,7 +24,24 @@ public static class WbAidRenderer
 
     private static Svg.Skia.SKSvg? _svgLight, _svgDark;
 
-    /// <summary>SVG des jeweiligen Themes, beim ersten Zugriff aus der Ressource geladen.</summary>
+    /// <summary>
+    /// Wo eigene Geodreieck-Grafiken liegen dürfen:
+    /// <c>%APPDATA%\GonkNote\Geodreieck-Light.svg</c> bzw. <c>-Dark.svg</c>.
+    /// <para>
+    /// Gonk Note liefert **keine** mit. Die früher eingebettete Vorlage war eine Bearbeitung
+    /// einer Grafik unbekannter Herkunft – für ein quelloffenes Projekt eine Rechtsunsicherheit,
+    /// die sich nicht auflösen ließ. Wer eine eigene Zeichnung hat, legt sie hier ab; sonst
+    /// zeichnet <see cref="DrawSetSquare"/> die Kontur selbst.
+    /// </para>
+    /// </summary>
+    public static string UserAssetFolder { get; set; } = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "GonkNote");
+
+    /// <summary>
+    /// Eigene SVG des jeweiligen Themes, beim ersten Zugriff geladen; null, wenn keine
+    /// hinterlegt ist. Die Erwartung ist dieselbe Geometrie wie beim Eigenbau: ein
+    /// 16-cm-Geodreieck, Hypotenusen-Mitte im Ursprung der viewBox-Vermessung.
+    /// </summary>
     private static SKPicture? SetSquarePicture(bool dark)
     {
         var cached = dark ? _svgDark : _svgLight;
@@ -31,20 +49,18 @@ public static class WbAidRenderer
         {
             try
             {
-                string name = dark
-                    ? "GonkNote.Core.Assets.Geodreieck-Dark.svg"
-                    : "GonkNote.Core.Assets.Geodreieck-Light.svg";
-                using var stream = typeof(WbAidRenderer).Assembly.GetManifestResourceStream(name);
-                if (stream == null) return null;
+                string file = Path.Combine(UserAssetFolder,
+                    dark ? "Geodreieck-Dark.svg" : "Geodreieck-Light.svg");
+                if (!File.Exists(file)) return null;
 
                 var svg = new Svg.Skia.SKSvg();
-                svg.Load(stream);
+                using (var stream = File.OpenRead(file)) svg.Load(stream);
                 if (dark) _svgDark = svg; else _svgLight = svg;
                 cached = svg;
             }
             catch
             {
-                return null;   // fehlende/kaputte Ressource → Notnagel unten
+                return null;   // fehlende/kaputte Datei → Eigenbau unten
             }
         }
         return cached?.Picture;
@@ -71,7 +87,8 @@ public static class WbAidRenderer
             return;
         }
 
-        // Notnagel: schlichte Glas-Kontur, falls die SVG-Ressource nicht ladbar ist
+        // Eigenbau: schlichte Glas-Kontur. Das ist der Normalfall, seit keine Vorlage
+        // mitgeliefert wird – kein Notnagel, sondern das, was Gonk Note von Haus aus zeichnet.
         float rad = angleDeg * MathF.PI / 180f;
         float cos = MathF.Cos(rad), sin = MathF.Sin(rad);
         SKPoint P(float u, float v)

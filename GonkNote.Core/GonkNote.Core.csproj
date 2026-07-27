@@ -28,11 +28,10 @@
     <PackageReference Include="Svg.Skia" Version="1.0.0.18" />
   </ItemGroup>
 
-  <!-- Geodreieck-Overlays (Nutzer-SVGs, je Theme). Liegen weiterhin im WPF-Assets-Ordner,
-       werden aber HIER eingebettet, damit beide UIs sie über GonkNote.Core laden. -->
-  <ItemGroup>
-    <EmbeddedResource Include="..\Assets\Geodreieck-Light.svg" LogicalName="GonkNote.Core.Assets.Geodreieck-Light.svg" />
-    <EmbeddedResource Include="..\Assets\Geodreieck-Dark.svg" LogicalName="GonkNote.Core.Assets.Geodreieck-Dark.svg" />
-  </ItemGroup>
+  <!-- Hier lagen bis 2026-07-27 die eingebetteten Geodreieck-SVGs. Sie sind entfallen:
+       die Vorlage war eine Bearbeitung einer Grafik unbekannter Herkunft und damit für ein
+       quelloffenes Projekt nicht haltbar. Gonk Note zeichnet die Kontur jetzt selbst
+       (WbAidRenderer.DrawSetSquare); wer eine eigene Zeichnung hat, legt sie als
+       %APPDATA%\GonkNote\Geodreieck-Light.svg bzw. -Dark.svg ab. -->
 
 </Project>

@@ -44,10 +44,7 @@
   <ItemGroup>
     <Resource Include="Assets\gonk-note-Icon.png" />
     <Resource Include="README.md" />
-    <!-- Geodreieck-Overlays (Nutzer-SVGs, je Theme); EmbeddedResource statt
-         Resource, damit auch Nicht-WPF-Harnesses sie laden können -->
-    <EmbeddedResource Include="Assets\Geodreieck-Light.svg" />
-    <EmbeddedResource Include="Assets\Geodreieck-Dark.svg" />
+    <!-- Keine Geodreieck-SVGs mehr: siehe Kommentar in GonkNote.Core.csproj. -->
     <!-- Sticker: es werden bewusst KEINE mitgeliefert (dafür gäbe es keine Lizenz). Die Regel
          bleibt trotzdem stehen: wer eigene Motive fest ins Programm legen will, kopiert sie
          nach Assets\Stickers. Der Normalfall sind Nutzer-Sticker in %APPDATA%\GonkNote\Stickers. -->

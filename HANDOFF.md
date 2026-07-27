@@ -12,7 +12,49 @@
 > ausführlichen Tabellen als Standard). **Ausführlich nur** bei **offenen Fragen und
 > Entscheidungen**, die der Nutzer treffen muss — die weiterhin klar begründen.
 >
-> **Runde 30 (2026-07-27) zuletzt: derselbe Fehler ein zweites Mal — im Notizbuch.**
+> **Runde 31 (2026-07-27) zuletzt: Nutzer-Gegentest bestanden. Offen: Traegheit im Editor.**
+>
+> **Der Nutzer hat gegengetestet — Notizbuch, Whiteboard und der Export grosser Dateien laufen.**
+> Sein Datenbestand nach der Sitzung: **162 Blobs (20 MB)** in `gonknote.blobs\`, **63 Dateien
+> (8 MB)** im neuen `gonknote.papierkorb\`, **kein `fehler.log`**. Der Papierkorb hat also
+> gegriffen: die Waisen seiner Neuimport-Versuche wurden **aussortiert statt geloescht** und
+> sind 30 Tage lang zurueckholbar.
+>
+> **⚠️ Beim Aufraeumen des History-Rewrites gefunden:** `git fsck` zeigte **haengende Commits
+> mit 6 Sticker-Referenzen** — Reste des zweiten `filter-branch`-Laufs. Erst
+> `git reflog expire --expire=now --all` + `git gc --prune=now` hat sie entfernt.
+> **Merksatz: nach einem History-Rewrite nicht nur `rev-list --objects --all` pruefen (das
+> sieht nur Erreichbares), sondern auch `git fsck`.** Danach verifiziert: keine
+> `img_icon_*`/`Spezi.png`/`Änderungen` mehr in **irgendeinem** Objekt; die verbliebenen
+> 10 PNG sind die eigenen Pixel-Art-Cover und das App-Icon.
+>
+> **Traegheit im Text-Editor bei einem 40-seitigen DOCX — angemessen, aber nicht geloest.**
+> Gemessen mit `%TEMP%\gonk-lag` an `test_document_40pages.docx` (40 590 Zeichen, 677 Absaetze,
+> **10 Tabellen**, keine Bilder), echte `RichTextBox` in einem echten Fenster:
+>
+> | Schritt | Zeit |
+> |---|---|
+> | DOCX → XamlPackage (Import) | **1 494 ms** |
+> | Paket → RichTextBox (Laden) | 604 ms |
+> | Sprache auf alle Bloecke setzen | 185 ms |
+> | `ForceSpellRecheck` (SpellCheck aus/ein) | 210 ms |
+> | `NormalizeInk` | 4 ms |
+> | Woerter zaehlen + Navigator | 4 ms |
+> | **Tippen (Mittel aus 5 Zeichen)** | **7 ms** |
+>
+> **Das Oeffnen kostet also rund 2,3 s — davon zwei Drittel der DOCX-Import.** Die eigentliche
+> Trippel-Latenz ist in dieser Messung dagegen **unauffaellig (7 ms)**. Die vom Nutzer
+> berichtete Traegheit ist damit **nicht reproduziert**; sie muss aus dem Zusammenspiel im
+> echten View kommen (Seiteneinrichtung mit `Document.PageWidth`, Zoom-`LayoutTransform`,
+> Umbruch-Overlay, Lineal, ScrollViewer) — ein `FlowDocument` in einer `RichTextBox` wird
+> **nicht virtualisiert**, ein 40-Seiten-Layout haengt also an jeder Aenderung.
+> **Naechster Schritt:** dieselben Messpunkte in den **echten** `TextEditorView` einziehen
+> (Stopwatch um `_statsTimer.Tick`, `DrawPageBreaks`, `ApplyPageSetup`) und mit dem
+> 40-Seiten-Dokument im echten Fenster laufen lassen. Verdaechtig ist besonders
+> `Editor.SizeChanged += DrawPageBreaks` — das Overlay haengt an einer Groesse, die es
+> mittelbar selbst beeinflusst.
+>
+> **Runde 30 (2026-07-27): derselbe Fehler ein zweites Mal — im Notizbuch.**
 >
 > Nach Runde 29 lief das **Whiteboard** wieder, das **Notizbuch nicht**. Ursache war dieselbe
 > Denkfigur an einer zweiten Stelle (`WhiteboardView.Render.cs`):

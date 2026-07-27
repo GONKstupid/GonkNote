@@ -3,3 +3,8 @@ obj/
 *.user
 .vs/
 TestAssets/
+
+# Testdatenbanken und deren Blob-Ordner (z. B. aus "--db X.db"); echte Daten liegen in %APPDATA%
+*.db
+*.db-log
+*.blobs/

@@ -756,21 +756,23 @@ Nutzer-Test mit Stift.
     dynamisch gebaute Menüs). Beim Cleanup Strings gleich zentralisieren. Kleinkram: dynamische
     Menüs müssen die aktuelle Sprache lesen; Über-Dialog lädt das dt. README (EN-Variante oder
     DE lassen); Datums-/Zahlenformate über `CultureInfo`. Grob 1–3 Tage für Vollabdeckung.
-  - **GitHub-Veröffentlichung — NACH fertiger RAM-Optimierung (Nutzer-Wunsch 2026-07-23):**
-    Ziel Open Source, **MIT-Lizenz** (Copyright Manuel Toegel). Vor dem Public-Schalten:
-    - **`LICENSE` (MIT)** anlegen + README-Abschnitt „Lizenz" (+ optional „Third-party": alle
-      Deps permissiv — LiteDB/SkiaSharp/Svg.Skia/OpenXML MIT, Docnet/PDFium BSD-3, Tesseract +
-      tessdata Apache-2.0).
-    - **Alle Sticker löschen** (`Assets/Stickers/*.png`, 14 Stück, u. a. Meme-/Fremdmaterial) –
-      Nutzer hat **keine Lizenz** dafür. **Auch aus der Git-History entfernen** (sonst per altem
-      Commit auscheckbar): am einfachsten **neues Repo mit einem sauberen Initial-Commit** (ohne
-      Alt-History) oder `git filter-repo`/BFG auf `Assets/Stickers/**`. csproj-Include Zeile 46
-      kann bleiben (matcht dann nichts) oder mit raus. Sticker-Feature bleibt (Nutzer-Sticker in
-      %APPDATA%), nur die mitgelieferten Basis-Sticker entfallen.
-    - **Cover bleiben** (`Assets/Covers/**` – vom Nutzer selbst erstellt, unbedenklich).
-    - **`TestAssets/`** ist am 2026-07-26 gelöscht (war ohnehin in `.gitignore`).
-    - Keine echten Notizdaten/Namen im Repo **oder in der History** (echte DB liegt in %APPDATA%).
-    - Keine Segoe-Font-Dateien einchecken (App nutzt System-Font – bundlet keine `.ttf`).
+  - **GitHub-Veröffentlichung (MIT) — der nächste Schritt (Stand 2026-07-27).**
+    Alles Vorgelagerte ist erledigt: Cleanup, zweite Sprache, Render-Caching, RAM (60 % des
+    Ziels), große Dokumente. **Vor dem Public-Schalten abzuarbeiten:**
+    1. **`LICENSE` (MIT, Copyright Manuel Toegel)** anlegen + README-Abschnitt „Lizenz".
+       Optional „Third-party": alle Abhängigkeiten sind permissiv — LiteDB, SkiaSharp,
+       Svg.Skia, OpenXML MIT · Docnet/PDFium BSD-3 · Tesseract + tessdata Apache-2.0.
+    2. **Alle 14 Sticker löschen** (`Assets/Stickers/*.png`, u. a. Meme-/Fremdmaterial) —
+       dafür gibt es **keine Lizenz**. **Auch aus der Git-History**, sonst sind sie über
+       einen alten Commit weiter auscheckbar. Am einfachsten ein **neues Repo mit einem
+       sauberen Initial-Commit**; sonst `git filter-repo`/BFG auf `Assets/Stickers/**`.
+       Die csproj-Zeile kann bleiben (matcht dann nichts). Das Sticker-**Feature** bleibt:
+       eigene Sticker liegen in `%APPDATA%\GonkNote\Stickers`.
+    3. **Cover bleiben** (`Assets/Covers/**`, vom Nutzer selbst erstellt).
+    4. Prüfen, dass **keine echten Notizdaten** im Repo oder in der History liegen — die
+       echte Datenbank liegt in `%APPDATA%`, `TestAssets/` ist gelöscht, Testdatenbanken und
+       Blob-Ordner sind seit 2026-07-27 in `.gitignore`.
+    5. Keine Schriftdateien einchecken (geprüft: keine `.ttf`/`.otf` im Repo).
   - **Cross-Platform (Linux): am 2026-07-24 vom Nutzer abgebrochen.** Der Avalonia-Port ist
     komplett aus dem Repo entfernt; Gonk Note bleibt eine **reine Windows-/WPF-App**. Was aus
     dem Versuch geblieben ist (`GonkNote.Core`, De-Duplizierung, Bleistift-Textur) und was die

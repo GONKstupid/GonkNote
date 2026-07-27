@@ -103,6 +103,9 @@ ohne Cloud, ohne Installation, ohne Adminrechte.
   `%APPDATA%\GonkNote\gonknote.blobs\` — je Bild eine Datei. Autosave alle 30 s, Speichern
   beim Schließen von Tabs und der App.
   **Für eine Sicherung beides mitnehmen: die Datei *und* den Ordner.**
+  Bilder, auf die kein Dokument mehr zeigt, wandern in `gonknote.papierkorb\` und werden erst
+  nach 30 Tagen endgültig entfernt; wird ein Bild vorher wieder gebraucht, holt Gonk Note es
+  von selbst zurück
 - **Große Dokumente**: Originale werden unverändert abgelegt und beim Export unverändert
   zurückgeschrieben; angezeigt wird eine verkleinerte Ableitung. Ein Word-Dokument mit Fotos
   kommt dadurch genauso groß wieder heraus, wie es hereinkam (vorher das Achtfache), und ein

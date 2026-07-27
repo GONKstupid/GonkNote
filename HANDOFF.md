@@ -12,7 +12,64 @@
 > ausführlichen Tabellen als Standard). **Ausführlich nur** bei **offenen Fragen und
 > Entscheidungen**, die der Nutzer treffen muss — die weiterhin klar begründen.
 >
-> **Runde 28 (2026-07-27) zuletzt: GitHub-Veroeffentlichung vorbereitet (MIT).**
+> **Runde 29 (2026-07-27) zuletzt: Datenverlust behoben. GitHub liegt bis auf Weiteres.**
+>
+> **Der Nutzer hat beim Export Bilder verloren.** Symptome: 40 leere Notizbuchseiten, graue
+> Boxen statt Bildern und Stickern, Cover zurueck auf den Standard-Farbverlauf, Text-Export
+> ab Seite 12 verpixelt — und das echte Notizbuch in der App war hinterher genauso kaputt.
+> Striche und Formen waren unversehrt.
+>
+> **Ursache: `ImageCache.Source` wurde nirgends im Projekt zugewiesen und war immer `null`.**
+> `SaveBoard` schiebt die Bildbytes in den Blob-Speicher und **leert das Feld im Datensatz**;
+> `ImageCache.Bytes(id, inline)` faellt dann auf `Source?.Read(id)` zurueck — und das ergab
+> `null`. **Ab dem ersten Speichern war jedes Bild unsichtbar**, waehrend die Dateien
+> unversehrt danebenlagen. Der Autosave schrieb diesen Zustand zurueck; wer daraufhin neu
+> importierte, machte die alten Blobs zu *echten* Waisen, die der Aufraeumlauf dann
+> regelkonform vernichtete. Der Blob-Ordner des Nutzers war am Ende leer, die Datenbank zeigte
+> auf 66 nicht mehr existierende Ids.
+>
+> **Merksatz: ein statisches `Source`/`Current`-Feld, das nur an einer Stelle gesetzt wird,
+> ist eine stille Falle.** `BlobStore.Current` wurde gesetzt, `ImageCache.Source` nicht — beide
+> sehen im Code gleich aus. Der Compiler sagt dazu nichts, und der Fehler zeigt sich erst
+> *nach* dem Speichern, also nie in einem Durchlauf, der nur importiert und anschaut.
+>
+> **Behoben (Commit „Datenverlust behoben…"):**
+> - `DatabaseService` setzt `ImageCache.Source` auf den Blob-Speicher — die eigentliche Ursache.
+> - `MoveImagesToBlobs` leert die Bytes **erst nach Groessenpruefung** des geschriebenen Blobs
+>   und lehnt `Guid.Empty` als Schluessel ab (alle Bilder haetten sich sonst unter einem
+>   Schluessel gegenseitig ueberschrieben).
+> - **`BlobStore` loescht nicht mehr, sondern sortiert in `gonknote.papierkorb\` aus** (30 Tage).
+>   `Read`/`OpenRead`/`Exists` holen von dort zurueck — ein Fehlgriff heilt sich selbst, sobald
+>   das Bild wieder gebraucht wird.
+> - **Notbremse:** leere Referenzliste bei vorhandenen Blobs = Verdachtsfall, nicht Aufraeumfall.
+> - `RemoveOrphanBlobs` liest die Referenzen **vollstaendig ein, bevor** es aufraeumt (vorher lief
+>   eine verzoegerte Abfrage waehrend des Aufraeumens auf einem Hintergrund-Thread).
+> - Abschaltbar ueber die Einstellung `blob-cleanup` = `aus`.
+>
+> **Zweiter Fund, gleiche Familie:** der **Markdown-Import** legte Bilder im Blob-Speicher ab,
+> trug die Ids aber in kein Dokument ein (der DOCX-Import tut es). Die Bilder eines importierten
+> Markdown-Dokuments waren damit von Anfang an Waisen — nach einer Stunde weg. Behoben.
+>
+> **Verifiziert:**
+> - `%TEMP%\gonk-repro` (Lebenszyklus ueber vier Sitzungen): vorher **0 von 5** Seiten lesbar,
+>   jetzt **5 von 5**, Cover und Bild-Element ebenso. Notbremse sortiert bei leerer
+>   Referenzliste nichts aus; eine echte Waise wandert in den Papierkorb und ist per `Read`
+>   zurueckholbar; benutzte Blobs bleiben unangetastet.
+> - `%TEMP%\gonk-forensik` (liest eine **Kopie** der echten DB roh aus): 7 Dokumente, 66
+>   Blob-Verweise, 0 Dateien. Der echte Aufraeum-Code erkennt gegen den heutigen DB-Stand alle
+>   66 als benutzt — die Loeschung geschah also, als die Datenbank noch andere Ids enthielt.
+> - `%TEMP%\gonk-textexport` (Text-Export ueber 28 Seiten, echter `RenderTextPages`-Pfad):
+>   durchgehend 2382x3369 px, Schaerfewert 480–527, **kein Einbruch**. Die Verpixelung ab
+>   Seite 12 ist damit **nicht** seitenzahl- oder speicherabhaengig, sondern inhaltsabhaengig:
+>   `DocumentImages.WithFullResolution` ueberspringt still, wenn das Original fehlt, und
+>   exportiert die 2048-px-Anzeige-Ableitung. Gleiche Wurzel.
+>
+> **⚠️ Noch offen:** Die Bilddaten des Nutzers sind **weg** (kein Papierkorb, keine
+> Schattenkopie, kein Dateiversionsverlauf). Wiederherstellung nur ueber ein Undelete-Werkzeug
+> oder Neuimport der Quell-PDF. **Ausserdem offen:** der stille Rueckfall auf die
+> Anzeige-Ableitung sollte den Nutzer warnen, statt heimlich schlechter zu exportieren.
+>
+> **Runde 28 (2026-07-27): GitHub-Veroeffentlichung vorbereitet (MIT).**
 >
 > **⚠️ Die Commit-Hashes in dieser Datei stimmen nicht mehr.** Die History wurde
 > umgeschrieben (siehe unten); alle 106 Commits haben neue Hashes. Nachrichten und

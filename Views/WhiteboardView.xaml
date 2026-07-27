@@ -493,6 +493,17 @@
                         </Expander>
 
                         <!-- Cover (nur Notizbücher) -->
+                        <Expander Header="{loc:T Settings.Export}" IsExpanded="False">
+                            <StackPanel>
+                                <TextBlock Text="{loc:T Settings.Export.Hint}" TextWrapping="Wrap" Margin="0,0,0,8"
+                                           Foreground="{DynamicResource Brush.TextMuted}"/>
+                                <Button Content="{loc:T Settings.Export.Pdf}" Style="{StaticResource FlatButton}"
+                                        Click="ExportPdf_Click" HorizontalAlignment="Stretch" Margin="0,0,0,4"/>
+                                <Button Content="{loc:T Settings.Export.Png}" Style="{StaticResource FlatButton}"
+                                        Click="ExportPng_Click" HorizontalAlignment="Stretch"/>
+                            </StackPanel>
+                        </Expander>
+
                         <Expander x:Name="CoverSection" Header="{loc:T Settings.Cover}" IsExpanded="False" Visibility="Collapsed"
                                   Expanded="CoverSection_Expanded">
                         <StackPanel>

@@ -221,7 +221,9 @@ public static class PdfExporter
         var rect = SKRect.Create(0, 0, page.Width, page.Height);
         var cover = doc.Cover;
 
-        if (cover?.Image is { Length: > 0 } img)
+        // Über den Cache holen, nicht direkt aus dem Datensatz: dort stehen die Bytes nur
+        // bis zum ersten Speichern, danach liegt das Cover im Blob-Speicher.
+        if (cover != null && ImageCache.Bytes(cover.ImageId, cover.Image) is { Length: > 0 } img)
         {
             DrawImage(canvas, rect, img);
             return;

@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows;
 using GonkNote.Core.Models;
+using GonkNote.Core.Services;
 using GonkNote.Services;
 using SkiaSharp;
 
@@ -91,7 +92,10 @@ public partial class WhiteboardView
                 : CoverFonts.Append(font).OrderBy(f => f).ToArray();
             CoverFontBox.SelectedItem = font;
 
-            BtnCoverImageRemove.IsEnabled = cs?.Image is { Length: > 0 };
+            // Nicht auf die Bytes im Datensatz sehen: nach dem ersten Speichern liegt das
+            // Cover im Blob-Speicher, der Knopf wäre sonst fälschlich ausgegraut.
+            BtnCoverImageRemove.IsEnabled =
+                cs != null && ImageCache.Bytes(cs.ImageId, cs.Image) is { Length: > 0 };
         }
 
         _suppressSettingsEvents = false;
@@ -380,4 +384,15 @@ public partial class WhiteboardView
         BtnCoverImageRemove.IsEnabled = false;
         CoverChanged();
     }
+
+    // ---- Export aus der Seitenleiste ----
+    // Derselbe Weg wie „Datei → Exportieren“, nur mit vorgewähltem Format: der Export gilt
+    // immer dem aktiven Tab, und das ist genau das Dokument, dessen Seitenleiste offen ist.
+
+    private void ExportPdf_Click(object sender, RoutedEventArgs e) => ExportAs(".pdf");
+
+    private void ExportPng_Click(object sender, RoutedEventArgs e) => ExportAs(".png");
+
+    private void ExportAs(string ext) =>
+        (Application.Current.MainWindow?.DataContext as ViewModels.MainViewModel)?.ExportActiveTab(ext);
 }

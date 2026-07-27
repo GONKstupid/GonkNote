@@ -64,7 +64,9 @@ public sealed class GalleryItemViewModel : ObservableObject
         brush.Freeze();
         _coverBrush = brush;
 
-        if (cover?.Image is { Length: > 0 } bytes)
+        // Nicht direkt aus dem Datensatz: nach dem ersten Speichern liegt das Cover im
+        // Blob-Speicher und das Feld ist leer – die Kachel bliebe sonst dauerhaft ohne Bild.
+        if (cover != null && ImageCache.Bytes(cover.ImageId, cover.Image) is { Length: > 0 } bytes)
         {
             try
             {

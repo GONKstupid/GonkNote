@@ -43,7 +43,7 @@ public sealed class MainViewModel : ObservableObject
         DeleteCommand = new RelayCommand(p => DeleteItem(p as TreeItemViewModel));
         OpenItemCommand = new RelayCommand(p => { if (p is TreeItemViewModel t) OpenItem(t); });
         ImportDocxCommand = new RelayCommand(ImportDocx);
-        ExportCommand = new RelayCommand(ExportActiveTab);
+        ExportCommand = new RelayCommand(() => ExportActiveTab());
         TogglePinCommand = new RelayCommand(p => TogglePinned(p as TreeItemViewModel));
         ToggleFavoriteCommand = new RelayCommand(p => ToggleFavorite(p as TreeItemViewModel));
         OpenPinnedCommand = new RelayCommand(p => { if (p is TreeItemViewModel t) { NavigateGallery(t); RevealItem(t); } });
@@ -458,7 +458,12 @@ public sealed class MainViewModel : ObservableObject
     // ---------- Export ----------
 
     /// <summary>Exportiert den aktiven Tab: Textdokument → PDF/DOCX/Markdown, Whiteboard/Notizbuch → PDF.</summary>
-    private void ExportActiveTab()
+    /// <summary>
+    /// Export des aktiven Tabs. <paramref name="preferred"/> wählt das Format im Dialog vor
+    /// (".pdf"/".png"/…) – dafür gibt es die Knöpfe in der Einstellungs-Seitenleiste von
+    /// Whiteboard und Notizbuch; ohne Angabe steht wie bisher PDF oben.
+    /// </summary>
+    public void ExportActiveTab(string? preferred = null)
     {
         var tab = SelectedTab;
         if (tab == null)
@@ -478,12 +483,28 @@ public sealed class MainViewModel : ObservableObject
                 ? "PDF-Dokument (*.pdf)|*.pdf|Word-Dokument (*.docx)|*.docx|Markdown (*.md)|*.md|PNG-Bild(er) (*.png)|*.png"
                 : "PDF-Dokument (*.pdf)|*.pdf|PNG-Bild(er) (*.png)|*.png",
         };
+
+        // Vorgewähltes Format: die Filter stehen in derselben Reihenfolge wie hier gesucht wird.
+        if (preferred != null)
+        {
+            var order = tab is TextTabViewModel
+                ? new[] { ".pdf", ".docx", ".md", ".png" }
+                : new[] { ".pdf", ".png" };
+            int idx = Array.IndexOf(order, preferred);
+            if (idx >= 0)
+            {
+                dlg.FilterIndex = idx + 1;      // 1-basiert
+                dlg.DefaultExt = preferred.TrimStart('.');
+            }
+        }
+
         if (dlg.ShowDialog() != true) return;
 
         string path = dlg.FileName;
         string ext = System.IO.Path.GetExtension(path).ToLowerInvariant();
         List<string> written = new() { path };
         string validationInfo = "";
+        int missingImages = 0;
 
         try
         {
@@ -503,11 +524,15 @@ public sealed class MainViewModel : ObservableObject
                         case ".png": written = PdfExporter.ExportFlowDocumentPng(flow, text.Doc, text.Title, path); break;
                         default: PdfExporter.ExportFlowDocument(flow, text.Doc, text.Title, path); break;
                     }
+                    // Nur PDF/PNG rastern aus den Originalen; DOCX/Markdown reichen sie durch.
+                    if (ext is ".pdf" or ".png" or "")
+                        missingImages = DocumentImages.LastExportMissingOriginals;
                     break;
                 }
                 case WhiteboardTabViewModel wb:
                     if (ext == ".png") written = PdfExporter.ExportWhiteboardPng(wb.Doc, wb.Title, path);
                     else PdfExporter.ExportWhiteboard(wb.Doc, wb.Title, path);
+                    missingImages = MissingImageData(wb.Doc);
                     break;
             }
         }
@@ -523,11 +548,43 @@ public sealed class MainViewModel : ObservableObject
             ? Loc.T("Msg.ExportedPages", written.Count, System.IO.Path.GetDirectoryName(openTarget))
             : Loc.T("Msg.ExportedFile", openTarget)) + validationInfo;
 
+        // Lieber einmal zu viel sagen als stillschweigend schlechter exportieren: fehlt zu
+        // einem Bild die Vorlage, landet nur die kleinere Anzeige-Fassung im PDF – auf
+        // Seitenbreite hochgezogen sieht das verpixelt aus, ohne dass der Grund erkennbar wäre.
+        if (missingImages > 0)
+            info += Loc.T("Msg.ExportImagesMissing", missingImages);
+
         if (MessageBox.Show(info, "Gonk Note", MessageBoxButton.YesNo, MessageBoxImage.Information) == MessageBoxResult.Yes)
         {
             try { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(openTarget) { UseShellExecute = true }); }
             catch { /* kein Standardprogramm hinterlegt */ }
         }
+    }
+
+    /// <summary>
+    /// Zählt Bilder eines Whiteboards/Notizbuchs, zu denen keine Daten mehr auffindbar sind –
+    /// die erscheinen im Export als graue Platzhalter bzw. leere Seiten. Der Nutzer soll das
+    /// erfahren, statt sich über ein kaputtes PDF zu wundern.
+    /// </summary>
+    private static int MissingImageData(WhiteboardDoc doc)
+    {
+        // Das Cover bleibt außen vor: CoverStyle merkt sich nicht, ob es je ein Bild-Cover war
+        // (ImageId ist immer belegt). Ein fehlendes Cover-Bild ließe sich von einem gewollten
+        // Farbverlauf nicht unterscheiden – hier lieber nichts melden als jedes Notizbuch
+        // fälschlich anmeckern.
+        int missing = 0;
+
+        foreach (var page in doc.Pages)
+        {
+            if (page.HasBackgroundImage &&
+                ImageCache.Bytes(page.BackgroundImageId, page.BackgroundImage) is not { Length: > 0 })
+                missing++;
+
+            foreach (var image in page.Elements.OfType<ImageElement>())
+                if (ImageCache.Bytes(image.Id, image.Data) is not { Length: > 0 })
+                    missing++;
+        }
+        return missing;
     }
 
     /// <summary>Baut aus den gespeicherten Bytes eines Textdokuments ein FlowDocument.</summary>

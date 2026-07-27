@@ -455,7 +455,14 @@ internal static class LocGerman
         ["Msg.ExportFailed"] = "Export fehlgeschlagen:\n{0}",
         ["Msg.ExportedPages"] = "{0} Seiten exportiert nach:\n{1}\n\nErste Datei öffnen?",
         ["Msg.ExportedFile"] = "Exportiert nach:\n{0}\n\nDatei jetzt öffnen?",
+        ["Settings.Export"] = "Export",
+        ["Settings.Export.Hint"] = "Exportiert dieses Dokument mit allen Seiten.",
+        ["Settings.Export.Pdf"] = "Als PDF exportieren …",
+        ["Settings.Export.Png"] = "Als PNG exportieren …",
         ["Msg.ValidationHint"] = "\n\nHinweis: OpenXML-Validierung meldet {0} Punkt(e).",
+        ["Msg.ExportImagesMissing"] = "\n\nAchtung: Zu {0} Bild(ern) fehlen die Daten. Sie erscheinen " +
+            "im Export als Platzhalter oder in schlechterer Qualität. Prüfe, ob die Sicherung des " +
+            "Ordners „gonknote.blobs“ neben der Datenbank vollständig ist.",
         ["Msg.DeleteFolder"] = "Ordner „{0}“ und den gesamten Inhalt löschen?",
         ["Msg.DeleteItem"] = "„{0}“ löschen?",
         ["Msg.DeletePage"] = "Diese Seite und ihren Inhalt löschen?",

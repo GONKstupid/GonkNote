@@ -197,9 +197,12 @@ public partial class WhiteboardView
         using (var bg = new SKPaint { Color = bgColor })
             canvas.DrawRect(pageRect, bg);
 
-        // Hintergrundbild (importierte PDF-Seite): seitenfüllend, ersetzt das Muster
-        if (_page.BackgroundImage is { Length: > 0 } bgData &&
-            ImageCache.Get(_page.BackgroundImageId, bgData) is { } bgImg)
+        // Hintergrundbild (importierte PDF-Seite): seitenfüllend, ersetzt das Muster.
+        // Nicht auf die Bytes im Dokument prüfen – die sind nach dem ersten Speichern leer,
+        // weil das Bild dann im Blob-Speicher liegt. Wer hier vorab abbricht, zeigt die Seite
+        // für immer leer an. Ob es ein Bild gibt, sagt die Id; ob es lesbar ist, der Cache.
+        if (_page.HasBackgroundImage &&
+            ImageCache.Get(_page.BackgroundImageId, _page.BackgroundImage) is { } bgImg)
         {
             using var ip = new SKPaint { IsAntialias = true, FilterQuality = SKFilterQuality.Medium };
             canvas.DrawImage(bgImg, pageRect, ip);

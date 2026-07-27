@@ -234,6 +234,14 @@ public class WbPage
     /// <summary>Cache-Schlüssel fürs Rendering des Hintergrundbilds.</summary>
     public Guid BackgroundImageId { get; set; }
 
+    /// <summary>
+    /// Ob die Seite ein importiertes Hintergrundbild hat. Bewusst **nicht** an
+    /// <see cref="BackgroundImage"/> abzulesen: das Feld ist nach dem ersten Speichern leer,
+    /// weil das Bild dann im Blob-Speicher liegt. Wer die Bytes prüft, hält jede gespeicherte
+    /// PDF-Seite für leer.
+    /// </summary>
+    public bool HasBackgroundImage => BackgroundImageId != Guid.Empty || BackgroundImage is { Length: > 0 };
+
     public bool IsInfinite => Width <= 0 || Height <= 0;
 }
 

@@ -454,7 +454,14 @@ internal static class LocEnglish
         ["Msg.ExportFailed"] = "Export failed:\n{0}",
         ["Msg.ExportedPages"] = "{0} pages exported to:\n{1}\n\nOpen the first file?",
         ["Msg.ExportedFile"] = "Exported to:\n{0}\n\nOpen the file now?",
+        ["Settings.Export"] = "Export",
+        ["Settings.Export.Hint"] = "Exports this document with all its pages.",
+        ["Settings.Export.Pdf"] = "Export as PDF …",
+        ["Settings.Export.Png"] = "Export as PNG …",
         ["Msg.ValidationHint"] = "\n\nNote: OpenXML validation reports {0} item(s).",
+        ["Msg.ExportImagesMissing"] = "\n\nWarning: data is missing for {0} image(s). They appear in " +
+            "the export as placeholders or at reduced quality. Check that your backup of the " +
+            "\"gonknote.blobs\" folder next to the database is complete.",
         ["Msg.DeleteFolder"] = "Delete the folder “{0}” and all of its contents?",
         ["Msg.DeleteItem"] = "Delete “{0}”?",
         ["Msg.DeletePage"] = "Delete this page and its contents?",

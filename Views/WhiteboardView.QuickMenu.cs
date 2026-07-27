@@ -172,7 +172,7 @@ public partial class WhiteboardView
         // Auswahl) einer Seite mit importiertem Hintergrund (PDF-Seite).
         bool ocrOk = OcrService.IsAvailable;
         bool ocrSource = _selection.OfType<ImageElement>().Any()
-            || (_selection.Count == 0 && _page?.BackgroundImage is { Length: > 0 });
+            || (_selection.Count == 0 && _page is { HasBackgroundImage: true });
         Qm_Ocr.Visibility = ocrOk ? Visibility.Visible : Visibility.Collapsed;
         Qm_SepOcr.Visibility = ocrOk ? Visibility.Visible : Visibility.Collapsed;
         Qm_Ocr.IsEnabled = ocrOk && ocrSource;

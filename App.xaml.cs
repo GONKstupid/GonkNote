@@ -47,11 +47,21 @@ public partial class App : Application
     /// Räumt im Hintergrund Bilder weg, auf die kein Dokument mehr zeigt – Reste gelöschter
     /// Dokumente und abgebrochener Importe. Bewusst nach dem Fensterstart und ohne Eile:
     /// der Start soll davon nichts merken.
+    /// <para>
+    /// Aussortiert wird in einen Papierkorb mit 30-Tage-Frist, nicht gelöscht. Der Lauf
+    /// entscheidet über Bilder, die es sonst nirgends mehr gibt; eine falsche Entscheidung
+    /// muss umkehrbar bleiben. Abschaltbar über „Ansicht → Einstellungen" (Schlüssel
+    /// <c>blob-cleanup</c>).
+    /// </para>
     /// </summary>
     private static void CleanUpBlobsInBackground() => Task.Run(async () =>
     {
         await Task.Delay(TimeSpan.FromSeconds(10));
-        try { Db.RemoveOrphanBlobs(); }
+        try
+        {
+            if (Db.GetSetting("blob-cleanup") == "aus") return;
+            Db.RemoveOrphanBlobs();
+        }
         catch (Exception ex) { Log(ex); }
     });
 

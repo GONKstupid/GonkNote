@@ -83,6 +83,13 @@ public sealed class DatabaseService : IDisposable
         Blobs = new BlobStore(path);
         BlobStore.Current = Blobs;
 
+        // Ohne diese Zeile findet der Bild-Cache die ausgelagerten Bilder nicht: SaveBoard
+        // leert die Byte-Felder im Dokument, und ImageCache.Bytes fällt dann auf Source
+        // zurück. War Source null, lieferte jedes gespeicherte Bild null – graue Platzhalter
+        // in Anzeige und Export, Cover zurück auf den Farbverlauf, während die Dateien
+        // unversehrt daneben lagen.
+        ImageCache.Source = Blobs;
+
         Items.EnsureIndex(x => x.ParentId);
     }
 
@@ -156,11 +163,19 @@ public sealed class DatabaseService : IDisposable
                 Move(image.Id, image.Data, () => image.Data = Array.Empty<byte>());
         }
 
+        // Geleert wird erst, wenn das Blob nachweislich liegt. Sonst wäre ein fehlgeschlagener
+        // Schreibvorgang gleichbedeutend mit Datenverlust: die Bytes im Datensatz sind nach
+        // dem Leeren die einzige Kopie gewesen.
         void Move(Guid? id, byte[]? data, Action clear)
         {
             if (id is not { } key || data is not { Length: > 0 }) return;
+
+            // Guid.Empty wäre für alle Bilder derselbe Schlüssel – sie würden einander
+            // überschreiben. Lieber die Bytes im Datensatz lassen als sie zusammenwerfen.
+            if (key == Guid.Empty) return;
+
             Blobs.Put(key, data);
-            clear();
+            if (Blobs.SizeOf(key) == data.Length) clear();
         }
     }
 
@@ -186,9 +201,21 @@ public sealed class DatabaseService : IDisposable
     /// </summary>
     public long RemoveOrphanBlobs()
     {
-        var used = Texts.FindAll().SelectMany(t => t.Images)
-            .Concat(Boards.FindAll().SelectMany(UsedBlobs));
-        return Blobs.RemoveOrphans(used, TimeSpan.FromHours(1));
+        // Erst vollständig einlesen, dann aufräumen. Vorher war das eine verzögerte Abfrage,
+        // die *während* des Aufräumens Stück für Stück aus der Datenbank nachlas – auf einem
+        // Hintergrund-Thread, parallel zur laufenden Bearbeitung. Was dabei nicht rechtzeitig
+        // ankam, galt als „wird nicht mehr gebraucht".
+        var used = new HashSet<Guid>();
+        foreach (var text in Texts.FindAll())
+            foreach (var id in text.Images) used.Add(id);
+        foreach (var board in Boards.FindAll())
+            foreach (var id in UsedBlobs(board)) used.Add(id);
+
+        used.Remove(Guid.Empty);
+
+        long moved = Blobs.RemoveOrphans(used, TimeSpan.FromHours(1));
+        Blobs.PurgeRecycled(TimeSpan.FromDays(30));
+        return moved;
     }
 
     private static IEnumerable<Guid> UsedBlobs(WhiteboardDoc doc)

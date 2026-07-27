@@ -25,12 +25,18 @@ public sealed class BlobStore
     public static BlobStore? Current { get; internal set; }
 
     private readonly string _root;
+    private readonly string _bin;
 
     /// <summary>Legt den Speicher neben die Datenbank: <c>gonknote.db</c> → <c>gonknote.blobs\</c>.</summary>
     public BlobStore(string databasePath)
     {
         string dir = Path.GetDirectoryName(Path.GetFullPath(databasePath))!;
-        _root = Path.Combine(dir, Path.GetFileNameWithoutExtension(databasePath) + ".blobs");
+        string stem = Path.Combine(dir, Path.GetFileNameWithoutExtension(databasePath));
+        _root = stem + ".blobs";
+
+        // Bewusst **neben** dem Speicher, nicht darin: All() sucht rekursiv nach *.bin und
+        // würde einen Unterordner sonst gleich wieder als regulären Blob einsammeln.
+        _bin = stem + ".papierkorb";
         Directory.CreateDirectory(_root);
     }
 
@@ -44,7 +50,7 @@ public sealed class BlobStore
         return Path.Combine(_root, name[..2], name + ".bin");
     }
 
-    public bool Exists(Guid id) => File.Exists(PathOf(id));
+    public bool Exists(Guid id) => File.Exists(PathOf(id)) || TryRestore(id);
 
     /// <summary>Legt Daten ab und liefert ihre Id.</summary>
     public Guid Put(byte[] data)
@@ -72,7 +78,8 @@ public sealed class BlobStore
     public byte[]? Read(Guid id)
     {
         string path = PathOf(id);
-        return File.Exists(path) ? File.ReadAllBytes(path) : null;
+        if (!File.Exists(path) && !TryRestore(id)) return null;
+        return File.ReadAllBytes(path);
     }
 
     /// <summary>
@@ -82,7 +89,8 @@ public sealed class BlobStore
     public Stream? OpenRead(Guid id)
     {
         string path = PathOf(id);
-        return File.Exists(path) ? File.OpenRead(path) : null;
+        if (!File.Exists(path) && !TryRestore(id)) return null;
+        return File.OpenRead(path);
     }
 
     public long SizeOf(Guid id)
@@ -121,17 +129,86 @@ public sealed class BlobStore
     public long RemoveOrphans(IEnumerable<Guid> stillUsed, TimeSpan minimumAge)
     {
         var used = stillUsed.ToHashSet();
+        var all = All().ToList();
+
+        // Notbremse. Die Referenzliste kommt aus der Datenbank; kann die gerade nicht
+        // vollständig gelesen werden, sieht plötzlich *jedes* Bild wie Müll aus. Genau so
+        // geht eine Bildersammlung in einem Rutsch verloren. Ein Speicher, in dem angeblich
+        // nichts mehr gebraucht wird, ist deshalb kein Aufräumfall, sondern ein Verdachtsfall.
+        if (used.Count == 0 && all.Count > 0) return 0;
+
         var cutoff = DateTime.UtcNow - minimumAge;
         long freed = 0;
 
-        foreach (var id in All().ToList())
+        foreach (var id in all)
         {
             if (used.Contains(id)) continue;
             var file = new FileInfo(PathOf(id));
             if (!file.Exists || file.LastWriteTimeUtc > cutoff) continue;
 
             freed += file.Length;
-            Delete(id);
+            Recycle(id);
+        }
+        return freed;
+    }
+
+    /// <summary>
+    /// Schiebt ein Blob in den Papierkorb statt es zu löschen. Der Aufräumlauf entscheidet
+    /// über <em>Nutzerdaten</em> – Fotos, eingescannte Seiten, Cover –, und er entscheidet
+    /// allein anhand einer Referenzrechnung. Ist die einmal falsch, war ein <c>File.Delete</c>
+    /// endgültig: kein Windows-Papierkorb, keine Vorgängerversion, nichts.
+    /// </summary>
+    private void Recycle(Guid id)
+    {
+        string from = PathOf(id);
+        string to = Path.Combine(_bin, id.ToString("N") + ".bin");
+        try
+        {
+            Directory.CreateDirectory(_bin);
+            File.Move(from, to, overwrite: true);
+        }
+        catch (IOException) { /* gesperrt: bleibt liegen, der nächste Lauf holt es */ }
+    }
+
+    /// <summary>
+    /// Holt ein versehentlich aussortiertes Blob zurück. Wird beim Lesen versucht, bevor
+    /// „fehlt" gemeldet wird – so heilt sich ein Fehlgriff des Aufräumlaufs von selbst,
+    /// sobald das Bild wieder gebraucht wird.
+    /// </summary>
+    private bool TryRestore(Guid id)
+    {
+        string from = Path.Combine(_bin, id.ToString("N") + ".bin");
+        if (!File.Exists(from)) return false;
+
+        string to = PathOf(id);
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(to)!);
+            File.Move(from, to, overwrite: true);
+            return true;
+        }
+        catch (IOException) { return false; }
+    }
+
+    /// <summary>
+    /// Leert den Papierkorb von allem, was länger als <paramref name="keepFor"/> darin liegt,
+    /// und liefert den freigegebenen Platz. Bis dahin ist jeder Fehlgriff umkehrbar.
+    /// </summary>
+    public long PurgeRecycled(TimeSpan keepFor)
+    {
+        if (!Directory.Exists(_bin)) return 0;
+
+        var cutoff = DateTime.UtcNow - keepFor;
+        long freed = 0;
+
+        foreach (string file in Directory.EnumerateFiles(_bin, "*.bin"))
+        {
+            var info = new FileInfo(file);
+            if (!info.Exists || info.LastWriteTimeUtc > cutoff) continue;
+
+            long size = info.Length;
+            try { info.Delete(); freed += size; }
+            catch (IOException) { /* nächster Lauf */ }
         }
         return freed;
     }

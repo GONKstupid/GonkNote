@@ -12,7 +12,43 @@
 > ausführlichen Tabellen als Standard). **Ausführlich nur** bei **offenen Fragen und
 > Entscheidungen**, die der Nutzer treffen muss — die weiterhin klar begründen.
 >
-> **Runde 27 (2026-07-27) zuletzt: Grosse PDFs, und der Text-Editor ist ausgemessen.**
+> **Runde 28 (2026-07-27) zuletzt: GitHub-Veroeffentlichung vorbereitet (MIT).**
+>
+> **⚠️ Die Commit-Hashes in dieser Datei stimmen nicht mehr.** Die History wurde
+> umgeschrieben (siehe unten); alle 106 Commits haben neue Hashes. Nachrichten und
+> Reihenfolge sind unveraendert. Ein Bundle des Standes **davor** liegt unter
+> `%TEMP%\gonk-note-backup-vor-github.bundle` (13,5 MB) — daraus laesst sich die alte
+> History jederzeit wiederherstellen (`git clone <bundle>`).
+>
+> Abgearbeitet wurde die Checkliste aus §5:
+> - **`LICENSE` (MIT, Copyright 2026 Manuel Toegel)** angelegt; README hat jetzt einen
+>   Abschnitt **„Lizenz"** samt Tabelle der verwendeten Bibliotheken (LiteDB, SkiaSharp,
+>   Svg.Skia, OpenXML = MIT · Docnet/PDFium = MIT/BSD-3 · Tesseract + tessdata = Apache-2.0).
+>   Der Ueber-Dialog zieht automatisch nach (README ist eingebettete Resource).
+> - **Alle 14 Sticker entfernt** — aus dem Arbeitsstand **und aus der kompletten History**
+>   (`git filter-branch --index-filter`). Das Sticker-**Werkzeug bleibt**: `ReloadStickers`
+>   hat einen `Directory.Exists`-Guard, findet den Ordner einfach nicht mehr und zeigt nur
+>   noch die eigene Sammlung aus `%APPDATA%\GonkNote\Stickers`. Die csproj-Zeile
+>   (`Assets\Stickers\*.png`) matcht nichts mehr und bleibt stehen.
+> - **Zusaetzlicher Fund, den die Checkliste nicht hatte:** der 2026-07-15 geloeschte
+>   Arbeitsordner **`Änderungen/`** steckte weiter in der History — mit **denselben 14
+>   Stickern** unter `Änderungen/Basis Sticker/` plus sechs Referenz-Screenshots fremder
+>   Programm-Oberflaechen und der Wunschliste. Komplett aus der History entfernt.
+>   **Merksatz: bei so einer Bereinigung nicht nur den aktuellen Pfad pruefen, sondern
+>   `git log --all --name-only` ueber die ganze History.**
+>   *Stolperfalle dabei:* der Umlaut im Ordnernamen. Ein Pathspec `"Änderungen"` matcht
+>   nicht; die Bytes muessen im Filter selbst erzeugt werden:
+>   `git rm -r --cached --ignore-unmatch -- "$(printf %b "\303\204derungen")"`.
+> - **Gegengeprueft:** keine `.db`/`.db-log`, keine Blob-Ordner, keine Schriftdateien und
+>   keine Schluessel/Zertifikate jemals committet; `TestAssets/` war nie im Repo. Groesste
+>   verbliebene Dateien sind die tessdata-Sprachdaten (4,1 + 1,5 MB, Apache-2.0) und die
+>   eigenen Cover/Geodreieck-SVGs. `.git` ist von 16 auf 12 MB geschrumpft.
+> - Verirrter Build-Ordner `UsersmanueAppDataLocalTempgonk-build 2Debug\` aus dem
+>   Arbeitsverzeichnis geloescht (war nie getrackt).
+>
+> **Release-Build nach der Bereinigung: 0 Fehler, 0 Warnungen.**
+>
+> **Runde 27 (2026-07-27): Grosse PDFs, und der Text-Editor ist ausgemessen.**
 >
 > **PDF-Import laedt nichts mehr am Stueck.** PDFium oeffnet die Datei jetzt ueber ihren
 > **Pfad** (vorher `File.ReadAllBytes`), und `PdfImporter.StreamPages` gibt die Seiten einzeln
@@ -756,23 +792,22 @@ Nutzer-Test mit Stift.
     dynamisch gebaute Menüs). Beim Cleanup Strings gleich zentralisieren. Kleinkram: dynamische
     Menüs müssen die aktuelle Sprache lesen; Über-Dialog lädt das dt. README (EN-Variante oder
     DE lassen); Datums-/Zahlenformate über `CultureInfo`. Grob 1–3 Tage für Vollabdeckung.
-  - **GitHub-Veröffentlichung (MIT) — der nächste Schritt (Stand 2026-07-27).**
-    Alles Vorgelagerte ist erledigt: Cleanup, zweite Sprache, Render-Caching, RAM (60 % des
-    Ziels), große Dokumente. **Vor dem Public-Schalten abzuarbeiten:**
-    1. **`LICENSE` (MIT, Copyright Manuel Toegel)** anlegen + README-Abschnitt „Lizenz".
-       Optional „Third-party": alle Abhängigkeiten sind permissiv — LiteDB, SkiaSharp,
-       Svg.Skia, OpenXML MIT · Docnet/PDFium BSD-3 · Tesseract + tessdata Apache-2.0.
-    2. **Alle 14 Sticker löschen** (`Assets/Stickers/*.png`, u. a. Meme-/Fremdmaterial) —
-       dafür gibt es **keine Lizenz**. **Auch aus der Git-History**, sonst sind sie über
-       einen alten Commit weiter auscheckbar. Am einfachsten ein **neues Repo mit einem
-       sauberen Initial-Commit**; sonst `git filter-repo`/BFG auf `Assets/Stickers/**`.
-       Die csproj-Zeile kann bleiben (matcht dann nichts). Das Sticker-**Feature** bleibt:
-       eigene Sticker liegen in `%APPDATA%\GonkNote\Stickers`.
-    3. **Cover bleiben** (`Assets/Covers/**`, vom Nutzer selbst erstellt).
-    4. Prüfen, dass **keine echten Notizdaten** im Repo oder in der History liegen — die
-       echte Datenbank liegt in `%APPDATA%`, `TestAssets/` ist gelöscht, Testdatenbanken und
-       Blob-Ordner sind seit 2026-07-27 in `.gitignore`.
-    5. Keine Schriftdateien einchecken (geprüft: keine `.ttf`/`.otf` im Repo).
+  - **GitHub-Veröffentlichung (MIT): ✔ vorbereitet am 2026-07-27 (Runde 28, siehe oben).**
+    Punkte 1–5 der Checkliste sind abgearbeitet und verifiziert:
+    1. ✅ **`LICENSE` (MIT, Copyright 2026 Manuel Toegel)** + README-Abschnitt „Lizenz" mit
+       Bibliotheks-Tabelle (alle permissiv: MIT · BSD-3 · Apache-2.0).
+    2. ✅ **Alle 14 Sticker gelöscht**, aus dem Arbeitsstand **und der History** — zusätzlich
+       die zweite, in der Checkliste übersehene Kopie unter `Änderungen/Basis Sticker/`.
+       Die csproj-Zeile blieb stehen (matcht nichts mehr), das Sticker-Werkzeug funktioniert
+       unverändert mit `%APPDATA%\GonkNote\Stickers`.
+    3. ✅ **Cover bleiben** (`Assets/Covers/**`, vom Nutzer selbst erstellt) — in der README
+       ausdrücklich als eigenes Werk unter derselben Lizenz ausgewiesen.
+    4. ✅ **Keine echten Notizdaten** im Repo oder in der History (`.db`/`.db-log`/`.blobs`
+       nie committet, `TestAssets/` nie im Repo, seit 2026-07-27 zusätzlich in `.gitignore`).
+    5. ✅ **Keine Schriftdateien**, Schlüssel oder Zertifikate in der History.
+
+    **Offen ist nur noch das Anlegen und Pushen des Repos** (`gh` 2.96.0 ist installiert,
+    Login steht aus). Danach: `git remote add origin …` + `git push -u origin main`.
   - **Cross-Platform (Linux): am 2026-07-24 vom Nutzer abgebrochen.** Der Avalonia-Port ist
     komplett aus dem Repo entfernt; Gonk Note bleibt eine **reine Windows-/WPF-App**. Was aus
     dem Versuch geblieben ist (`GonkNote.Core`, De-Duplizierung, Bleistift-Textur) und was die

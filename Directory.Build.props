@@ -2,11 +2,15 @@
 
   <!-- Gemeinsame Eigenschaften aller Projekte. Was hier steht, muss nicht in jeder
        .csproj wiederholt werden. Das Ziel-Framework bleibt bewusst in den Projekten:
-       GonkNote.Core ist net8.0 (plattformneutral), der WPF-Kopf net8.0-windows. -->
+       GonkNote.Core ist net10.0 (plattformneutral), der WPF-Kopf net10.0-windows.
+
+       net10.0 statt des in der Roadmap genannten net9.0: .NET 9 ist eine STS-Version und
+       laeuft im Mai 2026 aus, .NET 10 ist LTS (Support bis Nov 2028). Fuer den iOS-Kopf
+       kommt dazu, dass net10.0-ios das SDK mitbringt, das hier ohnehin installiert ist. -->
   <PropertyGroup>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <LangVersion>12</LangVersion>
+    <LangVersion>14</LangVersion>
     <Version>0.2.0</Version>
     <Company>GonkNote</Company>
     <Product>Gonk Note</Product>

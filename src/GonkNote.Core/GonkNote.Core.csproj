@@ -1,14 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <!-- Kernbibliothek ohne UI-Bezug: Models, Datenbank, Undo, Bild-Cache, PDF-Import,
-       Lokalisierung und die SkiaSharp-Zeichenroutinen des Whiteboards. Bewusst `net8.0`
+       Lokalisierung und die SkiaSharp-Zeichenroutinen des Whiteboards. Bewusst `net10.0`
        (kein `-windows`, kein WPF) — das ist die Schichtgrenze, an der der Linux- und der
        iPadOS-Kopf ansetzen. Alle Köpfe referenzieren dieses Projekt, es selbst keinen.
 
        Gemeinsame Eigenschaften: ..\..\Directory.Build.props
        Paketversionen:          ..\..\Directory.Packages.props -->
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>GonkNote.Core</RootNamespace>
     <AssemblyName>GonkNote.Core</AssemblyName>
   </PropertyGroup>

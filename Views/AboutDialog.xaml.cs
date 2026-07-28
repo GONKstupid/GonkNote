@@ -1,10 +1,15 @@
 using System.IO;
 using System.Reflection;
 using System.Windows;
+using System.Windows.Documents;
+using GonkNote.Services;
 
 namespace GonkNote.Views;
 
-/// <summary>Über-Dialog: App-Infos plus eingebettetes README.</summary>
+/// <summary>
+/// Über-Dialog: App-Infos plus das eingebettete README — gesetzt als formatierter Text,
+/// nicht als roher Markdown-Quelltext (<see cref="MarkdownFlow"/>).
+/// </summary>
 public partial class AboutDialog : Window
 {
     public AboutDialog()
@@ -20,12 +25,13 @@ public partial class AboutDialog : Window
             if (res != null)
             {
                 using var reader = new StreamReader(res.Stream);
-                ReadmeText.Text = reader.ReadToEnd();
+                ReadmeView.Document = MarkdownFlow.ToFlowDocument(reader.ReadToEnd());
             }
         }
         catch
         {
-            ReadmeText.Text = "README konnte nicht geladen werden.";
+            ReadmeView.Document = new FlowDocument(
+                new Paragraph(new Run("README konnte nicht geladen werden.")));
         }
     }
 }

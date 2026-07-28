@@ -32,12 +32,11 @@
         <!-- README -->
         <Border BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1" CornerRadius="6"
                 Background="{DynamicResource Brush.CardBg}">
-            <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="14,10">
-                <TextBox x:Name="ReadmeText" IsReadOnly="True" BorderThickness="0"
-                         Background="Transparent" Foreground="{DynamicResource Brush.Text}"
-                         FontFamily="Consolas" FontSize="12" TextWrapping="Wrap"
-                         IsReadOnlyCaretVisible="False"/>
-            </ScrollViewer>
+            <FlowDocumentScrollViewer x:Name="ReadmeView" Padding="14,10"
+                                      VerticalScrollBarVisibility="Auto"
+                                      HorizontalScrollBarVisibility="Disabled"
+                                      IsSelectionEnabled="True" Background="Transparent"
+                                      Foreground="{DynamicResource Brush.Text}"/>
         </Border>
 
     </DockPanel>

@@ -1,7 +1,5 @@
-using System.IO;
 using System.Reflection;
 using System.Windows;
-using System.Windows.Documents;
 using GonkNote.Services;
 
 namespace GonkNote.Views;
@@ -19,19 +17,16 @@ public partial class AboutDialog : Window
         var version = Assembly.GetExecutingAssembly().GetName().Version;
         VersionText.Text = $"Version {version?.ToString(3) ?? "?"} – Phase 3";
 
-        try
-        {
-            var res = Application.GetResourceStream(new Uri("pack://application:,,,/README.md"));
-            if (res != null)
-            {
-                using var reader = new StreamReader(res.Stream);
-                ReadmeView.Document = MarkdownFlow.ToFlowDocument(reader.ReadToEnd());
-            }
-        }
-        catch
-        {
-            ReadmeView.Document = new FlowDocument(
-                new Paragraph(new Run("README konnte nicht geladen werden.")));
-        }
+        ReadmeView.Document = MarkdownFlow.ToFlowDocument(EmbeddedDocs.Readme(), OpenDocument);
+    }
+
+    /// <summary>
+    /// Verweise im README auf andere Dokumente. „Erste Schritte" öffnet den zugehörigen
+    /// Dialog, statt ins Leere zu zeigen — die Datei liegt im Repo, nicht neben der Exe.
+    /// </summary>
+    private void OpenDocument(string target)
+    {
+        if (!EmbeddedDocs.IsGuideLink(target)) return;
+        new GuideDialog { Owner = this }.ShowDialog();
     }
 }

@@ -1,0 +1,36 @@
+<Window x:Class="GonkNote.Views.GuideDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="clr-namespace:GonkNote.Services"
+        Title="{loc:T Guide.Title}" Width="760" Height="720"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource Brush.WindowBg}"
+        FontFamily="Segoe UI" FontSize="13"
+        Foreground="{DynamicResource Brush.Text}"
+        ShowInTaskbar="False">
+    <DockPanel Margin="18">
+
+        <!-- Kopf -->
+        <StackPanel DockPanel.Dock="Top" Margin="0,0,0,12">
+            <TextBlock Text="{loc:T Guide.Heading}" FontSize="19" FontWeight="SemiBold"/>
+            <TextBlock Text="{loc:T Guide.Subtitle}" TextWrapping="Wrap" Margin="0,4,0,0"
+                       Foreground="{DynamicResource Brush.TextMuted}"/>
+        </StackPanel>
+
+        <!-- Fußzeile -->
+        <Button DockPanel.Dock="Bottom" Content="{loc:T Window.Close}" Style="{StaticResource AccentButton}"
+                MinWidth="110" HorizontalAlignment="Right" Margin="0,12,0,0"
+                IsCancel="True" IsDefault="True"/>
+
+        <!-- Anleitung -->
+        <Border BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1" CornerRadius="6"
+                Background="{DynamicResource Brush.CardBg}">
+            <FlowDocumentScrollViewer x:Name="GuideView" Padding="16,12"
+                                      VerticalScrollBarVisibility="Auto"
+                                      HorizontalScrollBarVisibility="Disabled"
+                                      IsSelectionEnabled="True" Background="Transparent"
+                                      Foreground="{DynamicResource Brush.Text}"/>
+        </Border>
+
+    </DockPanel>
+</Window>

@@ -6,6 +6,9 @@ exportierten und gesicherten Notiz. Rechne mit **10 Minuten**.
 Wenn du wissen willst, *was* Gonk Note alles kann, lies die
 [Feature-Übersicht im README](README.md). Hier geht es darum, *wie* du anfängst.
 
+*(Deutsche Fassung. Die englische ist `GETTING-STARTED.md`. Im Programm richtet sich diese
+Anleitung nach der Sprache, die du unter Ansicht → Sprache gewählt hast.)*
+
 ---
 
 ## Inhalt

@@ -27,6 +27,7 @@ internal static class LocGerman
         ["Menu.View.Language.German"] = "Deutsch",
         ["Menu.View.Language.English"] = "Englisch",
         ["Menu.Help"] = "_Hilfe",
+        ["Menu.Help.Guide"] = "_Erste Schritte",
         ["Menu.Help.About"] = "Über _Gonk Note",
 
         // ---- Seitenleiste ----
@@ -406,6 +407,9 @@ internal static class LocGerman
         ["Dlg.Ok"] = "OK",
         ["Dlg.All"] = "Alle",
         ["Dlg.None"] = "Keine",
+        ["Guide.Title"] = "Erste Schritte",
+        ["Guide.Heading"] = "Erste Schritte mit Gonk Note",
+        ["Guide.Subtitle"] = "Von der ersten Notiz bis zur Sicherung — Schritt für Schritt.",
         ["About.Title"] = "Über Gonk Note",
         ["About.Subtitle"] = "Offline-Notizen, Whiteboards und Textdokumente. Daten liegen lokal unter %APPDATA%\\GonkNote.",
         ["Chart.Title"] = "Diagramm einfügen",

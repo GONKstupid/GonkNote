@@ -272,6 +272,11 @@ public partial class MainWindow : Window
         new Views.AboutDialog { Owner = this }.ShowDialog();
     }
 
+    private void Guide_Click(object sender, RoutedEventArgs e)
+    {
+        new Views.GuideDialog { Owner = this }.ShowDialog();
+    }
+
     // ==================== Baum: Auswahl & Öffnen ====================
 
     private void Tree_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)

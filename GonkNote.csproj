@@ -43,7 +43,13 @@
 
   <ItemGroup>
     <Resource Include="Assets\gonk-note-Icon.png" />
+    <!-- README und Anleitung, je Sprache eine Fassung. Sie liegen als Resource in der Exe:
+         Hilfe -> Ueber Gonk Note bzw. Hilfe -> Erste Schritte zeigen sie formatiert an,
+         Textaenderungen wirken also ohne Code-Aenderung (Services\EmbeddedDocs.cs). -->
     <Resource Include="README.md" />
+    <Resource Include="README.en.md" />
+    <Resource Include="ERSTE-SCHRITTE.md" />
+    <Resource Include="GETTING-STARTED.md" />
     <!-- Geodreieck: je Theme eine Vektorgrafik, wie die Sticker als lose Begleitdatei
          neben die Exe. Eigene Zeichnungen des Nutzers liegen in %APPDATA%\GonkNote und
          haben Vorrang (WbAidRenderer.UserAssetFolder). -->

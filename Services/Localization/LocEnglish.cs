@@ -26,6 +26,8 @@ internal static class LocEnglish
         ["Menu.View.Language.German"] = "German",
         ["Menu.View.Language.English"] = "English",
         ["Menu.Help"] = "_Help",
+        // Zugriffstaste bewusst "s": "About _Gonk Note" belegt bereits das G.
+        ["Menu.Help.Guide"] = "Getting _started",
         ["Menu.Help.About"] = "About _Gonk Note",
 
         // ---- Sidebar ----
@@ -405,6 +407,9 @@ internal static class LocEnglish
         ["Dlg.Ok"] = "OK",
         ["Dlg.All"] = "All",
         ["Dlg.None"] = "None",
+        ["Guide.Title"] = "Getting started",
+        ["Guide.Heading"] = "Getting started with Gonk Note",
+        ["Guide.Subtitle"] = "From your first note to your first backup — step by step.",
         ["About.Title"] = "About Gonk Note",
         ["About.Subtitle"] = "Offline notes, whiteboards and text documents. Data is stored locally under %APPDATA%\\GonkNote.",
         ["Chart.Title"] = "Insert chart",

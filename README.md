@@ -9,6 +9,9 @@ ohne Cloud, ohne Installation, ohne Adminrechte.
 > Repos bis zur ersten beschriebenen, exportierten und gesicherten Notiz. Diese Seite
 > hier beschreibt, *was* Gonk Note kann — die Anleitung zeigt, *wie* du anfängst.
 
+*(Deutsche Fassung. Die englische ist `README.en.md`. Im Programm richtet sich diese Seite
+nach der Sprache, die du unter Ansicht → Sprache gewählt hast.)*
+
 ## Features
 
 - **Ordnerbaum** mit beliebiger Verschachtelung, Drag & Drop (Verschieben, mit `Strg` Kopieren),

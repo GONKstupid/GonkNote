@@ -27,7 +27,27 @@ public static class MarkdownFlow
     private const string FontUi = "Segoe UI";
     private const string FontMono = "Consolas";
 
-    public static FlowDocument ToFlowDocument(string markdown)
+    /// <summary>
+    /// Behandelt Verweise auf andere Dokumente im Projekt (z. B. <c>ERSTE-SCHRITTE.md</c>).
+    /// Wird für die Dauer eines <see cref="ToFlowDocument"/>-Laufs gesetzt, damit die
+    /// rekursiven Hilfsmethoden ihn nicht als Parameter durchreichen müssen; der vorige
+    /// Wert wird wiederhergestellt, weil Zitatblöcke sich selbst erneut aufrufen.
+    /// </summary>
+    [System.ThreadStatic] private static Action<string>? _docLink;
+
+    /// <param name="onDocumentLink">
+    /// Wird mit dem Linkziel aufgerufen, wenn im Text ein Verweis auf eine andere
+    /// <c>.md</c>-Datei angeklickt wird. Ohne Handler bleiben solche Verweise Text.
+    /// </param>
+    public static FlowDocument ToFlowDocument(string markdown, Action<string>? onDocumentLink = null)
+    {
+        var previous = _docLink;
+        if (onDocumentLink != null) _docLink = onDocumentLink;
+        try { return Build(markdown); }
+        finally { _docLink = previous; }
+    }
+
+    private static FlowDocument Build(string markdown)
     {
         var doc = new FlowDocument
         {
@@ -169,7 +189,9 @@ public static class MarkdownFlow
             ? TextMarkerStyle.Decimal
             : TextMarkerStyle.Disc,
         Margin = new Thickness(0, 4, 0, 8),
-        Padding = new Thickness(20, 0, 0, 0),
+        // Breit genug für zweistellige Nummern — bei 20 schnitt WPF die führende
+        // Ziffer ab, aus „10." wurde „0.".
+        Padding = new Thickness(32, 0, 0, 0),
     };
 
     private static Block BuildTable(string[] lines, ref int i)
@@ -276,20 +298,34 @@ public static class MarkdownFlow
         return span;
     }
 
-    /// <summary>Nur Links ins Web sind anklickbar; Verweise auf Dateien im Repo bleiben Text.</summary>
+    /// <summary>
+    /// Web-Links öffnen den Browser. Verweise auf andere <c>.md</c>-Dateien gehen an den
+    /// Handler aus <see cref="ToFlowDocument"/> — so landet „Erste Schritte" im README
+    /// beim passenden Dialog statt im Nichts. Alles Übrige bleibt Text.
+    /// </summary>
     private static Inline Link(string text, string url)
     {
-        if (!url.StartsWith("http", System.StringComparison.OrdinalIgnoreCase))
+        if (url.StartsWith("http", System.StringComparison.OrdinalIgnoreCase))
         {
-            var plain = new Run(text);
-            plain.SetResourceReference(TextElement.ForegroundProperty, "Brush.Accent");
-            return plain;
+            var web = new Hyperlink(new Run(text)) { NavigateUri = new System.Uri(url), ToolTip = url };
+            web.SetResourceReference(TextElement.ForegroundProperty, "Brush.Accent");
+            web.RequestNavigate += OnNavigate;
+            return web;
         }
 
-        var link = new Hyperlink(new Run(text)) { NavigateUri = new System.Uri(url), ToolTip = url };
-        link.SetResourceReference(TextElement.ForegroundProperty, "Brush.Accent");
-        link.RequestNavigate += OnNavigate;
-        return link;
+        var handler = _docLink;
+        if (handler != null && url.EndsWith(".md", System.StringComparison.OrdinalIgnoreCase))
+        {
+            string target = url;
+            var doc = new Hyperlink(new Run(text));
+            doc.SetResourceReference(TextElement.ForegroundProperty, "Brush.Accent");
+            doc.Click += (_, _) => handler(target);
+            return doc;
+        }
+
+        var plain = new Run(text);
+        plain.SetResourceReference(TextElement.ForegroundProperty, "Brush.Accent");
+        return plain;
     }
 
     private static void OnNavigate(object sender, RequestNavigateEventArgs e)

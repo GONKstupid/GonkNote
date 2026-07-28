@@ -23,7 +23,8 @@ Wenn du wissen willst, *was* Gonk Note alles kann, lies die
 11. [Eigene Sticker, Cover und Geodreieck](#11-eigene-sticker-cover-und-geodreieck)
 12. [Sprache und Design](#12-sprache-und-design)
 13. [Spickzettel](#13-spickzettel)
-14. [Wenn etwas klemmt](#14-wenn-etwas-klemmt)
+14. [Auf eine neue Version aktualisieren](#14-auf-eine-neue-version-aktualisieren)
+15. [Wenn etwas klemmt](#15-wenn-etwas-klemmt)
 
 ---
 
@@ -333,7 +334,62 @@ rückgängig.
 
 ---
 
-## 14. Wenn etwas klemmt
+## 14. Auf eine neue Version aktualisieren
+
+Gonk Note aktualisiert sich **nicht** von selbst — es gibt keinen Updater und keine
+Internetverbindung. Du holst dir den neuen Stand und baust neu. Das dauert unter
+einer Minute.
+
+**Welche Version läuft gerade?** `Hilfe → Über Gonk Note` zeigt sie oben
+(z. B. „Version 0.1.0 – Phase 3").
+
+**Schritt für Schritt:**
+
+1. **Gonk Note schließen.** Eine laufende Exe lässt sich nicht überschreiben; der
+   Build bricht sonst mit „Zugriff verweigert" ab.
+2. **Neuen Stand holen** — im Projektordner:
+
+   ```bash
+   git pull
+   ```
+
+3. **Neu bauen** — und hier kommt es darauf an, was du startest:
+
+   | Du startest… | Befehl | Ergebnis liegt in |
+   |---|---|---|
+   | die Verknüpfung im Startmenü | `dotnet build -c Release` | `bin\Release\net8.0-windows\win-x64\` |
+   | eine kopierte Einzeldatei-Exe | `dotnet publish -c Release` | `bin\Release\net8.0-windows\win-x64\publish\` |
+
+   Beim zweiten Weg musst du die neue `GonkNote.exe` anschließend wieder dorthin
+   kopieren, wo deine alte lag — **zusammen mit den Ordnern `Assets` und `tessdata`**,
+   falls die sich geändert haben.
+
+4. **Starten und in `Hilfe → Über Gonk Note` nachsehen**, ob die neue Version anliegt.
+
+**Deine Notizen bleiben dabei unangetastet.** Sie liegen in `%APPDATA%\GonkNote\` und
+haben mit dem Programmordner nichts zu tun — du kannst die Exe gefahrlos ersetzen oder
+sogar löschen. Trotzdem gilt: **vor einem Update einmal sichern**
+(siehe [Abschnitt 10](#10-sichern--bitte-einmal-einrichten)), das kostet zehn Sekunden.
+
+**Wenn der Build fehlschlägt:**
+
+| Meldung | Ursache |
+|---|---|
+| Zugriff verweigert / Datei in Verwendung | Gonk Note läuft noch — schließen und erneut bauen |
+| `NETSDK1045` o. Ä. zur Framework-Version | .NET SDK zu alt — [aktuelles SDK 8+](https://dotnet.microsoft.com/download/dotnet/8.0) installieren |
+| Merge-Konflikt bei `git pull` | du hast lokale Änderungen — `git stash`, dann erneut `git pull` |
+
+**Nur für dich als Entwickler:** Die Versionsnummer selbst steht in `GonkNote.csproj`
+(`<Version>`); die Phasenangabe daneben in `Views/AboutDialog.xaml.cs`. Beides wird von
+Hand gepflegt.
+
+**Eine Version zurück?** Alle Stände liegen in der Git-Historie:
+`git log --oneline` zeigt sie, `git checkout <commit>` holt einen davon, `git checkout main`
+bringt dich zurück. Danach jeweils neu bauen.
+
+---
+
+## 15. Wenn etwas klemmt
 
 **Die App zeigt einen Fehler.** Unerwartete Fehler landen in
 `%APPDATA%\GonkNote\fehler.log` und werden einmal pro Sitzung gemeldet. Diese

@@ -1,0 +1,88 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Windows-Kopf. Nach dem Umzug nach V2 (Phase 0) enthält dieses Projekt nur noch
+       Oberfläche und die plattformabhängigen Dienste; alles Neutrale liegt in
+       GonkNote.Core. Die ViewModels liegen bereits in ihrem eigenen Ordner
+       (..\GonkNote.ViewModels), werden aber noch hier mitkompiliert — die Trennung in
+       eine eigene Assembly ist Phase 2 (siehe HANDOFF §3). -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>GonkNote</AssemblyName>
+    <RootNamespace>GonkNote</RootNamespace>
+    <ApplicationIcon>..\..\Assets\GonkNote.ico</ApplicationIcon>
+    <SatelliteResourceLanguages>de;en</SatelliteResourceLanguages>
+  </PropertyGroup>
+
+  <!-- Single-File-Publish: dotnet publish -c Release -r win-x64 -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <SelfContained>true</SelfContained>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <PublishSingleFile>true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Docnet.Core" />
+    <PackageReference Include="DocumentFormat.OpenXml" />
+    <PackageReference Include="LiteDB" />
+    <PackageReference Include="SkiaSharp.Views.WPF" />
+    <PackageReference Include="Svg.Skia" />
+    <PackageReference Include="Tesseract" />
+  </ItemGroup>
+
+  <!-- Plattformneutrale Kernlogik (Models + DB + reine Services + Lokalisierung);
+       von diesem Kopf und später von Avalonia/iOS gemeinsam genutzt. -->
+  <ItemGroup>
+    <ProjectReference Include="..\GonkNote.Core\GonkNote.Core.csproj" />
+  </ItemGroup>
+
+  <!-- ViewModels: liegen seit Phase 0 in ihrem endgültigen Ordner, hängen im Code aber noch
+       an FlowDocument, Dispatcher und den WPF-Diensten dieses Projekts (Export/Import).
+       Eine eigene Assembly wäre deshalb heute ein Ringschluss. Bis Phase 2 werden sie
+       darum von hier aus mitkompiliert. -->
+  <ItemGroup>
+    <Compile Include="..\GonkNote.ViewModels\**\*.cs" LinkBase="ViewModels" />
+  </ItemGroup>
+
+  <!-- Assets, Dokumente und OCR-Sprachdaten liegen seit dem Umzug in der Repo-Wurzel,
+       also zwei Ebenen höher. `Link` hält den Pfad im Build-Ausgabeordner bzw. den
+       Resource-Namen ("pack://application:,,,/README.md") unverändert — davon hängen
+       EmbeddedDocs und der dreistufige Ladeweg des Geodreiecks ab. -->
+  <ItemGroup>
+    <Resource Include="..\..\Assets\gonk-note-Icon.png" Link="Assets\gonk-note-Icon.png" />
+    <!-- README und Anleitung, je Sprache eine Fassung. Sie liegen als Resource in der Exe:
+         Hilfe -> Ueber Gonk Note bzw. Hilfe -> Erste Schritte zeigen sie formatiert an,
+         Textaenderungen wirken also ohne Code-Aenderung (Services\EmbeddedDocs.cs). -->
+    <Resource Include="..\..\README.md" Link="README.md" />
+    <Resource Include="..\..\README.en.md" Link="README.en.md" />
+    <Resource Include="..\..\ERSTE-SCHRITTE.md" Link="ERSTE-SCHRITTE.md" />
+    <Resource Include="..\..\GETTING-STARTED.md" Link="GETTING-STARTED.md" />
+    <!-- Geodreieck: je Theme eine Vektorgrafik, wie die Sticker als lose Begleitdatei
+         neben die Exe. Eigene Zeichnungen des Nutzers liegen in %APPDATA%\GonkNote und
+         haben Vorrang (WbAidRenderer.UserAssetFolder). -->
+    <Content Include="..\..\Assets\Geodreieck-Light.svg" Link="Assets\Geodreieck-Light.svg"
+             CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\Assets\Geodreieck-Dark.svg" Link="Assets\Geodreieck-Dark.svg"
+             CopyToOutputDirectory="PreserveNewest" />
+    <!-- Sticker: es werden bewusst KEINE mitgeliefert (dafür gäbe es keine Lizenz). Die Regel
+         bleibt trotzdem stehen: wer eigene Motive fest ins Programm legen will, kopiert sie
+         nach Assets\Stickers. Der Normalfall sind Nutzer-Sticker in %APPDATA%\GonkNote\Stickers. -->
+    <Content Include="..\..\Assets\Stickers\*.png"
+             Link="Assets\Stickers\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <!-- Cover-Vorlagen (Nutzer-Motive, JPEG 1600 px lange Kante bzw. Pixel-Art-PNGs):
+         wie die Sticker neben die Exe; eigene Vorlagen liegen in %APPDATA%\GonkNote\Covers -->
+    <Content Include="..\..\Assets\Covers\**\*.jpg"
+             Link="Assets\Covers\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\Assets\Covers\**\*.png"
+             Link="Assets\Covers\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <!-- OCR-Sprachdaten (Tesseract, tessdata_fast deu+eng): wie die Sticker als
+         lose Begleitdatei neben die Exe. Die nativen Tesseract-DLLs kommen über
+         das NuGet-Paket in den x64-/x86-Unterordner. -->
+    <Content Include="..\..\tessdata\*.traineddata"
+             Link="tessdata\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

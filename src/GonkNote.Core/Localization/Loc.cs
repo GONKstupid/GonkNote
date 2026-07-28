@@ -1,7 +1,5 @@
 using System.Globalization;
 using System.ComponentModel;
-using System.Windows.Data;
-using System.Windows.Markup;
 
 namespace GonkNote.Services;
 
@@ -72,22 +70,4 @@ public sealed class LocSource : INotifyPropertyChanged
 
     internal void RaiseAllChanged() =>
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(string.Empty));
-}
-
-/// <summary>Markup-Erweiterung <c>{loc:T Schlüssel}</c> – bindet an den übersetzten Text.</summary>
-public sealed class TExtension : MarkupExtension
-{
-    public TExtension() { }
-
-    public TExtension(string key) => Key = key;
-
-    [ConstructorArgument("key")]
-    public string Key { get; set; } = "";
-
-    public override object ProvideValue(IServiceProvider serviceProvider) =>
-        new Binding($"[{Key}]")
-        {
-            Source = Loc.Source,
-            Mode = BindingMode.OneWay,
-        }.ProvideValue(serviceProvider);
 }

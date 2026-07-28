@@ -1,0 +1,29 @@
+<Project>
+
+  <!-- Zentrale Paketversionen (Central Package Management). Ab mehreren Projekten Pflicht,
+       sonst driften die Versionen auseinander: die .csproj nennen nur noch den Paketnamen,
+       die Version steht ausschließlich hier.
+
+       Bewusst noch die Stände aus V1 — der Umzug (Phase 0) soll das Verhalten der App
+       nicht verändern. Die in der Roadmap §4 vorgesehenen Anhebungen (SkiaSharp 3.x,
+       Svg.Skia 2.x) sind eigene, testbare Schritte; SkiaSharp 3 ist eine
+       API-Bruchversion und fasst WbRenderer an. -->
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageVersion Include="SkiaSharp" Version="2.88.9" />
+    <PackageVersion Include="SkiaSharp.Views.WPF" Version="2.88.9" />
+    <PackageVersion Include="Svg.Skia" Version="1.0.0.18" />
+    <PackageVersion Include="DocumentFormat.OpenXml" Version="3.1.0" />
+    <!-- PDF-Rasterung (PDFium). Hat Linux-Builds, fehlt auf iOS → Phase 2: IPdfRasterizer -->
+    <PackageVersion Include="Docnet.Core" Version="2.6.0" />
+    <!-- OCR. Windows/Linux; auf iOS ersetzt durch Vision → Phase 2: IOcrEngine -->
+    <PackageVersion Include="Tesseract" Version="5.2.0" />
+    <!-- Fliegt in Phase 2 raus: stürzt unter iOS/NativeAOT ab (Reflection.Emit).
+         Nachfolger: Microsoft.Data.Sqlite + JsonSerializerContext -->
+    <PackageVersion Include="LiteDB" Version="5.0.21" />
+  </ItemGroup>
+
+</Project>

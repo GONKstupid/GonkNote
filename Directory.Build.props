@@ -1,0 +1,21 @@
+<Project>
+
+  <!-- Gemeinsame Eigenschaften aller Projekte. Was hier steht, muss nicht in jeder
+       .csproj wiederholt werden. Das Ziel-Framework bleibt bewusst in den Projekten:
+       GonkNote.Core ist net8.0 (plattformneutral), der WPF-Kopf net8.0-windows. -->
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>12</LangVersion>
+    <Version>0.2.0</Version>
+    <Company>GonkNote</Company>
+    <Product>Gonk Note</Product>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <!-- Symbole einbetten, damit im Single-File-Publish keine lose .pdb neben der Exe liegt. -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <DebugType>embedded</DebugType>
+  </PropertyGroup>
+
+</Project>

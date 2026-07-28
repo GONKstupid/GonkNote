@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Kernbibliothek ohne UI-Bezug: Models, Datenbank, Undo, Bild-Cache, PDF-Import,
+       Lokalisierung und die SkiaSharp-Zeichenroutinen des Whiteboards. Bewusst `net8.0`
+       (kein `-windows`, kein WPF) — das ist die Schichtgrenze, an der der Linux- und der
+       iPadOS-Kopf ansetzen. Alle Köpfe referenzieren dieses Projekt, es selbst keinen.
+
+       Gemeinsame Eigenschaften: ..\..\Directory.Build.props
+       Paketversionen:          ..\..\Directory.Packages.props -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>GonkNote.Core</RootNamespace>
+    <AssemblyName>GonkNote.Core</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="LiteDB" />
+    <PackageReference Include="SkiaSharp" />
+    <!-- PDF-Rendering (PDFium); hat Linux-Builds → bleibt cross-platform -->
+    <PackageReference Include="Docnet.Core" />
+    <!-- SVG-Rendering für das Geodreieck-Overlay -->
+    <PackageReference Include="Svg.Skia" />
+  </ItemGroup>
+
+  <!-- Die Geodreieck-Grafiken sind hier bewusst NICHT eingebettet. Sie liegen als lose
+       Dateien neben der Exe (GonkNote.Wpf.csproj, Assets\Geodreieck-*.svg) und werden zur
+       Laufzeit geladen — so lässt sich eine Zeichnung austauschen, ohne neu zu bauen.
+       Vorrang hat immer die eigene Datei des Nutzers aus %APPDATA%\GonkNote. -->
+
+</Project>

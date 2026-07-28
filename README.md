@@ -57,9 +57,10 @@ ohne Cloud, ohne Installation, ohne Adminrechte.
     Gonk Note aus Lizenzgründen keine mit — lege eigene Bilder in
     `%APPDATA%\GonkNote\Stickers` ab (oder nutze die „+"-Kachel im Sticker-Werkzeug);
     Unterordner erscheinen als eigene Gruppen
-  - **Zeichenhilfen**: Lineal (`R`) und Geodreieck (`D`) mit Winkelskala, drehbar/einrastend.
-    Statt der selbst gezeichneten Kontur lässt sich eine eigene SVG hinterlegen
-    (`%APPDATA%\GonkNote\Geodreieck-Light.svg` bzw. `-Dark.svg`)
+  - **Zeichenhilfen**: Lineal (`R`) und Geodreieck (`D`), drehbar/einrastend. Das Geodreieck
+    ist eine mitgelieferte Vektorgrafik mit Millimeter- und Gradskala (je eine Fassung für
+    helles und dunkles App-Design). Eine eigene Zeichnung geht vor: als
+    `%APPDATA%\GonkNote\Geodreieck-Light.svg` bzw. `-Dark.svg` hinterlegen
   - **Bilder einfügen**: Toolbar-Button, `Strg+V` oder Drag & Drop
     (PNG, JPEG, BMP, GIF, WebP, SVG); mit Eckgriff proportional skalierbar
   - **PDF & Word einfügen** (Toolbar-Button oder Drag & Drop): mit Seitenauswahl-Dialog;
@@ -213,11 +214,9 @@ Kurz gesagt: benutzen, verändern und weitergeben ist erlaubt, auch kommerziell;
 Lizenztext und der Copyright-Hinweis müssen mitgeliefert werden, und es gibt keine
 Garantie.
 
-Die mitgelieferten **Notizbuch-Cover** (`Assets/Covers/**`) und das **App-Icon** sind eigene
-Werke und fallen unter dieselbe Lizenz. Darüber hinaus liefert Gonk Note bewusst keine
-Grafiken mit — weder Sticker noch eine Geodreieck-Vorlage; beides kannst du in
-`%APPDATA%\GonkNote` selbst hinterlegen (siehe
-[THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)).
+Die mitgelieferten **Notizbuch-Cover** (`Assets/Covers/**`), die **Geodreieck-Grafiken**
+(`Assets/Geodreieck-Light.svg`, `-Dark.svg`) und das **App-Icon** sind eigene Werke und
+fallen unter dieselbe Lizenz (siehe [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)).
 
 **Sticker liefert Gonk Note bewusst keine mit** — das Werkzeug arbeitet nur mit Bildern, die
 du selbst unter `%APPDATA%\GonkNote\Stickers` ablegst.

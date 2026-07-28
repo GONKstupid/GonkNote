@@ -272,9 +272,9 @@ gebraucht, holt Gonk Note es von selbst zurück.
 
 ## 11. Eigene Sticker, Cover und Geodreieck
 
-Gonk Note liefert aus Lizenzgründen bewusst keine Sticker und keine
-Geodreieck-Grafik mit. Beides legst du selbst ab — die Werkzeuge sind vollständig
-vorhanden:
+Cover und Geodreieck bringt Gonk Note mit; **Sticker liefert es aus Lizenzgründen
+bewusst keine** — die legst du selbst ab. Eigene Dateien haben überall Vorrang vor
+den mitgelieferten:
 
 | Was | Wohin |
 |---|---|
@@ -284,8 +284,11 @@ vorhanden:
 
 Sticker und Cover kannst du auch bequem über die **„+"-Kachel** im jeweiligen
 Werkzeug hochladen; Gonk Note kopiert sie dann selbst an die richtige Stelle.
-Ohne eigene SVG zeichnet Gonk Note das Geodreieck samt Winkelskala selbst — die
-Datei ist reine Kür.
+
+Beim Geodreieck legst du die Datei von Hand ab. Sie muss ein 16-cm-Geodreieck in
+einer viewBox von 2520 × 1680 sein, mit der Hypotenusen-Mitte im Zentrum — sonst
+passt der Aufdruck nicht zum Einrasten und Drehen. Fehlt sie, gilt die
+mitgelieferte Grafik; fehlt auch die, zeichnet Gonk Note eine schlichte Kontur.
 
 ---
 

@@ -44,7 +44,11 @@
   <ItemGroup>
     <Resource Include="Assets\gonk-note-Icon.png" />
     <Resource Include="README.md" />
-    <!-- Keine Geodreieck-SVGs mehr: siehe Kommentar in GonkNote.Core.csproj. -->
+    <!-- Geodreieck: je Theme eine Vektorgrafik, wie die Sticker als lose Begleitdatei
+         neben die Exe. Eigene Zeichnungen des Nutzers liegen in %APPDATA%\GonkNote und
+         haben Vorrang (WbAidRenderer.UserAssetFolder). -->
+    <Content Include="Assets\Geodreieck-Light.svg" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Assets\Geodreieck-Dark.svg" CopyToOutputDirectory="PreserveNewest" />
     <!-- Sticker: es werden bewusst KEINE mitgeliefert (dafür gäbe es keine Lizenz). Die Regel
          bleibt trotzdem stehen: wer eigene Motive fest ins Programm legen will, kopiert sie
          nach Assets\Stickers. Der Normalfall sind Nutzer-Sticker in %APPDATA%\GonkNote\Stickers. -->

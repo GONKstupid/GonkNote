@@ -5,8 +5,9 @@ using SkiaSharp;
 namespace GonkNote.Core.Rendering;
 
 /// <summary>
-/// Zeichnet das Geodreieck-Overlay. Standardmäßig als eigene Kontur; liegt unter
-/// <c>%APPDATA%\GonkNote</c> eine eigene SVG (je Theme eine Variante), wird die genommen.
+/// Zeichnet das Geodreieck-Overlay. Genommen wird die erste Grafik, die sich findet:
+/// die eigene des Nutzers aus <c>%APPDATA%\GonkNote</c>, sonst die mitgelieferte neben
+/// der Exe (je Theme eine Variante). Fehlen beide, entsteht die Kontur im Code.
 ///
 /// Vermessene SVG-Geometrie (viewBox 2520×1680): Hypotenuse von (2,2|1468,9) bis
 /// (2517,5|1468,9) = 2515,2 units, Spitze bei (1259,8|210) → 16-cm-Geodreieck →
@@ -28,19 +29,28 @@ public static class WbAidRenderer
     /// Wo eigene Geodreieck-Grafiken liegen dürfen:
     /// <c>%APPDATA%\GonkNote\Geodreieck-Light.svg</c> bzw. <c>-Dark.svg</c>.
     /// <para>
-    /// Gonk Note liefert **keine** mit. Die früher eingebettete Vorlage war eine Bearbeitung
-    /// einer Grafik unbekannter Herkunft – für ein quelloffenes Projekt eine Rechtsunsicherheit,
-    /// die sich nicht auflösen ließ. Wer eine eigene Zeichnung hat, legt sie hier ab; sonst
-    /// zeichnet <see cref="DrawSetSquare"/> die Kontur selbst.
+    /// Eine Datei hier gewinnt gegen die mitgelieferte aus <see cref="AppAssetFolder"/> –
+    /// dasselbe Muster wie bei Stickern und Cover-Vorlagen.
     /// </para>
     /// </summary>
     public static string UserAssetFolder { get; set; } = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "GonkNote");
 
     /// <summary>
-    /// Eigene SVG des jeweiligen Themes, beim ersten Zugriff geladen; null, wenn keine
-    /// hinterlegt ist. Die Erwartung ist dieselbe Geometrie wie beim Eigenbau: ein
-    /// 16-cm-Geodreieck, Hypotenusen-Mitte im Ursprung der viewBox-Vermessung.
+    /// Die mitgelieferten Geodreiecke neben der Exe (<c>Assets\Geodreieck-*.svg</c>).
+    /// <para>
+    /// Fehlen beide Quellen, zeichnet <see cref="DrawSetSquare"/> die Kontur selbst –
+    /// dann ohne Skalen, aber maßgleich.
+    /// </para>
+    /// </summary>
+    public static string AppAssetFolder { get; set; } =
+        Path.Combine(AppContext.BaseDirectory, "Assets");
+
+    /// <summary>
+    /// SVG des jeweiligen Themes, beim ersten Zugriff geladen; null, wenn keine zu finden
+    /// ist. Zuerst zählt die eigene Datei des Nutzers, danach die mitgelieferte. Die
+    /// Erwartung an beide ist dieselbe Geometrie wie beim Eigenbau: ein 16-cm-Geodreieck,
+    /// Hypotenusen-Mitte im Ursprung der viewBox-Vermessung.
     /// </summary>
     private static SKPicture? SetSquarePicture(bool dark)
     {
@@ -49,8 +59,9 @@ public static class WbAidRenderer
         {
             try
             {
-                string file = Path.Combine(UserAssetFolder,
-                    dark ? "Geodreieck-Dark.svg" : "Geodreieck-Light.svg");
+                string name = dark ? "Geodreieck-Dark.svg" : "Geodreieck-Light.svg";
+                string file = Path.Combine(UserAssetFolder, name);
+                if (!File.Exists(file)) file = Path.Combine(AppAssetFolder, name);
                 if (!File.Exists(file)) return null;
 
                 var svg = new Svg.Skia.SKSvg();
@@ -87,8 +98,9 @@ public static class WbAidRenderer
             return;
         }
 
-        // Eigenbau: schlichte Glas-Kontur. Das ist der Normalfall, seit keine Vorlage
-        // mitgeliefert wird – kein Notnagel, sondern das, was Gonk Note von Haus aus zeichnet.
+        // Eigenbau: schlichte Glas-Kontur ohne Skalen. Greift nur, wenn weder eine eigene
+        // noch die mitgelieferte Grafik da ist – maßgleich, damit Einrasten und Drehen
+        // auch dann stimmen.
         float rad = angleDeg * MathF.PI / 180f;
         float cos = MathF.Cos(rad), sin = MathF.Sin(rad);
         SKPoint P(float u, float v)

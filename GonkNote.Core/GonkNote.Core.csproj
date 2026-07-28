@@ -28,10 +28,9 @@
     <PackageReference Include="Svg.Skia" Version="1.0.0.18" />
   </ItemGroup>
 
-  <!-- Hier lagen bis 2026-07-27 die eingebetteten Geodreieck-SVGs. Sie sind entfallen:
-       die Vorlage war eine Bearbeitung einer Grafik unbekannter Herkunft und damit für ein
-       quelloffenes Projekt nicht haltbar. Gonk Note zeichnet die Kontur jetzt selbst
-       (WbAidRenderer.DrawSetSquare); wer eine eigene Zeichnung hat, legt sie als
-       %APPDATA%\GonkNote\Geodreieck-Light.svg bzw. -Dark.svg ab. -->
+  <!-- Die Geodreieck-Grafiken sind hier bewusst NICHT eingebettet. Sie liegen als lose
+       Dateien neben der Exe (GonkNote.csproj, Assets\Geodreieck-*.svg) und werden zur
+       Laufzeit geladen — so lässt sich eine Zeichnung austauschen, ohne neu zu bauen.
+       Vorrang hat immer die eigene Datei des Nutzers aus %APPDATA%\GonkNote. -->
 
 </Project>

@@ -1,4 +1,5 @@
 using System.IO;
+using GonkNote.Core.Rendering;
 using SkiaSharp;
 using Tesseract;
 
@@ -108,7 +109,7 @@ public static class OcrService
                 (int)Math.Round(bmp.Width * f),
                 (int)Math.Round(bmp.Height * f),
                 SKColorType.Bgra8888, SKAlphaType.Premul);
-            scaled = bmp.Resize(info, SKFilterQuality.High);
+            scaled = bmp.Resize(info, WbRenderer.HighSampling);
             if (scaled != null) work = scaled;
         }
 

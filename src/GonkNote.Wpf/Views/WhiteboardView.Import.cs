@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Media.Imaging;
 using GonkNote.Core.Models;
 using GonkNote.Services;
+using GonkNote.Core.Rendering;
 using GonkNote.Core.Services;
 using GonkNote.ViewModels;
 using SkiaSharp;
@@ -101,7 +102,7 @@ public partial class WhiteboardView
         {
             int nw = Math.Max(1, (int)(bmp.Width * scale));
             int nh = Math.Max(1, (int)(bmp.Height * scale));
-            use = bmp.Resize(new SKImageInfo(nw, nh), SKFilterQuality.High) ?? bmp;
+            use = bmp.Resize(new SKImageInfo(nw, nh), WbRenderer.HighSampling) ?? bmp;
         }
         try
         {

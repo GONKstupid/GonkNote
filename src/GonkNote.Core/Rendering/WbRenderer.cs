@@ -28,6 +28,13 @@ public static class WbFonts
         }
         return tf;
     }
+
+    /// <summary>
+    /// Schrift für die Textausgabe. Seit SkiaSharp 3 liegen Größe und Schriftart in
+    /// <see cref="SKFont"/> statt in <see cref="SKPaint"/> — das Paint trägt nur noch
+    /// Farbe, Kantenglättung und Effekte. Der Aufrufer gibt das Ergebnis frei.
+    /// </summary>
+    public static SKFont Font(string? name, float size) => new(Family(name), size);
 }
 
 /// <summary>
@@ -43,6 +50,21 @@ public static class WbRenderer
 
     /// <summary>Breite des weichen Schattenrands (Canvas-Einheiten).</summary>
     private const int ShadowFringe = 18;
+
+    /// <summary>
+    /// Abtastung beim Skalieren von Bildern: bilinear mit Mipmaps. Entspricht dem, was bis
+    /// SkiaSharp 2 <c>SKFilterQuality.Medium</c> war — seit 3.x wird die Qualität nicht mehr
+    /// am Paint eingestellt, sondern beim Zeichnen mitgegeben. Eine Wahrheit für Ansicht,
+    /// PDF-Export und OCR-Vorverarbeitung.
+    /// </summary>
+    public static readonly SKSamplingOptions MediumSampling =
+        new(SKFilterMode.Linear, SKMipmapMode.Linear);
+
+    /// <summary>
+    /// Abtastung für Export und Verkleinerung großer Vorlagen: bikubisch (Mitchell) —
+    /// der Nachfolger von <c>SKFilterQuality.High</c>.
+    /// </summary>
+    public static readonly SKSamplingOptions HighSampling = new(SKCubicResampler.Mitchell);
 
     private static SKImage? _stickyShadowImg;   // Notizzettel (Radius 6, Alpha 45)
 
@@ -83,15 +105,11 @@ public static class WbRenderer
 
     public static SKRect TextBounds(TextElement t)
     {
-        using var paint = new SKPaint
-        {
-            TextSize = t.FontSize,
-            Typeface = WbFonts.Family(t.FontFamily),
-        };
+        using var font = WbFonts.Font(t.FontFamily, t.FontSize);
         var lines = t.Text.Length == 0 ? new[] { " " } : t.Text.Split('\n');
         float w = 10;
         foreach (var line in lines)
-            w = Math.Max(w, paint.MeasureText(line.Length == 0 ? " " : line));
+            w = Math.Max(w, font.MeasureText(line.Length == 0 ? " " : line));
         float h = lines.Length * t.FontSize * 1.35f;
         return SKRect.Create(t.X, t.Y, w, h);
     }
@@ -161,7 +179,10 @@ public static class WbRenderer
         var center = new SKRectI(inset, inset, img.Width - inset, img.Height - inset);
         var dst = SKRect.Create(rect.Left - ShadowFringe, rect.Top - ShadowFringe + 3,
             rect.Width + 2 * ShadowFringe, rect.Height + 2 * ShadowFringe);
-        canvas.DrawImageNinePatch(img, center, dst);
+        // Filtermodus seit SkiaSharp 3 ausdrücklich: ohne ihn ist der Aufruf zweideutig.
+        // Gedehnt wird nur die Mittelzeile/-spalte, die entlang der Dehnrichtung konstant
+        // ist — das Bild ändert sich dadurch nicht.
+        canvas.DrawImageNinePatch(img, center, dst, SKFilterMode.Linear, null);
     }
 
     // ---- Elemente -----------------------------------------------------------------------
@@ -206,8 +227,8 @@ public static class WbRenderer
             canvas.DrawRect(rect, ph);
             return;
         }
-        using var paint = new SKPaint { IsAntialias = true, FilterQuality = SKFilterQuality.Medium };
-        canvas.DrawImage(img, rect, paint);
+        using var paint = new SKPaint { IsAntialias = true };
+        canvas.DrawImage(img, rect, MediumSampling, paint);
     }
 
     public static void DrawStroke(SKCanvas canvas, StrokeElement s)
@@ -293,6 +314,7 @@ public static class WbRenderer
     private static SKColorFilter BuildGrainContrast()
     {
         var table = new byte[256];
+        var identity = new byte[256];
         for (int i = 0; i < 256; i++)
         {
             float v = i / 255f;
@@ -300,8 +322,12 @@ public static class WbRenderer
             // sodass klar getrennte Körner entstehen (statt eines weichen Grauverlaufs).
             float t = Math.Clamp((v - 0.32f) / 0.26f, 0f, 1f);
             table[i] = (byte)(t * 255f);
+            identity[i] = (byte)i;
         }
-        return SKColorFilter.CreateTable(table, null, null, null);
+        // Nur der Alphakanal wird verbogen, R/G/B bleiben unverändert. Bis SkiaSharp 2 stand
+        // dafür `null`; seit 3.x wirft das eine ArgumentNullException — die unveränderte
+        // Kennlinie muss ausgeschrieben werden.
+        return SKColorFilter.CreateTable(table, identity, identity, identity);
     }
 
     /// <summary>
@@ -438,17 +464,12 @@ public static class WbRenderer
             canvas.DrawRoundRect(b, 3, 3, bg);
         }
 
-        using var paint = new SKPaint
-        {
-            IsAntialias = true,
-            Color = ParseColor(t.Color),
-            TextSize = t.FontSize,
-            Typeface = WbFonts.Family(t.FontFamily),
-        };
+        using var paint = new SKPaint { IsAntialias = true, Color = ParseColor(t.Color) };
+        using var font = WbFonts.Font(t.FontFamily, t.FontSize);
         float lineHeight = t.FontSize * 1.35f;
         var lines = t.Text.Split('\n');
         for (int i = 0; i < lines.Length; i++)
-            canvas.DrawText(lines[i], t.X, t.Y + t.FontSize + i * lineHeight, paint);
+            canvas.DrawText(lines[i], t.X, t.Y + t.FontSize + i * lineHeight, font, paint);
     }
 
     /// <summary>Zeichnet nur die Zettelkarte (Schatten, Fläche, dezenter Rand) – ohne Text.</summary>
@@ -479,13 +500,8 @@ public static class WbRenderer
         DrawStickyCard(canvas, sn);
         if (string.IsNullOrEmpty(sn.Text)) return;
 
-        using var paint = new SKPaint
-        {
-            IsAntialias = true,
-            Color = ParseColor(sn.TextColor),
-            TextSize = sn.FontSize,
-            Typeface = WbFonts.Family(sn.FontFamily),
-        };
+        using var paint = new SKPaint { IsAntialias = true, Color = ParseColor(sn.TextColor) };
+        using var font = WbFonts.Font(sn.FontFamily, sn.FontSize);
 
         float lineHeight = sn.FontSize * 1.32f;
         float maxWidth = sn.Width - StickyPad * 2;
@@ -496,10 +512,10 @@ public static class WbRenderer
         canvas.Save();
         canvas.ClipRect(SKRect.Create(sn.X, sn.Y, sn.Width, sn.Height));
         float y = yBase;
-        foreach (var line in WrapText(sn.Text, paint, maxWidth))
+        foreach (var line in WrapText(sn.Text, font, maxWidth))
         {
             if (y > maxY) break; // Text, der nicht mehr passt, wird abgeschnitten
-            canvas.DrawText(line, x, y, paint);
+            canvas.DrawText(line, x, y, font, paint);
             y += lineHeight;
         }
         canvas.Restore();
@@ -508,7 +524,7 @@ public static class WbRenderer
     // ---- Textumbruch ---------------------------------------------------------------------
 
     /// <summary>Bricht Text an Wortgrenzen auf die verfügbare Breite um (respektiert \n).</summary>
-    public static IEnumerable<string> WrapText(string text, SKPaint paint, float maxWidth)
+    public static IEnumerable<string> WrapText(string text, SKFont font, float maxWidth)
     {
         foreach (var para in text.Split('\n'))
         {
@@ -519,12 +535,12 @@ public static class WbRenderer
             foreach (var word in words)
             {
                 var candidate = current.Length == 0 ? word : current + " " + word;
-                if (paint.MeasureText(candidate) <= maxWidth || current.Length == 0)
+                if (font.MeasureText(candidate) <= maxWidth || current.Length == 0)
                 {
                     // Einzelnes zu langes Wort hart umbrechen
-                    if (current.Length == 0 && paint.MeasureText(word) > maxWidth)
+                    if (current.Length == 0 && font.MeasureText(word) > maxWidth)
                     {
-                        foreach (var chunk in BreakLongWord(word, paint, maxWidth))
+                        foreach (var chunk in BreakLongWord(word, font, maxWidth))
                         {
                             if (chunk.Last) { current = chunk.Text; }
                             else yield return chunk.Text;
@@ -536,9 +552,9 @@ public static class WbRenderer
                 {
                     yield return current;
                     current = word;
-                    if (paint.MeasureText(word) > maxWidth)
+                    if (font.MeasureText(word) > maxWidth)
                     {
-                        foreach (var chunk in BreakLongWord(word, paint, maxWidth))
+                        foreach (var chunk in BreakLongWord(word, font, maxWidth))
                         {
                             if (chunk.Last) current = chunk.Text;
                             else yield return chunk.Text;
@@ -550,12 +566,12 @@ public static class WbRenderer
         }
     }
 
-    private static IEnumerable<(string Text, bool Last)> BreakLongWord(string word, SKPaint paint, float maxWidth)
+    private static IEnumerable<(string Text, bool Last)> BreakLongWord(string word, SKFont font, float maxWidth)
     {
         var chunk = "";
         foreach (var ch in word)
         {
-            if (chunk.Length > 0 && paint.MeasureText(chunk + ch) > maxWidth)
+            if (chunk.Length > 0 && font.MeasureText(chunk + ch) > maxWidth)
             {
                 yield return (chunk, false);
                 chunk = ch.ToString();

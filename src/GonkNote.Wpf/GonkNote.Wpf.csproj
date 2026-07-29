@@ -7,7 +7,11 @@
        eine eigene Assembly ist Phase 2 (siehe HANDOFF §3). -->
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net10.0-windows</TargetFramework>
+    <!-- Die Plattformversion ist nötig, seit SkiaSharp.Views.WPF 3.x sie mitbringt:
+         das Paket liefert `net10.0-windows10.0.19041`. Ohne diese Angabe steht hier
+         `net10.0-windows7.0`, NuGet fällt auf die alte `net462`-Fassung zurück (NU1701)
+         und zieht dabei OpenTK/GLWpfControl mit hinein. -->
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
     <UseWPF>true</UseWPF>
     <AssemblyName>GonkNote</AssemblyName>
     <RootNamespace>GonkNote</RootNamespace>

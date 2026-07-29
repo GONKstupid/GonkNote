@@ -280,17 +280,14 @@ public partial class WhiteboardView
         float gap = (_aid == DrawAid.SetSquare ? SsHalfHyp * 0.5f : RulerHalfWidth) + 30f / Zoom;
         var pos = new SKPoint(_aidCenter.X - n.X * gap, _aidCenter.Y - n.Y * gap);
 
-        using var tp = new SKPaint
-        {
-            Color = SKColors.White, IsAntialias = true, TextSize = ts,
-            TextAlign = SKTextAlign.Center, Typeface = WbFonts.Bold,
-        };
-        float tw = tp.MeasureText(label);
+        using var tp = new SKPaint { Color = SKColors.White, IsAntialias = true };
+        using var tf = new SKFont(WbFonts.Bold, ts);
+        float tw = tf.MeasureText(label);
         float padX = 9f / Zoom, padY = 6f / Zoom;
         var bg = new SKRect(pos.X - tw / 2f - padX, pos.Y - ts / 2f - padY,
                             pos.X + tw / 2f + padX, pos.Y + ts / 2f + padY);
         using (var bgp = new SKPaint { Color = new SKColor(23, 32, 51, 235), IsAntialias = true })
             canvas.DrawRoundRect(bg, 6f / Zoom, 6f / Zoom, bgp);
-        canvas.DrawText(label, pos.X, pos.Y + ts * 0.35f, tp);
+        canvas.DrawText(label, pos.X, pos.Y + ts * 0.35f, SKTextAlign.Center, tf, tp);
     }
 }

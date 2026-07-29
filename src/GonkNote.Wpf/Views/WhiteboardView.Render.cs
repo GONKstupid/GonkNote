@@ -204,8 +204,8 @@ public partial class WhiteboardView
         if (_page.HasBackgroundImage &&
             ImageCache.Get(_page.BackgroundImageId, _page.BackgroundImage) is { } bgImg)
         {
-            using var ip = new SKPaint { IsAntialias = true, FilterQuality = SKFilterQuality.Medium };
-            canvas.DrawImage(bgImg, pageRect, ip);
+            using var ip = new SKPaint { IsAntialias = true };
+            canvas.DrawImage(bgImg, pageRect, WbRenderer.MediumSampling, ip);
             return;
         }
 
@@ -296,8 +296,8 @@ public partial class WhiteboardView
             var dst = SKRect.Create(rect.MidX - w / 2f, rect.MidY - h / 2f, w, h);
             canvas.Save();
             canvas.ClipRect(rect);
-            using var ip = new SKPaint { IsAntialias = true, FilterQuality = SKFilterQuality.Medium };
-            canvas.DrawImage(coverImg, dst, ip);
+            using var ip = new SKPaint { IsAntialias = true };
+            canvas.DrawImage(coverImg, dst, WbRenderer.MediumSampling, ip);
             canvas.Restore();
             return;
         }
@@ -315,17 +315,12 @@ public partial class WhiteboardView
             : SKTypeface.FromFamilyName(cs.FontFamily, SKFontStyle.Bold) ?? WbFonts.Bold;
 
         string title = _vm?.Item.Name ?? "";
-        using var titlePaint = new SKPaint
-        {
-            Color = SKColors.White,
-            IsAntialias = true,
-            TextSize = 46,
-            Typeface = coverBold,
-            TextAlign = SKTextAlign.Center,
-        };
-        while (titlePaint.TextSize > 18 && titlePaint.MeasureText(title) > _page.Width * 0.8f)
-            titlePaint.TextSize -= 2;
-        canvas.DrawText(title, _page.Width / 2f, _page.Height * 0.4f, titlePaint);
+        using var titlePaint = new SKPaint { Color = SKColors.White, IsAntialias = true };
+        using var titleFont = new SKFont(coverBold, 46);
+        while (titleFont.Size > 18 && titleFont.MeasureText(title) > _page.Width * 0.8f)
+            titleFont.Size -= 2;
+        canvas.DrawText(title, _page.Width / 2f, _page.Height * 0.4f,
+            SKTextAlign.Center, titleFont, titlePaint);
 
         using (var accent = new SKPaint
         {
@@ -337,15 +332,11 @@ public partial class WhiteboardView
             canvas.DrawLine(_page.Width * 0.3f, _page.Height * 0.445f,
                             _page.Width * 0.7f, _page.Height * 0.445f, accent);
 
-        using var subPaint = new SKPaint
-        {
-            Color = SKColors.White.WithAlpha(170),
-            IsAntialias = true,
-            TextSize = 15,
-            Typeface = cs == null ? WbFonts.Regular : SKTypeface.FromFamilyName(cs.FontFamily) ?? WbFonts.Regular,
-            TextAlign = SKTextAlign.Center,
-        };
-        canvas.DrawText("N O T I Z B U C H", _page.Width / 2f, _page.Height * 0.49f, subPaint);
+        using var subPaint = new SKPaint { Color = SKColors.White.WithAlpha(170), IsAntialias = true };
+        using var subFont = new SKFont(
+            cs == null ? WbFonts.Regular : SKTypeface.FromFamilyName(cs.FontFamily) ?? WbFonts.Regular, 15);
+        canvas.DrawText("N O T I Z B U C H", _page.Width / 2f, _page.Height * 0.49f,
+            SKTextAlign.Center, subFont, subPaint);
     }
 
     private void DrawElement(SKCanvas canvas, WbElement el)
@@ -389,8 +380,8 @@ public partial class WhiteboardView
         WbRenderer.DrawSticky(canvas, sn);
 
     /// <summary>Bricht Text an Wortgrenzen auf die verfügbare Breite um (respektiert \n).</summary>
-    private static IEnumerable<string> WrapText(string text, SKPaint paint, float maxWidth) =>
-        WbRenderer.WrapText(text, paint, maxWidth);
+    private static IEnumerable<string> WrapText(string text, SKFont font, float maxWidth) =>
+        WbRenderer.WrapText(text, font, maxWidth);
 
     /// <summary>Alles, was nur während einer Aktion zu sehen ist – liegt über den Elementen.</summary>
     private void DrawActiveOverlays(SKCanvas canvas)

@@ -4,18 +4,18 @@
        sonst driften die Versionen auseinander: die .csproj nennen nur noch den Paketnamen,
        die Version steht ausschließlich hier.
 
-       Bewusst noch die Stände aus V1 — der Umzug (Phase 0) soll das Verhalten der App
-       nicht verändern. Die in der Roadmap §4 vorgesehenen Anhebungen (SkiaSharp 3.x,
-       Svg.Skia 2.x) sind eigene, testbare Schritte; SkiaSharp 3 ist eine
-       API-Bruchversion und fasst WbRenderer an. -->
+       SkiaSharp 3.x (Roadmap §4): API-Bruchversion — die Textausgabe wandert von SKPaint
+       nach SKFont, SKPaint.FilterQuality wird zu SKSamplingOptions. Dafuer ist der
+       iOS-Build sauber, was fuer Phase 5 die Voraussetzung ist.
+       Svg.Skia 5.1.1 ist die erste Fassung, die auf SkiaSharp >= 3.119.2 aufsetzt. -->
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageVersion Include="SkiaSharp" Version="2.88.9" />
-    <PackageVersion Include="SkiaSharp.Views.WPF" Version="2.88.9" />
-    <PackageVersion Include="Svg.Skia" Version="1.0.0.18" />
+    <PackageVersion Include="SkiaSharp" Version="3.119.4" />
+    <PackageVersion Include="SkiaSharp.Views.WPF" Version="3.119.4" />
+    <PackageVersion Include="Svg.Skia" Version="5.1.1" />
     <PackageVersion Include="DocumentFormat.OpenXml" Version="3.1.0" />
     <!-- PDF-Rasterung (PDFium). Hat Linux-Builds, fehlt auf iOS → Phase 2: IPdfRasterizer -->
     <PackageVersion Include="Docnet.Core" Version="2.6.0" />

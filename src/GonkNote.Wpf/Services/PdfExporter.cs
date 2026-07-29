@@ -146,8 +146,9 @@ public static class PdfExporter
             canvas.DrawRect(rect, ph);
             return;
         }
-        using var paint = new SKPaint { IsAntialias = true, FilterQuality = SKFilterQuality.High };
-        canvas.DrawImage(img, rect, paint);
+        // Export rastert aus dem Original: hoechste Abtastqualitaet (frueher FilterQuality.High)
+        using var paint = new SKPaint { IsAntialias = true };
+        canvas.DrawImage(img, rect, WbRenderer.HighSampling, paint);
     }
 
     private static SKRect ContentBounds(WbPage page)
@@ -240,14 +241,12 @@ public static class PdfExporter
         }
 
         var typeface = SKTypeface.FromFamilyName(cover?.FontFamily ?? "Segoe UI", SKFontStyle.Bold) ?? WbFonts.Bold;
-        using var titlePaint = new SKPaint
-        {
-            Color = SKColors.White, IsAntialias = true, TextSize = 46,
-            Typeface = typeface, TextAlign = SKTextAlign.Center,
-        };
-        while (titlePaint.TextSize > 18 && titlePaint.MeasureText(title) > page.Width * 0.8f)
-            titlePaint.TextSize -= 2;
-        canvas.DrawText(title, page.Width / 2f, page.Height * 0.4f, titlePaint);
+        using var titlePaint = new SKPaint { Color = SKColors.White, IsAntialias = true };
+        using var titleFont = new SKFont(typeface, 46);
+        while (titleFont.Size > 18 && titleFont.MeasureText(title) > page.Width * 0.8f)
+            titleFont.Size -= 2;
+        canvas.DrawText(title, page.Width / 2f, page.Height * 0.4f,
+            SKTextAlign.Center, titleFont, titlePaint);
 
         using (var accent = new SKPaint
         {
@@ -255,12 +254,10 @@ public static class PdfExporter
         })
             canvas.DrawLine(page.Width * 0.3f, page.Height * 0.445f, page.Width * 0.7f, page.Height * 0.445f, accent);
 
-        using var subPaint = new SKPaint
-        {
-            Color = SKColors.White.WithAlpha(170), IsAntialias = true, TextSize = 15,
-            Typeface = WbFonts.Regular, TextAlign = SKTextAlign.Center,
-        };
-        canvas.DrawText("N O T I Z B U C H", page.Width / 2f, page.Height * 0.49f, subPaint);
+        using var subPaint = new SKPaint { Color = SKColors.White.WithAlpha(170), IsAntialias = true };
+        using var subFont = new SKFont(WbFonts.Regular, 15);
+        canvas.DrawText("N O T I Z B U C H", page.Width / 2f, page.Height * 0.49f,
+            SKTextAlign.Center, subFont, subPaint);
     }
 
     // ==================== Textdokument ====================

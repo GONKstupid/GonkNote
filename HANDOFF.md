@@ -548,6 +548,12 @@ kostet dann nichts weiter als `git pull` — genau dafür ist der Remote da.
 
 Ohne das merkt niemand bei 20.000 Zeilen Umbau, wo etwas leise kaputtgeht.
 
+**Läuft unter Windows** (§5b). Auf dem Linux-Laptop wären zwar Testprojekt, DB-Roundtrip,
+Renderer-Snapshots und CI machbar, die **Export-Fixtures aber nicht** — Docx/PDF/Markdown
+liegen laut §4.1 im WPF-Kopf. Ebenfalls dort beachten: sobald das Testprojekt in `GonkNote.slnx`
+steht, scheitert `dotnet test` auf Solution-Ebene unter Linux am WPF-Kopf; dann projektbezogen
+testen.
+
 - [ ] `tests/GonkNote.Core.Tests` anlegen (Ordner steht bereit), in die `.slnx` aufnehmen
 - [ ] **DB-Roundtrip:** Notizbuch → speichern → laden → identisch? Deckt indirekt den
       `ModelTypeBinder` und `EmptyStringToNull` ab (§7)

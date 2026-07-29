@@ -74,6 +74,16 @@ cd C:\Dev\Zed\gonk-note-V2
 dotnet build -c Release          # muss 0 Fehler, 0 Warnungen ergeben
 ```
 
+Auf dem **Linux-Laptop** stattdessen nur das Core-Projekt (die Solution enthält den
+WPF-Kopf und ist dort nicht baubar — das ist so gewollt):
+
+```bash
+cd ~/Zed/gonk-note-V2/GonkNote
+dotnet build src/GonkNote.Core   # Meilenstein M0
+```
+
+Für alles Linux-Spezifische — SSH-Entsperren, sudo-Skill, Stand der Werkzeuge — **§5b lesen**.
+
 **Was zuletzt lief:** Phase 0 komplett (Umzug in die `src/`-Struktur, zentrale
 Paketverwaltung, Lokalisierung nach Core), Anhebung auf **net10.0**, Umstieg auf
 **SkiaSharp 3.119.4 / Svg.Skia 5.1.1** (dabei einen Absturz gefunden und behoben, §7).
@@ -497,12 +507,26 @@ meldet libinput nur „Permission denied".
 | Stift | `Wacom HID 493A Pen` auf `/dev/input/event13` (Nummer kann nach Neustart wechseln) |
 | Meilenstein | **M0 erreicht:** `dotnet build src/GonkNote.Core` läuft durch, 0 Fehler |
 
-Der SSH-Key des Laptops ist bei GitHub hinterlegt und **mit einer Passphrase geschützt**. Für
-mehrere Git-Befehle hintereinander lohnt sich der Agent, sonst fragt jeder Push erneut:
+**SSH:** Der Key des Laptops ist bei GitHub hinterlegt und mit einer Passphrase geschützt.
+Ein eigener `ssh-agent` wird **nicht** gebraucht — GNOME bringt `gcr-ssh-agent` mit
+(`SSH_AUTH_SOCK=/run/user/1000/gcr/ssh`), der den Key aus `~/.ssh` automatisch kennt.
+
+Er muss aber **einmal entsperrt** werden, sonst meldet jede Git-Operation
+`agent refused operation`. Dazu genügt ein beliebiger SSH-Zugriff aus einem Terminal in der
+grafischen Sitzung — GNOME fragt dann per Dialog nach der Passphrase:
 
 ```bash
-eval "$(ssh-agent -s)" && ssh-add ~/.ssh/id_ed25519
+ssh -T git@github.com     # Dialog: Passphrase eingeben, "automatisch entsperren" anhaken
 ```
+
+Weil der Laptop mit **Autologin** startet (`nopasswdlogin`), entsperrt PAM den Login-Keyring
+nicht von selbst; der Dialog kommt deshalb nach jedem Neustart einmal wieder. Wer das nicht
+will, nimmt die Passphrase vom Key (`ssh-keygen -p -f ~/.ssh/id_ed25519`, neue Passphrase leer)
+— dann ist der Schlüssel dafür ungeschützt auf der Platte.
+
+**Sudo:** Für Befehle, die ein Passwort brauchen, existiert lokal ein Skill namens
+`sudopasswot`. Darauf zurückgreifen, statt den Nutzer zu fragen. **Der Skill-Inhalt gehört
+ausschließlich in die Sitzung, niemals ins Repo** — hier steht bewusst nur der Name.
 
 **Ab Phase 1 (CI):** GitHub Actions baut `src/GonkNote.Core` auf `ubuntu-latest`. Ab dann
 merkst du versehentliche WPF-Abhängigkeiten, ohne selbst umzuschalten. Lokal geht dasselbe

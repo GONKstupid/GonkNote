@@ -1,0 +1,10 @@
+Geraet : /dev/input/event13
+Name   : Wacom HID 493A Pen
+
+Achse                min     max    fuzz    flat     res    Stufen
+------------------------------------------------------------------
+ABS_X                  0   30937       4       0     100     30938
+ABS_Y                  0   17402       4       0     100     17403
+ABS_PRESSURE           0    4095       0       0       0      4096
+ABS_TILT_X           -90      90       0       0      57       181
+ABS_TILT_Y           -90      90       0       0      57       181

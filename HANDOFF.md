@@ -337,6 +337,97 @@ gebaut werden kann oder ob ein Umweg über einen eigenen Eingabepfad nötig wird
 
 ---
 
+### Ergebnis (29.07.2026, CachyOS-Laptop)
+
+**Kurz: Druck kommt an. Phase 3 kann wie geplant gebaut werden.** Der Prototyp liegt in
+`tools/stylus-prototyp/`, die Rohberichte unter `tools/stylus-prototyp/messungen/`.
+
+#### Drei Annahmen aus dem Abschnitt oben waren falsch
+
+Der Laptop ist **kein Lenovo, sondern ein HP** (`HPQ6001`, `HP WMI hotkeys`). Der Digitizer ist
+ein **Wacom-AES-Gerät** (`Wacom HID 493A Pen`, VID `056a` PID `493a`, I²C `WCOM4900:00`) und
+hängt am **`wacom`-Treiber**, nicht an `hid-multitouch`. Es wurde also **AES gemessen, nicht
+MPP** — ein Lenovo Precision Pen 2 dürfte auf diesem Digitizer gar nicht erst schreiben.
+
+Für die Anforderung „läuft mit jedem Stylus" heißt das: **sie ist weiterhin unbeantwortet.**
+Getestet ist genau eine Geräteklasse, und es ist nicht einmal die, die hier angenommen wurde.
+Der Fallback bleibt Pflicht, und ein zweites Gerät (MPP oder EMR) muss noch durch.
+
+#### Schicht 1 — Kernel / evdev
+
+| Achse | Bereich | Auflösung |
+|---|---|---|
+| `ABS_PRESSURE` | 0 – 4095 | **4096 Stufen** |
+| `ABS_TILT_X` / `ABS_TILT_Y` | −90° – +90° | 57 Einheiten/° |
+| `ABS_X` / `ABS_Y` | 0 – 30937 / 0 – 17402 | 100/mm → 309,4 × 174,0 mm |
+
+Tasten: `BTN_TOOL_PEN`, `BTN_TOOL_RUBBER`, `BTN_TOUCH`, `BTN_STYLUS`, `BTN_STYLUS2` —
+Radiergummi-Erkennung und zwei Stiftknöpfe sind also vorhanden. `PROP=INPUT_PROP_DIRECT`.
+
+Live-Mitschnitt (30 s): 330 Druck-Samples, davon **275 verschiedene Werte**, genutzter Bereich
+1500 – 3130. Kontinuierlicher Druck, kein Zweizustands-Schalter.
+
+#### Schicht 2 — libinput: **nicht gemessen**
+
+`libinput list-devices` und `debug-events` öffnen Device-Nodes **read-write**; auf dem Testgerät
+lag nur eine Lese-ACL an. Die Zwischenschicht ist damit übersprungen. Weil Avalonia oben den
+vollen Bereich zeigt, ist das kein Risiko mehr, aber es bleibt eine Lücke im Beweis.
+Nachholen mit `sudo setfacl -m u:gonk:rw /dev/input/eventN`.
+
+Nebenbefund für §5b: der Befehl dort installiert die Tools **nicht**. `list-devices` und
+`debug-events` stecken im Paket **`libinput-tools`**, nicht in `libinput`.
+
+#### Schicht 3 — Avalonia (12.1.1)
+
+Zwei Läufe, GNOME-Wayland-Sitzung, Backend `X11 / XWayland`:
+
+| | Lauf 1 | Lauf 2 |
+|---|---|---|
+| Abtastungen / Striche | 2846 / 13 | 2772 / 11 |
+| verschiedene Druckwerte | **1067** | **1489** |
+| Druckbereich | **0,0019 – 1,0000** | 0,0023 – 0,9651 |
+| Zeigertypen | Pen, Touch, Mouse | Pen |
+| `XTilt` | — | **−22,1° … 41,2°**, 228 Werte |
+| `YTilt` | — | **−32,2° … 29,9°**, 231 Werte |
+
+`PointerPointProperties.Pressure` liefert den vollen Bereich 0…1 ungefiltert, `XTilt`/`YTilt`
+kommen in Grad an. `Pointer.Type` unterscheidet Pen/Touch/Mouse sauber — das ist die
+Voraussetzung dafür, dass Handballenabweisung in Phase 3 überhaupt baubar ist.
+
+Wichtig für die Umsetzung: `GetIntermediatePoints()` benutzen, nicht nur `GetCurrentPoint()`.
+Der Digitizer tastet schneller ab als die UI Frames zeichnet; ohne die Zwischenpunkte geht der
+Großteil der Auflösung verloren.
+
+#### Wayland vs. X11 — die Frage stellt sich nicht
+
+**Avalonia 12.1.1 hat für Linux gar kein Wayland-Backend.** Im Build liegen nur
+`Avalonia.X11.dll`, `Avalonia.Native.dll` und `Avalonia.Win32.dll`. Unter einer
+Wayland-Sitzung läuft Avalonia zwangsläufig über **XWayland**; ein nativer Wayland-Pfad, der
+sich anders verhalten könnte, existiert nicht.
+
+Damit bekommt Phase 3 **kein Wayland-Problem** — der Preis ist eine dauerhafte Abhängigkeit von
+XWayland und dessen Tablet-Weiterleitung. Genau die ist oben gemessen und liefert den vollen
+Druckbereich. Ein Vergleichslauf in einer echten **Xorg**-Sitzung steht noch aus; nach
+derzeitigem Stand ist er Absicherung, keine offene Risikofrage.
+
+#### Abweichung vom geplanten Aufbau
+
+Statt `SKCanvasView` zeichnet der Prototyp direkt über Avalonias `DrawingContext`. Avalonia
+rendert ohnehin über Skia, und für die Frage „kommt der Druck an" ist die zusätzliche
+SkiaSharp-Schicht nur eine weitere Fehlerquelle. Für Phase 3 ist damit **nicht** entschieden,
+ob die Zeichenfläche später `SKCanvasView` benutzt.
+
+#### Offen
+
+1. **Zweites Gerät** (MPP und/oder EMR) — die Kernanforderung „mit jedem Stylus" hängt daran.
+2. **libinput-Schicht** nachmessen (siehe oben).
+3. **Xorg-Sitzung** als Vergleich zu XWayland.
+4. **Druckschwelle unten:** evdev meldete nie unter 1500 von 4095. Ob der Digitizer eine hohe
+   Einsatzschwelle hat oder nur nie leicht genug aufgesetzt wurde, ist offen — relevant dafür,
+   wie sich ganz feine Striche später anfühlen.
+
+---
+
 ## 5b. Wann und wie auf den CachyOS-Laptop wechseln
 
 **Kurz: noch nicht umziehen.** Bis einschließlich Phase 2 wird unter Windows entwickelt — die
@@ -346,11 +437,17 @@ Der Laptop hat aber ab sofort zwei Aufgaben.
 **Jetzt (parallel, hängt an nichts):** der Stylus-Prototyp aus §5a.
 
 ```bash
-sudo pacman -S dotnet-sdk git libinput          # CachyOS ist Arch-basiert
+sudo pacman -S dotnet-sdk git libinput-tools    # CachyOS ist Arch-basiert
 git clone https://github.com/GONKstupid/GonkNote.git
 cd GonkNote
+sudo setfacl -m u:$USER:rw /dev/input/eventN    # libinput oeffnet read-write
 libinput list-devices | less                    # Stift als "tablet tool" mit pressure?
 ```
+
+**Nicht `libinput` installieren, sondern `libinput-tools`.** Die Bibliothek ist auf einem
+Desktop-System längst als Abhängigkeit da; `list-devices` und `debug-events` stecken im
+separaten Tools-Paket. Ohne die passende ACL (oder `usermod -aG input $USER` plus Neuanmeldung)
+meldet libinput nur „Permission denied".
 
 **Ab Phase 1 (CI):** GitHub Actions baut `src/GonkNote.Core` auf `ubuntu-latest`. Ab dann
 merkst du versehentliche WPF-Abhängigkeiten, ohne selbst umzuschalten. Lokal geht dasselbe

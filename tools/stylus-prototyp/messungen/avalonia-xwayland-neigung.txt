@@ -1,0 +1,17 @@
+=== GonkNote Stylus-Prototyp: Messung ===
+Backend            : X11 / XWayland
+XDG_SESSION_TYPE   : wayland
+WAYLAND_DISPLAY    : wayland-0
+DISPLAY            : :0
+
+Zeigertypen gesehen: Pen
+Abtastungen        : 3339
+Striche            : 12
+
+Druckwerte (verschieden): 1744
+davon != 0,5 (Ersatzwert): 1743
+Minimum / Maximum  : 0,0023 / 0,9651
+ERGEBNIS           : DRUCK KOMMT IN AVALONIA AN
+
+Neigung (nur Stift): X -40,2 .. 52,3, 295 verschiedene Werte
+                     Y -44,2 .. 29,9, 263 verschiedene Werte

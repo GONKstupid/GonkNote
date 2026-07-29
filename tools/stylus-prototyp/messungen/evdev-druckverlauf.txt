@@ -1,0 +1,32 @@
+Schneide 30s mit auf /dev/input/event13 - jetzt zeichnen.
+
+1923 Events gesamt, 1 Aufsetzer.
+
+ABS_PRESSURE: 330 Samples, davon 329 > 0
+  min/max     : 1500 / 3130  (Achse geht bis 4095)
+  Mittelwert  : 2580.9
+  verschiedene Werte: 275
+
+  Verteilung:
+        0-255        0 
+      256-511        0 
+      512-767        0 
+      768-1023       0 
+     1024-1279       0 
+     1280-1535       1 
+     1536-1791       0 
+     1792-2047       1 
+     2048-2303      37 ###########
+     2304-2559     134 ########################################
+     2560-2815     103 ##############################
+     2816-3071      36 ##########
+     3072-3327      17 #####
+     3328-3583       0 
+     3584-3839       0 
+     3840-4095       0 
+
+ABS_TILT_X: min 1 / max 17, 17 verschiedene Werte
+
+ABS_TILT_Y: min -5 / max 16, 19 verschiedene Werte
+
+Tasten: BTN_TOOL_PEN=1, BTN_TOUCH=1

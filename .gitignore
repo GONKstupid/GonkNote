@@ -4,8 +4,9 @@ obj/
 .vs/
 TestAssets/
 
-# Internes Arbeitsprotokoll: bleibt lokal, gehoert nicht ins oeffentliche Repo
-HANDOFF.md
+# HANDOFF.md ist hier bewusst NICHT ausgeschlossen: solange dieses Repo privat ist,
+# wandert das Arbeitsprotokoll mit (Windows <-> Linux-Laptop). Vor dem Oeffentlich-
+# Schalten muss es wieder raus -- Checkliste in HANDOFF.md, Abschnitt 6.
 
 # Testdatenbanken und deren Blob-Ordner (z. B. aus "--db X.db"); echte Daten liegen in %APPDATA%
 *.db

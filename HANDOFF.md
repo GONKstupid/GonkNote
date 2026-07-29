@@ -507,22 +507,20 @@ meldet libinput nur „Permission denied".
 | Stift | `Wacom HID 493A Pen` auf `/dev/input/event13` (Nummer kann nach Neustart wechseln) |
 | Meilenstein | **M0 erreicht:** `dotnet build src/GonkNote.Core` läuft durch, 0 Fehler |
 
-**SSH:** Der Key des Laptops ist bei GitHub hinterlegt und mit einer Passphrase geschützt.
-Ein eigener `ssh-agent` wird **nicht** gebraucht — GNOME bringt `gcr-ssh-agent` mit
-(`SSH_AUTH_SOCK=/run/user/1000/gcr/ssh`), der den Key aus `~/.ssh` automatisch kennt.
+**SSH:** Der Key des Laptops (`~/.ssh/id_ed25519`) ist bei GitHub hinterlegt und **ohne
+Passphrase**. Git-Befehle laufen damit ohne Vorbereitung — kein `ssh-add`, kein Agent nötig.
 
-Er muss aber **einmal entsperrt** werden, sonst meldet jede Git-Operation
-`agent refused operation`. Dazu genügt ein beliebiger SSH-Zugriff aus einem Terminal in der
-grafischen Sitzung — GNOME fragt dann per Dialog nach der Passphrase:
+Das ist eine bewusste Entscheidung mit einem Preis: der private Schlüssel liegt ungeschützt
+auf der Platte. Wer ihn lesen kann, hat Schreibzugriff auf das Repo. Bei Verlust des Geräts
+gehört der Key auf GitHub gelöscht.
 
-```bash
-ssh -T git@github.com     # Dialog: Passphrase eingeben, "automatisch entsperren" anhaken
-```
-
-Weil der Laptop mit **Autologin** startet (`nopasswdlogin`), entsperrt PAM den Login-Keyring
-nicht von selbst; der Dialog kommt deshalb nach jedem Neustart einmal wieder. Wer das nicht
-will, nimmt die Passphrase vom Key (`ssh-keygen -p -f ~/.ssh/id_ed25519`, neue Passphrase leer)
-— dann ist der Schlüssel dafür ungeschützt auf der Platte.
+> **Systemfehler, nicht wieder hineinlaufen:** Der übliche Weg über GNOME funktioniert hier
+> **nicht**. `gcr-ssh-agent` stürzt ab (`status=11/SEGV`, Core-Dump im Journal), sobald er nach
+> einer Passphrase fragen soll — vermutlich weil `gcr` 3.41.2 und `gcr-4` 4.4.0.1 parallel
+> installiert sind. Symptome waren `agent refused operation` bzw.
+> `communication with agent failed`, obwohl `ssh-add -l` den Schlüssel anzeigt. Genau deshalb
+> ist die Passphrase entfernt worden. Ein passphrasengeschützter Key bräuchte auf diesem
+> Rechner einen selbst gestarteten `ssh-agent` mit eigenem Socket.
 
 **Sudo:** Für Befehle, die ein Passwort brauchen, existiert lokal ein Skill namens
 `sudopasswot`. Darauf zurückgreifen, statt den Nutzer zu fragen. **Der Skill-Inhalt gehört

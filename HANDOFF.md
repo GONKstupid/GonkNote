@@ -519,6 +519,10 @@ weil sie bei der Portierung direkt zuschlagen:
   `ERSTE-SCHRITTE.md`/`GETTING-STARTED.md`) und sind eingebettete Resources. Wer eine
   ändert, muss die Gegenfassung mitziehen — `EmbeddedDocs` wählt nach `Loc.Current` und
   fällt still auf Deutsch zurück. Siehe Dauerregel 1 in der Kopfzeile.
+- **Die vier Dokumente nicht umbenennen.** Sie sind in `GonkNote.Wpf.csproj` als `Resource`
+  eingebunden und werden über `pack://application:,,,/<Dateiname>` gelesen. Eine
+  Umbenennung bricht sofort den Build (`BG1002`) — und wäre sie im `.csproj` nachgezogen,
+  bräche sie still `EmbeddedDocs`. `README.md` ist zusätzlich die Startseite auf GitHub.
 - **Zugriffstasten im Menü kollidieren still.** Im englischen Hilfe-Menü lagen
   „_Getting started" und „About _Gonk Note" beide auf `G` — WPF meldet das nicht, der
   Eintrag reagiert einfach nicht. **Beim Übersetzen die Unterstriche prüfen.**

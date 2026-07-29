@@ -55,6 +55,7 @@ und iPadOS** — Greenfield-Solution, in die der wiederverwendbare Code aus V1 w
 | | |
 |---|---|
 | **V2 (hier gearbeitet)** | `C:\Dev\Zed\gonk-note-V2`, Branch `main` → <https://github.com/GONKstupid/GonkNote> (**privat**) |
+| **V2 auf dem Linux-Laptop** | `~/Zed/gonk-note-V2/GonkNote` (CachyOS) — nur für den Stylus-Prototyp und den Core-Build, siehe §5a/§5b |
 | **V1 (Referenz, nicht anfassen)** | `C:\Dev\Zed\gonk-note`, Branch `main`, <https://github.com/GONKstupid/gonk-note> |
 | **Roadmap (die Vorgabe)** | `C:\Users\manue\Desktop\gonk-note-port-RM.MD` |
 | **V1-Handoff (alle Alt-Erfahrungen)** | `C:\Dev\Zed\gonk-note\HANDOFF.md` — **weiterhin gültig**, §4 Fallen und §7 Testen dort lesen |
@@ -77,6 +78,10 @@ dotnet build -c Release          # muss 0 Fehler, 0 Warnungen ergeben
 Paketverwaltung, Lokalisierung nach Core), Anhebung auf **net10.0**, Umstieg auf
 **SkiaSharp 3.119.4 / Svg.Skia 5.1.1** (dabei einen Absturz gefunden und behoben, §7).
 Alles am laufenden Programm geprüft — mit einer **Kopie** der echten Datenbank.
+
+Danach der **Stylus-Prototyp (§5a) auf dem Linux-Laptop: Druck kommt in Avalonia an**, damit ist
+das größte Risiko vor Phase 3 ausgeräumt. Meilenstein **M0 ist erreicht** —
+`dotnet build src/GonkNote.Core` läuft unter Linux durch. **Als Nächstes: Phase 1** (§6).
 
 ---
 
@@ -174,9 +179,23 @@ gonk-note-V2/
 │                                WindowBounds, Localization/TExtension.cs
 │
 ├─ tests/                        leer — Phase 1: GonkNote.Core.Tests
+│
+├─ tools/                        Werkzeuge, KEIN Produktivcode, nicht in der Solution
+│  └─ stylus-prototyp/           Messwerkzeug zu §5a — Ergebnis liegt dort vor
+│     ├─ GonkNote.StylusProbe/   Avalonia-Prototyp (Druck als Kreisradius)
+│     ├─ evdev_beschreiben.py    Achsenbereiche des Digitizers (EVIOCGABS)
+│     ├─ evdev_druck.py          Druckverlauf mitschneiden und auswerten
+│     └─ messungen/              Rohberichte der Läufe
+│
 ├─ Assets/  tessdata/  Docs/     1:1 aus V1, in der Wurzel
 └─ LICENSE, README(.en).md, ERSTE-SCHRITTE.md, GETTING-STARTED.md, THIRD-PARTY-NOTICES.md
 ```
+
+**`tools/` steht bewusst neben `src/`, nicht darin**, und ist **nicht** in `GonkNote.slnx`
+eingetragen: was dort liegt, ist Wegwerf-Werkzeug und soll nicht mit den Produktivprojekten
+verwechselt oder versehentlich mitgebaut werden. `GonkNote.StylusProbe` ist zusätzlich aus der
+zentralen Paketverwaltung ausgeklinkt (`ManagePackageVersionsCentrally=false`), damit seine
+Avalonia-Version nicht die Versionswahl für Phase 3 vorwegnimmt.
 
 **Noch nicht angelegt:** `src/GonkNote.Avalonia` (Phase 3) und `src/GonkNote.iOS` (Phase 5).
 Bewusst — leere Projekte, die nicht bauen, sind nur Ballast; sie entstehen, wenn ihre Phase
@@ -367,15 +386,32 @@ Radiergummi-Erkennung und zwei Stiftknöpfe sind also vorhanden. `PROP=INPUT_PRO
 Live-Mitschnitt (30 s): 330 Druck-Samples, davon **275 verschiedene Werte**, genutzter Bereich
 1500 – 3130. Kontinuierlicher Druck, kein Zweizustands-Schalter.
 
-#### Schicht 2 — libinput: **nicht gemessen**
+#### Schicht 2 — libinput
 
-`libinput list-devices` und `debug-events` öffnen Device-Nodes **read-write**; auf dem Testgerät
-lag nur eine Lese-ACL an. Die Zwischenschicht ist damit übersprungen. Weil Avalonia oben den
-vollen Bereich zeigt, ist das kein Risiko mehr, aber es bleibt eine Lücke im Beweis.
-Nachholen mit `sudo setfacl -m u:gonk:rw /dev/input/eventN`.
+`libinput list-devices` meldet den Stift als **`Capabilities: tablet`**, Größe 309×174 mm,
+Id `i2c:056a:493a`. Er taucht also als Tablet-Gerät auf, nicht als Maus oder Touchscreen.
+
+`libinput debug-events`, 60 s Mitschnitt:
+
+| Ereignis | Anzahl |
+|---|---|
+| `TABLET_TOOL_AXIS` | 6095 |
+| `TABLET_TOOL_TIP` | 79 |
+| `TABLET_TOOL_PROXIMITY` | 19 |
+| `TABLET_TOOL_BUTTON` | 2 (`BTN_STYLUS` pressed/released) |
+
+- **pressure:** 6193 Samples, davon 5532 > 0, Bereich **0,01 – 0,81**
+- **tilt X:** 0,0° – 36,2° (139 verschiedene Werte) · **tilt Y:** −24,1° – 30,2° (210 Werte)
+
+Druck und Neigung werden also durchgereicht, Stiftknopf und Proximity ebenfalls.
+
+> Die Zahl *verschiedener* Druckwerte ist bei `debug-events` **nicht** aussagekräftig: das
+> Werkzeug druckt nur zwei Nachkommastellen. Die echte Auflösung steht in Schicht 1 (4096
+> Stufen) und Schicht 3 (bis 1489 unterscheidbare Werte pro Lauf).
 
 Nebenbefund für §5b: der Befehl dort installiert die Tools **nicht**. `list-devices` und
-`debug-events` stecken im Paket **`libinput-tools`**, nicht in `libinput`.
+`debug-events` stecken im Paket **`libinput-tools`**, nicht in `libinput`. Zusätzlich öffnet
+libinput Device-Nodes **read-write** — eine reine Lese-ACL genügt nicht.
 
 #### Schicht 3 — Avalonia (12.1.1)
 
@@ -420,11 +456,12 @@ ob die Zeichenfläche später `SKCanvasView` benutzt.
 #### Offen
 
 1. **Zweites Gerät** (MPP und/oder EMR) — die Kernanforderung „mit jedem Stylus" hängt daran.
-2. **libinput-Schicht** nachmessen (siehe oben).
-3. **Xorg-Sitzung** als Vergleich zu XWayland.
-4. **Druckschwelle unten:** evdev meldete nie unter 1500 von 4095. Ob der Digitizer eine hohe
-   Einsatzschwelle hat oder nur nie leicht genug aufgesetzt wurde, ist offen — relevant dafür,
-   wie sich ganz feine Striche später anfühlen.
+   Das ist der einzige Punkt, der noch echtes Risiko trägt.
+2. **Xorg-Sitzung** als Vergleich zu XWayland. Nach derzeitigem Stand Absicherung, keine offene
+   Risikofrage — Avalonia hat ohnehin nur den X11-Pfad.
+3. **Druckschwelle unten:** evdev meldete nie unter 1500 von 4095, libinput nie unter 0,01.
+   Ob der Digitizer eine hohe Einsatzschwelle hat oder nur nie leicht genug aufgesetzt wurde,
+   ist offen — relevant dafür, wie sich ganz feine Striche später anfühlen.
 
 ---
 
@@ -448,6 +485,24 @@ libinput list-devices | less                    # Stift als "tablet tool" mit pr
 Desktop-System längst als Abhängigkeit da; `list-devices` und `debug-events` stecken im
 separaten Tools-Paket. Ohne die passende ACL (oder `usermod -aG input $USER` plus Neuanmeldung)
 meldet libinput nur „Permission denied".
+
+**Stand des Laptops (29.07.2026) — schon eingerichtet, nicht wiederholen:**
+
+| | |
+|---|---|
+| Repo | `~/Zed/gonk-note-V2/GonkNote`, Remote über **SSH** (`git@github.com:…`) |
+| SDK | `dotnet-sdk` 10.0.110 (`/usr/share/dotnet`) |
+| Werkzeuge | `libinput-tools`, `github-cli`, `git` |
+| Sitzung | GNOME auf **Wayland**, XWayland auf `:0` aktiv |
+| Stift | `Wacom HID 493A Pen` auf `/dev/input/event13` (Nummer kann nach Neustart wechseln) |
+| Meilenstein | **M0 erreicht:** `dotnet build src/GonkNote.Core` läuft durch, 0 Fehler |
+
+Der SSH-Key des Laptops ist bei GitHub hinterlegt und **mit einer Passphrase geschützt**. Für
+mehrere Git-Befehle hintereinander lohnt sich der Agent, sonst fragt jeder Push erneut:
+
+```bash
+eval "$(ssh-agent -s)" && ssh-add ~/.ssh/id_ed25519
+```
 
 **Ab Phase 1 (CI):** GitHub Actions baut `src/GonkNote.Core` auf `ubuntu-latest`. Ab dann
 merkst du versehentliche WPF-Abhängigkeiten, ohne selbst umzuschalten. Lokal geht dasselbe

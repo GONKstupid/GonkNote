@@ -1,0 +1,26 @@
+=== libinput list-devices (Auszug) ===
+Device:                  Wacom HID 493A Pen
+Kernel:                  /dev/input/event13
+Id:                      i2c:056a:493a
+Group:                   1
+Seat:                    seat0, default
+Size:                    309x174mm
+Capabilities:            tablet 
+Tap-to-click:            n/a
+
+=== libinput debug-events, 60 s Mitschnitt: Auswertung ===
+   6095 TABLET_TOOL_AXIS
+     79 TABLET_TOOL_TIP
+     19 TABLET_TOOL_PROXIMITY
+      2 TABLET_TOOL_BUTTON
+      1 DEVICE_ADDED
+
+pressure: 6193 Samples, 5532 > 0, Bereich 0.01 .. 0.81
+  Hinweis: debug-events druckt nur 2 Nachkommastellen -- die Zahl der
+  verschiedenen Werte ist ein Anzeige-Artefakt, keine libinput-Grenze.
+tilt X  : 0.0 .. 36.2, 139 verschiedene Werte
+tilt Y  : -24.1 .. 30.2, 210 verschiedene Werte
+
+=== Knopf-Events ===
+ event13  TABLET_TOOL_BUTTON           +0.200s	s331 (BTN_STYLUS) pressed, seat count: 1
+ event13  TABLET_TOOL_BUTTON           +0.261s	s331 (BTN_STYLUS) released, seat count: 0

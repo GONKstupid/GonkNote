@@ -148,6 +148,29 @@ public static class MarkdownExporter
                 break;
             }
 
+            // **Muss vor `case Span` stehen:** Hyperlink erbt von Span. Stand dieser Fall
+            // nicht hier, griff der allgemeinere — der Text kam durch, das **Ziel fiel weg**.
+            // Damit war ein Markdown-Import mit Links nach dem Rückexport nur noch Text.
+            case Hyperlink link:
+            {
+                // Fett/kursiv wird bewusst nicht auf Link-Ebene geprüft: die inneren Runs
+                // bringen ihre Auszeichnung über InlineText schon mit, und GetValue würde hier
+                // auch die vom Absatz **geerbte** Formatierung melden.
+                string text = InlineText(link.Inlines);
+
+                // Ein Link ohne Ziel ist keiner: den gibt es in den mitgelieferten
+                // Hilfe-Dokumenten (Verweis auf ein anderes .md, per Click-Handler statt
+                // NavigateUri). Der bleibt Text.
+                if (link.NavigateUri is not { } uri)
+                {
+                    sb.Append(text);
+                    break;
+                }
+
+                sb.Append('[').Append(LinkText(text)).Append("](").Append(LinkTarget(uri)).Append(')');
+                break;
+            }
+
             case Span span:
             {
                 // Formatierung auf Span-Ebene (Bold/Italic-Container) auf die Kinder anwenden
@@ -169,6 +192,30 @@ public static class MarkdownExporter
                 sb.Append("![Bild]()");
                 break;
         }
+    }
+
+    /// <summary>
+    /// Linktext für die eckigen Klammern. Eine unmaskierte Klammer darin beendet den Link
+    /// vorzeitig — aus „[a]b](url)" wird sonst der Link „a" gefolgt von Text.
+    /// </summary>
+    private static string LinkText(string text) =>
+        text.Replace(@"\", @"\\").Replace("[", @"\[").Replace("]", @"\]");
+
+    /// <summary>
+    /// Linkziel für die runden Klammern.
+    /// <para>
+    /// <c>OriginalString</c> und nicht <c>AbsoluteUri</c>: so kommt genau das zurück, was
+    /// hineingeschrieben wurde — ein Markdown-Import mit relativem Ziel bleibt dadurch beim
+    /// Rückexport unverändert, statt zu einem absoluten <c>file:///</c>-Pfad zu werden.
+    /// </para>
+    /// Enthält das Ziel Leerzeichen oder Klammern, muss es in spitze Klammern: sonst endet der
+    /// Link an der ersten schließenden runden Klammer.
+    /// </summary>
+    private static string LinkTarget(Uri uri)
+    {
+        string url = uri.OriginalString;
+        if (url.Length == 0) url = uri.ToString();
+        return url.AsSpan().IndexOfAny(" ()<>") >= 0 ? $"<{url}>" : url;
     }
 
     private static string Wrap(string text, bool bold, bool italic, bool strike)

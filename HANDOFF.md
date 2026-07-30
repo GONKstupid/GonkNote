@@ -1,6 +1,6 @@
 # Gonk Note V2 — Projektübergabe
 
-**Stand: 2026-07-29 · Version 0.2.0 · net10.0 · SkiaSharp 3 · Roadmap Phase 0 abgeschlossen**
+**Stand: 2026-07-30 · Version 0.2.0 · net10.0 · SkiaSharp 3 · Roadmap Phase 1 abgeschlossen**
 
 > **📌 Dauerregeln des Nutzers — gelten immer, ohne Nachfragen:**
 >
@@ -91,7 +91,18 @@ Alles am laufenden Programm geprüft — mit einer **Kopie** der echten Datenban
 
 Danach der **Stylus-Prototyp (§5a) auf dem Linux-Laptop: Druck kommt in Avalonia an**, damit ist
 das größte Risiko vor Phase 3 ausgeräumt. Meilenstein **M0 ist erreicht** —
-`dotnet build src/GonkNote.Core` läuft unter Linux durch. **Als Nächstes: Phase 1** (§6).
+`dotnet build src/GonkNote.Core` läuft unter Linux durch.
+
+Zuletzt **Phase 1 komplett** (§4.6): zwei Testprojekte mit 78 Tests, Renderer-Snapshots,
+Export-Golden-Files und CI auf Windows **und** Ubuntu. Dabei einen zweiten Absturz aus dem
+SkiaSharp-3-Umstieg gefunden und behoben (`SKBitmap.Decode`, §7). **Als Nächstes: Phase 2**
+(§6) — und vorher die zwei offenen Fragen aus §5 klären.
+
+**Tests laufen lassen:**
+
+```powershell
+dotnet test -c Release        # Windows: beide Projekte, 78 Tests
+```
 
 ---
 
@@ -127,6 +138,12 @@ Vier Commits auf `main`, alle nach <https://github.com/GONKstupid/GonkNote> gepu
 | `610537e` | Platzhalter für das Testprojekt |
 | `50f33f2` | Ziel-Framework auf `net10.0` |
 | `e9bf400` | SkiaSharp 3.119.4, Svg.Skia 5.1.1 |
+
+Dazu die Commits aus Phase 1 (2026-07-30) — Testprojekte, CI und der `SKBitmap.Decode`-Fix.
+
+**Erledigt in Phase 1:** siehe §4.6 (was das Netz prüft) und §6 (Häkchen). Kurz:
+`tests/GonkNote.Core.Tests` (70 Tests, Windows **und** Linux) und `tests/GonkNote.Wpf.Tests`
+(8 Tests, Export-Fixtures), CI mit zwei Läufen, ein gefundener und behobener Absturz (§7).
 
 **Erledigt in Phase 0:**
 
@@ -170,7 +187,7 @@ gonk-note-V2/
 ├─ src/
 │  ├─ GonkNote.Core/             net10.0 · KEINE UI-Abhängigkeit · das Zentrum
 │  │  ├─ Models/                 NoteItem, Whiteboard-Elemente
-│  │  ├─ Rendering/              WbRenderer (Skia, 567 Z.), WbAidRenderer (Geodreieck)
+│  │  ├─ Rendering/              WbRenderer (Skia), WbAidRenderer (Geodreieck), WbImages (§7)
 │  │  ├─ Services/               DatabaseService, BlobStore, ImageCache, UndoStack, PdfImporter
 │  │  ├─ Editing/                WbErase — punktgenaues Radieren
 │  │  └─ Localization/           Loc + LocGerman + LocEnglish        ← neu in Phase 0
@@ -188,7 +205,13 @@ gonk-note-V2/
 │                                SpellCheckSupport, ThemeService, TitleBarTheme,
 │                                WindowBounds, Localization/TExtension.cs
 │
-├─ tests/                        leer — Phase 1: GonkNote.Core.Tests
+├─ .github/workflows/ci.yml      zwei Läufe: windows (alles), ubuntu (nur Core) — §4.6
+│
+├─ tests/
+│  ├─ GonkNote.Core.Tests/       net10.0 · läuft auch unter Linux · 70 Tests
+│  │  └─ Snapshots/*.sha256      Pixelhashes des Renderers (Golden-Files)
+│  └─ GonkNote.Wpf.Tests/        net10.0-windows · nur Windows · 8 Export-Fixtures
+│     └─ Fixtures/               referenz.md, referenz-docx.txt (Golden-Files)
 │
 ├─ tools/                        Werkzeuge, KEIN Produktivcode, nicht in der Solution
 │  └─ stylus-prototyp/           Messwerkzeug zu §5a — Ergebnis liegt dort vor
@@ -291,11 +314,18 @@ Bild-Cover, Gitterseite, Striche in zwei Farben, Lineal, **Geodreieck** (der SVG
 Svg.Skia 5), Farbverlauf-Cover mit Titeltext, **PDF-Export** und dessen Rückimport über
 `PdfImporter`.
 
-**Noch nicht gegengeprüft:** DOCX-/Markdown-Export und der Text-Editor-PDF-Weg (die laufen
-über WPF, nicht über Skia — Änderungsrisiko gering), OCR-Vorverarbeitung
-(`OcrService.Resize`), Bildimport-Verkleinerung (`WhiteboardView.Import`) und der Bleistift
-mit Graphit-Körnung. Diese vier Stellen sind angefasst worden; sie gehören in die
-Golden-Files aus Phase 1.
+**Die vier offenen Stellen von damals — Stand nach Phase 1:**
+
+| Stelle | Stand |
+|---|---|
+| DOCX-/Markdown-Export, Text-Editor-PDF-Weg | ✅ Golden-Files in `GonkNote.Wpf.Tests` (§4.6) |
+| Bleistift mit Graphit-Körnung | ✅ Pixelhash `bleistift-koernung` |
+| Bildimport-Verkleinerung (`WhiteboardView.Import`) | ⚠️ **weiterhin ohne Test** — private Methode im WPF-Kopf. Der `SKBitmap.Decode`-Fix (§7) hat sie angefasst |
+| OCR-Vorverarbeitung (`OcrService`) | ⚠️ **weiterhin ohne Test** — braucht die Tesseract-Nativbibliotheken; ebenfalls vom Decode-Fix betroffen |
+
+Die beiden offenen sind in Phase 2 fällig: dort entstehen `IOcrEngine` und der Bildimport-Weg
+wird für Avalonia herausgelöst — an öffentlichen Schnittstellen lassen sie sich dann testen,
+ohne den WPF-Kopf hochzufahren.
 
 ### 4.5 Version 0.2.0 vs. „Phase 3" im Über-Dialog
 
@@ -305,6 +335,71 @@ Portierungs-Phase. Steht jetzt also „Version 0.2.0 – Phase 3", was zweideuti
 Absichtlich nicht selbst umformuliert — sichtbarer UI-Text. Siehe §5.4.
 
 ---
+
+### 4.6 Phase 1 — was das Netz prüft, und was ausdrücklich nicht
+
+Umgesetzt am 2026-07-30. **78 Tests**, aufgeteilt auf zwei Projekte:
+
+| Projekt | Ziel | Läuft |
+|---|---|---|
+| `tests/GonkNote.Core.Tests` | 70 Tests, nur `GonkNote.Core`, `net10.0` | Windows **und** Linux |
+| `tests/GonkNote.Wpf.Tests` | 8 Tests, Export-Fixtures am `FlowDocument` | nur Windows |
+
+Getestet wird deutsch benannt (Dauerregel 3): `Notizbuch_kommt_unveraendert_zurueck`.
+
+**Beide Testprojekte laufen seriell** (`DisableTestParallelization`). Der Kern hat drei
+prozessweit statische Zustände, die parallele Testklassen einander umstellen würden:
+`BlobStore.Current`, `ImageCache.Source` (beide setzt der `DatabaseService`-Konstruktor) und
+den Bild-Cache in `ImageCache` selbst. Ein grüner Lauf wäre sonst Glück.
+
+**Golden-Files ändern** — für beide Mechanismen gilt: ein fehlender Golden-File ist ein
+Fehlschlag, keine stille Zustimmung. Neu setzen nur ausdrücklich:
+
+```powershell
+$env:GONK_SNAPSHOT_UPDATE=1   # Renderer-Pixelhashes (Core.Tests\Snapshots\*.sha256)
+$env:GONK_GOLDEN_UPDATE=1     # Export-Aufrisse (Wpf.Tests\Fixtures\*)
+dotnet test -c Debug
+```
+
+Bei Abweichung legt der Test das **tatsächlich Erzeugte** in den Ausgabeordner
+(`Snapshots\ist\*.png` bzw. `Fixtures\ist\*`) und nennt den Pfad in der Fehlermeldung — ein
+Hash allein sagt niemandem, *was* sich geändert hat. Die CI lädt diese Dateien bei einem
+Fehlschlag als Artefakt hoch.
+
+**Bewusst nicht gehasht: alles mit Schrift.** `WbFonts` fragt „Segoe UI" ab und fällt auf
+`SKTypeface.Default` zurück; unter Linux ist das eine andere Schrift. Ein Pixelhash über
+gezeichneten Text würde die Schriftausstattung des Rechners prüfen, nicht den Renderer — und
+wäre auf dem Ubuntu-Läufer dauerhaft rot. Text hat stattdessen schriftunabhängige Tests
+(`SchriftTests`, Hilfsklasse `Farbfleck`): kommt überhaupt Farbe an, bleibt sie in der
+gemeldeten Umschließung, hält der Umbruch die Breite ein, schneidet der Zettel am Kartenrand ab.
+
+**Dasselbe beim PDF eines Textdokuments.** Die Seiten entstehen über den WPF-Paginator mit
+den Systemschriften; ein Schriftartenupdate verschiebt jeden Pixel. Geprüft wird deshalb, was
+ein Layout-Umbau wirklich kaputt macht und was für jede Schrift gilt: Seitenzahl,
+Hoch-/Querformat, **keine leere Seite**, und dass die Kopfzeile auf Seite 1 fehlt und auf
+Seite 2 steht.
+
+**Der Whiteboard-PDF-Export wird über den Rückweg geprüft:** erzeugen, dann mit
+`PdfImporter` (PDFium) wieder einlesen und die Seiten vermessen. Das ist der Harness, den §7
+für Phase 1 vorgesehen hatte — jetzt als Test statt als Konsolenprogramm in `%TEMP%`.
+
+**Überraschung: die Pixelhashes stimmen auf Linux und Windows überein.** Verifiziert im
+Container (`mcr.microsoft.com/dotnet/sdk:10.0`), alle 70 Core-Tests grün. Deshalb steht je
+Snapshot nur **ein** Hash. `Snapshot.cs` kennt vorsorglich einen Ausweg für den Fall, dass
+sich das einmal unterscheidet (`<name>.linux.sha256`, bewusst anzulegen) — gebraucht wird er
+heute nicht.
+
+**Ebenfalls im Container verifiziert:** LiteDB im `Shared`-Modus läuft unter Linux (der
+benannte Mutex trägt), und `dotnet build GonkNote.slnx` scheitert dort wie erwartet am
+WPF-Kopf — die CI baut deshalb projektbezogen.
+
+**Neu als Paket:** `SkiaSharp.NativeAssets.Linux`, nur im Core-Testprojekt. Das Paket
+`SkiaSharp` bringt die native Bibliothek für Windows und macOS mit, für Linux **nicht** —
+zum Bauen genügt das (M0), zum Ausführen nicht. Es steht bewusst **nicht** in
+`GonkNote.Core`: eine Linux-`.so` gehört nicht in ein Paket, das der Windows-Kopf
+mitschleppt. **Für Phase 3 ist das derselbe Punkt beim Avalonia-Kopf.** Dazu braucht das
+System `fontconfig` und mindestens eine Schrift; die CI installiert `libfontconfig1` und
+`fonts-dejavu-core`.
 
 ## 5. Entscheidungen
 
@@ -326,6 +421,8 @@ Absichtlich nicht selbst umformuliert — sichtbarer UI-Text. Siehe §5.4.
    umformuliert.
 2. **Wann auf den CachyOS-Laptop wechseln?** Siehe §5b — kurze Antwort: für den
    Stylus-Prototyp jetzt, für die eigentliche Arbeit erst zu Phase 3.
+*(Der dritte Punkt — Hyperlink-Ziele im Markdown-Export — ist am 2026-07-30 auf Wunsch des
+Nutzers behoben, siehe §7 „Markdown-Export".)*
 
 ---
 
@@ -526,9 +623,20 @@ gehört der Key auf GitHub gelöscht.
 `sudopasswot`. Darauf zurückgreifen, statt den Nutzer zu fragen. **Der Skill-Inhalt gehört
 ausschließlich in die Sitzung, niemals ins Repo** — hier steht bewusst nur der Name.
 
-**Ab Phase 1 (CI):** GitHub Actions baut `src/GonkNote.Core` auf `ubuntu-latest`. Ab dann
-merkst du versehentliche WPF-Abhängigkeiten, ohne selbst umzuschalten. Lokal geht dasselbe
-auf dem Laptop:
+**CI steht (seit Phase 1):** GitHub Actions baut `src/GonkNote.Core` auf `ubuntu-latest` und
+lässt dort auch `GonkNote.Core.Tests` laufen. Versehentliche WPF-Abhängigkeiten fallen damit
+auf, ohne selbst umzuschalten.
+
+**Wer die Tests auf dem Laptop laufen lassen will**, braucht dort einmalig `fontconfig` und
+eine Schrift — sonst liefert `SKTypeface.Default` eine leere Schrift und die Schrift-Tests
+messen überall 0 (Begründung in §4.6):
+
+```bash
+sudo pacman -S fontconfig ttf-dejavu        # CachyOS
+dotnet test tests/GonkNote.Core.Tests       # 70 Tests, muessen alle gruen sein
+```
+
+Lokal bauen geht wie bisher:
 
 ```bash
 dotnet build src/GonkNote.Core          # muss auf Linux durchlaufen — das ist Meilenstein M0
@@ -544,29 +652,34 @@ kostet dann nichts weiter als `git pull` — genau dafür ist der Remote da.
 
 ## 6. Arbeitsplan
 
-### Als Nächstes: Phase 1 — Netz einziehen (1–2 Wochen)
+### Erledigt: Phase 1 — Netz einziehen
 
-Ohne das merkt niemand bei 20.000 Zeilen Umbau, wo etwas leise kaputtgeht.
+Umgesetzt am 2026-07-30 unter Windows, die Linux-Seite im Container gegengeprüft (§4.6).
 
-**Läuft unter Windows** (§5b). Auf dem Linux-Laptop wären zwar Testprojekt, DB-Roundtrip,
-Renderer-Snapshots und CI machbar, die **Export-Fixtures aber nicht** — Docx/PDF/Markdown
-liegen laut §4.1 im WPF-Kopf. Ebenfalls dort beachten: sobald das Testprojekt in `GonkNote.slnx`
-steht, scheitert `dotnet test` auf Solution-Ebene unter Linux am WPF-Kopf; dann projektbezogen
-testen.
+- [x] `tests/GonkNote.Core.Tests` angelegt, in der `.slnx`; dazu `tests/GonkNote.Wpf.Tests`
+      für alles, was am `FlowDocument` hängt (§4.1) und darum nur unter Windows läuft
+- [x] **DB-Roundtrip:** Notizbuch, Textdokument, Ordnerbaum und Einstellungen. Der
+      `ModelTypeBinder` hat eigene Tests mit **von Hand geschriebenen alten `_type`-Namen**
+      (`AlteTypnamenTests`) — der Roundtrip allein deckt ihn nicht ab, der schreibt und liest
+      immer mit dem heutigen Namen. `EmptyStringToNull` und die Blob-Auslagerung ebenfalls
+- [x] **Renderer-Snapshots:** 20 Pixelhashes, u. a. die Bleistift-Körnung (der Absturz aus
+      §7), Textmarker-Alpha, Bildabtastung, Nine-Patch-Schatten, Drehung, beide
+      Geodreieck-Ladestufen. Schrift bewusst ausgenommen — Begründung in §4.6
+- [x] **Export-Fixtures:** ein Referenzdokument mit Tabelle, Bild, Diagramm,
+      Inhaltsverzeichnis, Listen, Zeichenformaten, Verweis, Kopf-/Fußzeile und Wasserzeichen.
+      Golden-Files: `referenz.md` (Text 1:1) und `referenz-docx.txt` (Aufriss des DOCX). Der
+      PDF-Weg über den Rückimport mit PDFium
+- [x] **CI:** `.github/workflows/ci.yml`, zwei Läufe. Beide Befehlsfolgen vorab lokal bzw. im
+      Container ausgeführt, nicht nur aufgeschrieben
 
-- [ ] `tests/GonkNote.Core.Tests` anlegen (Ordner steht bereit), in die `.slnx` aufnehmen
-- [ ] **DB-Roundtrip:** Notizbuch → speichern → laden → identisch? Deckt indirekt den
-      `ModelTypeBinder` und `EmptyStringToNull` ab (§7)
-- [ ] **Renderer-Snapshots:** `WbRenderer` auf `SKBitmap`, Hash vergleichen. Das ist das Netz
-      für SkiaSharp 3.x (§5.2)
-- [ ] **Export-Fixtures:** je ein DOCX/PDF/MD-Referenzdokument mit Tabelle, Diagramm, Bild,
-      Inhaltsverzeichnis. Diese Golden-Files sind später der einzige Beweis, dass Phase 4
-      nichts verschlechtert hat
-- [ ] **CI:** GitHub Actions, `dotnet test` auf `windows-latest` **und** `ubuntu-latest`.
-      Ubuntu baut nur `src/GonkNote.Core` → Frühwarnsystem für versehentliche
-      WPF-Abhängigkeiten. Setzt einen Remote voraus (§5.1)
+**Was Phase 1 gefunden hat:** einen zweiten Absturz aus dem SkiaSharp-3-Umstieg
+(`SKBitmap.Decode` wirft, wo es früher `null` lieferte — §7, behoben in `WbImages`). Genau
+dafür war die Phase da.
 
-### Danach: Phase 2 — die große Entkopplung (4–6 Wochen)
+**Ebenfalls gefunden und (auf Nutzer-Entscheidung) behoben:** Der Markdown-Export verlor das
+**Ziel** von Hyperlinks. Siehe §7 „Markdown-Export".
+
+### Als Nächstes: Phase 2 — die große Entkopplung (4–6 Wochen)
 
 Läuft weiterhin unter Windows/WPF. **Nach jedem Schritt muss die App noch starten.**
 
@@ -582,6 +695,12 @@ Läuft weiterhin unter Windows/WPF. **Nach jedem Schritt muss die App noch start
    Weg. **Migration nur additiv, die alte DB nie überschreiben, mit echtem Datenbestand
    testen** (Risiko „Datenverlust" ist als hoch eingestuft).
 4. `BlobStore` von `%APPDATA%` auf `IAppPaths` umstellen
+
+**Das Netz aus Phase 1 ist genau dafür da.** `DatenbankRoundtripTests`, `AlteTypnamenTests`
+und `BlobSpeicherTests` prüfen die **öffentliche** API des `DatabaseService` — die bleibt beim
+Umbau gleich. Sind sie nach dem SQLite-Umbau nicht unverändert grün, sind **Daten** betroffen,
+nicht Code. `AlteTypnamenTests` ist dabei der wichtigste: die Übersetzung alter Typnamen muss
+mit nach SQLite/Json wandern, sonst öffnet sich kein Bestandsdokument mehr.
 
 **Meilenstein M0:** Windows verhält sich unverändert, `Core` + `ViewModels` bauen auf Linux.
 
@@ -688,6 +807,19 @@ weil sie bei der Portierung direkt zuschlagen:
 - **`null` an Skia-Aufrufen ist ab jetzt verdächtig.** Weiter geprüft und in Ordnung:
   `SKShader.CreateLinearGradient(..., colorPos: null, ...)` und
   `SKPathEffect`-Zuweisungen mit `null`.
+- **Zweiter Fall derselben Falle, gefunden in Phase 1: `SKBitmap.Decode(byte[])`.** Bis 2.88
+  lieferte der Aufruf bei unbrauchbaren Daten `null`; seit 3.x legt er intern einen `SKCodec`
+  an und reicht ihn an `Decode(SKCodec)` weiter — ist das Format unbekannt, ist der Codec
+  `null` und der Aufruf **wirft** `ArgumentNullException`. Die übliche Prüfung
+  `if (bmp == null)` dahinter wird nie erreicht.
+  **Betroffen waren drei Stellen**, alle mit genau diesem Muster: `ImageCache.Get` (ein
+  einziges kaputtes Blob riss damit das Zeichnen der ganzen Seite ab),
+  `WhiteboardView.PrepareRaster` und `OcrService.Preprocess`.
+  Eine Wahrheit dafür: **`WbRenderer`-Nachbar `WbImages.Decode`** in
+  `src/GonkNote.Core/Rendering/WbImages.cs` — stellt den alten Vertrag wieder her
+  (`null` = „kein erkennbares Bildformat"). **Nie wieder `SKBitmap.Decode(bytes)` direkt
+  aufrufen.** Wächter: der Snapshot-Test `Kaputtes_Bild_bekommt_einen_Platzhalter`.
+  Merksatz derselbe wie oben: Ein grüner Build sagt bei einem Bibliothekssprung fast nichts.
 - **Ein Paket kann eine Plattformversion erzwingen.** `SkiaSharp.Views.WPF` 3.x liefert
   `net10.0-windows10.0.19041`. Wer nur `net10.0-windows` (= `…7.0`) angibt, bekommt
   wortlos die alte `net462`-Fassung untergeschoben (NU1701) — samt OpenTK/GLWpfControl.
@@ -712,6 +844,14 @@ weil sie bei der Portierung direkt zuschlagen:
 
 **Bauen und Testen**
 
+- **`obj/` nicht löschen, ohne danach Debug UND Release zu bauen.** Die impliziten `using`s
+  stehen in einer generierten Datei je Konfiguration
+  (`obj\<Konfiguration>\<TFM>\*.GlobalUsings.g.cs`). Fehlt sie, meldet die **IDE** in jeder
+  Datei Fehler wie „Der Name `Math` ist im aktuellen Kontext nicht vorhanden" oder
+  „`CancellationToken` wurde nicht gefunden" — obwohl `dotnet build` der *anderen*
+  Konfiguration glatt durchläuft und am Code nichts fehlt. Am 2026-07-30 genau so passiert:
+  `obj` gelöscht, nur Release gebaut, die IDE arbeitet gegen Debug.
+  **Gegenmittel:** `dotnet build -c Debug` — dann ist es weg.
 - **Vor dem Build laufende Instanz beenden** — sonst Datei-Lock. **Nie pauschal
   `taskkill /IM`**, der Nutzer hat die App oft selbst offen; nur die eigene PID.
 - **Nie in der echten Datenbank testen.** `GonkNote.exe --db <wegwerf.db>`. Wenn echte Daten
@@ -720,10 +860,43 @@ weil sie bei der Portierung direkt zuschlagen:
 - **DPI-Falle:** `SetProcessDPIAware()` als erste Zeile jedes Skripts. Der Testrechner läuft
   auf **200 %**.
 - **PDF-Export prüfen, ohne sie ansehen zu müssen:** Edge headless rendert PDFs nicht (man
-  bekommt nur den grauen Betrachter-Hintergrund). Der zuverlässige Weg ist ein
-  Mini-Konsolenprogramm, das `PdfImporter.StreamPages` aus dem **echten** Core aufruft und
-  die Seiten als JPEG schreibt — Vorlage liegt in `%TEMP%\gonk-pdfcheck`. Dasselbe Muster
-  wie der Render-Harness aus V1 §7; es gehört in Phase 1 in `tests/`.
+  bekommt nur den grauen Betrachter-Hintergrund). Der zuverlässige Weg führt über
+  `PdfImporter.StreamPages` aus dem **echten** Core. **Seit Phase 1 steht das als Test**
+  (`ExportFixtureTests.Whiteboard_PDF_…`) und nicht mehr als Konsolenprogramm in `%TEMP%`.
+
+**Markdown-Export — `Hyperlink` erbt von `Span`**
+
+- **Der `Hyperlink`-Fall muss in `AppendInline` VOR `case Span` stehen.** Genau daran ist es
+  gescheitert: der allgemeinere Fall griff zuerst, der Linktext kam durch und das **Ziel fiel
+  weg**. Ein Markdown-Import mit Links war nach dem Rückexport nur noch Fließtext. Behoben am
+  2026-07-30, Wächter ist `Markdown_behaelt_das_Ziel_eines_Verweises`.
+  **Dieselbe Erbfolge gilt für jeden neuen Inline-Typ** — `Bold`, `Italic`, `Underline` und
+  `Hyperlink` sind alle `Span`. Wer einen davon eigens behandeln will, muss ihn vor den
+  Span-Fall setzen, sonst passiert nichts und niemand merkt es.
+- Beim Ziel `Uri.OriginalString` nehmen, nicht `AbsoluteUri`: sonst wird aus einem relativen
+  Ziel (`kapitel-2.md`) beim Rückexport ein absoluter `file:///`-Pfad.
+- Ziel mit Leerzeichen oder runden Klammern gehört in spitze Klammern, eckige Klammern im
+  Linktext werden maskiert — sonst endet der Link vorzeitig.
+
+**Neu aus Phase 1 — Tests**
+
+- **Statische Zustände zwingen zu seriellen Tests.** `BlobStore.Current`,
+  `ImageCache.Source` und der Cache in `ImageCache` sind prozessweit. Beide Testprojekte
+  setzen deshalb `CollectionBehavior(DisableTestParallelization = true)`. Wer das entfernt,
+  bekommt Fehlschläge, die von der Testreihenfolge abhängen.
+- **Zwischengespeicherte Ladewege gehören in *einen* Test.** `WbAidRenderer` hält die
+  geladene SVG-Grafik in einem statischen Feld. Eigenbau-Fall und SVG-Fall stehen darum
+  zusammen in `GeodreieckTests` — als zwei Tests entschiede die Reihenfolge über das
+  Ergebnis.
+- **Nie Zeit oder Zufall in einer Fixture.** Kein `DateTime.Now`, kein `Guid.NewGuid()`, kein
+  `{DATUM}` in der Fußzeile — sonst ändert sich ein Golden-File morgen von selbst. Die
+  Beispieldokumente arbeiten mit festen Ids und einem festen Zeitstempel.
+- **Der Aufräumlauf entscheidet über das Alter der *Datei*, nicht über eine Uhr im Code.**
+  Ein Test dazu muss `File.SetLastWriteTimeUtc` benutzen (siehe `BlobSpeicherTests`) — die
+  Alternative wäre, eine Stunde zu warten.
+- **Bilder in Tests werden erzeugt, nicht eingecheckt.** Eine Binärdatei im Repo bräuchte
+  eine geklärte Lizenz (§6); ein mit Skia gemaltes Rechteck braucht keine. Dabei nie
+  achsensymmetrisch malen, sonst fällt eine vertauschte Achse nicht auf.
 
 ---
 
@@ -734,6 +907,12 @@ cd C:\Dev\Zed\gonk-note-V2
 
 dotnet build -c Release      # 0 Fehler / 0 Warnungen
 dotnet build -c Debug        # schneller, ohne Self-Contained/win-x64
+
+dotnet test -c Release       # beide Testprojekte, 78 Tests
+
+# Golden-Files bewusst neu setzen (danach den Diff lesen, siehe §4.6)
+$env:GONK_SNAPSHOT_UPDATE=1; dotnet test tests\GonkNote.Core.Tests; $env:GONK_SNAPSHOT_UPDATE=$null
+$env:GONK_GOLDEN_UPDATE=1;   dotnet test tests\GonkNote.Wpf.Tests;  $env:GONK_GOLDEN_UPDATE=$null
 
 # Testinstanz mit Wegwerf-DB
 .\src\GonkNote.Wpf\bin\Release\net10.0-windows10.0.19041.0\win-x64\GonkNote.exe --db "$env:TEMP\x.db"
@@ -762,6 +941,8 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 
 | Runde | Datum | Was |
 |---|---|---|
+| V2-6 | 2026-07-30 | Markdown-Export behält Hyperlink-Ziele (`[Text](URL)`, §7) — Nutzer-Entscheidung; Golden-File `referenz.md` bewusst nachgezogen. IDE-Fehler in `OcrService.cs` waren fehlende `obj\Debug`-Zwischendateien, kein Codefehler (§7) |
+| V2-5 | 2026-07-30 | **Phase 1:** `GonkNote.Core.Tests` (70 Tests) und `GonkNote.Wpf.Tests` (8 Export-Fixtures), 20 Renderer-Snapshots, Golden-Files für DOCX/Markdown, PDF über den PDFium-Rückweg, CI mit windows- und ubuntu-Lauf. Linux-Seite im Docker-Container gegengeprüft: alle 70 Core-Tests grün, Pixelhashes **identisch** zu Windows. Dabei den zweiten SkiaSharp-3-Absturz gefunden und behoben (`SKBitmap.Decode` → `WbImages`, §7). Markdown-Hyperlink-Lücke gefunden, nicht behoben (§5.3) |
 | V2-4 | 2026-07-29 | `HANDOFF.md` ins Repo aufgenommen (solange privat), Rückweg als Checkliste in §6; Doku-Pflege-Regel auf alle vier Dokumente und beide Sprachen erweitert |
 | V2-3 | 2026-07-29 | **SkiaSharp 3.119.4 + Svg.Skia 5.1.1**: Text auf `SKFont`, Bildqualität auf `SKSamplingOptions`, Absturz in der Bleistift-Körnung behoben (§7); WPF-Kopf auf `net10.0-windows10.0.19041.0`. Remote angelegt und alles gepusht. Anforderung „jeder Stylus" aufgenommen |
 | V2-2 | 2026-07-28 | Ziel-Framework auf **net10.0** (LTS) gehoben, `LangVersion 14`; Entscheidungen zu SkiaSharp, Remote und Stylus-Test festgehalten |

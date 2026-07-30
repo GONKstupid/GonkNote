@@ -29,6 +29,20 @@
 >    bei offenen Fragen und Entscheidungen**, die der Nutzer treffen muss — die dafür klar
 >    begründen.
 > 3. **Sprache:** durchgehend Deutsch — UI, Kommentare, Commits, diese Datei.
+> 4. **Kopie der echten Daten anlegen ist erlaubt, ohne zu fragen** (Nutzer-Entscheidung
+>    2026-07-30). Wenn echte Daten zum Prüfen gebraucht werden — Migration, Export, ein
+>    Fehlerbild, das nur mit Bestandsdokumenten auftritt —, darf
+>    `%APPDATA%\GonkNote\gonknote.db` **plus** `%APPDATA%\GonkNote\gonknote.blobs` nach
+>    `%TEMP%` kopiert und die **Kopie** geöffnet werden (Befehle in §8).
+>
+>    **Die Grenze bleibt:** die Datenbank unter `%APPDATA%` wird nie geöffnet, nie beschrieben,
+>    nie umbenannt und nie gelöscht — nur gelesen, um sie zu kopieren. Gearbeitet wird
+>    ausschließlich auf der Kopie, gestartet ausschließlich mit `--db <Kopie>`.
+>
+>    **Beide Teile kopieren, immer.** Der Blob-Ordner leitet seinen Namen von der
+>    Datenbankdatei ab; ohne ihn sind alle Bilder scheinbar weg, und man sucht den Fehler an
+>    der falschen Stelle. **Aus der Kopie nichts ins Repo übernehmen** — dort stehen
+>    Schulunterlagen (Kopfzeile).
 >
 > **⚠️ Diese Datei liegt im Repo — solange es privat ist.** Nutzer-Entscheidung vom
 > 2026-07-29: eingecheckt, damit sie zwischen Rechnern (Windows ↔ CachyOS-Laptop)
@@ -327,12 +341,32 @@ Die beiden offenen sind in Phase 2 fällig: dort entstehen `IOcrEngine` und der 
 wird für Avalonia herausgelöst — an öffentlichen Schnittstellen lassen sie sich dann testen,
 ohne den WPF-Kopf hochzufahren.
 
-### 4.5 Version 0.2.0 vs. „Phase 3" im Über-Dialog
+### 4.5 Versionszeile im Über-Dialog — erledigt
 
-`Directory.Build.props` setzt laut Roadmap `Version 0.2.0`. `AboutDialog.xaml.cs` schreibt
-dahinter fest verdrahtet `– Phase 3`; das war die V1-Entwicklungsphase, nicht die
-Portierungs-Phase. Steht jetzt also „Version 0.2.0 – Phase 3", was zweideutig ist.
-Absichtlich nicht selbst umformuliert — sichtbarer UI-Text. Siehe §5.4.
+Bis 0.2.0 stand in `AboutDialog.xaml.cs` fest verdrahtet `$"Version {…} – Phase 3"`. Zwei
+Probleme in einer Zeile:
+
+- **Zweideutig:** „Phase 3" war die *Entwicklungsphase von V1*, nicht die Portierungsphase.
+  Neben der laufenden Portierung las es sich wie deren Phase 3.
+- **Nicht übersetzt:** die Zeile stand im Code und erschien deshalb auch im **englischen**
+  Dialog deutsch. Aufgefallen ist das erst, weil `Loc` sonst überall benutzt wird — genau die
+  Art Lücke, die Dauerregel 1 meint.
+
+Behoben am 2026-07-30 (Nutzer-Entscheidung): neuer Schlüssel **`About.Version`** in
+`LocGerman`/`LocEnglish`, `{0}` ist die Versionsnummer.
+
+| | |
+|---|---|
+| Deutsch | `Version 0.2.0 · Portierung, Phase 2` |
+| Englisch | `Version 0.2.0 · Port, phase 2` |
+
+**Von Hand nachzuziehen, wenn eine Portierungsphase beginnt** — und zwar in **beiden**
+Tabellen (Dauerregel 1). Der Dialog wird bei jedem Öffnen neu erzeugt, `Loc.LanguageChanged`
+braucht er deshalb nicht.
+
+Am laufenden Programm in beiden Sprachen gegengeprüft (Dauerregel 1), mit einer
+Wegwerf-Datenbank: Zeile passt in eine Zeile, kein Umbruch, und der ganze Dialog wechselt mit
+(englisches README, englische Menüleiste).
 
 ---
 
@@ -412,17 +446,16 @@ System `fontconfig` und mindestens eine Schrift; die CI installiert `libfontconf
 | Remote | **<https://github.com/GONKstupid/GonkNote>**, privat, vom Nutzer angelegt. Branch `main`, alles gepusht |
 | Stift | Die App soll mit **jedem** Stylus laufen — nicht nur mit einem Modell (§1) |
 | Linux-Rechner | Zweiter Laptop mit **CachyOS** steht bereit; Stift ist ein Lenovo Precision Pen 2 (§5a) |
+| Über-Dialog-Text | **`About.Version` über `Loc`**, deutsch „Portierung, Phase 2" / englisch „Port, phase 2" (§4.5). Erledigt 2026-07-30 |
+| Markdown-Export und Hyperlinks | **Ziel bleibt erhalten** (`[Text](URL)`), §7 „Markdown-Export". Erledigt 2026-07-30 |
+| Kopie der echten Daten | **Ohne Nachfragen erlaubt**, die echte DB bleibt unangetastet — Dauerregel 4 in der Kopfzeile, Befehle in §8. Entschieden 2026-07-30 |
 
 **Noch offen:**
 
-1. **Über-Dialog-Text.** `AboutDialog.xaml.cs` schreibt fest `– Phase 3` (V1-Phase). Steht
-   jetzt als „Version 0.2.0 – Phase 3" da, was zweideutig ist. Ersetzen durch
-   „Portierung, Phase 0"? Oder bis M1 weglassen? Sichtbarer UI-Text, deshalb nicht selbst
-   umformuliert.
-2. **Wann auf den CachyOS-Laptop wechseln?** Siehe §5b — kurze Antwort: für den
+1. **Wann auf den CachyOS-Laptop wechseln?** Siehe §5b — kurze Antwort: für den
    Stylus-Prototyp jetzt, für die eigentliche Arbeit erst zu Phase 3.
-*(Der dritte Punkt — Hyperlink-Ziele im Markdown-Export — ist am 2026-07-30 auf Wunsch des
-Nutzers behoben, siehe §7 „Markdown-Export".)*
+2. **Zweites Stylus-Gerät** (MPP und/oder EMR) — der einzige Punkt mit echtem Restrisiko,
+   siehe §5a „Offen". Die Anforderung „läuft mit jedem Stylus" ist bis dahin unbeantwortet.
 
 ---
 
@@ -917,11 +950,17 @@ $env:GONK_GOLDEN_UPDATE=1;   dotnet test tests\GonkNote.Wpf.Tests;  $env:GONK_GO
 # Testinstanz mit Wegwerf-DB
 .\src\GonkNote.Wpf\bin\Release\net10.0-windows10.0.19041.0\win-x64\GonkNote.exe --db "$env:TEMP\x.db"
 
-# Echte Daten gefahrlos gegentesten: erst kopieren
-$d = "$env:TEMP\gonk-echt"; mkdir $d
+# Echte Daten gefahrlos gegentesten: erst kopieren (Dauerregel 4 -- ohne Nachfragen erlaubt).
+# BEIDE Teile, immer: der Blob-Ordner leitet seinen Namen von der Datenbankdatei ab. Ohne ihn
+# sind alle Bilder scheinbar weg und man sucht den Fehler an der falschen Stelle.
+$d = "$env:TEMP\gonk-echt"; mkdir $d -Force
 Copy-Item "$env:APPDATA\GonkNote\gonknote.db" $d
 Copy-Item "$env:APPDATA\GonkNote\gonknote.blobs" $d -Recurse
+# Ab hier nur noch die Kopie -- die Datei unter %APPDATA% wird nie geoeffnet.
 .\src\GonkNote.Wpf\bin\Release\net10.0-windows10.0.19041.0\win-x64\GonkNote.exe --db "$d\gonknote.db"
+
+# Danach aufraeumen. Die Kopie enthaelt Schulunterlagen und darf nicht liegen bleiben.
+Remove-Item $d -Recurse -Force
 
 # Prüfen, ob nichts WPF-Verseuchtes nach Core gerutscht ist
 Select-String -Path src\GonkNote.Core\**\*.cs -Pattern "System\.Windows|System\.Drawing" -List
@@ -941,6 +980,7 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 
 | Runde | Datum | Was |
 |---|---|---|
+| V2-7 | 2026-07-30 | Versionszeile im Über-Dialog über `Loc` statt fest verdrahtet — war zweideutig **und** unübersetzt (§4.5), in beiden Sprachen am laufenden Programm geprüft. Dauerregel 4 aufgenommen: Kopie der echten Daten ohne Nachfragen erlaubt, die echte DB bleibt unangetastet. Alles nach GitHub gepusht |
 | V2-6 | 2026-07-30 | Markdown-Export behält Hyperlink-Ziele (`[Text](URL)`, §7) — Nutzer-Entscheidung; Golden-File `referenz.md` bewusst nachgezogen. IDE-Fehler in `OcrService.cs` waren fehlende `obj\Debug`-Zwischendateien, kein Codefehler (§7) |
 | V2-5 | 2026-07-30 | **Phase 1:** `GonkNote.Core.Tests` (70 Tests) und `GonkNote.Wpf.Tests` (8 Export-Fixtures), 20 Renderer-Snapshots, Golden-Files für DOCX/Markdown, PDF über den PDFium-Rückweg, CI mit windows- und ubuntu-Lauf. Linux-Seite im Docker-Container gegengeprüft: alle 70 Core-Tests grün, Pixelhashes **identisch** zu Windows. Dabei den zweiten SkiaSharp-3-Absturz gefunden und behoben (`SKBitmap.Decode` → `WbImages`, §7). Markdown-Hyperlink-Lücke gefunden, nicht behoben (§5.3) |
 | V2-4 | 2026-07-29 | `HANDOFF.md` ins Repo aufgenommen (solange privat), Rückweg als Checkliste in §6; Doku-Pflege-Regel auf alle vier Dokumente und beide Sprachen erweitert |

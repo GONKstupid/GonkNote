@@ -32,6 +32,11 @@ public static class ImageCache
     /// gültiges Ergebnis: der Aufrufer zeichnet dann einen Platzhalter. Ohne diese Prüfung warf
     /// <c>SKBitmap.Decode(null)</c> mitten im Zeichnen – ein einziges kaputtes Bild ließ damit
     /// die ganze Seite leer.
+    /// <para>
+    /// Dekodiert wird über <see cref="Rendering.WbImages.Decode"/>: der direkte Aufruf
+    /// <c>SKBitmap.Decode(bytes)</c> **wirft** seit SkiaSharp 3 bei unbrauchbaren Daten,
+    /// statt null zu liefern — die Prüfung unten käme also nie zum Zug.
+    /// </para>
     /// </summary>
     public static SKImage? Get(Guid id, byte[]? data)
     {
@@ -45,7 +50,7 @@ public static class ImageCache
         byte[]? encoded = Bytes(id, data);
         if (encoded is not { Length: > 0 }) return null;
 
-        using var bmp = SKBitmap.Decode(encoded);
+        using var bmp = Rendering.WbImages.Decode(encoded);
         if (bmp == null) return null;
         var img = SKImage.FromBitmap(bmp);
         long bytes = (long)bmp.Width * bmp.Height * 4;

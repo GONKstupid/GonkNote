@@ -94,7 +94,10 @@ public static class OcrService
     /// </summary>
     private static byte[] Preprocess(byte[] raw)
     {
-        using var bmp = SKBitmap.Decode(raw);
+        // Nicht SKBitmap.Decode(raw): das wirft seit SkiaSharp 3 bei unbrauchbaren Daten,
+        // statt null zu liefern — der Rückfallweg unten wäre also nie erreicht worden
+        // (WbImages.Decode).
+        using var bmp = WbImages.Decode(raw);
         if (bmp == null) return raw; // Leptonica soll es dann selbst dekodieren
 
         int longSide = Math.Max(bmp.Width, bmp.Height);

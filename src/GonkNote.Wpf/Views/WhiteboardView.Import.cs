@@ -89,7 +89,9 @@ public partial class WhiteboardView
     /// <summary>Dekodiert, verkleinert große Bilder (RAM-/DB-Ziel) und liefert speicherbare Bytes + Pixelmaße.</summary>
     private static (byte[] Data, float W, float H)? PrepareRaster(byte[] raw)
     {
-        using var bmp = SKBitmap.Decode(raw);
+        // Nicht SKBitmap.Decode(raw): das wirft seit SkiaSharp 3, wenn die Datei kein
+        // erkennbares Bild ist, statt null zu liefern (WbImages.Decode).
+        using var bmp = WbImages.Decode(raw);
         if (bmp == null) return null;
 
         // Klein genug: Originalbytes unverändert übernehmen

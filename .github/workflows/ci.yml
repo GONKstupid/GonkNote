@@ -1,0 +1,109 @@
+# Netz unter der Portierung (Roadmap Phase 1).
+#
+# Zwei Läufe, mit unterschiedlichem Zweck:
+#
+#   windows  — alles: Solution bauen, beide Testprojekte laufen lassen. Das ist der
+#              vollständige Lauf, denn nur hier existiert der WPF-Kopf.
+#   ubuntu   — nur GonkNote.Core und seine Tests. **Frühwarnsystem:** rutscht etwas
+#              WPF-Abhängiges nach Core, scheitert dieser Lauf — und zwar in Phase 1,
+#              nicht erst in Phase 3, wenn der Avalonia-Kopf darauf aufsetzen soll.
+#              Gleichzeitig ist er die dauerhafte Absicherung von Meilenstein M0.
+#
+# GonkNote.Wpf lässt sich unter Linux **nicht** bauen (net10.0-windows10.0.19041.0). Das ist
+# so gewollt und kein Fehler; deshalb wird dort projektbezogen gebaut und nicht die Solution.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# Ein neuer Push bricht den noch laufenden Lauf desselben Branches ab — sonst stehen mehrere
+# Läufe in der Warteschlange und der letzte, der zählt, kommt zuletzt.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  windows:
+    name: Windows (alles)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          # Absichtlich das Band und keine feste Fassung: das Projekt steht auf net10.0 (LTS),
+          # ein Patch-Update des SDK soll die CI nicht anhalten.
+          dotnet-version: '10.0.x'
+
+      # Bewusst **ohne** getrennten `dotnet restore` und ohne `--no-restore`: der WPF-Kopf
+      # setzt in Release `RuntimeIdentifier=win-x64` (self-contained). Ein Restore ohne
+      # `-c Release` legt dafür kein Ziel an, und der Build bricht mit NETSDK1047 ab. Der
+      # Build stellt selbst wieder her und kennt die Konfiguration dabei.
+      - name: Bauen (Release)
+        # -warnaserror hält die Regel „0 Fehler, 0 Warnungen" fest. Ohne das wäre sie eine
+        # Absichtserklärung, an die sich nach dem zehnten grünen Lauf niemand mehr hält.
+        run: dotnet build GonkNote.slnx -c Release -warnaserror
+
+      - name: Testen
+        run: dotnet test GonkNote.slnx -c Release --no-build --logger "console;verbosity=normal"
+
+      # Bei einem Fehlschlag sind die erzeugten Dateien das Einzige, was weiterhilft: das
+      # tatsächlich gezeichnete Bild eines abgewichenen Snapshots und der vollständige Text
+      # eines abgewichenen Golden-Files. Ohne sie bleibt nur ein Hash-Unterschied.
+      - name: Beweisstücke einsammeln
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: abweichungen-windows
+          path: |
+            tests/GonkNote.Core.Tests/bin/Release/**/Snapshots/ist/**
+            tests/GonkNote.Wpf.Tests/bin/Release/**/Fixtures/ist/**
+          if-no-files-found: ignore
+          retention-days: 14
+
+  linux:
+    name: Linux (nur Core, Fruehwarnsystem)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      # Zum **Bauen** von Core genügt das SkiaSharp-Paket. Zum **Ausführen** nicht: die
+      # native Bibliothek für Linux kommt aus SkiaSharp.NativeAssets.Linux (siehe
+      # Directory.Packages.props), und die verlangt fontconfig. Ohne mindestens eine
+      # installierte Schrift liefert SKTypeface.Default eine leere Schrift — dann messen die
+      # Schrift-Tests überall 0 und schlagen fehl, ohne dass am Programm etwas falsch wäre.
+      - name: fontconfig und eine Schrift installieren
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends libfontconfig1 fonts-dejavu-core
+
+      # Projektbezogen, nicht über die Solution: die enthält den WPF-Kopf.
+      - name: Core bauen (Meilenstein M0)
+        run: dotnet build src/GonkNote.Core/GonkNote.Core.csproj -c Release -warnaserror
+
+      - name: Core-Tests
+        run: >
+          dotnet test tests/GonkNote.Core.Tests/GonkNote.Core.Tests.csproj
+          -c Release -warnaserror --logger "console;verbosity=normal"
+
+      - name: Beweisstücke einsammeln
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: abweichungen-linux
+          path: tests/GonkNote.Core.Tests/bin/Release/**/Snapshots/ist/**
+          if-no-files-found: ignore
+          retention-days: 14

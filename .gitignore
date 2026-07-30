@@ -12,3 +12,16 @@ TestAssets/
 *.db
 *.db-log
 *.blobs/
+*.papierkorb/
+
+# Netz gegen Schluesselmaterial. Die SSH-Keys liegen ausserhalb des Repos (%USERPROFILE%\.ssh
+# bzw. ~/.ssh, siehe HANDOFF Abschnitt 5c) -- das hier faengt nur den Fall ab, dass doch
+# einmal jemand einen Schluessel oder ein Zertifikat neben den Code legt. Ein einmal
+# eingecheckter Schluessel bleibt in der History lesbar, auch nach dem Loeschen.
+id_rsa
+id_ecdsa
+id_ed25519
+*.pem
+*.key
+*.pfx
+*.ppk

@@ -31,14 +31,21 @@ env:
   DOTNET_NOLOGO: true
   DOTNET_CLI_TELEMETRY_OPTOUT: true
 
+# Zu den Action-Hauptversionen: die jeweils neueste, weil erst diese auf **Node 24** laufen.
+# Die Fassungen `checkout@v4` / `setup-dotnet@v4` / `upload-artifact@v4` zielen noch auf
+# Node 20; GitHub zwingt sie schon heute auf Node 24 und meldet das als Deprecation an jedem
+# Lauf. Wenn die Unterstützung endet, wird daraus ein Fehler — deshalb gleich anheben.
+# Geprüft: die hier benutzten Eingaben (dotnet-version, name, path, if-no-files-found,
+# retention-days) heißen unverändert.
+
 jobs:
   windows:
     name: Windows (alles)
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6
         with:
           # Absichtlich das Band und keine feste Fassung: das Projekt steht auf net10.0 (LTS),
           # ein Patch-Update des SDK soll die CI nicht anhalten.
@@ -61,7 +68,7 @@ jobs:
       # eines abgewichenen Golden-Files. Ohne sie bleibt nur ein Hash-Unterschied.
       - name: Beweisstücke einsammeln
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: abweichungen-windows
           path: |
@@ -74,9 +81,9 @@ jobs:
     name: Linux (nur Core, Fruehwarnsystem)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '10.0.x'
 
@@ -101,7 +108,7 @@ jobs:
 
       - name: Beweisstücke einsammeln
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: abweichungen-linux
           path: tests/GonkNote.Core.Tests/bin/Release/**/Snapshots/ist/**

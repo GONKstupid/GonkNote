@@ -412,6 +412,10 @@ internal static class LocGerman
         ["Guide.Subtitle"] = "Von der ersten Notiz bis zur Sicherung — Schritt für Schritt.",
         ["About.Title"] = "Über Gonk Note",
         ["About.Subtitle"] = "Offline-Notizen, Whiteboards und Textdokumente. Daten liegen lokal unter %APPDATA%\\GonkNote.",
+        // {0} = Versionsnummer. Die Phase meint die **Portierung** (Linux/iPadOS), nicht mehr
+        // die Entwicklungsphase von V1 — bis 0.2.0 stand hier fest „Phase 3" und war damit
+        // zweideutig. Von Hand nachzuziehen, wenn eine Portierungsphase beginnt (HANDOFF §6).
+        ["About.Version"] = "Version {0} · Portierung, Phase 2",
         ["Chart.Title"] = "Diagramm einfügen",
         ["Chart.Type"] = "Typ",
         ["Chart.Type.Column"] = "Säulen",

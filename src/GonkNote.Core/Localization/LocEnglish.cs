@@ -412,6 +412,9 @@ internal static class LocEnglish
         ["Guide.Subtitle"] = "From your first note to your first backup — step by step.",
         ["About.Title"] = "About Gonk Note",
         ["About.Subtitle"] = "Offline notes, whiteboards and text documents. Data is stored locally under %APPDATA%\\GonkNote.",
+        // {0} = Versionsnummer. Gegenstueck zu About.Version in LocGerman — die Zeile stand
+        // bisher fest verdrahtet im Code und erschien deshalb auch im englischen Dialog deutsch.
+        ["About.Version"] = "Version {0} · Port, phase 2",
         ["Chart.Title"] = "Insert chart",
         ["Chart.Type"] = "Type",
         ["Chart.Type.Column"] = "Column",

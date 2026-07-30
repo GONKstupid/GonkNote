@@ -14,8 +14,13 @@ public partial class AboutDialog : Window
     {
         InitializeComponent();
 
+        // Über Loc, nicht fest verdrahtet: die Zeile stand bis 0.2.0 als
+        // "Version x.y.z – Phase 3" im Code und erschien damit auch im englischen Dialog
+        // deutsch. „Phase 3" war zusätzlich die Entwicklungsphase von V1 und wurde neben der
+        // laufenden Portierung zweideutig. Der Dialog wird bei jedem Öffnen neu erzeugt, die
+        // Sprache stimmt deshalb ohne Loc.LanguageChanged.
         var version = Assembly.GetExecutingAssembly().GetName().Version;
-        VersionText.Text = $"Version {version?.ToString(3) ?? "?"} – Phase 3";
+        VersionText.Text = Loc.T("About.Version", version?.ToString(3) ?? "?");
 
         ReadmeView.Document = MarkdownFlow.ToFlowDocument(EmbeddedDocs.Readme(), OpenDocument);
     }

@@ -1,0 +1,55 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Testprojekt des Windows-Kopfs. Muss `-windows` sein und `UseWPF` setzen, weil die
+       Export-Fixtures (Roadmap Phase 1) an FlowDocument hängen: DOCX, Markdown und der
+       PDF-Weg der Textdokumente liegen laut HANDOFF §4.1 noch im WPF-Kopf und ziehen erst
+       mit Phase 4 nach Core um.
+
+       **Läuft nur unter Windows** — in der CI deshalb nur im windows-latest-Job. Das ist so
+       gewollt und kein Mangel: die Golden-Files dieses Projekts sind später der einzige
+       Beweis, dass die eigene Dokument-Engine aus Phase 4 nichts verschlechtert hat.
+
+       Was plattformneutral prüfbar ist, gehört nach tests/GonkNote.Core.Tests. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>GonkNote.Wpf.Tests</RootNamespace>
+    <AssemblyName>GonkNote.Wpf.Tests</AssemblyName>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <!-- Der WPF-Kopf baut in Release self-contained für win-x64. Ohne dieselbe Angabe hier
+         käme NETSDK1150 („nicht RID-spezifisches Projekt verweist auf ein self-contained
+         Projekt"). Debug bleibt RID-frei, weil der Kopf es dort auch ist. -->
+    <RuntimeIdentifier Condition="'$(Configuration)' == 'Release'">win-x64</RuntimeIdentifier>
+    <SelfContained Condition="'$(Configuration)' == 'Release'">true</SelfContained>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+    <!-- Zum Nachlesen des erzeugten DOCX. Dieselbe Fassung wie im Kopf (zentrale Versionen). -->
+    <PackageReference Include="DocumentFormat.OpenXml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\GonkNote.Wpf\GonkNote.Wpf.csproj" />
+    <ProjectReference Include="..\..\src\GonkNote.Core\GonkNote.Core.csproj" />
+  </ItemGroup>
+
+  <!-- Golden-Files: reiner Text, damit ein Unterschied im Diff lesbar ist. Ein DOCX oder PDF
+       byteweise zu vergleichen geht nicht — beide enthalten Zeitstempel und komprimieren
+       nicht bitgleich. Verglichen wird deshalb ein **Aufriss** des Inhalts. -->
+  <ItemGroup>
+    <Content Include="Fixtures\**\*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AssemblyMetadata Include="ProjektOrdner" Value="$(MSBuildProjectDirectory)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+</Project>

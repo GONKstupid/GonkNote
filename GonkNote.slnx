@@ -3,4 +3,8 @@
     <Project Path="src/GonkNote.Core/GonkNote.Core.csproj" />
     <Project Path="src/GonkNote.Wpf/GonkNote.Wpf.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/GonkNote.Core.Tests/GonkNote.Core.Tests.csproj" />
+    <Project Path="tests/GonkNote.Wpf.Tests/GonkNote.Wpf.Tests.csproj" />
+  </Folder>
 </Solution>

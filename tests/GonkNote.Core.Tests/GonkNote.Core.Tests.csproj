@@ -1,0 +1,65 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Netz unter der Portierung (Roadmap Phase 1). Prüft ausschließlich GonkNote.Core und
+       ist deshalb `net10.0` ohne `-windows`: dieselben Tests laufen unter Windows und unter
+       Linux. Genau das ist der Zweck — sobald etwas WPF-Abhängiges nach Core rutscht,
+       scheitert hier der Build (und in der CI der Ubuntu-Lauf), nicht erst Phase 3.
+
+       Der WPF-Kopf hat sein eigenes Testprojekt: tests/GonkNote.Wpf.Tests.
+
+       Gemeinsame Eigenschaften: ..\..\Directory.Build.props
+       Paketversionen:          ..\..\Directory.Packages.props -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>GonkNote.Core.Tests</RootNamespace>
+    <AssemblyName>GonkNote.Core.Tests</AssemblyName>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+    <!-- Damit die Snapshot-Tests unter Linux nicht nur bauen, sondern auch zeichnen: das
+         Paket `SkiaSharp` liefert die native Bibliothek nur für Windows und macOS. Auf
+         Windows liegt die .so ungenutzt daneben und kostet nichts.
+         Das System braucht dazu fontconfig und mindestens eine Schrift — in der CI wird das
+         installiert (.github/workflows/ci.yml). -->
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\GonkNote.Core\GonkNote.Core.csproj" />
+  </ItemGroup>
+
+  <!-- Golden-Files: die erwarteten Pixel-Hashes des Renderers. Reiner Text, damit ein
+       Unterschied im Diff sichtbar ist und keine Binärdatei im Repo wächst. Bei einer
+       Abweichung schreibt der Test das tatsächliche Bild als PNG in den Ausgabeordner
+       (Snapshots\ist\) — nur dort ist es anschaubar, eingecheckt wird es nicht. -->
+  <ItemGroup>
+    <Content Include="Snapshots\*.sha256" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!-- Die Geodreieck-Grafiken genauso neben die Test-Assembly legen, wie sie in der App
+       neben der Exe liegen (`Assets\`) — dann findet WbAidRenderer.AppAssetFolder sie ohne
+       Zutun, und der Test prüft wirklich den Svg.Skia-Weg und nicht einen Sonderpfad. -->
+  <ItemGroup>
+    <Content Include="..\..\Assets\Geodreieck-Light.svg" Link="Assets\Geodreieck-Light.svg"
+             CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\Assets\Geodreieck-Dark.svg" Link="Assets\Geodreieck-Dark.svg"
+             CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!-- Wo die Quellen liegen. Nur für GONK_SNAPSHOT_UPDATE=1 gebraucht: dann schreibt der
+       Test die neuen Hashes hierher zurück. Als Metadatum, damit Snapshot.cs den Ordner
+       nicht über „drei Ebenen über bin" erraten muss. -->
+  <ItemGroup>
+    <AssemblyMetadata Include="ProjektOrdner" Value="$(MSBuildProjectDirectory)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+</Project>

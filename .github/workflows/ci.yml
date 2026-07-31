@@ -4,10 +4,11 @@
 #
 #   windows  — alles: Solution bauen, beide Testprojekte laufen lassen. Das ist der
 #              vollständige Lauf, denn nur hier existiert der WPF-Kopf.
-#   ubuntu   — nur GonkNote.Core und seine Tests. **Frühwarnsystem:** rutscht etwas
-#              WPF-Abhängiges nach Core, scheitert dieser Lauf — und zwar in Phase 1,
-#              nicht erst in Phase 3, wenn der Avalonia-Kopf darauf aufsetzen soll.
-#              Gleichzeitig ist er die dauerhafte Absicherung von Meilenstein M0.
+#   ubuntu   — GonkNote.Core, GonkNote.ViewModels und die Core-Tests. **Frühwarnsystem:**
+#              rutscht etwas WPF-Abhängiges dorthin, scheitert dieser Lauf — und zwar in
+#              Phase 1/2, nicht erst in Phase 3, wenn der Avalonia-Kopf darauf aufsetzen
+#              soll. Gleichzeitig ist er die dauerhafte Absicherung von Meilenstein M0.
+#              ViewModels ist seit Phase 2 eine eigene Assembly und gehört deshalb hierher.
 #
 # GonkNote.Wpf lässt sich unter Linux **nicht** bauen (net10.0-windows10.0.19041.0). Das ist
 # so gewollt und kein Fehler; deshalb wird dort projektbezogen gebaut und nicht die Solution.
@@ -100,6 +101,12 @@ jobs:
       # Projektbezogen, nicht über die Solution: die enthält den WPF-Kopf.
       - name: Core bauen (Meilenstein M0)
         run: dotnet build src/GonkNote.Core/GonkNote.Core.csproj -c Release -warnaserror
+
+      # Seit Phase 2 eine eigene Assembly. Sie zieht Core über eine ProjectReference mit,
+      # steht hier aber trotzdem als eigener Schritt: schlägt sie fehl, soll die Meldung
+      # „ViewModels" heißen und nicht „Core".
+      - name: ViewModels bauen (Meilenstein M0)
+        run: dotnet build src/GonkNote.ViewModels/GonkNote.ViewModels.csproj -c Release -warnaserror
 
       - name: Core-Tests
         run: >

@@ -1,7 +1,8 @@
-using System.Windows.Media;
+﻿using System.Windows.Media;
 using GonkNote.Core.Models;
 using GonkNote.Services;
 using SkiaSharp;
+using GonkNote.Core.Platform;
 
 namespace GonkNote.Views;
 
@@ -277,7 +278,7 @@ public partial class WhiteboardView
     private static PageShade EffectiveShade(WbPage? page)
     {
         if (page != null && page.Shade != PageShade.Auto) return page.Shade;
-        return ThemeService.Current == AppTheme.Dark ? PageShade.Dark : PageShade.Light;
+        return App.Platform.Theme.Current == AppTheme.Dark ? PageShade.Dark : PageShade.Light;
     }
 
     private string CurrentInkHex()

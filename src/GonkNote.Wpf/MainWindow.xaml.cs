@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
@@ -6,6 +6,7 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using GonkNote.Services;
 using GonkNote.ViewModels;
+using GonkNote.Core.Platform;
 
 namespace GonkNote;
 
@@ -22,14 +23,14 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        _vm = new MainViewModel(App.Db);
+        _vm = new MainViewModel(App.Db, App.Platform);
         DataContext = _vm;
         Closing += (_, _) => _vm.SaveAll();
-        Closing += (_, _) => ThemeService.ThemeChanged -= ApplyTitleBarTheme;
+        Closing += (_, _) => App.Platform.Theme.ThemeChanged -= ApplyTitleBarTheme;
         PreviewKeyDown += Window_PreviewKeyDown;
         PreviewMouseMove += Root_MouseMove;
         StateChanged += (_, _) => ApplyMaximizedChrome();
-        ThemeService.ThemeChanged += ApplyTitleBarTheme;
+        App.Platform.Theme.ThemeChanged += ApplyTitleBarTheme;
 
         if (App.Db.GetSetting("sidebar") == "0") SetSidebarVisible(false);
         ShowActiveLanguage();
@@ -78,7 +79,7 @@ public partial class MainWindow : Window
 
     /// <summary>Native Titelleiste dunkel/hell entsprechend dem aktuellen App-Theme.</summary>
     private void ApplyTitleBarTheme() =>
-        TitleBarTheme.Apply(this, ThemeService.Current == AppTheme.Dark);
+        TitleBarTheme.Apply(this, App.Platform.Theme.Current == AppTheme.Dark);
 
     /// <summary>
     /// Blendet die native Titelleiste aus, sobald das Fenster maximiert („in Groß") ist,
@@ -202,15 +203,19 @@ public partial class MainWindow : Window
             menu.Items.Add(mi);
         }
 
-        Add("Öffnen", () => { if (t.IsFolder) _vm.NavigateGallery(t); else _vm.OpenItem(t); });
-        Add("Umbenennen", () => _vm.BeginRename(t));
+        // Das Menü wird bei jedem Öffnen neu gebaut — Loc.T greift also zur richtigen Zeit
+        // und braucht kein Loc.LanguageChanged. Bis Phase 2 standen die drei festen Einträge
+        // hier auf Deutsch und blieben es auch im englischen Programm; aufgefallen ist das
+        // erst, als die beiden Nachbarn daneben übersetzt wurden (Dauerregel 1).
+        Add(Loc.T("Tree.Open"), () => { if (t.IsFolder) _vm.NavigateGallery(t); else _vm.OpenItem(t); });
+        Add(Loc.T("Tree.Rename"), () => _vm.BeginRename(t));
         if (t.IsFolder)
         {
             Add(t.PinMenuHeader, () => _vm.TogglePinned(t));
             Add(t.FavoriteMenuHeader, () => _vm.ToggleFavorite(t));
         }
         menu.Items.Add(new Separator());
-        Add("Löschen", () => _vm.DeleteCommand.Execute(t));
+        Add(Loc.T("Tree.Delete"), () => _vm.DeleteCommand.Execute(t));
         menu.IsOpen = true;
     }
 

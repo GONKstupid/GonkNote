@@ -1,8 +1,7 @@
 using System.Runtime;
 using System.Collections.ObjectModel;
-using System.Windows;
-using System.Windows.Threading;
 using GonkNote.Core.Models;
+using GonkNote.Core.Platform;
 using GonkNote.Services;
 using GonkNote.Core.Services;
 
@@ -11,7 +10,8 @@ namespace GonkNote.ViewModels;
 public sealed class MainViewModel : ObservableObject
 {
     private readonly DatabaseService _db;
-    private readonly DispatcherTimer _autosave;
+    private readonly IPlatformServices _platform;
+    private readonly IDisposable _autosave;
     private DocumentTabViewModel? _selectedTab;
     private TreeItemViewModel? _selectedTreeItem;
     private TreeItemViewModel? _galleryFolder;
@@ -28,9 +28,10 @@ public sealed class MainViewModel : ObservableObject
     /// <summary>Breadcrumb-Pfad im Galeriemodus (Wurzel „Dokumente" + Vorfahren).</summary>
     public ObservableCollection<BreadcrumbEntry> Breadcrumb { get; } = new();
 
-    public MainViewModel(DatabaseService db)
+    public MainViewModel(DatabaseService db, IPlatformServices platform)
     {
         _db = db;
+        _platform = platform;
         BuildTree();
         RebuildGallery();
         RebuildBreadcrumb();
@@ -53,15 +54,13 @@ public sealed class MainViewModel : ObservableObject
         CloseTabCommand = new RelayCommand(p => { if (p is DocumentTabViewModel t) CloseTab(t); });
         SaveCommand = new RelayCommand(() => SelectedTab?.Save());
         SaveAllCommand = new RelayCommand(SaveAll);
-        ToggleThemeCommand = new RelayCommand(ThemeService.Toggle);
-        ExitCommand = new RelayCommand(() => Application.Current.MainWindow?.Close());
+        ToggleThemeCommand = new RelayCommand(_platform.Theme.Toggle);
+        ExitCommand = new RelayCommand(_platform.Shell.Quit);
 
-        _autosave = new DispatcherTimer { Interval = TimeSpan.FromSeconds(30) };
-        _autosave.Tick += (_, _) => SaveAll();
-        _autosave.Start();
+        _autosave = _platform.Scheduler.Repeat(TimeSpan.FromSeconds(30), SaveAll);
 
         // Standard-Symbolfarbe hängt am Theme
-        ThemeService.ThemeChanged += RefreshAllIcons;
+        _platform.Theme.ThemeChanged += RefreshAllIcons;
 
         // Texte, die der Code erzeugt (Galerietitel, Pfadleiste, Datumsangaben), tragen die
         // Sprache nicht über eine Bindung – sie werden beim Wechsel neu aufgebaut.
@@ -73,15 +72,20 @@ public sealed class MainViewModel : ObservableObject
         RebuildBreadcrumb();
         RebuildGallery();
         OnPropertyChanged(nameof(GalleryTitle));
+
+        // Die Kontextmenü-Beschriftungen „Anpinnen"/„Als Favorit" wechseln mit dem Zustand
+        // UND mit der Sprache. Ohne diese Zeile meldeten sie nur den Zustandswechsel, und
+        // der Eintrag bliebe nach einem Sprachwechsel in der alten Sprache stehen — genau
+        // das war beim Umstellen auf Loc in Phase 2 am laufenden Programm zu sehen.
+        Walk(RootItems, it => it.RefreshPinFavorite());
     }
 
-    private void RefreshAllIcons()
+    private void RefreshAllIcons() => Walk(RootItems, it => it.RefreshIcon());
+
+    /// <summary>Führt <paramref name="tun"/> auf jedem Knoten des Baums aus, Kinder inbegriffen.</summary>
+    private static void Walk(IEnumerable<TreeItemViewModel> items, Action<TreeItemViewModel> tun)
     {
-        void Walk(IEnumerable<TreeItemViewModel> items)
-        {
-            foreach (var it in items) { it.RefreshIcon(); Walk(it.Children); }
-        }
-        Walk(RootItems);
+        foreach (var it in items) { tun(it); Walk(it.Children, tun); }
     }
 
     /// <summary>
@@ -393,14 +397,9 @@ public sealed class MainViewModel : ObservableObject
     private void ImportDocx()
     {
         CommitPendingRename();
-        var dlg = new Microsoft.Win32.OpenFileDialog
-        {
-            Title = "Dokument importieren",
-            Filter = Loc.T("Import.Filter")
-                   + "|Markdown (*.md)|*.md|Alle Dateien (*.*)|*.*",
-            Multiselect = true,
-        };
-        if (dlg.ShowDialog() != true) return;
+        var files = _platform.Files.Open(
+            Loc.T("Dialog.ImportTitle"), _platform.Documents.ImportFormats, multiple: true);
+        if (files.Count == 0) return;
 
         var context = SelectedTreeItem;
         var parent = context == null ? null
@@ -410,15 +409,12 @@ public sealed class MainViewModel : ObservableObject
         var failed = new List<string>();
         TreeItemViewModel? lastImported = null;
 
-        foreach (var file in dlg.FileNames)
+        foreach (var file in files)
         {
             try
             {
                 var textDoc = new TextDoc();
-                bool isMd = System.IO.Path.GetExtension(file).Equals(".md", StringComparison.OrdinalIgnoreCase);
-                byte[] bytes = isMd
-                    ? MarkdownImporter.ToXamlPackage(file, textDoc)
-                    : DocxImporter.ToXamlPackage(file, textDoc);  // liest auch Seiteneinrichtung
+                byte[] bytes = _platform.Documents.Import(file, textDoc);
 
                 var item = new NoteItem
                 {
@@ -451,8 +447,8 @@ public sealed class MainViewModel : ObservableObject
         }
 
         if (failed.Count > 0)
-            MessageBox.Show(Loc.T("Msg.ImportFailed") + "\n" + string.Join("\n", failed),
-                "Gonk Note", MessageBoxButton.OK, MessageBoxImage.Warning);
+            _platform.Dialogs.Inform(Loc.T("Msg.ImportFailed") + "\n" + string.Join("\n", failed),
+                DialogSeverity.Warning);
     }
 
     // ---------- Export ----------
@@ -468,140 +464,53 @@ public sealed class MainViewModel : ObservableObject
         var tab = SelectedTab;
         if (tab == null)
         {
-            MessageBox.Show(Loc.T("Msg.OpenDocumentFirst"), "Gonk Note",
-                MessageBoxButton.OK, MessageBoxImage.Information);
+            _platform.Dialogs.Inform(Loc.T("Msg.OpenDocumentFirst"));
             return;
         }
 
         tab.Save(); // aktuellen Stand ins Modell schreiben
 
-        var dlg = new Microsoft.Win32.SaveFileDialog
-        {
-            Title = "Exportieren",
-            FileName = SafeFileName(tab.Title),
-            Filter = tab is TextTabViewModel
-                ? "PDF-Dokument (*.pdf)|*.pdf|Word-Dokument (*.docx)|*.docx|Markdown (*.md)|*.md|PNG-Bild(er) (*.png)|*.png"
-                : "PDF-Dokument (*.pdf)|*.pdf|PNG-Bild(er) (*.png)|*.png",
-        };
+        var formats = tab is TextTabViewModel
+            ? _platform.Documents.TextExportFormats
+            : _platform.Documents.BoardExportFormats;
 
-        // Vorgewähltes Format: die Filter stehen in derselben Reihenfolge wie hier gesucht wird.
-        if (preferred != null)
-        {
-            var order = tab is TextTabViewModel
-                ? new[] { ".pdf", ".docx", ".md", ".png" }
-                : new[] { ".pdf", ".png" };
-            int idx = Array.IndexOf(order, preferred);
-            if (idx >= 0)
-            {
-                dlg.FilterIndex = idx + 1;      // 1-basiert
-                dlg.DefaultExt = preferred.TrimStart('.');
-            }
-        }
+        string? path = _platform.Files.Save(
+            Loc.T("Dialog.ExportTitle"), SafeFileName(tab.Title), formats, preferred);
+        if (path == null) return;
 
-        if (dlg.ShowDialog() != true) return;
-
-        string path = dlg.FileName;
-        string ext = System.IO.Path.GetExtension(path).ToLowerInvariant();
-        List<string> written = new() { path };
-        string validationInfo = "";
-        int missingImages = 0;
-
+        ExportResult result;
         try
         {
-            switch (tab)
+            result = tab switch
             {
-                case TextTabViewModel text:
-                {
-                    var flow = LoadFlowDocument(text.Doc);
-                    switch (ext)
-                    {
-                        case ".docx":
-                            int issues = DocxExporter.Export(flow, text.Doc, text.Title, path);
-                            if (issues > 0)
-                                validationInfo = Loc.T("Msg.ValidationHint", issues);
-                            break;
-                        case ".md": MarkdownExporter.Export(flow, path); break;
-                        case ".png": written = PdfExporter.ExportFlowDocumentPng(flow, text.Doc, text.Title, path); break;
-                        default: PdfExporter.ExportFlowDocument(flow, text.Doc, text.Title, path); break;
-                    }
-                    // Nur PDF/PNG rastern aus den Originalen; DOCX/Markdown reichen sie durch.
-                    if (ext is ".pdf" or ".png" or "")
-                        missingImages = DocumentImages.LastExportMissingOriginals;
-                    break;
-                }
-                case WhiteboardTabViewModel wb:
-                    if (ext == ".png") written = PdfExporter.ExportWhiteboardPng(wb.Doc, wb.Title, path);
-                    else PdfExporter.ExportWhiteboard(wb.Doc, wb.Title, path);
-                    missingImages = MissingImageData(wb.Doc);
-                    break;
-            }
+                TextTabViewModel text => _platform.Documents.ExportText(text.Doc, text.Title, path),
+                WhiteboardTabViewModel wb => _platform.Documents.ExportBoard(wb.Doc, wb.Title, path),
+                _ => new ExportResult([path]),
+            };
         }
         catch (Exception ex)
         {
-            MessageBox.Show(Loc.T("Msg.ExportFailed", ex.Message), "Gonk Note",
-                MessageBoxButton.OK, MessageBoxImage.Warning);
+            _platform.Dialogs.Inform(Loc.T("Msg.ExportFailed", ex.Message), DialogSeverity.Warning);
             return;
         }
 
+        var written = result.Written;
         string openTarget = written.Count > 0 ? written[0] : path;
-        string info = (written.Count > 1
+        string info = written.Count > 1
             ? Loc.T("Msg.ExportedPages", written.Count, System.IO.Path.GetDirectoryName(openTarget))
-            : Loc.T("Msg.ExportedFile", openTarget)) + validationInfo;
+            : Loc.T("Msg.ExportedFile", openTarget);
+
+        if (result.ValidationIssues > 0)
+            info += Loc.T("Msg.ValidationHint", result.ValidationIssues);
 
         // Lieber einmal zu viel sagen als stillschweigend schlechter exportieren: fehlt zu
         // einem Bild die Vorlage, landet nur die kleinere Anzeige-Fassung im PDF – auf
         // Seitenbreite hochgezogen sieht das verpixelt aus, ohne dass der Grund erkennbar wäre.
-        if (missingImages > 0)
-            info += Loc.T("Msg.ExportImagesMissing", missingImages);
+        if (result.MissingImages > 0)
+            info += Loc.T("Msg.ExportImagesMissing", result.MissingImages);
 
-        if (MessageBox.Show(info, "Gonk Note", MessageBoxButton.YesNo, MessageBoxImage.Information) == MessageBoxResult.Yes)
-        {
-            try { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(openTarget) { UseShellExecute = true }); }
-            catch { /* kein Standardprogramm hinterlegt */ }
-        }
-    }
-
-    /// <summary>
-    /// Zählt Bilder eines Whiteboards/Notizbuchs, zu denen keine Daten mehr auffindbar sind –
-    /// die erscheinen im Export als graue Platzhalter bzw. leere Seiten. Der Nutzer soll das
-    /// erfahren, statt sich über ein kaputtes PDF zu wundern.
-    /// </summary>
-    private static int MissingImageData(WhiteboardDoc doc)
-    {
-        // Das Cover bleibt außen vor: CoverStyle merkt sich nicht, ob es je ein Bild-Cover war
-        // (ImageId ist immer belegt). Ein fehlendes Cover-Bild ließe sich von einem gewollten
-        // Farbverlauf nicht unterscheiden – hier lieber nichts melden als jedes Notizbuch
-        // fälschlich anmeckern.
-        int missing = 0;
-
-        foreach (var page in doc.Pages)
-        {
-            if (page.HasBackgroundImage &&
-                ImageCache.Bytes(page.BackgroundImageId, page.BackgroundImage) is not { Length: > 0 })
-                missing++;
-
-            foreach (var image in page.Elements.OfType<ImageElement>())
-                if (ImageCache.Bytes(image.Id, image.Data) is not { Length: > 0 })
-                    missing++;
-        }
-        return missing;
-    }
-
-    /// <summary>Baut aus den gespeicherten Bytes eines Textdokuments ein FlowDocument.</summary>
-    private static System.Windows.Documents.FlowDocument LoadFlowDocument(TextDoc doc)
-    {
-        var flow = new System.Windows.Documents.FlowDocument();
-        var bytes = doc.Rtf;
-        if (bytes.Length > 2)
-        {
-            var range = new System.Windows.Documents.TextRange(flow.ContentStart, flow.ContentEnd);
-            using var ms = new System.IO.MemoryStream(bytes);
-            bool isPackage = bytes[0] == 0x50 && bytes[1] == 0x4B; // "PK" = XamlPackage-ZIP
-            range.Load(ms, isPackage ? DataFormats.XamlPackage : DataFormats.Rtf);
-        }
-        // Export ist immer "Papier": Dark-Mode-Schreibfarbe auf dunkle Tinte normalisieren
-        Services.TextStyles.NormalizeInk(flow, Services.TextStyles.InkLight);
-        return flow;
+        if (_platform.Dialogs.Confirm(info, DialogSeverity.Information))
+            _platform.Shell.OpenExternal(openTarget);
     }
 
     private static string SafeFileName(string name)
@@ -639,8 +548,7 @@ public sealed class MainViewModel : ObservableObject
         var msg = vm.IsFolder
             ? Loc.T("Msg.DeleteFolder", vm.Name)
             : Loc.T("Msg.DeleteItem", vm.Name);
-        if (MessageBox.Show(msg, "Gonk Note", MessageBoxButton.YesNo, MessageBoxImage.Warning)
-            != MessageBoxResult.Yes) return;
+        if (!_platform.Dialogs.Confirm(msg, DialogSeverity.Warning)) return;
 
         CloseTabsRecursive(vm);
         _db.DeleteItemRecursive(vm.Id);

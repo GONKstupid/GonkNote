@@ -5,7 +5,7 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <!-- [0] wird zur Laufzeit von ThemeService gegen Dark.xaml/Light.xaml getauscht -->
+                <!-- [0] wird zur Laufzeit von WpfThemeHost gegen Dark.xaml/Light.xaml getauscht -->
                 <ResourceDictionary Source="Themes/Light.xaml"/>
                 <ResourceDictionary Source="Themes/Styles.xaml"/>
             </ResourceDictionary.MergedDictionaries>

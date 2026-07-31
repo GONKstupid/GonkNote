@@ -37,18 +37,14 @@
     <PackageReference Include="Tesseract" />
   </ItemGroup>
 
-  <!-- Plattformneutrale Kernlogik (Models + DB + reine Services + Lokalisierung);
-       von diesem Kopf und später von Avalonia/iOS gemeinsam genutzt. -->
+  <!-- Plattformneutrale Kernlogik (Models + DB + reine Services + Lokalisierung) und die
+       Bindeschicht darüber; von diesem Kopf und später von Avalonia/iOS gemeinsam genutzt.
+       Beide sind `net10.0` ohne `-windows`: was dort ein `System.Windows.*` anfasst, baut
+       nicht mehr. Seit Phase 2 gilt das auch für die ViewModels — sie bekommen den Kopf
+       als `IPlatformServices` herein (Platform\WpfPlatformServices.cs). -->
   <ItemGroup>
     <ProjectReference Include="..\GonkNote.Core\GonkNote.Core.csproj" />
-  </ItemGroup>
-
-  <!-- ViewModels: liegen seit Phase 0 in ihrem endgültigen Ordner, hängen im Code aber noch
-       an FlowDocument, Dispatcher und den WPF-Diensten dieses Projekts (Export/Import).
-       Eine eigene Assembly wäre deshalb heute ein Ringschluss. Bis Phase 2 werden sie
-       darum von hier aus mitkompiliert. -->
-  <ItemGroup>
-    <Compile Include="..\GonkNote.ViewModels\**\*.cs" LinkBase="ViewModels" />
+    <ProjectReference Include="..\GonkNote.ViewModels\GonkNote.ViewModels.csproj" />
   </ItemGroup>
 
   <!-- Assets, Dokumente und OCR-Sprachdaten liegen seit dem Umzug in der Repo-Wurzel,

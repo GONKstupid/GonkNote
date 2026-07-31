@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -60,12 +60,12 @@ public partial class TextEditorView : UserControl
         DataContextChanged += OnDataContextChanged;
         Loaded += (_, _) =>
         {
-            ThemeService.ThemeChanged += OnThemeChanged;
+            App.Platform.Theme.ThemeChanged += OnThemeChanged;
             Loc.LanguageChanged += OnLanguageChanged;
         };
         Unloaded += (_, _) =>
         {
-            ThemeService.ThemeChanged -= OnThemeChanged;
+            App.Platform.Theme.ThemeChanged -= OnThemeChanged;
             Loc.LanguageChanged -= OnLanguageChanged;
         };
     }
@@ -327,7 +327,7 @@ public partial class TextEditorView : UserControl
     private void UpdateSpellLangWarning(XmlLanguage lang)
     {
         if (SpellLangWarn == null) return;
-        bool ok = SpellCheckSupport.IsSupported(lang.IetfLanguageTag);
+        bool ok = App.Platform.SpellChecker.IsSupported(lang.IetfLanguageTag);
         SpellLangWarn.Visibility = ok ? Visibility.Collapsed : Visibility.Visible;
         if (!ok)
         {

@@ -78,7 +78,7 @@ public static class OcrService
                 "OCR-Sprachdaten (tessdata) wurden nicht gefunden.");
 
         ct.ThrowIfCancellationRequested();
-        byte[] prepared = Preprocess(imageData);
+        byte[] prepared = WbImagePrep.ForOcr(imageData);
 
         ct.ThrowIfCancellationRequested();
         using var engine = new TesseractEngine(_tessdata, _languages, EngineMode.Default);
@@ -87,44 +87,7 @@ public static class OcrService
         return (page.GetText() ?? string.Empty).Trim();
     }
 
-    /// <summary>
-    /// Bereitet das Bild für Tesseract auf: kleine Bilder werden hochskaliert
-    /// (Tesseract erkennt größere Schrift deutlich zuverlässiger), alles wird
-    /// verlustfrei als PNG neu kodiert. Große Seiten (PDF-Import) bleiben unverändert.
-    /// </summary>
-    private static byte[] Preprocess(byte[] raw)
-    {
-        // Nicht SKBitmap.Decode(raw): das wirft seit SkiaSharp 3 bei unbrauchbaren Daten,
-        // statt null zu liefern — der Rückfallweg unten wäre also nie erreicht worden
-        // (WbImages.Decode).
-        using var bmp = WbImages.Decode(raw);
-        if (bmp == null) return raw; // Leptonica soll es dann selbst dekodieren
-
-        int longSide = Math.Max(bmp.Width, bmp.Height);
-        const int target = 1600;
-
-        SKBitmap work = bmp;
-        SKBitmap? scaled = null;
-        if (longSide > 0 && longSide < target)
-        {
-            float f = (float)target / longSide;
-            var info = new SKImageInfo(
-                (int)Math.Round(bmp.Width * f),
-                (int)Math.Round(bmp.Height * f),
-                SKColorType.Bgra8888, SKAlphaType.Premul);
-            scaled = bmp.Resize(info, WbRenderer.HighSampling);
-            if (scaled != null) work = scaled;
-        }
-
-        try
-        {
-            using var img = SKImage.FromBitmap(work);
-            using var data = img.Encode(SKEncodedImageFormat.Png, 100);
-            return data.ToArray();
-        }
-        finally
-        {
-            scaled?.Dispose();
-        }
-    }
+    // Die Bildaufbereitung liegt seit Phase 2 in GonkNote.Core.Rendering.WbImagePrep: sie ist
+    // reines SkiaSharp und hatte nur deshalb keinen Test, weil sie hier privat im Kopf stand
+    // (HANDOFF §4.4). Wächter sind jetzt die BildaufbereitungTests in GonkNote.Core.Tests.
 }

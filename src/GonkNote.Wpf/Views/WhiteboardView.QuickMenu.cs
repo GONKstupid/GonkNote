@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using GonkNote.Core.Models;
@@ -170,7 +170,7 @@ public partial class WhiteboardView
 
         // OCR nur zeigen, wenn verfügbar; aktiv bei ausgewähltem Bild oder (ohne
         // Auswahl) einer Seite mit importiertem Hintergrund (PDF-Seite).
-        bool ocrOk = OcrService.IsAvailable;
+        bool ocrOk = App.Platform.Ocr.IsAvailable;
         bool ocrSource = _selection.OfType<ImageElement>().Any()
             || (_selection.Count == 0 && _page is { HasBackgroundImage: true });
         Qm_Ocr.Visibility = ocrOk ? Visibility.Visible : Visibility.Collapsed;
@@ -209,7 +209,7 @@ public partial class WhiteboardView
 
     private static bool ClipboardHasImage()
     {
-        try { return System.Windows.Clipboard.ContainsImage(); }
+        try { return App.Platform.Clipboard.HasImage; }
         catch { return false; }
     }
 

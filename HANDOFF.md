@@ -1,6 +1,6 @@
 # Gonk Note V2 — Projektübergabe
 
-**Stand: 2026-07-30 · Version 0.2.0 · net10.0 · SkiaSharp 3 · Roadmap Phase 1 abgeschlossen**
+**Stand: 2026-07-31 · Version 0.2.0 · net10.0 · SkiaSharp 3 · Phase 2 zur Hälfte (Schritte 1+2)**
 
 > **📌 Dauerregeln des Nutzers — gelten immer, ohne Nachfragen:**
 >
@@ -107,15 +107,20 @@ Danach der **Stylus-Prototyp (§5a) auf dem Linux-Laptop: Druck kommt in Avaloni
 das größte Risiko vor Phase 3 ausgeräumt. Meilenstein **M0 ist erreicht** —
 `dotnet build src/GonkNote.Core` läuft unter Linux durch.
 
-Zuletzt **Phase 1 komplett** (§4.6): zwei Testprojekte mit 78 Tests, Renderer-Snapshots,
+Danach **Phase 1 komplett** (§4.6): zwei Testprojekte, Renderer-Snapshots,
 Export-Golden-Files und CI auf Windows **und** Ubuntu. Dabei einen zweiten Absturz aus dem
-SkiaSharp-3-Umstieg gefunden und behoben (`SKBitmap.Decode`, §7). **Als Nächstes: Phase 2**
-(§6) — und vorher die zwei offenen Fragen aus §5 klären.
+SkiaSharp-3-Umstieg gefunden und behoben (`SKBitmap.Decode`, §7).
+
+Zuletzt **Phase 2, Schritte 1 und 2** (§4.7): `Core/Platform/` mit zwölf Schnittstellen,
+der WPF-Kopf dahinter, und **`GonkNote.ViewModels` als eigene `net10.0`-Assembly**. Damit
+ist der Ringschluss aus §4.2 aufgelöst und der Compiler hält ab jetzt nach, dass Core und
+ViewModels WPF-frei bleiben. **Als Nächstes: Phase 2, Schritte 3 und 4** (§6) — LiteDB →
+SQLite. Das ist der Brocken mit Datenrisiko und gehört in eine eigene Runde.
 
 **Tests laufen lassen:**
 
 ```powershell
-dotnet test -c Release        # Windows: beide Projekte, 78 Tests
+dotnet test -c Release        # Windows: beide Projekte, 87 Tests
 ```
 
 ---
@@ -185,7 +190,7 @@ Dazu die Commits aus Phase 1 (2026-07-30) — Testprojekte, CI und der `SKBitmap
 | `dotnet build` grün | ✅ Debug **und** Release: 0 Fehler, 0 Warnungen |
 | WPF-App startet aus V2, öffnet die echte DB | ✅ mit einer **Kopie** der echten `gonknote.db` + Blobs in `%TEMP%` geprüft: Ordnerbaum, angepinnte Ordner, Galerie, Dark-Theme, englische Sprache, Textdokument mit Ribbon/Lineal/Wortzähler/Rechtschreibung. Die echte DB wurde **nicht** angefasst (Regel aus V1 §7) |
 | `git log --follow` zeigt die alte Historie | ✅ `WbRenderer.cs` und `LocGerman.cs` je 6 Commits über den Umzug hinweg |
-| Core/ViewModels referenzieren nichts aus Wpf | ⚠️ Core: ✅ (keine ProjectReference). **ViewModels: noch nicht** — siehe §4.2 |
+| Core/ViewModels referenzieren nichts aus Wpf | ✅ **seit Phase 2** — beide sind eigene `net10.0`-Projekte, ein `System.Windows.*` darin baut nicht mehr (§4.7) |
 | `C:\Dev\Zed\gonk-note` unverändert | ✅ nur gelesen |
 
 ---
@@ -201,38 +206,52 @@ gonk-note-V2/
 ├─ src/
 │  ├─ GonkNote.Core/             net10.0 · KEINE UI-Abhängigkeit · das Zentrum
 │  │  ├─ Models/                 NoteItem, Whiteboard-Elemente
-│  │  ├─ Rendering/              WbRenderer (Skia), WbAidRenderer (Geodreieck), WbImages (§7)
-│  │  ├─ Services/               DatabaseService, BlobStore, ImageCache, UndoStack, PdfImporter
+│  │  ├─ Platform/               die Naht zu den Köpfen (§4.7)        ← neu in Phase 2
+│  │  │                          IAppPaths, IDialogService, IFileDialog, IClipboard,
+│  │  │                          IThemeHost, IShell, IUiScheduler, IOcrEngine,
+│  │  │                          ISpellChecker, IPdfRasterizer, IFontProvider,
+│  │  │                          IDocumentIo — gebündelt in IPlatformServices
+│  │  ├─ Rendering/              WbRenderer (Skia), WbAidRenderer (Geodreieck), WbImages (§7),
+│  │  │                          WbImagePrep (Bildimport + OCR-Vorbereitung, §4.7)
+│  │  ├─ Services/               DatabaseService, BlobStore, ImageCache, UndoStack,
+│  │  │                          PdfImporter, DocumentHealth
 │  │  ├─ Editing/                WbErase — punktgenaues Radieren
 │  │  └─ Localization/           Loc + LocGerman + LocEnglish        ← neu in Phase 0
 │  │
-│  ├─ GonkNote.ViewModels/       eigener Ordner, noch KEIN eigenes Projekt (§4.2)
+│  ├─ GonkNote.ViewModels/       net10.0 · EIGENE Assembly seit Phase 2 (§4.7)
 │  │                             MainViewModel, DocumentTabViewModel, TreeItem…, Gallery…, Mvvm
 │  │
 │  └─ GonkNote.Wpf/              net10.0-windows10.0.19041.0 · Windows-Kopf (AssemblyName bleibt GonkNote)
 │     ├─ App.xaml(.cs), MainWindow.xaml(.cs)
+│     ├─ Platform/               die Umsetzungen zu Core/Platform     ← neu in Phase 2
+│     │                          Wpf* je Schnittstelle + WpfPlatformServices (das Bündel),
+│     │                          WpfThemeHost (war die statische Klasse ThemeService),
+│     │                          WpfDocumentIo (die FlowDocument-Naht aus §4.1)
 │     ├─ Views/                  Whiteboard (Partials), TextEditor (Partials), Dialoge
 │     ├─ Themes/                 Light/Dark/Styles
 │     └─ Services/               alles mit WPF-Bezug (§4.1):
 │                                Docx/Markdown-Im-/Export, MarkdownFlow, PdfExporter,
 │                                TextStyles, DocumentImages, EmbeddedDocs, OcrService,
-│                                SpellCheckSupport, ThemeService, TitleBarTheme,
+│                                SpellCheckSupport, TitleBarTheme,
 │                                WindowBounds, Localization/TExtension.cs
 │
 ├─ .github/workflows/ci.yml      zwei Läufe: windows (alles), ubuntu (nur Core) — §4.6
 │
 ├─ tests/
-│  ├─ GonkNote.Core.Tests/       net10.0 · läuft auch unter Linux · 70 Tests
+│  ├─ GonkNote.Core.Tests/       net10.0 · läuft auch unter Linux · 78 Tests
 │  │  └─ Snapshots/*.sha256      Pixelhashes des Renderers (Golden-Files)
-│  └─ GonkNote.Wpf.Tests/        net10.0-windows · nur Windows · 8 Export-Fixtures
+│  └─ GonkNote.Wpf.Tests/        net10.0-windows · nur Windows · 9 Export-Fixtures
 │     └─ Fixtures/               referenz.md, referenz-docx.txt (Golden-Files)
 │
 ├─ tools/                        Werkzeuge, KEIN Produktivcode, nicht in der Solution
-│  └─ stylus-prototyp/           Messwerkzeug zu §5a — Ergebnis liegt dort vor
-│     ├─ GonkNote.StylusProbe/   Avalonia-Prototyp (Druck als Kreisradius)
-│     ├─ evdev_beschreiben.py    Achsenbereiche des Digitizers (EVIOCGABS)
-│     ├─ evdev_druck.py          Druckverlauf mitschneiden und auswerten
-│     └─ messungen/              Rohberichte der Läufe
+│  ├─ stylus-prototyp/           Messwerkzeug zu §5a — Ergebnis liegt dort vor
+│  │  ├─ GonkNote.StylusProbe/   Avalonia-Prototyp (Druck als Kreisradius)
+│  │  ├─ evdev_beschreiben.py    Achsenbereiche des Digitizers (EVIOCGABS)
+│  │  ├─ evdev_druck.py          Druckverlauf mitschneiden und auswerten
+│  │  └─ messungen/              Rohberichte der Läufe
+│  ├─ schau.ps1                  App mit DB-Kopie starten und fotografieren (§8)
+│  ├─ klick.ps1                  ein Klick / Tastendruck + neues Foto
+│  └─ kette.ps1                  mehrere Klicks in EINEM Durchgang — für Menüpfade (§7)
 │
 ├─ Assets/  tessdata/  Docs/     1:1 aus V1, in der Wurzel
 └─ LICENSE, README(.en).md, ERSTE-SCHRITTE.md, GETTING-STARTED.md, THIRD-PARTY-NOTICES.md
@@ -274,21 +293,22 @@ Sie können deshalb erst umziehen, **nachdem** die eigene Dokument-Engine steht:
 Der OpenXml-Code selbst (~1.237 Zeilen) bleibt dabei größtenteils erhalten, wie geplant —
 er tauscht nur seine Gegenseite.
 
-### 4.2 `GonkNote.ViewModels` ist noch keine eigene Assembly
+### 4.2 `GonkNote.ViewModels` ist eine eigene Assembly — erledigt in Phase 2
 
-Der Ordner liegt an seinem endgültigen Platz, aber die Dateien werden noch vom WPF-Projekt
-mitkompiliert (`<Compile Include="..\GonkNote.ViewModels\**\*.cs" LinkBase="ViewModels" />`).
+Bis Phase 2 kompilierte der WPF-Kopf die Dateien mit
+(`<Compile Include="..\GonkNote.ViewModels\**\*.cs" />`), weil `MainViewModel` die
+WPF-Klassen aus §4.1 direkt aufrief — ein eigenes Projekt wäre ein **Ringschluss** gewesen
+(ViewModels → Wpf → ViewModels).
 
-**Grund:** `MainViewModel` ruft `DocxImporter`, `DocxExporter`, `MarkdownExporter`,
-`PdfExporter`, `DocumentImages`, `TextStyles` und `ThemeService` auf — alles Klassen, die nach
-§4.1 im WPF-Kopf liegen. Ein eigenes Projekt wäre heute ein **Ringschluss**
-(ViewModels → Wpf → ViewModels). Die Auftrennung ist genau der erste Schritt von Phase 2
-(„von WPF freischneiden"): erst Interfaces in `Core/Platform/` einziehen, dann die
-`.csproj` anlegen — der Compiler zeigt dann jede verbliebene Abhängigkeit von selbst.
+**Aufgelöst am 2026-07-31** über `Core/Platform/` (§4.7): das ViewModel bekommt seinen Kopf
+als `IPlatformServices` herein, statt dessen Klassen zu kennen. Seitdem ist
+`src/GonkNote.ViewModels/GonkNote.ViewModels.csproj` ein `net10.0`-Projekt in der `.slnx`,
+und der WPF-Kopf referenziert es.
 
-**Wenn das Projekt entsteht, nicht vergessen:** In `MainWindow.xaml` steht
-`xmlns:vm="clr-namespace:GonkNote.ViewModels"` — ohne `;assembly=GonkNote.ViewModels` bricht
-das XAML in dem Moment, in dem die Typen in eine andere Assembly wandern.
+**Die vorhergesagte Falle ist eingetreten und behoben:** In `MainWindow.xaml` stand
+`xmlns:vm="clr-namespace:GonkNote.ViewModels"`. Das trägt jetzt `;assembly=GonkNote.ViewModels` —
+ohne den Zusatz zeigt `clr-namespace` immer auf die *lokale* Assembly, und die
+`DataTemplate`s für die Registerkarten hätten ihre Typen nicht mehr gefunden.
 
 ### 4.3 Ziel-Framework `net10.0` statt `net9.0`
 
@@ -334,12 +354,13 @@ Svg.Skia 5), Farbverlauf-Cover mit Titeltext, **PDF-Export** und dessen Rückimp
 |---|---|
 | DOCX-/Markdown-Export, Text-Editor-PDF-Weg | ✅ Golden-Files in `GonkNote.Wpf.Tests` (§4.6) |
 | Bleistift mit Graphit-Körnung | ✅ Pixelhash `bleistift-koernung` |
-| Bildimport-Verkleinerung (`WhiteboardView.Import`) | ⚠️ **weiterhin ohne Test** — private Methode im WPF-Kopf. Der `SKBitmap.Decode`-Fix (§7) hat sie angefasst |
-| OCR-Vorverarbeitung (`OcrService`) | ⚠️ **weiterhin ohne Test** — braucht die Tesseract-Nativbibliotheken; ebenfalls vom Decode-Fix betroffen |
+| Bildimport-Verkleinerung (`WhiteboardView.Import`) | ✅ **seit Phase 2** — als `WbImagePrep.ForImport` in Core, Wächter `BildaufbereitungTests` |
+| OCR-Vorverarbeitung (`OcrService`) | ✅ **seit Phase 2** — als `WbImagePrep.ForOcr` in Core, gleicher Wächter |
 
-Die beiden offenen sind in Phase 2 fällig: dort entstehen `IOcrEngine` und der Bildimport-Weg
-wird für Avalonia herausgelöst — an öffentlichen Schnittstellen lassen sie sich dann testen,
-ohne den WPF-Kopf hochzufahren.
+**Damit ist jede Stelle, die der SkiaSharp-3-Umstieg angefasst hat, unter einem Test.**
+Beide Methoden waren reines SkiaSharp und hatten nur deshalb keinen — sie lagen privat im
+WPF-Kopf. Der Umzug nach `Core/Rendering/WbImagePrep.cs` hat nichts an ihrem Inhalt geändert;
+die WPF-Seite ruft sie jetzt nur noch auf. Genau so war es in Phase 2 vorgesehen.
 
 ### 4.5 Versionszeile im Über-Dialog — erledigt
 
@@ -435,6 +456,79 @@ mitschleppt. **Für Phase 3 ist das derselbe Punkt beim Avalonia-Kopf.** Dazu br
 System `fontconfig` und mindestens eine Schrift; die CI installiert `libfontconfig1` und
 `fonts-dejavu-core`.
 
+---
+
+### 4.7 Phase 2, Schritte 1 und 2 — die Naht zwischen Core und Kopf
+
+Umgesetzt am 2026-07-31. **Schritte 3 und 4 (LiteDB → SQLite) stehen noch aus**, siehe §6.
+
+#### Die Schnittstellen in `Core/Platform/`
+
+Zwölf Stück, alle mit mindestens einem echten Aufrufer — eine Schnittstelle ohne Benutzer
+ist nur eine Behauptung. Die Roadmap nennt acht; `IDialogService`, `IShell`, `IUiScheduler`
+und `IDocumentIo` sind dazugekommen, weil das `MainViewModel` sie braucht.
+
+| Schnittstelle | Was der Kopf liefert | Warum sie existiert |
+|---|---|---|
+| `IAppPaths` | Datenordner, Programmordner | `%APPDATA%` stand an vier Stellen hartkodiert |
+| `IDialogService` | `MessageBox` | 5 Aufrufe im `MainViewModel` |
+| `IFileDialog` | Öffnen/Speichern | Win32-Filter mit `FileFilter` beschrieben statt als `\|`-Zeichenkette |
+| `IClipboard` | Text, Bild (**als PNG-Bytes**), Dateiliste | ein `BitmapSource` überquert die Grenze nicht |
+| `IThemeHost` | Light/Dark umschalten | war die statische Klasse `ThemeService` |
+| `IShell` | Datei öffnen, App beenden | `Process.Start` bzw. `MainWindow.Close()` |
+| `IUiScheduler` | Wiederholung auf dem UI-Faden | war `DispatcherTimer` (Autospeicherung) |
+| `IOcrEngine` | Tesseract | Rückfall `NoOcrEngine` liegt daneben |
+| `ISpellChecker` | Windows-Rechtschreib-API | Rückfall `AlwaysSupportedSpellChecker` |
+| `IPdfRasterizer` | PDFium | Umsetzung `PdfiumRasterizer` liegt in Core (Windows **und** Linux teilen sie); iOS bekommt PDFKit |
+| `IFontProvider` | „Segoe UI" | `WbFonts` hatte den Namen fest verdrahtet |
+| `IDocumentIo` | Im-/Export über `FlowDocument` | die Naht aus §4.1 — bleibt bis Phase 4 im Kopf |
+
+**Sie werden als Bündel übergeben, nicht global abgefragt.** `IPlatformServices` fasst alle
+zwölf zusammen; `MainViewModel` nimmt es im Konstruktor. Das ist Absicht: wenn Phase 3
+`AvaloniaPlatformServices` anlegt, sagt der Compiler dort Stück für Stück, was noch fehlt.
+Bei zwölf Konstruktor-Argumenten stünde dieselbe Liste verteilt über mehrere Aufrufe, und
+der nächste Dienst käme still nur an einer davon an.
+
+Der **Windows-Kopf** setzt in `App.OnStartup` als Erstes `Platform`, `AppPaths.Current` und
+`WbFonts.UiFamily` — noch vor der Datenbank, denn die fragt bereits nach den Pfaden. Die
+Views greifen über `App.Platform` zu, genau wie sie es mit `App.Db` schon taten.
+
+#### Was dabei aus den ViewModels verschwinden musste
+
+`GonkNote.ViewModels` ist jetzt `net10.0` ohne `-windows`. Alles, was WPF war, ist raus:
+
+| War | Ist |
+|---|---|
+| `Brush IconBrush` (aus `Application.Current.Resources`) | `string? IconColorHex` + `HexToBrushConverter` im Kopf |
+| `Visibility FavoriteVisibility` / `StarVisibility` | `bool IsFavorite` + der vorhandene `BoolToVis` |
+| `ImageSource CoverImage` (`BitmapImage`) | `byte[]? CoverImageData` + `BytesToImageConverter` |
+| `Brush CoverBrush` (`LinearGradientBrush`) | zwei Hex-Farben + `GradientBrushConverter` (MultiBinding) |
+| `CommandManager.RequerySuggested` | eigenes `CanExecuteChanged` + `RaiseCanExecuteChanged` |
+| `FlowDocument`-Export im ViewModel | `IDocumentIo.ExportText/ExportBoard` → `ExportResult` |
+
+**`System.Windows.Input.ICommand` durfte bleiben.** Der Typ liegt trotz seines Namensraums
+in `System.ObjectModel` und steht auch unter Linux und iOS zur Verfügung; Avalonia bindet
+gegen genau diese Schnittstelle.
+
+**Die Kachel dekodiert ihr Cover nicht mehr selbst.** Vorher hielt jedes
+`GalleryItemViewModel` eine fertige `BitmapImage`, jetzt nur die Bytes; das Dekodieren macht
+der Konverter je Bindung. Bei 240 px Vorschaubreite ist das billig — falls eine Galerie mit
+sehr vielen Notizbüchern doch spürbar wird, ist das die Stelle.
+
+#### Am laufenden Programm geprüft (Dauerregel 1 und 4)
+
+Mit einer **Kopie** der echten Datenbank samt Blob-Ordner, in **beiden** Sprachen: Galerie
+mit Ordnerfarben (eigene Farbe *und* Theme-Rückfall), Cover-Bild aus dem Blob-Speicher,
+Notizbuch öffnen, Baum mit Favoritensternen und Schnellzugriff, Kontextmenü in Baum **und**
+Galerie, Theme-Wechsel hell/dunkel, Export-Dialog und ein vollständiger PDF-Export. Die
+erzeugte PDF wurde **nicht angesehen, sondern gemessen** — über `PdfImporter` aus dem echten
+Core (§7): 2 Seiten, Hochformat. Die echte Datenbank blieb unangetastet, die Kopie ist
+gelöscht.
+
+**Dabei zwei Fehler gefunden**, beide in §7 beschrieben: die neuen Kontextmenü-Beschriftungen
+blieben beim Sprachwechsel stehen, und drei Einträge des Galerie-Menüs standen seit jeher
+fest auf Deutsch.
+
 ## 5. Entscheidungen
 
 **Getroffen, alle umgesetzt:**
@@ -449,6 +543,8 @@ System `fontconfig` und mindestens eine Schrift; die CI installiert `libfontconf
 | Über-Dialog-Text | **`About.Version` über `Loc`**, deutsch „Portierung, Phase 2" / englisch „Port, phase 2" (§4.5). Erledigt 2026-07-30 |
 | Markdown-Export und Hyperlinks | **Ziel bleibt erhalten** (`[Text](URL)`), §7 „Markdown-Export". Erledigt 2026-07-30 |
 | Kopie der echten Daten | **Ohne Nachfragen erlaubt**, die echte DB bleibt unangetastet — Dauerregel 4 in der Kopfzeile, Befehle in §8. Entschieden 2026-07-30 |
+| Wie die ViewModels an den Kopf kommen | **Ein Bündel `IPlatformServices` im Konstruktor**, kein Service-Locator und keine zwölf Argumente (§4.7). Entschieden 2026-07-31 |
+| Farben und Bilder in den ViewModels | **Als Hex-Text und Bytes**, Pinsel und Bitmaps baut der Kopf über Konverter (§4.7). Entschieden 2026-07-31 |
 
 **Noch offen:**
 
@@ -750,15 +846,25 @@ dafür war die Phase da.
 **Ebenfalls gefunden und (auf Nutzer-Entscheidung) behoben:** Der Markdown-Export verlor das
 **Ziel** von Hyperlinks. Siehe §7 „Markdown-Export".
 
-### Als Nächstes: Phase 2 — die große Entkopplung (4–6 Wochen)
+### Laufend: Phase 2 — die große Entkopplung (4–6 Wochen)
 
 Läuft weiterhin unter Windows/WPF. **Nach jedem Schritt muss die App noch starten.**
 
-1. `Core/Platform/`-Interfaces einziehen, WPF-Implementierungen dahinterhängen:
-   `IAppPaths`, `IFileDialog`, `IClipboard`, `IPdfRasterizer`, `IOcrEngine`, `ISpellChecker`,
-   `IFontProvider`, `IThemeHost`. (`TitleBarTheme`, `WindowBounds` bleiben ersatzlos
-   Windows-only.)
-2. `GonkNote.ViewModels` freischneiden und zur eigenen Assembly machen (§4.2)
+- [x] 1. `Core/Platform/`-Interfaces einziehen, WPF-Implementierungen dahinterhängen
+      (§4.7). Es sind **zwölf** geworden statt der acht aus der Roadmap — `IDialogService`,
+      `IShell`, `IUiScheduler` und `IDocumentIo` kamen dazu, weil das `MainViewModel` sie
+      braucht. (`TitleBarTheme`, `WindowBounds` bleiben ersatzlos Windows-only.)
+- [x] 2. `GonkNote.ViewModels` freischneiden und zur eigenen Assembly machen (§4.2)
+- [ ] 3. **LiteDB → `Microsoft.Data.Sqlite`** (unten)
+- [ ] 4. `BlobStore` von `%APPDATA%` auf `IAppPaths` umstellen
+
+**Zu Schritt 4:** `IAppPaths` steht seit Schritt 1 und `DatabaseService.DefaultPath` liest
+schon daraus. Offen ist der `BlobStore` selbst — er leitet seinen Ordner noch aus dem
+Dateinamen der Datenbank ab. Das ist kein Fehler (§8 hängt daran), aber der Kopf sollte
+mitreden dürfen.
+
+**Die noch offenen Schritte im Wortlaut:**
+
 3. **LiteDB → `Microsoft.Data.Sqlite`.** Der harte Brocken: LiteDB nutzt
    `System.Reflection.Emit` und stürzt unter iOS/NativeAOT ab. `DatabaseService` behält seine
    öffentliche API, nur der Bauch wird getauscht. Whiteboard-Elemente als
@@ -766,6 +872,9 @@ Läuft weiterhin unter Windows/WPF. **Nach jedem Schritt muss die App noch start
    Weg. **Migration nur additiv, die alte DB nie überschreiben, mit echtem Datenbestand
    testen** (Risiko „Datenverlust" ist als hoch eingestuft).
 4. `BlobStore` von `%APPDATA%` auf `IAppPaths` umstellen
+
+**Meilenstein M0 ist damit vollständig:** `Core` **und** `ViewModels` bauen auf Linux
+(beide `net10.0`), Windows verhält sich unverändert.
 
 **Das Netz aus Phase 1 ist genau dafür da.** `DatenbankRoundtripTests`, `AlteTypnamenTests`
 und `BlobSpeicherTests` prüfen die **öffentliche** API des `DatabaseService` — die bleibt beim
@@ -913,6 +1022,31 @@ weil sie bei der Portierung direkt zuschlagen:
   an keiner Bindung und müssen nach einem Sprachwechsel neu geschrieben werden — dafür gibt
   es `Loc.LanguageChanged`.
 
+**Neu aus Phase 2 — Übersetzung**
+
+- **Eine gebundene Eigenschaft, deren Text aus `Loc` kommt, braucht `Loc.LanguageChanged`
+  — auch wenn sie schon aus einem anderen Grund benachrichtigt.** `PinMenuHeader` und
+  `FavoriteMenuHeader` meldeten ihre Änderung nur beim Umschalten des Zustands
+  (`RefreshPinFavorite`). Nach dem Sprachwechsel blieben genau diese zwei Einträge deutsch
+  stehen, während das ganze Menü drumherum englisch wurde. Vorher fiel das nicht auf, weil
+  die Texte fest verdrahtet waren — sie waren *immer* falsch, also nie auffällig.
+  **Behoben:** `MainViewModel.RefreshLanguage` läuft jetzt über den Baum und ruft
+  `RefreshPinFavorite` auf jedem Knoten.
+  **Merksatz: eine Beschriftung, die sich aus zwei Gründen ändert, braucht zwei Auslöser.**
+- **Ein Menü, das der Code baut, hat kein `{loc:T …}` — und niemand vermisst es.**
+  `MainWindow.ShowGalleryMenu` erzeugt das Kontextmenü der Galerie-Kachel in C#. Drei
+  Einträge („Öffnen", „Umbenennen", „Löschen") standen dort seit jeher fest auf Deutsch und
+  erschienen auch im englischen Programm so. Aufgefallen ist es erst, als die beiden
+  Nachbarn daneben übersetzt wurden. **Behoben** über die längst vorhandenen Schlüssel
+  `Tree.Open` / `Tree.Rename` / `Tree.Delete`. Weil das Menü bei jedem Öffnen neu entsteht,
+  greift `Loc.T` zur richtigen Zeit und braucht kein `LanguageChanged`.
+  **Beim Suchen nach Übersetzungslücken reicht das XAML nicht** — `grep` nach Zeichenketten
+  in `.cs` gehört dazu.
+- **Listen aus `Loc.T` nicht im Konstruktor festhalten.** `WpfDocumentIo.ImportFormats` &
+  Co. sind bewusst `=>`-Eigenschaften und keine `{ get; } = […]`: das Bündel
+  `WpfPlatformServices` entsteht einmal beim Start, eine im Konstruktor gebaute Liste trüge
+  für immer die Startsprache.
+
 **Bauen und Testen**
 
 - **`obj/` nicht löschen, ohne danach Debug UND Release zu bauen.** Die impliziten `using`s
@@ -934,6 +1068,22 @@ weil sie bei der Portierung direkt zuschlagen:
   bekommt nur den grauen Betrachter-Hintergrund). Der zuverlässige Weg führt über
   `PdfImporter.StreamPages` aus dem **echten** Core. **Seit Phase 1 steht das als Test**
   (`ExportFixtureTests.Whiteboard_PDF_…`) und nicht mehr als Konsolenprogramm in `%TEMP%`.
+
+**Neu aus Phase 2 — Fernsteuern**
+
+- **`SetForegroundWindow` schließt jedes offene Menü.** Ein Skript, das je Klick erst das
+  Fenster nach vorn holt, kommt über den ersten Menüeintrag nie hinaus: das Popup ist beim
+  zweiten Aufruf schon zu, und der Klick landet auf dem, was darunter liegt. Deshalb gibt es
+  `tools\kette.ps1` — es fokussiert **genau einmal** und klickt dann die ganze Kette.
+  `tools\klick.ps1` bleibt für Einzelschritte.
+- **Ein modaler Dialog ist ein eigenes Fenster.** Für `SendKeys` an einen Datei- oder
+  Meldungsdialog darf man das Hauptfenster **nicht** nach vorn holen — sonst tippt man in
+  die Zeichenfläche. Erst in den Dialog klicken, dann senden. (Genau so ist in dieser Runde
+  ein Geodreieck auf einer Notizbuchseite gelandet.)
+- **Das Werkzeug klickt in die Zeichenfläche, wenn man sich vertut** — und der Stift ist
+  meistens aktiv. Auf einer **Kopie** ist das folgenlos, auf der echten Datenbank wäre es
+  ein Datenverlust. Das ist der praktische Grund für Dauerregel 4, nicht nur der
+  theoretische.
 
 **Markdown-Export — `Hyperlink` erbt von `Span`**
 
@@ -979,7 +1129,7 @@ cd C:\Dev\Zed\gonk-note-V2
 dotnet build -c Release      # 0 Fehler / 0 Warnungen
 dotnet build -c Debug        # schneller, ohne Self-Contained/win-x64
 
-dotnet test -c Release       # beide Testprojekte, 78 Tests
+dotnet test -c Release       # beide Testprojekte, 87 Tests
 
 # Golden-Files bewusst neu setzen (danach den Diff lesen, siehe §4.6)
 $env:GONK_SNAPSHOT_UPDATE=1; dotnet test tests\GonkNote.Core.Tests; $env:GONK_SNAPSHOT_UPDATE=$null
@@ -1004,11 +1154,23 @@ Remove-Item $d -Recurse -Force
 Select-String -Path src\GonkNote.Core\**\*.cs -Pattern "System\.Windows|System\.Drawing" -List
 ```
 
-**Fernsteuern und fotografieren** (erprobt, auch in dieser Runde benutzt): starten mit `--db`,
-auf `MainWindowHandle` warten, `ShowWindow(hwnd,3)`, `SetForegroundWindow`, dann `SendKeys`
-für Menüs und `mouse_event` für Klicks. Ausführlich im V1-Handoff §7 — inklusive der
-Stolpersteine (Umbenennen-Modus nach dem Anlegen, Bild-hoch/-runter greift im
-`FlowDocumentScrollViewer` nicht, die IDE reißt den Fokus zurück).
+**Fernsteuern und fotografieren** — seit Phase 2 als drei Skripte unter `tools\`, statt
+jedes Mal neu getippt:
+
+```powershell
+.\tools\schau.ps1                                   # startet mit der Kopie, maximiert, fotografiert
+.\tools\kette.ps1 -AppPid <pid> -Schritte '292,45','122,211','521,233'   # Menüpfad
+.\tools\klick.ps1 -AppPid <pid> -X 251 -Y 406 -Doppel 1                  # Einzelschritt
+```
+
+Schritte sind `"x,y"`, `"x,y,2"` (Doppelklick), `"x,y,r"` (Rechtsklick) oder `"#TASTEN"`
+(SendKeys). **Koordinaten sind echte Bildschirmpixel** — `SetProcessDPIAware()` steht in
+jedem Skript, der Rechner läuft auf 200 %. Zu den zwei Fallstricken (Fokus schließt Menüs,
+modale Dialoge sind eigene Fenster) siehe §7 „Fernsteuern".
+
+Der ältere, ausführliche Weg steht im V1-Handoff §7 — inklusive der Stolpersteine
+(Umbenennen-Modus nach dem Anlegen, Bild-hoch/-runter greift im `FlowDocumentScrollViewer`
+nicht, die IDE reißt den Fokus zurück).
 
 ---
 
@@ -1018,6 +1180,7 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 
 | Runde | Datum | Was |
 |---|---|---|
+| V2-8 | 2026-07-31 | **Phase 2, Schritte 1+2** (§4.7): `Core/Platform/` mit zwölf Schnittstellen und `IPlatformServices` als Bündel, WPF-Umsetzungen in `src/GonkNote.Wpf/Platform/`, `ThemeService` → `WpfThemeHost`. **`GonkNote.ViewModels` ist eigene `net10.0`-Assembly** — der Ringschluss aus §4.2 ist weg, `Core` und `ViewModels` sind nachweislich WPF-frei. Bildimport und OCR-Vorbereitung nach `WbImagePrep` in Core gezogen: damit sind die **letzten zwei Lücken aus §4.4 zu** (8 neue Tests, jetzt 87). Zwei Übersetzungsfehler am laufenden Programm gefunden und behoben (§7 „Übersetzung"). In beiden Sprachen mit einer DB-Kopie gegengeprüft, PDF-Export über den PDFium-Rückweg gemessen |
 | V2-7 | 2026-07-30 | Versionszeile im Über-Dialog über `Loc` statt fest verdrahtet — war zweideutig **und** unübersetzt (§4.5), in beiden Sprachen am laufenden Programm geprüft. Dauerregel 4 aufgenommen: Kopie der echten Daten ohne Nachfragen erlaubt, die echte DB bleibt unangetastet. Alles nach GitHub gepusht |
 | V2-6 | 2026-07-30 | Markdown-Export behält Hyperlink-Ziele (`[Text](URL)`, §7) — Nutzer-Entscheidung; Golden-File `referenz.md` bewusst nachgezogen. IDE-Fehler in `OcrService.cs` waren fehlende `obj\Debug`-Zwischendateien, kein Codefehler (§7) |
 | V2-5 | 2026-07-30 | **Phase 1:** `GonkNote.Core.Tests` (70 Tests) und `GonkNote.Wpf.Tests` (8 Export-Fixtures), 20 Renderer-Snapshots, Golden-Files für DOCX/Markdown, PDF über den PDFium-Rückweg, CI mit windows- und ubuntu-Lauf. Linux-Seite im Docker-Container gegengeprüft: alle 70 Core-Tests grün, Pixelhashes **identisch** zu Windows. Dabei den zweiten SkiaSharp-3-Absturz gefunden und behoben (`SKBitmap.Decode` → `WbImages`, §7). Markdown-Hyperlink-Lücke gefunden, nicht behoben (§5.3) |

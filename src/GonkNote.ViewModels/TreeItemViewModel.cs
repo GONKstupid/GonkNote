@@ -1,7 +1,6 @@
 using System.Collections.ObjectModel;
-using System.Windows;
-using System.Windows.Media;
 using GonkNote.Core.Models;
+using GonkNote.Services;
 
 namespace GonkNote.ViewModels;
 
@@ -64,34 +63,28 @@ public sealed class TreeItemViewModel : ObservableObject
     /// </summary>
     public string? InheritedColorHex { get; set; }
 
-    /// <summary>Pinselfarbe des Symbols: eigene Farbe, sonst geerbte Ordnerfarbe, sonst Theme-Türkis.</summary>
-    public Brush IconBrush
-    {
-        get
-        {
-            string? hex = Item.IconColor ?? InheritedColorHex;
-            if (hex is { })
-            {
-                try { return new SolidColorBrush((Color)ColorConverter.ConvertFromString(hex)); }
-                catch { /* ungültiger Wert → Standard */ }
-            }
-            return (Brush)Application.Current.Resources["Brush.Turquoise"];
-        }
-    }
+    /// <summary>
+    /// Symbolfarbe als Hex-Text: eigene Farbe, sonst geerbte Ordnerfarbe, sonst
+    /// <c>null</c> für „nimm die Theme-Farbe".
+    /// <para>
+    /// Bis Phase 2 stand hier ein WPF-<c>Brush</c>, geholt aus
+    /// <c>Application.Current.Resources</c>. Eine Farbe ist plattformneutral, ein Pinsel
+    /// nicht — den baut jetzt <c>HexToBrushConverter</c> im Kopf.
+    /// </para>
+    /// </summary>
+    public string? IconColorHex => Item.IconColor ?? InheritedColorHex;
 
-    public void RefreshIcon() => OnPropertyChanged(nameof(IconBrush));
+    public void RefreshIcon() => OnPropertyChanged(nameof(IconColorHex));
 
     public bool IsPinned => Item.IsPinned;
     public bool IsFavorite => Item.IsFavorite;
-    public Visibility FavoriteVisibility => Item.IsFavorite ? Visibility.Visible : Visibility.Collapsed;
-    public string PinMenuHeader => Item.IsPinned ? "Nicht mehr anpinnen" : "Anpinnen";
-    public string FavoriteMenuHeader => Item.IsFavorite ? "Favorit entfernen" : "Als Favorit";
+    public string PinMenuHeader => Loc.T(Item.IsPinned ? "Tree.Unpin" : "Tree.Pin");
+    public string FavoriteMenuHeader => Loc.T(Item.IsFavorite ? "Tree.UnmarkFavorite" : "Tree.MarkFavorite");
 
     public void RefreshPinFavorite()
     {
         OnPropertyChanged(nameof(IsPinned));
         OnPropertyChanged(nameof(IsFavorite));
-        OnPropertyChanged(nameof(FavoriteVisibility));
         OnPropertyChanged(nameof(PinMenuHeader));
         OnPropertyChanged(nameof(FavoriteMenuHeader));
     }

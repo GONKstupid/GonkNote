@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
@@ -166,13 +166,13 @@ public partial class WhiteboardView : UserControl
         DataContextChanged += OnDataContextChanged;
         Loaded += (_, _) =>
         {
-            ThemeService.ThemeChanged += OnThemeChanged;
+            App.Platform.Theme.ThemeChanged += OnThemeChanged;
             Loc.LanguageChanged += OnLanguageChanged;
             Skia.InvalidateVisual();
         };
         Unloaded += (_, _) =>
         {
-            ThemeService.ThemeChanged -= OnThemeChanged;
+            App.Platform.Theme.ThemeChanged -= OnThemeChanged;
             Loc.LanguageChanged -= OnLanguageChanged;
             DropContentCache();
         };

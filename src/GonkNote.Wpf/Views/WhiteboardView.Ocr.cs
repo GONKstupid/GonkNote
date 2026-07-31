@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using System.Windows;
 using GonkNote.Core.Models;
 using GonkNote.Services;
@@ -43,7 +43,7 @@ public partial class WhiteboardView
                 var sb = new StringBuilder();
                 foreach (var data in images)
                 {
-                    string t = OcrService.Recognize(data);
+                    string t = App.Platform.Ocr.Recognize(data);
                     if (t.Length == 0) continue;
                     if (sb.Length > 0) sb.Append("\n\n");
                     sb.Append(t);

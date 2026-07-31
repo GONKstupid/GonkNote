@@ -65,8 +65,12 @@ public sealed class DatabaseService : IDisposable
 {
     private readonly LiteDatabase _db;
 
-    public static string DefaultPath =>
-        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "GonkNote", "gonknote.db");
+    /// <summary>
+    /// Wo die Datenbank liegt, wenn kein <c>--db</c> mitgegeben wurde. Der Ordner kommt
+    /// von <see cref="Platform.AppPaths"/>, damit Linux- und iOS-Kopf ihn setzen können,
+    /// ohne dass hier eine Plattform hartkodiert steht.
+    /// </summary>
+    public static string DefaultPath => Platform.AppPaths.DatabaseFile;
 
     public DatabaseService(string? path = null)
     {

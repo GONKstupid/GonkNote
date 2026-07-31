@@ -47,6 +47,12 @@ internal static class LocGerman
         ["Tree.Rename"] = "Umbenennen",
         ["Tree.Delete"] = "Löschen",
         ["Tree.Favorite"] = "Favorit",
+        // Kontextmenü im Ordnerbaum – die Beschriftung wechselt mit dem Zustand.
+        // Standen bis Phase 2 fest verdrahtet auf Deutsch im TreeItemViewModel.
+        ["Tree.Pin"] = "Anpinnen",
+        ["Tree.Unpin"] = "Nicht mehr anpinnen",
+        ["Tree.MarkFavorite"] = "Als Favorit",
+        ["Tree.UnmarkFavorite"] = "Favorit entfernen",
         ["Tree.IconColor"] = "Symbolfarbe",
         ["Tree.IconColor.Auto"] = "Automatisch (Ordnerfarbe)",
         ["Tree.IconColor.AutoTooltip"] = "Übernimmt die Farbe des übergeordneten Ordners",
@@ -88,8 +94,18 @@ internal static class LocGerman
         // ---- Texte, die der Code setzt ----
         ["Gallery.Root"] = "Dokumente",
         ["Item.CopySuffix"] = " (Kopie)",
-        ["Import.Filter"] = "Dokumente (*.docx;*.md)|*.docx;*.md|Word-Dokumente (*.docx)|*.docx",
         ["Gallery.DateFormat"] = "d. MMM yyyy, HH:mm",
+
+        // Titel und Formatliste der Dateidialoge. Die Endungen stehen im Code
+        // (GonkNote.Core.Platform.FileFilter); hier steht nur, was der Nutzer liest.
+        ["Dialog.ImportTitle"] = "Dokument importieren",
+        ["Dialog.ExportTitle"] = "Exportieren",
+        ["Filter.Documents"] = "Dokumente (*.docx;*.md)",
+        ["Filter.Word"] = "Word-Dokument (*.docx)",
+        ["Filter.Markdown"] = "Markdown (*.md)",
+        ["Filter.AllFiles"] = "Alle Dateien (*.*)",
+        ["Filter.Pdf"] = "PDF-Dokument (*.pdf)",
+        ["Filter.Png"] = "PNG-Bild(er) (*.png)",
 
         // ---- Whiteboard / Notizbuch ----
         ["Tool.Hand"] = "Hand",

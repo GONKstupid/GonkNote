@@ -24,8 +24,13 @@ public sealed class UmschliessungTests
     public void Statischer_Aufbau_des_Renderers_wirft_nicht()
     {
         RuntimeHelpers.RunClassConstructor(typeof(WbRenderer).TypeHandle);
-        RuntimeHelpers.RunClassConstructor(typeof(WbFonts).TypeHandle);
         RuntimeHelpers.RunClassConstructor(typeof(WbAidRenderer).TypeHandle);
+
+        // WbFonts löst seine Schriften seit Phase 2 erst beim ersten Zugriff auf, damit der
+        // Kopf UiFamily vorher setzen kann. Der Klassenkonstruktor allein prüft seitdem
+        // nichts mehr — die beiden Zugriffe hier sind der eigentliche Wächter.
+        Assert.NotNull(WbFonts.Regular);
+        Assert.NotNull(WbFonts.Bold);
     }
 
     /// <summary>Die Strichbreite gehört zur Umschließung — sonst greift das Anklicken daneben.</summary>

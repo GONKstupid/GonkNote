@@ -1,6 +1,8 @@
 using System.IO;
 using System.Windows;
 using System.Windows.Threading;
+using GonkNote.Core.Platform;
+using GonkNote.Platform;
 using GonkNote.Services;
 using GonkNote.Core.Services;
 
@@ -10,9 +12,15 @@ public partial class App : Application
 {
     public static DatabaseService Db { get; private set; } = null!;
 
+    /// <summary>
+    /// Der Windows-Kopf: alles, was Core und ViewModels von der Plattform brauchen.
+    /// Wird als Erstes im Start gesetzt, noch vor der Datenbank — die fragt bereits nach
+    /// den Pfaden.
+    /// </summary>
+    public static IPlatformServices Platform { get; private set; } = null!;
+
     /// <summary>Protokoll unerwarteter Fehler, neben der Datenbank.</summary>
-    private static string LogPath =>
-        Path.Combine(Path.GetDirectoryName(DatabaseService.DefaultPath)!, "fehler.log");
+    private static string LogPath => AppPaths.LogFile;
 
     private static bool _errorShown;
 
@@ -22,6 +30,10 @@ public partial class App : Application
 
         DispatcherUnhandledException += OnDispatcherError;
         AppDomain.CurrentDomain.UnhandledException += (_, args) => Log(args.ExceptionObject as Exception);
+
+        Platform = new WpfPlatformServices();
+        AppPaths.Current = Platform.Paths;
+        Core.Rendering.WbFonts.UiFamily = Platform.Fonts.UiFamily;   // vor dem ersten Zeichnen
 
         // "--db <pfad>" erlaubt eine alternative Datenbank (z. B. für UI-Tests)
         string? dbPath = null;
@@ -33,9 +45,9 @@ public partial class App : Application
         Loc.Apply(Loc.FromCode(Db.GetSetting("language")));
 
         var theme = Db.GetSetting("theme") == "dark" ? AppTheme.Dark : AppTheme.Light;
-        ThemeService.Apply(theme);
-        ThemeService.ThemeChanged += () =>
-            Db.SetSetting("theme", ThemeService.Current == AppTheme.Dark ? "dark" : "light");
+        Platform.Theme.Apply(theme);
+        Platform.Theme.ThemeChanged += () =>
+            Db.SetSetting("theme", Platform.Theme.Current == AppTheme.Dark ? "dark" : "light");
 
         MainWindow = new MainWindow();
         MainWindow.Show();

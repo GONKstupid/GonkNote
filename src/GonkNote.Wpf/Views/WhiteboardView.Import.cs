@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Windows;
 using System.Windows.Media.Imaging;
 using GonkNote.Core.Models;
@@ -18,7 +18,8 @@ public partial class WhiteboardView
     // ==================== Bilder einfügen ====================
 
     private static readonly string[] ImageExtensions = { ".png", ".jpg", ".jpeg", ".bmp", ".gif", ".webp", ".svg" };
-    private const int MaxImportDim = 2048;
+    /// <summary>Eine Wahrheit dafür: die Grenze steht in Core, hier steht nur der kurze Name.</summary>
+    private const int MaxImportDim = WbImagePrep.MaxImportDim;
 
     private SKPoint ViewCenter() => ToCanvas(new Point(CanvasHost.ActualWidth / 2, CanvasHost.ActualHeight / 2));
 
@@ -86,48 +87,18 @@ public partial class WhiteboardView
                 "Gonk Note", MessageBoxButton.OK, MessageBoxImage.Warning);
     }
 
-    /// <summary>Dekodiert, verkleinert große Bilder (RAM-/DB-Ziel) und liefert speicherbare Bytes + Pixelmaße.</summary>
-    private static (byte[] Data, float W, float H)? PrepareRaster(byte[] raw)
-    {
-        // Nicht SKBitmap.Decode(raw): das wirft seit SkiaSharp 3, wenn die Datei kein
-        // erkennbares Bild ist, statt null zu liefern (WbImages.Decode).
-        using var bmp = WbImages.Decode(raw);
-        if (bmp == null) return null;
-
-        // Klein genug: Originalbytes unverändert übernehmen
-        if (bmp.Width <= MaxImportDim && bmp.Height <= MaxImportDim && raw.Length <= 2 * 1024 * 1024)
-            return (raw, bmp.Width, bmp.Height);
-
-        float scale = Math.Min(1f, MaxImportDim / (float)Math.Max(bmp.Width, bmp.Height));
-        SKBitmap use = bmp;
-        if (scale < 1f)
-        {
-            int nw = Math.Max(1, (int)(bmp.Width * scale));
-            int nh = Math.Max(1, (int)(bmp.Height * scale));
-            use = bmp.Resize(new SKImageInfo(nw, nh), WbRenderer.HighSampling) ?? bmp;
-        }
-        try
-        {
-            var format = HasTransparency(use) ? SKEncodedImageFormat.Png : SKEncodedImageFormat.Jpeg;
-            using var img = SKImage.FromBitmap(use);
-            using var data = img.Encode(format, 88);
-            return (data.ToArray(), use.Width, use.Height);
-        }
-        finally
-        {
-            if (!ReferenceEquals(use, bmp)) use.Dispose();
-        }
-    }
-
-    private static bool HasTransparency(SKBitmap bmp)
-    {
-        if (bmp.AlphaType == SKAlphaType.Opaque) return false;
-        int sx = Math.Max(1, bmp.Width / 256), sy = Math.Max(1, bmp.Height / 256);
-        for (int y = 0; y < bmp.Height; y += sy)
-            for (int x = 0; x < bmp.Width; x += sx)
-                if (bmp.GetPixel(x, y).Alpha < 250) return true;
-        return false;
-    }
+    /// <summary>
+    /// Dekodiert, verkleinert große Bilder (RAM-/DB-Ziel) und liefert speicherbare Bytes
+    /// samt Pixelmaßen.
+    /// <para>
+    /// Der Inhalt liegt seit Phase 2 in <see cref="WbImagePrep.ForImport"/> — er ist reines
+    /// SkiaSharp und hatte nur deshalb keinen Test, weil er hier privat im Kopf stand
+    /// (HANDOFF §4.4). Hier bleibt die Umformung auf die Gleitkomma-Maße, mit denen die
+    /// Platzierung rechnet.
+    /// </para>
+    /// </summary>
+    private static (byte[] Data, float W, float H)? PrepareRaster(byte[] raw) =>
+        WbImagePrep.ForImport(raw) is { } p ? (p.Data, p.Width, p.Height) : null;
 
     /// <summary>SVG wird beim Import gerastert (2x für scharfes Zoomen), Ergebnis ist PNG; Anzeigegröße bleibt die SVG-Größe.</summary>
     private static (byte[] Data, float W, float H)? RasterizeSvg(byte[] raw)
@@ -313,7 +284,7 @@ public partial class WhiteboardView
             // Und jetzt nur die gewählten Seiten in voller Auflösung – Seite für Seite.
             ShowBusy(Loc.T("Busy.Pdf"));
             var pages = await Task.Run(() =>
-                PdfImporter.StreamPages(path, PdfRenderLongSide, wanted, progress).ToList());
+                App.Platform.Pdf.StreamPages(path, PdfRenderLongSide, wanted, progress).ToList());
 
             if (anchor.IsInfinite) InsertPdfIntoWhiteboard(pages, anchor, vm);
             else InsertPdfIntoNotebook(pages, anchor, vm);

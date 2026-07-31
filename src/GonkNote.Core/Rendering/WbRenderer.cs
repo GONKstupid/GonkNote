@@ -9,18 +9,43 @@ namespace GonkNote.Core.Rendering;
 /// <summary>Gemeinsame Schriften für Canvas-Text (SkiaSharp, plattformneutral).</summary>
 public static class WbFonts
 {
-    public static readonly SKTypeface Regular =
-        SKTypeface.FromFamilyName("Segoe UI") ?? SKTypeface.Default;
+    /// <summary>
+    /// Die Oberflächenschrift der Plattform. Der Kopf setzt sie beim Start über
+    /// <see cref="GonkNote.Core.Platform.IFontProvider"/>; ohne Zutun bleibt es bei
+    /// „Segoe UI", also beim Verhalten vor Phase 2.
+    /// <para>
+    /// <b>Nur vor dem ersten Zeichnen setzen.</b> <see cref="Regular"/> und
+    /// <see cref="Bold"/> werden beim ersten Zugriff aufgelöst und danach behalten —
+    /// ein späterer Wechsel bliebe wirkungslos, statt sichtbar zu scheitern.
+    /// </para>
+    /// </summary>
+    public static string UiFamily
+    {
+        get => _uiFamily;
+        set
+        {
+            if (_uiFamily == value) return;
+            _uiFamily = value;
+            _regular = _bold = null;
+            _families.Clear();
+        }
+    }
 
-    public static readonly SKTypeface Bold =
-        SKTypeface.FromFamilyName("Segoe UI", SKFontStyle.Bold) ?? SKTypeface.Default;
+    private static string _uiFamily = new Platform.DefaultFontProvider().UiFamily;
+    private static SKTypeface? _regular, _bold;
+
+    public static SKTypeface Regular =>
+        _regular ??= SKTypeface.FromFamilyName(_uiFamily) ?? SKTypeface.Default;
+
+    public static SKTypeface Bold =>
+        _bold ??= SKTypeface.FromFamilyName(_uiFamily, SKFontStyle.Bold) ?? SKTypeface.Default;
 
     private static readonly Dictionary<string, SKTypeface> _families = new();
 
     /// <summary>Typeface je Familienname, gecacht.</summary>
     public static SKTypeface Family(string? name)
     {
-        if (string.IsNullOrEmpty(name) || name == "Segoe UI") return Regular;
+        if (string.IsNullOrEmpty(name) || name == _uiFamily) return Regular;
         if (!_families.TryGetValue(name, out var tf))
         {
             tf = SKTypeface.FromFamilyName(name) ?? Regular;

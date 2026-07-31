@@ -1,7 +1,8 @@
-using System.Windows;
+﻿using System.Windows;
 using GonkNote.Core.Rendering;
 using GonkNote.Services;
 using SkiaSharp;
+using GonkNote.Core.Platform;
 
 namespace GonkNote.Views;
 
@@ -268,7 +269,7 @@ public partial class WhiteboardView
     /// </summary>
     public static void DrawSetSquare(SKCanvas canvas, SKPoint center, float angleDeg, float zoom) =>
         WbAidRenderer.DrawSetSquare(canvas, center, angleDeg, zoom,
-                                    ThemeService.Current == AppTheme.Dark);
+                                    App.Platform.Theme.Current == AppTheme.Dark);
 
     private void DrawAidAngle(SKCanvas canvas)
     {

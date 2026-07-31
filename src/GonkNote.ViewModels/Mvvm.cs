@@ -4,6 +4,10 @@ using System.Windows.Input;
 
 namespace GonkNote.ViewModels;
 
+// System.Windows.Input.ICommand ist trotz des Namensraums kein WPF: der Typ liegt in
+// System.ObjectModel und steht auch unter Linux und iOS zur Verfügung. Avalonia bindet
+// gegen genau diese Schnittstelle — sie darf deshalb bleiben.
+
 public abstract class ObservableObject : INotifyPropertyChanged
 {
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -38,9 +42,18 @@ public sealed class RelayCommand : ICommand
 
     public void Execute(object? parameter) => _execute(parameter);
 
-    public event EventHandler? CanExecuteChanged
-    {
-        add => CommandManager.RequerySuggested += value;
-        remove => CommandManager.RequerySuggested -= value;
-    }
+    /// <summary>
+    /// Hing bis Phase 2 an WPFs <c>CommandManager.RequerySuggested</c> — der fragt nach
+    /// jeder Eingabe von sich aus neu und existiert außerhalb von WPF nicht.
+    /// <para>
+    /// Der Ersatz ist <see cref="RaiseCanExecuteChanged"/>: wer etwas ändert, sagt es.
+    /// Für die Befehle hier fällt das nicht ins Gewicht — <b>keiner</b> von ihnen
+    /// gibt heute ein <c>canExecute</c> an, sie sind also immer ausführbar. Der
+    /// Weckruf steht bereit, falls sich das ändert; wer ihn dann vergisst, bekommt
+    /// einen Knopf, der grau bleibt, obwohl er dürfte.
+    /// </para>
+    /// </summary>
+    public event EventHandler? CanExecuteChanged;
+
+    public void RaiseCanExecuteChanged() => CanExecuteChanged?.Invoke(this, EventArgs.Empty);
 }

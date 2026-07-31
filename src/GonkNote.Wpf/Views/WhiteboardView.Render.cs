@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Media;
 using GonkNote.Core.Models;
 using GonkNote.Core.Rendering;
@@ -6,6 +6,7 @@ using GonkNote.Services;
 using GonkNote.Core.Services;
 using SkiaSharp;
 using SkiaSharp.Views.Desktop;
+using GonkNote.Core.Platform;
 
 namespace GonkNote.Views;
 
@@ -121,7 +122,7 @@ public partial class WhiteboardView
         }
 
         var key = new ContentKey(_page, Zoom, PanX, PanY, info.Width, info.Height,
-                                 _editingText, _editingSticky, ThemeService.Current);
+                                 _editingText, _editingSticky, App.Platform.Theme.Current);
         if (_contentCache == null || !_contentKey.Equals(key))
         {
             DropContentCache();

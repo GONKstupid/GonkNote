@@ -47,6 +47,12 @@ internal static class LocEnglish
         ["Tree.Rename"] = "Rename",
         ["Tree.Delete"] = "Delete",
         ["Tree.Favorite"] = "Favourite",
+        // Context menu in the folder tree – the label changes with the state.
+        // Were hard-coded in German inside TreeItemViewModel until phase 2.
+        ["Tree.Pin"] = "Pin",
+        ["Tree.Unpin"] = "Unpin",
+        ["Tree.MarkFavorite"] = "Mark as favourite",
+        ["Tree.UnmarkFavorite"] = "Remove favourite",
         ["Tree.IconColor"] = "Icon colour",
         ["Tree.IconColor.Auto"] = "Automatic (folder colour)",
         ["Tree.IconColor.AutoTooltip"] = "Takes the colour of the parent folder",
@@ -88,8 +94,18 @@ internal static class LocEnglish
         // ---- Texts set from code ----
         ["Gallery.Root"] = "Documents",
         ["Item.CopySuffix"] = " (copy)",
-        ["Import.Filter"] = "Documents (*.docx;*.md)|*.docx;*.md|Word documents (*.docx)|*.docx",
         ["Gallery.DateFormat"] = "d MMM yyyy, HH:mm",
+
+        // Titles and format lists of the file dialogs. The extensions live in the code
+        // (GonkNote.Core.Platform.FileFilter); only what the user reads is here.
+        ["Dialog.ImportTitle"] = "Import document",
+        ["Dialog.ExportTitle"] = "Export",
+        ["Filter.Documents"] = "Documents (*.docx;*.md)",
+        ["Filter.Word"] = "Word document (*.docx)",
+        ["Filter.Markdown"] = "Markdown (*.md)",
+        ["Filter.AllFiles"] = "All files (*.*)",
+        ["Filter.Pdf"] = "PDF document (*.pdf)",
+        ["Filter.Png"] = "PNG image(s) (*.png)",
 
         // ---- Whiteboard / notebook ----
         ["Tool.Hand"] = "Hand",

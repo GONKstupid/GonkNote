@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Bindeschicht zwischen Core und den Plattform-Köpfen: Ordnerbaum, Registerkarten,
+       Galerie, Befehle. Seit Phase 2 eine eigene Assembly und `net10.0` ohne `-windows` —
+       genau das hält der Compiler ab jetzt nach: was hier ein `System.Windows.*` anfasst,
+       baut nicht mehr.
+
+       Der Ringschluss, der das bis Phase 2 verhindert hat (ViewModels -> Wpf -> ViewModels),
+       ist über GonkNote.Core.Platform aufgelöst: das MainViewModel bekommt seinen Kopf als
+       IPlatformServices herein, statt dessen Klassen zu kennen (HANDOFF §4.2).
+
+       Gemeinsame Eigenschaften: ..\..\Directory.Build.props
+       Paketversionen:          ..\..\Directory.Packages.props -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>GonkNote.ViewModels</RootNamespace>
+    <AssemblyName>GonkNote.ViewModels</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GonkNote.Core\GonkNote.Core.csproj" />
+  </ItemGroup>
+
+</Project>

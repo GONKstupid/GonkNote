@@ -33,8 +33,13 @@ public static class WbAidRenderer
     /// dasselbe Muster wie bei Stickern und Cover-Vorlagen.
     /// </para>
     /// </summary>
-    public static string UserAssetFolder { get; set; } = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "GonkNote");
+    public static string UserAssetFolder
+    {
+        get => _userAssetFolder ??= Platform.AppPaths.Current.DataFolder;
+        set => _userAssetFolder = value;
+    }
+
+    private static string? _userAssetFolder;
 
     /// <summary>
     /// Die mitgelieferten Geodreiecke neben der Exe (<c>Assets\Geodreieck-*.svg</c>).
@@ -43,8 +48,13 @@ public static class WbAidRenderer
     /// dann ohne Skalen, aber maßgleich.
     /// </para>
     /// </summary>
-    public static string AppAssetFolder { get; set; } =
-        Path.Combine(AppContext.BaseDirectory, "Assets");
+    public static string AppAssetFolder
+    {
+        get => _appAssetFolder ??= Platform.AppPaths.AppSubfolder("Assets");
+        set => _appAssetFolder = value;
+    }
+
+    private static string? _appAssetFolder;
 
     /// <summary>
     /// SVG des jeweiligen Themes, beim ersten Zugriff geladen; null, wenn keine zu finden

@@ -1,6 +1,3 @@
-using System.Windows;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using GonkNote.Core.Models;
 using GonkNote.Services;
 using GonkNote.Core.Services;
@@ -33,23 +30,35 @@ public sealed class GalleryItemViewModel : ObservableObject
     public bool IsWhiteboard => Kind == ItemKind.Whiteboard;
     public bool IsText => Kind == ItemKind.TextDocument;
 
-    public Visibility StarVisibility => Tree.IsFavorite ? Visibility.Visible : Visibility.Collapsed;
-    public Brush IconBrush => Tree.IconBrush;
+    public bool IsFavorite => Tree.IsFavorite;
+    public string? IconColorHex => Tree.IconColorHex;
     public string IconGlyph => Tree.IconGlyph;
 
     /// <summary>Zuletzt geändert, wie in GoodNotes unter der Kachel.</summary>
     public string DateText => Tree.Item.ModifiedUtc.ToLocalTime().ToString(Loc.T("Gallery.DateFormat"), Loc.Culture);
 
     // ---------- Notizbuch-Cover (lazy) ----------
+    //
+    // Seit Phase 2 liefert die Kachel nur noch Daten: die Bild-Bytes und die beiden
+    // Verlaufsfarben als Hex-Text. Bitmap und Pinsel baut der Kopf daraus
+    // (BytesToImageConverter, GradientBrushConverter) — beides gibt es unter Avalonia
+    // nicht, wohl aber Bytes und Farben.
+
     private bool _coverLoaded;
-    private ImageSource? _coverImage;
-    private Brush? _coverBrush;
+    private byte[]? _coverImage;
+    private string? _gradientStart, _gradientEnd;
 
     public bool HasCoverImage { get { EnsureCover(); return _coverImage != null; } }
-    public ImageSource? CoverImage { get { EnsureCover(); return _coverImage; } }
 
-    /// <summary>Farbverlauf-Cover (falls kein Bild gesetzt ist); Standard Blau→Lila wie beim echten Cover.</summary>
-    public Brush CoverBrush { get { EnsureCover(); return _coverBrush!; } }
+    /// <summary>Cover-Bild als kodierte Bytes; <c>null</c>, wenn es keines gibt.</summary>
+    public byte[]? CoverImageData { get { EnsureCover(); return _coverImage; } }
+
+    /// <summary>
+    /// Farbverlauf-Cover (falls kein Bild gesetzt ist), als Hex-Text. <c>null</c> heißt
+    /// „nimm den Standard" — Blau→Lila wie beim echten Cover.
+    /// </summary>
+    public string? CoverGradientStart { get { EnsureCover(); return _gradientStart; } }
+    public string? CoverGradientEnd { get { EnsureCover(); return _gradientEnd; } }
 
     private void EnsureCover()
     {
@@ -57,36 +66,14 @@ public sealed class GalleryItemViewModel : ObservableObject
         _coverLoaded = true;
 
         var cover = IsNotebook ? _db.GetCover(Tree.Id) : null;
+        if (cover == null) return;
 
-        var start = ParseColor(cover?.GradientStart, Color.FromRgb(0x1E, 0x3A, 0x8A));
-        var end = ParseColor(cover?.GradientEnd, Color.FromRgb(0x7C, 0x3A, 0xED));
-        var brush = new LinearGradientBrush(start, end, new Point(0, 0), new Point(1, 1));
-        brush.Freeze();
-        _coverBrush = brush;
+        _gradientStart = cover.GradientStart;
+        _gradientEnd = cover.GradientEnd;
 
         // Nicht direkt aus dem Datensatz: nach dem ersten Speichern liegt das Cover im
         // Blob-Speicher und das Feld ist leer – die Kachel bliebe sonst dauerhaft ohne Bild.
-        if (cover != null && ImageCache.Bytes(cover.ImageId, cover.Image) is { Length: > 0 } bytes)
-        {
-            try
-            {
-                var bmp = new BitmapImage();
-                bmp.BeginInit();
-                bmp.CacheOption = BitmapCacheOption.OnLoad;
-                bmp.DecodePixelWidth = 240;   // Vorschaugröße genügt – spart RAM
-                bmp.StreamSource = new System.IO.MemoryStream(bytes);
-                bmp.EndInit();
-                bmp.Freeze();
-                _coverImage = bmp;
-            }
-            catch { _coverImage = null; }
-        }
-    }
-
-    private static Color ParseColor(string? hex, Color fallback)
-    {
-        if (hex is { })
-            try { return (Color)ColorConverter.ConvertFromString(hex); } catch { /* Standard */ }
-        return fallback;
+        if (ImageCache.Bytes(cover.ImageId, cover.Image) is { Length: > 0 } bytes)
+            _coverImage = bytes;
     }
 }

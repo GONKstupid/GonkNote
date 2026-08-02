@@ -31,6 +31,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\GonkNote.Core\GonkNote.Core.csproj" />
+    <!-- Der Leser für Altdatenbanken. Hier ist LiteDB **kein** Produktivpfad mehr, sondern
+         Fixture-Erzeuger: AlteTypnamenTests schreibt damit eine echte Altdatei, so wie sie
+         auf der Platte eines Nutzers liegt, und weist nach, dass der SQLite-Weg sie
+         einliest. Aus dem Roundtrip-Wächter ist damit der Migrations-Wächter geworden. -->
+    <ProjectReference Include="..\..\src\GonkNote.Legacy\GonkNote.Legacy.csproj" />
   </ItemGroup>
 
   <!-- Golden-Files: die erwarteten Pixel-Hashes des Renderers. Reiner Text, damit ein

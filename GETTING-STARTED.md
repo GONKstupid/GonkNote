@@ -34,7 +34,7 @@ follows the language you picked under View → Language.)*
 ## 1. Getting Gonk Note onto your machine
 
 **Requirements:** Windows 11 (Windows 10 should work too but is untested) and the
-[.NET SDK 8](https://dotnet.microsoft.com/download/dotnet/8.0) or newer. You do not need
+[.NET SDK 10](https://dotnet.microsoft.com/download/dotnet/10.0) or newer. You do not need
 admin rights.
 
 > There is no ready-made release to download (yet) — you build the exe yourself with two
@@ -61,7 +61,7 @@ admin rights.
 3. The finished file is at:
 
    ```
-   bin\Release\net8.0-windows\win-x64\publish\GonkNote.exe
+   bin\Release\net10.0-windows10.0.19041.0\win-x64\publish\GonkNote.exe
    ```
 
    Copy it wherever you want it — **together with the `tessdata` folder** and, if present,
@@ -82,7 +82,7 @@ Double-click `GonkNote.exe`. On the first start Gonk Note quietly creates a fold
 
 ```
 %APPDATA%\GonkNote\
-├─ gonknote.db          your texts, strokes and the folder structure
+├─ gonknote.sqlite      your texts, strokes and the folder structure
 ├─ gonknote.blobs\      images plus imported PDF and Word pages
 └─ gonknote.papierkorb\ images nobody currently needs (30-day grace period)
 ```
@@ -241,12 +241,18 @@ exporting at lower quality.
 Gonk Note has no cloud. Your notes live exclusively on your machine, in **two** places:
 
 ```
-%APPDATA%\GonkNote\gonknote.db        ← texts, strokes, structure
+%APPDATA%\GonkNote\gonknote.sqlite    ← texts, strokes, structure
 %APPDATA%\GonkNote\gonknote.blobs\    ← all images and imported pages
 ```
 
-**A backup needs both — the file *and* the folder.** Copying only the `.db` backs up your notes
-without the images in them.
+**A backup needs both — the file *and* the folder.** Copying only the `.sqlite` backs up your
+notes without the images in them.
+
+> **Coming from an older version?** Up to version 0.2.0 the file was called `gonknote.db`. It is
+> migrated once on the first start after that and then stays next to the new one, unchanged — a
+> way back for as long as you keep it.
+> **From then on back up `gonknote.sqlite`:** the old file no longer grows with your work and is
+> soon an outdated state. Backing up the whole folder (next paragraph) covers both anyway.
 
 The simplest approach: copy the entire `%APPDATA%\GonkNote` folder somewhere regularly, ideally
 with the app closed. To restore, copy it back to the same place.
@@ -340,8 +346,8 @@ the new state and rebuild. It takes less than a minute.
 
    | You start… | Command | Result is in |
    |---|---|---|
-   | the Start menu shortcut | `dotnet build -c Release` | `bin\Release\net8.0-windows\win-x64\` |
-   | a copied single-file exe | `dotnet publish -c Release` | `bin\Release\net8.0-windows\win-x64\publish\` |
+   | the Start menu shortcut | `dotnet build -c Release` | `bin\Release\net10.0-windows10.0.19041.0\win-x64\` |
+   | a copied single-file exe | `dotnet publish -c Release` | `bin\Release\net10.0-windows10.0.19041.0\win-x64\publish\` |
 
    With the second route you then have to copy the new `GonkNote.exe` back to wherever your old
    one was — **together with the `Assets` and `tessdata` folders** if those have changed.

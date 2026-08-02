@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/GonkNote.Core/GonkNote.Core.csproj" />
+    <Project Path="src/GonkNote.Legacy/GonkNote.Legacy.csproj" />
     <Project Path="src/GonkNote.ViewModels/GonkNote.ViewModels.csproj" />
     <Project Path="src/GonkNote.Wpf/GonkNote.Wpf.csproj" />
   </Folder>

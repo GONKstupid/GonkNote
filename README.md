@@ -113,11 +113,16 @@ nach der Sprache, die du unter Ansicht → Sprache gewählt hast.)*
   Maus an den oberen Fensterrand, gleitet eine Titelleiste (Minimieren/Wiederherstellen/
   Schließen) sanft wieder ein. Doppelklick auf die Menüleiste (oder die Windows-Standard-
   befehle) stellt das Fenster wieder her
-- **Persistenz**: LiteDB-Datei unter `%APPDATA%\GonkNote\gonknote.db` für Texte, Striche und
-  Struktur; **Bilder, importierte PDF- und Word-Seiten liegen daneben** in
+- **Persistenz**: SQLite-Datei unter `%APPDATA%\GonkNote\gonknote.sqlite` für Texte, Striche
+  und Struktur; **Bilder, importierte PDF- und Word-Seiten liegen daneben** in
   `%APPDATA%\GonkNote\gonknote.blobs\` — je Bild eine Datei. Autosave alle 30 s, Speichern
   beim Schließen von Tabs und der App.
   **Für eine Sicherung beides mitnehmen: die Datei *und* den Ordner.**
+  Bis Version 0.2.0 hieß die Datei `gonknote.db` und war eine LiteDB-Datei. Sie wird beim
+  ersten Start danach **einmalig übertragen** und bleibt anschließend unverändert daneben
+  liegen — als Rückweg, solange du sie behältst.
+  **Sichere ab jetzt `gonknote.sqlite`, nicht mehr `gonknote.db`:** die alte Datei wächst
+  nicht mehr mit und wäre nach kurzer Zeit ein veralteter Stand.
   Bilder, auf die kein Dokument mehr zeigt, wandern in `gonknote.papierkorb\` und werden erst
   nach 30 Tagen endgültig entfernt; wird ein Bild vorher wieder gebraucht, holt Gonk Note es
   von selbst zurück
@@ -165,7 +170,7 @@ dotnet run
 
 # Single-File-Exe (selbständig, keine .NET-Installation nötig)
 dotnet publish -c Release
-# Ergebnis: bin/Release/net8.0-windows/win-x64/publish/GonkNote.exe
+# Ergebnis: bin/Release/net10.0-windows10.0.19041.0/win-x64/publish/GonkNote.exe
 ```
 
 Hinweis: WPF unterstützt kein Assembly-Trimming (`PublishTrimmed`); die Exe wird stattdessen
@@ -179,17 +184,17 @@ weitergeht, steht in [Erste Schritte](ERSTE-SCHRITTE.md).
 
 | Baustein | Technologie |
 |---|---|
-| UI | WPF (.NET 8), MVVM, dynamische Theme-ResourceDictionaries |
+| UI | WPF (.NET 10), MVVM, dynamische Theme-ResourceDictionaries |
 | Whiteboard-Rendering | SkiaSharp (`SKElement`), WPF-Stylus-Events mit Druckstärke |
-| Persistenz | LiteDB (eine lokale Datei, polymorphe Element-Serialisierung) |
-| Kernlogik | eigene Bibliothek `GonkNote.Core` (net8.0) — ohne UI-Abhängigkeiten |
+| Persistenz | SQLite (`Microsoft.Data.Sqlite`); Dokumente als JSON, gelesen und geschrieben ueber einen Source-Generator |
+| Kernlogik | eigene Bibliothek `GonkNote.Core` (net10.0) — ohne UI-Abhängigkeiten |
 
 Die Anwendung besteht aus zwei Projekten: der WPF-Oberfläche und einer Kernbibliothek
 ohne UI-Bezug. Das hält die Schichten sauber — Datenmodell, Persistenz und die
 Zeichenroutinen des Whiteboards sind unabhängig von der Oberfläche.
 
 ```
-GonkNote/                    WPF-Oberfläche (net8.0-windows)
+GonkNote/                    WPF-Oberfläche (net10.0-windows)
 ├─ App.xaml(.cs)           Einstieg, Theme-Initialisierung, --db-Argument
 ├─ MainWindow.xaml(.cs)    Menü, Ordnerbaum (Drag & Drop, Anpinnen), Tab-Verwaltung
 ├─ ViewModels/             MainViewModel, Tab-VMs, Baum-VM, MVVM-Basis
@@ -200,9 +205,9 @@ GonkNote/                    WPF-Oberfläche (net8.0-windows)
 │  └─ Localization/        Sprachumschaltung: Loc (Nachschlagen) + je eine Tabelle DE/EN
 └─ Themes/                 Light.xaml, Dark.xaml, Styles.xaml
 
-GonkNote.Core/               Kernlogik ohne UI-Bezug (net8.0), Namensraum GonkNote.Core.*
+GonkNote.Core/               Kernlogik ohne UI-Bezug (net10.0), Namensraum GonkNote.Core.*
 ├─ Models/                 NoteItem (Baum), Whiteboard-Elemente, Enums
-├─ Services/               DatabaseService (LiteDB), BlobStore (Bilder/PDFs neben der
+├─ Services/               DatabaseService (SQLite), BlobStore (Bilder/PDFs neben der
 │                          Datenbank), UndoStack, ImageCache, PDF-Import
 ├─ Rendering/              Skia-Zeichenroutinen des Whiteboards, Geodreieck-Overlay
 └─ Editing/                Punktgenaues Radieren
@@ -232,7 +237,8 @@ Single-File-Exe), stehen in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md):
 
 | Baustein | Zweck | Lizenz |
 |---|---|---|
-| [LiteDB](https://www.litedb.org/) | Persistenz | MIT |
+| [SQLite](https://www.sqlite.org/) ueber [Microsoft.Data.Sqlite](https://learn.microsoft.com/dotnet/standard/data/sqlite/) | Persistenz | Public Domain / MIT |
+| [LiteDB](https://www.litedb.org/) | liest Datenbanken bis Version 0.2.0 ein | MIT |
 | [SkiaSharp](https://github.com/mono/SkiaSharp) | Whiteboard-Rendering | MIT |
 | [Svg.Skia](https://github.com/wieslawsoltes/Svg.Skia) | SVG-Rasterung | MIT |
 | [DocumentFormat.OpenXml](https://github.com/dotnet/Open-XML-SDK) | DOCX-Import/-Export | MIT |

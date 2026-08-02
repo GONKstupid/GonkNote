@@ -40,7 +40,30 @@ public partial class App : Application
         for (int i = 0; i < e.Args.Length - 1; i++)
             if (e.Args[i] == "--db") dbPath = e.Args[i + 1];
 
-        Db = new DatabaseService(dbPath);
+        // Der Leser für Altdatenbanken wird mitgegeben, nicht global gesetzt: liegt neben
+        // der SQLite-Datei noch eine LiteDB-Datei aus einem früheren Stand, überträgt
+        // DatabaseService sie beim ersten Start einmalig. Die Altdatei wird dabei nur
+        // gelesen und bleibt danach unverändert liegen (HANDOFF §4.8).
+        try
+        {
+            Db = new DatabaseService(dbPath, new Legacy.LiteDbReader());
+        }
+        catch (Exception ex)
+        {
+            // Scheitert die Übertragung, ist der Bestand nicht verloren — er liegt
+            // unversehrt in der Altdatei. Was fehlt, ist eine brauchbare neue Datenbank,
+            // und mit der arbeitet die App. Deshalb: melden und beenden, statt mit einem
+            // halben Zustand weiterzulaufen.
+            //
+            // Der Text erscheint zwangsläufig in der Standardsprache: welche Sprache der
+            // Nutzer gewählt hat, steht in genau der Datenbank, die sich nicht öffnen lässt.
+            Log(ex);
+            MessageBox.Show(
+                Loc.T("Db.OpenFailed", ex.Message, LogPath),
+                "Gonk Note", MessageBoxButton.OK, MessageBoxImage.Error);
+            Shutdown(1);
+            return;
+        }
 
         Loc.Apply(Loc.FromCode(Db.GetSetting("language")));
 

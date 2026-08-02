@@ -31,7 +31,6 @@
   <ItemGroup>
     <PackageReference Include="Docnet.Core" />
     <PackageReference Include="DocumentFormat.OpenXml" />
-    <PackageReference Include="LiteDB" />
     <PackageReference Include="SkiaSharp.Views.WPF" />
     <PackageReference Include="Svg.Skia" />
     <PackageReference Include="Tesseract" />
@@ -45,6 +44,10 @@
   <ItemGroup>
     <ProjectReference Include="..\GonkNote.Core\GonkNote.Core.csproj" />
     <ProjectReference Include="..\GonkNote.ViewModels\GonkNote.ViewModels.csproj" />
+    <!-- Der Leser für Altdatenbanken (LiteDB). Nur Windows und Linux brauchen ihn — dort
+         liegen Bestandsdaten. Der iPadOS-Kopf referenziert ihn nicht: dort gab es nie eine
+         LiteDB-Datei, und das Paket wäre unter NativeAOT nicht baubar. -->
+    <ProjectReference Include="..\GonkNote.Legacy\GonkNote.Legacy.csproj" />
   </ItemGroup>
 
   <!-- Assets, Dokumente und OCR-Sprachdaten liegen seit dem Umzug in der Repo-Wurzel,

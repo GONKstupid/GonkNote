@@ -34,7 +34,7 @@ Anleitung nach der Sprache, die du unter Ansicht → Sprache gewählt hast.)*
 ## 1. Gonk Note auf den Rechner holen
 
 **Voraussetzungen:** Windows 11 (Windows 10 sollte ebenfalls laufen, ist aber nicht
-getestet) und das [.NET SDK 8](https://dotnet.microsoft.com/download/dotnet/8.0)
+getestet) und das [.NET SDK 10](https://dotnet.microsoft.com/download/dotnet/10.0)
 oder neuer. Adminrechte brauchst du nicht.
 
 > Es gibt (noch) kein fertiges Release zum Herunterladen — du baust dir die
@@ -61,7 +61,7 @@ oder neuer. Adminrechte brauchst du nicht.
 3. Die fertige Datei liegt unter:
 
    ```
-   bin\Release\net8.0-windows\win-x64\publish\GonkNote.exe
+   bin\Release\net10.0-windows10.0.19041.0\win-x64\publish\GonkNote.exe
    ```
 
    Kopiere sie dorthin, wo du sie haben willst — **zusammen mit dem Ordner
@@ -84,7 +84,7 @@ Ordner an:
 
 ```
 %APPDATA%\GonkNote\
-├─ gonknote.db          deine Texte, Striche und die Ordnerstruktur
+├─ gonknote.sqlite      deine Texte, Striche und die Ordnerstruktur
 ├─ gonknote.blobs\      Bilder sowie importierte PDF- und Word-Seiten
 └─ gonknote.papierkorb\ Bilder, die gerade niemand braucht (30 Tage Schonfrist)
 ```
@@ -257,12 +257,19 @@ Gonk Note hat keine Cloud. Deine Notizen liegen ausschließlich auf deinem
 Rechner, und zwar an **zwei** Stellen:
 
 ```
-%APPDATA%\GonkNote\gonknote.db        ← Texte, Striche, Struktur
+%APPDATA%\GonkNote\gonknote.sqlite    ← Texte, Striche, Struktur
 %APPDATA%\GonkNote\gonknote.blobs\    ← alle Bilder und importierten Seiten
 ```
 
 **Für eine Sicherung brauchst du beides — die Datei *und* den Ordner.** Nur die
-`.db` zu kopieren sichert deine Notizen ohne die Bilder darin.
+`.sqlite` zu kopieren sichert deine Notizen ohne die Bilder darin.
+
+> **Kommst du von einer älteren Fassung?** Bis Version 0.2.0 hieß die Datei
+> `gonknote.db`. Sie wird beim ersten Start danach einmalig übertragen und bleibt
+> unverändert daneben liegen — als Rückweg, solange du sie behältst.
+> **Sichere ab dann `gonknote.sqlite`:** die alte Datei wächst nicht mehr mit und ist
+> nach kurzer Zeit ein veralteter Stand. Wer den ganzen Ordner sichert (nächster
+> Absatz), hat ohnehin beides.
 
 Am einfachsten: den kompletten Ordner `%APPDATA%\GonkNote` regelmäßig
 wegkopieren, am besten bei geschlossener App. Zum Zurückholen kopierst du ihn an
@@ -360,8 +367,8 @@ einer Minute.
 
    | Du startest… | Befehl | Ergebnis liegt in |
    |---|---|---|
-   | die Verknüpfung im Startmenü | `dotnet build -c Release` | `bin\Release\net8.0-windows\win-x64\` |
-   | eine kopierte Einzeldatei-Exe | `dotnet publish -c Release` | `bin\Release\net8.0-windows\win-x64\publish\` |
+   | die Verknüpfung im Startmenü | `dotnet build -c Release` | `bin\Release\net10.0-windows10.0.19041.0\win-x64\` |
+   | eine kopierte Einzeldatei-Exe | `dotnet publish -c Release` | `bin\Release\net10.0-windows10.0.19041.0\win-x64\publish\` |
 
    Beim zweiten Weg musst du die neue `GonkNote.exe` anschließend wieder dorthin
    kopieren, wo deine alte lag — **zusammen mit den Ordnern `Assets` und `tessdata`**,

@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace GonkNote.Core.Models;
 
 /// <summary>Typ eines Eintrags im Ordnerbaum.</summary>
@@ -28,5 +30,7 @@ public class NoteItem
     /// <summary>Favorit = wird innerhalb seines Ordners zuerst angezeigt (nur Ordner).</summary>
     public bool IsFavorite { get; set; }
 
+    /// <summary>Abgeleitet, nicht gespeichert — siehe <see cref="Whiteboard"/>-Modelle.</summary>
+    [JsonIgnore]
     public bool IsFolder => Kind == ItemKind.Folder;
 }

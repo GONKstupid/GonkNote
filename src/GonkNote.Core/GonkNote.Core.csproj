@@ -14,7 +14,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="LiteDB" />
+    <!-- Persistenz seit Phase 2, Schritt 3. LiteDB stand hier bis dahin und ist weg: es
+         baut seine Objektzuordnung über System.Reflection.Emit und läuft damit nicht unter
+         NativeAOT. Wer eine Altdatenbank lesen muss, referenziert GonkNote.Legacy — Core
+         selbst kennt LiteDB nicht mehr. -->
+    <PackageReference Include="Microsoft.Data.Sqlite" />
     <PackageReference Include="SkiaSharp" />
     <!-- PDF-Rendering (PDFium); hat Linux-Builds → bleibt cross-platform -->
     <PackageReference Include="Docnet.Core" />

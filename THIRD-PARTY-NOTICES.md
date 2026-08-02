@@ -20,12 +20,17 @@ erhalten bleiben.
 
 | Paket | Version | Projekt |
 |---|---|---|
+| Microsoft.Data.Sqlite | 10.0.10 | https://github.com/dotnet/efcore |
 | LiteDB | 5.0.21 | https://github.com/litedb-org/LiteDB |
-| SkiaSharp | 2.88.9 | https://github.com/mono/SkiaSharp |
-| SkiaSharp.Views.WPF | 2.88.9 | https://github.com/mono/SkiaSharp |
-| Svg.Skia | 1.0.0.18 | https://github.com/wieslawsoltes/Svg.Skia |
+| SkiaSharp | 3.119.4 | https://github.com/mono/SkiaSharp |
+| SkiaSharp.Views.WPF | 3.119.4 | https://github.com/mono/SkiaSharp |
+| Svg.Skia | 5.1.1 | https://github.com/wieslawsoltes/Svg.Skia |
 | DocumentFormat.OpenXml | 3.1.0 | https://github.com/dotnet/Open-XML-SDK |
 | Docnet.Core | 2.6.0 | https://github.com/GowenGit/docnet |
+
+**LiteDB steht nicht mehr im Produktivpfad.** Es liegt nur noch in `GonkNote.Legacy` und
+liest dort Datenbanken bis einschließlich Version 0.2.0 ein, damit sie einmalig nach SQLite
+übertragen werden können. Weitergegeben wird es trotzdem mit — der Vermerk bleibt.
 
 Den jeweiligen Lizenztext samt Copyright-Zeile findest du im NuGet-Paket bzw. im verlinkten
 Projekt-Repository.
@@ -33,6 +38,14 @@ Projekt-Repository.
 ---
 
 ## Apache License 2.0
+
+### SQLitePCLRaw, Version 2.1.x
+
+https://github.com/ericsink/SQLitePCL.raw
+
+`Microsoft.Data.Sqlite` bindet SQLitePCLRaw ein — das Paket, das die native
+SQLite-Bibliothek je Plattform mitbringt (`SQLitePCLRaw.bundle_e_sqlite3` samt
+`core`, `provider.e_sqlite3` und `lib.e_sqlite3`). Es steht unter der Apache License 2.0.
 
 ### Tesseract (.NET-Anbindung), Version 5.2.0
 
@@ -94,9 +107,22 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ---
 
+## Gemeinfrei
+
+### SQLite
+
+https://www.sqlite.org/copyright.html
+
+Die eigentliche Datenbank-Bibliothek (`e_sqlite3`, native Binärdateien im
+SQLitePCLRaw-Paket) ist **Public Domain** — ihre Urheber haben ausdrücklich auf das
+Urheberrecht verzichtet. Es gibt deshalb nichts, was bei einer Weitergabe erhalten bleiben
+müsste. Die .NET-Anbindung darum herum steht unter MIT bzw. Apache 2.0, siehe oben.
+
+---
+
 ## .NET und WPF
 
-Gonk Note setzt auf .NET 8 und WPF (MIT-Lizenz, Microsoft). Beim Single-File-Publish wird die
+Gonk Note setzt auf .NET 10 und WPF (MIT-Lizenz, Microsoft). Beim Single-File-Publish wird die
 .NET-Laufzeit mit eingebettet; für deren Weitergabe gelten die Bedingungen von Microsoft.
 
 ---

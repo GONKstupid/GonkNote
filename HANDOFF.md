@@ -1,6 +1,6 @@
 # Gonk Note V2 — Projektübergabe
 
-**Stand: 2026-07-31 · Version 0.2.0 · net10.0 · SkiaSharp 3 · Phase 2 zur Hälfte (Schritte 1+2)**
+**Stand: 2026-08-02 · Version 0.2.0 · net10.0 · SkiaSharp 3 · SQLite · Phase 2 abgeschlossen**
 
 > **📌 Dauerregeln des Nutzers — gelten immer, ohne Nachfragen:**
 >
@@ -31,9 +31,10 @@
 > 3. **Sprache:** durchgehend Deutsch — UI, Kommentare, Commits, diese Datei.
 > 4. **Kopie der echten Daten anlegen ist erlaubt, ohne zu fragen** (Nutzer-Entscheidung
 >    2026-07-30). Wenn echte Daten zum Prüfen gebraucht werden — Migration, Export, ein
->    Fehlerbild, das nur mit Bestandsdokumenten auftritt —, darf
->    `%APPDATA%\GonkNote\gonknote.db` **plus** `%APPDATA%\GonkNote\gonknote.blobs` nach
->    `%TEMP%` kopiert und die **Kopie** geöffnet werden (Befehle in §8).
+>    Fehlerbild, das nur mit Bestandsdokumenten auftritt —, darf der Inhalt von
+>    `%APPDATA%\GonkNote` (`gonknote.sqlite`, solange vorhanden auch `gonknote.db`,
+>    **plus** `gonknote.blobs`) nach `%TEMP%` kopiert und die **Kopie** geöffnet werden
+>    (Befehle in §8).
 >
 >    **Die Grenze bleibt:** die Datenbank unter `%APPDATA%` wird nie geöffnet, nie beschrieben,
 >    nie umbenannt und nie gelöscht — nur gelesen, um sie zu kopieren. Gearbeitet wird
@@ -111,16 +112,22 @@ Danach **Phase 1 komplett** (§4.6): zwei Testprojekte, Renderer-Snapshots,
 Export-Golden-Files und CI auf Windows **und** Ubuntu. Dabei einen zweiten Absturz aus dem
 SkiaSharp-3-Umstieg gefunden und behoben (`SKBitmap.Decode`, §7).
 
-Zuletzt **Phase 2, Schritte 1 und 2** (§4.7): `Core/Platform/` mit zwölf Schnittstellen,
+Dann **Phase 2, Schritte 1 und 2** (§4.7): `Core/Platform/` mit zwölf Schnittstellen,
 der WPF-Kopf dahinter, und **`GonkNote.ViewModels` als eigene `net10.0`-Assembly**. Damit
 ist der Ringschluss aus §4.2 aufgelöst und der Compiler hält ab jetzt nach, dass Core und
-ViewModels WPF-frei bleiben. **Als Nächstes: Phase 2, Schritte 3 und 4** (§6) — LiteDB →
-SQLite. Das ist der Brocken mit Datenrisiko und gehört in eine eigene Runde.
+ViewModels WPF-frei bleiben.
+
+Zuletzt **Phase 2, Schritte 3 und 4** (§4.8): **LiteDB ist aus dem Produktivpfad
+verschwunden**, die Persistenz läuft über `Microsoft.Data.Sqlite` mit
+`System.Text.Json`-Source-Generator. Eine Altdatenbank wird beim ersten Start **einmalig
+übertragen**, rein additiv; die alte Datei bleibt unversehrt liegen. An einer Kopie der
+echten Datenbank feldweise gegengeprüft. **Damit ist Phase 2 fertig — als Nächstes Phase 3**
+(Avalonia-Shell, §6), und dafür wechselt der Arbeitsplatz auf den CachyOS-Laptop (§5b).
 
 **Tests laufen lassen:**
 
 ```powershell
-dotnet test -c Release        # Windows: beide Projekte, 87 Tests
+dotnet test -c Release        # Windows: beide Projekte, 90 Tests
 ```
 
 ---
@@ -163,6 +170,10 @@ Dazu die Commits aus Phase 1 (2026-07-30) — Testprojekte, CI und der `SKBitmap
 **Erledigt in Phase 1:** siehe §4.6 (was das Netz prüft) und §6 (Häkchen). Kurz:
 `tests/GonkNote.Core.Tests` (70 Tests, Windows **und** Linux) und `tests/GonkNote.Wpf.Tests`
 (8 Tests, Export-Fixtures), CI mit zwei Läufen, ein gefundener und behobener Absturz (§7).
+
+**Erledigt in Phase 2:** §4.7 (Platform-Naht, eigene ViewModels-Assembly) und §4.8
+(LiteDB → SQLite, `BlobStore` über `IAppPaths`). Testzahl steht jetzt bei **90**
+(81 Core + 9 WPF).
 
 **Erledigt in Phase 0:**
 
@@ -213,13 +224,19 @@ gonk-note-V2/
 │  │  │                          IDocumentIo — gebündelt in IPlatformServices
 │  │  ├─ Rendering/              WbRenderer (Skia), WbAidRenderer (Geodreieck), WbImages (§7),
 │  │  │                          WbImagePrep (Bildimport + OCR-Vorbereitung, §4.7)
-│  │  ├─ Services/               DatabaseService, BlobStore, ImageCache, UndoStack,
+│  │  ├─ Services/               DatabaseService (SQLite, §4.8), GonkJson (Source-Generator),
+│  │  │                          ILegacyDatabaseReader, BlobStore, ImageCache, UndoStack,
 │  │  │                          PdfImporter, DocumentHealth
 │  │  ├─ Editing/                WbErase — punktgenaues Radieren
 │  │  └─ Localization/           Loc + LocGerman + LocEnglish        ← neu in Phase 0
 │  │
 │  ├─ GonkNote.ViewModels/       net10.0 · EIGENE Assembly seit Phase 2 (§4.7)
 │  │                             MainViewModel, DocumentTabViewModel, TreeItem…, Gallery…, Mvvm
+│  │
+│  ├─ GonkNote.Legacy/           net10.0 · der EINZIGE Ort mit LiteDB      ← neu in Phase 2
+│  │                             LiteDbReader + ModelTypeBinder: liest eine Altdatenbank,
+│  │                             damit DatabaseService sie einmalig nach SQLite überträgt.
+│  │                             Windows und Linux referenzieren es, iOS nicht (§4.8)
 │  │
 │  └─ GonkNote.Wpf/              net10.0-windows10.0.19041.0 · Windows-Kopf (AssemblyName bleibt GonkNote)
 │     ├─ App.xaml(.cs), MainWindow.xaml(.cs)
@@ -238,7 +255,7 @@ gonk-note-V2/
 ├─ .github/workflows/ci.yml      zwei Läufe: windows (alles), ubuntu (nur Core) — §4.6
 │
 ├─ tests/
-│  ├─ GonkNote.Core.Tests/       net10.0 · läuft auch unter Linux · 78 Tests
+│  ├─ GonkNote.Core.Tests/       net10.0 · läuft auch unter Linux · 81 Tests
 │  │  └─ Snapshots/*.sha256      Pixelhashes des Renderers (Golden-Files)
 │  └─ GonkNote.Wpf.Tests/        net10.0-windows · nur Windows · 9 Export-Fixtures
 │     └─ Fixtures/               referenz.md, referenz-docx.txt (Golden-Files)
@@ -446,7 +463,8 @@ heute nicht.
 
 **Ebenfalls im Container verifiziert:** LiteDB im `Shared`-Modus läuft unter Linux (der
 benannte Mutex trägt), und `dotnet build GonkNote.slnx` scheitert dort wie erwartet am
-WPF-Kopf — die CI baut deshalb projektbezogen.
+WPF-Kopf — die CI baut deshalb projektbezogen. *(Der LiteDB-Punkt ist seit §4.8 nur noch
+Geschichte: SQLite regelt Mehrfachzugriff selbst, über `PRAGMA busy_timeout`.)*
 
 **Neu als Paket:** `SkiaSharp.NativeAssets.Linux`, nur im Core-Testprojekt. Das Paket
 `SkiaSharp` bringt die native Bibliothek für Windows und macOS mit, für Linux **nicht** —
@@ -460,7 +478,7 @@ System `fontconfig` und mindestens eine Schrift; die CI installiert `libfontconf
 
 ### 4.7 Phase 2, Schritte 1 und 2 — die Naht zwischen Core und Kopf
 
-Umgesetzt am 2026-07-31. **Schritte 3 und 4 (LiteDB → SQLite) stehen noch aus**, siehe §6.
+Umgesetzt am 2026-07-31. Schritte 3 und 4 folgten am 2026-08-02, siehe §4.8.
 
 #### Die Schnittstellen in `Core/Platform/`
 
@@ -529,6 +547,117 @@ gelöscht.
 blieben beim Sprachwechsel stehen, und drei Einträge des Galerie-Menüs standen seit jeher
 fest auf Deutsch.
 
+---
+
+### 4.8 Phase 2, Schritte 3 und 4 — LiteDB → SQLite, und der Blob-Ordner über `IAppPaths`
+
+Umgesetzt am 2026-08-02. **Damit ist Phase 2 abgeschlossen.**
+
+#### Warum überhaupt
+
+LiteDB baut die Zuordnung zwischen Objekt und Datensatz zur Laufzeit über
+`System.Reflection.Emit`. Unter NativeAOT gibt es keinen Just-in-time-Übersetzer — das
+stürzt beim ersten Zugriff ab, und AOT ist für den App-Store-Weg auf dem iPad Pflicht (§1).
+SQLite ist eine C-Bibliothek ohne diese Eigenschaft; die Objekte gehen über einen
+**`System.Text.Json`-Source-Generator** (`GonkJson`), der seinen Lese- und Schreibcode zur
+Übersetzungszeit erzeugt.
+
+**Die öffentliche API des `DatabaseService` ist unverändert geblieben.** Das war die
+Bedingung: `DatenbankRoundtripTests`, `AlteTypnamenTests` und `BlobSpeicherTests` prüfen
+genau sie. Sie sind nach dem Umbau unverändert grün — kein Test musste angepasst werden,
+außer den dreien in `AlteTypnamenTests`, die jetzt bewusst die *Migration* bewachen.
+
+#### Die vier Entscheidungen (Nutzer, 2026-08-02)
+
+| Frage | Entscheidung | Warum |
+|---|---|---|
+| Dateiname | **`gonknote.sqlite`**, neben `gonknote.db` | Der **Stamm** bleibt `gonknote` — davon leitet `BlobStore` seinen Ordner ab. Ein anderer Stamm hieße `gonknote.blobs` findet niemand mehr, und alle Bilder wären scheinbar weg |
+| Zeitpunkt | **automatisch und still beim ersten Start** | Verlustfrei und einmalig; ein Dialog wäre neue Oberfläche in zwei Sprachen für eine Frage ohne echte Wahl |
+| Altdatei | **unangetastet liegen lassen** | Nie beschrieben, nie umbenannt, nie gelöscht — dieselbe Regel wie Dauerregel 4. Sie ist der Rückweg |
+| Schema | **ein JSON-Dokument je Zeile** | Die App fragt nie über einzelne Felder ab; ein relationales Schema machte jede Modelländerung zur Schemamigration |
+
+#### Was in der Datei steht
+
+```sql
+meta     (id TEXT PRIMARY KEY, value TEXT)   -- schema=1, migriert-aus=<dateiname>
+items    (id TEXT PRIMARY KEY, parent_id TEXT NULL, json TEXT)
+boards   (id TEXT PRIMARY KEY, json TEXT)
+texts    (id TEXT PRIMARY KEY, json TEXT)
+settings (id TEXT PRIMARY KEY, value TEXT)
+CREATE INDEX ix_items_parent ON items(parent_id)
+```
+
+`parent_id` ist eine eigene Spalte, weil `DeleteItemRecursive` danach sucht. Die
+Galerie-Abkürzung `GetCover` schneidet das Cover mit **`json_extract`** heraus, damit nicht
+jedes bildlastige Board komplett durch den Deserialisierer muss — mit Rückfall auf den
+vollständigen Weg, falls `json_extract` einmal fehlt.
+
+#### Die `_type`-Namen leben wörtlich weiter
+
+`WbElement` trägt jetzt `[JsonPolymorphic(TypeDiscriminatorPropertyName = "_type")]` und je
+Elementtyp ein `[JsonDerivedType(…, "GonkNote.Core.Models.X, GonkNote.Core")]` — **dieselben
+Zeichenketten**, die LiteDB geschrieben hat. Das ist Datenformat, kein Codedetail (§7).
+
+#### Wo LiteDB geblieben ist
+
+In einem **eigenen Projekt** `src/GonkNote.Legacy/` mit genau einer Aufgabe: eine Altdatei
+lesen. Core kennt nur die Schnittstelle `ILegacyDatabaseReader`; der Kopf reicht die
+Umsetzung im Konstruktor herein (`new DatabaseService(dbPath, new Legacy.LiteDbReader())`).
+Windows und Linux referenzieren das Projekt, der iPadOS-Kopf wird es **nicht** tun — dort gab
+es nie eine LiteDB-Datei, und das Paket wäre unter AOT nicht baubar.
+
+Die Verbindung dorthin steht auf **`ReadOnly`**: LiteDB legt dann weder Log-Abschnitt noch
+Prüfpunkt an. Das ist der Grund, warum die Altdatei nach zwei vollständigen App-Sitzungen
+byteweise dieselbe war (unten).
+
+#### Wie die Übertragung abläuft
+
+1. Erkennen: existiert die Zieldatei nicht und liegt daneben eine Datei **ohne
+   SQLite-Kopfkennung**, ist das der Bestand. Erkannt wird an den ersten sechzehn Bytes,
+   nicht an der Endung — eine Endung ist eine Behauptung.
+2. Lesen über `ILegacyDatabaseReader` (wirft bei einem Typ, den es nicht mehr gibt).
+3. Schreiben nach `…​.sqlite.neu`, alles in **einer** Transaktion.
+4. Erst nach dem Commit `File.Move` auf den endgültigen Namen.
+
+Scheitert irgendetwas, verschwindet die halbe Datei und der Fehler kommt nach oben. Der
+WPF-Kopf fängt ihn ab, meldet ihn über den neuen `Loc`-Schlüssel **`Db.OpenFailed`** (beide
+Sprachen) und beendet sich — statt mit halben Daten weiterzulaufen. Der Text erscheint
+zwangsläufig in der Standardsprache: die Sprachwahl steht in eben der Datenbank, die sich
+nicht öffnen lässt.
+
+**`UpsertItem` wird bei der Übertragung bewusst nicht benutzt** — es setzt `ModifiedUtc` auf
+jetzt und datierte damit jeden Eintrag des Nutzers auf den Tag der Migration um.
+
+#### Schritt 4: der Blob-Ordner
+
+`AppPaths` hat drei neue Eigenschaften: `DatabaseFile` (jetzt `gonknote.sqlite`),
+`LegacyDatabaseFile` (`gonknote.db`) und **`BlobFolder`** (`<DataFolder>\gonknote.blobs`).
+`BlobStore.InFolder(...)` nimmt einen vorgegebenen Ordner; der Papierkorb entsteht daneben
+mit demselben Stamm.
+
+**Der alte Konstruktor `new BlobStore(datenbankpfad)` bleibt** und wird weiter benutzt, wenn
+ein Pfad über `--db` mitgegeben wurde. Sonst zöge eine Testinstanz die Bilder der echten
+Ablage an sich — und §8 hängt daran.
+
+#### Am laufenden Programm geprüft (Dauerregel 4)
+
+Mit einer Kopie der echten Datenbank (8,1 MB LiteDB + 23 Blobs). Zwei Wege:
+
+**Feldweise gegen die Altdatei** (Wegwerf-Test, danach gelöscht): 27 Baumeinträge mit Name,
+Art, Elternteil, Farbe, Anpinnung und Favorit; 6 Whiteboards, 8 Seiten, **160 Striche mit
+6308 Druckpunkten**, 17 Formen, 9 Textelemente, 32 Bilder, 3 Einstellungen. Jedes Feld
+gleich, und die Bildbytes über `ImageCache.Bytes` **byteweise identisch**.
+
+**Am Programm:** Migration lief still beim Start (8,1 MB → 385 kB — LiteDB-Dateien haben viel
+Leerraum). Galerie mit Ordnerfarben und Favoritensternen, Cover-Bilder aus dem Blob-Speicher,
+Notizbuch mit Cover und Titeltext, Whiteboard mit vier importierten PDF-Seiten als
+Bildelemente, Baum mit Schnellzugriff, Sprachwechsel EN→DE, Theme-Wechsel dunkel→hell.
+
+**Die Altdatei war danach byteweise dieselbe** (SHA-256 vor und nach zwei Sitzungen mit
+Schreibvorgängen). Die Kopie ist gelöscht, die echte Datenbank wurde nie geöffnet.
+
+---
+
 ## 5. Entscheidungen
 
 **Getroffen, alle umgesetzt:**
@@ -545,6 +674,10 @@ fest auf Deutsch.
 | Kopie der echten Daten | **Ohne Nachfragen erlaubt**, die echte DB bleibt unangetastet — Dauerregel 4 in der Kopfzeile, Befehle in §8. Entschieden 2026-07-30 |
 | Wie die ViewModels an den Kopf kommen | **Ein Bündel `IPlatformServices` im Konstruktor**, kein Service-Locator und keine zwölf Argumente (§4.7). Entschieden 2026-07-31 |
 | Farben und Bilder in den ViewModels | **Als Hex-Text und Bytes**, Pinsel und Bitmaps baut der Kopf über Konverter (§4.7). Entschieden 2026-07-31 |
+| Name der SQLite-Datei | **`gonknote.sqlite`** — Stamm bleibt `gonknote`, sonst wandert der Blob-Ordner (§4.8). Entschieden 2026-08-02 |
+| Wann migriert wird | **Automatisch und still beim ersten Start** (§4.8). Entschieden 2026-08-02 |
+| Was mit `gonknote.db` passiert | **Unangetastet liegen lassen** — nie beschrieben, nie umbenannt, nie gelöscht (§4.8). Entschieden 2026-08-02 |
+| SQLite-Schema | **Ein JSON-Dokument je Zeile**, kein relationales Schema für Seiten und Elemente (§4.8). Entschieden 2026-08-02 |
 
 **Noch offen:**
 
@@ -555,6 +688,18 @@ fest auf Deutsch.
 3. **Eigene Farbschemata** (Nutzerwunsch 2026-08-02) — machbar und vorgemerkt in §6. Offen
    sind dort drei Fragen, vor allem: soll ein Theme nur die Oberfläche färben oder auch die
    **gezeichnete Seite**? Zu klären, bevor Phase 3 die Avalonia-Farben anlegt.
+4. **Versionsnummer auf 0.3.0 anheben?** Der Persistenz-Umbau (§4.8) ist die erste Änderung
+   seit 0.2.0, die das **Dateiformat** betrifft — dafür wäre eine neue Minor-Version die
+   übliche Ansage. `Directory.Build.props` steht weiter auf `0.2.0`, und die Dokumente
+   formulieren deshalb „bis einschließlich Version 0.2.0" statt „seit 0.3.0". Wer die
+   Nummer anhebt, zieht **`About.Version` in beiden Loc-Tabellen** mit nach (§4.5,
+   Dauerregel 1) — dort steht auch die Portierungsphase, die mit Phase 3 ohnehin fällig wird.
+5. **Beschreiben die vier mitgelieferten Dokumente V1 oder V2?** In `ERSTE-SCHRITTE.md` und
+   `GETTING-STARTED.md` steht weiterhin `git clone …/gonk-note.git` — das ist das
+   **V1**-Repo. Solange V2 privat und nicht veröffentlicht ist, schadet das niemandem; vor
+   dem Öffentlich-Schalten (§6) muss es entschieden werden. Framework- und
+   Ausgabepfad-Angaben sind am 2026-08-02 auf `net10.0` nachgezogen worden, der Klon-Befehl
+   bewusst nicht — das ist eine inhaltliche Frage, keine technische.
 
 ---
 
@@ -849,43 +994,29 @@ dafür war die Phase da.
 **Ebenfalls gefunden und (auf Nutzer-Entscheidung) behoben:** Der Markdown-Export verlor das
 **Ziel** von Hyperlinks. Siehe §7 „Markdown-Export".
 
-### Laufend: Phase 2 — die große Entkopplung (4–6 Wochen)
+### Erledigt: Phase 2 — die große Entkopplung
 
-Läuft weiterhin unter Windows/WPF. **Nach jedem Schritt muss die App noch starten.**
+Lief unter Windows/WPF. **Nach jedem Schritt musste die App noch starten** — hat sie.
 
 - [x] 1. `Core/Platform/`-Interfaces einziehen, WPF-Implementierungen dahinterhängen
       (§4.7). Es sind **zwölf** geworden statt der acht aus der Roadmap — `IDialogService`,
       `IShell`, `IUiScheduler` und `IDocumentIo` kamen dazu, weil das `MainViewModel` sie
       braucht. (`TitleBarTheme`, `WindowBounds` bleiben ersatzlos Windows-only.)
 - [x] 2. `GonkNote.ViewModels` freischneiden und zur eigenen Assembly machen (§4.2)
-- [ ] 3. **LiteDB → `Microsoft.Data.Sqlite`** (unten)
-- [ ] 4. `BlobStore` von `%APPDATA%` auf `IAppPaths` umstellen
+- [x] 3. **LiteDB → `Microsoft.Data.Sqlite`** (§4.8, 2026-08-02). Migration additiv, die
+      alte Datei bleibt unversehrt liegen; an einer Kopie der echten Datenbank feldweise
+      gegengeprüft. LiteDB lebt nur noch in `src/GonkNote.Legacy/`
+- [x] 4. `BlobStore` von der Ableitung aus dem DB-Dateinamen auf `IAppPaths` umstellen
+      (§4.8) — `AppPaths.BlobFolder` + `BlobStore.InFolder(...)`. Der alte Konstruktor
+      bleibt für `--db`, sonst bräche §8
 
-**Zu Schritt 4:** `IAppPaths` steht seit Schritt 1 und `DatabaseService.DefaultPath` liest
-schon daraus. Offen ist der `BlobStore` selbst — er leitet seinen Ordner noch aus dem
-Dateinamen der Datenbank ab. Das ist kein Fehler (§8 hängt daran), aber der Kopf sollte
-mitreden dürfen.
+**Das Netz aus Phase 1 hat getragen.** `DatenbankRoundtripTests`, `AlteTypnamenTests` und
+`BlobSpeicherTests` prüfen die **öffentliche** API des `DatabaseService` — die ist beim Umbau
+gleich geblieben, und die Tests sind unverändert grün. `AlteTypnamenTests` ist vom
+Roundtrip- zum **Migrations**-Wächter geworden (drei neue Tests, §4.8).
 
-**Die noch offenen Schritte im Wortlaut:**
-
-3. **LiteDB → `Microsoft.Data.Sqlite`.** Der harte Brocken: LiteDB nutzt
-   `System.Reflection.Emit` und stürzt unter iOS/NativeAOT ab. `DatabaseService` behält seine
-   öffentliche API, nur der Bauch wird getauscht. Whiteboard-Elemente als
-   `System.Text.Json` mit **Source-Generator** (`JsonSerializerContext`) — der AOT-taugliche
-   Weg. **Migration nur additiv, die alte DB nie überschreiben, mit echtem Datenbestand
-   testen** (Risiko „Datenverlust" ist als hoch eingestuft).
-4. `BlobStore` von `%APPDATA%` auf `IAppPaths` umstellen
-
-**Meilenstein M0 ist damit vollständig:** `Core` **und** `ViewModels` bauen auf Linux
-(beide `net10.0`), Windows verhält sich unverändert.
-
-**Das Netz aus Phase 1 ist genau dafür da.** `DatenbankRoundtripTests`, `AlteTypnamenTests`
-und `BlobSpeicherTests` prüfen die **öffentliche** API des `DatabaseService` — die bleibt beim
-Umbau gleich. Sind sie nach dem SQLite-Umbau nicht unverändert grün, sind **Daten** betroffen,
-nicht Code. `AlteTypnamenTests` ist dabei der wichtigste: die Übersetzung alter Typnamen muss
-mit nach SQLite/Json wandern, sonst öffnet sich kein Bestandsdokument mehr.
-
-**Meilenstein M0:** Windows verhält sich unverändert, `Core` + `ViewModels` bauen auf Linux.
+**Meilenstein M0 ist vollständig:** `Core`, `ViewModels` **und** `Legacy` bauen auf Linux
+(alle `net10.0`), Windows verhält sich unverändert.
 
 ### Der Rest (Roadmap §5)
 
@@ -1006,14 +1137,64 @@ weil sie bei der Portierung direkt zuschlagen:
 
 **Persistenz — der gefährlichste Bereich**
 
-- **Models nie umziehen, ohne an `_type` zu denken.** LiteDB legt je Whiteboard-Element
-  „Namensraum.Typ, Assembly" ab. Ändert sich eines von beiden, lässt sich **kein**
-  Bestandsdokument mehr öffnen. Übersetzung alter Namen an genau einer Stelle:
-  `ModelTypeBinder` in `DatabaseService`. **Bei der SQLite-Migration in Phase 2 ist das der
-  Punkt, an dem Daten verloren gehen können.**
-- **`EmptyStringToNull` ist bei LiteDB standardmäßig `true`** → leere Strings kommen als
-  `null` zurück. Steht auf `false`, dazu null-sichere Setter. Beim Nachbau in SQLite/Json
-  daran denken.
+- **Models nie umziehen, ohne an `_type` zu denken.** Je Whiteboard-Element steht
+  „Namensraum.Typ, Assembly" in der Datei. Ändert sich eines von beiden, lässt sich **kein**
+  Bestandsdokument mehr öffnen. Seit Phase 2 stehen diese Zeichenketten als
+  `[JsonDerivedType]` an `WbElement` — **sie sind Datenformat, kein Codedetail.** Wer den
+  Namensraum von `GonkNote.Core.Models` oder den Assemblynamen ändert, zieht sie **nicht**
+  mit. Die Übersetzung noch älterer Namen liegt in `ModelTypeBinder` in
+  `src/GonkNote.Legacy/` und wird nur bei der einmaligen Übertragung gebraucht.
+  Wächter: `AlteTypnamenTests`.
+- **Ein neuer Elementtyp braucht drei Einträge, nicht einen.** `[JsonDerivedType]` an
+  `WbElement`, ein Zweig in `DatenbankRoundtripTests.GleichesElement` (sonst bewacht kein
+  Test seine Felder — der `default`-Zweig sagt das ausdrücklich) und ein Exemplar in
+  `Beispieldokument`. Fehlt der erste, **wirft das Speichern**; das ist Absicht und besser
+  als ein still verschwundenes Element.
+- **`EmptyStringToNull` war bei LiteDB standardmäßig `true`** → leere Strings kamen als
+  `null` zurück. `System.Text.Json` macht aus `""` nie `null`, der Fall ist damit erledigt.
+  **Die null-sicheren Setter in `TextDoc` bleiben trotzdem stehen:** eine *migrierte*
+  Altdatei kann `null` mitbringen. Wächter:
+  `Leerer_String_kommt_leer_zurueck_und_nicht_als_null`.
+
+**Neu aus Phase 2 — SQLite (§4.8)**
+
+- **Der Dateiname der Datenbank bestimmt den Blob-Ordner.** `BlobStore` schneidet mit
+  `Path.GetFileNameWithoutExtension` ab: `gonknote.sqlite` → `gonknote.blobs`. Nur die
+  **Endung** zu ändern ist folgenlos, **den Stamm zu ändern wäre fatal** — alle Bilder wären
+  scheinbar weg, und man sucht den Fehler im Renderer statt im Pfad. Genau deshalb heißt die
+  neue Datei `gonknote.sqlite` und nicht `gonknote-v2.db`.
+- **Kein WAL.** `PRAGMA journal_mode=wal` legt zwei Nebendateien an (`-wal`, `-shm`). Wer die
+  Datenbank dann kopiert, ohne sie mitzunehmen, verliert die zuletzt geschriebenen
+  Änderungen — und genau das tut §8 beim Gegenprüfen mit echten Daten. Eine Datei bleibt eine
+  Datei. Wer WAL doch einschaltet, muss §8 und die Sicherungsanleitung in beiden
+  Erste-Schritte-Fassungen mitziehen.
+- **`Pooling = false` in der Verbindungszeichenkette ist Pflicht, nicht Geschmack.**
+  `Microsoft.Data.Sqlite` hält die Datei sonst nach `Dispose` weiter offen: der Wegwerf-Ordner
+  eines Tests ließe sich nicht löschen, und das `File.Move` am Ende der Migration schlüge fehl.
+  Der Fehler sieht dabei nicht nach „Datei gesperrt" aus, sondern nach einem sporadisch roten
+  Testlauf.
+- **Eine Migration erkennt man an der Kopfkennung, nicht an der Endung.** `gonknote.db` sagt
+  nichts darüber, was in der Datei steht — die ersten sechzehn Bytes (`SQLite format 3`)
+  schon. Deshalb funktioniert `--db …\gonknote.db` aus §8 unverändert weiter: die Kopie wird
+  erkannt, daneben entsteht `gonknote.sqlite`, und beide teilen sich `gonknote.blobs`.
+- **Bei der Übertragung nicht `UpsertItem` benutzen.** Es setzt `ModifiedUtc` auf jetzt und
+  datierte damit jeden Eintrag des Nutzers auf den Tag der Migration um. Dafür gibt es die
+  private `SchreibeItem`.
+- **Ein Kopf, der den `ILegacyDatabaseReader` vergisst, legt keine leere Datenbank an** — er
+  bekommt eine `InvalidOperationException`. Das ist Absicht: eine leere Datenbank neben
+  vollen Bestandsdaten ist für den Nutzer von Datenverlust nicht zu unterscheiden. Wächter:
+  `Ohne_Leser_wird_nicht_stillschweigend_neu_angefangen`. **Für Phase 3 heißt das:** der
+  Avalonia-Kopf muss ihn genauso übergeben wie `App.OnStartup` es tut.
+- **Ein Paket kann eine Sicherheitslücke mitziehen, die man nicht selbst anheben kann.**
+  `Microsoft.Data.Sqlite` 10.0.10 bringt `SQLitePCLRaw…lib.e_sqlite3` **2.1.11** mit — mit
+  einem bekannten Fund (NU1903). Behoben über
+  `CentralPackageTransitivePinningEnabled` in `Directory.Packages.props` plus einer
+  `PackageVersion`-Zeile auf 2.1.12. **Beim nächsten Anheben von `Microsoft.Data.Sqlite`
+  prüfen, ob die Zeile noch nötig ist** — ein Pin, den niemand mehr braucht, hält irgendwann
+  eine Fassung fest.
+- **`System.Text.Json` schreibt auch nur lesbare Eigenschaften.** `WbPage.HasBackgroundImage`,
+  `WbPage.IsInfinite` und `NoteItem.IsFolder` tragen deshalb `[JsonIgnore]` — sonst stünde ein
+  abgeleiteter Wert mit in der Datei und sähe später wie gespeicherte Wahrheit aus.
 - **Ein statisches `Source`/`Current`-Feld, das nur an einer Stelle gesetzt wird, ist eine
   stille Falle** (`BlobStore.Current` gesetzt, `ImageCache.Source` nicht → Bilderverlust).
 - **Die Bytes im Datensatz sind kein „gibt es das Bild?"** — die Frage steht genau einmal im
@@ -1127,6 +1308,11 @@ weil sie bei der Portierung direkt zuschlagen:
 - **Nie in der echten Datenbank testen.** `GonkNote.exe --db <wegwerf.db>`. Wenn echte Daten
   gebraucht werden: **kopieren** (DB **und** `.blobs`-Ordner, der Name leitet sich vom
   DB-Namen ab) und die Kopie öffnen.
+- **Ein Wegwerf-Test, der echte Daten anfasst, kommt nicht ins Repo.** Der feldweise
+  Vergleich Alt↔Neu aus §4.8 lag als `ZzTempEchtdatenVergleich.cs` im Core-Testprojekt, hat
+  seine Zahlen ausgegeben und ist danach gelöscht worden. Er hätte sonst bei jedem CI-Lauf
+  nach einer Datei in `%TEMP%` gesucht, die dort nicht liegt — und beim Nutzer nach Daten,
+  die niemanden etwas angehen.
 - **DPI-Falle:** `SetProcessDPIAware()` als erste Zeile jedes Skripts. Der Testrechner läuft
   auf **200 %**.
 - **PDF-Export prüfen, ohne sie ansehen zu müssen:** Edge headless rendert PDFs nicht (man
@@ -1194,7 +1380,7 @@ cd C:\Dev\Zed\gonk-note-V2
 dotnet build -c Release      # 0 Fehler / 0 Warnungen
 dotnet build -c Debug        # schneller, ohne Self-Contained/win-x64
 
-dotnet test -c Release       # beide Testprojekte, 87 Tests
+dotnet test -c Release       # beide Testprojekte, 90 Tests
 
 # Golden-Files bewusst neu setzen (danach den Diff lesen, siehe §4.6)
 $env:GONK_SNAPSHOT_UPDATE=1; dotnet test tests\GonkNote.Core.Tests; $env:GONK_SNAPSHOT_UPDATE=$null
@@ -1207,9 +1393,15 @@ $env:GONK_GOLDEN_UPDATE=1;   dotnet test tests\GonkNote.Wpf.Tests;  $env:GONK_GO
 # BEIDE Teile, immer: der Blob-Ordner leitet seinen Namen von der Datenbankdatei ab. Ohne ihn
 # sind alle Bilder scheinbar weg und man sucht den Fehler an der falschen Stelle.
 $d = "$env:TEMP\gonk-echt"; mkdir $d -Force
-Copy-Item "$env:APPDATA\GonkNote\gonknote.db" $d
-Copy-Item "$env:APPDATA\GonkNote\gonknote.blobs" $d -Recurse
-# Ab hier nur noch die Kopie -- die Datei unter %APPDATA% wird nie geoeffnet.
+Copy-Item "$env:APPDATA\GonkNote\gonknote.sqlite" $d -ErrorAction SilentlyContinue
+Copy-Item "$env:APPDATA\GonkNote\gonknote.db"     $d -ErrorAction SilentlyContinue   # Altstand, falls noch da
+Copy-Item "$env:APPDATA\GonkNote\gonknote.blobs"  $d -Recurse
+# Ab hier nur noch die Kopie -- die Dateien unter %APPDATA% werden nie geoeffnet.
+.\src\GonkNote.Wpf\bin\Release\net10.0-windows10.0.19041.0\win-x64\GonkNote.exe --db "$d\gonknote.sqlite"
+
+# Die Migration selbst pruefen: NUR die Altdatei kopieren und diese uebergeben. Die App
+# erkennt sie an der Kopfkennung, legt gonknote.sqlite daneben an und arbeitet damit weiter --
+# der Stamm bleibt "gonknote", also passt gonknote.blobs zu beiden (HANDOFF §4.8).
 .\src\GonkNote.Wpf\bin\Release\net10.0-windows10.0.19041.0\win-x64\GonkNote.exe --db "$d\gonknote.db"
 
 # Danach aufraeumen. Die Kopie enthaelt Schulunterlagen und darf nicht liegen bleiben.
@@ -1245,6 +1437,7 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 
 | Runde | Datum | Was |
 |---|---|---|
+| V2-9 | 2026-08-02 | **Phase 2, Schritte 3+4 — Phase 2 damit fertig** (§4.8): **LiteDB raus aus dem Produktivpfad**, Persistenz über `Microsoft.Data.Sqlite` mit `System.Text.Json`-Source-Generator (`GonkJson`); die `_type`-Namen leben als `[JsonDerivedType]` **wörtlich** weiter. Neues Projekt `src/GonkNote.Legacy/` als einziger Ort mit LiteDB — liest Altdatenbanken **ReadOnly** ein; iOS wird es nie sehen. Migration automatisch beim ersten Start, in eine `.neu`-Datei und erst nach dem Commit umbenannt; die Altdatei bleibt unangetastet. `BlobStore` über `AppPaths.BlobFolder` (Schritt 4), Stamm `gonknote` bewusst unverändert. `AlteTypnamenTests` vom Roundtrip- zum **Migrations**-Wächter (3 neue Tests, jetzt 90). Sicherheitslücke in einem mitgezogenen SQLitePCLRaw über transitives Pinning behoben. An einer Kopie der echten Datenbank **feldweise** verglichen (27 Einträge, 160 Striche / 6308 Punkte, 32 Bilder byteweise gleich) und am laufenden Programm in beiden Sprachen geprüft; Altdatei danach byteweise identisch. Alle vier mitgelieferten Dokumente auf `gonknote.sqlite` nachgezogen (Dauerregel 1) — dort steht die Sicherungsanleitung —, dazu `THIRD-PARTY-NOTICES.md` und die seit V2-3 veralteten `net8.0`-Angaben |
 | V2-8 | 2026-07-31 | **Phase 2, Schritte 1+2** (§4.7): `Core/Platform/` mit zwölf Schnittstellen und `IPlatformServices` als Bündel, WPF-Umsetzungen in `src/GonkNote.Wpf/Platform/`, `ThemeService` → `WpfThemeHost`. **`GonkNote.ViewModels` ist eigene `net10.0`-Assembly** — der Ringschluss aus §4.2 ist weg, `Core` und `ViewModels` sind nachweislich WPF-frei. Bildimport und OCR-Vorbereitung nach `WbImagePrep` in Core gezogen: damit sind die **letzten zwei Lücken aus §4.4 zu** (8 neue Tests, jetzt 87). Zwei Übersetzungsfehler am laufenden Programm gefunden und behoben (§7 „Übersetzung"). In beiden Sprachen mit einer DB-Kopie gegengeprüft, PDF-Export über den PDFium-Rückweg gemessen |
 | V2-7 | 2026-07-30 | Versionszeile im Über-Dialog über `Loc` statt fest verdrahtet — war zweideutig **und** unübersetzt (§4.5), in beiden Sprachen am laufenden Programm geprüft. Dauerregel 4 aufgenommen: Kopie der echten Daten ohne Nachfragen erlaubt, die echte DB bleibt unangetastet. Alles nach GitHub gepusht |
 | V2-6 | 2026-07-30 | Markdown-Export behält Hyperlink-Ziele (`[Text](URL)`, §7) — Nutzer-Entscheidung; Golden-File `referenz.md` bewusst nachgezogen. IDE-Fehler in `OcrService.cs` waren fehlende `obj\Debug`-Zwischendateien, kein Codefehler (§7) |

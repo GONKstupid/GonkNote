@@ -431,6 +431,11 @@ internal static class LocEnglish
         // {0} = Versionsnummer. Gegenstueck zu About.Version in LocGerman — die Zeile stand
         // bisher fest verdrahtet im Code und erschien deshalb auch im englischen Dialog deutsch.
         ["About.Version"] = "Version {0} · Port, phase 2",
+        // Gegenstueck zu Db.OpenFailed in LocGerman. {0} = Fehlermeldung, {1} = Protokollpfad.
+        ["Db.OpenFailed"] =
+            "The database could not be opened:\n\n{0}\n\n" +
+            "Your existing data is not lost — the old database file is still in place, " +
+            "unchanged. Details are in:\n{1}",
         ["Chart.Title"] = "Insert chart",
         ["Chart.Type"] = "Type",
         ["Chart.Type.Column"] = "Column",

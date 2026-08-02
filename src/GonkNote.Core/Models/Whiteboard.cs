@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace GonkNote.Core.Models;
 
 /// <summary>Aktives Zeichenwerkzeug im Whiteboard.</summary>
@@ -60,7 +62,27 @@ public class WbPoint
     public WbPoint(float x, float y, float p) { X = x; Y = y; P = p; }
 }
 
-/// <summary>Basisklasse aller Whiteboard-Elemente. LiteDB speichert den konkreten Typ per _type-Feld.</summary>
+/// <summary>
+/// Basisklasse aller Whiteboard-Elemente. Der konkrete Typ steht im Feld <c>_type</c>.
+/// <para>
+/// <b>Die Zeichenketten unten sind Datenformat, kein Codedetail — sie dürfen sich nie
+/// ändern.</b> Sie stehen wörtlich so in jeder gespeicherten Datei, seit LiteDB sie als
+/// "Namensraum.Typ, Assembly" geschrieben hat; seit dem Umbau auf SQLite/Json schreibt
+/// <c>System.Text.Json</c> genau dieselben Werte. Weicht einer davon ab, lässt sich das
+/// betroffene Element nicht mehr laden — und der Fehler sieht aus wie ein leeres
+/// Whiteboard, nicht wie ein Absturz.
+/// </para>
+/// Wer einen Namensraum oder den Assemblynamen ändert, ändert deshalb **nicht** diese
+/// Zeichenketten mit. Wer einen neuen Elementtyp ergänzt, trägt ihn hier nach demselben
+/// Muster ein — sonst wirft das Speichern (<see cref="JsonUnknownDerivedTypeHandling"/>).
+/// Wächter: <c>AlteTypnamenTests</c>.
+/// </summary>
+[JsonPolymorphic(TypeDiscriminatorPropertyName = "_type")]
+[JsonDerivedType(typeof(StrokeElement), "GonkNote.Core.Models.StrokeElement, GonkNote.Core")]
+[JsonDerivedType(typeof(ShapeElement), "GonkNote.Core.Models.ShapeElement, GonkNote.Core")]
+[JsonDerivedType(typeof(TextElement), "GonkNote.Core.Models.TextElement, GonkNote.Core")]
+[JsonDerivedType(typeof(ImageElement), "GonkNote.Core.Models.ImageElement, GonkNote.Core")]
+[JsonDerivedType(typeof(StickyNoteElement), "GonkNote.Core.Models.StickyNoteElement, GonkNote.Core")]
 public abstract class WbElement
 {
     public Guid Id { get; set; } = Guid.NewGuid();
@@ -240,8 +262,15 @@ public class WbPage
     /// weil das Bild dann im Blob-Speicher liegt. Wer die Bytes prüft, hält jede gespeicherte
     /// PDF-Seite für leer.
     /// </summary>
+    /// <remarks>
+    /// <c>[JsonIgnore]</c>, weil System.Text.Json auch nur lesbare Eigenschaften schreibt:
+    /// ohne das stünde ein abgeleiteter Wert mit in der Datei und sähe später wie
+    /// gespeicherte Wahrheit aus.
+    /// </remarks>
+    [JsonIgnore]
     public bool HasBackgroundImage => BackgroundImageId != Guid.Empty || BackgroundImage is { Length: > 0 };
 
+    [JsonIgnore]
     public bool IsInfinite => Width <= 0 || Height <= 0;
 }
 
@@ -340,8 +369,11 @@ public class TextDoc
     public List<Guid> Images { get; set; } = new();
 
     // ---------- Seiteneinrichtung (Neu: Word-Grundfunktionen) ----------
-    // String-Felder haben null-sichere Setter: LiteDB kann leere Strings als
+    // String-Felder haben null-sichere Setter: LiteDB konnte leere Strings als
     // BSON-Null speichern (EmptyStringToNull) – null darf hier nie ankommen.
+    // System.Text.Json macht aus "" nie null, der Fall ist damit von selbst erledigt;
+    // die Setter bleiben trotzdem stehen, denn eine **migrierte** Altdatei kann null
+    // mitbringen, und der Wächter dafür ist ein Test, kein gutes Gedächtnis.
 
     private string _pageFormat = "A4";
     private string _headerText = "";

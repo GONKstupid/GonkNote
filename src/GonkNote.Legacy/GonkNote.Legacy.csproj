@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Der Leser für Altdatenbanken — und der **einzige** Ort, an dem LiteDB noch vorkommt.
+
+       Warum ein eigenes Projekt und nicht einfach eine Datei in GonkNote.Core:
+       LiteDB benutzt System.Reflection.Emit und ist damit unter NativeAOT nicht baubar.
+       Läge es weiterhin in Core, schleppte es jeder Kopf mit — auch der für iPadOS, für den
+       AOT Pflicht ist (HANDOFF §1). Hier steht es getrennt, und jeder Kopf entscheidet
+       selbst: Windows und Linux referenzieren dieses Projekt (dort liegen Bestandsdaten),
+       iOS nicht (dort gab es nie eine LiteDB-Datei).
+
+       Das Projekt hat genau eine Aufgabe und wächst nicht: eine Altdatei lesen, damit
+       DatabaseService sie **einmalig** nach SQLite übertragen kann. Geschrieben wird
+       dabei nie — die Verbindung steht auf ReadOnly.
+
+       Gemeinsame Eigenschaften: ..\..\Directory.Build.props
+       Paketversionen:          ..\..\Directory.Packages.props -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>GonkNote.Legacy</RootNamespace>
+    <AssemblyName>GonkNote.Legacy</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="LiteDB" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GonkNote.Core\GonkNote.Core.csproj" />
+  </ItemGroup>
+
+</Project>

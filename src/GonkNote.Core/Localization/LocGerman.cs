@@ -432,6 +432,14 @@ internal static class LocGerman
         // die Entwicklungsphase von V1 — bis 0.2.0 stand hier fest „Phase 3" und war damit
         // zweideutig. Von Hand nachzuziehen, wenn eine Portierungsphase beginnt (HANDOFF §6).
         ["About.Version"] = "Version {0} · Portierung, Phase 2",
+        // {0} = Fehlermeldung, {1} = Pfad des Protokolls. Erscheint, wenn sich die Datenbank
+        // nicht öffnen lässt — meist beim einmaligen Übertragen einer Altdatenbank nach
+        // SQLite. Zwangsläufig in der Standardsprache: die Sprachwahl steht in eben der
+        // Datenbank, die gerade nicht lesbar ist (HANDOFF §4.8).
+        ["Db.OpenFailed"] =
+            "Die Datenbank konnte nicht geöffnet werden:\n\n{0}\n\n" +
+            "Die bisherigen Daten sind nicht verloren — die alte Datenbankdatei liegt " +
+            "unverändert an ihrem Platz. Einzelheiten stehen in:\n{1}",
         ["Chart.Title"] = "Diagramm einfügen",
         ["Chart.Type"] = "Typ",
         ["Chart.Type.Column"] = "Säulen",

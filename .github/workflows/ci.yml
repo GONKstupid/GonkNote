@@ -108,6 +108,12 @@ jobs:
       - name: ViewModels bauen (Meilenstein M0)
         run: dotnet build src/GonkNote.ViewModels/GonkNote.ViewModels.csproj -c Release -warnaserror
 
+      # Der Leser für Altdatenbanken (Phase 2, Schritt 3). Auch er gehört auf die Linux-Seite:
+      # dort liegen Bestandsdaten, sobald der Avalonia-Kopf steht. Er zieht Core mit und
+      # steht trotzdem als eigener Schritt, damit eine Meldung „Legacy" heißt und nicht „Core".
+      - name: Legacy bauen (Leser fuer Altdatenbanken)
+        run: dotnet build src/GonkNote.Legacy/GonkNote.Legacy.csproj -c Release -warnaserror
+
       - name: Core-Tests
         run: >
           dotnet test tests/GonkNote.Core.Tests/GonkNote.Core.Tests.csproj

@@ -14,6 +14,10 @@ namespace GonkNote.Core.Services;
 /// Hier liegt je Blob eine Datei. Gelöschter Platz ist sofort frei, Lesen geht als Strom
 /// (nichts muss am Stück in den Speicher), und ein beschädigtes Blob kostet ein Bild statt
 /// der ganzen Bibliothek. Gesichert wird ab jetzt Datenbankdatei **plus** dieser Ordner.
+/// <para>
+/// SQLite hätte die 16-MB-Grenze nicht — die Aufteilung bleibt trotzdem, und zwar aus den
+/// drei Gründen im zweiten Satz oben. Sie sind vom Datenbankmodul unabhängig.
+/// </para>
 /// </summary>
 public sealed class BlobStore
 {
@@ -27,17 +31,48 @@ public sealed class BlobStore
     private readonly string _root;
     private readonly string _bin;
 
-    /// <summary>Legt den Speicher neben die Datenbank: <c>gonknote.db</c> → <c>gonknote.blobs\</c>.</summary>
+    /// <summary>
+    /// Legt den Speicher neben die Datenbank: <c>gonknote.sqlite</c> → <c>gonknote.blobs\</c>.
+    /// <para>
+    /// Nur der **Stamm** des Dateinamens zählt, die Endung nicht — deshalb hat der Umstieg
+    /// von <c>.db</c> auf <c>.sqlite</c> den Ordner nicht verschoben, und deshalb finden
+    /// Datenbank und Bilder einer nach <c>%TEMP%</c> kopierten Ablage weiterhin zueinander
+    /// (HANDOFF §8).
+    /// </para>
+    /// </summary>
     public BlobStore(string databasePath)
     {
         string dir = Path.GetDirectoryName(Path.GetFullPath(databasePath))!;
         string stem = Path.Combine(dir, Path.GetFileNameWithoutExtension(databasePath));
+
         _root = stem + ".blobs";
 
         // Bewusst **neben** dem Speicher, nicht darin: All() sucht rekursiv nach *.bin und
         // würde einen Unterordner sonst gleich wieder als regulären Blob einsammeln.
         _bin = stem + ".papierkorb";
         Directory.CreateDirectory(_root);
+    }
+
+    private BlobStore(string root, string bin)
+    {
+        _root = root;
+        _bin = bin;
+        Directory.CreateDirectory(_root);
+    }
+
+    /// <summary>
+    /// Legt den Speicher in einen **vorgegebenen** Ordner — der Weg über
+    /// <see cref="Platform.AppPaths.BlobFolder"/> (Phase 2, Schritt 4). Der Papierkorb
+    /// entsteht daneben, mit demselben Stamm: <c>gonknote.blobs</c> →
+    /// <c>gonknote.papierkorb</c>, also genau da, wo er schon immer lag.
+    /// </summary>
+    public static BlobStore InFolder(string blobFolder)
+    {
+        // Ein abschließender Trennstrich würde ChangeExtension danebengreifen und den
+        // Papierkorb in den Blob-Ordner legen — All() sammelte ihn dann wieder ein.
+        string voll = Path.GetFullPath(blobFolder)
+            .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        return new BlobStore(voll, Path.ChangeExtension(voll, ".papierkorb"));
     }
 
     /// <summary>

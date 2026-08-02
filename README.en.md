@@ -112,11 +112,16 @@ language you picked under View → Language.)*
   and the menu bar moves up. Move the mouse to the top edge and a title bar (minimise, restore,
   close) glides back in. A double-click on the menu bar (or the standard Windows commands)
   restores the window
-- **Persistence**: a LiteDB file at `%APPDATA%\GonkNote\gonknote.db` for texts, strokes and
-  structure; **images and imported PDF/Word pages live next to it** in
+- **Persistence**: a SQLite file at `%APPDATA%\GonkNote\gonknote.sqlite` for texts, strokes
+  and structure; **images and imported PDF/Word pages live next to it** in
   `%APPDATA%\GonkNote\gonknote.blobs\` — one file per image. Autosave every 30 s, plus a save
   when closing tabs and the app.
   **For a backup, take both: the file *and* the folder.**
+  Up to version 0.2.0 the file was called `gonknote.db` and was a LiteDB file. It is
+  **migrated once** on the first start after that and then stays next to the new one,
+  unchanged — a way back for as long as you keep it.
+  **From now on back up `gonknote.sqlite`, no longer `gonknote.db`:** the old file no longer
+  grows with your work and would soon be an outdated state.
   Images no longer referenced by any document move to `gonknote.papierkorb\` and are only
   removed for good after 30 days; if an image is needed again before that, Gonk Note fetches it
   back by itself
@@ -163,7 +168,7 @@ dotnet run
 
 # Single-file exe (self-contained, no .NET installation needed)
 dotnet publish -c Release
-# Result: bin/Release/net8.0-windows/win-x64/publish/GonkNote.exe
+# Result: bin/Release/net10.0-windows10.0.19041.0/win-x64/publish/GonkNote.exe
 ```
 
 Note: WPF does not support assembly trimming (`PublishTrimmed`); the exe is compressed instead
@@ -177,17 +182,17 @@ there is described in [Getting started](GETTING-STARTED.md).
 
 | Building block | Technology |
 |---|---|
-| UI | WPF (.NET 8), MVVM, dynamic theme resource dictionaries |
+| UI | WPF (.NET 10), MVVM, dynamic theme resource dictionaries |
 | Whiteboard rendering | SkiaSharp (`SKElement`), WPF stylus events with pressure |
-| Persistence | LiteDB (a single local file, polymorphic element serialisation) |
-| Core logic | a separate library `GonkNote.Core` (net8.0) — free of UI dependencies |
+| Persistence | SQLite (`Microsoft.Data.Sqlite`); documents as JSON, read and written via a source generator |
+| Core logic | a separate library `GonkNote.Core` (net10.0) — free of UI dependencies |
 
 The application consists of two projects: the WPF interface and a core library without any UI
 ties. That keeps the layers clean — the data model, persistence and the whiteboard's drawing
 routines are independent of the interface.
 
 ```
-GonkNote/                    WPF interface (net8.0-windows)
+GonkNote/                    WPF interface (net10.0-windows)
 ├─ App.xaml(.cs)           Entry point, theme initialisation, --db argument
 ├─ MainWindow.xaml(.cs)    Menu, folder tree (drag & drop, pinning), tab management
 ├─ ViewModels/             MainViewModel, tab VMs, tree VM, MVVM base
@@ -198,9 +203,9 @@ GonkNote/                    WPF interface (net8.0-windows)
 │  └─ Localization/        Language switching: Loc (lookup) + one table each for DE/EN
 └─ Themes/                 Light.xaml, Dark.xaml, Styles.xaml
 
-GonkNote.Core/               Core logic without UI ties (net8.0), namespace GonkNote.Core.*
+GonkNote.Core/               Core logic without UI ties (net10.0), namespace GonkNote.Core.*
 ├─ Models/                 NoteItem (tree), whiteboard elements, enums
-├─ Services/               DatabaseService (LiteDB), BlobStore (images/PDFs next to the
+├─ Services/               DatabaseService (SQLite), BlobStore (images/PDFs next to the
 │                          database), UndoStack, ImageCache, PDF import
 ├─ Rendering/              Skia drawing routines of the whiteboard, set-square overlay
 └─ Editing/                Precise erasing
@@ -229,7 +234,8 @@ Apache-2.0 and BSD-3 require on redistribution (particularly for the single-file
 
 | Building block | Purpose | Licence |
 |---|---|---|
-| [LiteDB](https://www.litedb.org/) | Persistence | MIT |
+| [SQLite](https://www.sqlite.org/) via [Microsoft.Data.Sqlite](https://learn.microsoft.com/dotnet/standard/data/sqlite/) | Persistence | Public domain / MIT |
+| [LiteDB](https://www.litedb.org/) | reads databases up to version 0.2.0 | MIT |
 | [SkiaSharp](https://github.com/mono/SkiaSharp) | Whiteboard rendering | MIT |
 | [Svg.Skia](https://github.com/wieslawsoltes/Svg.Skia) | SVG rasterisation | MIT |
 | [DocumentFormat.OpenXml](https://github.com/dotnet/Open-XML-SDK) | DOCX import/export | MIT |

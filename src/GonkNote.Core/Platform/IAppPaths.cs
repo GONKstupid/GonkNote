@@ -48,8 +48,34 @@ public static class AppPaths
 {
     public static IAppPaths Current { get; set; } = new DefaultAppPaths();
 
-    /// <summary>Vorgabepfad der Datenbank — <c>gonknote.db</c> im Datenordner.</summary>
-    public static string DatabaseFile => Path.Combine(Current.DataFolder, "gonknote.db");
+    /// <summary>
+    /// Vorgabepfad der Datenbank — <c>gonknote.sqlite</c> im Datenordner.
+    /// <para>
+    /// Die Endung hat sich mit dem Umbau auf SQLite geändert (Phase 2, Schritt 3), der
+    /// **Stamm ausdrücklich nicht**: von ihm leitet der <see cref="Services.BlobStore"/>
+    /// seinen Ordner ab, und ein anderer Stamm hieße <c>gonknote-neu.blobs</c> statt
+    /// <c>gonknote.blobs</c> — alle Bilder wären scheinbar weg (HANDOFF §7).
+    /// </para>
+    /// </summary>
+    public static string DatabaseFile => Path.Combine(Current.DataFolder, "gonknote.sqlite");
+
+    /// <summary>
+    /// Die Datenbank früherer Programmstände (LiteDB). Sie wird beim ersten Start nach dem
+    /// Umbau **gelesen** und nach <see cref="DatabaseFile"/> übertragen; danach bleibt sie
+    /// unangetastet daneben liegen. Beschrieben, umbenannt oder gelöscht wird sie nie.
+    /// </summary>
+    public static string LegacyDatabaseFile => Path.Combine(Current.DataFolder, "gonknote.db");
+
+    /// <summary>
+    /// Wo die ausgelagerten Bilder liegen. Kam bis Phase 2 aus dem Dateinamen der Datenbank
+    /// und kommt jetzt aus <see cref="IAppPaths.DataFolder"/> — der Kopf bestimmt also den
+    /// Ort, nicht mehr eine Zeichenkettenoperation auf einem Dateinamen.
+    /// <para>
+    /// Der Name <c>gonknote.blobs</c> steht dabei fest und ist absichtlich derselbe wie
+    /// zuvor: der Ordner enthält Nutzerdaten, die schon auf der Platte liegen.
+    /// </para>
+    /// </summary>
+    public static string BlobFolder => Path.Combine(Current.DataFolder, "gonknote.blobs");
 
     /// <summary>Protokoll unerwarteter Fehler, neben der Datenbank.</summary>
     public static string LogFile => Path.Combine(Current.DataFolder, "fehler.log");

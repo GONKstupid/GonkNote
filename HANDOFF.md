@@ -552,6 +552,9 @@ fest auf Deutsch.
    Stylus-Prototyp jetzt, für die eigentliche Arbeit erst zu Phase 3.
 2. **Zweites Stylus-Gerät** (MPP und/oder EMR) — der einzige Punkt mit echtem Restrisiko,
    siehe §5a „Offen". Die Anforderung „läuft mit jedem Stylus" ist bis dahin unbeantwortet.
+3. **Eigene Farbschemata** (Nutzerwunsch 2026-08-02) — machbar und vorgemerkt in §6. Offen
+   sind dort drei Fragen, vor allem: soll ein Theme nur die Oberfläche färben oder auch die
+   **gezeichnete Seite**? Zu klären, bevor Phase 3 die Avalonia-Farben anlegt.
 
 ---
 
@@ -896,6 +899,68 @@ mit nach SQLite/Json wandern, sonst öffnet sich kein Bestandsdokument mehr.
 > **M1 ist ein gültiger Ausstiegspunkt.** Phase 4 ist die, an der Projekte sterben — dort
 > strikt in der Reihenfolge Absätze/Zeichenformate → Seitenumbruch → Listen → Tabellen →
 > Felder/TOC → Diagramme bauen, nach **jedem** Schritt Roundtrip-Test.
+
+### Vorgemerkt: eigene Farbschemata (Nutzerwunsch 2026-08-02)
+
+**Gewünscht:** eigene Themes anlegen und über **Ansicht → Design** laden.
+
+**Machbar, und kleiner als es klingt.** Ein Theme ist heute nichts als **20 flache
+Hex-Farben** — 15 `SolidColorBrush` plus 5 rohe `Color` (`src/GonkNote.Wpf/Themes/Light.xaml`).
+Keine Verläufe, keine Struktur, keine Logik. Das ist eine Datendatei, kein Programm.
+
+**Aber ausdrücklich nicht als XAML-Upload.** Eine `.xaml` zur Laufzeit einzulesen ginge unter
+WPF über `XamlReader.Load` — und wäre aus drei Gründen die falsche Entscheidung:
+
+- **NativeAOT.** `XamlReader` lebt von Reflection. Für den iPad-Kopf ist AOT Pflicht (§1);
+  eine Theme-Funktion, die dort nicht läuft, wäre eine Funktion, die man später wieder
+  ausbaut.
+- **Portierbarkeit.** Avalonia hat kein `ResourceDictionary` im WPF-Sinn. Ein XAML-Theme
+  wäre ein Windows-Theme und müsste für jeden Kopf neu erfunden werden.
+- **Sicherheit.** XAML kann Typen erzeugen. Eine „Theme-Datei" aus dem Internet wäre damit
+  ausführbarer Code — bei einer Datei, die Nutzer untereinander weitergeben, ist das der
+  falsche Vertrag.
+
+**Der tragfähige Zuschnitt** — er passt auf ein Muster, das die App schon hat:
+
+- Ein Theme ist eine **JSON-Datei mit 20 benannten Farben**, gelesen über
+  `System.Text.Json` mit Source-Generator (AOT-tauglich, wie in Phase 2 Schritt 3).
+- Sie liegt in **`%APPDATA%\GonkNote\Themes\*.json`** — dieselbe Stelle und dieselbe Regel
+  wie Sticker, Cover-Vorlagen und die eigenen Geodreieck-SVGs: die Datei des Nutzers
+  gewinnt, die mitgelieferte ist der Rückfall. Über `IAppPaths.DataFolder` (steht seit
+  Phase 2).
+- Core hält die Farbtabelle und prüft sie; **jeder Kopf übersetzt sie in seine eigenen
+  Pinsel.** Hell und Dunkel werden dabei zu zwei mitgelieferten Tabellen statt zu zwei
+  fest verdrahteten Dictionaries.
+- **`IThemeHost` (§4.7) ist die Naht, die dafür schon da ist.** Aus `Apply(AppTheme)` wird
+  `Apply(ThemeDefinition)`; `AppTheme` bleibt als „hell oder dunkel"-Auskunft bestehen, denn
+  `WbRenderer` und die Titelleiste brauchen sie weiter.
+- „Hochladen" heißt: Datei wählen (`IFileDialog`), prüfen, in den Theme-Ordner **kopieren** —
+  genau wie `WhiteboardView.Covers` es mit eigenen Cover-Vorlagen macht.
+
+**Wann:** **frühestens nach Phase 3 (M1), nicht davor.** Nicht weil es schwer wäre, sondern
+wegen der Reihenfolge — heute gäbe es eine WPF-Fassung, die Phase 3 sofort noch einmal bauen
+müsste.
+
+> **Die eine Entscheidung, die trotzdem jetzt fällt:** Wenn Phase 3 die Avalonia-Farben
+> anlegt, sollen sie **aus einer Farbtabelle** kommen und nicht als zweites Paar fest
+> verdrahteter Dateien. Das kostet in Phase 3 fast nichts und macht das Theme-Laden danach
+> zu einer Zutat statt zu einem Umbau. Wird es dort versäumt, ist der Nachbau der teure Teil.
+
+**Vor der Umsetzung zu klären:**
+
+1. **Reicht die Chrome, oder auch das Papier?** Fünf der zwanzig Farben (`Color.PageBg`,
+   `Color.PageLine`, `Color.PageGridDot`, `Color.CanvasBg`, `Color.DefaultInk`) betreffen die
+   **gezeichnete Seite**, nicht die Oberfläche. Ein Theme, das sie mit ändert, ändert das
+   Aussehen von Notizbüchern — auch im Export. Das ist eine inhaltliche Entscheidung, keine
+   technische.
+2. **Was passiert bei einer unvollständigen Datei?** Vorschlag: fehlende Schlüssel still aus
+   Hell/Dunkel ergänzen, statt die Datei abzulehnen — dann genügt eine Datei mit drei Farben.
+3. **Menü:** „Ansicht → Design wechseln" wird zu einem Untermenü (Hell / Dunkel / eigene /
+   „Eigenes laden…"). Neue `Loc`-Schlüssel in **beiden** Tabellen (Dauerregel 1).
+
+**Nicht vergessen:** Das ist ein **neuer Wunsch**, keine Vorgabe aus
+`gonk-note-port-RM.MD`. Wer die Roadmap-Datei auf dem Desktop pflegt, sollte ihn dort
+nachtragen — sonst steht er nur hier.
 
 ### Aus V1 mitgeschleppt, weiterhin offen
 

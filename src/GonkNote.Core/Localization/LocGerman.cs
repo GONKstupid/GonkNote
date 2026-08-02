@@ -423,6 +423,26 @@ internal static class LocGerman
         ["Dlg.Ok"] = "OK",
         ["Dlg.All"] = "Alle",
         ["Dlg.None"] = "Keine",
+        // Neu in Phase 3. Der WPF-Kopf braucht sie nicht: dort liefert die MessageBox von
+        // Windows ihre eigenen Knöpfe — in der Sprache des **Systems**, nicht in der der
+        // App. Avalonia hat keine MessageBox, der Kopf baut sie selbst, und damit sind
+        // die Beschriftungen zum ersten Mal unsere. (Nebenbei ist das die einzige Stelle,
+        // an der der Linux-Kopf die Sprachwahl konsequenter befolgt als der Windows-Kopf.)
+        ["Dlg.Yes"] = "Ja",
+        ["Dlg.No"] = "Nein",
+        // Ebenfalls neu in Phase 3. Import und Export stehen auf FlowDocument und liegen
+        // deshalb noch im WPF-Kopf (HANDOFF §4.1); der Linux-Kopf hat sie erst, wenn die
+        // eigene Dokument-Engine steht — Phase 4.
+        // Steht in der Registerkarte des Linux-Kopfs, solange es dort keine Zeichenfläche
+        // gibt. Bewusst ein ganzer Satz und kein „Nicht implementiert": wer das liest, soll
+        // wissen, dass die Daten in Ordnung sind und nur die Anzeige fehlt.
+        ["Tab.NoCanvasYet"] =
+            "Dieses Dokument lässt sich hier noch nicht anzeigen — die Zeichenfläche des " +
+            "Linux-Kopfs entsteht gerade. Der Inhalt ist unverändert gespeichert und in der " +
+            "Windows-Fassung wie gewohnt zu sehen.",
+        ["Io.NotOnThisPlatform"] =
+            "Import und Export gibt es auf dieser Plattform noch nicht. Sie kommen mit der " +
+            "eigenen Dokument-Engine; bis dahin führt der Weg über die Windows-Fassung.",
         ["Guide.Title"] = "Erste Schritte",
         ["Guide.Heading"] = "Erste Schritte mit Gonk Note",
         ["Guide.Subtitle"] = "Von der ersten Notiz bis zur Sicherung — Schritt für Schritt.",
@@ -431,7 +451,7 @@ internal static class LocGerman
         // {0} = Versionsnummer. Die Phase meint die **Portierung** (Linux/iPadOS), nicht mehr
         // die Entwicklungsphase von V1 — bis 0.2.0 stand hier fest „Phase 3" und war damit
         // zweideutig. Von Hand nachzuziehen, wenn eine Portierungsphase beginnt (HANDOFF §6).
-        ["About.Version"] = "Version {0} · Portierung, Phase 2",
+        ["About.Version"] = "Version {0} · Portierung, Phase 3",
         // {0} = Fehlermeldung, {1} = Pfad des Protokolls. Erscheint, wenn sich die Datenbank
         // nicht öffnen lässt — meist beim einmaligen Übertragen einer Altdatenbank nach
         // SQLite. Zwangsläufig in der Standardsprache: die Sprachwahl steht in eben der

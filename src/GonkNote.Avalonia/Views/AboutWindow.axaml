@@ -1,0 +1,43 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="clr-namespace:GonkNote.Services"
+        x:Class="GonkNote.Views.AboutWindow"
+        Title="{loc:T About.Title}"
+        SizeToContent="Height" Width="480"
+        CanResize="False" ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner"
+        Icon="avares://GonkNote.Avalonia/Assets/gonk-note-Icon.png"
+        Background="{DynamicResource Brush.WindowBg}"
+        Foreground="{DynamicResource Brush.Text}">
+
+    <!-- **Kleiner als der WPF-Dialog, und zwar mit Grund.** Dort zeigt „Über Gonk Note"
+         das gerenderte README (und „Erste Schritte" die Anleitung). Beide gehen über
+         EmbeddedDocs und ein FlowDocument — genau den Typ, den Phase 4 ersetzt
+         (HANDOFF §4.1). Hier stehen deshalb nur Titel, Untertitel und die Versionszeile;
+         die formatierten Dokumente kommen mit der eigenen Dokument-Engine. -->
+
+    <StackPanel Margin="26,22" Spacing="14">
+
+        <StackPanel Orientation="Horizontal" Spacing="14">
+            <Image Source="avares://GonkNote.Avalonia/Assets/gonk-note-Icon.png"
+                   Width="46" Height="46" VerticalAlignment="Top"/>
+            <StackPanel Spacing="4" VerticalAlignment="Center">
+                <TextBlock Text="Gonk Note" FontSize="20" FontWeight="SemiBold"
+                           Foreground="{DynamicResource Brush.Text}"/>
+                <!-- Der Text steht in Loc (About.Version, beide Tabellen) und nicht im
+                     Code — bis 0.2.0 war er fest verdrahtet und erschien deshalb auch im
+                     englischen Dialog deutsch (HANDOFF §4.5). -->
+                <TextBlock x:Name="VersionsZeile" Foreground="{DynamicResource Brush.TextMuted}"/>
+            </StackPanel>
+        </StackPanel>
+
+        <TextBlock Text="{loc:T About.Subtitle}" TextWrapping="Wrap"
+                   Foreground="{DynamicResource Brush.Text}"/>
+
+        <TextBlock x:Name="Datenordner" TextWrapping="Wrap" FontSize="11"
+                   Foreground="{DynamicResource Brush.TextMuted}"/>
+
+        <Button Classes="flach" Content="{loc:T Dlg.Ok}" MinWidth="88" IsDefault="True" IsCancel="True"
+                HorizontalAlignment="Right" Click="Schliessen_Click"/>
+    </StackPanel>
+</Window>

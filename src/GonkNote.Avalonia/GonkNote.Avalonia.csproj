@@ -1,0 +1,71 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Der Linux-Kopf (Roadmap Phase 3). Aufgebaut wie der WPF-Kopf und mit demselben
+       Zuschnitt: hier steht nur, was Pixel zeichnet oder Eingaben entgegennimmt — alles
+       andere liegt in GonkNote.Core und GonkNote.ViewModels (HANDOFF §3, Faustregel).
+
+       `net10.0` **ohne** Plattform-Anhängsel: derselbe Kopf läuft unter Linux und unter
+       Windows. Das ist kein Zufallsgewinn, sondern der Grund, warum Phase 3 unter Windows
+       entwickelt werden kann — WPF- und Avalonia-Fassung lassen sich nebeneinander
+       vergleichen, und die Fernsteuer-Werkzeuge unter tools\ funktionieren (HANDOFF §5b). -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <!-- Bewusst NICHT `GonkNote` wie beim WPF-Kopf: beide Köpfe stehen in derselben
+         Solution und sollen sich in Prozessliste, Protokoll und Fensterleiste
+         auseinanderhalten lassen, solange sie nebeneinander laufen. -->
+    <AssemblyName>GonkNote.Avalonia</AssemblyName>
+    <RootNamespace>GonkNote</RootNamespace>
+    <!-- Beides sind **Windows-Artefakte**: das Manifest steckt in der PE-Datei, das Symbol
+         im apphost. Unter Linux entsteht eine ELF-Datei, für die keines von beidem einen
+         Platz hat. Die Bedingung hält den Linux-Lauf der CI davon fern — der Kopf soll
+         dort bauen, und zwar ohne dass eine Windows-Eigenheit dazwischenkommt. -->
+    <ApplicationManifest Condition="$([MSBuild]::IsOSPlatform('Windows'))">app.manifest</ApplicationManifest>
+    <ApplicationIcon Condition="$([MSBuild]::IsOSPlatform('Windows'))">..\..\Assets\GonkNote.ico</ApplicationIcon>
+    <!-- Übersetzte Bindungen. Sie brauchen ein `x:DataType` je Vorlage und sind dafür
+         **zur Übersetzungszeit geprüft**: ein Tippfehler im Bindungspfad ist ein
+         Build-Fehler statt einer stillen leeren Fläche. Genau daran krankt der WPF-Kopf
+         (dort meldet eine tote Bindung nur der Debug-Ausgabestrom). Zusätzlich sind sie
+         die Voraussetzung für NativeAOT — Pflicht für den iPadOS-Weg (HANDOFF §1). -->
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" />
+    <PackageReference Include="Avalonia.Desktop" />
+    <PackageReference Include="Avalonia.Themes.Fluent" />
+    <PackageReference Include="Avalonia.Fonts.Inter" />
+    <!-- Die native Skia-Bibliothek für Linux. Das Paket `SkiaSharp` bringt sie für Windows
+         und macOS mit, für Linux **nicht** — zum Bauen genügt das (Meilenstein M0), zum
+         Ausführen nicht. Sie steht hier und nicht in GonkNote.Core: eine Linux-.so gehört
+         nicht in ein Paket, das der Windows-Kopf mitschleppt (HANDOFF §4.6, dort für
+         genau diesen Zeitpunkt vorausgesagt).
+
+         Sie deckt den **Renderer** ab (WbRenderer benutzt SkiaSharp direkt). Was Avalonia
+         selbst zeichnet, bringt Avalonia mit. Das System braucht dazu `fontconfig` und
+         mindestens eine Schrift. -->
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux" />
+  </ItemGroup>
+
+  <!-- Dieselben drei Projekte wie beim WPF-Kopf. Legacy ist dabei, weil auch unter Linux
+       eine Altdatenbank neben der neuen liegen kann; der iPadOS-Kopf wird es nicht
+       referenzieren (HANDOFF §4.8). -->
+  <ItemGroup>
+    <ProjectReference Include="..\GonkNote.Core\GonkNote.Core.csproj" />
+    <ProjectReference Include="..\GonkNote.ViewModels\GonkNote.ViewModels.csproj" />
+    <ProjectReference Include="..\GonkNote.Legacy\GonkNote.Legacy.csproj" />
+  </ItemGroup>
+
+  <!-- Assets liegen in der Repo-Wurzel, also zwei Ebenen höher. Avalonia liest sie über
+       `avares://GonkNote.Avalonia/Assets/...`; `Link` bestimmt diesen Pfad, genauso wie
+       er beim WPF-Kopf den `pack://`-Namen bestimmt (HANDOFF §7 „Wurzel-Dateien").
+
+       Hier steht bewusst nur das App-Symbol. Geodreieck-SVGs, Cover-Vorlagen und die
+       OCR-Sprachdaten kommen mit der Zeichenfläche im nächsten Brocken — eine Datei
+       mitzuschleppen, die niemand liest, verschleiert nur, was der Kopf wirklich kann. -->
+  <ItemGroup>
+    <AvaloniaResource Include="..\..\Assets\gonk-note-Icon.png" Link="Assets\gonk-note-Icon.png" />
+  </ItemGroup>
+
+</Project>

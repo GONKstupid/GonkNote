@@ -1,0 +1,36 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="GonkNote.Views.MessageWindow"
+        Title="Gonk Note"
+        SizeToContent="WidthAndHeight"
+        MinWidth="340" MaxWidth="560"
+        CanResize="False"
+        ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource Brush.WindowBg}"
+        Foreground="{DynamicResource Brush.Text}">
+
+    <!-- Der Ersatz für die WPF-MessageBox. Avalonia bringt keine mit — was hier steht, ist
+         der ganze Unterschied zwischen `MessageBox.Show(...)` und dieser Datei. -->
+
+    <StackPanel Margin="22,20,22,16" Spacing="18">
+
+        <StackPanel Orientation="Horizontal" Spacing="14">
+            <!-- Der Punkt trägt die Schwere: blau = Mitteilung, gelb = Warnung,
+                 türkis = Frage. Bewusst kein Symbol aus einer Icon-Schrift — die gibt es
+                 unter Linux nicht (siehe Themes/Icons.axaml). -->
+            <Ellipse x:Name="SchwereZeichen" Width="12" Height="12"
+                     VerticalAlignment="Top" Margin="0,4,0,0"/>
+            <TextBlock x:Name="Nachricht" TextWrapping="Wrap" MaxWidth="440"
+                       Foreground="{DynamicResource Brush.Text}"/>
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+            <!-- Reihenfolge wie bei der Windows-MessageBox: die bestätigende Antwort links,
+                 die abweisende rechts. Bei einer Mitteilung ist NeinKnopf ausgeblendet. -->
+            <Button x:Name="JaKnopf" MinWidth="88" IsDefault="True" Click="Ja_Click"/>
+            <Button x:Name="NeinKnopf" MinWidth="88" IsCancel="True" Click="Nein_Click"/>
+        </StackPanel>
+
+    </StackPanel>
+</Window>

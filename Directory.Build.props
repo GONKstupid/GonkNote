@@ -11,7 +11,11 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>14</LangVersion>
-    <Version>0.2.0</Version>
+    <!-- 0.3.0 seit Phase 2, Schritt 3: der Umbau von LiteDB auf SQLite betrifft das
+         **Dateiformat**, und dafür ist eine neue Minor-Version die übliche Ansage.
+         Wer sie anhebt, zieht About.Version in **beiden** Loc-Tabellen nach — dort steht
+         auch die Portierungsphase (HANDOFF §4.5, Dauerregel 1). -->
+    <Version>0.3.0</Version>
     <Company>GonkNote</Company>
     <Product>Gonk Note</Product>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>

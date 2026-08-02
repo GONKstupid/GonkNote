@@ -68,6 +68,10 @@ public sealed class LocSource : INotifyPropertyChanged
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
+    // Der leere Name heißt „alle Eigenschaften neu lesen". **Das ist eine WPF-Zusage** —
+    // dort aktualisiert es auch Bindungen auf diesen Indexer. Avalonia wertet sie für einen
+    // Indexer nicht aus; der Linux-Kopf bindet deshalb gar nicht erst hierher, sondern über
+    // ein eigenes Trägerobjekt je Schlüssel (GonkNote.Avalonia/Services/Localization/).
     internal void RaiseAllChanged() =>
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(string.Empty));
 }

@@ -11,7 +11,14 @@ param(
     [string]$Shot   = "$env:TEMP\gonk-schuss.png",
     [int]$WaitMs    = 700,
     [int]$EndeMs    = 1500,
-    [int]$AppPid    = 0
+    [int]$AppPid    = 0,
+    # Ganzen Bildschirm statt nur des Fensters aufnehmen.
+    # **Fuer Menuepfade Pflicht:** Avalonia zeichnet Menues und Flyouts in eigene
+    # Popup-Fenster. Die liegen ausserhalb von GetWindowRect des Hauptfensters und fehlen
+    # deshalb auf einer Fensteraufnahme vollstaendig -- man sieht das geschlossene Fenster
+    # und haelt das Menue faelschlich fuer nicht geoeffnet (HANDOFF §7).
+    # Der WPF-Kopf zeichnet seine Menues in denselben Fensterbereich; dort faellt es nicht auf.
+    [switch]$Voll
 )
 
 Add-Type -AssemblyName System.Windows.Forms, System.Drawing
@@ -60,7 +67,12 @@ foreach ($s in $Schritte) {
 
 Start-Sleep -Milliseconds $EndeMs
 $r = New-Object C+RECT
-[C]::GetWindowRect($p.MainWindowHandle, [ref]$r) | Out-Null
+if ($Voll) {
+    $s = [Windows.Forms.SystemInformation]::VirtualScreen
+    $r.L = $s.Left; $r.T = $s.Top; $r.R = $s.Right; $r.B = $s.Bottom
+} else {
+    [C]::GetWindowRect($p.MainWindowHandle, [ref]$r) | Out-Null
+}
 $bmp = New-Object Drawing.Bitmap ($r.R - $r.L), ($r.B - $r.T)
 $g = [Drawing.Graphics]::FromImage($bmp)
 $g.CopyFromScreen($r.L, $r.T, 0, 0, $bmp.Size)

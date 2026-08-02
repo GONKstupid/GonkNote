@@ -4,11 +4,10 @@
 #
 #   windows  — alles: Solution bauen, beide Testprojekte laufen lassen. Das ist der
 #              vollständige Lauf, denn nur hier existiert der WPF-Kopf.
-#   ubuntu   — GonkNote.Core, GonkNote.ViewModels und die Core-Tests. **Frühwarnsystem:**
-#              rutscht etwas WPF-Abhängiges dorthin, scheitert dieser Lauf — und zwar in
-#              Phase 1/2, nicht erst in Phase 3, wenn der Avalonia-Kopf darauf aufsetzen
-#              soll. Gleichzeitig ist er die dauerhafte Absicherung von Meilenstein M0.
-#              ViewModels ist seit Phase 2 eine eigene Assembly und gehört deshalb hierher.
+#   ubuntu   — GonkNote.Core, GonkNote.ViewModels, GonkNote.Legacy, **GonkNote.Avalonia**
+#              und die Core-Tests. War bis Phase 2 ein Frühwarnsystem gegen versehentliche
+#              WPF-Abhängigkeiten; seit Phase 3 baut hier der Linux-Kopf selbst mit, und der
+#              Lauf sichert damit nicht mehr nur Meilenstein M0, sondern den Weg zu M1.
 #
 # GonkNote.Wpf lässt sich unter Linux **nicht** bauen (net10.0-windows10.0.19041.0). Das ist
 # so gewollt und kein Fehler; deshalb wird dort projektbezogen gebaut und nicht die Solution.
@@ -113,6 +112,17 @@ jobs:
       # steht trotzdem als eigener Schritt, damit eine Meldung „Legacy" heißt und nicht „Core".
       - name: Legacy bauen (Leser fuer Altdatenbanken)
         run: dotnet build src/GonkNote.Legacy/GonkNote.Legacy.csproj -c Release -warnaserror
+
+      # Der Linux-Kopf (Phase 3). **Hier ist dieser Lauf kein Frühwarnsystem mehr, sondern
+      # der eigentliche Zweck:** GonkNote.Avalonia ist das erste Projekt, das unter Linux
+      # nicht nur bauen, sondern laufen soll.
+      #
+      # Gebaut, nicht ausgeführt: eine Oberfläche braucht einen Bildschirm, und ein
+      # xvfb-Lauf würde prüfen, ob Xvfb funktioniert, nicht ob die App etwas taugt. Was am
+      # laufenden Programm zu prüfen ist, wird am laufenden Programm geprüft (HANDOFF
+      # Dauerregel 4).
+      - name: Avalonia-Kopf bauen (Meilenstein M1)
+        run: dotnet build src/GonkNote.Avalonia/GonkNote.Avalonia.csproj -c Release -warnaserror
 
       - name: Core-Tests
         run: >

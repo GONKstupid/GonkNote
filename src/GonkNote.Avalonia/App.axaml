@@ -1,0 +1,38 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:views="clr-namespace:GonkNote.Views"
+             x:Class="GonkNote.App"
+             RequestedThemeVariant="Light">
+
+    <!-- „Light" und nicht „Default": welches Erscheinungsbild gilt, steht in der Datenbank
+         und wird beim Start gesetzt (App.axaml.cs). Ließe man Avalonia der Systemeinstellung
+         folgen, blitzte beim Start das falsche Theme auf, und auf einem dunklen System
+         stünde die eigene Wahl des Nutzers gegen die des Systems. -->
+
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <!-- [0] füllt AvaloniaThemeHost zur Laufzeit aus der Farbtabelle in Core.
+                     Hier steht bewusst ein leeres Wörterbuch und keine Datei: das ist der
+                     Unterschied zum WPF-Kopf, der an dieser Stelle Themes/Light.xaml lädt
+                     (HANDOFF §6, Entscheidung vom 2026-08-02). -->
+                <ResourceDictionary/>
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- Seit Phase 2 liefern die ViewModels Farben als Hex-Text und Bilder als
+                 Bytes; Pinsel und Bitmaps baut der Kopf daraus (HANDOFF §4.7). -->
+            <views:HexToBrushConverter x:Key="HexToBrush"/>
+            <views:GradientBrushConverter x:Key="GradientBrush"/>
+            <views:BytesToImageConverter x:Key="BytesToImage" DecodeWidth="240"/>
+            <views:KindToIconConverter x:Key="KindToIcon"/>
+            <views:IsZeroConverter x:Key="IstLeer"/>
+            <views:IsZeroConverter x:Key="IstDa" Invert="True"/>
+        </ResourceDictionary>
+    </Application.Resources>
+
+    <Application.Styles>
+        <FluentTheme/>
+        <StyleInclude Source="avares://GonkNote.Avalonia/Themes/Styles.axaml"/>
+    </Application.Styles>
+
+</Application>

@@ -1,6 +1,6 @@
 # Gonk Note V2 — Projektübergabe
 
-**Stand: 2026-08-02 · Version 0.2.0 · net10.0 · SkiaSharp 3 · SQLite · Phase 2 abgeschlossen**
+**Stand: 2026-08-03 · Version 0.3.0 · net10.0 · SkiaSharp 3 · SQLite · Avalonia 12 · Phase 3 begonnen**
 
 > **📌 Dauerregeln des Nutzers — gelten immer, ohne Nachfragen:**
 >
@@ -117,17 +117,26 @@ der WPF-Kopf dahinter, und **`GonkNote.ViewModels` als eigene `net10.0`-Assembly
 ist der Ringschluss aus §4.2 aufgelöst und der Compiler hält ab jetzt nach, dass Core und
 ViewModels WPF-frei bleiben.
 
-Zuletzt **Phase 2, Schritte 3 und 4** (§4.8): **LiteDB ist aus dem Produktivpfad
+Dann **Phase 2, Schritte 3 und 4** (§4.8): **LiteDB ist aus dem Produktivpfad
 verschwunden**, die Persistenz läuft über `Microsoft.Data.Sqlite` mit
 `System.Text.Json`-Source-Generator. Eine Altdatenbank wird beim ersten Start **einmalig
 übertragen**, rein additiv; die alte Datei bleibt unversehrt liegen. An einer Kopie der
-echten Datenbank feldweise gegengeprüft. **Damit ist Phase 2 fertig — als Nächstes Phase 3**
-(Avalonia-Shell, §6), und dafür wechselt der Arbeitsplatz auf den CachyOS-Laptop (§5b).
+echten Datenbank feldweise gegengeprüft.
+
+Zuletzt **Phase 3, erster Brocken** (§4.9): **`src/GonkNote.Avalonia` steht und läuft** —
+Avalonia 12.1.1 auf `net10.0`, alle zwölf Schnittstellen aus `Core/Platform/` umgesetzt,
+Ordnerbaum und Galerie aus derselben `MainViewModel`-Instanz wie der WPF-Kopf. Die Farben
+kommen aus einer **Farbtabelle in Core** (`Core/Theming/`), nicht aus einem zweiten Paar
+fest verdrahteter Dateien. **Noch keine Zeichenfläche** — ein geöffnetes Dokument zeigt
+einen Hinweis. Version auf **0.3.0** angehoben.
+
+**Als Nächstes: die Zeichenfläche** (§6). Dafür ist der CachyOS-Laptop Pflicht — alles, was
+am Stift hängt, lässt sich unter Windows nicht beurteilen (§5b).
 
 **Tests laufen lassen:**
 
 ```powershell
-dotnet test -c Release        # Windows: beide Projekte, 90 Tests
+dotnet test -c Release        # Windows: beide Projekte, 113 Tests
 ```
 
 ---
@@ -172,8 +181,10 @@ Dazu die Commits aus Phase 1 (2026-07-30) — Testprojekte, CI und der `SKBitmap
 (8 Tests, Export-Fixtures), CI mit zwei Läufen, ein gefundener und behobener Absturz (§7).
 
 **Erledigt in Phase 2:** §4.7 (Platform-Naht, eigene ViewModels-Assembly) und §4.8
-(LiteDB → SQLite, `BlobStore` über `IAppPaths`). Testzahl steht jetzt bei **90**
-(81 Core + 9 WPF).
+(LiteDB → SQLite, `BlobStore` über `IAppPaths`).
+
+**Erledigt in Phase 3, erster Brocken:** §4.9 (Avalonia-Shell, Farbtabelle in Core).
+Testzahl steht jetzt bei **113** (100 Core + 13 WPF).
 
 **Erledigt in Phase 0:**
 
@@ -228,6 +239,9 @@ gonk-note-V2/
 │  │  │                          ILegacyDatabaseReader, BlobStore, ImageCache, UndoStack,
 │  │  │                          PdfImporter, DocumentHealth
 │  │  ├─ Editing/                WbErase — punktgenaues Radieren
+│  │  ├─ Theming/                die Farbtabelle (§4.9)              ← neu in Phase 3
+│  │  │                          ThemeColor (20 Farben), HexColor, ThemeDefinition,
+│  │  │                          Themes.Light/.Dark — ein Theme ist eine Datentabelle
 │  │  └─ Localization/           Loc + LocGerman + LocEnglish        ← neu in Phase 0
 │  │
 │  ├─ GonkNote.ViewModels/       net10.0 · EIGENE Assembly seit Phase 2 (§4.7)
@@ -237,6 +251,18 @@ gonk-note-V2/
 │  │                             LiteDbReader + ModelTypeBinder: liest eine Altdatenbank,
 │  │                             damit DatabaseService sie einmalig nach SQLite überträgt.
 │  │                             Windows und Linux referenzieren es, iOS nicht (§4.8)
+│  │
+│  ├─ GonkNote.Avalonia/         net10.0 · LINUX-KOPF (§4.9)             ← neu in Phase 3
+│  │  │                          Läuft auch unter Windows — genau deshalb wird Phase 3
+│  │  │                          hier entwickelt und nicht auf dem Laptop (§5b)
+│  │  ├─ Program.cs, App.axaml(.cs), MainWindow.axaml(.cs)
+│  │  ├─ Platform/               die Umsetzungen zu Core/Platform:
+│  │  │                          Avalonia* je Schnittstelle + AvaloniaPlatformServices,
+│  │  │                          AvaloniaThemeHost (baut die Ressourcen aus der Farbtabelle),
+│  │  │                          Modal.cs (synchron ↔ async, die größte Naht — §7)
+│  │  ├─ Views/                  Converters, MessageWindow (Ersatz der MessageBox), AboutWindow
+│  │  ├─ Themes/Styles.axaml     Form und Vektor-Symbole — KEINE Farben (die kommen aus Core)
+│  │  └─ Services/Localization/  TExtension + LocText (§7 „Übersetzung im Linux-Kopf")
 │  │
 │  └─ GonkNote.Wpf/              net10.0-windows10.0.19041.0 · Windows-Kopf (AssemblyName bleibt GonkNote)
 │     ├─ App.xaml(.cs), MainWindow.xaml(.cs)
@@ -252,13 +278,15 @@ gonk-note-V2/
 │                                SpellCheckSupport, TitleBarTheme,
 │                                WindowBounds, Localization/TExtension.cs
 │
-├─ .github/workflows/ci.yml      zwei Läufe: windows (alles), ubuntu (nur Core) — §4.6
+├─ .github/workflows/ci.yml      zwei Läufe: windows (alles), ubuntu (Core, ViewModels,
+│                                Legacy, **Avalonia**) — §4.6, seit Phase 3 §4.9
 │
 ├─ tests/
-│  ├─ GonkNote.Core.Tests/       net10.0 · läuft auch unter Linux · 81 Tests
+│  ├─ GonkNote.Core.Tests/       net10.0 · läuft auch unter Linux · 100 Tests
 │  │  └─ Snapshots/*.sha256      Pixelhashes des Renderers (Golden-Files)
-│  └─ GonkNote.Wpf.Tests/        net10.0-windows · nur Windows · 9 Export-Fixtures
-│     └─ Fixtures/               referenz.md, referenz-docx.txt (Golden-Files)
+│  └─ GonkNote.Wpf.Tests/        net10.0-windows · nur Windows · 13 Tests
+│     ├─ Fixtures/               referenz.md, referenz-docx.txt (Golden-Files)
+│     └─ FarbtabelleTests.cs     hält Core/Theming und Themes/*.xaml zusammen (§4.9)
 │
 ├─ tools/                        Werkzeuge, KEIN Produktivcode, nicht in der Solution
 │  ├─ stylus-prototyp/           Messwerkzeug zu §5a — Ergebnis liegt dort vor
@@ -280,9 +308,8 @@ verwechselt oder versehentlich mitgebaut werden. `GonkNote.StylusProbe` ist zus�
 zentralen Paketverwaltung ausgeklinkt (`ManagePackageVersionsCentrally=false`), damit seine
 Avalonia-Version nicht die Versionswahl für Phase 3 vorwegnimmt.
 
-**Noch nicht angelegt:** `src/GonkNote.Avalonia` (Phase 3) und `src/GonkNote.iOS` (Phase 5).
-Bewusst — leere Projekte, die nicht bauen, sind nur Ballast; sie entstehen, wenn ihre Phase
-beginnt.
+**Noch nicht angelegt:** `src/GonkNote.iOS` (Phase 5). Bewusst — leere Projekte, die nicht
+bauen, sind nur Ballast; sie entstehen, wenn ihre Phase beginnt.
 
 **Faustregel:** Nach Phase 2 darf in den Plattform-Köpfen *nur noch* stehen, was Pixel
 zeichnet oder Eingaben entgegennimmt. Alles andere gehört in Core.
@@ -337,9 +364,11 @@ Auf diesem Rechner ist ohnehin keine 9er-Runtime installiert (nur 8.0 und 10.0).
 Gesetzt: `LangVersion 14`, `GonkNote.Core` → `net10.0`, `GonkNote.Wpf` → `net10.0-windows10.0.19041.0`.
 Build Debug und Release grün, Start und Textdokument mit DB-Kopie geprüft.
 
-**Für die späteren Köpfe:** `net10.0-ios` bringt das hier installierte SDK mit. Für Avalonia
-ist vor Phase 3 zu prüfen, welche Avalonia-Fassung `net10.0` unterstützt — die Roadmap nennt
-Avalonia 12; falls das noch nicht trägt, ist Avalonia 11.x auf `net10.0` der Rückfallweg.
+**Für die späteren Köpfe:** `net10.0-ios` bringt das hier installierte SDK mit.
+
+> **Die Avalonia-Frage von damals ist beantwortet** (2026-08-03, §4.9): **Avalonia 12.1.1
+> trägt `net10.0`** — erst gemessen im Stylus-Prototyp (§5a), seit Phase 3 im echten Kopf.
+> Der Rückfallweg über Avalonia 11.x wird nicht gebraucht.
 
 **Achtung:** Der Ausgabepfad hat sich mit geändert
 (`bin\Release\net10.0-windows10.0.19041.0\win-x64\`). Die alten `net8.0`-Ordner sind gelöscht, damit
@@ -470,9 +499,13 @@ Geschichte: SQLite regelt Mehrfachzugriff selbst, über `PRAGMA busy_timeout`.)*
 `SkiaSharp` bringt die native Bibliothek für Windows und macOS mit, für Linux **nicht** —
 zum Bauen genügt das (M0), zum Ausführen nicht. Es steht bewusst **nicht** in
 `GonkNote.Core`: eine Linux-`.so` gehört nicht in ein Paket, das der Windows-Kopf
-mitschleppt. **Für Phase 3 ist das derselbe Punkt beim Avalonia-Kopf.** Dazu braucht das
-System `fontconfig` und mindestens eine Schrift; die CI installiert `libfontconfig1` und
-`fonts-dejavu-core`.
+mitschleppt. Dazu braucht das System `fontconfig` und mindestens eine Schrift; die CI
+installiert `libfontconfig1` und `fonts-dejavu-core`.
+
+> **Die Voraussage ist eingetreten** (§4.9): Das Paket steht seit Phase 3 ein zweites Mal in
+> `src/GonkNote.Avalonia`, aus demselben Grund und mit derselben Begründung. Es deckt dort
+> den **Renderer** ab (`WbRenderer` benutzt SkiaSharp direkt); was Avalonia selbst zeichnet,
+> bringt Avalonia mit.
 
 ---
 
@@ -658,6 +691,100 @@ Schreibvorgängen). Die Kopie ist gelöscht, die echte Datenbank wurde nie geöf
 
 ---
 
+### 4.9 Phase 3, erster Brocken — die Avalonia-Shell steht
+
+Umgesetzt am 2026-08-03, **unter Windows** (§5b). Der Rest von Phase 3 — vor allem die
+Zeichenfläche — steht noch aus; die Häkchen stehen in §6.
+
+#### Was der Kopf kann, und was ausdrücklich nicht
+
+| Kann | Kann nicht |
+|---|---|
+| Start, Datenbank öffnen, Altdatenbank übertragen | **Zeichenfläche** — ein geöffnetes Dokument zeigt einen Hinweis (`Tab.NoCanvasYet`) |
+| Ordnerbaum mit Farben, Favoritensternen, Schnellzugriff | Drag & Drop im Baum |
+| Galerie mit Cover-Bildern, Kacheln je Dokumentart, Pfadleiste | Import und Export (`AvaloniaDocumentIo` wirft — §4.1) |
+| Anlegen, Umbenennen, Löschen, Kontextmenüs | Texterkennung (`NoOcrEngine`), Rechtschreibung (`AlwaysSupportedSpellChecker`) |
+| Theme hell/dunkel, Sprache de/en zur Laufzeit | „Hilfe → Erste Schritte" und das gerenderte README im Über-Dialog (`EmbeddedDocs` hängt an `FlowDocument`) |
+| Über-Dialog mit Versionszeile und Datenordner | die einblendbare Titelleiste des maximierten Fensters |
+
+**Es sind bewusst Rückfälle aus Core und keine halben Eigenbauten.** `NoOcrEngine` meldet
+ehrlich „nicht verfügbar", statt einen leeren Text zu liefern, der von „nichts erkannt"
+nicht zu unterscheiden wäre; `AvaloniaDocumentIo` liefert **leere** Formatlisten, damit gar
+nicht erst ein Dateidialog ohne Formate aufgeht.
+
+#### Die Farbtabelle — die Entscheidung, die hier fiel
+
+**Nutzer-Entscheidung 2026-08-03: alle zwanzig Farben, das gezeichnete Blatt inbegriffen.**
+Der WPF-Kopf hat sein Theme als Paar fest verdrahteter `ResourceDictionary`-Dateien. Noch
+ein zweites solches Paar hätte den vorgemerkten Wunsch „eigene Farbschemata" (§6) zu einem
+Umbau gemacht statt zu einer Zutat.
+
+- `Core/Theming/ThemeColor` — 20 benannte Farben: 15 für die Oberfläche, **5 für das
+  gezeichnete Blatt** (`CanvasBg`, `PageBg`, `PageLine`, `PageGridDot`, `DefaultInk`).
+  Die Reihenfolge ist Teil des Formats; **neue Farben nur hinten anhängen.**
+- `HexColor` — `#RGB`, `#RRGGBB`, `#AARRGGBB`; `TryParse` statt Ausnahme, weil der häufigste
+  Aufrufer ein Konverter an einer Bindung ist.
+- `Themes.Light` / `Themes.Dark` — die mitgelieferten Tabellen, **wörtlich dieselben Werte**
+  wie in `src/GonkNote.Wpf/Themes/*.xaml`. Die Farben der App haben sich mit Phase 3 nicht
+  geändert.
+- `ThemeDefinition.Over(...)` — legt eine unvollständige Tabelle über eine vollständige.
+  Das ist der Weg, auf dem später eine Theme-Datei mit drei Farben genügt.
+
+**Der WPF-Kopf wurde nicht umgestellt.** Er liest weiter sein `ResourceDictionary` — ihn
+anzufassen wäre ein Umbau ohne Gegenwert und stünde der Regel „der WPF-Kopf verhält sich
+unverändert" entgegen. **Damit stehen dieselben zwanzig Farben an zwei Stellen**, und genau
+dafür gibt es `FarbtabelleTests` im WPF-Testprojekt: er liest die beiden XAML-Dateien als
+reines XML und vergleicht sie Zeile für Zeile mit der Tabelle — in beide Richtungen, also
+auch „steht in der XAML eine Farbe, die die Tabelle nicht kennt?".
+
+`AvaloniaThemeHost` baut daraus zur Laufzeit ein `ResourceDictionary` (`Brush.X` **und**
+`Color.X` je Eintrag) und setzt zusätzlich `RequestedThemeVariant`, damit auch Avalonias
+mitgelieferte Steuerelemente mitwechseln.
+
+#### Die drei Stellen, an denen Avalonia nicht wie WPF ist
+
+Sie sind der eigentliche Inhalt dieses Brockens — alles andere war Abschreiben.
+
+1. **Synchron gegen asynchron** (`Platform/Modal.cs`). `Core/Platform/` ist durchgehend
+   synchron, weil es gegen WPF entstanden ist: `MessageBox.Show` blockiert,
+   `OpenFileDialog.ShowDialog` blockiert. Avalonia hat für beides nur `Task`-Fassungen. Die
+   Schnittstelle auf `async` umzustellen wäre ein Eingriff in Core, in die ViewModels **und**
+   in den WPF-Kopf gewesen. Stattdessen ein **verschachtelter Nachrichtenlauf**
+   (`Dispatcher.PushFrame`) — dasselbe, was WPF für modale Dialoge von sich aus tut.
+2. **Keine MessageBox.** Avalonia bringt keine mit; `Views/MessageWindow` ist der Ersatz.
+   Nebenwirkung: die Knopfbeschriftungen sind zum ersten Mal **unsere** (neue Loc-Schlüssel
+   `Dlg.Yes`/`Dlg.No`, beide Tabellen) — unter Windows liefert die MessageBox sie in der
+   Sprache des *Systems*, nicht in der der App.
+3. **Keine Icon-Schrift.** Der WPF-Kopf zeichnet die meisten Symbole mit Zeichen aus „Segoe
+   Fluent Icons". Die Schrift gehört zu Windows, lässt sich nicht mitliefern und existiert
+   unter Linux nicht — jedes Symbol wäre ein leeres Kästchen. Der Avalonia-Kopf benutzt
+   deshalb **Vektorformen** (`Themes/Styles.axaml`), so wie es derselbe WPF-Kopf schon dort
+   tut, wo die Schrift nichts Passendes hat (`Icon.Whiteboard` und Nachbarn).
+   `TreeItemViewModel.IconGlyph` bleibt unberührt — das ist die Antwort des Windows-Kopfs
+   auf dieselbe Frage.
+
+Dazu kommt die Übersetzung, die zwei Anläufe gebraucht hat — sie steht in §7
+(„Übersetzung im Linux-Kopf"), weil sie eine Falle ist und keine Entscheidung.
+
+#### Am laufenden Programm geprüft (Dauerregel 1 und 4)
+
+Mit einer **Kopie** der echten Datenbank samt Blob-Ordner, in **beiden** Sprachen und
+**beiden** Themes:
+
+- **Avalonia-Kopf:** Baum mit 9 verschiedenen Ordnerfarben und Favoritensternen,
+  Schnellzugriff, Galerie mit Cover-Bild aus dem Blob-Speicher, Whiteboard-Kachel mit
+  Punktraster, Textdokument-Kachel; Pfadleiste über drei Ebenen; Anlegen, Umbenennen
+  (Enter/Escape), Löschen mit Rückfrage über `MessageWindow`; Kontextmenü in Baum **und**
+  Galerie-Kachel; Sprachwechsel DE↔EN zur Laufzeit **mehrfach und über einen erzwungenen
+  Sammellauf hinweg** (dazu §7); Theme-Wechsel hell↔dunkel; Über-Dialog mit
+  „Version 0.3.0 · Portierung, Phase 3" bzw. „Port, phase 3".
+- **WPF-Kopf an derselben Kopie:** unverändert — Baum, Galerie, Über-Dialog mit dem
+  gerenderten README, Notizbuch mit Cover und Titeltext über den SkiaSharp-Renderer.
+- **Die echte Datenbank blieb unangetastet** (SHA-256 vorher und nachher identisch), die
+  Kopie ist gelöscht.
+
+---
+
 ## 5. Entscheidungen
 
 **Getroffen, alle umgesetzt:**
@@ -678,28 +805,31 @@ Schreibvorgängen). Die Kopie ist gelöscht, die echte Datenbank wurde nie geöf
 | Wann migriert wird | **Automatisch und still beim ersten Start** (§4.8). Entschieden 2026-08-02 |
 | Was mit `gonknote.db` passiert | **Unangetastet liegen lassen** — nie beschrieben, nie umbenannt, nie gelöscht (§4.8). Entschieden 2026-08-02 |
 | SQLite-Schema | **Ein JSON-Dokument je Zeile**, kein relationales Schema für Seiten und Elemente (§4.8). Entschieden 2026-08-02 |
+| Wo Phase 3 entwickelt wird | **Unter Windows**, nicht auf dem Laptop — `Avalonia.Desktop` läuft dort auch, und nur so lassen sich beide Köpfe nebeneinander vergleichen und die Werkzeuge in `tools\` benutzen (§5b). Entschieden 2026-08-03 |
+| Avalonia-Fassung | **12.1.1** — genau die, mit der der Stylus-Prototyp gemessen hat (§5a). Damit ist die offene Frage aus §4.3 beantwortet: Avalonia 12 trägt `net10.0`. Entschieden 2026-08-03 |
+| Woher die Avalonia-Farben kommen | **Aus einer Farbtabelle in Core, alle zwanzig — das gezeichnete Blatt inbegriffen** (§4.9). Damit ist auch die erste der drei Fragen aus §6 beantwortet. Entschieden 2026-08-03 |
+| Versionsnummer | **0.3.0**, weil der Persistenz-Umbau das Dateiformat betrifft; `About.Version` in beiden Tabellen auf Phase 3 nachgezogen. Entschieden 2026-08-03 |
 
 **Noch offen:**
 
-1. **Wann auf den CachyOS-Laptop wechseln?** Siehe §5b — kurze Antwort: für den
-   Stylus-Prototyp jetzt, für die eigentliche Arbeit erst zu Phase 3.
-2. **Zweites Stylus-Gerät** (MPP und/oder EMR) — der einzige Punkt mit echtem Restrisiko,
+1. **Zweites Stylus-Gerät** (MPP und/oder EMR) — der einzige Punkt mit echtem Restrisiko,
    siehe §5a „Offen". Die Anforderung „läuft mit jedem Stylus" ist bis dahin unbeantwortet.
-3. **Eigene Farbschemata** (Nutzerwunsch 2026-08-02) — machbar und vorgemerkt in §6. Offen
-   sind dort drei Fragen, vor allem: soll ein Theme nur die Oberfläche färben oder auch die
-   **gezeichnete Seite**? Zu klären, bevor Phase 3 die Avalonia-Farben anlegt.
-4. **Versionsnummer auf 0.3.0 anheben?** Der Persistenz-Umbau (§4.8) ist die erste Änderung
-   seit 0.2.0, die das **Dateiformat** betrifft — dafür wäre eine neue Minor-Version die
-   übliche Ansage. `Directory.Build.props` steht weiter auf `0.2.0`, und die Dokumente
-   formulieren deshalb „bis einschließlich Version 0.2.0" statt „seit 0.3.0". Wer die
-   Nummer anhebt, zieht **`About.Version` in beiden Loc-Tabellen** mit nach (§4.5,
-   Dauerregel 1) — dort steht auch die Portierungsphase, die mit Phase 3 ohnehin fällig wird.
-5. **Beschreiben die vier mitgelieferten Dokumente V1 oder V2?** In `ERSTE-SCHRITTE.md` und
+   **Er wird mit dem nächsten Brocken (Zeichenfläche) akut**, nicht vorher.
+2. **Eigene Farbschemata** (Nutzerwunsch 2026-08-02) — vorgemerkt in §6. Die wichtigste der
+   drei Fragen ist mit §4.9 beantwortet (die Tabelle umfasst auch das Papier); offen bleiben
+   die beiden kleineren: Verhalten bei einer unvollständigen Datei und der Menüaufbau.
+3. **Beschreiben die vier mitgelieferten Dokumente V1 oder V2?** In `ERSTE-SCHRITTE.md` und
    `GETTING-STARTED.md` steht weiterhin `git clone …/gonk-note.git` — das ist das
    **V1**-Repo. Solange V2 privat und nicht veröffentlicht ist, schadet das niemandem; vor
    dem Öffentlich-Schalten (§6) muss es entschieden werden. Framework- und
    Ausgabepfad-Angaben sind am 2026-08-02 auf `net10.0` nachgezogen worden, der Klon-Befehl
-   bewusst nicht — das ist eine inhaltliche Frage, keine technische.
+   bewusst nicht — das ist eine inhaltliche Frage, keine technische. **Am 2026-08-03 erneut
+   vorgelegt und erneut zurückgestellt.**
+4. **Wann beschreiben die Dokumente auch den Linux-Kopf?** Neu seit §4.9: die vier
+   mitgelieferten Dokumente sprechen durchgehend von Windows („Notiz-App für Windows 11",
+   `%APPDATA%`). Das bleibt richtig, solange der Linux-Kopf keine Zeichenfläche hat — mit
+   Meilenstein **M1** wird es falsch. Dann sind **beide Paare** nachzuziehen (Dauerregel 1),
+   und `EmbeddedDocs` braucht vorher ein Gegenstück im Avalonia-Kopf (§4.9, „Kann nicht").
 
 ---
 
@@ -851,9 +981,24 @@ ob die Zeichenfläche später `SKCanvasView` benutzt.
 
 ## 5b. Wann und wie auf den CachyOS-Laptop wechseln
 
-**Kurz: noch nicht umziehen.** Bis einschließlich Phase 2 wird unter Windows entwickelt — die
-App muss dort nach jedem Schritt noch starten, und der Linux-Kopf existiert noch gar nicht.
-Der Laptop hat aber ab sofort zwei Aufgaben.
+**Kurz: noch nicht umziehen — auch nicht in Phase 3.** Entwickelt wird unter Windows; der
+Laptop ist Pflicht für alles, was am **Stift** und an **Linux-Pfaden** hängt.
+
+> **Diese Antwort hat sich am 2026-08-03 geändert.** Bis dahin stand hier „ab Phase 3 wird
+> der Laptop der Hauptarbeitsplatz". Das war geschrieben, bevor klar war, dass
+> **`Avalonia.Desktop` auch unter Windows läuft** — derselbe Kopf, dieselbe `net10.0`-Datei,
+> nur ein anderes Backend. Unter Windows entwickeln hat zwei Vorteile, die schwer wiegen:
+> die Fernsteuer-Werkzeuge in `tools\` funktionieren (und ohne sie lässt sich Dauerregel 4
+> kaum einhalten), und **WPF- und Avalonia-Kopf lassen sich an derselben Datenbank-Kopie
+> direkt nebeneinander vergleichen**. Genau das hat in §4.9 die Unterschiede gefunden.
+>
+> **Was der Laptop trotzdem beantworten muss** — und nur er:
+> Druck und Neigung des Stifts, Handballenabweisung, `~/.config/GonkNote` als Datenordner,
+> `SkiaSharp.NativeAssets.Linux` samt fontconfig zur Laufzeit, und wie die
+> Rückfallschrift des Renderers dort wirklich aussieht. **Der nächste Brocken
+> (Zeichenfläche) hängt an allen fünf Punkten.**
+
+Der Laptop hat daneben die Aufgaben aus dem Stylus-Prototyp.
 
 **Jetzt (parallel, hängt an nichts):** der Stylus-Prototyp aus §5a.
 
@@ -919,11 +1064,23 @@ Lokal bauen geht wie bisher:
 dotnet build src/GonkNote.Core          # muss auf Linux durchlaufen — das ist Meilenstein M0
 ```
 
-`GonkNote.Wpf` lässt sich dort **nicht** bauen (`net10.0-windows10.0.19041.0`) — das ist so gewollt und
-kein Fehler. Die Solution als Ganzes deshalb unter Linux nicht anfassen, nur das Core-Projekt.
+**Seit Phase 3 gibt es dort auch etwas zu starten:**
 
-**Ab Phase 3** wird der Laptop der Hauptarbeitsplatz für `src/GonkNote.Avalonia`. Der Wechsel
-kostet dann nichts weiter als `git pull` — genau dafür ist der Remote da.
+```bash
+sudo pacman -S fontconfig ttf-dejavu                  # falls noch nicht geschehen
+dotnet build src/GonkNote.Avalonia                    # muss durchlaufen
+dotnet run --project src/GonkNote.Avalonia -- --db ~/gonk-probe.sqlite
+```
+
+**Nie ohne `--db` starten, solange geprüft wird.** Der Datenordner ist unter Linux
+`~/.config/GonkNote` — dort liegen (noch) keine Bestandsdaten, aber die Regel ist dieselbe
+wie unter Windows (Dauerregel 4).
+
+`GonkNote.Wpf` lässt sich dort **nicht** bauen (`net10.0-windows10.0.19041.0`) — das ist so gewollt und
+kein Fehler. Die Solution als Ganzes deshalb unter Linux nicht anfassen, sondern
+projektbezogen bauen, genau wie die CI es tut.
+
+Der Wechsel kostet nichts weiter als `git pull` — genau dafür ist der Remote da.
 
 ---
 
@@ -1018,11 +1175,38 @@ Roundtrip- zum **Migrations**-Wächter geworden (drei neue Tests, §4.8).
 **Meilenstein M0 ist vollständig:** `Core`, `ViewModels` **und** `Legacy` bauen auf Linux
 (alle `net10.0`), Windows verhält sich unverändert.
 
+### Läuft: Phase 3 — Avalonia-Shell für Linux
+
+Erster Brocken umgesetzt am 2026-08-03 unter Windows (§4.9, §5b).
+
+- [x] 1. `src/GonkNote.Avalonia` angelegt (`net10.0`, Avalonia 12.1.1), in der `.slnx`,
+      im Linux-Lauf der CI
+- [x] 2. `AvaloniaPlatformServices` — alle **zwölf** Schnittstellen aus `Core/Platform/`.
+      Drei davon sind die vorhandenen Rückfälle (`NoOcrEngine`,
+      `AlwaysSupportedSpellChecker`, leeres `IDocumentIo`) und ausdrücklich so benannt
+- [x] 3. **Farbtabelle in Core** (`Core/Theming/`) statt eines zweiten Paars fest
+      verdrahteter Theme-Dateien — die Entscheidung, die laut §6 jetzt fallen musste.
+      Wächter `FarbtabelleTests` hält beide Fassungen zusammen
+- [x] 4. Start mit `--db` **und `ILegacyDatabaseReader`**; Ordnerbaum und Galerie aus
+      demselben `MainViewModel` wie der WPF-Kopf, kein zweites
+- [ ] 5. **Zeichenfläche** — Notizbuch und Whiteboard. **Der nächste Brocken, und der
+      größte.** Braucht den Laptop (§5b): Druck, Neigung, Handballenabweisung,
+      `GetIntermediatePoints()` (§5a). Ob `SKCanvasView` oder Avalonias `DrawingContext`,
+      ist bewusst noch nicht entschieden (§5a, „Abweichung vom geplanten Aufbau")
+- [ ] 6. Drag & Drop im Baum, einblendbare Titelleiste, Einstellungen-Seitenleiste
+- [ ] 7. `EmbeddedDocs`-Gegenstück, damit „Hilfe → Erste Schritte" und das gerenderte
+      README auch im Linux-Kopf erscheinen (hängt an §4.1)
+
+> **Für Brocken 5 vorher lesen:** §5a (Messergebnis und was daraus für den Eingabepfad
+> folgt), §7 „SkiaSharp" (die zwei Abstürze, die ein grüner Build nicht gefunden hat) und
+> die 14 Partials von `WhiteboardView` im WPF-Kopf — **nicht als Vorbild für den Aufbau**,
+> sondern als Liste dessen, was es alles gibt.
+
 ### Der Rest (Roadmap §5)
 
 | Phase | Inhalt | Aufwand | Ziel |
 |---|---|---|---|
-| 3 | Avalonia-Shell für Linux | 6–8 W. | **M1** — Notizbuch + Whiteboard laufen unter Linux, Textdokumente ausgegraut |
+| 3 | Avalonia-Shell für Linux — *Shell steht, Zeichenfläche offen* | 6–8 W. | **M1** — Notizbuch + Whiteboard laufen unter Linux, Textdokumente ausgegraut |
 | 4 | Eigene Dokument-Engine in `Core/Text/` | 8–12 W. | **M2** — Funktionsgleichheit Linux ↔ Windows |
 | 5 | iPadOS-Head, Apple Pencil, PDFKit/Vision, AOT-Härtung | 6–10 W. | **M3** — TestFlight-Build |
 | 6 | Flatpak/AppImage, App Store | 2–4 W. | Veröffentlichung |
@@ -1072,22 +1256,29 @@ WPF über `XamlReader.Load` — und wäre aus drei Gründen die falsche Entschei
 wegen der Reihenfolge — heute gäbe es eine WPF-Fassung, die Phase 3 sofort noch einmal bauen
 müsste.
 
-> **Die eine Entscheidung, die trotzdem jetzt fällt:** Wenn Phase 3 die Avalonia-Farben
-> anlegt, sollen sie **aus einer Farbtabelle** kommen und nicht als zweites Paar fest
-> verdrahteter Dateien. Das kostet in Phase 3 fast nichts und macht das Theme-Laden danach
-> zu einer Zutat statt zu einem Umbau. Wird es dort versäumt, ist der Nachbau der teure Teil.
+> **✅ Die eine Entscheidung, die jetzt fallen musste, ist gefallen** (2026-08-03, §4.9):
+> die Avalonia-Farben kommen **aus einer Farbtabelle** (`Core/Theming/`) und nicht als
+> zweites Paar fest verdrahteter Dateien. Der teure Nachbau ist damit vermieden — was noch
+> fehlt, ist das **Laden** einer Datei, und das ist jetzt wirklich nur noch eine Zutat.
 
 **Vor der Umsetzung zu klären:**
 
-1. **Reicht die Chrome, oder auch das Papier?** Fünf der zwanzig Farben (`Color.PageBg`,
-   `Color.PageLine`, `Color.PageGridDot`, `Color.CanvasBg`, `Color.DefaultInk`) betreffen die
-   **gezeichnete Seite**, nicht die Oberfläche. Ein Theme, das sie mit ändert, ändert das
-   Aussehen von Notizbüchern — auch im Export. Das ist eine inhaltliche Entscheidung, keine
-   technische.
+1. ~~**Reicht die Chrome, oder auch das Papier?**~~ **Entschieden am 2026-08-03: auch das
+   Papier.** Die Tabelle in Core umfasst alle zwanzig Farben, `CanvasBg`, `PageBg`,
+   `PageLine`, `PageGridDot` und `DefaultInk` inbegriffen. Ein Theme *kann* damit das
+   Aussehen von Notizbüchern ändern — ob ein einzelnes es *tut*, ist danach eine reine
+   Datenfrage. **Das heißt auch: es kann den Export verändern.** Wer eigene Themes
+   ausliefert, sollte das im Blick behalten.
 2. **Was passiert bei einer unvollständigen Datei?** Vorschlag: fehlende Schlüssel still aus
    Hell/Dunkel ergänzen, statt die Datei abzulehnen — dann genügt eine Datei mit drei Farben.
+   **Der Mechanismus steht bereits**: `ThemeDefinition.Over(...)`, Wächter
+   `Eine_unvollstaendige_Tabelle_wird_still_ergaenzt`. Offen ist nur, ob es so gewollt ist.
 3. **Menü:** „Ansicht → Design wechseln" wird zu einem Untermenü (Hell / Dunkel / eigene /
    „Eigenes laden…"). Neue `Loc`-Schlüssel in **beiden** Tabellen (Dauerregel 1).
+4. **Neu:** Ein geladenes Theme muss sagen, ob es **hell oder dunkel** ist
+   (`ThemeDefinition.Variant`). Das ist keine Farbe, sondern eine Auskunft — `WbRenderer`
+   und die Titelleiste unter Windows brauchen sie. In der JSON-Datei also ein eigenes Feld,
+   und kein Ratespiel über die Helligkeit von `PageBg`.
 
 **Nicht vergessen:** Das ist ein **neuer Wunsch**, keine Vorgabe aus
 `gonk-note-port-RM.MD`. Wer die Roadmap-Datei auf dem Desktop pflegt, sollte ihn dort
@@ -1183,8 +1374,10 @@ weil sie bei der Portierung direkt zuschlagen:
 - **Ein Kopf, der den `ILegacyDatabaseReader` vergisst, legt keine leere Datenbank an** — er
   bekommt eine `InvalidOperationException`. Das ist Absicht: eine leere Datenbank neben
   vollen Bestandsdaten ist für den Nutzer von Datenverlust nicht zu unterscheiden. Wächter:
-  `Ohne_Leser_wird_nicht_stillschweigend_neu_angefangen`. **Für Phase 3 heißt das:** der
-  Avalonia-Kopf muss ihn genauso übergeben wie `App.OnStartup` es tut.
+  `Ohne_Leser_wird_nicht_stillschweigend_neu_angefangen`. **Seit Phase 3 übergibt ihn auch
+  der Avalonia-Kopf** (`App.OnFrameworkInitializationCompleted`) — der Compiler hätte es
+  nicht angemahnt, es ist ein *optionaler* Parameter. Für den iPadOS-Kopf gilt das
+  ausdrücklich **nicht**: dort gab es nie eine LiteDB-Datei.
 - **Ein Paket kann eine Sicherheitslücke mitziehen, die man nicht selbst anheben kann.**
   `Microsoft.Data.Sqlite` 10.0.10 bringt `SQLitePCLRaw…lib.e_sqlite3` **2.1.11** mit — mit
   einem bekannten Fund (NU1903). Behoben über
@@ -1211,6 +1404,9 @@ weil sie bei der Portierung direkt zuschlagen:
   `assembly=`-Angabe, zeigt also immer auf die *lokale* Assembly. Deshalb ist `TExtension` im
   WPF-Projekt geblieben und behält den Namensraum `GonkNote.Services`, obwohl `Loc` jetzt in
   Core liegt. Wer den Namensraum von `Loc` ändert, muss alle 13 Dateien mitziehen.
+  **Seit Phase 3 gibt es `TExtension` zweimal** — einmal je Kopf, mit demselben Namensraum,
+  weil `MarkupExtension` und `Binding` in WPF und Avalonia gleich heißen und verschiedene
+  Typen sind. Genau dafür wurde die Klasse in Phase 0 aus `Loc.cs` herausgetrennt.
 - **`git mv` statt `Copy-Item`** — sonst ist `git blame` über die Umstrukturierung hinweg weg.
   Gegenprobe: `git log --follow <pfad>`.
 - **`git mv Assets assets` schlägt auf NTFS fehl** (Groß-/Kleinschreibung). `Assets/`, `Docs/`
@@ -1320,6 +1516,69 @@ weil sie bei der Portierung direkt zuschlagen:
   `PdfImporter.StreamPages` aus dem **echten** Core. **Seit Phase 1 steht das als Test**
   (`ExportFixtureTests.Whiteboard_PDF_…`) und nicht mehr als Konsolenprogramm in `%TEMP%`.
 
+**Neu aus Phase 3 — der Avalonia-Kopf**
+
+- **`AvaloniaXamlLoader.Load(this)` füllt die `x:Name`-Felder nicht.** Beide bauen den
+  Oberflächenbaum auf, aber nur das erzeugte `InitializeComponent()` weist danach die
+  Felder zu. Mit dem Lader direkt bleibt **jedes** davon `null`, und der erste Zugriff wirft
+  eine `NullReferenceException` an einer Stelle, die mit der Ursache nichts zu tun hat — hier
+  war es eine Zeile, die nur einen Menühaken setzt. **Merksatz: im Code-Behind immer
+  `InitializeComponent()`.** (Die Vorlage von `dotnet new avalonia.app` benutzt an einer
+  Stelle den Lader — das gilt für die `Application`, die keine benannten Felder hat.)
+- **Avalonia hält die Quelle einer Bindung nicht am Leben — das ist die teuerste Lektion
+  dieses Brockens.** Der erste Anlauf für `{loc:T …}` legte je Bindung einen Träger an und
+  hielt ihn *schwach*, damit nichts festhängt. Es funktionierte — bis zum ersten
+  vollständigen Sammellauf. Den erzwingt `MainViewModel.ReleaseMemory` beim Schließen jeder
+  Registerkarte; danach waren alle Träger weg, und der nächste Sprachwechsel erreichte nur
+  noch die Texte, die der Code selbst schreibt. **Das Fehlerbild war eine halb übersetzte
+  Oberfläche** — Pfadleiste und Datumsangaben deutsch, Menüleiste englisch — und es trat
+  erst beim *zweiten* Wechsel auf. Behoben über **einen Träger je Schlüssel**, stark
+  gehalten (`Services/Localization/LocText.cs`): die Zahl der Übersetzungsschlüssel ist
+  begrenzt, die Zahl der Bindungen nicht.
+- **Übersetzung im Linux-Kopf: Avalonia frischt eine Indexer-Bindung nicht auf.** Der
+  WPF-Kopf bindet auf `Loc.Source["Schlüssel"]` und bekommt beim Sprachwechsel ein
+  `PropertyChanged` mit **leerem Namen** — WPF versteht das als „alle Eigenschaften neu
+  lesen" und wertet auch Indexer neu aus. Avalonia tut das nicht: `Loc.Current` war
+  umgestellt, der Haken im Sprachmenü sprang, und **jeder** Text blieb stehen. Deshalb
+  bindet der Avalonia-`TExtension` auf eine ganz gewöhnliche Eigenschaft (`LocText.Value`)
+  und nicht auf einen Indexer. **`LocSource` in Core ist bewusst unverändert geblieben** —
+  die Zusage „leerer Name = alles" ist eine WPF-Zusage.
+- **Der Avalonia-Kopf zeigt unter Windows auf denselben Datenordner wie der WPF-Kopf**
+  (`%APPDATA%\GonkNote`). Das ist Absicht — es ist dieselbe App mit denselben Daten, und nur
+  so lassen sich beide Köpfe vergleichen. **Zum Prüfen deshalb immer `--db` mit einer
+  Kopie**, sonst greift ein Testlauf auf den echten Bestand zu (Dauerregel 4).
+- **`Core/Platform/` ist synchron, Avalonia ist es nicht.** Jeder Dialog läuft über
+  `Platform/Modal.cs` und einen verschachtelten Nachrichtenlauf (`Dispatcher.PushFrame`).
+  **Nur vom Oberflächen-Faden aufrufen und nur für etwas, worauf der Nutzer ohnehin
+  wartet.** Wer ihn um eine lange Rechnung legt, bekommt Wiedereintritt an einer Stelle, an
+  der niemand damit rechnet.
+- **`IClipboard.HasImage` kodiert im Avalonia-Kopf wirklich.** Unter Windows sieht
+  `Clipboard.ContainsImage()` nur nach; Avalonia hat kein „enthält" ohne „hol es". Heute
+  folgenlos (die Abfrage entscheidet über einen ausgegrauten Menüeintrag) — wer sie künftig
+  in einer Schleife aufruft, sollte es wissen.
+- **`ApplicationIcon` und `ApplicationManifest` sind Windows-Artefakte.** Beide stehen in
+  `GonkNote.Avalonia.csproj` unter einer OS-Bedingung, damit der Linux-Lauf der CI nicht an
+  einer Windows-Eigenheit hängen bleibt.
+- **Die Icon-Schrift gibt es unter Linux nicht.** „Segoe Fluent Icons" gehört zu Windows und
+  lässt sich nicht mitliefern. Wer im Avalonia-Kopf ein Symbol braucht, legt eine
+  **Vektorform** in `Themes/Styles.axaml` an (16×16, gestrichen) — `IconGlyph` aus dem
+  ViewModel ist die Antwort des *Windows*-Kopfs und bleibt dort.
+- **`DrawingBrush` hat in Avalonia keine Inhaltseigenschaft.** `<DrawingBrush><GeometryDrawing/></DrawingBrush>`
+  scheitert mit `AVLN2000: Internal compiler error: Index was out of range` — eine Meldung,
+  die auf alles Mögliche hindeutet, nur nicht auf die Ursache. Es braucht ausdrücklich
+  `<DrawingBrush.Drawing>`.
+
+**Neu aus Phase 3 — die Farbtabelle**
+
+- **Die Reihenfolge in `ThemeColor` ist Teil des Formats.** `ThemeDefinition` legt die Werte
+  in einem Feld dieser Länge ab und greift über `(int)` darauf zu. **Neue Farben nur hinten
+  anhängen** — wer eine dazwischenschiebt, verschiebt alle folgenden Werte gespeicherter
+  Tabellen.
+- **Dieselben zwanzig Farben stehen an zwei Stellen** (Core-Tabelle und die beiden
+  WPF-`ResourceDictionary`-Dateien), weil der WPF-Kopf bewusst nicht umgestellt wurde.
+  `FarbtabelleTests` hält sie zusammen — **in beide Richtungen**. Wer eine Farbe ändert,
+  ändert beide Stellen oder bekommt einen roten Lauf.
+
 **Neu aus Phase 2 — Fernsteuern**
 
 - **`SetForegroundWindow` schließt jedes offene Menü.** Ein Skript, das je Klick erst das
@@ -1335,6 +1594,28 @@ weil sie bei der Portierung direkt zuschlagen:
   meistens aktiv. Auf einer **Kopie** ist das folgenlos, auf der echten Datenbank wäre es
   ein Datenverlust. Das ist der praktische Grund für Dauerregel 4, nicht nur der
   theoretische.
+- **Ein Doppelklick auf eine Galerie-Kachel malt einen Punkt in die Zeichenfläche**, wenn
+  das Dokument schneller aufgeht als der zweite Klick kommt. Über den Baum öffnen ist
+  sicherer.
+
+**Neu aus Phase 3 — Fernsteuern des Avalonia-Kopfs**
+
+- **Avalonias Menüs und Flyouts sind eigene Fenster.** Sie liegen außerhalb von
+  `GetWindowRect` des Hauptfensters und fehlen auf einer Fensteraufnahme **vollständig** —
+  man sieht das geschlossene Fenster und hält das Menü fälschlich für nicht geöffnet. Dafür
+  gibt es seit Phase 3 den Schalter **`-Voll`** an `kette.ps1`: er nimmt den ganzen
+  Bildschirm auf. **Für jeden Menüpfad im Avalonia-Kopf Pflicht.** Der WPF-Kopf zeichnet
+  seine Menüs in denselben Fensterbereich; dort fällt es nicht auf.
+- **Ein offen gelassenes Menü rächt sich im nächsten Lauf.** `SetForegroundWindow` schließt
+  das Popup, Avalonias Menü hält seinen Zustand aber noch — der nächste Klick auf die
+  Menüleiste *schließt* dann, statt zu öffnen, und alle folgenden Schritte der Kette landen
+  auf dem, was darunter liegt. In dieser Runde ist so ein Textdokument entstanden.
+  **Gegenmittel: jede Kette mit `'#{ESC}'` beginnen.**
+- **Fensterkoordinaten sind nicht Bildschirmkoordinaten.** Ein maximiertes Fenster ragt um
+  die Rahmenbreite über den Bildschirm hinaus (hier ~13 px). Wer auf einer Fensteraufnahme
+  misst und auf dem Bildschirm klickt, liegt um diesen Betrag daneben — bei einem großen
+  Knopf egal, bei einem Menüeintrag nicht. **Mit `-Voll` gemessen stimmen beide überein.**
+- **Beide Köpfe fotografieren:** `schau.ps1 -Kopf avalonia|wpf -Konfig Debug|Release`.
 
 **Markdown-Export — `Hyperlink` erbt von `Span`**
 
@@ -1380,14 +1661,18 @@ cd C:\Dev\Zed\gonk-note-V2
 dotnet build -c Release      # 0 Fehler / 0 Warnungen
 dotnet build -c Debug        # schneller, ohne Self-Contained/win-x64
 
-dotnet test -c Release       # beide Testprojekte, 90 Tests
+dotnet test -c Release       # beide Testprojekte, 113 Tests
 
 # Golden-Files bewusst neu setzen (danach den Diff lesen, siehe §4.6)
 $env:GONK_SNAPSHOT_UPDATE=1; dotnet test tests\GonkNote.Core.Tests; $env:GONK_SNAPSHOT_UPDATE=$null
 $env:GONK_GOLDEN_UPDATE=1;   dotnet test tests\GonkNote.Wpf.Tests;  $env:GONK_GOLDEN_UPDATE=$null
 
-# Testinstanz mit Wegwerf-DB
+# Testinstanz mit Wegwerf-DB -- Windows-Kopf
 .\src\GonkNote.Wpf\bin\Release\net10.0-windows10.0.19041.0\win-x64\GonkNote.exe --db "$env:TEMP\x.db"
+
+# ... und der Linux-Kopf, der unter Windows genauso laeuft (seit Phase 3, §4.9/§5b).
+# net10.0 ohne Plattform-Anhaengsel und ohne RID: nicht self-contained.
+.\src\GonkNote.Avalonia\bin\Release\net10.0\GonkNote.Avalonia.exe --db "$env:TEMP\x.sqlite"
 
 # Echte Daten gefahrlos gegentesten: erst kopieren (Dauerregel 4 -- ohne Nachfragen erlaubt).
 # BEIDE Teile, immer: der Blob-Ordner leitet seinen Namen von der Datenbankdatei ab. Ohne ihn
@@ -1415,15 +1700,21 @@ Select-String -Path src\GonkNote.Core\**\*.cs -Pattern "System\.Windows|System\.
 jedes Mal neu getippt:
 
 ```powershell
-.\tools\schau.ps1                                   # startet mit der Kopie, maximiert, fotografiert
-.\tools\kette.ps1 -AppPid <pid> -Schritte '292,45','122,211','521,233'   # Menüpfad
-.\tools\klick.ps1 -AppPid <pid> -X 251 -Y 406 -Doppel 1                  # Einzelschritt
+# Seit Phase 3 wählt -Kopf, welcher der beiden Köpfe startet.
+.\tools\schau.ps1 -Kopf wpf                          # startet mit der Kopie, maximiert, fotografiert
+.\tools\schau.ps1 -Kopf avalonia -Konfig Debug -Db "$env:TEMP\gonk-echt\gonknote.sqlite"
+
+.\tools\kette.ps1 -AppPid <pid> -Schritte '#{ESC}','292,45','122,211' -Voll   # Menüpfad
+.\tools\klick.ps1 -AppPid <pid> -X 251 -Y 406 -Doppel 1                       # Einzelschritt
 ```
 
 Schritte sind `"x,y"`, `"x,y,2"` (Doppelklick), `"x,y,r"` (Rechtsklick) oder `"#TASTEN"`
 (SendKeys). **Koordinaten sind echte Bildschirmpixel** — `SetProcessDPIAware()` steht in
-jedem Skript, der Rechner läuft auf 200 %. Zu den zwei Fallstricken (Fokus schließt Menüs,
-modale Dialoge sind eigene Fenster) siehe §7 „Fernsteuern".
+jedem Skript, der Rechner läuft auf 200 %.
+
+**Beim Avalonia-Kopf zusätzlich `-Voll`** und **jede Kette mit `'#{ESC}'` beginnen**: seine
+Menüs sind eigene Fenster und fehlen sonst auf dem Foto, und ein offen gelassenes Menü läuft
+im nächsten Aufruf gegen die Wand. Zu allen Fallstricken siehe §7 „Fernsteuern".
 
 Der ältere, ausführliche Weg steht im V1-Handoff §7 — inklusive der Stolpersteine
 (Umbenennen-Modus nach dem Anlegen, Bild-hoch/-runter greift im `FlowDocumentScrollViewer`
@@ -1437,6 +1728,7 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 
 | Runde | Datum | Was |
 |---|---|---|
+| V2-10 | 2026-08-03 | **Phase 3, erster Brocken** (§4.9): **`src/GonkNote.Avalonia` steht und läuft** — Avalonia **12.1.1** auf `net10.0` (dieselbe Fassung, mit der §5a gemessen hat), alle **zwölf** Schnittstellen aus `Core/Platform/` umgesetzt, davon drei bewusst als vorhandener Rückfall. Ordnerbaum und Galerie aus **demselben** `MainViewModel` wie der WPF-Kopf. **Farbtabelle in Core** (`Core/Theming/`, 20 Farben **inklusive Papier**) statt eines zweiten Paars fest verdrahteter Theme-Dateien — die Entscheidung, die §6 für diesen Zeitpunkt vorgesehen hatte; Wächter `FarbtabelleTests` hält beide Fassungen zusammen. **Noch keine Zeichenfläche**, das ist der nächste Brocken. Drei Avalonia-Eigenheiten aufgelöst: synchrone Schnittstelle gegen asynchrones Toolkit (`Modal.PushFrame`), keine MessageBox (eigenes `MessageWindow`, neue Schlüssel `Dlg.Yes`/`Dlg.No`), keine Icon-Schrift unter Linux (Vektorformen). **Zwei Übersetzungsfallen am laufenden Programm gefunden** (§7): Avalonia frischt Indexer-Bindungen nicht auf, und es hält die Quelle einer Bindung nicht am Leben — das zweite fiel erst nach einem erzwungenen Sammellauf auf, als halb übersetzte Oberfläche. Version auf **0.3.0**, `About.Version` in beiden Tabellen auf Phase 3. CI baut den Kopf im Linux-Lauf mit; `schau.ps1`/`kette.ps1` um `-Kopf` und `-Voll` erweitert. An einer Kopie der echten Datenbank in **beiden** Sprachen und **beiden** Themes geprüft, WPF-Kopf an derselben Kopie unverändert, echte DB byteweise identisch. Entschieden: **Phase 3 wird unter Windows entwickelt**, nicht auf dem Laptop (§5b) |
 | V2-9 | 2026-08-02 | **Phase 2, Schritte 3+4 — Phase 2 damit fertig** (§4.8): **LiteDB raus aus dem Produktivpfad**, Persistenz über `Microsoft.Data.Sqlite` mit `System.Text.Json`-Source-Generator (`GonkJson`); die `_type`-Namen leben als `[JsonDerivedType]` **wörtlich** weiter. Neues Projekt `src/GonkNote.Legacy/` als einziger Ort mit LiteDB — liest Altdatenbanken **ReadOnly** ein; iOS wird es nie sehen. Migration automatisch beim ersten Start, in eine `.neu`-Datei und erst nach dem Commit umbenannt; die Altdatei bleibt unangetastet. `BlobStore` über `AppPaths.BlobFolder` (Schritt 4), Stamm `gonknote` bewusst unverändert. `AlteTypnamenTests` vom Roundtrip- zum **Migrations**-Wächter (3 neue Tests, jetzt 90). Sicherheitslücke in einem mitgezogenen SQLitePCLRaw über transitives Pinning behoben. An einer Kopie der echten Datenbank **feldweise** verglichen (27 Einträge, 160 Striche / 6308 Punkte, 32 Bilder byteweise gleich) und am laufenden Programm in beiden Sprachen geprüft; Altdatei danach byteweise identisch. Alle vier mitgelieferten Dokumente auf `gonknote.sqlite` nachgezogen (Dauerregel 1) — dort steht die Sicherungsanleitung —, dazu `THIRD-PARTY-NOTICES.md` und die seit V2-3 veralteten `net8.0`-Angaben |
 | V2-8 | 2026-07-31 | **Phase 2, Schritte 1+2** (§4.7): `Core/Platform/` mit zwölf Schnittstellen und `IPlatformServices` als Bündel, WPF-Umsetzungen in `src/GonkNote.Wpf/Platform/`, `ThemeService` → `WpfThemeHost`. **`GonkNote.ViewModels` ist eigene `net10.0`-Assembly** — der Ringschluss aus §4.2 ist weg, `Core` und `ViewModels` sind nachweislich WPF-frei. Bildimport und OCR-Vorbereitung nach `WbImagePrep` in Core gezogen: damit sind die **letzten zwei Lücken aus §4.4 zu** (8 neue Tests, jetzt 87). Zwei Übersetzungsfehler am laufenden Programm gefunden und behoben (§7 „Übersetzung"). In beiden Sprachen mit einer DB-Kopie gegengeprüft, PDF-Export über den PDFium-Rückweg gemessen |
 | V2-7 | 2026-07-30 | Versionszeile im Über-Dialog über `Loc` statt fest verdrahtet — war zweideutig **und** unübersetzt (§4.5), in beiden Sprachen am laufenden Programm geprüft. Dauerregel 4 aufgenommen: Kopie der echten Daten ohne Nachfragen erlaubt, die echte DB bleibt unangetastet. Alles nach GitHub gepusht |

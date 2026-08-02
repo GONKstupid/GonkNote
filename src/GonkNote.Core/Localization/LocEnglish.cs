@@ -423,6 +423,17 @@ internal static class LocEnglish
         ["Dlg.Ok"] = "OK",
         ["Dlg.All"] = "All",
         ["Dlg.None"] = "None",
+        // Gegenstuecke zu Dlg.Yes/Dlg.No in LocGerman (neu in Phase 3, siehe dort).
+        ["Dlg.Yes"] = "Yes",
+        ["Dlg.No"] = "No",
+        // Gegenstueck zu Tab.NoCanvasYet in LocGerman (neu in Phase 3, siehe dort).
+        ["Tab.NoCanvasYet"] =
+            "This document cannot be shown here yet — the Linux canvas is still being built. " +
+            "Its contents are stored unchanged and appear as usual in the Windows edition.",
+        // Gegenstueck zu Io.NotOnThisPlatform in LocGerman (neu in Phase 3, siehe dort).
+        ["Io.NotOnThisPlatform"] =
+            "Importing and exporting are not available on this platform yet. They arrive " +
+            "with the built-in document engine; until then, use the Windows edition.",
         ["Guide.Title"] = "Getting started",
         ["Guide.Heading"] = "Getting started with Gonk Note",
         ["Guide.Subtitle"] = "From your first note to your first backup — step by step.",
@@ -430,7 +441,7 @@ internal static class LocEnglish
         ["About.Subtitle"] = "Offline notes, whiteboards and text documents. Data is stored locally under %APPDATA%\\GonkNote.",
         // {0} = Versionsnummer. Gegenstueck zu About.Version in LocGerman — die Zeile stand
         // bisher fest verdrahtet im Code und erschien deshalb auch im englischen Dialog deutsch.
-        ["About.Version"] = "Version {0} · Port, phase 2",
+        ["About.Version"] = "Version {0} · Port, phase 3",
         // Gegenstueck zu Db.OpenFailed in LocGerman. {0} = Fehlermeldung, {1} = Protokollpfad.
         ["Db.OpenFailed"] =
             "The database could not be opened:\n\n{0}\n\n" +

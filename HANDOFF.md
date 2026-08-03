@@ -962,6 +962,11 @@ sind. Gegen `/tmp/gonk-probe.sqlite`, in hellem **und** dunklem Theme:
 fremdes Steuerelement mitten im Renderdurchlauf, der Tastaturfokus auf dem Rahmen statt auf
 der Fläche, und die Vorgabetinte, die dem App-Theme statt dem Papier folgte.
 
+> **Der Stift selbst ist danach vom Nutzer am Gerät geprüft worden — alles bestanden.**
+> Druck, Neigung und Handballenabweisung, gemessen mit F9 in der laufenden App. Das ist der
+> Teil, den kein Skript liefern kann (XTEST erzeugt keine Stiftereignisse); Einzelheiten
+> stehen in §5a unter „Gegenprobe in der echten App".
+
 ---
 
 ### 4.11 Die Neigung wandert ins Dateiformat
@@ -1024,11 +1029,10 @@ feldweisen Vergleich von `DatenbankRoundtripTests`. Die Neigung im Beispieldokum
 bewusst am **Stift** und nicht am Bleistift: nur der Bleistift wertet sie aus, und ein
 geneigter Bleistift dort verschöbe den Pixelhash `bleistift-koernung`.
 
-> **Was trotzdem offen bleibt:** ob echte Neigung durch den fertigen Eingabepfad kommt, ist
-> auf diesem Laptop **nicht** prüfbar — XTEST erzeugt keine Stiftereignisse (§7 „Fernsteuern
-> unter Wayland"). Der Weg dafür steht: Bleistift wählen, **F9**, einen Strich mit gekipptem
-> Stift ziehen. Die Anzeige nennt die Grad-Zahl, und der Strich muss sichtbar breiter werden
-> als ein senkrecht gezogener.
+> **Am Gerät bestätigt** (2026-08-03, vom Nutzer): ein mit gekipptem Stift gezogener
+> Bleistift-Strich ist sichtbar breiter als ein senkrecht gezogener, und F9 nennt dazu
+> Grad-Zahlen ≠ 0. Das war der einzige Teil dieser Änderung, der sich nicht automatisiert
+> belegen ließ — XTEST erzeugt keine Stiftereignisse (§7 „Fernsteuern unter Wayland").
 
 ---
 
@@ -1249,12 +1253,32 @@ laufenden Programm nachgewiesen:
 im *Prototyp* gemessen; F9 misst in der *App*, also durch den fertigen Eingabepfad hindurch.
 Für ein zweites Gerät ist das der Weg, der eine Minute dauert statt eines Nachmittags.
 
+#### Gegenprobe in der echten App (2026-08-03, vom Nutzer am Gerät)
+
+**Alles bestanden.** Damit ist die Kette vom Digitizer bis zum gezeichneten Pixel zum ersten
+Mal durchgehend belegt — bisher endete der Nachweis am Prototyp:
+
+| Geprüft | Ergebnis |
+|---|---|
+| **Druck** — leicht und fest aufdrücken, F9 mitlesen | Zeigerart `Pen`, Anzeige meldet `(Gerät liefert Druck)`, der Strich wird beim Aufdrücken dicker |
+| **Neigung** — Bleistift senkrecht gegen stark gekippt | Grad-Zahlen ≠ 0, der gekippte Strich ist sichtbar breiter (§4.11) |
+| **Handballenabweisung** — Hand beim Schreiben aufs Display | kein Strich vom Handballen, das Blatt verrutscht nicht |
+
+**Was das ausräumt:** die drei Punkte, die §4.10 und §4.11 nur konstruktiv absichern konnten,
+sind jetzt am Gerät bestätigt. Insbesondere ist die Druckerkennung **nicht** nur im
+Rückfallzweig geprüft — die automatisierten Belege konnten das nicht leisten, weil XTEST
+keine Stiftereignisse erzeugt.
+
+**Was das nicht ausräumt:** es ist weiterhin **eine** Geräteklasse — der Wacom-AES-Digitizer
+dieses Laptops. MPP und EMR bleiben ungetestet, siehe „Offen" unten.
+
 #### Offen
 
 1. **Zweites Gerät** (MPP und/oder EMR) — die Kernanforderung „mit jedem Stylus" hängt daran.
    Das ist der einzige Punkt, der noch echtes Risiko trägt. **Der Rückfall dafür steht
-   inzwischen und ist wirksam** (§4.10); ungeprüft ist, ob ein anderes Gerät überhaupt als
-   `PointerType.Pen` ankommt und was es an Druck liefert. Mit F9 in einer Minute zu klären.
+   inzwischen und ist wirksam**, und das Gerät dieses Laptops ist in der App durchgeprüft
+   (oben); ungeprüft ist, ob ein **anderes** Gerät überhaupt als `PointerType.Pen` ankommt
+   und was es an Druck liefert. Mit F9 in einer Minute zu klären, sobald eines greifbar ist.
 2. **Xorg-Sitzung** als Vergleich zu XWayland. Nach derzeitigem Stand Absicherung, keine offene
    Risikofrage — Avalonia hat ohnehin nur den X11-Pfad.
 3. **Druckschwelle unten:** evdev meldete nie unter 1500 von 4095, libinput nie unter 0,01.
@@ -2129,6 +2153,7 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 
 | Runde | Datum | Was |
 |---|---|---|
+| V2-13 | 2026-08-03 | **Stift am Gerät geprüft — alles bestanden** (§5a, „Gegenprobe in der echten App"). Der Nutzer hat Druck, Neigung und Handballenabweisung mit der F9-Anzeige in der laufenden App durchgeprüft: Zeigerart `Pen`, `(Gerät liefert Druck)` mit veränderlichem Wert, dickerer Strich beim Aufdrücken; Neigung in Grad ≠ 0 und ein sichtbar breiterer Bleistift bei gekipptem Stift; kein Strich vom Handballen und kein verrutschendes Blatt. **Damit ist die Kette vom Digitizer bis zum gezeichneten Pixel zum ersten Mal durchgehend belegt** — bisher endete der Nachweis am Prototyp (§5a), und die automatisierten Belege konnten nur den Rückfallzweig zeigen, weil XTEST keine Stiftereignisse erzeugt. **Nicht ausgeräumt:** es bleibt **eine** Geräteklasse (Wacom AES); MPP und EMR sind weiter ungetestet, §5 „Noch offen" Punkt 1 steht |
 | V2-12 | 2026-08-03 | **Die Neigung wandert ins Dateiformat** (§4.11) — Nutzer-Entscheidung, und bewusst **auf dem Laptop** statt unter Windows. `WbPoint` bekommt `TX`/`TY` (Grad), der Eingabepfad schreibt sie in jeden Punkt, und **nur der Bleistift** wertet sie aus: eine schräg gehaltene Mine zieht eine breitere Spur, ein Fineliner nicht, und beim Textmarker hinge es an der Drehung um die eigene Achse, die kein Digitizer liefert. **Warum das ohne Windows-Gegenprobe zulässig war:** die Felder tragen `WhenWritingDefault` und werden bei 0 nicht geschrieben — Bestandsdateien bleiben byteweise gleich, was bei 6308 Druckpunkten auf 160 Striche (§4.8) auch eine Größenfrage ist; der Breitenfaktor ist ohne Neigung **exakt 1**, sodass alle zwanzig Pixelhashes aus Phase 1 unverändert grün blieben und **auch der WPF-Kopf Bestandsdokumente gleich zeichnet**; und `_type` ist nicht betroffen, weil `WbPoint` kein polymorpher Typ ist. `NeigungTests` (10 Tests, jetzt 125 Core / 138 gesamt), Neigung zusätzlich im `Beispieldokument` und im feldweisen Roundtrip-Vergleich — dort bewusst am **Stift**, weil ein geneigter Bleistift den Hash `bleistift-koernung` verschöbe. **Offen bleibt die Gegenprobe am echten Stift**: XTEST erzeugt keine Stiftereignisse, das geht nur von Hand (F9) |
 | V2-11 | 2026-08-03 | **Phase 3, zweiter Brocken — die Zeichenfläche steht** (§4.10), erstmals **auf dem CachyOS-Laptop** gebaut. **Notizbuch und Whiteboard zeichnen, radieren und speichern unter Linux**; Textdokumente bleiben ausgegraut (M1-Vorgabe, `Tab.NoCanvasYet` in beiden Tabellen darauf umformuliert). Der Renderer bekommt **Avalonias eigenen `SKCanvas`** über `ISkiaSharpApiLeaseFeature` — möglich, weil `Avalonia.Skia` an derselben SkiaSharp-Fassung hängt wie Core (3.119.4); ein offizielles `SkiaSharp.Views.Avalonia` gibt es nicht, und eine gerasterte Zwischenfläche wäre eine volle Bildkopie je Bild gewesen. Damit ist die offene Frage aus §5a beantwortet. **Vierte Avalonia-Eigenheit aufgelöst:** `Render` läuft auf dem Render-Faden — gelöst durch **Aufzeichnen** (`SKPictureRecorder` auf dem Oberflächen-Faden, `DrawPicture` auf dem Render-Faden), was nebenbei den Zwischenspeicher vektoriell und damit zoomfest macht. Eingabepfad mit `GetIntermediatePoints()`, **erkanntem statt angenommenem Druck** (Avalonia meldet für ein druckloses Gerät glatt 0,5) samt wirksamem Rückfall, zweistufiger Handballenabweisung, Radiergummi-Ende und Stiftknopf. **Neigung kommt an, wird aber nicht gespeichert** — `WbPoint` hat keinen Platz dafür, das ist eine offene Formatfrage (§5). Neu als Messgerät: die **Stift-Anzeige mit F9**. Trefferprüfung und Lasso als **`WbHit` nach Core** gezogen (15 neue Tests, jetzt 115 Core / 128 gesamt); der WPF-Kopf behält bewusst seine Fassung. **Neu: `tools/linux/`** — `schau.sh`, `klick.sh` und ein eigener `zeiger` über X11/XTEST, ohne Fremdpaket; die Lücke, die §5b nicht kannte. **Drei Fehler am laufenden Programm gefunden** (§7): Zugriff auf ein fremdes Steuerelement im Renderdurchlauf (Fehlerbild: leere Werkzeugleiste), Tastaturfokus auf dem Rahmen statt auf der Fläche, und die Vorgabetinte, die dem App-Theme statt dem Papier folgte (Fehlerbild: hell auf weiß). Dazu drei Wayland-Fallen fürs Fernsteuern (Eingabekoordinaten um Faktor 2 skaliert, X-Wurzelaufnahme unbrauchbar, Maximieren ändert die Geometrie). Geprüft **ohne** echte Daten — Nutzer-Entscheidung: selbst angelegte Notizbücher sind für den Eingabepfad die bessere Probe |
 | V2-10 | 2026-08-03 | **Phase 3, erster Brocken** (§4.9): **`src/GonkNote.Avalonia` steht und läuft** — Avalonia **12.1.1** auf `net10.0` (dieselbe Fassung, mit der §5a gemessen hat), alle **zwölf** Schnittstellen aus `Core/Platform/` umgesetzt, davon drei bewusst als vorhandener Rückfall. Ordnerbaum und Galerie aus **demselben** `MainViewModel` wie der WPF-Kopf. **Farbtabelle in Core** (`Core/Theming/`, 20 Farben **inklusive Papier**) statt eines zweiten Paars fest verdrahteter Theme-Dateien — die Entscheidung, die §6 für diesen Zeitpunkt vorgesehen hatte; Wächter `FarbtabelleTests` hält beide Fassungen zusammen. **Noch keine Zeichenfläche**, das ist der nächste Brocken. Drei Avalonia-Eigenheiten aufgelöst: synchrone Schnittstelle gegen asynchrones Toolkit (`Modal.PushFrame`), keine MessageBox (eigenes `MessageWindow`, neue Schlüssel `Dlg.Yes`/`Dlg.No`), keine Icon-Schrift unter Linux (Vektorformen). **Zwei Übersetzungsfallen am laufenden Programm gefunden** (§7): Avalonia frischt Indexer-Bindungen nicht auf, und es hält die Quelle einer Bindung nicht am Leben — das zweite fiel erst nach einem erzwungenen Sammellauf auf, als halb übersetzte Oberfläche. Version auf **0.3.0**, `About.Version` in beiden Tabellen auf Phase 3. CI baut den Kopf im Linux-Lauf mit; `schau.ps1`/`kette.ps1` um `-Kopf` und `-Voll` erweitert. An einer Kopie der echten Datenbank in **beiden** Sprachen und **beiden** Themes geprüft, WPF-Kopf an derselben Kopie unverändert, echte DB byteweise identisch. Entschieden: **Phase 3 wird unter Windows entwickelt**, nicht auf dem Laptop (§5b) |

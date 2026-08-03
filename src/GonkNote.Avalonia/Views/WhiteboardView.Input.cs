@@ -63,31 +63,40 @@ public partial class WhiteboardView
     /// <summary>Unter diesem Druck wird kein Strich unsichtbar dünn.</summary>
     private const float DruckMinimum = 0.05f;
 
-    private static float Druck(PointerPointProperties eigenschaften, PointerType art)
+    /// <summary>Was der Stift an dieser Stelle liefert — alles, was in einen Punkt eingeht.</summary>
+    private readonly record struct Stiftlage(float Druck, float TiltX, float TiltY)
     {
-        // Maus und Finger haben keinen Druck, der einen Strich tragen würde.
-        if (art != PointerType.Pen) return DruckMitte;
+        /// <summary>Der Rückfall: mittlerer Druck, senkrecht gehalten.</summary>
+        public static readonly Stiftlage Rueckfall = new(DruckMitte, 0f, 0f);
+    }
+
+    private static Stiftlage Lage(PointerPointProperties eigenschaften, PointerType art)
+    {
+        // Maus und Finger haben weder Druck noch Neigung, die einen Strich tragen würden.
+        if (art != PointerType.Pen) return Stiftlage.Rueckfall;
 
         float roh = eigenschaften.Pressure;
         if (MathF.Abs(roh - DruckMitte) > 0.001f) _geraetLiefertDruck = true;
 
-        return _geraetLiefertDruck ? Math.Clamp(roh, DruckMinimum, 1f) : DruckMitte;
+        return new Stiftlage(
+            _geraetLiefertDruck ? Math.Clamp(roh, DruckMinimum, 1f) : DruckMitte,
+            eigenschaften.XTilt,
+            eigenschaften.YTilt);
     }
 
     // ==================== Neigung ====================
 
     /// <summary>
-    /// Zuletzt gemessene Neigung in Grad. <b>Sie kommt an</b> (§5a hat es gemessen, die
-    /// Anzeige mit F9 zeigt es in der laufenden App) — <b>gespeichert wird sie nicht</b>.
+    /// Zuletzt gemessene Neigung in Grad — sie geht in jeden Punkt des Strichs ein
+    /// (<see cref="WbPoint.TX"/>/<see cref="WbPoint.TY"/>) und verbreitert dort den
+    /// Bleistift, so wie eine schräg gehaltene Mine es tut.
     ///
     /// <para>
-    /// Der Grund ist keine Bequemlichkeit, sondern das Dateiformat: <see cref="WbPoint"/>
-    /// trägt drei Werte (X, Y, Druck), und <see cref="WbRenderer"/> zeichnet aus genau
-    /// diesen drei. Ein vierter Wert wäre eine Änderung am gespeicherten Format und damit
-    /// eine Änderung an Core — die gehört auf dem Windows-Rechner gegengeprüft und nicht
-    /// nebenbei im Linux-Kopf entschieden (HANDOFF §7, „Persistenz — der gefährlichste
-    /// Bereich"). <b>Hier ist die Naht, an der sie andocken würde</b>, wenn diese
-    /// Entscheidung fällt.
+    /// <b>Ein Gerät ohne Neigungsachse meldet 0</b>, und 0 heißt „senkrecht" — der
+    /// Renderer rechnet dann mit dem Faktor Eins und zeichnet wie bisher. Es braucht
+    /// dafür also keine zweite Erkennung wie beim Druck: dort ist der Rückfallwert
+    /// <c>0,5</c> und damit von einem echten Messwert nicht zu unterscheiden, hier ist er
+    /// <c>0</c> und bedeutet dasselbe wie der häufigste echte Messwert.
     /// </para>
     /// </summary>
     private float _tiltX, _tiltY;
@@ -165,8 +174,9 @@ public partial class WhiteboardView
         // Nur die linke Maustaste zeichnet; die rechte ist für M1 unbelegt.
         if (art == PointerType.Mouse && !punkt.Properties.IsLeftButtonPressed) return;
 
-        NeigungMerken(punkt.Properties, art);
-        BeginInput(ToCanvas(punkt.Position), Druck(punkt.Properties, art));
+        var lage = Lage(punkt.Properties, art);
+        NeigungMerken(lage, art);
+        BeginInput(ToCanvas(punkt.Position), lage);
         e.Handled = true;
     }
 
@@ -191,7 +201,7 @@ public partial class WhiteboardView
             return;
         }
 
-        NeigungMerken(aktuell.Properties, art);
+        NeigungMerken(Lage(aktuell.Properties, art), art);
 
         if (!InputInProgress)
         {
@@ -205,7 +215,7 @@ public partial class WhiteboardView
         // Druckstufen weg und bekommt einen eckigen Strich mit Treppen in der Breite
         // (HANDOFF §5a, ausdrücklich für diesen Brocken notiert).
         foreach (var p in e.GetIntermediatePoints(Skia))
-            MoveInput(ToCanvas(p.Position), Druck(p.Properties, art));
+            MoveInput(ToCanvas(p.Position), Lage(p.Properties, art));
 
         e.Handled = true;
     }
@@ -236,12 +246,12 @@ public partial class WhiteboardView
         Neuzeichnen();
     }
 
-    private void NeigungMerken(PointerPointProperties eigenschaften, PointerType art)
+    private void NeigungMerken(Stiftlage lage, PointerType art)
     {
         if (art != PointerType.Pen) return;
-        _tiltX = eigenschaften.XTilt;
-        _tiltY = eigenschaften.YTilt;
-        _letzterDruck = eigenschaften.Pressure;
+        _tiltX = lage.TiltX;
+        _tiltY = lage.TiltY;
+        _letzterDruck = lage.Druck;
         if (_stiftAnzeige) Neuzeichnen();
     }
 
@@ -330,7 +340,7 @@ public partial class WhiteboardView
 
     // ==================== Der Strich ====================
 
-    private void BeginInput(SKPoint c, float druck)
+    private void BeginInput(SKPoint c, Stiftlage lage)
     {
         if (_page == null || _vm == null) return;
 
@@ -340,7 +350,7 @@ public partial class WhiteboardView
             case ToolType.Pencil:
             case ToolType.Highlighter:
                 _drawing = true;
-                _activePoints = [new WbPoint(c.X, c.Y, druck)];
+                _activePoints = [new WbPoint(c.X, c.Y, lage.Druck, lage.TiltX, lage.TiltY)];
                 break;
 
             case ToolType.Eraser:
@@ -389,7 +399,7 @@ public partial class WhiteboardView
         _movedX = _movedY = 0;
     }
 
-    private void MoveInput(SKPoint c, float druck)
+    private void MoveInput(SKPoint c, Stiftlage lage)
     {
         if (_page == null) return;
 
@@ -413,8 +423,13 @@ public partial class WhiteboardView
                 // das sieht eine langsam gezogene Linie aus wie mit zittriger Hand.
                 float gx = 0.35f * letzter.X + 0.65f * c.X;
                 float gy = 0.35f * letzter.Y + 0.65f * c.Y;
-                float gp = 0.4f * letzter.P + 0.6f * druck;
-                _activePoints.Add(new WbPoint(gx, gy, gp));
+                // Die Neigung wird genauso geglättet wie der Druck: der Digitizer meldet
+                // sie mit demselben Zittern, und ein Sprung darin ließe die Breite des
+                // Bleistifts mitten im Strich springen.
+                float gp = 0.4f * letzter.P + 0.6f * lage.Druck;
+                float gtx = 0.4f * letzter.TX + 0.6f * lage.TiltX;
+                float gty = 0.4f * letzter.TY + 0.6f * lage.TiltY;
+                _activePoints.Add(new WbPoint(gx, gy, gp, gtx, gty));
                 break;
             }
 

@@ -133,7 +133,8 @@ Zuletzt **Phase 3, zweiter Brocken** (§4.10), **auf dem CachyOS-Laptop**: **die
 Zeichenfläche steht.** Notizbuch und Whiteboard zeichnen, radieren und speichern unter
 Linux; gezeichnet wird von `WbRenderer` aus Core auf Avalonias **eigenem `SKCanvas`**
 (`ISkiaSharpApiLeaseFeature`, dieselbe SkiaSharp-Fassung wie Core). Der Eingabepfad nimmt
-`GetIntermediatePoints()`, erkennt Druck statt ihn anzunehmen und weist den Handballen ab.
+`GetIntermediatePoints()`, erkennt Druck statt ihn anzunehmen und weist den Handballen ab;
+**die Neigung steht seitdem im Dateiformat** und verbreitert den Bleistift (§4.11).
 **Textdokumente bleiben ausgegraut** — das ist so vorgesehen (M1). Dazu ein Linux-Pendant
 der Fernsteuer-Werkzeuge (`tools/linux/`), das es bisher gar nicht gab.
 
@@ -144,7 +145,7 @@ die Entscheidung, ob er ausgerufen wird, steht in §6.
 **Tests laufen lassen:**
 
 ```powershell
-dotnet test -c Release        # Windows: beide Projekte, 128 Tests
+dotnet test -c Release        # Windows: beide Projekte, 138 Tests
 ```
 
 ---
@@ -194,7 +195,8 @@ Dazu die Commits aus Phase 1 (2026-07-30) — Testprojekte, CI und der `SKBitmap
 **Erledigt in Phase 3, erster Brocken:** §4.9 (Avalonia-Shell, Farbtabelle in Core).
 
 **Erledigt in Phase 3, zweiter Brocken:** §4.10 (Zeichenfläche, Eingabepfad, `WbHit` in
-Core, Linux-Werkzeuge). Testzahl steht jetzt bei **128** (115 Core + 13 WPF).
+Core, Linux-Werkzeuge) und §4.11 (Neigung im Dateiformat). Testzahl steht jetzt bei **138**
+(125 Core + 13 WPF).
 
 **Erledigt in Phase 0:**
 
@@ -882,12 +884,8 @@ erst ungültig.
 - **Das Radiergummi-Ende** meldet sich als eigener Zeiger (`IsEraser`) und schlägt das
   gewählte Werkzeug; die zweite Stift-Taste radiert, solange sie gehalten wird.
 
-> **Neigung kommt an, wird aber nicht gespeichert — und das ist Absicht.** `WbPoint` trägt
-> drei Werte (X, Y, Druck), und `WbRenderer` zeichnet aus genau diesen drei. Ein vierter
-> wäre eine Änderung am **gespeicherten Format** und damit an Core — die gehört auf den
-> Windows-Rechner gegengeprüft und nicht nebenbei im Linux-Kopf entschieden (§7,
-> „Persistenz"). Die Naht, an der sie andocken würde, ist in `WhiteboardView.Input.cs`
-> benannt. **Das ist eine offene Entscheidung**, sie steht in §5.
+> **Neigung kam zunächst an, ohne gespeichert zu werden.** Das ist mit §4.11 erledigt —
+> sie steht jetzt im Format und verbreitert den Bleistift.
 
 #### Die Stift-Anzeige (F9) — ein Messgerät, kein Feature
 
@@ -966,6 +964,74 @@ der Fläche, und die Vorgabetinte, die dem App-Theme statt dem Papier folgte.
 
 ---
 
+### 4.11 Die Neigung wandert ins Dateiformat
+
+Umgesetzt am 2026-08-03 direkt im Anschluss an §4.10, **auf dem Laptop**
+(Nutzer-Entscheidung: „einbauen, außer es gibt einen klaren Grund, es nicht hier zu machen").
+Den Grund gab es nicht — die Begründung dafür steht unten unter „Warum das hier gehen darf".
+
+#### Was sich geändert hat
+
+| | |
+|---|---|
+| `WbPoint` | zwei neue Felder **`TX`/`TY`** — Neigung in Grad, −90…+90 |
+| `WbRenderer` | **nur der Bleistift** wird durch Neigung breiter (`TiltWidthFactor`) |
+| Eingabepfad | schreibt die gemessene Neigung in jeden Punkt, geglättet wie der Druck |
+
+**`0` heißt „senkrecht" — und zugleich „nicht bekannt".** Eine Maus, ein Finger und ein
+Digitizer ohne Neigungsachse liefern alle 0, und der Renderer behandelt sie wie einen
+senkrecht gehaltenen Stift. Das ist kein Verlust, sondern der Normalfall. **Beim Druck geht
+das ausdrücklich nicht** (§4.10): dessen Rückfallwert ist 0,5 und damit von einem echten
+Messwert nicht zu unterscheiden — deshalb braucht der Druck eine Erkennung und die Neigung
+keine.
+
+#### Warum nur der Bleistift
+
+Eine schräg gehaltene Mine legt sich um und zieht eine breitere, weichere Spur — das ist der
+Grund, warum man beim Schraffieren den Stift kippt. Ein Fineliner hat eine feste Spitze und
+wird davon nicht breiter. Ein Textmarker hat eine Keilspitze, deren Verhalten von der
+**Drehung um die eigene Achse** abhinge, und die liefert kein Digitizer. Beides nachzuahmen
+wäre erfunden, nicht beobachtet. Wächter: `Nur_der_Bleistift_reagiert_auf_Neigung`.
+
+Gerechnet wird mit der **mittleren** Neigung des Strichs. Die Körnung des Bleistifts entsteht
+aus drei Durchgängen über einen gemeinsamen Pfad; je Segment eine eigene Breite hieße, den
+Pfad je Segment neu zu bauen. Ein Strich wird ohnehin selten in der Mitte umgegriffen.
+
+#### Warum das hier gehen darf — und keine Windows-Gegenprobe braucht
+
+Das ist eine Änderung am **gespeicherten Format** und am **gemeinsamen Renderer**, also
+genau die Sorte, vor der §7 warnt. Sie ist trotzdem unbedenklich, und zwar aus drei Gründen,
+die alle unter Test stehen:
+
+1. **Bestandsdateien bleiben byteweise gleich.** Die Felder tragen
+   `[JsonIgnore(WhenWritingDefault)]` und werden nicht geschrieben, solange sie 0 sind. Ein
+   Dokument ohne Neigung sieht in der Datenbank aus wie vorher; ein Dokument von vor der
+   Änderung liest sich mit 0 ein. Das zählt hier mehr als anderswo: `WbPoint` ist der mit
+   Abstand häufigste Datensatz der App — 6308 Druckpunkte auf 160 Striche in der echten
+   Datenbank (§4.8). Zwei bedingungslos geschriebene Felder je Punkt wären ein knappes
+   Drittel mehr Datei für einen Wert, den die meisten Geräte nicht liefern.
+2. **Kein Pixel ändert sich ohne Neigungsangabe.** Bei `TX`/`TY` gleich 0 ist der
+   Breitenfaktor **exakt 1** — nicht „ungefähr 1" — und jede Rechnung darunter eine
+   Multiplikation mit Eins. Die zwanzig Pixelhashes aus Phase 1 sind unverändert grün, ohne
+   dass ein einziges Golden-File neu gesetzt werden musste. **Damit zeichnet auch der
+   WPF-Kopf Bestandsdokumente unverändert** — er benutzt denselben Renderer und wurde für
+   diese Änderung nicht angefasst.
+3. **`_type` ist nicht betroffen.** `WbPoint` ist kein polymorpher Typ; die Zeichenketten
+   aus §7 („Persistenz") bleiben, wie sie sind.
+
+**Neue Wächter:** `NeigungTests` (10 Tests), dazu Neigung im `Beispieldokument` und im
+feldweisen Vergleich von `DatenbankRoundtripTests`. Die Neigung im Beispieldokument steht
+bewusst am **Stift** und nicht am Bleistift: nur der Bleistift wertet sie aus, und ein
+geneigter Bleistift dort verschöbe den Pixelhash `bleistift-koernung`.
+
+> **Was trotzdem offen bleibt:** ob echte Neigung durch den fertigen Eingabepfad kommt, ist
+> auf diesem Laptop **nicht** prüfbar — XTEST erzeugt keine Stiftereignisse (§7 „Fernsteuern
+> unter Wayland"). Der Weg dafür steht: Bleistift wählen, **F9**, einen Strich mit gekipptem
+> Stift ziehen. Die Anzeige nennt die Grad-Zahl, und der Strich muss sichtbar breiter werden
+> als ein senkrecht gezogener.
+
+---
+
 ## 5. Entscheidungen
 
 **Getroffen, alle umgesetzt:**
@@ -993,6 +1059,7 @@ der Fläche, und die Vorgabetinte, die dem App-Theme statt dem Papier folgte.
 | Wie der Renderer an seinen `SKCanvas` kommt | **Avalonias eigenen ausleihen** (`ISkiaSharpApiLeaseFeature`) statt eine Zwischenfläche zu rastern — `Avalonia.Skia` hängt an derselben SkiaSharp-Fassung wie Core, ein offizielles `SkiaSharp.Views.Avalonia` gibt es nicht (§4.10). Entschieden 2026-08-03 |
 | Testdaten auf dem Laptop | **Keine Kopie der echten Datenbank.** Selbst angelegte Notizbücher sind für den Eingabepfad die bessere Prüfung, und die Schulunterlagen bleiben auf dem Windows-Rechner. Dauerregel 4 erlaubt die Kopie weiterhin — sie wurde hier nur nicht gebraucht. Entschieden 2026-08-03 |
 | Linux-Fernsteuer-Werkzeuge | **Ja, minimal** — `schau.sh`, `klick.sh` und ein eigenes `zeiger` über X11/XTEST, ohne Fremdpaket (§4.10). Der Stift bleibt dabei Handarbeit. Entschieden 2026-08-03 |
+| Neigung im Dateiformat | **Ja, und zwar auf dem Laptop** (§4.11). Zwei Felder an `WbPoint`, bedingt geschrieben; nur der Bleistift wertet sie aus. Bestandsdateien und alle zwanzig Pixelhashes bleiben unverändert — deshalb war keine Windows-Gegenprobe nötig. Entschieden 2026-08-03 |
 
 **Noch offen:**
 
@@ -1025,12 +1092,10 @@ der Fläche, und die Vorgabetinte, die dem App-Theme statt dem Papier folgte.
      und `EmbeddedDocs` braucht vorher sein Gegenstück im Avalonia-Kopf — sonst stünde die
      Linux-Beschreibung in einem Dialog, den es unter Linux nicht gibt.
 
-5. **Neu: Soll die Neigung ins Dateiformat?** Sie kommt im Eingabepfad an (§4.10), hat aber
-   keinen Platz: `WbPoint` trägt X, Y und Druck. Ein vierter Wert hieße, das gespeicherte
-   Format zu ändern — machbar und rein additiv, aber **eine Core-Änderung, die auf dem
-   Windows-Rechner gegenzuprüfen ist** (§7 „Persistenz"), und `WbRenderer` müsste etwas
-   damit anfangen. Der Gewinn wäre ein Bleistift, der auf Neigung reagiert. **Bis das
-   entschieden ist, wird Neigung gemessen und verworfen** — die Naht dafür ist benannt.
+5. ~~**Soll die Neigung ins Dateiformat?**~~ **Entschieden und umgesetzt am 2026-08-03**
+   (§4.11): ja, mit zwei bedingt geschriebenen Feldern an `WbPoint`; nur der Bleistift
+   wertet sie aus. **Offen bleibt daran nur die Gegenprobe am echten Stift** — sie gehört
+   zum Punkt 1 oben und läuft im selben Handgriff mit.
 
 ---
 
@@ -1985,7 +2050,7 @@ cd C:\Dev\Zed\gonk-note-V2
 dotnet build -c Release      # 0 Fehler / 0 Warnungen
 dotnet build -c Debug        # schneller, ohne Self-Contained/win-x64
 
-dotnet test -c Release       # beide Testprojekte, 113 Tests
+dotnet test -c Release       # beide Testprojekte, 138 Tests
 
 # Golden-Files bewusst neu setzen (danach den Diff lesen, siehe §4.6)
 $env:GONK_SNAPSHOT_UPDATE=1; dotnet test tests\GonkNote.Core.Tests; $env:GONK_SNAPSHOT_UPDATE=$null
@@ -2064,6 +2129,7 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 
 | Runde | Datum | Was |
 |---|---|---|
+| V2-12 | 2026-08-03 | **Die Neigung wandert ins Dateiformat** (§4.11) — Nutzer-Entscheidung, und bewusst **auf dem Laptop** statt unter Windows. `WbPoint` bekommt `TX`/`TY` (Grad), der Eingabepfad schreibt sie in jeden Punkt, und **nur der Bleistift** wertet sie aus: eine schräg gehaltene Mine zieht eine breitere Spur, ein Fineliner nicht, und beim Textmarker hinge es an der Drehung um die eigene Achse, die kein Digitizer liefert. **Warum das ohne Windows-Gegenprobe zulässig war:** die Felder tragen `WhenWritingDefault` und werden bei 0 nicht geschrieben — Bestandsdateien bleiben byteweise gleich, was bei 6308 Druckpunkten auf 160 Striche (§4.8) auch eine Größenfrage ist; der Breitenfaktor ist ohne Neigung **exakt 1**, sodass alle zwanzig Pixelhashes aus Phase 1 unverändert grün blieben und **auch der WPF-Kopf Bestandsdokumente gleich zeichnet**; und `_type` ist nicht betroffen, weil `WbPoint` kein polymorpher Typ ist. `NeigungTests` (10 Tests, jetzt 125 Core / 138 gesamt), Neigung zusätzlich im `Beispieldokument` und im feldweisen Roundtrip-Vergleich — dort bewusst am **Stift**, weil ein geneigter Bleistift den Hash `bleistift-koernung` verschöbe. **Offen bleibt die Gegenprobe am echten Stift**: XTEST erzeugt keine Stiftereignisse, das geht nur von Hand (F9) |
 | V2-11 | 2026-08-03 | **Phase 3, zweiter Brocken — die Zeichenfläche steht** (§4.10), erstmals **auf dem CachyOS-Laptop** gebaut. **Notizbuch und Whiteboard zeichnen, radieren und speichern unter Linux**; Textdokumente bleiben ausgegraut (M1-Vorgabe, `Tab.NoCanvasYet` in beiden Tabellen darauf umformuliert). Der Renderer bekommt **Avalonias eigenen `SKCanvas`** über `ISkiaSharpApiLeaseFeature` — möglich, weil `Avalonia.Skia` an derselben SkiaSharp-Fassung hängt wie Core (3.119.4); ein offizielles `SkiaSharp.Views.Avalonia` gibt es nicht, und eine gerasterte Zwischenfläche wäre eine volle Bildkopie je Bild gewesen. Damit ist die offene Frage aus §5a beantwortet. **Vierte Avalonia-Eigenheit aufgelöst:** `Render` läuft auf dem Render-Faden — gelöst durch **Aufzeichnen** (`SKPictureRecorder` auf dem Oberflächen-Faden, `DrawPicture` auf dem Render-Faden), was nebenbei den Zwischenspeicher vektoriell und damit zoomfest macht. Eingabepfad mit `GetIntermediatePoints()`, **erkanntem statt angenommenem Druck** (Avalonia meldet für ein druckloses Gerät glatt 0,5) samt wirksamem Rückfall, zweistufiger Handballenabweisung, Radiergummi-Ende und Stiftknopf. **Neigung kommt an, wird aber nicht gespeichert** — `WbPoint` hat keinen Platz dafür, das ist eine offene Formatfrage (§5). Neu als Messgerät: die **Stift-Anzeige mit F9**. Trefferprüfung und Lasso als **`WbHit` nach Core** gezogen (15 neue Tests, jetzt 115 Core / 128 gesamt); der WPF-Kopf behält bewusst seine Fassung. **Neu: `tools/linux/`** — `schau.sh`, `klick.sh` und ein eigener `zeiger` über X11/XTEST, ohne Fremdpaket; die Lücke, die §5b nicht kannte. **Drei Fehler am laufenden Programm gefunden** (§7): Zugriff auf ein fremdes Steuerelement im Renderdurchlauf (Fehlerbild: leere Werkzeugleiste), Tastaturfokus auf dem Rahmen statt auf der Fläche, und die Vorgabetinte, die dem App-Theme statt dem Papier folgte (Fehlerbild: hell auf weiß). Dazu drei Wayland-Fallen fürs Fernsteuern (Eingabekoordinaten um Faktor 2 skaliert, X-Wurzelaufnahme unbrauchbar, Maximieren ändert die Geometrie). Geprüft **ohne** echte Daten — Nutzer-Entscheidung: selbst angelegte Notizbücher sind für den Eingabepfad die bessere Probe |
 | V2-10 | 2026-08-03 | **Phase 3, erster Brocken** (§4.9): **`src/GonkNote.Avalonia` steht und läuft** — Avalonia **12.1.1** auf `net10.0` (dieselbe Fassung, mit der §5a gemessen hat), alle **zwölf** Schnittstellen aus `Core/Platform/` umgesetzt, davon drei bewusst als vorhandener Rückfall. Ordnerbaum und Galerie aus **demselben** `MainViewModel` wie der WPF-Kopf. **Farbtabelle in Core** (`Core/Theming/`, 20 Farben **inklusive Papier**) statt eines zweiten Paars fest verdrahteter Theme-Dateien — die Entscheidung, die §6 für diesen Zeitpunkt vorgesehen hatte; Wächter `FarbtabelleTests` hält beide Fassungen zusammen. **Noch keine Zeichenfläche**, das ist der nächste Brocken. Drei Avalonia-Eigenheiten aufgelöst: synchrone Schnittstelle gegen asynchrones Toolkit (`Modal.PushFrame`), keine MessageBox (eigenes `MessageWindow`, neue Schlüssel `Dlg.Yes`/`Dlg.No`), keine Icon-Schrift unter Linux (Vektorformen). **Zwei Übersetzungsfallen am laufenden Programm gefunden** (§7): Avalonia frischt Indexer-Bindungen nicht auf, und es hält die Quelle einer Bindung nicht am Leben — das zweite fiel erst nach einem erzwungenen Sammellauf auf, als halb übersetzte Oberfläche. Version auf **0.3.0**, `About.Version` in beiden Tabellen auf Phase 3. CI baut den Kopf im Linux-Lauf mit; `schau.ps1`/`kette.ps1` um `-Kopf` und `-Voll` erweitert. An einer Kopie der echten Datenbank in **beiden** Sprachen und **beiden** Themes geprüft, WPF-Kopf an derselben Kopie unverändert, echte DB byteweise identisch. Entschieden: **Phase 3 wird unter Windows entwickelt**, nicht auf dem Laptop (§5b) |
 | V2-9 | 2026-08-02 | **Phase 2, Schritte 3+4 — Phase 2 damit fertig** (§4.8): **LiteDB raus aus dem Produktivpfad**, Persistenz über `Microsoft.Data.Sqlite` mit `System.Text.Json`-Source-Generator (`GonkJson`); die `_type`-Namen leben als `[JsonDerivedType]` **wörtlich** weiter. Neues Projekt `src/GonkNote.Legacy/` als einziger Ort mit LiteDB — liest Altdatenbanken **ReadOnly** ein; iOS wird es nie sehen. Migration automatisch beim ersten Start, in eine `.neu`-Datei und erst nach dem Commit umbenannt; die Altdatei bleibt unangetastet. `BlobStore` über `AppPaths.BlobFolder` (Schritt 4), Stamm `gonknote` bewusst unverändert. `AlteTypnamenTests` vom Roundtrip- zum **Migrations**-Wächter (3 neue Tests, jetzt 90). Sicherheitslücke in einem mitgezogenen SQLitePCLRaw über transitives Pinning behoben. An einer Kopie der echten Datenbank **feldweise** verglichen (27 Einträge, 160 Striche / 6308 Punkte, 32 Bilder byteweise gleich) und am laufenden Programm in beiden Sprachen geprüft; Altdatei danach byteweise identisch. Alle vier mitgelieferten Dokumente auf `gonknote.sqlite` nachgezogen (Dauerregel 1) — dort steht die Sicherungsanleitung —, dazu `THIRD-PARTY-NOTICES.md` und die seit V2-3 veralteten `net8.0`-Angaben |

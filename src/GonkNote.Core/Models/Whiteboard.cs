@@ -51,15 +51,44 @@ public enum PageShade
     Dark,
 }
 
-/// <summary>Ein Punkt einer Stiftlinie inkl. Stylus-Druck (0..1).</summary>
+/// <summary>Ein Punkt einer Stiftlinie inkl. Stylus-Druck (0..1) und Neigung.</summary>
 public class WbPoint
 {
     public float X { get; set; }
     public float Y { get; set; }
     public float P { get; set; } = 0.5f;
 
+    /// <summary>
+    /// Neigung des Stifts in Grad, −90…+90. <c>0</c> heißt senkrecht — <b>und ebenso
+    /// „nicht bekannt"</b>: eine Maus, ein Finger und ein Digitizer ohne Neigungsachse
+    /// liefern alle 0, und der Renderer behandelt sie deshalb gleich wie einen senkrecht
+    /// gehaltenen Stift. Das ist kein Verlust: senkrecht ist der Normalfall.
+    ///
+    /// <para>
+    /// <b>Warum die beiden Felder Bestandsdateien nicht anfassen:</b>
+    /// <c>WhenWritingDefault</c> lässt sie beim Schreiben weg, solange sie 0 sind. Ein
+    /// Dokument ohne Neigung wird also byteweise geschrieben wie bisher, und ein
+    /// Dokument von vor dieser Änderung liest sich mit 0 ein. Das zählt hier mehr als
+    /// anderswo: <see cref="WbPoint"/> ist der mit Abstand häufigste Datensatz der ganzen
+    /// App — in der echten Datenbank standen 6308 Druckpunkte auf 160 Striche
+    /// (HANDOFF §4.8). Zwei bedingungslos geschriebene Felder je Punkt wären ein knappes
+    /// Drittel mehr Datei für einen Wert, den die meisten Geräte gar nicht liefern.
+    /// </para>
+    /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public float TX { get; set; }
+
+    /// <inheritdoc cref="TX"/>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public float TY { get; set; }
+
     public WbPoint() { }
     public WbPoint(float x, float y, float p) { X = x; Y = y; P = p; }
+
+    public WbPoint(float x, float y, float p, float tx, float ty)
+    {
+        X = x; Y = y; P = p; TX = tx; TY = ty;
+    }
 }
 
 /// <summary>

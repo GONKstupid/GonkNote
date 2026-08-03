@@ -311,9 +311,58 @@ public static class WbRenderer
     /// weiche Kernlinie, fein aufgerauter Rand und eine gestempelte Körnung entlang eines
     /// leicht verrauschten Pfades.
     /// </summary>
+    /// <summary>
+    /// Wie stark der Strich durch die <b>Neigung</b> des Stifts verbreitert wird.
+    /// <c>1</c> = senkrecht gehalten, also unverändert.
+    ///
+    /// <para>
+    /// <b>Warum nur der Bleistift das benutzt:</b> eine schräg gehaltene Mine legt sich um
+    /// und zieht eine breitere, weichere Spur — das ist der Grund, warum man beim
+    /// Schraffieren den Stift kippt. Ein Fineliner hat eine feste Spitze und wird davon
+    /// nicht breiter, ein Textmarker hat eine Keilspitze, deren Verhalten von der
+    /// Drehung um die eigene Achse abhinge, und die liefert kein Digitizer. Beides
+    /// nachzuahmen wäre erfunden, nicht beobachtet.
+    /// </para>
+    /// <para>
+    /// <b>Und warum die Pixelhashes davon unberührt bleiben:</b> ohne Neigungsangabe ist
+    /// <see cref="WbPoint.TX"/>/<see cref="WbPoint.TY"/> gleich 0, der Faktor damit exakt
+    /// <c>1</c> und jede Rechnung darunter eine Multiplikation mit Eins. Bestandsdokumente,
+    /// die Golden-Files aus Phase 1 und alles, was eine Maus zeichnet, sehen deshalb
+    /// unverändert aus — auch im WPF-Kopf, der denselben Renderer benutzt und für diese
+    /// Änderung nicht angefasst werden musste.
+    /// </para>
+    /// <para>
+    /// Genommen wird die <b>mittlere</b> Neigung des Strichs, nicht die je Punkt: die
+    /// Körnung des Bleistifts entsteht aus drei Durchgängen über einen gemeinsamen Pfad,
+    /// und je Segment eine eigene Breite hieße, den Pfad je Segment neu zu bauen. Ein
+    /// Strich wird ohnehin selten in der Mitte umgegriffen.
+    /// </para>
+    /// </summary>
+    /// <remarks>
+    /// <c>NeigungVoll</c> ist der Winkel, ab dem die Verbreiterung ihr Maximum erreicht.
+    /// 60° ist etwa die Grenze, jenseits derer ein Stift auf dem Blatt liegt statt geführt
+    /// zu werden; darüber wird nicht weiter verbreitert.
+    /// </remarks>
+    public static float TiltWidthFactor(StrokeElement s)
+    {
+        const float NeigungVoll = 60f;
+        const float MaxZuwachs = 0.9f;
+
+        if (s.Points.Count == 0) return 1f;
+
+        double summe = 0;
+        foreach (var p in s.Points)
+            summe += Math.Sqrt(p.TX * (double)p.TX + p.TY * (double)p.TY);
+
+        float grad = (float)(summe / s.Points.Count);
+        if (grad <= 0f) return 1f;   // der Normalfall: keine Neigung gemeldet
+
+        return 1f + MaxZuwachs * Math.Min(1f, grad / NeigungVoll);
+    }
+
     private static void DrawPencil(SKCanvas canvas, StrokeElement s, SKColor color)
     {
-        float w = Math.Max(s.Width, 0.6f);
+        float w = Math.Max(s.Width, 0.6f) * TiltWidthFactor(s);
         using var path = BuildSmoothPath(s.Points);
 
         // Graphit besteht aus einzelnen Körnern — es gibt KEINEN deckenden Kern. Deshalb wird

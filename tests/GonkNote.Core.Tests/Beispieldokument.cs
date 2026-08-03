@@ -89,13 +89,21 @@ internal static class Beispieldokument
             Kind = StrokeKind.Pen,
             Color = "#FF1B2B4B",
             Width = 3.5f,
-            // Druckverlauf mit Zwischenwerten: prüft, dass P nicht auf 0,5 zurückfällt
+            // Druckverlauf mit Zwischenwerten: prüft, dass P nicht auf 0,5 zurückfällt.
+            // Dazu eine **Neigung** je Punkt, damit auch TX/TY einen Weg durch die
+            // Datenbank nehmen — sie werden bedingt geschrieben (WhenWritingDefault), ein
+            // Fehler darin sähe sonst wie „war halt 0" aus.
+            //
+            // Das steht bewusst am **Stift** und nicht am Bleistift darunter: nur der
+            // Bleistift wertet Neigung aus, und ein geneigter Bleistift hier würde den
+            // Pixelhash `bleistift-koernung` aus Phase 1 verschieben. Der Stift ignoriert
+            // sie — der Roundtrip prüft sie trotzdem.
             Points =
             {
-                new WbPoint(40, 60, 0.05f),
-                new WbPoint(90, 110, 0.42f),
-                new WbPoint(150, 80, 0.88f),
-                new WbPoint(210, 140, 1.00f),
+                new WbPoint(40, 60, 0.05f, 0f, 0f),
+                new WbPoint(90, 110, 0.42f, -12.5f, 33.25f),
+                new WbPoint(150, 80, 0.88f, 41.0f, -7.75f),
+                new WbPoint(210, 140, 1.00f, 60f, 60f),
             },
         },
         new StrokeElement

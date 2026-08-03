@@ -296,6 +296,11 @@ public sealed class DatenbankRoundtripTests
                     Assert.Equal(a.Points[i].X, b.Points[i].X);
                     Assert.Equal(a.Points[i].Y, b.Points[i].Y);
                     Assert.Equal(a.Points[i].P, b.Points[i].P);
+                    // Neigung seit Phase 3 (HANDOFF §4.11). Sie steht hier, damit das Feld
+                    // überhaupt einen Wächter hat: sie wird bedingt geschrieben
+                    // (WhenWritingDefault), und ein Fehler darin sähe wie „war halt 0" aus.
+                    Assert.Equal(a.Points[i].TX, b.Points[i].TX);
+                    Assert.Equal(a.Points[i].TY, b.Points[i].TY);
                 }
                 break;
 

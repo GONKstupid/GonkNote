@@ -1174,16 +1174,29 @@ sie steht im Repo:
 | Symbol | War | Ist |
 |---|---|---|
 | `Icon.Folder` | der „moderne" Ordner ohne Reiter: linke Hälfte höher, eine Schräge zur Grundfläche | der **klassische mit Reiter** oben links, samt der waagerechten Linie darunter, die den Reiter erst als Reiter lesbar macht |
-| `Icon.Textmarker` | ein **schräg liegender** Marker — daneben sah der Bleistift zweimal aus | ein **aufrechter, breiter** Marker von vorn: Korpus, Bandlinie quer darüber, Keilspitze |
+| `Icon.Textmarker` | erst ein **schräg liegender** Marker, dann ein aufrechter mit **geschlossener Kappe** | ein aufrechter, breiter Marker, **oben offen**: der Schaft ist am Rand abgeschnitten, zwei Stege stehen über der Bandlinie, unten die Keilspitze |
 
-**Die Breite ist beim Marker das Erkennungsmerkmal**, nicht die Neigung: ein schmaler Umriss
-liest sich neben Stift und Bleistift wie ein dritter Stift. Und **die Bandlinie braucht
-Abstand zum oberen Rand** — im ersten Anlauf lag sie 2,6 Einheiten darunter und verschmolz
-bei 16 px mit der gerundeten Kappe zu einem einzigen Strich.
+**Drei Lehren, alle am Bild und nicht am Code sichtbar geworden:**
+
+1. **Der Marker ist oben offen.** Daran sind die ersten beiden Anläufe gescheitert. Eine
+   geschlossene Kappe macht daraus einen Stift mit Deckel; erst der abgeschnittene Schaft
+   liest sich als Marker.
+2. **Die Breite ist das Erkennungsmerkmal**, nicht die Neigung — ein schmaler Umriss steht
+   neben Stift und Bleistift wie ein dritter Stift.
+3. **`StrokeThickness` wächst nicht mit `Stretch` mit.** Der Wert steht in Gerätepunkten,
+   nicht in denen der Geometrie: dieselben `0,7`, die im Baum bei 16 px kräftig aussehen,
+   sind auf der Galerie-Kachel bei 118 px ein Haarstrich. Die Kachel trägt deshalb ihren
+   **eigenen** Wert (`4,5`, in `MainWindow.axaml`). Das ist keine Eigenheit des Ordners —
+   **wer künftig eine Vektorform groß zeigt, muss die Strichstärke dort eigens setzen.**
 
 Beide am laufenden Programm angesehen, in **drei** Größen: Baum (16 px), Schnellzugriff
-(21 px) und Galerie-Kachel (118 px, Strichstärke 0,7). **Der WPF-Kopf ist nicht betroffen** —
-er zeichnet diese Symbole weiter mit der Icon-Schrift.
+(21 px) und Galerie-Kachel (118 px), und in **beiden** Themes. **Der WPF-Kopf ist nicht
+betroffen** — er zeichnet diese Symbole weiter mit der Icon-Schrift.
+
+> **Zum Beurteilen einer Form ist ein SVG schneller als die App.** Dieselbe Pfadangabe in
+> eine `.svg` schreiben, mit `magick … -filter point -resize 400x` groß rendern und ansehen:
+> das ist genau das, was Avalonia zeichnet, und kostet keinen Neustart. Die Gegenprobe am
+> laufenden Programm bleibt trotzdem Pflicht — nur eben einmal statt bei jedem Zwischenstand.
 
 > **Offen geblieben, klein und benannt:** Der **WPF**-Über-Dialog könnte den Datenordner
 > genauso anzeigen wie der Linux-Kopf es tut. Das ist eine Zeile XAML und eine Zeile
@@ -2243,6 +2256,17 @@ und keine davon sieht wie ein Fehler aus.
   zusammen (hier von 2560 auf 3072 px Breite). Alle vorher gemessenen Koordinaten sind dann
   falsch, und weil das Fenster trotzdem normal aussieht, sucht man lange. **Geometrie einmal
   mit `zeiger fenster` holen und danach nichts mehr an der Fenstergröße ändern.**
+- **`import -window` liefert unter XWayland manchmal ein Bild von vorgestern.** Nicht nur
+  das X-Wurzelfenster ist unzuverlässig (oben) — auch die Fensteraufnahme kann einen Stand
+  zeigen, der mehrere Schritte alt ist. **Das Fehlerbild ist bösartig:** man klickt, das Foto
+  zeigt keine Wirkung, man korrigiert die Koordinaten, klickt woanders hin — und in
+  Wahrheit hat schon der erste Klick gesessen. In dieser Runde sind so vier Durchgänge
+  draufgegangen; erst ein Klick auf „Design wechseln" hat gezeigt, dass die Eingaben längst
+  ankamen.
+  **Gegenmittel: nicht dem Bild glauben, sondern dem Vergleich.** Zwei Aufnahmen nacheinander
+  hashen (`magick <datei> -format "%#" info:`); ändert sich der Hash nicht, ist entweder
+  nichts passiert **oder das Bild ist alt** — dann eine Aktion mit unübersehbarer Wirkung
+  auslösen (Theme wechseln) und erneut sehen.
 - **Was sich so nicht prüfen lässt: der Stift.** XTEST erzeugt Maus- und Tastaturereignisse.
   Druck, Neigung und die Unterscheidung Stift/Finger entstehen im Digitizer und lassen sich
   nicht nachbilden — ein Zug mit `zeiger` prüft deshalb immer den **Rückfallpfad**, nie den
@@ -2389,6 +2413,7 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 
 | Runde | Datum | Was |
 |---|---|---|
+| V2-16 | 2026-08-04 | **Nachlese zu V2-15, wieder auf Nutzerwunsch.** (1) **Die große Ordner-Kachel bekommt ihre eigene Strichstärke** (`4,5` statt `0,7`, `MainWindow.axaml`). Grund und allgemeine Lehre: **`StrokeThickness` wächst nicht mit `Stretch` mit** — der Wert steht in Gerätepunkten und nicht in denen der Geometrie, weshalb dieselben 0,7, die im Baum bei 16 px kräftig aussehen, bei 118 px ein Haarstrich sind. Wer künftig eine Vektorform groß zeigt, muss die Stärke dort eigens setzen. In der Seitenleiste bleibt alles wie es war. (2) **`Icon.Textmarker` im dritten Anlauf**, jetzt **oben offen**: der Schaft ist am oberen Rand abgeschnitten, zwei Stege stehen über der Bandlinie, unten die Keilspitze. Genau daran lagen die ersten beiden Fassungen daneben — eine geschlossene Kappe macht daraus einen Stift mit Deckel. **Neu als Arbeitsweise:** eine Form beurteilt man schneller, indem man dieselbe Pfadangabe als `.svg` groß rendert (`magick … -filter point -resize 400x`), als indem man die App neu startet; die Gegenprobe am laufenden Programm bleibt Pflicht, aber einmal statt bei jedem Zwischenstand. **Dabei eine teure Wayland-Falle gefunden** (§7): **`import -window` liefert manchmal ein Bild, das mehrere Schritte alt ist** — man klickt, das Foto zeigt keine Wirkung, man korrigiert Koordinaten, und in Wahrheit hat schon der erste Klick gesessen. Vier Durchgänge sind so verloren gegangen. Gegenmittel: zwei Aufnahmen hashen und bei Gleichstand eine Aktion mit unübersehbarer Wirkung auslösen |
 | V2-15 | 2026-08-03 | **Nachlese zu V2-14, beides auf Nutzerwunsch.** (1) Der **Klon-Befehl zeigt jetzt auf V2** (`GonkNote.git`) — in beiden Erste-Schritte-Fassungen, dazu der Issues-Verweis am Ende. Damit ist §5 „Noch offen" Punkt 3 nach zweimaligem Zurückstellen entschieden; fällig geworden war er dadurch, dass die Anleitung daneben `src/GonkNote.Avalonia` nennt, ein Projekt, das es im V1-Repo nicht gibt. **Das Repo ist weiterhin privat** — der Befehl läuft heute nur für Konten mit Zugriff, und das wird mit §6 „Vor dem Öffentlich-Schalten" richtig. (2) **Zwei Vektorformen zurück auf die V1-Gestalt**: `Icon.Folder` ist wieder der klassische Ordner **mit Reiter** oben links (statt der „modernen" Fassung mit Schräge), `Icon.Textmarker` ein **aufrechter, breiter** Marker mit Bandlinie und Keilspitze (statt eines schräg liegenden, der neben dem Bleistift wie ein zweiter Stift aussah). Gezeichnet **nach dem Zeichen, das der WPF-Kopf dafür benutzt** (Segoe Fluent `E8B7`/`E7E6`) und nicht nach dem Vorschaubild — die Vorlage steht im Repo und ist damit nachprüfbar. Zwei Lehren stehen jetzt am Symbolblock in `Themes/Styles.axaml`: beim Marker ist **die Breite** das Erkennungsmerkmal und nicht die Neigung, und **die Bandlinie braucht Abstand zum oberen Rand** — im ersten Anlauf verschmolz sie bei 16 px mit der gerundeten Kappe zu einem einzigen Strich. In drei Größen am laufenden Programm angesehen (Baum 16 px, Schnellzugriff 21 px, Galerie-Kachel 118 px). Die übrigen neuen Symbole bleiben, wie sie sind — der Nutzer hält sie für besser als die V1-Fassungen. Der WPF-Kopf ist nicht betroffen: er zeichnet weiter mit der Icon-Schrift |
 | V2-14 | 2026-08-03 | **Phase 3, Brocken 6 und 7 — der Rest bis M1** (§4.12), auf dem CachyOS-Laptop. **Drag & Drop im Ordnerbaum** (verschieben, mit `Strg` kopieren; leere Fläche = Wurzel), die **einblendbare Titelleiste** des maximierten Fensters und die **Einstellungen-Seitenleiste** der Zeichenfläche (Muster, Farbton, Format, Ausrichtung — **nur** der Seiten-Abschnitt, weil es die anderen Werkzeuge nicht gibt). Dazu das **`EmbeddedDocs`-Gegenstück**: „Hilfe → Erste Schritte" und das gerenderte README erscheinen jetzt auch unter Linux. **Der Markdown-Zerleger ist dabei nach `Core/Text/` gewandert** statt ein zweites Mal abgeschrieben zu werden — er zeichnet kein Pixel (§3), und zwei Fassungen derselben Grammatik driften auseinander, ohne dass es auffällt; jeder Kopf malt nur noch. Wächter `MarkdownTests` (21 Tests, jetzt **146** Core / 159 gesamt) — **er hat sofort eine Endlosschleife gefunden, die auch in `MarkdownFlow` steckt**: eine Tabellenzeile ohne Trennzeile darunter landet im Absatz-Zweig, den sie selbst abweist, sodass `Parse` nie weiterrückt. Aufgefallen ist das nicht an einer roten Meldung, sondern daran, dass der Testlauf nicht mehr zurückkam (§7, neu). **Drei weitere Avalonia-Eigenheiten** (§7): Ziehen läuft auch in der App über XDND, weshalb es ein prozessinternes `DataFormat` braucht; `DoDragDropAsync` verlangt die `PointerPressedEventArgs`; ein anklickbarer Verweis ist ein Steuerelement (`InlineUIContainer`) und kein `Run`. Die Titelleiste braucht hier **keinen** MinMax-Hook — X11 maximiert gegen `_NET_WORKAREA`, `WindowBounds` bleibt zu Recht Windows-only. **Zwei Texte am laufenden Programm als falsch entlarvt** und in beiden Tabellen behoben: `About.Subtitle` nannte fest `%APPDATA%\GonkNote` (direkt über der Zeile mit dem echten Ordner), und der Werkzeugtipp der Seitenleiste versprach vier Abschnitte, von denen es einen gibt (neuer Schlüssel `Wb.Settings.PageTip`). **Ein eigener Fehler dabei gefunden:** die Leiste ging mit lauter leeren Umschaltern auf — `EinstellungenSpiegeln` wurde vor dem Sichtbarmachen gerufen und stieg deshalb sofort wieder aus. **Nutzer-Entscheidung: M1 wird ausgerufen** — und im selben Zug sind **alle vier mitgelieferten Dokumente** auf beide Ausgaben erweitert worden (Dauerregel 1): neuer Abschnitt „Zwei Ausgaben, eine App" mit einer Tabelle, was der Linux-Ausgabe fehlt und warum, dazu Bau-, Pfad- und Sicherungsanweisungen je System. Geprüft ohne echte Daten, in **beiden** Sprachen, jeder Schritt mit `tools/linux/` fotografiert. **Offen bleibt** der V1-Klon-Befehl in beiden Erste-Schritte-Fassungen (§5, Punkt 3) — er fällt jetzt stärker auf, weil daneben `src/GonkNote.Avalonia` steht |
 | V2-13 | 2026-08-03 | **Stift am Gerät geprüft — alles bestanden** (§5a, „Gegenprobe in der echten App"). Der Nutzer hat Druck, Neigung und Handballenabweisung mit der F9-Anzeige in der laufenden App durchgeprüft: Zeigerart `Pen`, `(Gerät liefert Druck)` mit veränderlichem Wert, dickerer Strich beim Aufdrücken; Neigung in Grad ≠ 0 und ein sichtbar breiterer Bleistift bei gekipptem Stift; kein Strich vom Handballen und kein verrutschendes Blatt. **Damit ist die Kette vom Digitizer bis zum gezeichneten Pixel zum ersten Mal durchgehend belegt** — bisher endete der Nachweis am Prototyp (§5a), und die automatisierten Belege konnten nur den Rückfallzweig zeigen, weil XTEST keine Stiftereignisse erzeugt. **Nicht ausgeräumt:** es bleibt **eine** Geräteklasse (Wacom AES); MPP und EMR sind weiter ungetestet, §5 „Noch offen" Punkt 1 steht |

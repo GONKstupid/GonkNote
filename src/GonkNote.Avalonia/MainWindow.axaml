@@ -329,9 +329,14 @@
                                                 <Panel Height="152" Margin="0,4,0,10">
 
                                                     <!-- Ordner: großes farbiges Symbol -->
+                                                    <!-- **`StrokeThickness` wächst nicht mit `Stretch` mit.** Der Wert
+                                                         steht in Gerätepunkten, nicht in denen der Geometrie: dieselben
+                                                         0,7, die im Baum bei 16 px kräftig aussehen, sind hier bei
+                                                         118 px ein Haarstrich. Deshalb der eigene Wert — die Kachel
+                                                         soll so satt gezeichnet sein wie im WPF-Kopf. -->
                                                     <Path Data="{Binding Kind, Converter={StaticResource KindToIcon}}"
                                                           Stroke="{Binding IconColorHex, Converter={StaticResource HexToBrush}}"
-                                                          StrokeThickness="0.7" StrokeLineCap="Round" StrokeJoin="Round"
+                                                          StrokeThickness="4.5" StrokeLineCap="Round" StrokeJoin="Round"
                                                           Width="118" Height="106" Stretch="Uniform"
                                                           HorizontalAlignment="Center" VerticalAlignment="Center"
                                                           IsVisible="{Binding IsFolder}"/>

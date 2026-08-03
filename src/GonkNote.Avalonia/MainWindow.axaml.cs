@@ -34,6 +34,9 @@ public partial class MainWindow : Window
         SpracheHaken();
         Loc.LanguageChanged += SpracheHaken;
 
+        ZiehenEinhaengen();
+        TitelleisteEinhaengen();
+
         // Beim Schließen den Stand sichern — die Autospeicherung läuft nur alle 30 Sekunden.
         Closing += (_, _) =>
         {
@@ -61,6 +64,9 @@ public partial class MainWindow : Window
         SpracheDeutsch.IsChecked = Loc.Current == AppLanguage.German;
         SpracheEnglisch.IsChecked = Loc.Current == AppLanguage.English;
     }
+
+    private void ErsteSchritte_Click(object? sender, RoutedEventArgs e) =>
+        new GuideWindow().ShowDialog(this);
 
     private void Ueber_Click(object? sender, RoutedEventArgs e) => new AboutWindow().ShowDialog(this);
 

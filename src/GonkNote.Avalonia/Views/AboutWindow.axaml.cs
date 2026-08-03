@@ -1,7 +1,6 @@
 using System.Reflection;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using Avalonia.Markup.Xaml;
 using GonkNote.Core.Platform;
 using GonkNote.Services;
 
@@ -22,6 +21,16 @@ public partial class AboutWindow : Window
         // ~/.config/GonkNote, unter Windows %APPDATA%\GonkNote. Deshalb den tatsächlichen
         // Pfad zeigen und nicht den aus About.Subtitle.
         Datenordner.Text = AppPaths.Current.DataFolder;
+
+        // Der Verweis auf die Anleitung im README soll dorthin führen, wo sie steht — sonst
+        // wäre er eine Sackgasse. Genau dafür kennt `EmbeddedDocs` beide Dateinamen.
+        Liesmich.Content = MarkdownView.Bauen(EmbeddedDocs.Readme(), ZuDenErstenSchritten);
+    }
+
+    private void ZuDenErstenSchritten(string ziel)
+    {
+        if (!EmbeddedDocs.IsGuideLink(ziel)) return;
+        new GuideWindow().ShowDialog(this);
     }
 
     private void Schliessen_Click(object? sender, RoutedEventArgs e) => Close();

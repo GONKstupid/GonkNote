@@ -33,13 +33,19 @@ Anleitung nach der Sprache, die du unter Ansicht → Sprache gewählt hast.)*
 
 ## 1. Gonk Note auf den Rechner holen
 
-**Voraussetzungen:** Windows 11 (Windows 10 sollte ebenfalls laufen, ist aber nicht
-getestet) und das [.NET SDK 10](https://dotnet.microsoft.com/download/dotnet/10.0)
-oder neuer. Adminrechte brauchst du nicht.
+**Voraussetzungen:** **Windows 11** (Windows 10 sollte ebenfalls laufen, ist aber
+nicht getestet) **oder Linux**, dazu das
+[.NET SDK 10](https://dotnet.microsoft.com/download/dotnet/10.0) oder neuer.
+Adminrechte brauchst du nicht.
 
-> Es gibt (noch) kein fertiges Release zum Herunterladen — du baust dir die
-> Exe in zwei Befehlen selbst. Das Ergebnis ist eine **einzelne Datei**, die
-> ohne installiertes .NET läuft und sich beliebig verschieben lässt.
+> **Gonk Note gibt es in zwei Ausgaben** — eine für Windows und eine für Linux.
+> Beide lesen dieselben Dateien und sehen fast gleich aus. Die **Linux-Ausgabe ist
+> noch nicht vollständig**: Notizbuch und Whiteboard laufen, Textdokumente lassen
+> sich öffnen, aber noch nicht bearbeiten, und Import/Export fehlen. Was genau
+> fehlt, steht im [README](README.md#zwei-ausgaben-eine-app).
+
+> Es gibt (noch) kein fertiges Release zum Herunterladen — du baust dir das
+> Programm in zwei Befehlen selbst.
 
 **Schritt für Schritt:**
 
@@ -50,18 +56,21 @@ oder neuer. Adminrechte brauchst du nicht.
    cd gonk-note
    ```
 
-2. Exe bauen:
+2. Bauen — **je nach Ausgabe ein anderes Projekt**. Baue nie die ganze Solution:
+   sie enthält beide, und die Windows-Ausgabe lässt sich unter Linux nicht
+   übersetzen.
 
-   ```bash
-   dotnet publish -c Release
+   **Windows:**
+
+   ```powershell
+   dotnet publish src/GonkNote.Wpf -c Release
    ```
 
-   Der erste Lauf lädt die Pakete herunter und dauert ein paar Minuten.
-
-3. Die fertige Datei liegt unter:
+   Das Ergebnis ist eine **einzelne Datei**, die ohne installiertes .NET läuft und
+   sich beliebig verschieben lässt:
 
    ```
-   bin\Release\net10.0-windows10.0.19041.0\win-x64\publish\GonkNote.exe
+   src\GonkNote.Wpf\bin\Release\net10.0-windows10.0.19041.0\win-x64\publish\GonkNote.exe
    ```
 
    Kopiere sie dorthin, wo du sie haben willst — **zusammen mit dem Ordner
@@ -69,31 +78,55 @@ oder neuer. Adminrechte brauchst du nicht.
    Verzeichnis. `tessdata` enthält die Sprachdaten für die Texterkennung; ohne
    ihn funktioniert alles außer OCR.
 
-**Nur zum Ausprobieren** — ohne Exe, direkt aus dem Quellcode:
+   **Linux:**
+
+   ```bash
+   dotnet run --project src/GonkNote.Avalonia
+   ```
+
+   Dein System braucht dafür **fontconfig und mindestens eine Schrift** — sonst
+   bleibt jeder gezeichnete Text leer. Auf Arch-artigen Systemen (CachyOS, Manjaro,
+   EndeavourOS …):
+
+   ```bash
+   sudo pacman -S fontconfig ttf-dejavu
+   ```
+
+   Auf Debian-artigen (Ubuntu, Mint …) heißen die Pakete `libfontconfig1` und
+   `fonts-dejavu-core`.
+
+Der erste Lauf lädt die Pakete herunter und dauert ein paar Minuten.
+
+**Nur zum Ausprobieren** — ohne fertige Datei, direkt aus dem Quellcode:
 
 ```bash
-dotnet run
+dotnet run --project src/GonkNote.Wpf        # Windows
+dotnet run --project src/GonkNote.Avalonia   # Linux
 ```
 
 ---
 
 ## 2. Der erste Start
 
-Doppelklick auf `GonkNote.exe`. Beim ersten Start legt Gonk Note still einen
-Ordner an:
+Windows: Doppelklick auf `GonkNote.exe`. Linux: der `dotnet run`-Befehl von oben.
+
+Beim ersten Start legt Gonk Note still einen Ordner an — **unter Windows
+`%APPDATA%\GonkNote`, unter Linux `~/.config/GonkNote`**:
 
 ```
-%APPDATA%\GonkNote\
+<Datenordner>/
 ├─ gonknote.sqlite      deine Texte, Striche und die Ordnerstruktur
-├─ gonknote.blobs\      Bilder sowie importierte PDF- und Word-Seiten
-└─ gonknote.papierkorb\ Bilder, die gerade niemand braucht (30 Tage Schonfrist)
+├─ gonknote.blobs/      Bilder sowie importierte PDF- und Word-Seiten
+└─ gonknote.papierkorb/ Bilder, die gerade niemand braucht (30 Tage Schonfrist)
 ```
 
 Nichts wird ins Internet geschickt, nichts in die Registry geschrieben, nichts
-installiert. Willst du Gonk Note wieder loswerden, reichen Exe und dieser Ordner.
+installiert. Willst du Gonk Note wieder loswerden, reichen das Programm und dieser
+Ordner.
 
 > **Merke dir diesen Pfad.** Er ist gleichzeitig dein Backup — siehe
-> [Abschnitt 10](#10-sichern--bitte-einmal-einrichten).
+> [Abschnitt 10](#10-sichern--bitte-einmal-einrichten). Du musst ihn dir nicht
+> merken: **Hilfe → Über Gonk Note** zeigt ihn an.
 
 ---
 
@@ -222,7 +255,13 @@ Notizbuch, aber statt Seiten eine unendliche Fläche mit Punktraster. Nimm es f�
 Mindmaps, Skizzen und alles, was nicht in A4 passt.
 
 **Textdokument** (`Datei → Neues Textdokument`) — ein Rich-Text-Editor im
-Ribbon-Layout (`Start`, `Einfügen`, `Layout`, `Verweise`). Zum Einstieg:
+Ribbon-Layout (`Start`, `Einfügen`, `Layout`, `Verweise`).
+
+> **Nur in der Windows-Ausgabe.** In der Linux-Ausgabe lässt sich ein Textdokument
+> anlegen und öffnen, aber noch nicht bearbeiten — die Registerkarte sagt das auch.
+> Deine Texte bleiben dabei unangetastet.
+
+Zum Einstieg:
 
 1. Text tippen, Formatvorlage oben links wählen (Überschrift 1–4, Zitat, …).
 2. **Tabelle einfügen** über `Einfügen` — Raster aufziehen wie in Word. Steht der
@@ -249,16 +288,22 @@ dunkler Schrift heraus. Fehlen zu einem Bild die Originaldaten, sagt Gonk Note
 das nach dem Export — statt stillschweigend in schlechterer Qualität zu
 exportieren.
 
+> **Nur in der Windows-Ausgabe.** Der Export hängt am selben Windows-Baustein wie
+> der Texteditor und zieht mit ihm um. Die Linux-Ausgabe meldet ehrlich, dass sie
+> es nicht kann, statt eine leere Datei zu schreiben.
+
 ---
 
 ## 10. Sichern — bitte einmal einrichten
 
 Gonk Note hat keine Cloud. Deine Notizen liegen ausschließlich auf deinem
-Rechner, und zwar an **zwei** Stellen:
+Rechner, und zwar an **zwei** Stellen im Datenordner (Windows:
+`%APPDATA%\GonkNote`, Linux: `~/.config/GonkNote` — **Hilfe → Über Gonk Note**
+zeigt ihn dir an):
 
 ```
-%APPDATA%\GonkNote\gonknote.sqlite    ← Texte, Striche, Struktur
-%APPDATA%\GonkNote\gonknote.blobs\    ← alle Bilder und importierten Seiten
+<Datenordner>/gonknote.sqlite    ← Texte, Striche, Struktur
+<Datenordner>/gonknote.blobs/    ← alle Bilder und importierten Seiten
 ```
 
 **Für eine Sicherung brauchst du beides — die Datei *und* den Ordner.** Nur die
@@ -271,9 +316,12 @@ Rechner, und zwar an **zwei** Stellen:
 > nach kurzer Zeit ein veralteter Stand. Wer den ganzen Ordner sichert (nächster
 > Absatz), hat ohnehin beides.
 
-Am einfachsten: den kompletten Ordner `%APPDATA%\GonkNote` regelmäßig
-wegkopieren, am besten bei geschlossener App. Zum Zurückholen kopierst du ihn an
-dieselbe Stelle zurück.
+Am einfachsten: den kompletten Datenordner regelmäßig wegkopieren, am besten bei
+geschlossener App. Zum Zurückholen kopierst du ihn an dieselbe Stelle zurück.
+
+> **Zwischen Windows und Linux umziehen** geht damit auch: derselbe Ordnerinhalt,
+> nur an der jeweils anderen Stelle. Die Dateien sind auf beiden Systemen
+> identisch aufgebaut.
 
 Bilder, auf die kein Dokument mehr zeigt, landen übrigens nicht sofort im Nichts,
 sondern für 30 Tage in `gonknote.papierkorb\`. Wird so ein Bild vorher wieder
@@ -287,11 +335,15 @@ Cover und Geodreieck bringt Gonk Note mit; **Sticker liefert es aus Lizenzgründ
 bewusst keine** — die legst du selbst ab. Eigene Dateien haben überall Vorrang vor
 den mitgelieferten:
 
-| Was | Wohin |
+| Was | Wohin (im Datenordner) |
 |---|---|
-| Sticker (Bild-Aufkleber) | `%APPDATA%\GonkNote\Stickers\` — Unterordner werden zu eigenen Gruppen |
-| Notizbuch-Cover | `%APPDATA%\GonkNote\Covers\` — erscheinen unter „Individuell" |
-| Geodreieck-Grafik | `%APPDATA%\GonkNote\Geodreieck-Light.svg` bzw. `-Dark.svg` |
+| Sticker (Bild-Aufkleber) | `Stickers/` — Unterordner werden zu eigenen Gruppen |
+| Notizbuch-Cover | `Covers/` — erscheinen unter „Individuell" |
+| Geodreieck-Grafik | `Geodreieck-Light.svg` bzw. `-Dark.svg` |
+
+> **Dieser Abschnitt gilt heute nur für die Windows-Ausgabe.** Sticker, eigene
+> Cover-Vorlagen und das Geodreieck gibt es in der Linux-Ausgabe noch nicht; die
+> Dateien liegen dort ungenutzt herum, bis die Werkzeuge nachgezogen sind.
 
 Sticker und Cover kannst du auch bequem über die **„+"-Kachel** im jeweiligen
 Werkzeug hochladen; Gonk Note kopiert sie dann selbst an die richtige Stelle.
@@ -367,18 +419,23 @@ einer Minute.
 
    | Du startest… | Befehl | Ergebnis liegt in |
    |---|---|---|
-   | die Verknüpfung im Startmenü | `dotnet build -c Release` | `bin\Release\net10.0-windows10.0.19041.0\win-x64\` |
-   | eine kopierte Einzeldatei-Exe | `dotnet publish -c Release` | `bin\Release\net10.0-windows10.0.19041.0\win-x64\publish\` |
+   | die Verknüpfung im Startmenü (Windows) | `dotnet build src/GonkNote.Wpf -c Release` | `src\GonkNote.Wpf\bin\Release\net10.0-windows10.0.19041.0\win-x64\` |
+   | eine kopierte Einzeldatei-Exe (Windows) | `dotnet publish src/GonkNote.Wpf -c Release` | `…\win-x64\publish\` |
+   | die Linux-Ausgabe | `dotnet build src/GonkNote.Avalonia -c Release` | `src/GonkNote.Avalonia/bin/Release/net10.0/` |
 
    Beim zweiten Weg musst du die neue `GonkNote.exe` anschließend wieder dorthin
    kopieren, wo deine alte lag — **zusammen mit den Ordnern `Assets` und `tessdata`**,
    falls die sich geändert haben.
 
+   **Nie `dotnet build` ohne Projektangabe.** Das baut die ganze Solution, und die
+   enthält beide Ausgaben — unter Linux scheitert sie zwangsläufig an der
+   Windows-Ausgabe.
+
 4. **Starten und in `Hilfe → Über Gonk Note` nachsehen**, ob die neue Version anliegt.
 
-**Deine Notizen bleiben dabei unangetastet.** Sie liegen in `%APPDATA%\GonkNote\` und
-haben mit dem Programmordner nichts zu tun — du kannst die Exe gefahrlos ersetzen oder
-sogar löschen. Trotzdem gilt: **vor einem Update einmal sichern**
+**Deine Notizen bleiben dabei unangetastet.** Sie liegen im Datenordner und haben mit
+dem Programmordner nichts zu tun — du kannst das Programm gefahrlos ersetzen oder sogar
+löschen. Trotzdem gilt: **vor einem Update einmal sichern**
 (siehe [Abschnitt 10](#10-sichern--bitte-einmal-einrichten)), das kostet zehn Sekunden.
 
 **Wenn der Build fehlschlägt:**
@@ -386,12 +443,14 @@ sogar löschen. Trotzdem gilt: **vor einem Update einmal sichern**
 | Meldung | Ursache |
 |---|---|
 | Zugriff verweigert / Datei in Verwendung | Gonk Note läuft noch — schließen und erneut bauen |
-| `NETSDK1045` o. Ä. zur Framework-Version | .NET SDK zu alt — [aktuelles SDK 8+](https://dotnet.microsoft.com/download/dotnet/8.0) installieren |
+| `NETSDK1045` o. Ä. zur Framework-Version | .NET SDK zu alt — [aktuelles SDK 10+](https://dotnet.microsoft.com/download/dotnet/10.0) installieren |
+| `net10.0-windows…` lässt sich nicht auflösen (Linux) | Du baust die Windows-Ausgabe oder die ganze Solution — nimm `src/GonkNote.Avalonia` |
 | Merge-Konflikt bei `git pull` | du hast lokale Änderungen — `git stash`, dann erneut `git pull` |
 
-**Nur für dich als Entwickler:** Die Versionsnummer selbst steht in `GonkNote.csproj`
-(`<Version>`); die Phasenangabe daneben in `Views/AboutDialog.xaml.cs`. Beides wird von
-Hand gepflegt.
+**Nur für dich als Entwickler:** Die Versionsnummer selbst steht in
+`Directory.Build.props` (`<Version>`) und gilt für beide Ausgaben; die Phasenangabe
+daneben kommt aus dem Übersetzungsschlüssel `About.Version` (beide Sprachtabellen in
+`src/GonkNote.Core/Localization/`). Beides wird von Hand gepflegt.
 
 **Eine Version zurück?** Alle Stände liegen in der Git-Historie:
 `git log --oneline` zeigt sie, `git checkout <commit>` holt einen davon, `git checkout main`
@@ -401,22 +460,30 @@ bringt dich zurück. Danach jeweils neu bauen.
 
 ## 15. Wenn etwas klemmt
 
-**Die App zeigt einen Fehler.** Unerwartete Fehler landen in
-`%APPDATA%\GonkNote\fehler.log` und werden einmal pro Sitzung gemeldet. Diese
-Datei ist das Erste, was in einen Bug-Report gehört.
+**Die App zeigt einen Fehler.** Unerwartete Fehler landen als `fehler.log` im
+Datenordner und werden einmal pro Sitzung gemeldet. Diese Datei ist das Erste, was
+in einen Bug-Report gehört.
 
 **Die Rechtschreibprüfung streicht nichts an.** Die Markierungen kommen von
 Windows, nicht von Gonk Note. Fehlt für eine Sprache das Wörterbuch (typisch:
 Englisch auf einem rein deutschen Windows), erscheint in der Statusleiste ein
-Warndreieck. Abhilfe: die Sprache in den Windows-Einstellungen ergänzen.
+Warndreieck. Abhilfe: die Sprache in den Windows-Einstellungen ergänzen. In der
+Linux-Ausgabe gibt es die Prüfung noch nicht.
 
 **OCR findet keinen Text / meldet fehlende Sprachdaten.** Der Ordner `tessdata`
 muss neben `GonkNote.exe` liegen (siehe [Abschnitt 1](#1-gonk-note-auf-den-rechner-holen)).
+Die Linux-Ausgabe hat noch keine Texterkennung und sagt das auch.
+
+**Unter Linux bleibt jeder gezeichnete Text leer.** Dann fehlen `fontconfig` oder
+eine Schrift — siehe [Abschnitt 1](#1-gonk-note-auf-den-rechner-holen).
 
 **Ich will mit einer zweiten, leeren Datenbank testen.** Starte mit
 
+```powershell
+GonkNote.exe --db C:\Pfad\zu\test.sqlite                          # Windows
+```
 ```bash
-GonkNote.exe --db C:\Pfad\zu\test.db
+dotnet run --project src/GonkNote.Avalonia -- --db /tmp/test.sqlite   # Linux
 ```
 
 Der echte Datenbestand bleibt dabei unberührt.

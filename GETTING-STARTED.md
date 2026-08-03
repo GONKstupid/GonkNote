@@ -33,13 +33,18 @@ follows the language you picked under View → Language.)*
 
 ## 1. Getting Gonk Note onto your machine
 
-**Requirements:** Windows 11 (Windows 10 should work too but is untested) and the
-[.NET SDK 10](https://dotnet.microsoft.com/download/dotnet/10.0) or newer. You do not need
-admin rights.
+**Requirements:** **Windows 11** (Windows 10 should work too but is untested) **or Linux**,
+plus the [.NET SDK 10](https://dotnet.microsoft.com/download/dotnet/10.0) or newer. You do
+not need admin rights.
 
-> There is no ready-made release to download (yet) — you build the exe yourself with two
-> commands. The result is a **single file** that runs without an installed .NET and can be
-> moved anywhere.
+> **Gonk Note comes in two editions** — one for Windows and one for Linux. Both read the
+> same files and look almost identical. The **Linux edition is not complete yet**: notebooks
+> and whiteboards work, text documents open but cannot be edited yet, and import/export are
+> missing. Exactly what is missing is listed in the
+> [README](README.en.md#two-editions-one-app).
+
+> There is no ready-made release to download (yet) — you build the program yourself with two
+> commands.
 
 **Step by step:**
 
@@ -50,48 +55,73 @@ admin rights.
    cd gonk-note
    ```
 
-2. Build the exe:
+2. Build — **a different project per edition**. Never build the whole solution: it contains
+   both, and the Windows edition cannot be compiled on Linux.
 
-   ```bash
-   dotnet publish -c Release
+   **Windows:**
+
+   ```powershell
+   dotnet publish src/GonkNote.Wpf -c Release
    ```
 
-   The first run downloads the packages and takes a few minutes.
-
-3. The finished file is at:
+   The result is a **single file** that runs without an installed .NET and can be moved
+   anywhere:
 
    ```
-   bin\Release\net10.0-windows10.0.19041.0\win-x64\publish\GonkNote.exe
+   src\GonkNote.Wpf\bin\Release\net10.0-windows10.0.19041.0\win-x64\publish\GonkNote.exe
    ```
 
    Copy it wherever you want it — **together with the `tessdata` folder** and, if present,
    the `Assets` folder from the same directory. `tessdata` holds the language data for text
    recognition; without it everything works except OCR.
 
-**Just to try it out** — no exe, straight from the source:
+   **Linux:**
+
+   ```bash
+   dotnet run --project src/GonkNote.Avalonia
+   ```
+
+   Your system needs **fontconfig and at least one font** for this — otherwise every drawn
+   piece of text stays blank. On Arch-like systems (CachyOS, Manjaro, EndeavourOS …):
+
+   ```bash
+   sudo pacman -S fontconfig ttf-dejavu
+   ```
+
+   On Debian-like ones (Ubuntu, Mint …) the packages are called `libfontconfig1` and
+   `fonts-dejavu-core`.
+
+The first run downloads the packages and takes a few minutes.
+
+**Just to try it out** — no finished file, straight from the source:
 
 ```bash
-dotnet run
+dotnet run --project src/GonkNote.Wpf        # Windows
+dotnet run --project src/GonkNote.Avalonia   # Linux
 ```
 
 ---
 
 ## 2. The first start
 
-Double-click `GonkNote.exe`. On the first start Gonk Note quietly creates a folder:
+Windows: double-click `GonkNote.exe`. Linux: the `dotnet run` command above.
+
+On the first start Gonk Note quietly creates a folder — **`%APPDATA%\GonkNote` on Windows,
+`~/.config/GonkNote` on Linux**:
 
 ```
-%APPDATA%\GonkNote\
+<data folder>/
 ├─ gonknote.sqlite      your texts, strokes and the folder structure
-├─ gonknote.blobs\      images plus imported PDF and Word pages
-└─ gonknote.papierkorb\ images nobody currently needs (30-day grace period)
+├─ gonknote.blobs/      images plus imported PDF and Word pages
+└─ gonknote.papierkorb/ images nobody currently needs (30-day grace period)
 ```
 
 Nothing is sent to the internet, nothing is written to the registry, nothing is installed. If
-you want to get rid of Gonk Note again, the exe and this folder are all there is.
+you want to get rid of Gonk Note again, the program and this folder are all there is.
 
 > **Remember this path.** It is also your backup — see
-> [section 10](#10-backups--please-set-this-up-once).
+> [section 10](#10-backups--please-set-this-up-once). You do not have to memorise it:
+> **Help → About Gonk Note** shows it.
 
 ---
 
@@ -209,7 +239,12 @@ pages an infinite surface with a dot grid. Use it for mind maps, sketches and an
 does not fit on A4.
 
 **Text document** (`File → New text document`) — a rich-text editor in a ribbon layout
-(`Home`, `Insert`, `Layout`, `References`). To get going:
+(`Home`, `Insert`, `Layout`, `References`).
+
+> **Windows edition only.** In the Linux edition a text document can be created and opened,
+> but not yet edited — the tab says so too. Your texts stay untouched meanwhile.
+
+To get going:
 
 1. Type some text and pick a style at the top left (Heading 1–4, Quote, …).
 2. **Insert a table** via `Insert` — drag out a grid as in Word. When the caret is inside a
@@ -234,15 +269,21 @@ Exports are always "on paper": even in dark mode you get a light sheet with dark
 original data for an image is missing, Gonk Note tells you after the export — instead of quietly
 exporting at lower quality.
 
+> **Windows edition only.** Exporting rests on the same Windows building block as the text
+> editor and moves along with it. The Linux edition says honestly that it cannot do this,
+> rather than writing an empty file.
+
 ---
 
 ## 10. Backups — please set this up once
 
-Gonk Note has no cloud. Your notes live exclusively on your machine, in **two** places:
+Gonk Note has no cloud. Your notes live exclusively on your machine, in **two** places
+inside the data folder (Windows: `%APPDATA%\GonkNote`, Linux: `~/.config/GonkNote` —
+**Help → About Gonk Note** shows it to you):
 
 ```
-%APPDATA%\GonkNote\gonknote.sqlite    ← texts, strokes, structure
-%APPDATA%\GonkNote\gonknote.blobs\    ← all images and imported pages
+<data folder>/gonknote.sqlite    ← texts, strokes, structure
+<data folder>/gonknote.blobs/    ← all images and imported pages
 ```
 
 **A backup needs both — the file *and* the folder.** Copying only the `.sqlite` backs up your
@@ -254,8 +295,11 @@ notes without the images in them.
 > **From then on back up `gonknote.sqlite`:** the old file no longer grows with your work and is
 > soon an outdated state. Backing up the whole folder (next paragraph) covers both anyway.
 
-The simplest approach: copy the entire `%APPDATA%\GonkNote` folder somewhere regularly, ideally
-with the app closed. To restore, copy it back to the same place.
+The simplest approach: copy the entire data folder somewhere regularly, ideally with the app
+closed. To restore, copy it back to the same place.
+
+> **Moving between Windows and Linux** works the same way: the same folder contents, just in
+> the other location. The files have an identical layout on both systems.
 
 Incidentally, images no longer referenced by any document do not vanish immediately but sit in
 `gonknote.papierkorb\` for 30 days. If such an image is needed again before that, Gonk Note
@@ -269,11 +313,15 @@ Covers and the set square are included; **stickers deliberately are not**, for l
 reasons — you supply those yourself. Your own files always take precedence over the bundled
 ones:
 
-| What | Where |
+| What | Where (inside the data folder) |
 |---|---|
-| Stickers (image stickers) | `%APPDATA%\GonkNote\Stickers\` — subfolders become separate groups |
-| Notebook covers | `%APPDATA%\GonkNote\Covers\` — appear under "Individuell" |
-| Set-square graphic | `%APPDATA%\GonkNote\Geodreieck-Light.svg` or `-Dark.svg` |
+| Stickers (image stickers) | `Stickers/` — subfolders become separate groups |
+| Notebook covers | `Covers/` — appear under "Individuell" |
+| Set-square graphic | `Geodreieck-Light.svg` or `-Dark.svg` |
+
+> **This section applies to the Windows edition only today.** Stickers, your own cover
+> templates and the set square do not exist in the Linux edition yet; the files sit there
+> unused until those tools follow.
 
 Stickers and covers can also be uploaded conveniently via the **"+" tile** in the respective
 tool; Gonk Note then copies them to the right place itself.
@@ -346,16 +394,20 @@ the new state and rebuild. It takes less than a minute.
 
    | You start… | Command | Result is in |
    |---|---|---|
-   | the Start menu shortcut | `dotnet build -c Release` | `bin\Release\net10.0-windows10.0.19041.0\win-x64\` |
-   | a copied single-file exe | `dotnet publish -c Release` | `bin\Release\net10.0-windows10.0.19041.0\win-x64\publish\` |
+   | the Start menu shortcut (Windows) | `dotnet build src/GonkNote.Wpf -c Release` | `src\GonkNote.Wpf\bin\Release\net10.0-windows10.0.19041.0\win-x64\` |
+   | a copied single-file exe (Windows) | `dotnet publish src/GonkNote.Wpf -c Release` | `…\win-x64\publish\` |
+   | the Linux edition | `dotnet build src/GonkNote.Avalonia -c Release` | `src/GonkNote.Avalonia/bin/Release/net10.0/` |
 
    With the second route you then have to copy the new `GonkNote.exe` back to wherever your old
    one was — **together with the `Assets` and `tessdata` folders** if those have changed.
 
+   **Never `dotnet build` without naming a project.** That builds the whole solution, which
+   contains both editions — on Linux it is bound to fail on the Windows one.
+
 4. **Start it and check `Help → About Gonk Note`** to see whether the new version is in place.
 
-**Your notes are untouched by all this.** They live in `%APPDATA%\GonkNote\` and have nothing to
-do with the program folder — you can replace or even delete the exe safely. Even so: **make a
+**Your notes are untouched by all this.** They live in the data folder and have nothing to do
+with the program folder — you can replace or even delete the program safely. Even so: **make a
 backup before updating** (see [section 10](#10-backups--please-set-this-up-once)), it costs ten
 seconds.
 
@@ -364,12 +416,14 @@ seconds.
 | Message | Cause |
 |---|---|
 | Access denied / file in use | Gonk Note is still running — close it and build again |
-| `NETSDK1045` or similar about the framework version | .NET SDK too old — install the [current SDK 8+](https://dotnet.microsoft.com/download/dotnet/8.0) |
+| `NETSDK1045` or similar about the framework version | .NET SDK too old — install the [current SDK 10+](https://dotnet.microsoft.com/download/dotnet/10.0) |
+| `net10.0-windows…` cannot be resolved (Linux) | You are building the Windows edition or the whole solution — use `src/GonkNote.Avalonia` |
 | Merge conflict on `git pull` | you have local changes — `git stash`, then `git pull` again |
 
-**For you as a developer only:** the version number itself lives in `GonkNote.csproj`
-(`<Version>`); the phase label next to it in `Views/AboutDialog.xaml.cs`. Both are maintained by
-hand.
+**For you as a developer only:** the version number itself lives in `Directory.Build.props`
+(`<Version>`) and applies to both editions; the phase label next to it comes from the
+translation key `About.Version` (both language tables in `src/GonkNote.Core/Localization/`).
+Both are maintained by hand.
 
 **Want to go back a version?** Every state is in the Git history: `git log --oneline` lists them,
 `git checkout <commit>` fetches one, `git checkout main` brings you back. Rebuild afterwards
@@ -379,20 +433,28 @@ either way.
 
 ## 15. When something goes wrong
 
-**The app shows an error.** Unexpected errors end up in `%APPDATA%\GonkNote\fehler.log` and are
+**The app shows an error.** Unexpected errors end up as `fehler.log` in the data folder and are
 reported once per session. That file is the first thing that belongs in a bug report.
 
 **The spell checker marks nothing.** The markings come from Windows, not from Gonk Note. If the
 dictionary for a language is missing (typically English on a German-only Windows), a warning
-triangle appears in the status bar. The fix: add the language in the Windows settings.
+triangle appears in the status bar. The fix: add the language in the Windows settings. The
+Linux edition has no spell checking yet.
 
 **OCR finds no text / reports missing language data.** The `tessdata` folder has to sit next to
-`GonkNote.exe` (see [section 1](#1-getting-gonk-note-onto-your-machine)).
+`GonkNote.exe` (see [section 1](#1-getting-gonk-note-onto-your-machine)). The Linux edition
+has no text recognition yet, and says so.
+
+**On Linux every drawn piece of text stays blank.** Then `fontconfig` or a font is missing —
+see [section 1](#1-getting-gonk-note-onto-your-machine).
 
 **I want to test with a second, empty database.** Start it with
 
+```powershell
+GonkNote.exe --db C:\path\to\test.sqlite                          # Windows
+```
 ```bash
-GonkNote.exe --db C:\path\to\test.db
+dotnet run --project src/GonkNote.Avalonia -- --db /tmp/test.sqlite   # Linux
 ```
 
 Your real data stays untouched.

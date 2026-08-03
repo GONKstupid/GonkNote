@@ -147,6 +147,7 @@ internal static class LocEnglish
         ["Wb.InsertFile.Tip"] = "Insert file – image, PDF or Word (pages selectable for PDF/Word; as new pages in a notebook, as image pages on a whiteboard); also via Ctrl+V or drag &amp; drop",
         ["Wb.Settings"] = "Settings",
         ["Wb.Settings.Tip"] = "Settings (page, shapes, text, cover)",
+        ["Wb.Settings.PageTip"] = "Page settings (pattern, shade, size)",
         ["Wb.Settings.Close"] = "Close settings",
         ["Page.Previous"] = "Previous page",
         ["Page.Next"] = "Next page",
@@ -168,6 +169,7 @@ internal static class LocEnglish
         ["Settings.Page.Portrait"] = "Portrait",
         ["Settings.Page.Landscape"] = "Landscape",
         ["Settings.Page.AsDefault"] = "Use as default for new pages",
+        ["Settings.Page.CoverHint"] = "The cover has no pattern and no shade — its look comes from the cover settings.",
         ["Settings.Shapes"] = "Shapes",
         ["Settings.Shapes.Hint"] = "Pick the shape in the toolbar; set the fill here.",
         ["Settings.Shapes.FillToggle"] = "Fill on/off",
@@ -440,7 +442,7 @@ internal static class LocEnglish
         ["Guide.Heading"] = "Getting started with Gonk Note",
         ["Guide.Subtitle"] = "From your first note to your first backup — step by step.",
         ["About.Title"] = "About Gonk Note",
-        ["About.Subtitle"] = "Offline notes, whiteboards and text documents. Data is stored locally under %APPDATA%\\GonkNote.",
+        ["About.Subtitle"] = "Offline notes, whiteboards and text documents. Your data lives on this machine only, inside your user folder.",
         // {0} = Versionsnummer. Gegenstueck zu About.Version in LocGerman — die Zeile stand
         // bisher fest verdrahtet im Code und erschien deshalb auch im englischen Dialog deutsch.
         ["About.Version"] = "Version {0} · Port, phase 3",

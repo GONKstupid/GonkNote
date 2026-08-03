@@ -17,9 +17,9 @@
          vergleichbar bleiben: Menüleiste oben, Seitenleiste mit Baum links, rechts
          entweder die Galerie (wenn nichts offen ist) oder die Registerkarten.
 
-         **Was hier noch fehlt und in den nächsten Brocken gehört:** die Zeichenfläche
-         (eine geöffnete Tafel führt zu einer leeren Registerkarte), Drag & Drop im Baum
-         und die einblendbare Titelleiste des maximierten Fensters. -->
+         **Was hier noch fehlt:** Import und Export (`AvaloniaDocumentIo` wirft — HANDOFF
+         §4.1) sowie alles am Textdokument, das an der eigenen Dokument-Engine hängt
+         (Phase 4). Beides ist so vorgesehen und keine Lücke. -->
 
     <Window.KeyBindings>
         <KeyBinding Gesture="Ctrl+S" Command="{Binding SaveCommand}"/>
@@ -29,6 +29,7 @@
                     CommandParameter="{Binding SelectedTab}"/>
     </Window.KeyBindings>
 
+    <Panel>
     <DockPanel>
 
         <!-- ===== Menüleiste ===== -->
@@ -72,6 +73,8 @@
                     </MenuItem>
 
                     <MenuItem Header="{loc:T Menu.Help}">
+                        <MenuItem Header="{loc:T Menu.Help.Guide}" Click="ErsteSchritte_Click"/>
+                        <Separator/>
                         <MenuItem Header="{loc:T Menu.Help.About}" Click="Ueber_Click"/>
                     </MenuItem>
                 </Menu>
@@ -493,4 +496,56 @@
             </Grid>
         </Grid>
     </DockPanel>
+
+    <!-- ===== Einblendbare Titelleiste =====
+         Nur im maximierten Fenster sichtbar — dort ist die Fensterzier des Systems aus
+         (siehe MainWindow.Titelleiste.cs). Sie gleitet herein, sobald der Zeiger den oberen
+         Rand berührt, und wieder hinaus, wenn er sich davon entfernt.
+
+         Die Bewegung macht ein `TransformOperationsTransition` und keine von Hand
+         gestartete Animation: es genügt, `RenderTransform` zu setzen, den Rest besorgt
+         Avalonia. Der WPF-Kopf startet an derselben Stelle eine `DoubleAnimation`, weil
+         WPF nichts Vergleichbares kennt. -->
+    <Border x:Name="AutoTitelleiste" VerticalAlignment="Top" Height="34" ZIndex="50"
+            IsVisible="False" ClipToBounds="False"
+            Background="{DynamicResource Brush.SidebarBg}"
+            BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,0,0,1"
+            RenderTransform="translateY(-40px)"
+            DoubleTapped="AutoTitelleiste_DoppelTipp">
+        <Border.Transitions>
+            <Transitions>
+                <TransformOperationsTransition Property="RenderTransform"
+                                               Duration="0:0:0.17" Easing="CubicEaseOut"/>
+            </Transitions>
+        </Border.Transitions>
+
+        <DockPanel>
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                <Button Classes="fensterknopf" ToolTip.Tip="{loc:T Window.Minimize}"
+                        Click="Fenster_Minimieren">
+                    <Path Classes="symbol" Data="{StaticResource Icon.Minimieren}"
+                          Stroke="{DynamicResource Brush.Text}"/>
+                </Button>
+                <Button Classes="fensterknopf" ToolTip.Tip="{loc:T Window.Restore}"
+                        Click="Fenster_Wiederherstellen">
+                    <Path Classes="symbol" Data="{StaticResource Icon.Wiederherstellen}"
+                          Stroke="{DynamicResource Brush.Text}"/>
+                </Button>
+                <Button Classes="fensterknopf schliessen" ToolTip.Tip="{loc:T Window.Close}"
+                        Click="Fenster_Schliessen">
+                    <Path Classes="symbol" Data="{StaticResource Icon.Schliessen}"
+                          Stroke="{DynamicResource Brush.Text}"/>
+                </Button>
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Spacing="8" Margin="12,0,0,0"
+                        VerticalAlignment="Center">
+                <Image Source="avares://GonkNote.Avalonia/Assets/gonk-note-Icon.png"
+                       Width="16" Height="16" VerticalAlignment="Center"/>
+                <TextBlock Text="Gonk Note" VerticalAlignment="Center"
+                           Foreground="{DynamicResource Brush.TextMuted}"/>
+            </StackPanel>
+        </DockPanel>
+    </Border>
+    </Panel>
 </Window>

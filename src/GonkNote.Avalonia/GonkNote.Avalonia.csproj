@@ -64,11 +64,29 @@
        `avares://GonkNote.Avalonia/Assets/...`; `Link` bestimmt diesen Pfad, genauso wie
        er beim WPF-Kopf den `pack://`-Namen bestimmt (HANDOFF §7 „Wurzel-Dateien").
 
-       Hier steht bewusst nur das App-Symbol. Geodreieck-SVGs, Cover-Vorlagen und die
-       OCR-Sprachdaten kommen mit der Zeichenfläche im nächsten Brocken — eine Datei
+       Geodreieck-SVGs, Cover-Vorlagen und die OCR-Sprachdaten stehen bewusst **nicht**
+       hier: die zugehörigen Werkzeuge gibt es im Linux-Kopf nicht, und eine Datei
        mitzuschleppen, die niemand liest, verschleiert nur, was der Kopf wirklich kann. -->
   <ItemGroup>
     <AvaloniaResource Include="..\..\Assets\gonk-note-Icon.png" Link="Assets\gonk-note-Icon.png" />
+  </ItemGroup>
+
+  <!-- Die vier mitgelieferten Dokumente. Sie erscheinen unter „Hilfe → Erste Schritte" und
+       im Über-Dialog; `EmbeddedDocs` liest sie über `avares://GonkNote.Avalonia/<Name>`,
+       und **`Link` bestimmt genau diesen Namen** — dieselbe Falle wie beim WPF-Kopf, wo
+       `Link` den `pack://`-Namen bestimmt (HANDOFF §7 „Wurzel-Dateien brauchen Link").
+
+       Ohne `Link` lägen sie unter `avares://GonkNote.Avalonia/../../README.md`, und
+       `EmbeddedDocs` fiele **still** auf seinen Ersatztext zurück.
+
+       Alle vier, immer: `EmbeddedDocs` wählt nach `Loc.Current` und fällt sonst auf Deutsch
+       zurück — eine fehlende englische Datei sähe aus wie eine fehlende Übersetzung
+       (Dauerregel 1). -->
+  <ItemGroup>
+    <AvaloniaResource Include="..\..\README.md"            Link="README.md" />
+    <AvaloniaResource Include="..\..\README.en.md"         Link="README.en.md" />
+    <AvaloniaResource Include="..\..\ERSTE-SCHRITTE.md"    Link="ERSTE-SCHRITTE.md" />
+    <AvaloniaResource Include="..\..\GETTING-STARTED.md"   Link="GETTING-STARTED.md" />
   </ItemGroup>
 
 </Project>

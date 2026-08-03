@@ -163,6 +163,7 @@ public partial class WhiteboardView : UserControl
         OnUndoChanged();
         UpdateZoomLabel();
         RefreshAutoSwatch();
+        EinstellungenSpiegeln();
         Neuzeichnen();
     }
 
@@ -371,6 +372,7 @@ public partial class WhiteboardView : UserControl
         _page = page;
         UpdatePageLabel();
         RefreshAutoSwatch();
+        EinstellungenSpiegeln();
     }
 
     // ==================== Auswahl ====================
@@ -577,6 +579,7 @@ public partial class WhiteboardView : UserControl
         InhaltVerwerfen();
         UpdatePageLabel();
         RefreshAutoSwatch();
+        EinstellungenSpiegeln();
         Neuzeichnen();
     }
 
@@ -629,6 +632,7 @@ public partial class WhiteboardView : UserControl
         MarkDirty();
         UpdatePageLabel();
         RefreshAutoSwatch();
+        EinstellungenSpiegeln();
         Neuzeichnen();
     }
 }

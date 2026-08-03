@@ -1,6 +1,6 @@
 # Gonk Note V2 — Projektübergabe
 
-**Stand: 2026-08-03 · Version 0.3.0 · net10.0 · SkiaSharp 3 · SQLite · Avalonia 12 · Phase 3, Zeichenfläche steht**
+**Stand: 2026-08-03 · Version 0.3.0 · net10.0 · SkiaSharp 3 · SQLite · Avalonia 12 · Phase 3 abgeschlossen, ✅ M1 erreicht**
 
 > **📌 Dauerregeln des Nutzers — gelten immer, ohne Nachfragen:**
 >
@@ -138,14 +138,27 @@ Linux; gezeichnet wird von `WbRenderer` aus Core auf Avalonias **eigenem `SKCanv
 **Textdokumente bleiben ausgegraut** — das ist so vorgesehen (M1). Dazu ein Linux-Pendant
 der Fernsteuer-Werkzeuge (`tools/linux/`), das es bisher gar nicht gab.
 
-**Als Nächstes:** die drei Restpunkte von Phase 3 — Drag & Drop im Baum, einblendbare
-Titelleiste, `EmbeddedDocs`-Gegenstück (§6, Brocken 6 und 7). Danach ist **M1** erreichbar;
-die Entscheidung, ob er ausgerufen wird, steht in §6.
+Zuletzt **Phase 3, Brocken 6 und 7** (§4.12), ebenfalls auf dem Laptop: **Drag & Drop im
+Baum, die einblendbare Titelleiste, die Einstellungen-Seitenleiste der Zeichenfläche** und
+das **`EmbeddedDocs`-Gegenstück** — „Hilfe → Erste Schritte" und das gerenderte README
+erscheinen jetzt auch unter Linux. Der Markdown-**Zerleger** ist dafür nach `Core/Text/`
+gewandert; jeder Kopf malt nur noch. **Damit ist Phase 3 abgeschlossen und M1 ausgerufen**
+(Nutzer-Entscheidung), und die vier mitgelieferten Dokumente beschreiben im selben Zug beide
+Ausgaben (Dauerregel 1).
+
+**Als Nächstes:** Phase 4 — die eigene Dokument-Engine in `Core/Text/` (§6). **M1 ist ein
+gültiger Ausstiegspunkt**; Phase 4 ist die, an der Projekte sterben. Wer weitermacht, liest
+vorher die zwei benannten Schulden in §6 („Steht doppelt") — beide sind auf dem
+Windows-Rechner fällig.
 
 **Tests laufen lassen:**
 
 ```powershell
-dotnet test -c Release        # Windows: beide Projekte, 138 Tests
+dotnet test -c Release        # Windows: beide Projekte, 159 Tests
+```
+
+```bash
+dotnet test tests/GonkNote.Core.Tests   # Linux: 146 Tests, laufen in ~7 s
 ```
 
 ---
@@ -195,8 +208,11 @@ Dazu die Commits aus Phase 1 (2026-07-30) — Testprojekte, CI und der `SKBitmap
 **Erledigt in Phase 3, erster Brocken:** §4.9 (Avalonia-Shell, Farbtabelle in Core).
 
 **Erledigt in Phase 3, zweiter Brocken:** §4.10 (Zeichenfläche, Eingabepfad, `WbHit` in
-Core, Linux-Werkzeuge) und §4.11 (Neigung im Dateiformat). Testzahl steht jetzt bei **138**
-(125 Core + 13 WPF).
+Core, Linux-Werkzeuge) und §4.11 (Neigung im Dateiformat).
+
+**Erledigt in Phase 3, Brocken 6 und 7:** §4.12 (Drag & Drop, Titelleiste,
+Einstellungen-Seitenleiste, `EmbeddedDocs` samt Markdown-Zerleger in Core). Testzahl steht
+jetzt bei **159** (146 Core + 13 WPF).
 
 **Erledigt in Phase 0:**
 
@@ -255,6 +271,8 @@ gonk-note-V2/
 │  │  ├─ Theming/                die Farbtabelle (§4.9)              ← neu in Phase 3
 │  │  │                          ThemeColor (20 Farben), HexColor, ThemeDefinition,
 │  │  │                          Themes.Light/.Dark — ein Theme ist eine Datentabelle
+│  │  ├─ Text/                   Markdown — der Zerleger hinter den vier mitgelieferten
+│  │  │                          Dokumenten (§4.12)                  ← neu in Phase 3
 │  │  └─ Localization/           Loc + LocGerman + LocEnglish        ← neu in Phase 0
 │  │
 │  ├─ GonkNote.ViewModels/       net10.0 · EIGENE Assembly seit Phase 2 (§4.7)
@@ -268,16 +286,21 @@ gonk-note-V2/
 │  ├─ GonkNote.Avalonia/         net10.0 · LINUX-KOPF (§4.9)             ← neu in Phase 3
 │  │  │                          Läuft auch unter Windows — genau deshalb wird Phase 3
 │  │  │                          hier entwickelt und nicht auf dem Laptop (§5b)
-│  │  ├─ Program.cs, App.axaml(.cs), MainWindow.axaml(.cs)
+│  │  ├─ Program.cs, App.axaml(.cs)
+│  │  ├─ MainWindow.axaml(.cs)   dazu .Ziehen.cs (Drag & Drop im Baum) und
+│  │  │                          .Titelleiste.cs (maximiertes Fenster) — §4.12
 │  │  ├─ Platform/               die Umsetzungen zu Core/Platform:
 │  │  │                          Avalonia* je Schnittstelle + AvaloniaPlatformServices,
 │  │  │                          AvaloniaThemeHost (baut die Ressourcen aus der Farbtabelle),
 │  │  │                          Modal.cs (synchron ↔ async, die größte Naht — §7)
-│  │  ├─ Views/                  Converters, MessageWindow (Ersatz der MessageBox), AboutWindow,
+│  │  ├─ Views/                  Converters, MessageWindow (Ersatz der MessageBox),
+│  │  │                          AboutWindow + GuideWindow, MarkdownView (malt, was
+│  │  │                          Core/Text zerlegt hat, §4.12),
 │  │  │                          SkiaCanvas (der Weg an Avalonias SKCanvas, §4.10),
-│  │  │                          WhiteboardView + .Render + .Input — die Zeichenfläche
+│  │  │                          WhiteboardView + .Render + .Input + .Einstellungen
 │  │  ├─ Themes/Styles.axaml     Form und Vektor-Symbole — KEINE Farben (die kommen aus Core)
-│  │  └─ Services/Localization/  TExtension + LocText (§7 „Übersetzung im Linux-Kopf")
+│  │  └─ Services/               EmbeddedDocs (avares:// statt pack://, §4.12)
+│  │     └─ Localization/        TExtension + LocText (§7 „Übersetzung im Linux-Kopf")
 │  │
 │  └─ GonkNote.Wpf/              net10.0-windows10.0.19041.0 · Windows-Kopf (AssemblyName bleibt GonkNote)
 │     ├─ App.xaml(.cs), MainWindow.xaml(.cs)
@@ -297,7 +320,7 @@ gonk-note-V2/
 │                                Legacy, **Avalonia**) — §4.6, seit Phase 3 §4.9
 │
 ├─ tests/
-│  ├─ GonkNote.Core.Tests/       net10.0 · läuft auch unter Linux · 100 Tests
+│  ├─ GonkNote.Core.Tests/       net10.0 · läuft auch unter Linux · 146 Tests
 │  │  └─ Snapshots/*.sha256      Pixelhashes des Renderers (Golden-Files)
 │  └─ GonkNote.Wpf.Tests/        net10.0-windows · nur Windows · 13 Tests
 │     ├─ Fixtures/               referenz.md, referenz-docx.txt (Golden-Files)
@@ -726,6 +749,11 @@ Zeichenfläche — steht noch aus; die Häkchen stehen in §6.
 | Theme hell/dunkel, Sprache de/en zur Laufzeit | „Hilfe → Erste Schritte" und das gerenderte README im Über-Dialog (`EmbeddedDocs` hängt an `FlowDocument`) |
 | Über-Dialog mit Versionszeile und Datenordner | die einblendbare Titelleiste des maximierten Fensters |
 
+> **Die rechte Spalte ist der Stand von damals.** Die Zeichenfläche kam mit §4.10, Drag &
+> Drop, die Titelleiste und `EmbeddedDocs` mit §4.12. Übrig sind heute nur noch Import und
+> Export sowie Texterkennung und Rechtschreibung — alle vier mit demselben Grund und
+> ausdrücklich nicht M1.
+
 **Es sind bewusst Rückfälle aus Core und keine halben Eigenbauten.** `NoOcrEngine` meldet
 ehrlich „nicht verfügbar", statt einen leeren Text zu liefern, der von „nichts erkannt"
 nicht zu unterscheiden wäre; `AvaloniaDocumentIo` liefert **leere** Formatlisten, damit gar
@@ -818,7 +846,7 @@ lässt sich unter Windows nicht beurteilen.
 | **Zeichnen** mit Stift, Bleistift, Textmarker — Druck, Rückfall ohne Druck | Sticker, Texterkennung, Zahlenblock, Schnellaktionen, Geodreieck (nicht M1, §6) |
 | **Radieren**, punktgenau (Striche werden aufgetrennt) | Bilder und PDF-Seiten importieren |
 | Auswählen per Lasso und Verschieben, Löschen | Drehen und Skalieren der Auswahl |
-| Seiten blättern, anlegen, löschen; Zoom, Verschieben, Finger-Gesten | Seiteneinstellungen (Format, Muster, Farbton) |
+| Seiten blättern, anlegen, löschen; Zoom, Verschieben, Finger-Gesten | ~~Seiteneinstellungen (Format, Muster, Farbton)~~ — **seit §4.12 vorhanden** |
 | Rückgängig und Wiederholen, Speichern | |
 
 **Textdokumente bleiben ausgegraut** — das ist die M1-Vorgabe und keine Lücke. Der Text
@@ -1036,6 +1064,137 @@ geneigter Bleistift dort verschöbe den Pixelhash `bleistift-koernung`.
 
 ---
 
+### 4.12 Phase 3, Brocken 6 und 7 — der Rest bis M1
+
+Umgesetzt am 2026-08-03 **auf dem CachyOS-Laptop**, direkt im Anschluss an §4.11.
+**Damit ist Phase 3 abgeschlossen und M1 erreicht** (Nutzer-Entscheidung, §5 Punkt 4).
+
+#### Was dazugekommen ist
+
+| | |
+|---|---|
+| **Drag & Drop im Baum** | `MainWindow.Ziehen.cs`. Verschieben, mit `Strg` kopieren; Ziel ist der Ordner, der Ordner des getroffenen Dokuments oder — auf der leeren Fläche — die Wurzel |
+| **Einblendbare Titelleiste** | `MainWindow.Titelleiste.cs`. Maximiert verschwindet die Zier des Systems; die eigene Leiste gleitet bei Zeigerkontakt am oberen Rand herein |
+| **Einstellungen-Seitenleiste** | `WhiteboardView.Einstellungen.cs`. **Nur der Seiten-Abschnitt**: Muster, Farbton, Format, Ausrichtung, „Als Standard für neue Seiten" |
+| **`EmbeddedDocs`-Gegenstück** | `Services/EmbeddedDocs.cs`, `Views/MarkdownView.cs`, `Views/GuideWindow.axaml`. „Hilfe → Erste Schritte" und das gerenderte README im Über-Dialog |
+| **Markdown-Zerleger in Core** | `Core/Text/Markdown.cs` — neu, siehe unten. Wächter `MarkdownTests` (21 Tests, jetzt **146** Core) |
+
+#### Die Entscheidung, die hier fiel: der Zerleger geht nach Core
+
+Der WPF-Kopf hat `Services/MarkdownFlow.cs` — dort sind **Zerlegen und Darstellen dasselbe**,
+weil das Ergebnis unmittelbar ein `FlowDocument` ist. Avalonia hat keines (§4.1). Die
+Grammatik ein zweites Mal abzuschreiben wäre die Falle aus §4.10 gewesen: **zwei Fassungen
+derselben Formel driften auseinander, ohne dass es auffällt.**
+
+Deshalb steht die Grammatik jetzt einmal in **`Core/Text/Markdown.cs`** und liefert einen
+Blockbaum (`MdHeading`, `MdParagraph`, `MdList`, `MdTable`, …); jeder Kopf malt nur noch.
+Nach der Faustregel aus §3 gehört sie genau dorthin — sie zeichnet kein Pixel.
+
+**Der WPF-Kopf ist wieder bewusst nicht umgestellt**, aus demselben Grund wie bei der
+Farbtabelle und `WbHit`: er lässt sich hier nicht bauen. **Damit steht dieselbe Grammatik an
+zwei Stellen** — eine Schuld, kein Zustand; sie gehört auf dem Windows-Rechner
+zusammengelegt. Der Umbau ist dort klein: `MarkdownFlow` behält seine `FlowDocument`-Hälfte
+und ruft `Markdown.Parse` statt selbst zu zerlegen.
+
+**`[GeneratedRegex]` statt `RegexOptions.Compiled`.** Das eine erzeugt seinen Code zur
+Übersetzungszeit, das andere zur Laufzeit über `Reflection.Emit` — und den gibt es unter
+NativeAOT nicht (§1, derselbe Grund, aus dem LiteDB weichen musste). `MarkdownFlow` benutzt
+noch die Laufzeitfassung; dort ist es folgenlos.
+
+#### Was der Zerleger sofort gefunden hat
+
+**Eine Endlosschleife**, und zwar eine, die auch in `MarkdownFlow` steckt: Eine
+**Tabellenzeile ohne Trennzeile** darunter ist laut `Parse` keine Tabelle und landet im
+Absatz-Zweig — dessen Schleife weist Tabellenzeilen aber ab (`!IstTabellenZeile`). Der Absatz
+bliebe leer, `i` stünde still, `Parse` liefe endlos.
+
+**Behoben, indem die erste Zeile bedingungslos genommen wird**: `Parse` hat für sie bereits
+entschieden, dass sie ein Absatz ist. Wächter: `Eine_Tabelle_braucht_ihre_Trennzeile`.
+
+**Aufgefallen ist es daran, dass der Testlauf nicht mehr zurückkam** — nicht an einer roten
+Meldung. Merksatz: ein Testlauf, der hängt, ist ein Fehlschlag und kein langsamer Rechner.
+In den mitgelieferten Dokumenten steht heute keine solche Zeile, deshalb ist die Falle im
+WPF-Kopf nie zugeschlagen; **beim Zusammenlegen gehört sie mitgezogen.**
+
+#### Die achte Stelle, an der Avalonia nicht wie WPF ist
+
+Drei kamen in §4.9 dazu, eine in §4.10. Hier sind es drei weitere, alle beim Ziehen und beim
+Darstellen:
+
+1. **Ziehen läuft über XDND, also über Prozessgrenzen.** `DragDrop.DoDragDropAsync` gibt die
+   Fracht an den Fenstermanager weiter; ein .NET-Objektverweis überlebt das nicht. Der Ausweg
+   ist ein **prozessinternes Format** (`DataFormat.CreateInProcessFormat<T>`) — es verlässt
+   Avalonia gar nicht erst. Sonst müsste eine Kennung reisen und die Gegenseite den Eintrag
+   im Baum wiederfinden.
+2. **Der Auslöser muss `PointerPressedEventArgs` sein**, nicht irgendein Zeigerereignis. Der
+   Druck wird deshalb festgehalten und erst benutzt, wenn der Zeiger die Ziehschwelle
+   überschreitet — WPF fragt an derselben Stelle `SystemParameters.MinimumHorizontalDragDistance`,
+   Avalonia hat dafür keine Auskunft, also steht hier ein Wert (6 px).
+3. **Ein anklickbarer Verweis ist ein Steuerelement, kein ausgezeichneter Text.** `Run` kennt
+   kein Klickereignis, einen `Hyperlink` wie in WPF gibt es nicht. Der Weg führt über
+   `InlineUIContainer` — ein `TextBlock` mitten im Fließtext.
+
+Dazu zwei Kleinigkeiten, die der Compiler meldet und die trotzdem hierhergehören, weil sie
+in Avalonia **12** neu sind: `SystemDecorations` ist veraltet (→ `WindowDecorations`), und
+`IDataObject`/`DataObject` sind durch `IDataTransfer`/`DataTransfer` ersetzt.
+
+#### Was die einblendbare Titelleiste hier *nicht* braucht
+
+Der WPF-Kopf hängt dafür einen `WM_GETMINMAXINFO`-Hook ein (`WindowBounds`), weil ein
+randloses Fenster unter Windows sonst über den Bildschirm hinausragt und die Taskleiste
+verdeckt. **Unter X11 maximiert der Fenstermanager gegen `_NET_WORKAREA`** — gemessen: das
+Fenster sitzt exakt auf 0,64 / 3072×1664, dem Arbeitsbereich. `WindowBounds` bleibt damit zu
+Recht Windows-only.
+
+Die Bewegung macht ein `TransformOperationsTransition`; es genügt, `RenderTransform` zu
+setzen. Nur beim Umschalten *in* den maximierten Zustand wird der Übergang für einen
+Augenblick abgehängt — sonst glite die Leiste erst herein und gleich wieder hinaus.
+
+#### Zwei Texte, die auf Linux falsch waren
+
+Beide beim Gegenprüfen am laufenden Programm gefunden, beide in **beiden** Tabellen behoben
+(Dauerregel 1):
+
+- **`About.Subtitle`** nannte fest `%APPDATA%\GonkNote` — im Linux-Kopf also eine Angabe, die
+  dort nicht stimmt, und zwar **direkt über der Zeile, die den echten Ordner zeigt**. Der
+  Satz kommt jetzt ohne Pfad aus. Das war Bedingung: denselben Schlüssel benutzt der
+  WPF-Dialog, und **der** zeigt den Datenordner nicht daneben an.
+- **`Wb.Settings.Tip`** verspricht „Seite, Formen, Text, Cover". Die Leiste im Linux-Kopf hat
+  nur die Seite. Neuer Schlüssel **`Wb.Settings.PageTip`** statt eines Textes, der drei Dinge
+  zusagt, die es nicht gibt.
+
+> **Offen geblieben, klein und benannt:** Der **WPF**-Über-Dialog könnte den Datenordner
+> genauso anzeigen wie der Linux-Kopf es tut. Das ist eine Zeile XAML und eine Zeile
+> Code — sie steht hier nicht, weil sie sich auf diesem Rechner nicht am laufenden Programm
+> gegenprüfen lässt.
+
+#### Am laufenden Programm geprüft (Dauerregel 1 und 4)
+
+**Ohne echte Daten**, gegen `/tmp/gonk-probe.sqlite`, in **beiden** Sprachen; die Werkzeuge
+aus `tools/linux/` haben jeden Schritt fotografiert:
+
+- **Drag & Drop:** ein Notizbuch in einen Ordner gezogen (Baum klappt auf, Galerie zählt
+  eins weniger) und über die leere Fläche wieder in die Wurzel zurück.
+- **Titelleiste:** `super+Up` → die Zier des Systems verschwindet, die Menüleiste rückt nach
+  oben; Zeiger an den oberen Rand → die eigene Leiste mit Symbol, Titel und den drei
+  Fensterknöpfen gleitet herein.
+- **Einstellungen:** Muster „Kariert" → das Blatt bekommt sofort ein Raster und die
+  Registerkarte ihren Änderungspunkt; Farbton „Dunkel" → **die erste Farbkachel springt auf
+  Weiß mit** (die Falle aus §7, „Die Vorgabetinte gehört zum Papier").
+- **Hilfe → Erste Schritte** und **Über Gonk Note** mit dem gerenderten README: Überschriften,
+  Zitatblock mit Akzentbalken, fett/kursiv, `Code` mit Hinterlegung, nummerierte Liste,
+  Trennlinie. Der Verweis „Erste Schritte" im README **öffnet die Anleitung** — angeklickt
+  und nachgewiesen.
+- **Beides in Englisch** über Ansicht → Sprache: „Version 0.3.0 · Port, phase 3", englischer
+  Untertitel, englisches README, englische Anleitung.
+
+**Dabei ein Fehler in der eigenen Arbeit gefunden:** die Einstellungen-Leiste ging mit
+**lauter leeren Umschaltern** auf. `EinstellungenSpiegeln` steigt aus, solange die Leiste
+unsichtbar ist — und sie wurde vor dem Sichtbarmachen gerufen. Auf einem Foto sieht das aus,
+als würde die Seite nicht ausgelesen; die Ursache war die Reihenfolge zweier Zeilen.
+
+---
+
 ## 5. Entscheidungen
 
 **Getroffen, alle umgesetzt:**
@@ -1064,6 +1223,8 @@ geneigter Bleistift dort verschöbe den Pixelhash `bleistift-koernung`.
 | Testdaten auf dem Laptop | **Keine Kopie der echten Datenbank.** Selbst angelegte Notizbücher sind für den Eingabepfad die bessere Prüfung, und die Schulunterlagen bleiben auf dem Windows-Rechner. Dauerregel 4 erlaubt die Kopie weiterhin — sie wurde hier nur nicht gebraucht. Entschieden 2026-08-03 |
 | Linux-Fernsteuer-Werkzeuge | **Ja, minimal** — `schau.sh`, `klick.sh` und ein eigenes `zeiger` über X11/XTEST, ohne Fremdpaket (§4.10). Der Stift bleibt dabei Handarbeit. Entschieden 2026-08-03 |
 | Neigung im Dateiformat | **Ja, und zwar auf dem Laptop** (§4.11). Zwei Felder an `WbPoint`, bedingt geschrieben; nur der Bleistift wertet sie aus. Bestandsdateien und alle zwanzig Pixelhashes bleiben unverändert — deshalb war keine Windows-Gegenprobe nötig. Entschieden 2026-08-03 |
+| **Wird M1 ausgerufen?** | **Ja** — mit Brocken 6 und 7 ist der M1-Satz buchstäblich erfüllt: Notizbuch und Whiteboard laufen unter Linux, Textdokumente sind ausgegraut. Import/Export steht nicht im M1-Satz und hängt an §4.1 (Phase 4). **Die vier mitgelieferten Dokumente sind im selben Zug auf den Linux-Kopf erweitert worden** (§4.12). Entschieden 2026-08-03 |
+| Wo der Markdown-Zerleger steht | **In Core** (`Core/Text/Markdown.cs`), nicht ein zweites Mal im Kopf — er zeichnet kein Pixel (§3, Faustregel), und zwei Fassungen derselben Grammatik driften auseinander (§4.12). Der WPF-Kopf behält vorerst `MarkdownFlow`; das Zusammenlegen ist eine benannte Schuld. Entschieden 2026-08-03 |
 
 **Noch offen:**
 
@@ -1083,18 +1244,17 @@ geneigter Bleistift dort verschöbe den Pixelhash `bleistift-koernung`.
    Ausgabepfad-Angaben sind am 2026-08-02 auf `net10.0` nachgezogen worden, der Klon-Befehl
    bewusst nicht — das ist eine inhaltliche Frage, keine technische. **Am 2026-08-03 erneut
    vorgelegt und erneut zurückgestellt.**
-4. **Wann beschreiben die Dokumente auch den Linux-Kopf?** Die vier mitgelieferten
-   Dokumente sprechen durchgehend von Windows („Notiz-App für Windows 11", `%APPDATA%`).
-   **Diese Frage ist mit §4.10 fällig geworden**, denn die Begründung von damals ist
-   verbraucht: „bleibt richtig, solange der Linux-Kopf keine Zeichenfläche hat" — er hat
-   jetzt eine. Zu klären ist beides zusammen:
-   - **Wird M1 ausgerufen?** Notizbuch und Whiteboard zeichnen, radieren und speichern unter
-     Linux; Textdokumente sind ausgegraut. Das ist der Wortlaut von M1 (§6). Offen sind
-     Brocken 6 und 7 (Drag & Drop, Titelleiste, `EmbeddedDocs`) sowie Import/Export —
-     nichts davon steht im M1-Satz, aber ein Meilenstein, den man erklären muss, ist keiner.
-   - **Erst danach die Dokumente.** Dann sind **beide Paare** nachzuziehen (Dauerregel 1),
-     und `EmbeddedDocs` braucht vorher sein Gegenstück im Avalonia-Kopf — sonst stünde die
-     Linux-Beschreibung in einem Dialog, den es unter Linux nicht gibt.
+4. ~~**Wann beschreiben die Dokumente auch den Linux-Kopf?**~~ **Entschieden und umgesetzt
+   am 2026-08-03** (§4.12): **M1 wird ausgerufen**, und beide Paare sind im selben Zug
+   nachgezogen — neuer Abschnitt „Zwei Ausgaben, eine App" mit einer Tabelle, was der
+   Linux-Ausgabe fehlt und warum; Bau-, Pfad- und Sicherungsanweisungen für beide Systeme.
+   `EmbeddedDocs` hat sein Gegenstück bekommen, die Texte stehen also auch in der App.
+
+   **Was daran offen bleibt:** Punkt 3 oben — in `ERSTE-SCHRITTE.md` und
+   `GETTING-STARTED.md` steht weiterhin der **V1**-Klon-Befehl. Er ist auch in dieser Runde
+   nicht angefasst worden, weil es eine inhaltliche Frage ist und keine technische. **Er
+   fällt jetzt stärker auf**, denn die Anleitung nennt daneben `src/GonkNote.Avalonia` — ein
+   Projekt, das es im V1-Repo nicht gibt.
 
 5. ~~**Soll die Neigung ins Dateiformat?**~~ **Entschieden und umgesetzt am 2026-08-03**
    (§4.11): ja, mit zwei bedingt geschriebenen Feldern an `WbPoint`; nur der Bleistift
@@ -1507,9 +1667,10 @@ Roundtrip- zum **Migrations**-Wächter geworden (drei neue Tests, §4.8).
 **Meilenstein M0 ist vollständig:** `Core`, `ViewModels` **und** `Legacy` bauen auf Linux
 (alle `net10.0`), Windows verhält sich unverändert.
 
-### Läuft: Phase 3 — Avalonia-Shell für Linux
+### Erledigt: Phase 3 — Avalonia-Shell für Linux · **M1 erreicht**
 
-Erster Brocken umgesetzt am 2026-08-03 unter Windows (§4.9, §5b).
+Erster Brocken am 2026-08-03 unter Windows (§4.9, §5b), Brocken 2 bis 7 am selben Tag auf
+dem CachyOS-Laptop (§4.10, §4.11, §4.12).
 
 - [x] 1. `src/GonkNote.Avalonia` angelegt (`net10.0`, Avalonia 12.1.1), in der `.slnx`,
       im Linux-Lauf der CI
@@ -1526,25 +1687,43 @@ Erster Brocken umgesetzt am 2026-08-03 unter Windows (§4.9, §5b).
       (`ISkiaSharpApiLeaseFeature`); damit ist die offene Frage aus §5a beantwortet.
       Eingabepfad mit `GetIntermediatePoints()`, erkanntem Druck samt Rückfall und
       Handballenabweisung. Radieren über `WbErase`, Trefferprüfung als neues `WbHit` in Core
-- [ ] 6. Drag & Drop im Baum, einblendbare Titelleiste, Einstellungen-Seitenleiste
-- [ ] 7. `EmbeddedDocs`-Gegenstück, damit „Hilfe → Erste Schritte" und das gerenderte
-      README auch im Linux-Kopf erscheinen (hängt an §4.1)
+- [x] 6. Drag & Drop im Baum, einblendbare Titelleiste, Einstellungen-Seitenleiste (§4.12).
+      Die Seitenleiste hat **nur** den Seiten-Abschnitt — Formen, Text, Notizzettel und
+      Cover fehlen als Werkzeuge, also fehlen auch ihre Abschnitte
+- [x] 7. `EmbeddedDocs`-Gegenstück (§4.12). Der Markdown-**Zerleger** ist dabei nach
+      `Core/Text/` gewandert, weil er kein Pixel zeichnet; jeder Kopf malt nur noch.
+      Wächter `MarkdownTests` (21 Tests) — er hat sofort eine Endlosschleife gefunden, die
+      auch in `MarkdownFlow` steckt
 
-**Was Brocken 5 bewusst ausgelassen hat** — nicht vergessen, sondern nicht M1: Text-,
+**Was Phase 3 bewusst ausgelassen hat** — nicht vergessen, sondern nicht M1: Text-,
 Formen- und Notizzettel-**Werkzeug** (angezeigt werden diese Elemente, nur anlegen kann man
-sie nicht), Drehen und Skalieren der Auswahl, Seiteneinstellungen, Bild- und PDF-Import.
+sie nicht), Drehen und Skalieren der Auswahl, Bild- und PDF-Import, Import und Export.
 Sticker, Texterkennung, Zahlenblock, Schnellaktionen und Geodreieck gehören ohnehin nicht
-dazu.
+dazu. **Alles davon steht jetzt auch in den vier mitgelieferten Dokumenten**, mit Begründung
+(§4.12).
 
-> **Für Brocken 6 und 7 vorher lesen:** §4.10 (was die Zeichenfläche kann und wie sie
-> gebaut ist), §7 „Der Avalonia-Kopf" — dort stehen jetzt sieben Eigenheiten statt vier —
-> und §7 „Fernsteuern unter Wayland", ohne das sich auf dem Laptop nichts belegen lässt.
+> **✅ M1 ist ausgerufen** (Nutzer-Entscheidung 2026-08-03, §5): Notizbuch und Whiteboard
+> laufen unter Linux, Textdokumente sind ausgegraut — der Wortlaut von M1. Damit ist auch
+> der gültige Ausstiegspunkt erreicht, den die Roadmap dafür vorsieht.
+
+> **Für den nächsten Brocken vorher lesen:** §4.10 und §4.12 (wie die Zeichenfläche und der
+> Kopf gebaut sind), §7 „Der Avalonia-Kopf" — dort stehen jetzt **zehn** Eigenheiten statt
+> vier — und §7 „Fernsteuern unter Wayland", ohne das sich auf dem Laptop nichts belegen
+> lässt.
+
+**Zwei benannte Schulden aus Phase 3**, beide auf dem Windows-Rechner fällig, weil sie sich
+nur dort am laufenden Programm gegenprüfen lassen:
+
+| Steht doppelt | Zusammenlegen heißt |
+|---|---|
+| Trefferprüfung und Lasso (`WbHit` in Core ↔ `WhiteboardView.Selection.cs`) | den WPF-Kopf auf `WbHit` umstellen (§4.10) |
+| Markdown-Grammatik (`Core/Text/Markdown.cs` ↔ `Services/MarkdownFlow.cs`) | `MarkdownFlow` behält seine `FlowDocument`-Hälfte und ruft `Markdown.Parse` (§4.12) — **dabei die dort noch offene Endlosschleife mitnehmen** |
 
 ### Der Rest (Roadmap §5)
 
 | Phase | Inhalt | Aufwand | Ziel |
 |---|---|---|---|
-| 3 | Avalonia-Shell für Linux — *Shell steht, Zeichenfläche offen* | 6–8 W. | **M1** — Notizbuch + Whiteboard laufen unter Linux, Textdokumente ausgegraut |
+| 3 | Avalonia-Shell für Linux — **fertig** | 6–8 W. | ✅ **M1 erreicht** — Notizbuch + Whiteboard laufen unter Linux, Textdokumente ausgegraut |
 | 4 | Eigene Dokument-Engine in `Core/Text/` | 8–12 W. | **M2** — Funktionsgleichheit Linux ↔ Windows |
 | 5 | iPadOS-Head, Apple Pencil, PDFKit/Vision, AOT-Härtung | 6–10 W. | **M3** — TestFlight-Build |
 | 6 | Flatpak/AppImage, App Store | 2–4 W. | Veröffentlichung |
@@ -1925,6 +2104,26 @@ weil sie bei der Portierung direkt zuschlagen:
   bevorzugt beim Zeichnen langer Striche, also genau dann, wenn niemand es reproduzieren
   will. **Gegenmittel: aufzeichnen statt zurückgreifen** (`SKPictureRecorder` auf dem
   Oberflächen-Faden, `DrawPicture` auf dem Render-Faden, §4.10).
+- **Ziehen läuft auch innerhalb der App über XDND — also über eine Prozessgrenze.**
+  `DragDrop.DoDragDropAsync` reicht die Fracht an den Fenstermanager weiter; ein
+  .NET-Objektverweis überlebt das nicht, nur ein Datenstrom. **Gegenmittel:
+  `DataFormat.CreateInProcessFormat<T>(...)`** — ein solches Format verlässt Avalonia gar
+  nicht erst und reicht den echten `TreeItemViewModel` durch. Wer stattdessen eine Kennung
+  schickt, muss den Eintrag auf der Gegenseite im Baum wiederfinden, und das ist genau die
+  Sorte Arbeit, die man sich hier sparen kann.
+- **`DoDragDropAsync` verlangt ausdrücklich `PointerPressedEventArgs`**, nicht irgendein
+  Zeigerereignis — es braucht den Zeiger, der noch aufliegt. Ein Ziehen mit Schwelle muss
+  den **Druck festhalten** und ihn erst benutzen, wenn der Zeiger weit genug gewandert ist.
+  Die Schwelle selbst steht als Zahl im Code (6 px): WPF fragt dafür
+  `SystemParameters.MinimumHorizontalDragDistance`, Avalonia hat keine Auskunft dazu.
+- **Ein anklickbarer Verweis ist in Avalonia ein Steuerelement, kein ausgezeichneter Text.**
+  `Run` kennt kein Klickereignis, und einen `Hyperlink` wie in WPF gibt es nicht. Der Weg
+  führt über **`InlineUIContainer`** — ein `TextBlock` mitten im Fließtext. Der bricht in
+  sich nicht um; bei Verweistexten von wenigen Wörtern fällt das nicht ins Gewicht.
+- **Zwei Umbenennungen in Avalonia 12, die der Compiler meldet** — hier notiert, weil jede
+  Anleitung im Netz noch die alten Namen zeigt: `SystemDecorations` ist veraltet
+  (→ **`WindowDecorations`**), und `IDataObject`/`DataObject` sind ersetzt durch
+  **`IDataTransfer`/`DataTransfer`** (`DataObject` existiert noch, tut aber nichts mehr).
 - **Ein `UserControl` fokussierbar zu machen genügt nicht für Tastenkürzel.**
   Tastenereignisse laufen in Avalonia vom Wurzelfenster zum **fokussierten Element** und
   zurück. Liegt der Fokus noch im Ordnerbaum, kommt am Zeichenbereich nichts an, auch wenn
@@ -2064,6 +2263,19 @@ und keine davon sieht wie ein Fehler aus.
   eine geklärte Lizenz (§6); ein mit Skia gemaltes Rechteck braucht keine. Dabei nie
   achsensymmetrisch malen, sonst fällt eine vertauschte Achse nicht auf.
 
+**Neu aus Phase 3 — Testen**
+
+- **Ein Testlauf, der nicht zurückkommt, ist ein Fehlschlag und kein langsamer Rechner.**
+  `dotnet test` gibt seine Zusammenfassung erst am Ende aus; eine Endlosschleife in einem
+  einzigen Test sieht deshalb genauso aus wie ein Rechner, der sich Zeit lässt. In dieser
+  Runde lief er über zwanzig Minuten, bevor jemand nachsah — der ganze Durchlauf dauert
+  **7 Sekunden** (§4.12, `Eine_Tabelle_braucht_ihre_Trennzeile`).
+  **Merksatz: dauert ein Lauf um Größenordnungen länger als sonst, ist er hängen geblieben.**
+- **Zwei `dotnet test` gleichzeitig auf demselben Testprojekt blockieren einander.** Sie
+  teilen sich Ausgabeordner und MSBuild-Knoten. Sieht aus wie dieselbe Endlosschleife und
+  ist eine andere Ursache — beim Suchen zuerst nachsehen, ob überhaupt nur ein Lauf läuft
+  (`pgrep -a dotnet`).
+
 ---
 
 ## 8. Schnellstart-Befehle
@@ -2074,7 +2286,7 @@ cd C:\Dev\Zed\gonk-note-V2
 dotnet build -c Release      # 0 Fehler / 0 Warnungen
 dotnet build -c Debug        # schneller, ohne Self-Contained/win-x64
 
-dotnet test -c Release       # beide Testprojekte, 138 Tests
+dotnet test -c Release       # beide Testprojekte, 159 Tests
 
 # Golden-Files bewusst neu setzen (danach den Diff lesen, siehe §4.6)
 $env:GONK_SNAPSHOT_UPDATE=1; dotnet test tests\GonkNote.Core.Tests; $env:GONK_SNAPSHOT_UPDATE=$null
@@ -2153,6 +2365,7 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 
 | Runde | Datum | Was |
 |---|---|---|
+| V2-14 | 2026-08-03 | **Phase 3, Brocken 6 und 7 — der Rest bis M1** (§4.12), auf dem CachyOS-Laptop. **Drag & Drop im Ordnerbaum** (verschieben, mit `Strg` kopieren; leere Fläche = Wurzel), die **einblendbare Titelleiste** des maximierten Fensters und die **Einstellungen-Seitenleiste** der Zeichenfläche (Muster, Farbton, Format, Ausrichtung — **nur** der Seiten-Abschnitt, weil es die anderen Werkzeuge nicht gibt). Dazu das **`EmbeddedDocs`-Gegenstück**: „Hilfe → Erste Schritte" und das gerenderte README erscheinen jetzt auch unter Linux. **Der Markdown-Zerleger ist dabei nach `Core/Text/` gewandert** statt ein zweites Mal abgeschrieben zu werden — er zeichnet kein Pixel (§3), und zwei Fassungen derselben Grammatik driften auseinander, ohne dass es auffällt; jeder Kopf malt nur noch. Wächter `MarkdownTests` (21 Tests, jetzt **146** Core / 159 gesamt) — **er hat sofort eine Endlosschleife gefunden, die auch in `MarkdownFlow` steckt**: eine Tabellenzeile ohne Trennzeile darunter landet im Absatz-Zweig, den sie selbst abweist, sodass `Parse` nie weiterrückt. Aufgefallen ist das nicht an einer roten Meldung, sondern daran, dass der Testlauf nicht mehr zurückkam (§7, neu). **Drei weitere Avalonia-Eigenheiten** (§7): Ziehen läuft auch in der App über XDND, weshalb es ein prozessinternes `DataFormat` braucht; `DoDragDropAsync` verlangt die `PointerPressedEventArgs`; ein anklickbarer Verweis ist ein Steuerelement (`InlineUIContainer`) und kein `Run`. Die Titelleiste braucht hier **keinen** MinMax-Hook — X11 maximiert gegen `_NET_WORKAREA`, `WindowBounds` bleibt zu Recht Windows-only. **Zwei Texte am laufenden Programm als falsch entlarvt** und in beiden Tabellen behoben: `About.Subtitle` nannte fest `%APPDATA%\GonkNote` (direkt über der Zeile mit dem echten Ordner), und der Werkzeugtipp der Seitenleiste versprach vier Abschnitte, von denen es einen gibt (neuer Schlüssel `Wb.Settings.PageTip`). **Ein eigener Fehler dabei gefunden:** die Leiste ging mit lauter leeren Umschaltern auf — `EinstellungenSpiegeln` wurde vor dem Sichtbarmachen gerufen und stieg deshalb sofort wieder aus. **Nutzer-Entscheidung: M1 wird ausgerufen** — und im selben Zug sind **alle vier mitgelieferten Dokumente** auf beide Ausgaben erweitert worden (Dauerregel 1): neuer Abschnitt „Zwei Ausgaben, eine App" mit einer Tabelle, was der Linux-Ausgabe fehlt und warum, dazu Bau-, Pfad- und Sicherungsanweisungen je System. Geprüft ohne echte Daten, in **beiden** Sprachen, jeder Schritt mit `tools/linux/` fotografiert. **Offen bleibt** der V1-Klon-Befehl in beiden Erste-Schritte-Fassungen (§5, Punkt 3) — er fällt jetzt stärker auf, weil daneben `src/GonkNote.Avalonia` steht |
 | V2-13 | 2026-08-03 | **Stift am Gerät geprüft — alles bestanden** (§5a, „Gegenprobe in der echten App"). Der Nutzer hat Druck, Neigung und Handballenabweisung mit der F9-Anzeige in der laufenden App durchgeprüft: Zeigerart `Pen`, `(Gerät liefert Druck)` mit veränderlichem Wert, dickerer Strich beim Aufdrücken; Neigung in Grad ≠ 0 und ein sichtbar breiterer Bleistift bei gekipptem Stift; kein Strich vom Handballen und kein verrutschendes Blatt. **Damit ist die Kette vom Digitizer bis zum gezeichneten Pixel zum ersten Mal durchgehend belegt** — bisher endete der Nachweis am Prototyp (§5a), und die automatisierten Belege konnten nur den Rückfallzweig zeigen, weil XTEST keine Stiftereignisse erzeugt. **Nicht ausgeräumt:** es bleibt **eine** Geräteklasse (Wacom AES); MPP und EMR sind weiter ungetestet, §5 „Noch offen" Punkt 1 steht |
 | V2-12 | 2026-08-03 | **Die Neigung wandert ins Dateiformat** (§4.11) — Nutzer-Entscheidung, und bewusst **auf dem Laptop** statt unter Windows. `WbPoint` bekommt `TX`/`TY` (Grad), der Eingabepfad schreibt sie in jeden Punkt, und **nur der Bleistift** wertet sie aus: eine schräg gehaltene Mine zieht eine breitere Spur, ein Fineliner nicht, und beim Textmarker hinge es an der Drehung um die eigene Achse, die kein Digitizer liefert. **Warum das ohne Windows-Gegenprobe zulässig war:** die Felder tragen `WhenWritingDefault` und werden bei 0 nicht geschrieben — Bestandsdateien bleiben byteweise gleich, was bei 6308 Druckpunkten auf 160 Striche (§4.8) auch eine Größenfrage ist; der Breitenfaktor ist ohne Neigung **exakt 1**, sodass alle zwanzig Pixelhashes aus Phase 1 unverändert grün blieben und **auch der WPF-Kopf Bestandsdokumente gleich zeichnet**; und `_type` ist nicht betroffen, weil `WbPoint` kein polymorpher Typ ist. `NeigungTests` (10 Tests, jetzt 125 Core / 138 gesamt), Neigung zusätzlich im `Beispieldokument` und im feldweisen Roundtrip-Vergleich — dort bewusst am **Stift**, weil ein geneigter Bleistift den Hash `bleistift-koernung` verschöbe. **Offen bleibt die Gegenprobe am echten Stift**: XTEST erzeugt keine Stiftereignisse, das geht nur von Hand (F9) |
 | V2-11 | 2026-08-03 | **Phase 3, zweiter Brocken — die Zeichenfläche steht** (§4.10), erstmals **auf dem CachyOS-Laptop** gebaut. **Notizbuch und Whiteboard zeichnen, radieren und speichern unter Linux**; Textdokumente bleiben ausgegraut (M1-Vorgabe, `Tab.NoCanvasYet` in beiden Tabellen darauf umformuliert). Der Renderer bekommt **Avalonias eigenen `SKCanvas`** über `ISkiaSharpApiLeaseFeature` — möglich, weil `Avalonia.Skia` an derselben SkiaSharp-Fassung hängt wie Core (3.119.4); ein offizielles `SkiaSharp.Views.Avalonia` gibt es nicht, und eine gerasterte Zwischenfläche wäre eine volle Bildkopie je Bild gewesen. Damit ist die offene Frage aus §5a beantwortet. **Vierte Avalonia-Eigenheit aufgelöst:** `Render` läuft auf dem Render-Faden — gelöst durch **Aufzeichnen** (`SKPictureRecorder` auf dem Oberflächen-Faden, `DrawPicture` auf dem Render-Faden), was nebenbei den Zwischenspeicher vektoriell und damit zoomfest macht. Eingabepfad mit `GetIntermediatePoints()`, **erkanntem statt angenommenem Druck** (Avalonia meldet für ein druckloses Gerät glatt 0,5) samt wirksamem Rückfall, zweistufiger Handballenabweisung, Radiergummi-Ende und Stiftknopf. **Neigung kommt an, wird aber nicht gespeichert** — `WbPoint` hat keinen Platz dafür, das ist eine offene Formatfrage (§5). Neu als Messgerät: die **Stift-Anzeige mit F9**. Trefferprüfung und Lasso als **`WbHit` nach Core** gezogen (15 neue Tests, jetzt 115 Core / 128 gesamt); der WPF-Kopf behält bewusst seine Fassung. **Neu: `tools/linux/`** — `schau.sh`, `klick.sh` und ein eigener `zeiger` über X11/XTEST, ohne Fremdpaket; die Lücke, die §5b nicht kannte. **Drei Fehler am laufenden Programm gefunden** (§7): Zugriff auf ein fremdes Steuerelement im Renderdurchlauf (Fehlerbild: leere Werkzeugleiste), Tastaturfokus auf dem Rahmen statt auf der Fläche, und die Vorgabetinte, die dem App-Theme statt dem Papier folgte (Fehlerbild: hell auf weiß). Dazu drei Wayland-Fallen fürs Fernsteuern (Eingabekoordinaten um Faktor 2 skaliert, X-Wurzelaufnahme unbrauchbar, Maximieren ändert die Geometrie). Geprüft **ohne** echte Daten — Nutzer-Entscheidung: selbst angelegte Notizbücher sind für den Eingabepfad die bessere Probe |

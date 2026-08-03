@@ -120,6 +120,14 @@
                               Stroke="{DynamicResource Brush.Text}"/>
                     </Button>
 
+                    <Border Classes="trenner"/>
+
+                    <Button x:Name="BtnEinstellungen" Classes="flach symbol"
+                            Click="Einstellungen_Click" ToolTip.Tip="{loc:T Wb.Settings.PageTip}">
+                        <Path Classes="symbol" Data="{StaticResource Icon.Einstellungen}"
+                              Stroke="{DynamicResource Brush.Text}"/>
+                    </Button>
+
                 </StackPanel>
             </ScrollViewer>
         </Border>
@@ -150,6 +158,108 @@
                           Stroke="{DynamicResource Brush.Text}"/>
                 </Button>
             </StackPanel>
+        </Border>
+
+        <!-- ==================== Einstellungen (rechte Seitenleiste) ==================== -->
+        <!-- **Nur die Seite.** Der WPF-Kopf hat hier zusätzlich Formen, Text, Notizzettel,
+             Sticker und Cover — Werkzeuge, die es im Linux-Kopf nicht gibt (nicht M1,
+             HANDOFF §6). Eine Sektion für ein fehlendes Werkzeug wäre ein halbes Feature,
+             und ein halbes Feature ist schlechter als ein fehlendes: niemand sieht ihm an,
+             dass es halb ist.
+
+             Änderungen wirken sofort auf die aktuelle Seite, ohne OK-Knopf — genau wie
+             drüben (WhiteboardView.Settings.cs, PageSetting_Changed). -->
+        <Border x:Name="EinstellungenLeiste" DockPanel.Dock="Right" Width="262" IsVisible="False"
+                Background="{DynamicResource Brush.ToolbarBg}"
+                BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1,0,0,0">
+            <DockPanel>
+                <Border DockPanel.Dock="Top" Padding="14,8"
+                        BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,0,0,1">
+                    <DockPanel>
+                        <Button DockPanel.Dock="Right" Classes="flach symbol"
+                                ToolTip.Tip="{loc:T Wb.Settings.Close}" Click="Einstellungen_Click">
+                            <Path Classes="symbol" Data="{StaticResource Icon.Schliessen}"
+                                  Stroke="{DynamicResource Brush.Text}"/>
+                        </Button>
+                        <TextBlock Text="{loc:T Settings.Page}" FontWeight="SemiBold" FontSize="14"
+                                   VerticalAlignment="Center"
+                                   Foreground="{DynamicResource Brush.Text}"/>
+                    </DockPanel>
+                </Border>
+
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="14,12">
+
+                        <!-- Muster -->
+                        <TextBlock Text="{loc:T Settings.Page.Pattern}" FontWeight="SemiBold"
+                                   Margin="0,0,0,4" Foreground="{DynamicResource Brush.Text}"/>
+                        <UniformGrid Columns="2" Margin="0,0,0,14">
+                            <RadioButton x:Name="SetzeMusterBlanko" GroupName="setzeMuster" Margin="0,2"
+                                         Content="{loc:T Settings.Page.Blank}"
+                                         IsCheckedChanged="Seiteneinstellung_Geaendert"/>
+                            <RadioButton x:Name="SetzeMusterLinien" GroupName="setzeMuster" Margin="0,2"
+                                         Content="{loc:T Settings.Page.Lines}"
+                                         IsCheckedChanged="Seiteneinstellung_Geaendert"/>
+                            <RadioButton x:Name="SetzeMusterKaro" GroupName="setzeMuster" Margin="0,2"
+                                         Content="{loc:T Settings.Page.Grid}"
+                                         IsCheckedChanged="Seiteneinstellung_Geaendert"/>
+                            <RadioButton x:Name="SetzeMusterPunkte" GroupName="setzeMuster" Margin="0,2"
+                                         Content="{loc:T Settings.Page.Dots}"
+                                         IsCheckedChanged="Seiteneinstellung_Geaendert"/>
+                        </UniformGrid>
+
+                        <!-- Farbton -->
+                        <TextBlock Text="{loc:T Settings.Page.Shade}" FontWeight="SemiBold"
+                                   Margin="0,0,0,4" Foreground="{DynamicResource Brush.Text}"/>
+                        <StackPanel Margin="0,0,0,14">
+                            <RadioButton x:Name="SetzeTonAuto" GroupName="setzeTon" Margin="0,2"
+                                         Content="{loc:T Settings.Page.Shade.Auto}"
+                                         IsCheckedChanged="Seiteneinstellung_Geaendert"/>
+                            <RadioButton x:Name="SetzeTonHell" GroupName="setzeTon" Margin="0,2"
+                                         Content="{loc:T Settings.Page.Shade.Light}"
+                                         IsCheckedChanged="Seiteneinstellung_Geaendert"/>
+                            <RadioButton x:Name="SetzeTonDunkel" GroupName="setzeTon" Margin="0,2"
+                                         Content="{loc:T Settings.Page.Shade.Dark}"
+                                         IsCheckedChanged="Seiteneinstellung_Geaendert"/>
+                        </StackPanel>
+
+                        <!-- Format und Ausrichtung. Die unendliche Fläche hat kein Blatt,
+                             dessen Maße man setzen könnte — dort verschwindet der Abschnitt. -->
+                        <StackPanel x:Name="FormatAbschnitt">
+                            <TextBlock Text="{loc:T Settings.Page.Format}" FontWeight="SemiBold"
+                                       Margin="0,0,0,4" Foreground="{DynamicResource Brush.Text}"/>
+                            <UniformGrid Columns="2" Margin="0,0,0,14">
+                                <RadioButton x:Name="SetzeFormatA4" GroupName="setzeFormat" Margin="0,2"
+                                             Content="A4" IsCheckedChanged="Seiteneinstellung_Geaendert"/>
+                                <RadioButton x:Name="SetzeFormatA3" GroupName="setzeFormat" Margin="0,2"
+                                             Content="A3" IsCheckedChanged="Seiteneinstellung_Geaendert"/>
+                            </UniformGrid>
+
+                            <TextBlock Text="{loc:T Settings.Page.Orientation}" FontWeight="SemiBold"
+                                       Margin="0,0,0,4" Foreground="{DynamicResource Brush.Text}"/>
+                            <StackPanel Margin="0,0,0,14">
+                                <RadioButton x:Name="SetzeHochformat" GroupName="setzeLage" Margin="0,2"
+                                             Content="{loc:T Settings.Page.Portrait}"
+                                             IsCheckedChanged="Seiteneinstellung_Geaendert"/>
+                                <RadioButton x:Name="SetzeQuerformat" GroupName="setzeLage" Margin="0,2"
+                                             Content="{loc:T Settings.Page.Landscape}"
+                                             IsCheckedChanged="Seiteneinstellung_Geaendert"/>
+                            </StackPanel>
+
+                            <CheckBox x:Name="SetzeAlsStandard" Margin="0,0,0,12"
+                                      Content="{loc:T Settings.Page.AsDefault}"
+                                      IsCheckedChanged="Seiteneinstellung_Geaendert"/>
+                        </StackPanel>
+
+                        <!-- Auf dem Cover ändert nichts davon etwas: es hat weder Muster
+                             noch Farbton, sein Aussehen kommt aus WhiteboardDoc.Cover. -->
+                        <TextBlock x:Name="CoverHinweis" IsVisible="False" TextWrapping="Wrap"
+                                   FontSize="11" Foreground="{DynamicResource Brush.TextMuted}"
+                                   Text="{loc:T Settings.Page.CoverHint}"/>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </DockPanel>
         </Border>
 
         <!-- ==================== Die Fläche ==================== -->

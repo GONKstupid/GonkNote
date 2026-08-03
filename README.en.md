@@ -1,8 +1,8 @@
 # Gonk Note
 
-A modern, offline-capable note-taking app for Windows 11 — an alternative to GoodNotes with
-notebooks, whiteboards and text documents. Stylus-friendly (Wacom, Microsoft Pen, …), no
-cloud, no installer, no admin rights.
+A modern, offline-capable note-taking app for **Windows 11 and Linux** — an alternative to
+GoodNotes with notebooks, whiteboards and text documents. Stylus-friendly (Wacom, Microsoft
+Pen, …), no cloud, no installer, no admin rights.
 
 > **New here?** The step-by-step guide
 > **[Getting started](GETTING-STARTED.md)** takes you from cloning the repo to your first
@@ -11,6 +11,32 @@ cloud, no installer, no admin rights.
 
 *(English version. The German original is `README.md`. Inside the app this page follows the
 language you picked under View → Language.)*
+
+## Two editions, one app
+
+Gonk Note comes as a **Windows edition** (WPF) and a **Linux edition** (Avalonia). Both read
+the same database, use the same core library and draw with the same renderer — a notebook
+looks identical on either.
+
+**The Windows edition is complete.** Everything on this page applies to it.
+
+**The Linux edition can do today:** folder tree including drag & drop, pinning and
+favourites, gallery, two languages, dark/light, the sliding title bar, help and about
+dialog — and the canvas for **notebooks and whiteboards**: pen, pencil and highlighter with
+pressure and tilt, precise erasing, lasso and move, page navigation, adding and deleting
+pages, page settings (pattern, shade, size), zoom, touch gestures, undo and saving.
+
+**What the Linux edition still lacks** — each with a reason, none of it forgotten:
+
+| Missing | Why |
+|---|---|
+| **Text documents** (they open but cannot be edited) | The editor rests on a Windows building block. It is currently being replaced by an in-house document engine that runs everywhere |
+| **Import and export** (DOCX, PDF, Markdown, PNG) | Depends on that same change |
+| Shape pen, text boxes, sticky notes, stickers, numpad, quick-options menu, ruler and set square | Follow after the document engine |
+| Text recognition (OCR) and spell checking | Need counterparts to the Windows services |
+
+Nothing is lost along the way: whatever the Linux edition cannot display yet, it does not
+touch either — a file you created on Windows comes back out unchanged.
 
 ## Features
 
@@ -112,10 +138,11 @@ language you picked under View → Language.)*
   and the menu bar moves up. Move the mouse to the top edge and a title bar (minimise, restore,
   close) glides back in. A double-click on the menu bar (or the standard Windows commands)
   restores the window
-- **Persistence**: a SQLite file at `%APPDATA%\GonkNote\gonknote.sqlite` for texts, strokes
+- **Persistence**: a SQLite file `gonknote.sqlite` in the data folder for texts, strokes
   and structure; **images and imported PDF/Word pages live next to it** in
-  `%APPDATA%\GonkNote\gonknote.blobs\` — one file per image. Autosave every 30 s, plus a save
-  when closing tabs and the app.
+  `gonknote.blobs\` — one file per image. The data folder is `%APPDATA%\GonkNote` on
+  Windows and `~/.config/GonkNote` on Linux; **Help → About Gonk Note** shows it. Autosave
+  every 30 s, plus a save when closing tabs and the app.
   **For a backup, take both: the file *and* the folder.**
   Up to version 0.2.0 the file was called `gonknote.db` and was a LiteDB file. It is
   **migrated once** on the first start after that and then stays next to the new one,
@@ -160,55 +187,97 @@ opens the quick options menu.
 
 ## Build
 
-Requirement: .NET SDK 8 or newer.
+Requirement: .NET SDK 10 or newer.
 
-```bash
+**Always build per project, never the whole solution.** It contains both editions, and the
+Windows edition cannot be compiled on Linux — that is intended, not a fault.
+
+### Windows
+
+```powershell
 # Development
-dotnet run
+dotnet run --project src/GonkNote.Wpf
 
 # Single-file exe (self-contained, no .NET installation needed)
-dotnet publish -c Release
-# Result: bin/Release/net10.0-windows10.0.19041.0/win-x64/publish/GonkNote.exe
+dotnet publish src/GonkNote.Wpf -c Release
+# Result: src/GonkNote.Wpf/bin/Release/net10.0-windows10.0.19041.0/win-x64/publish/GonkNote.exe
 ```
 
-Note: WPF does not support assembly trimming (`PublishTrimmed`); the exe is compressed instead
-(`EnableCompressionInSingleFile`). For testing, `GonkNote.exe --db <path>` uses an alternative
-database.
+Note: WPF does not support assembly trimming (`PublishTrimmed`); the exe is compressed
+instead (`EnableCompressionInSingleFile`).
 
-What has to sit next to the exe (`tessdata` for text recognition) and how to carry on from
-there is described in [Getting started](GETTING-STARTED.md).
+### Linux
+
+```bash
+dotnet run --project src/GonkNote.Avalonia
+```
+
+The system needs **fontconfig and at least one font** for this — without them every drawn
+piece of text stays blank. On Arch-like systems:
+
+```bash
+sudo pacman -S fontconfig ttf-dejavu
+```
+
+Under Wayland, Gonk Note runs through XWayland; the toolkit has no native Wayland path.
+Stylus pressure and tilt arrive in full through it.
+
+### Both
+
+For testing, `--db <path>` uses an alternative database — **work on a copy, never on your
+real data.**
+
+What has to sit next to the program (`tessdata` for text recognition on Windows) and how to
+carry on from there is described in [Getting started](GETTING-STARTED.md).
 
 ## Architecture
 
 | Building block | Technology |
 |---|---|
-| UI | WPF (.NET 10), MVVM, dynamic theme resource dictionaries |
-| Whiteboard rendering | SkiaSharp (`SKElement`), WPF stylus events with pressure |
+| Windows interface | WPF (.NET 10), MVVM, dynamic theme resource dictionaries |
+| Linux interface | Avalonia 12 (.NET 10), the same view models, colours from a table in `GonkNote.Core` |
+| Whiteboard rendering | SkiaSharp — via `SKElement` on Windows, via Avalonia's own Skia canvas on Linux; **same renderer, same pixels** |
+| Stylus input | WPF stylus events resp. Avalonia pointers, both with pressure and tilt |
 | Persistence | SQLite (`Microsoft.Data.Sqlite`); documents as JSON, read and written via a source generator |
 | Core logic | a separate library `GonkNote.Core` (net10.0) — free of UI dependencies |
 
-The application consists of two projects: the WPF interface and a core library without any UI
-ties. That keeps the layers clean — the data model, persistence and the whiteboard's drawing
-routines are independent of the interface.
+The application consists of **one core and two interfaces**. Data model, persistence,
+drawing routines, colours and translations live in the core; an interface only holds what
+draws pixels or accepts input. That is why the Linux edition exists at all — it rebuilt
+none of it.
 
 ```
-GonkNote/                    WPF interface (net10.0-windows)
-├─ App.xaml(.cs)           Entry point, theme initialisation, --db argument
-├─ MainWindow.xaml(.cs)    Menu, folder tree (drag & drop, pinning), tab management
-├─ ViewModels/             MainViewModel, tab VMs, tree VM, MVVM base
-├─ Views/                  WhiteboardView (Skia canvas) and TextEditorView — both split
-│                          into partial files by topic (input, selection, rendering,
-│                          import, settings …), plus the dialogs
-├─ Services/               Import/export (DOCX, PDF, Markdown), OCR, theme, text styles
-│  └─ Localization/        Language switching: Loc (lookup) + one table each for DE/EN
-└─ Themes/                 Light.xaml, Dark.xaml, Styles.xaml
-
-GonkNote.Core/               Core logic without UI ties (net10.0), namespace GonkNote.Core.*
-├─ Models/                 NoteItem (tree), whiteboard elements, enums
-├─ Services/               DatabaseService (SQLite), BlobStore (images/PDFs next to the
-│                          database), UndoStack, ImageCache, PDF import
-├─ Rendering/              Skia drawing routines of the whiteboard, set-square overlay
-└─ Editing/                Precise erasing
+src/
+├─ GonkNote.Core/            Core logic without UI ties (net10.0), namespace GonkNote.Core.*
+│  ├─ Models/               NoteItem (tree), whiteboard elements, enums
+│  ├─ Platform/             the seam to the interfaces: file dialogs, clipboard, theme,
+│  │                        OCR, spell checking … as interfaces
+│  ├─ Services/             DatabaseService (SQLite), BlobStore (images/PDFs next to the
+│  │                        database), UndoStack, ImageCache, PDF import
+│  ├─ Rendering/            Skia drawing routines of the whiteboard, set-square overlay
+│  ├─ Editing/              Precise erasing, hit testing and lasso
+│  ├─ Text/                 Markdown parser for the bundled documents
+│  ├─ Theming/              the colour table: a theme is 20 named colours
+│  └─ Localization/         Loc (lookup) + one table each for DE/EN
+│
+├─ GonkNote.ViewModels/      MainViewModel, tab VMs, tree VM, MVVM base (net10.0) —
+│                            used by both interfaces
+│
+├─ GonkNote.Legacy/          Reads databases up to version 0.2.0 (LiteDB); the only place
+│                            in the project that still knows that package
+│
+├─ GonkNote.Wpf/             Windows interface (net10.0-windows)
+│  ├─ Platform/             the implementations behind Core/Platform
+│  ├─ Views/                WhiteboardView and TextEditorView — both split into partial
+│  │                        files by topic, plus the dialogs
+│  ├─ Services/             Import/export (DOCX, PDF, Markdown), OCR, text styles
+│  └─ Themes/               Light.xaml, Dark.xaml, Styles.xaml
+│
+└─ GonkNote.Avalonia/        Linux interface (net10.0, also runs on Windows)
+   ├─ Platform/             the same interfaces, implemented for Avalonia
+   ├─ Views/                WhiteboardView (input, rendering, settings), dialogs,
+   │                        Markdown display
+   └─ Themes/Styles.axaml   Shape and vector icons — the colours come from the core
 ```
 
 ## Licence

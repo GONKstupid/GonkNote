@@ -3,26 +3,30 @@
         xmlns:loc="clr-namespace:GonkNote.Services"
         x:Class="GonkNote.Views.AboutWindow"
         Title="{loc:T About.Title}"
-        SizeToContent="Height" Width="480"
-        CanResize="False" ShowInTaskbar="False"
+        Width="620" Height="640"
+        ShowInTaskbar="False"
         WindowStartupLocation="CenterOwner"
         Icon="avares://GonkNote.Avalonia/Assets/gonk-note-Icon.png"
         Background="{DynamicResource Brush.WindowBg}"
-        Foreground="{DynamicResource Brush.Text}">
+        Foreground="{DynamicResource Brush.Text}"
+        FontSize="13">
 
-    <!-- **Kleiner als der WPF-Dialog, und zwar mit Grund.** Dort zeigt „Über Gonk Note"
-         das gerenderte README (und „Erste Schritte" die Anleitung). Beide gehen über
-         EmbeddedDocs und ein FlowDocument — genau den Typ, den Phase 4 ersetzt
-         (HANDOFF §4.1). Hier stehen deshalb nur Titel, Untertitel und die Versionszeile;
-         die formatierten Dokumente kommen mit der eigenen Dokument-Engine. -->
+    <!-- Aufbau wie AboutDialog.xaml im WPF-Kopf: Kopf, Untertitel, gerendertes README,
+         Schließen. Seit dem siebten Brocken auch hier mit README — es kommt über
+         `EmbeddedDocs` und `MarkdownView` statt über ein FlowDocument (HANDOFF §4.12).
 
-    <StackPanel Margin="26,22" Spacing="14">
+         Eine Zeile mehr als drüben: der **Datenordner**. Er unterscheidet sich zwischen den
+         Plattformen (~/.config/GonkNote gegen %APPDATA%\GonkNote), und der Untertitel kann
+         ihn deshalb nicht nennen. -->
 
-        <StackPanel Orientation="Horizontal" Spacing="14">
+    <DockPanel Margin="18">
+
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="12"
+                    Margin="0,0,0,12">
             <Image Source="avares://GonkNote.Avalonia/Assets/gonk-note-Icon.png"
-                   Width="46" Height="46" VerticalAlignment="Top"/>
-            <StackPanel Spacing="4" VerticalAlignment="Center">
-                <TextBlock Text="Gonk Note" FontSize="20" FontWeight="SemiBold"
+                   Width="40" Height="40" VerticalAlignment="Center"/>
+            <StackPanel Spacing="2" VerticalAlignment="Center">
+                <TextBlock Text="Gonk Note" FontSize="19" FontWeight="SemiBold"
                            Foreground="{DynamicResource Brush.Text}"/>
                 <!-- Der Text steht in Loc (About.Version, beide Tabellen) und nicht im
                      Code — bis 0.2.0 war er fest verdrahtet und erschien deshalb auch im
@@ -31,13 +35,22 @@
             </StackPanel>
         </StackPanel>
 
-        <TextBlock Text="{loc:T About.Subtitle}" TextWrapping="Wrap"
-                   Foreground="{DynamicResource Brush.Text}"/>
+        <TextBlock DockPanel.Dock="Top" Text="{loc:T About.Subtitle}" TextWrapping="Wrap"
+                   Margin="0,0,0,8" Foreground="{DynamicResource Brush.TextMuted}"/>
 
-        <TextBlock x:Name="Datenordner" TextWrapping="Wrap" FontSize="11"
-                   Foreground="{DynamicResource Brush.TextMuted}"/>
+        <TextBlock DockPanel.Dock="Top" x:Name="Datenordner" TextWrapping="Wrap" FontSize="11"
+                   Margin="0,0,0,12" Foreground="{DynamicResource Brush.TextMuted}"/>
 
-        <Button Classes="flach" Content="{loc:T Dlg.Ok}" MinWidth="88" IsDefault="True" IsCancel="True"
-                HorizontalAlignment="Right" Click="Schliessen_Click"/>
-    </StackPanel>
+        <Button DockPanel.Dock="Bottom" Classes="akzent" Content="{loc:T Window.Close}"
+                MinWidth="110" HorizontalAlignment="Right" Margin="0,12,0,0"
+                IsDefault="True" IsCancel="True" Click="Schliessen_Click"/>
+
+        <Border BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1" CornerRadius="6"
+                Background="{DynamicResource Brush.CardBg}">
+            <ScrollViewer x:Name="Liesmich" Padding="14,10"
+                          VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled"/>
+        </Border>
+
+    </DockPanel>
 </Window>

@@ -147,6 +147,10 @@ internal static class LocGerman
         ["Wb.InsertFile.Tip"] = "Datei einfügen – Bild, PDF oder Word (bei PDF/Word Seiten auswählbar; im Notizbuch als neue Seiten, im Whiteboard als Bild-Seiten); auch per Strg+V oder Drag &amp; Drop",
         ["Wb.Settings"] = "Einstellungen",
         ["Wb.Settings.Tip"] = "Einstellungen (Seite, Formen, Text, Cover)",
+        // Eigener Text für den Linux-Kopf: dessen Leiste hat nur den Seiten-Abschnitt, weil
+        // es Formen, Text und Cover dort (noch) nicht gibt. Der Text daneben verspräche
+        // sonst vier Dinge und zeigte eines (HANDOFF §4.12).
+        ["Wb.Settings.PageTip"] = "Seiteneinstellungen (Muster, Farbton, Format)",
         ["Wb.Settings.Close"] = "Einstellungen schließen",
         ["Page.Previous"] = "Vorherige Seite",
         ["Page.Next"] = "Nächste Seite",
@@ -168,6 +172,7 @@ internal static class LocGerman
         ["Settings.Page.Portrait"] = "Hochformat",
         ["Settings.Page.Landscape"] = "Querformat",
         ["Settings.Page.AsDefault"] = "Als Standard für neue Seiten",
+        ["Settings.Page.CoverHint"] = "Das Cover hat kein Muster und keinen Farbton — sein Aussehen steht in den Cover-Einstellungen.",
         ["Settings.Shapes"] = "Formen",
         ["Settings.Shapes.Hint"] = "Form wählst du in der Werkzeugleiste; hier die Füllung.",
         ["Settings.Shapes.FillToggle"] = "Füllung ein/aus",
@@ -450,7 +455,12 @@ internal static class LocGerman
         ["Guide.Heading"] = "Erste Schritte mit Gonk Note",
         ["Guide.Subtitle"] = "Von der ersten Notiz bis zur Sicherung — Schritt für Schritt.",
         ["About.Title"] = "Über Gonk Note",
-        ["About.Subtitle"] = "Offline-Notizen, Whiteboards und Textdokumente. Daten liegen lokal unter %APPDATA%\\GonkNote.",
+        // **Kein fester Pfad mehr.** Bis Phase 3 stand hier „%APPDATA%\GonkNote" — im
+        // Linux-Kopf also eine Angabe, die dort nicht stimmt, und zwar direkt über der
+        // Zeile, die den echten Ordner zeigt (HANDOFF §4.12). Der Satz muss **ohne** Pfad
+        // tragen: denselben Schlüssel benutzt der WPF-Dialog, und der zeigt den Ordner
+        // nicht daneben an.
+        ["About.Subtitle"] = "Offline-Notizen, Whiteboards und Textdokumente. Deine Daten liegen ausschließlich auf diesem Rechner, in deinem Benutzerordner.",
         // {0} = Versionsnummer. Die Phase meint die **Portierung** (Linux/iPadOS), nicht mehr
         // die Entwicklungsphase von V1 — bis 0.2.0 stand hier fest „Phase 3" und war damit
         // zweideutig. Von Hand nachzuziehen, wenn eine Portierungsphase beginnt (HANDOFF §6).

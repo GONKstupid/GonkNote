@@ -25,9 +25,21 @@
 
              Sie werden **gestrichen** gezeichnet (Stroke), nicht gefüllt — Ausnahme
              Icon.Stern. Wer eine hinzufügt, hält sich an 16×16 und an Linien statt
-             Flächen, sonst passt sie neben den anderen nicht. -->
+             Flächen, sonst passt sie neben den anderen nicht.
 
-        <StreamGeometry x:Key="Icon.Folder">M1.5,4.5 A1,1 0 0 1 2.5,3.5 H6 L7.5,5.5 H13.5 A1,1 0 0 1 14.5,6.5 V12 A1,1 0 0 1 13.5,13 H2.5 A1,1 0 0 1 1.5,12 Z</StreamGeometry>
+             **Vorlage ist das Zeichen, das der WPF-Kopf an derselben Stelle benutzt** — es
+             steht im Repo und ist damit nachprüfbar, anders als ein Vorschaubild.
+             Icon.Folder und Icon.Textmarker sind am 2026-08-03 genau deshalb neu gezeichnet
+             worden (HANDOFF §4.12, Nachtrag). -->
+
+        <!-- Ordner: **der klassische mit Reiter**, nachgezeichnet nach dem Zeichen, das der
+             WPF-Kopf dafür benutzt (Segoe Fluent `E8B7`) — Nutzerwunsch 2026-08-03. Der
+             erste Anlauf war die „moderne" Fassung ohne Reiter (linke Hälfte höher, eine
+             Schräge zur Grundfläche); sie passte nicht zu dem, was V1 zeigt.
+
+             Zwei Teilpfade: die Umrisslinie mit dem Reiter oben links, und darunter die
+             waagerechte Linie, die den Reiter erst als Reiter lesbar macht. -->
+        <StreamGeometry x:Key="Icon.Folder">M1.7,12.2 V3.6 A1.4,1.4 0 0 1 3.1,2.2 H5.5 A1.4,1.4 0 0 1 6.6,2.75 L7.5,3.95 A1.4,1.4 0 0 0 8.6,4.7 H12.9 A1.4,1.4 0 0 1 14.3,6.1 V12.2 A1.4,1.4 0 0 1 12.9,13.6 H3.1 A1.4,1.4 0 0 1 1.7,12.2 Z M1.7,4.7 H8.6</StreamGeometry>
         <StreamGeometry x:Key="Icon.Notebook">M3.5,2.5 H13 A1,1 0 0 1 14,3.5 V12.5 A1,1 0 0 1 13,13.5 H3.5 Z M6,2.5 V13.5 M8,5.5 H12 M8,8 H12 M8,10.5 H11</StreamGeometry>
         <!-- 1:1 aus src/GonkNote.Wpf/Themes/Styles.xaml — dort hatte die Icon-Schrift für
              das Whiteboard schon nichts Passendes. -->
@@ -52,7 +64,16 @@
 
         <StreamGeometry x:Key="Icon.Stift">M2.5,13.5 L3.4,10.6 L10.6,3.4 A1.4,1.4 0 0 1 12.6,5.4 L5.4,12.6 Z M9.6,4.4 L11.6,6.4</StreamGeometry>
         <StreamGeometry x:Key="Icon.Bleistift">M2.5,13.5 L3.4,10.6 L10.6,3.4 A1.4,1.4 0 0 1 12.6,5.4 L5.4,12.6 Z M3.4,10.6 L5.4,12.6</StreamGeometry>
-        <StreamGeometry x:Key="Icon.Textmarker">M4,10 L9.5,4.5 A1.6,1.6 0 0 1 11.8,6.8 L6.3,12.3 H4 Z M2.5,14.5 H13.5</StreamGeometry>
+        <!-- Textmarker: **aufrecht und von vorn**, nachgezeichnet nach dem Zeichen des
+             WPF-Kopfs (Segoe Fluent `E7E6`) — Nutzerwunsch 2026-08-03. Der erste Anlauf war
+             ein schräg liegender Marker; V1 zeigt ihn stehend, und daneben sah der Bleistift
+             gleich zweimal aus.
+
+             Ein breiter Korpus mit einer Bandlinie quer darüber, darunter die Keilspitze.
+             **Die Breite ist das Erkennungsmerkmal** — ein schmaler Umriss liest sich neben
+             Stift und Bleistift wie ein dritter Stift; erst der breite Korpus macht daraus
+             einen Marker. -->
+        <StreamGeometry x:Key="Icon.Textmarker">M3.1,3.2 A1,1 0 0 1 4.1,2.2 H11.9 A1,1 0 0 1 12.9,3.2 V9.6 L9.6,13.5 H6.4 L3.1,9.6 Z M3.1,5.6 H12.9</StreamGeometry>
         <StreamGeometry x:Key="Icon.Radierer">M5.5,13.5 L2.4,10.4 A1.2,1.2 0 0 1 2.4,8.7 L8.7,2.4 A1.2,1.2 0 0 1 10.4,2.4 L13.6,5.6 A1.2,1.2 0 0 1 13.6,7.3 L7.3,13.5 Z M5.5,5.5 L10.5,10.5 M5.5,13.5 H13.5</StreamGeometry>
         <StreamGeometry x:Key="Icon.Lasso">M8,3 C11.9,3 14.5,4.9 14.5,7.2 C14.5,9.6 11.9,11.5 8,11.5 C4.1,11.5 1.5,9.6 1.5,7.2 C1.5,4.9 4.1,3 8,3 Z M5,11 C5,12.6 5.6,13.6 6.4,14.2</StreamGeometry>
         <StreamGeometry x:Key="Icon.Verschieben">M3,2.5 L3,11.5 L5.4,9.4 L7.1,13.4 L8.9,12.6 L7.2,8.7 L10.4,8.3 Z</StreamGeometry>

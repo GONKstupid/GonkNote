@@ -52,8 +52,8 @@ Adminrechte brauchst du nicht.
 1. Repository klonen:
 
    ```bash
-   git clone https://github.com/GONKstupid/gonk-note.git
-   cd gonk-note
+   git clone https://github.com/GONKstupid/GonkNote.git
+   cd GonkNote
    ```
 
 2. Bauen — **je nach Ausgabe ein anderes Projekt**. Baue nie die ganze Solution:
@@ -499,6 +499,6 @@ Einstellung `blob-cleanup` auf `aus` setzen. Im Normalfall brauchst du das nicht
 - Die vollständige Feature-Liste steht im [README](README.md).
 - Dieselben Texte findest du in der App unter `Hilfe → Über Gonk Note`.
 - Fehler und Wünsche gehören in die
-  [Issues](https://github.com/GONKstupid/gonk-note/issues).
+  [Issues](https://github.com/GONKstupid/GonkNote/issues).
 
 Viel Spaß beim Schreiben.

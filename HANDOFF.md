@@ -1163,6 +1163,28 @@ Beide beim Gegenprüfen am laufenden Programm gefunden, beide in **beiden** Tabe
   nur die Seite. Neuer Schlüssel **`Wb.Settings.PageTip`** statt eines Textes, der drei Dinge
   zusagt, die es nicht gibt.
 
+#### Nachtrag: zwei Symbole zurück auf die V1-Form (Nutzerwunsch)
+
+Beim Ausprobieren hat der Nutzer zwei der neuen Vektorformen abgelehnt — **Ordner** und
+**Textmarker**; die übrigen ausdrücklich für besser als V1 befunden. Beide sind neu
+gezeichnet, und zwar **nach dem Zeichen, das der WPF-Kopf dafür benutzt** (Segoe Fluent
+`E8B7` bzw. `E7E6`) statt nach dem Vorschaubild — das ist die verlässlichere Vorlage, und
+sie steht im Repo:
+
+| Symbol | War | Ist |
+|---|---|---|
+| `Icon.Folder` | der „moderne" Ordner ohne Reiter: linke Hälfte höher, eine Schräge zur Grundfläche | der **klassische mit Reiter** oben links, samt der waagerechten Linie darunter, die den Reiter erst als Reiter lesbar macht |
+| `Icon.Textmarker` | ein **schräg liegender** Marker — daneben sah der Bleistift zweimal aus | ein **aufrechter, breiter** Marker von vorn: Korpus, Bandlinie quer darüber, Keilspitze |
+
+**Die Breite ist beim Marker das Erkennungsmerkmal**, nicht die Neigung: ein schmaler Umriss
+liest sich neben Stift und Bleistift wie ein dritter Stift. Und **die Bandlinie braucht
+Abstand zum oberen Rand** — im ersten Anlauf lag sie 2,6 Einheiten darunter und verschmolz
+bei 16 px mit der gerundeten Kappe zu einem einzigen Strich.
+
+Beide am laufenden Programm angesehen, in **drei** Größen: Baum (16 px), Schnellzugriff
+(21 px) und Galerie-Kachel (118 px, Strichstärke 0,7). **Der WPF-Kopf ist nicht betroffen** —
+er zeichnet diese Symbole weiter mit der Icon-Schrift.
+
 > **Offen geblieben, klein und benannt:** Der **WPF**-Über-Dialog könnte den Datenordner
 > genauso anzeigen wie der Linux-Kopf es tut. Das ist eine Zeile XAML und eine Zeile
 > Code — sie steht hier nicht, weil sie sich auf diesem Rechner nicht am laufenden Programm
@@ -1237,13 +1259,15 @@ als würde die Seite nicht ausgelesen; die Ursache war die Reihenfolge zweier Ze
 2. **Eigene Farbschemata** (Nutzerwunsch 2026-08-02) — vorgemerkt in §6. Die wichtigste der
    drei Fragen ist mit §4.9 beantwortet (die Tabelle umfasst auch das Papier); offen bleiben
    die beiden kleineren: Verhalten bei einer unvollständigen Datei und der Menüaufbau.
-3. **Beschreiben die vier mitgelieferten Dokumente V1 oder V2?** In `ERSTE-SCHRITTE.md` und
-   `GETTING-STARTED.md` steht weiterhin `git clone …/gonk-note.git` — das ist das
-   **V1**-Repo. Solange V2 privat und nicht veröffentlicht ist, schadet das niemandem; vor
-   dem Öffentlich-Schalten (§6) muss es entschieden werden. Framework- und
-   Ausgabepfad-Angaben sind am 2026-08-02 auf `net10.0` nachgezogen worden, der Klon-Befehl
-   bewusst nicht — das ist eine inhaltliche Frage, keine technische. **Am 2026-08-03 erneut
-   vorgelegt und erneut zurückgestellt.**
+3. ~~**Beschreiben die vier mitgelieferten Dokumente V1 oder V2?**~~ **Entschieden am
+   2026-08-03** (Nutzer): **V2.** `git clone …/GonkNote.git` in beiden Erste-Schritte-
+   Fassungen, ebenso der Issues-Verweis am Ende. Zweimal zurückgestellt, mit §4.12 fällig
+   geworden — die Anleitung nannte daneben `src/GonkNote.Avalonia`, ein Projekt, das es im
+   V1-Repo nicht gibt.
+
+   > **Dabei wissen:** Das V2-Repo ist **privat**. Der Klon-Befehl läuft damit heute nur für
+   > Konten mit Zugriff. Das ist kein Fehler, sondern eine Folge der Reihenfolge — er wird
+   > richtig, sobald §6 „Vor dem Öffentlich-Schalten" abgearbeitet ist.
 4. ~~**Wann beschreiben die Dokumente auch den Linux-Kopf?**~~ **Entschieden und umgesetzt
    am 2026-08-03** (§4.12): **M1 wird ausgerufen**, und beide Paare sind im selben Zug
    nachgezogen — neuer Abschnitt „Zwei Ausgaben, eine App" mit einer Tabelle, was der
@@ -2365,6 +2389,7 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 
 | Runde | Datum | Was |
 |---|---|---|
+| V2-15 | 2026-08-03 | **Nachlese zu V2-14, beides auf Nutzerwunsch.** (1) Der **Klon-Befehl zeigt jetzt auf V2** (`GonkNote.git`) — in beiden Erste-Schritte-Fassungen, dazu der Issues-Verweis am Ende. Damit ist §5 „Noch offen" Punkt 3 nach zweimaligem Zurückstellen entschieden; fällig geworden war er dadurch, dass die Anleitung daneben `src/GonkNote.Avalonia` nennt, ein Projekt, das es im V1-Repo nicht gibt. **Das Repo ist weiterhin privat** — der Befehl läuft heute nur für Konten mit Zugriff, und das wird mit §6 „Vor dem Öffentlich-Schalten" richtig. (2) **Zwei Vektorformen zurück auf die V1-Gestalt**: `Icon.Folder` ist wieder der klassische Ordner **mit Reiter** oben links (statt der „modernen" Fassung mit Schräge), `Icon.Textmarker` ein **aufrechter, breiter** Marker mit Bandlinie und Keilspitze (statt eines schräg liegenden, der neben dem Bleistift wie ein zweiter Stift aussah). Gezeichnet **nach dem Zeichen, das der WPF-Kopf dafür benutzt** (Segoe Fluent `E8B7`/`E7E6`) und nicht nach dem Vorschaubild — die Vorlage steht im Repo und ist damit nachprüfbar. Zwei Lehren stehen jetzt am Symbolblock in `Themes/Styles.axaml`: beim Marker ist **die Breite** das Erkennungsmerkmal und nicht die Neigung, und **die Bandlinie braucht Abstand zum oberen Rand** — im ersten Anlauf verschmolz sie bei 16 px mit der gerundeten Kappe zu einem einzigen Strich. In drei Größen am laufenden Programm angesehen (Baum 16 px, Schnellzugriff 21 px, Galerie-Kachel 118 px). Die übrigen neuen Symbole bleiben, wie sie sind — der Nutzer hält sie für besser als die V1-Fassungen. Der WPF-Kopf ist nicht betroffen: er zeichnet weiter mit der Icon-Schrift |
 | V2-14 | 2026-08-03 | **Phase 3, Brocken 6 und 7 — der Rest bis M1** (§4.12), auf dem CachyOS-Laptop. **Drag & Drop im Ordnerbaum** (verschieben, mit `Strg` kopieren; leere Fläche = Wurzel), die **einblendbare Titelleiste** des maximierten Fensters und die **Einstellungen-Seitenleiste** der Zeichenfläche (Muster, Farbton, Format, Ausrichtung — **nur** der Seiten-Abschnitt, weil es die anderen Werkzeuge nicht gibt). Dazu das **`EmbeddedDocs`-Gegenstück**: „Hilfe → Erste Schritte" und das gerenderte README erscheinen jetzt auch unter Linux. **Der Markdown-Zerleger ist dabei nach `Core/Text/` gewandert** statt ein zweites Mal abgeschrieben zu werden — er zeichnet kein Pixel (§3), und zwei Fassungen derselben Grammatik driften auseinander, ohne dass es auffällt; jeder Kopf malt nur noch. Wächter `MarkdownTests` (21 Tests, jetzt **146** Core / 159 gesamt) — **er hat sofort eine Endlosschleife gefunden, die auch in `MarkdownFlow` steckt**: eine Tabellenzeile ohne Trennzeile darunter landet im Absatz-Zweig, den sie selbst abweist, sodass `Parse` nie weiterrückt. Aufgefallen ist das nicht an einer roten Meldung, sondern daran, dass der Testlauf nicht mehr zurückkam (§7, neu). **Drei weitere Avalonia-Eigenheiten** (§7): Ziehen läuft auch in der App über XDND, weshalb es ein prozessinternes `DataFormat` braucht; `DoDragDropAsync` verlangt die `PointerPressedEventArgs`; ein anklickbarer Verweis ist ein Steuerelement (`InlineUIContainer`) und kein `Run`. Die Titelleiste braucht hier **keinen** MinMax-Hook — X11 maximiert gegen `_NET_WORKAREA`, `WindowBounds` bleibt zu Recht Windows-only. **Zwei Texte am laufenden Programm als falsch entlarvt** und in beiden Tabellen behoben: `About.Subtitle` nannte fest `%APPDATA%\GonkNote` (direkt über der Zeile mit dem echten Ordner), und der Werkzeugtipp der Seitenleiste versprach vier Abschnitte, von denen es einen gibt (neuer Schlüssel `Wb.Settings.PageTip`). **Ein eigener Fehler dabei gefunden:** die Leiste ging mit lauter leeren Umschaltern auf — `EinstellungenSpiegeln` wurde vor dem Sichtbarmachen gerufen und stieg deshalb sofort wieder aus. **Nutzer-Entscheidung: M1 wird ausgerufen** — und im selben Zug sind **alle vier mitgelieferten Dokumente** auf beide Ausgaben erweitert worden (Dauerregel 1): neuer Abschnitt „Zwei Ausgaben, eine App" mit einer Tabelle, was der Linux-Ausgabe fehlt und warum, dazu Bau-, Pfad- und Sicherungsanweisungen je System. Geprüft ohne echte Daten, in **beiden** Sprachen, jeder Schritt mit `tools/linux/` fotografiert. **Offen bleibt** der V1-Klon-Befehl in beiden Erste-Schritte-Fassungen (§5, Punkt 3) — er fällt jetzt stärker auf, weil daneben `src/GonkNote.Avalonia` steht |
 | V2-13 | 2026-08-03 | **Stift am Gerät geprüft — alles bestanden** (§5a, „Gegenprobe in der echten App"). Der Nutzer hat Druck, Neigung und Handballenabweisung mit der F9-Anzeige in der laufenden App durchgeprüft: Zeigerart `Pen`, `(Gerät liefert Druck)` mit veränderlichem Wert, dickerer Strich beim Aufdrücken; Neigung in Grad ≠ 0 und ein sichtbar breiterer Bleistift bei gekipptem Stift; kein Strich vom Handballen und kein verrutschendes Blatt. **Damit ist die Kette vom Digitizer bis zum gezeichneten Pixel zum ersten Mal durchgehend belegt** — bisher endete der Nachweis am Prototyp (§5a), und die automatisierten Belege konnten nur den Rückfallzweig zeigen, weil XTEST keine Stiftereignisse erzeugt. **Nicht ausgeräumt:** es bleibt **eine** Geräteklasse (Wacom AES); MPP und EMR sind weiter ungetestet, §5 „Noch offen" Punkt 1 steht |
 | V2-12 | 2026-08-03 | **Die Neigung wandert ins Dateiformat** (§4.11) — Nutzer-Entscheidung, und bewusst **auf dem Laptop** statt unter Windows. `WbPoint` bekommt `TX`/`TY` (Grad), der Eingabepfad schreibt sie in jeden Punkt, und **nur der Bleistift** wertet sie aus: eine schräg gehaltene Mine zieht eine breitere Spur, ein Fineliner nicht, und beim Textmarker hinge es an der Drehung um die eigene Achse, die kein Digitizer liefert. **Warum das ohne Windows-Gegenprobe zulässig war:** die Felder tragen `WhenWritingDefault` und werden bei 0 nicht geschrieben — Bestandsdateien bleiben byteweise gleich, was bei 6308 Druckpunkten auf 160 Striche (§4.8) auch eine Größenfrage ist; der Breitenfaktor ist ohne Neigung **exakt 1**, sodass alle zwanzig Pixelhashes aus Phase 1 unverändert grün blieben und **auch der WPF-Kopf Bestandsdokumente gleich zeichnet**; und `_type` ist nicht betroffen, weil `WbPoint` kein polymorpher Typ ist. `NeigungTests` (10 Tests, jetzt 125 Core / 138 gesamt), Neigung zusätzlich im `Beispieldokument` und im feldweisen Roundtrip-Vergleich — dort bewusst am **Stift**, weil ein geneigter Bleistift den Hash `bleistift-koernung` verschöbe. **Offen bleibt die Gegenprobe am echten Stift**: XTEST erzeugt keine Stiftereignisse, das geht nur von Hand (F9) |

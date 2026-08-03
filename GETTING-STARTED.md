@@ -51,8 +51,8 @@ not need admin rights.
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/GONKstupid/gonk-note.git
-   cd gonk-note
+   git clone https://github.com/GONKstupid/GonkNote.git
+   cd GonkNote
    ```
 
 2. Build — **a different project per edition**. Never build the whole solution: it contains
@@ -470,6 +470,6 @@ days.
 - The full feature list is in the [README](README.en.md).
 - You will find the same texts inside the app under `Help → About Gonk Note`.
 - Bugs and wishes belong in the
-  [issues](https://github.com/GONKstupid/gonk-note/issues).
+  [issues](https://github.com/GONKstupid/GonkNote/issues).
 
 Enjoy your writing.

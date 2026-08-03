@@ -64,6 +64,13 @@
          leer. Das Paket macht den Kopf an dieser Stelle unabhängig vom System — was der
          **Renderer** zeichnet, hängt weiterhin an SKTypeface (HANDOFF §4.6). -->
     <PackageVersion Include="Avalonia.Fonts.Inter" Version="12.1.1" />
+    <!-- Avalonias Skia-Rücken. Er kommt ohnehin über Avalonia.Desktop mit; hier steht er
+         **ausdrücklich**, weil die Zeichenfläche `ISkiaSharpApiLeaseFeature` daraus
+         benutzt — und was man beim Übersetzen braucht, holt man sich nicht über eine
+         Abhängigkeit einer Abhängigkeit. Entscheidend ist dabei: dieses Paket hängt an
+         **SkiaSharp 3.119.4**, derselben Fassung wie GonkNote.Core. Nur deshalb ist der
+         SKCanvas, den Avalonia herausgibt, für den WbRenderer derselbe Typ (HANDOFF §4.10). -->
+    <PackageVersion Include="Avalonia.Skia" Version="12.1.1" />
   </ItemGroup>
 
   <!-- Testprojekte (Phase 1). xunit 2.9.x, weil der WPF-Kopf über einen eigenen

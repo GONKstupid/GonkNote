@@ -426,10 +426,12 @@ internal static class LocEnglish
         // Gegenstuecke zu Dlg.Yes/Dlg.No in LocGerman (neu in Phase 3, siehe dort).
         ["Dlg.Yes"] = "Yes",
         ["Dlg.No"] = "No",
-        // Gegenstueck zu Tab.NoCanvasYet in LocGerman (neu in Phase 3, siehe dort).
+        // Gegenstueck zu Tab.NoCanvasYet in LocGerman (siehe dort). Seit dem zweiten Brocken
+        // von Phase 3 betrifft der Text nur noch Textdokumente.
         ["Tab.NoCanvasYet"] =
-            "This document cannot be shown here yet — the Linux canvas is still being built. " +
-            "Its contents are stored unchanged and appear as usual in the Windows edition.",
+            "Text documents cannot be shown here yet — they need the built-in document " +
+            "engine, which is next. Their contents are stored unchanged and appear as usual " +
+            "in the Windows edition.",
         // Gegenstueck zu Io.NotOnThisPlatform in LocGerman (neu in Phase 3, siehe dort).
         ["Io.NotOnThisPlatform"] =
             "Importing and exporting are not available on this platform yet. They arrive " +

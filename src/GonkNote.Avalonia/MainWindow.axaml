@@ -2,6 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="clr-namespace:GonkNote.ViewModels;assembly=GonkNote.ViewModels"
         xmlns:loc="clr-namespace:GonkNote.Services"
+        xmlns:views="clr-namespace:GonkNote.Views"
         x:Class="GonkNote.MainWindow"
         x:DataType="vm:MainViewModel"
         Title="Gonk Note" Width="1280" Height="820"
@@ -437,8 +438,9 @@
                     </DockPanel>
                 </Grid>
 
-                <!-- Registerkarten. **Noch ohne Inhalt** — die Zeichenfläche ist der nächste
-                     Brocken; ein geöffnetes Dokument zeigt hier vorerst nur einen Hinweis. -->
+                <!-- Registerkarten. Notizbuch und Whiteboard bekommen die Zeichenfläche,
+                     das Textdokument weiterhin den Hinweis — das ist so vorgesehen und
+                     keine Lücke: die eigene Dokument-Engine ist Phase 4 (HANDOFF §6). -->
                 <TabControl ItemsSource="{Binding OpenTabs}"
                             SelectedItem="{Binding SelectedTab, Mode=TwoWay}"
                             IsVisible="{Binding OpenTabs.Count, Converter={StaticResource IstDa}}">
@@ -460,12 +462,31 @@
                     </TabControl.ItemTemplate>
                     <TabControl.ContentTemplate>
                         <DataTemplate x:DataType="vm:DocumentTabViewModel">
-                            <Border Background="{DynamicResource Brush.CardBg}">
-                                <TextBlock Text="{loc:T Tab.NoCanvasYet}" TextWrapping="Wrap" MaxWidth="420"
-                                           TextAlignment="Center"
-                                           HorizontalAlignment="Center" VerticalAlignment="Center"
-                                           Foreground="{DynamicResource Brush.TextMuted}"/>
-                            </Border>
+                            <!-- Nach Dokumentart getrennt. Ein `DataTemplates`-Eintrag je
+                                 ViewModel-Typ wäre der übliche Avalonia-Weg; hier steht ein
+                                 Umschalter, weil der Hinweis für Textdokumente sonst als
+                                 eigene Ansicht mit eigener Datei existieren müsste, nur um
+                                 einen Satz anzuzeigen. -->
+                            <ContentControl Content="{Binding}">
+                                <ContentControl.DataTemplates>
+
+                                    <DataTemplate DataType="vm:WhiteboardTabViewModel">
+                                        <views:WhiteboardView/>
+                                    </DataTemplate>
+
+                                    <!-- Textdokumente bleiben ausgegraut, bis Phase 4 die
+                                         eigene Dokument-Engine bringt. -->
+                                    <DataTemplate DataType="vm:TextTabViewModel">
+                                        <Border Background="{DynamicResource Brush.CardBg}">
+                                            <TextBlock Text="{loc:T Tab.NoCanvasYet}" TextWrapping="Wrap"
+                                                       MaxWidth="420" TextAlignment="Center"
+                                                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                       Foreground="{DynamicResource Brush.TextMuted}"/>
+                                        </Border>
+                                    </DataTemplate>
+
+                                </ContentControl.DataTemplates>
+                            </ContentControl>
                         </DataTemplate>
                     </TabControl.ContentTemplate>
                 </TabControl>

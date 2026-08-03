@@ -36,6 +36,9 @@
     <PackageReference Include="Avalonia.Desktop" />
     <PackageReference Include="Avalonia.Themes.Fluent" />
     <PackageReference Include="Avalonia.Fonts.Inter" />
+    <!-- Der Weg an Avalonias eigenen SKCanvas (ISkiaSharpApiLeaseFeature). Begründung
+         steht bei Views/SkiaCanvas.cs und in Directory.Packages.props. -->
+    <PackageReference Include="Avalonia.Skia" />
     <!-- Die native Skia-Bibliothek für Linux. Das Paket `SkiaSharp` bringt sie für Windows
          und macOS mit, für Linux **nicht** — zum Bauen genügt das (Meilenstein M0), zum
          Ausführen nicht. Sie steht hier und nicht in GonkNote.Core: eine Linux-.so gehört

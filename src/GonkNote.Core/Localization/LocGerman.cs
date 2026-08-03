@@ -433,13 +433,16 @@ internal static class LocGerman
         // Ebenfalls neu in Phase 3. Import und Export stehen auf FlowDocument und liegen
         // deshalb noch im WPF-Kopf (HANDOFF §4.1); der Linux-Kopf hat sie erst, wenn die
         // eigene Dokument-Engine steht — Phase 4.
-        // Steht in der Registerkarte des Linux-Kopfs, solange es dort keine Zeichenfläche
-        // gibt. Bewusst ein ganzer Satz und kein „Nicht implementiert": wer das liest, soll
+        // Steht in der Registerkarte des Linux-Kopfs. **Seit dem zweiten Brocken von Phase 3
+        // nur noch bei Textdokumenten** — Notizbuch und Whiteboard haben ihre Zeichenfläche
+        // (HANDOFF §4.10); der Schlüsselname ist derselbe geblieben, weil er in beiden
+        // Tabellen und im XAML steht und ein neuer nur Arbeit ohne Gewinn wäre.
+        // Bewusst ein ganzer Satz und kein „Nicht implementiert": wer das liest, soll
         // wissen, dass die Daten in Ordnung sind und nur die Anzeige fehlt.
         ["Tab.NoCanvasYet"] =
-            "Dieses Dokument lässt sich hier noch nicht anzeigen — die Zeichenfläche des " +
-            "Linux-Kopfs entsteht gerade. Der Inhalt ist unverändert gespeichert und in der " +
-            "Windows-Fassung wie gewohnt zu sehen.",
+            "Textdokumente lassen sich hier noch nicht anzeigen — sie brauchen die eigene " +
+            "Dokument-Engine, die als Nächstes entsteht. Der Inhalt ist unverändert " +
+            "gespeichert und in der Windows-Fassung wie gewohnt zu sehen.",
         ["Io.NotOnThisPlatform"] =
             "Import und Export gibt es auf dieser Plattform noch nicht. Sie kommen mit der " +
             "eigenen Dokument-Engine; bis dahin führt der Weg über die Windows-Fassung.",

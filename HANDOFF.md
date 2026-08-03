@@ -1,6 +1,6 @@
 # Gonk Note V2 — Projektübergabe
 
-**Stand: 2026-08-03 · Version 0.3.0 · net10.0 · SkiaSharp 3 · SQLite · Avalonia 12 · Phase 3 begonnen**
+**Stand: 2026-08-03 · Version 0.3.0 · net10.0 · SkiaSharp 3 · SQLite · Avalonia 12 · Phase 3, Zeichenfläche steht**
 
 > **📌 Dauerregeln des Nutzers — gelten immer, ohne Nachfragen:**
 >
@@ -123,20 +123,28 @@ verschwunden**, die Persistenz läuft über `Microsoft.Data.Sqlite` mit
 übertragen**, rein additiv; die alte Datei bleibt unversehrt liegen. An einer Kopie der
 echten Datenbank feldweise gegengeprüft.
 
-Zuletzt **Phase 3, erster Brocken** (§4.9): **`src/GonkNote.Avalonia` steht und läuft** —
+Dann **Phase 3, erster Brocken** (§4.9): **`src/GonkNote.Avalonia` steht und läuft** —
 Avalonia 12.1.1 auf `net10.0`, alle zwölf Schnittstellen aus `Core/Platform/` umgesetzt,
 Ordnerbaum und Galerie aus derselben `MainViewModel`-Instanz wie der WPF-Kopf. Die Farben
 kommen aus einer **Farbtabelle in Core** (`Core/Theming/`), nicht aus einem zweiten Paar
-fest verdrahteter Dateien. **Noch keine Zeichenfläche** — ein geöffnetes Dokument zeigt
-einen Hinweis. Version auf **0.3.0** angehoben.
+fest verdrahteter Dateien. Version auf **0.3.0** angehoben.
 
-**Als Nächstes: die Zeichenfläche** (§6). Dafür ist der CachyOS-Laptop Pflicht — alles, was
-am Stift hängt, lässt sich unter Windows nicht beurteilen (§5b).
+Zuletzt **Phase 3, zweiter Brocken** (§4.10), **auf dem CachyOS-Laptop**: **die
+Zeichenfläche steht.** Notizbuch und Whiteboard zeichnen, radieren und speichern unter
+Linux; gezeichnet wird von `WbRenderer` aus Core auf Avalonias **eigenem `SKCanvas`**
+(`ISkiaSharpApiLeaseFeature`, dieselbe SkiaSharp-Fassung wie Core). Der Eingabepfad nimmt
+`GetIntermediatePoints()`, erkennt Druck statt ihn anzunehmen und weist den Handballen ab.
+**Textdokumente bleiben ausgegraut** — das ist so vorgesehen (M1). Dazu ein Linux-Pendant
+der Fernsteuer-Werkzeuge (`tools/linux/`), das es bisher gar nicht gab.
+
+**Als Nächstes:** die drei Restpunkte von Phase 3 — Drag & Drop im Baum, einblendbare
+Titelleiste, `EmbeddedDocs`-Gegenstück (§6, Brocken 6 und 7). Danach ist **M1** erreichbar;
+die Entscheidung, ob er ausgerufen wird, steht in §6.
 
 **Tests laufen lassen:**
 
 ```powershell
-dotnet test -c Release        # Windows: beide Projekte, 113 Tests
+dotnet test -c Release        # Windows: beide Projekte, 128 Tests
 ```
 
 ---
@@ -184,7 +192,9 @@ Dazu die Commits aus Phase 1 (2026-07-30) — Testprojekte, CI und der `SKBitmap
 (LiteDB → SQLite, `BlobStore` über `IAppPaths`).
 
 **Erledigt in Phase 3, erster Brocken:** §4.9 (Avalonia-Shell, Farbtabelle in Core).
-Testzahl steht jetzt bei **113** (100 Core + 13 WPF).
+
+**Erledigt in Phase 3, zweiter Brocken:** §4.10 (Zeichenfläche, Eingabepfad, `WbHit` in
+Core, Linux-Werkzeuge). Testzahl steht jetzt bei **128** (115 Core + 13 WPF).
 
 **Erledigt in Phase 0:**
 
@@ -239,6 +249,7 @@ gonk-note-V2/
 │  │  │                          ILegacyDatabaseReader, BlobStore, ImageCache, UndoStack,
 │  │  │                          PdfImporter, DocumentHealth
 │  │  ├─ Editing/                WbErase — punktgenaues Radieren
+│  │  │                          WbHit — Trefferprüfung und Lasso (§4.10)  ← neu in Phase 3
 │  │  ├─ Theming/                die Farbtabelle (§4.9)              ← neu in Phase 3
 │  │  │                          ThemeColor (20 Farben), HexColor, ThemeDefinition,
 │  │  │                          Themes.Light/.Dark — ein Theme ist eine Datentabelle
@@ -260,7 +271,9 @@ gonk-note-V2/
 │  │  │                          Avalonia* je Schnittstelle + AvaloniaPlatformServices,
 │  │  │                          AvaloniaThemeHost (baut die Ressourcen aus der Farbtabelle),
 │  │  │                          Modal.cs (synchron ↔ async, die größte Naht — §7)
-│  │  ├─ Views/                  Converters, MessageWindow (Ersatz der MessageBox), AboutWindow
+│  │  ├─ Views/                  Converters, MessageWindow (Ersatz der MessageBox), AboutWindow,
+│  │  │                          SkiaCanvas (der Weg an Avalonias SKCanvas, §4.10),
+│  │  │                          WhiteboardView + .Render + .Input — die Zeichenfläche
 │  │  ├─ Themes/Styles.axaml     Form und Vektor-Symbole — KEINE Farben (die kommen aus Core)
 │  │  └─ Services/Localization/  TExtension + LocText (§7 „Übersetzung im Linux-Kopf")
 │  │
@@ -296,7 +309,11 @@ gonk-note-V2/
 │  │  └─ messungen/              Rohberichte der Läufe
 │  ├─ schau.ps1                  App mit DB-Kopie starten und fotografieren (§8)
 │  ├─ klick.ps1                  ein Klick / Tastendruck + neues Foto
-│  └─ kette.ps1                  mehrere Klicks in EINEM Durchgang — für Menüpfade (§7)
+│  ├─ kette.ps1                  mehrere Klicks in EINEM Durchgang — für Menüpfade (§7)
+│  └─ linux/                     das Gegenstück dazu unter Linux (§4.10)  ← neu in Phase 3
+│     ├─ schau.sh                Kopf starten und fotografieren
+│     ├─ klick.sh                Schritte abarbeiten + Foto
+│     └─ zeiger/                 klickt und tippt über X11/XTEST, ohne Fremdpaket
 │
 ├─ Assets/  tessdata/  Docs/     1:1 aus V1, in der Wurzel
 └─ LICENSE, README(.en).md, ERSTE-SCHRITTE.md, GETTING-STARTED.md, THIRD-PARTY-NOTICES.md
@@ -785,6 +802,170 @@ Mit einer **Kopie** der echten Datenbank samt Blob-Ordner, in **beiden** Sprache
 
 ---
 
+### 4.10 Phase 3, zweiter Brocken — die Zeichenfläche
+
+Umgesetzt am 2026-08-03, **auf dem CachyOS-Laptop** — anders als der erste Brocken, und aus
+dem Grund, den §5b dafür genannt hatte: alles, was am Stift und an Linux-Pfaden hängt,
+lässt sich unter Windows nicht beurteilen.
+
+#### Was jetzt geht
+
+| Kann | Kann nicht |
+|---|---|
+| Notizbuch und Whiteboard **anzeigen** — Cover, Linien, Raster, Punkte, Hintergrundbilder | Text, Formen, Notizzettel **anlegen** (angezeigt werden sie) |
+| **Zeichnen** mit Stift, Bleistift, Textmarker — Druck, Rückfall ohne Druck | Sticker, Texterkennung, Zahlenblock, Schnellaktionen, Geodreieck (nicht M1, §6) |
+| **Radieren**, punktgenau (Striche werden aufgetrennt) | Bilder und PDF-Seiten importieren |
+| Auswählen per Lasso und Verschieben, Löschen | Drehen und Skalieren der Auswahl |
+| Seiten blättern, anlegen, löschen; Zoom, Verschieben, Finger-Gesten | Seiteneinstellungen (Format, Muster, Farbton) |
+| Rückgängig und Wiederholen, Speichern | |
+
+**Textdokumente bleiben ausgegraut** — das ist die M1-Vorgabe und keine Lücke. Der Text
+dazu (`Tab.NoCanvasYet`) sagt das jetzt auch: er sprach vorher allgemein von „diesem
+Dokument" und nannte die fehlende Zeichenfläche als Grund. Beide Tabellen nachgezogen
+(Dauerregel 1).
+
+#### Die Entscheidung, die hier fiel: ausleihen statt nachbauen
+
+**Nutzer-Entscheidung 2026-08-03: der Renderer bekommt Avalonias eigenen `SKCanvas`.**
+§5a hatte die Frage `SKCanvasView` gegen `DrawingContext` ausdrücklich offen gelassen. Die
+Erhebung vorab hat sie beantwortet:
+
+- **`Avalonia.Skia` 12.1.1 hängt an SkiaSharp 3.119.4** — Zeichen für Zeichen dieselbe
+  Fassung, die `GonkNote.Core` benutzt. Der `SKCanvas`, den Avalonia herausgibt, ist für
+  `WbRenderer` damit **derselbe Typ**, nicht ein gleichnamiger.
+- Es gibt **`ISkiaSharpApiLeaseFeature`**: einen dokumentierten Weg an genau diese Leinwand.
+- Ein offizielles `SkiaSharp.Views.Avalonia` gibt es **nicht** — SkiaSharp liefert Views
+  für WPF, WinForms, MAUI und andere, für Avalonia nicht. „`SKCanvasView`" wäre hier
+  Fremdpaket oder Eigenbau gewesen.
+
+Der Weg über eine eigene `SKSurface` und ein `WriteableBitmap` wäre **eine volle Bildkopie
+je Bild** gewesen — bei einem Digitizer, der schneller abtastet als die Oberfläche zeichnet,
+die falsche Stelle zum Sparen. Das Paket steht jetzt **ausdrücklich** in der `.csproj` und
+nicht nur als Abhängigkeit einer Abhängigkeit.
+
+#### Die vierte Stelle, an der Avalonia nicht wie WPF ist
+
+§4.9 hatte drei genannt. Das hier ist die vierte, und sie war die teuerste dieses Brockens:
+
+**Avalonia zeichnet auf einem eigenen Faden.** `SKElement.PaintSurface` läuft unter WPF auf
+dem Oberflächen-Faden, `ICustomDrawOperation.Render` läuft unter Avalonia auf dem
+**Render-Faden**. Wer von dort in `_page.Elements` greift, liest eine Liste, die der
+Oberflächen-Faden im selben Moment verändert — während ein Strich gezogen wird, also genau
+dann, wenn am meisten passiert.
+
+**Gelöst durch Aufzeichnen statt Zurückgreifen:** Auf dem Oberflächen-Faden nimmt ein
+`SKPictureRecorder` die Zeichenbefehle entgegen, dort, wo die Daten leben. Was dabei
+entsteht, ist ein `SKPicture` — unveränderlich, ohne Verweis auf lebende Listen. Der
+Render-Faden spielt es nur noch ab. Aufzeichnen kostet fast nichts (es werden Befehle
+notiert, nichts gerastert), und **der Gewinn ist doppelt**: der Zugriff ist von sich aus
+sicher, und weil ein Bild Vektoren behält statt Pixel, bleibt der zwischengespeicherte
+Seiteninhalt beim Zoomen scharf. Der WPF-Kopf rastert an derselben Stelle ein `SKImage` in
+Fenstergröße (~20 MB) und muss es bei jedem Zoom- und Verschiebeschritt wegwerfen; hier
+wird in **Seitenkoordinaten** aufgezeichnet, und Zoomen macht die Aufzeichnung gar nicht
+erst ungültig.
+
+#### Der Eingabepfad — gegen Fähigkeiten, nicht gegen ein Gerät
+
+- **`GetIntermediatePoints()`**, wie §5a es verlangt. Der Digitizer tastet mit einigen
+  hundert Hertz ab, die Oberfläche zeichnet mit sechzig.
+- **Druck wird erkannt, nicht angenommen.** Avalonia gibt für einen Zeiger ohne Drucksensor
+  nicht „unbekannt" zurück, sondern glatt **0,5** — ein druckloser Stift ist an der Zahl
+  allein nicht von einem zu unterscheiden, der mittelfest aufliegt. Erst wenn ein Wert
+  auftaucht, der davon abweicht, gilt das Gerät als drucktauglich; bis dahin läuft der
+  **Rückfall** mit fester Breite. Damit ist die Zusage aus §1 („läuft mit jedem Stylus")
+  nicht mehr eine Absicht, sondern eine Verzweigung im Code.
+- **Handballenabweisung in zwei Stufen.** Der Finger zeichnet grundsätzlich nie — er
+  verschiebt und zoomt; ein aufliegender Handballen kann also gar keinen Strich erzeugen.
+  Und solange ein Stift aufliegt, wird **jede** Berührung verworfen, damit das Blatt nicht
+  unter dem Stift wegrutscht. Möglich ist beides nur, weil `Pointer.Type` Stift und Finger
+  sauber trennt — §5a hatte genau das als Voraussetzung geprüft.
+- **Das Radiergummi-Ende** meldet sich als eigener Zeiger (`IsEraser`) und schlägt das
+  gewählte Werkzeug; die zweite Stift-Taste radiert, solange sie gehalten wird.
+
+> **Neigung kommt an, wird aber nicht gespeichert — und das ist Absicht.** `WbPoint` trägt
+> drei Werte (X, Y, Druck), und `WbRenderer` zeichnet aus genau diesen drei. Ein vierter
+> wäre eine Änderung am **gespeicherten Format** und damit an Core — die gehört auf den
+> Windows-Rechner gegengeprüft und nicht nebenbei im Linux-Kopf entschieden (§7,
+> „Persistenz"). Die Naht, an der sie andocken würde, ist in `WhiteboardView.Input.cs`
+> benannt. **Das ist eine offene Entscheidung**, sie steht in §5.
+
+#### Die Stift-Anzeige (F9) — ein Messgerät, kein Feature
+
+Eingeblendet mit **F9**, standardmäßig aus: Zeigerart, Druck mit Angabe ob echt oder
+Rückfall, Neigung in Grad, Zahl der Punkte im laufenden Strich.
+
+Sie steht da aus einem konkreten Grund: **§5a hat im Prototyp gemessen, nicht in der App.**
+Ob Druck und Neigung auch durch den fertigen Eingabepfad kommen, beantwortet sonst niemand —
+und ein gleichmäßiger Strich sieht genauso aus, ob er aus dem Rückfall stammt oder aus einem
+Gerät ohne Drucksensor. Sie ist ausdrücklich auch die Stelle, an der ein **zweites
+Stiftgerät** (MPP, EMR) beurteilt wird — der einzige Punkt aus §5 „Noch offen" mit echtem
+Restrisiko.
+
+#### `WbHit` ist nach Core gewandert
+
+Trefferprüfung und Lasso sind reine Geometrie — kein Pixel wird gezeichnet, keine Eingabe
+entgegengenommen. Nach der Faustregel aus §3 gehört das nach Core. Bis Phase 3 lag es privat
+in `WhiteboardView.Selection.cs` des WPF-Kopfs; der Linux-Kopf hätte es Zeile für Zeile
+abschreiben müssen, und **zwei Fassungen derselben Formel driften auseinander, ohne dass es
+auffällt** — die Auswahl säße dann je Kopf ein paar Pixel anders, und niemand hätte einen
+Anhaltspunkt, welche richtig liegt.
+
+**Der WPF-Kopf ist bewusst nicht umgestellt**, aus demselben Grund wie bei der Farbtabelle
+(§4.9): er lässt sich hier nicht bauen, und ein Umbau ohne Gegenprobe am laufenden Programm
+wäre genau die Art Änderung, vor der §7 warnt. **Damit steht dieselbe Geometrie an zwei
+Stellen** — das ist eine Schuld, kein Zustand; sie gehört auf dem Windows-Rechner
+zusammengelegt. Neuer Wächter: `TrefferTests` (15 Tests).
+
+#### Die Linux-Werkzeuge — die Lücke, die §5b nicht kannte
+
+Die drei Skripte unter `tools/` sind Windows-PowerShell und haben unter Linux **kein**
+Gegenstück. Ohne sie lässt sich „am laufenden Programm gegengeprüft" auf dem Laptop nicht
+belegen, sondern nur behaupten — und Dauerregel 1 und 4 hängen daran. Neu in `tools/linux/`:
+
+| | |
+|---|---|
+| `schau.sh` | Kopf mit `--db` starten und fotografieren |
+| `klick.sh` | Schritte abarbeiten, danach fotografieren |
+| `zeiger/` | ein kleines `net10.0`-Werkzeug, das über **X11/XTEST** klickt und tippt |
+
+**Warum `zeiger` selbst gebaut ist und nicht `xdotool` aufruft:** `xdotool` ist ein Paket,
+das erst installiert werden müsste, und `sudo` braucht auf diesem Laptop ein Passwort. Die
+zwei Bibliotheken, die `xdotool` selbst benutzt — `libX11` und `libXtst` —, liegen dagegen
+ohnehin auf jedem X-System. Das Werkzeug läuft damit sofort und überall, und es ist kürzer
+als die Anleitung, wie man das fehlende Paket nachinstalliert. **Was es nicht kann: den
+Stift.** XTEST erzeugt Maus- und Tastaturereignisse; Druck, Neigung und die Unterscheidung
+Stift/Finger entstehen im Digitizer. Alles, was am Stift hängt, bleibt Handarbeit — dafür
+gibt es F9.
+
+Die drei Eigenheiten, über die dabei jeder stolpert, stehen in §7 („Fernsteuern unter
+Wayland").
+
+#### Am laufenden Programm geprüft (Dauerregel 1 und 4)
+
+**Ohne echte Daten** — Nutzer-Entscheidung 2026-08-03: für den Eingabepfad ist ein selbst
+vollgeschriebenes Notizbuch die bessere Prüfung, und die Schulunterlagen bleiben, wo sie
+sind. Gegen `/tmp/gonk-probe.sqlite`, in hellem **und** dunklem Theme:
+
+- **Cover-Seite:** Farbverlauf, Titeltext, Akzentlinie, Untertitel — alles über `WbRenderer`
+  auf der geliehenen Leinwand.
+- **Notizbuchseite:** A4 mit Linienraster, Seitenzähler „Seite 1 / 1", Blättern zum Cover.
+- **Zeichnen:** mehrere Striche, die Stift-Anzeige liest dabei
+  `Druck 0,5000 (Rückfall: feste Breite)` bei Zeigerart `Mouse` — **der Rückfall greift
+  nachweislich**, und der Strich hat entsprechend gleichmäßige Breite.
+- **Radieren:** ein Strich quer über einen anderen trennt ihn auf, die Reststücke bleiben
+  stehen (`WbErase.SplitStroke` aus Core), der Radierring folgt dem Zeiger.
+- **Rückgängig:** `Strg+Z` setzt den aufgetrennten Strich wieder zusammen.
+- **Theme-Wechsel hell↔dunkel:** Rahmen und Leinwandumfeld wechseln mit, **das Papier bleibt
+  hell** — die V1-Vorgabe „Dark/Light bei hellem Papier" (§1).
+- **Speichern:** nach der Autospeicherung die App beendet und neu gestartet — Striche,
+  Seiten und der Theme-Zustand sind unverändert wieder da.
+
+**Dabei drei Fehler gefunden und behoben**, alle drei in §7 beschrieben: der Zugriff auf ein
+fremdes Steuerelement mitten im Renderdurchlauf, der Tastaturfokus auf dem Rahmen statt auf
+der Fläche, und die Vorgabetinte, die dem App-Theme statt dem Papier folgte.
+
+---
+
 ## 5. Entscheidungen
 
 **Getroffen, alle umgesetzt:**
@@ -809,12 +990,18 @@ Mit einer **Kopie** der echten Datenbank samt Blob-Ordner, in **beiden** Sprache
 | Avalonia-Fassung | **12.1.1** — genau die, mit der der Stylus-Prototyp gemessen hat (§5a). Damit ist die offene Frage aus §4.3 beantwortet: Avalonia 12 trägt `net10.0`. Entschieden 2026-08-03 |
 | Woher die Avalonia-Farben kommen | **Aus einer Farbtabelle in Core, alle zwanzig — das gezeichnete Blatt inbegriffen** (§4.9). Damit ist auch die erste der drei Fragen aus §6 beantwortet. Entschieden 2026-08-03 |
 | Versionsnummer | **0.3.0**, weil der Persistenz-Umbau das Dateiformat betrifft; `About.Version` in beiden Tabellen auf Phase 3 nachgezogen. Entschieden 2026-08-03 |
+| Wie der Renderer an seinen `SKCanvas` kommt | **Avalonias eigenen ausleihen** (`ISkiaSharpApiLeaseFeature`) statt eine Zwischenfläche zu rastern — `Avalonia.Skia` hängt an derselben SkiaSharp-Fassung wie Core, ein offizielles `SkiaSharp.Views.Avalonia` gibt es nicht (§4.10). Entschieden 2026-08-03 |
+| Testdaten auf dem Laptop | **Keine Kopie der echten Datenbank.** Selbst angelegte Notizbücher sind für den Eingabepfad die bessere Prüfung, und die Schulunterlagen bleiben auf dem Windows-Rechner. Dauerregel 4 erlaubt die Kopie weiterhin — sie wurde hier nur nicht gebraucht. Entschieden 2026-08-03 |
+| Linux-Fernsteuer-Werkzeuge | **Ja, minimal** — `schau.sh`, `klick.sh` und ein eigenes `zeiger` über X11/XTEST, ohne Fremdpaket (§4.10). Der Stift bleibt dabei Handarbeit. Entschieden 2026-08-03 |
 
 **Noch offen:**
 
 1. **Zweites Stylus-Gerät** (MPP und/oder EMR) — der einzige Punkt mit echtem Restrisiko,
    siehe §5a „Offen". Die Anforderung „läuft mit jedem Stylus" ist bis dahin unbeantwortet.
-   **Er wird mit dem nächsten Brocken (Zeichenfläche) akut**, nicht vorher.
+   **Er ist mit der Zeichenfläche akut geworden.** Was sich seit §4.10 geändert hat: der
+   Rückfall ohne Druck ist jetzt gebaut und nachweislich wirksam (die Stift-Anzeige liest
+   ihn ab), und mit **F9** gibt es ein Messgerät, das die Frage an einem fremden Gerät in
+   einer Minute beantwortet. **Der Punkt ist damit kleiner geworden, aber nicht erledigt.**
 2. **Eigene Farbschemata** (Nutzerwunsch 2026-08-02) — vorgemerkt in §6. Die wichtigste der
    drei Fragen ist mit §4.9 beantwortet (die Tabelle umfasst auch das Papier); offen bleiben
    die beiden kleineren: Verhalten bei einer unvollständigen Datei und der Menüaufbau.
@@ -825,11 +1012,25 @@ Mit einer **Kopie** der echten Datenbank samt Blob-Ordner, in **beiden** Sprache
    Ausgabepfad-Angaben sind am 2026-08-02 auf `net10.0` nachgezogen worden, der Klon-Befehl
    bewusst nicht — das ist eine inhaltliche Frage, keine technische. **Am 2026-08-03 erneut
    vorgelegt und erneut zurückgestellt.**
-4. **Wann beschreiben die Dokumente auch den Linux-Kopf?** Neu seit §4.9: die vier
-   mitgelieferten Dokumente sprechen durchgehend von Windows („Notiz-App für Windows 11",
-   `%APPDATA%`). Das bleibt richtig, solange der Linux-Kopf keine Zeichenfläche hat — mit
-   Meilenstein **M1** wird es falsch. Dann sind **beide Paare** nachzuziehen (Dauerregel 1),
-   und `EmbeddedDocs` braucht vorher ein Gegenstück im Avalonia-Kopf (§4.9, „Kann nicht").
+4. **Wann beschreiben die Dokumente auch den Linux-Kopf?** Die vier mitgelieferten
+   Dokumente sprechen durchgehend von Windows („Notiz-App für Windows 11", `%APPDATA%`).
+   **Diese Frage ist mit §4.10 fällig geworden**, denn die Begründung von damals ist
+   verbraucht: „bleibt richtig, solange der Linux-Kopf keine Zeichenfläche hat" — er hat
+   jetzt eine. Zu klären ist beides zusammen:
+   - **Wird M1 ausgerufen?** Notizbuch und Whiteboard zeichnen, radieren und speichern unter
+     Linux; Textdokumente sind ausgegraut. Das ist der Wortlaut von M1 (§6). Offen sind
+     Brocken 6 und 7 (Drag & Drop, Titelleiste, `EmbeddedDocs`) sowie Import/Export —
+     nichts davon steht im M1-Satz, aber ein Meilenstein, den man erklären muss, ist keiner.
+   - **Erst danach die Dokumente.** Dann sind **beide Paare** nachzuziehen (Dauerregel 1),
+     und `EmbeddedDocs` braucht vorher sein Gegenstück im Avalonia-Kopf — sonst stünde die
+     Linux-Beschreibung in einem Dialog, den es unter Linux nicht gibt.
+
+5. **Neu: Soll die Neigung ins Dateiformat?** Sie kommt im Eingabepfad an (§4.10), hat aber
+   keinen Platz: `WbPoint` trägt X, Y und Druck. Ein vierter Wert hieße, das gespeicherte
+   Format zu ändern — machbar und rein additiv, aber **eine Core-Änderung, die auf dem
+   Windows-Rechner gegenzuprüfen ist** (§7 „Persistenz"), und `WbRenderer` müsste etwas
+   damit anfangen. Der Gewinn wäre ein Bleistift, der auf Neigung reagiert. **Bis das
+   entschieden ist, wird Neigung gemessen und verworfen** — die Naht dafür ist benannt.
 
 ---
 
@@ -967,10 +1168,28 @@ rendert ohnehin über Skia, und für die Frage „kommt der Druck an" ist die zu
 SkiaSharp-Schicht nur eine weitere Fehlerquelle. Für Phase 3 ist damit **nicht** entschieden,
 ob die Zeichenfläche später `SKCanvasView` benutzt.
 
+#### Was daraus in der echten App geworden ist (§4.10)
+
+Die drei Punkte, die dieser Abschnitt für Phase 3 vorgemerkt hatte, sind umgesetzt und am
+laufenden Programm nachgewiesen:
+
+| Vorgemerkt hier | Umgesetzt |
+|---|---|
+| `GetIntermediatePoints()` statt nur `GetCurrentPoint()` | ✅ im Eingabepfad |
+| Rückfall ohne Druck ist Pflicht | ✅ **und erkannt statt angenommen** — Avalonia meldet für ein druckloses Gerät glatt 0,5, was von echtem Mitteldruck nicht zu unterscheiden ist |
+| Pen/Touch/Mouse trennen (Voraussetzung für Handballenabweisung) | ✅ zweistufig: der Finger zeichnet nie, und solange ein Stift aufliegt, wird jede Berührung verworfen |
+| `SKCanvasView` oder `DrawingContext`? — hier offen gelassen | ✅ **beantwortet: keins von beiden.** Avalonias eigener `SKCanvas` wird ausgeliehen (§4.10) |
+
+**Neu als Messgerät: die Stift-Anzeige mit F9** in der Zeichenfläche. Dieser Abschnitt hat
+im *Prototyp* gemessen; F9 misst in der *App*, also durch den fertigen Eingabepfad hindurch.
+Für ein zweites Gerät ist das der Weg, der eine Minute dauert statt eines Nachmittags.
+
 #### Offen
 
 1. **Zweites Gerät** (MPP und/oder EMR) — die Kernanforderung „mit jedem Stylus" hängt daran.
-   Das ist der einzige Punkt, der noch echtes Risiko trägt.
+   Das ist der einzige Punkt, der noch echtes Risiko trägt. **Der Rückfall dafür steht
+   inzwischen und ist wirksam** (§4.10); ungeprüft ist, ob ein anderes Gerät überhaupt als
+   `PointerType.Pen` ankommt und was es an Druck liefert. Mit F9 in einer Minute zu klären.
 2. **Xorg-Sitzung** als Vergleich zu XWayland. Nach derzeitigem Stand Absicherung, keine offene
    Risikofrage — Avalonia hat ohnehin nur den X11-Pfad.
 3. **Druckschwelle unten:** evdev meldete nie unter 1500 von 4095, libinput nie unter 0,01.
@@ -983,6 +1202,13 @@ ob die Zeichenfläche später `SKCanvasView` benutzt.
 
 **Kurz: noch nicht umziehen — auch nicht in Phase 3.** Entwickelt wird unter Windows; der
 Laptop ist Pflicht für alles, was am **Stift** und an **Linux-Pfaden** hängt.
+
+> **Der zweite Brocken von Phase 3 lief trotzdem hier** (2026-08-03, §4.10) — und das war
+> richtig so: er hing an allen fünf Punkten, die der Kasten unten dem Laptop zuschreibt.
+> Die Regel bleibt aber, wie sie steht. Was der Laptop **nicht** kann, hat sich dabei
+> gezeigt: die Fernsteuer-Werkzeuge gab es hier gar nicht (jetzt in `tools/linux/`, §4.10),
+> Vollbildaufnahmen sind unter Wayland unbrauchbar, und beide Köpfe nebeneinander an
+> derselben Datenbank zu vergleichen geht hier grundsätzlich nicht.
 
 > **Diese Antwort hat sich am 2026-08-03 geändert.** Bis dahin stand hier „ab Phase 3 wird
 > der Laptop der Hauptarbeitsplatz". Das war geschrieben, bevor klar war, dass
@@ -1071,6 +1297,23 @@ sudo pacman -S fontconfig ttf-dejavu                  # falls noch nicht gescheh
 dotnet build src/GonkNote.Avalonia                    # muss durchlaufen
 dotnet run --project src/GonkNote.Avalonia -- --db ~/gonk-probe.sqlite
 ```
+
+**Seit dem zweiten Brocken gibt es hier auch Werkzeuge** (§4.10). Sie brauchen einmalig
+`imagemagick` und einen Build des kleinen X11-Helfers — sonst nichts, insbesondere **kein**
+`xdotool`:
+
+```bash
+sudo pacman -S imagemagick                            # falls noch nicht da
+dotnet build tools/linux/zeiger -c Release            # einmalig
+
+tools/linux/schau.sh --db /tmp/gonk-probe.sqlite      # starten und fotografieren
+tools/linux/klick.sh w:120,191 '#Return' 'w:z:800,450>1600,400'
+tools/linux/zeiger/bin/Release/net10.0/zeiger fenster # Kennung, Lage, Groesse
+```
+
+Schritte sind `x,y` (Bildschirm), `w:x,y` (fensterrelativ), `x,y,2`/`x,y,r`,
+`w:z:x1,y1>x2,y2>…` (ziehen), `#Tasten`, `:Text`, `warte:500`. **Die Fallstricke stehen in
+§7 „Fernsteuern unter Wayland" — ohne sie kommt man hier nicht weit.**
 
 **Nie ohne `--db` starten, solange geprüft wird.** Der Datenordner ist unter Linux
 `~/.config/GonkNote` — dort liegen (noch) keine Bestandsdaten, aber die Regel ist dieselbe
@@ -1189,18 +1432,24 @@ Erster Brocken umgesetzt am 2026-08-03 unter Windows (§4.9, §5b).
       Wächter `FarbtabelleTests` hält beide Fassungen zusammen
 - [x] 4. Start mit `--db` **und `ILegacyDatabaseReader`**; Ordnerbaum und Galerie aus
       demselben `MainViewModel` wie der WPF-Kopf, kein zweites
-- [ ] 5. **Zeichenfläche** — Notizbuch und Whiteboard. **Der nächste Brocken, und der
-      größte.** Braucht den Laptop (§5b): Druck, Neigung, Handballenabweisung,
-      `GetIntermediatePoints()` (§5a). Ob `SKCanvasView` oder Avalonias `DrawingContext`,
-      ist bewusst noch nicht entschieden (§5a, „Abweichung vom geplanten Aufbau")
+- [x] 5. **Zeichenfläche** — Notizbuch und Whiteboard, umgesetzt am 2026-08-03 **auf dem
+      Laptop** (§4.10). Der Renderer bekommt Avalonias eigenen `SKCanvas`
+      (`ISkiaSharpApiLeaseFeature`); damit ist die offene Frage aus §5a beantwortet.
+      Eingabepfad mit `GetIntermediatePoints()`, erkanntem Druck samt Rückfall und
+      Handballenabweisung. Radieren über `WbErase`, Trefferprüfung als neues `WbHit` in Core
 - [ ] 6. Drag & Drop im Baum, einblendbare Titelleiste, Einstellungen-Seitenleiste
 - [ ] 7. `EmbeddedDocs`-Gegenstück, damit „Hilfe → Erste Schritte" und das gerenderte
       README auch im Linux-Kopf erscheinen (hängt an §4.1)
 
-> **Für Brocken 5 vorher lesen:** §5a (Messergebnis und was daraus für den Eingabepfad
-> folgt), §7 „SkiaSharp" (die zwei Abstürze, die ein grüner Build nicht gefunden hat) und
-> die 14 Partials von `WhiteboardView` im WPF-Kopf — **nicht als Vorbild für den Aufbau**,
-> sondern als Liste dessen, was es alles gibt.
+**Was Brocken 5 bewusst ausgelassen hat** — nicht vergessen, sondern nicht M1: Text-,
+Formen- und Notizzettel-**Werkzeug** (angezeigt werden diese Elemente, nur anlegen kann man
+sie nicht), Drehen und Skalieren der Auswahl, Seiteneinstellungen, Bild- und PDF-Import.
+Sticker, Texterkennung, Zahlenblock, Schnellaktionen und Geodreieck gehören ohnehin nicht
+dazu.
+
+> **Für Brocken 6 und 7 vorher lesen:** §4.10 (was die Zeichenfläche kann und wie sie
+> gebaut ist), §7 „Der Avalonia-Kopf" — dort stehen jetzt sieben Eigenheiten statt vier —
+> und §7 „Fernsteuern unter Wayland", ohne das sich auf dem Laptop nichts belegen lässt.
 
 ### Der Rest (Roadmap §5)
 
@@ -1567,6 +1816,33 @@ weil sie bei der Portierung direkt zuschlagen:
   scheitert mit `AVLN2000: Internal compiler error: Index was out of range` — eine Meldung,
   die auf alles Mögliche hindeutet, nur nicht auf die Ursache. Es braucht ausdrücklich
   `<DrawingBrush.Drawing>`.
+- **`Render` läuft *im* Renderdurchlauf — dort darf kein anderes Steuerelement angefasst
+  werden.** Das ist die teuerste Falle des zweiten Brockens. Unter WPF läuft
+  `SKElement.PaintSurface` außerhalb, und die Zeichenfläche darf von dort nebenbei die
+  Farbkachel und die Zoom-Anzeige nachführen — der WPF-Kopf tut genau das. Avalonia wirft
+  dafür **`InvalidOperationException: Visual was invalidated during the render pass`**, und
+  zwar nicht nur für die eine Zuweisung: **der ganze Durchlauf bricht ab.**
+  **Das Fehlerbild zeigt überall hin, nur nicht auf die Ursache** — hier war es eine leere
+  Werkzeugleiste und ein leeres Blatt, während der Fehler in einer Zeile stand, die eine
+  Farbkachel einfärbt. **Merksatz: im Zeichenpfad wird gezeichnet, sonst nichts.** Was
+  aufgefrischt werden muss, hängt an dem Ereignis, das es auslöst (Seitenwechsel,
+  Theme-Wechsel, Größenänderung) — und die Größe ist ohnehin das ehrlichere Ereignis für
+  „jetzt kenne ich meine Breite" als das erste Bild.
+- **`ICustomDrawOperation.Render` läuft auf dem Render-Faden, nicht auf dem
+  Oberflächen-Faden.** Wer von dort in lebende Zustände greift (`_page.Elements`, die Punkte
+  des laufenden Strichs), liest eine Liste, die der andere Faden gerade verändert. Das
+  Ergebnis wäre kein sauberer Absturz, sondern ein sporadisches
+  `InvalidOperationException: Collection was modified` mitten im Zeichnen — und zwar
+  bevorzugt beim Zeichnen langer Striche, also genau dann, wenn niemand es reproduzieren
+  will. **Gegenmittel: aufzeichnen statt zurückgreifen** (`SKPictureRecorder` auf dem
+  Oberflächen-Faden, `DrawPicture` auf dem Render-Faden, §4.10).
+- **Ein `UserControl` fokussierbar zu machen genügt nicht für Tastenkürzel.**
+  Tastenereignisse laufen in Avalonia vom Wurzelfenster zum **fokussierten Element** und
+  zurück. Liegt der Fokus noch im Ordnerbaum, kommt am Zeichenbereich nichts an, auch wenn
+  der Rahmen darum `Focusable` ist und `Focus()` gerufen wurde. **Die Fläche selbst muss
+  fokussierbar sein und den Fokus bekommen.** Das Fehlerbild ist unauffällig und deshalb
+  teuer: gezeichnet wird einwandfrei — der Zeiger braucht keinen Fokus —, nur die
+  Tastenkürzel tun nichts, und das hält man erst einmal für einen Fehler in der Tastenlogik.
 
 **Neu aus Phase 3 — die Farbtabelle**
 
@@ -1578,6 +1854,17 @@ weil sie bei der Portierung direkt zuschlagen:
   WPF-`ResourceDictionary`-Dateien), weil der WPF-Kopf bewusst nicht umgestellt wurde.
   `FarbtabelleTests` hält sie zusammen — **in beide Richtungen**. Wer eine Farbe ändert,
   ändert beide Stellen oder bekommt einen roten Lauf.
+- **Die Vorgabetinte gehört zum Papier, nicht zur App.** Eine Notizbuchseite ist
+  standardmäßig `PageShade.Light` — **unabhängig vom App-Theme**, denn Papier soll wie
+  Papier aussehen (V1-Vorgabe „Dark/Light bei hellem Papier", §1). Wer `DefaultInk` aus der
+  *aktiven* Tabelle nimmt, holt sich im Dunkelmodus deren helles `DefaultInk` und schreibt
+  **hell auf weiß**. Genau so passiert und beim Gegenprüfen aufgefallen: der Strich ist da,
+  gespeichert und exportierbar, nur unsichtbar — auf einem Bildschirmfoto sieht es aus, als
+  käme die Eingabe nicht an, und man sucht den Fehler im Eingabepfad.
+  **Die Regel ist dieselbe wie beim Papier selbst:** bei `PageShade.Auto` folgt die Seite
+  dem Theme, also auch die Tinte; bei festgelegtem Farbton zählt der, also die mitgelieferte
+  Tabelle dazu. Der WPF-Kopf umgeht das, indem er an dieser Stelle Schwarz und Weiß fest
+  verdrahtet — richtig im Ergebnis, aber an der Farbtabelle vorbei.
 
 **Neu aus Phase 2 — Fernsteuern**
 
@@ -1616,6 +1903,43 @@ weil sie bei der Portierung direkt zuschlagen:
   misst und auf dem Bildschirm klickt, liegt um diesen Betrag daneben — bei einem großen
   Knopf egal, bei einem Menüeintrag nicht. **Mit `-Voll` gemessen stimmen beide überein.**
 - **Beide Köpfe fotografieren:** `schau.ps1 -Kopf avalonia|wpf -Konfig Debug|Release`.
+
+**Neu aus Phase 3 — Fernsteuern unter Wayland (`tools/linux/`)**
+
+Drei Eigenheiten, über die auf diesem Laptop jeder stolpert. Alle drei haben Zeit gekostet,
+und keine davon sieht wie ein Fehler aus.
+
+- **XTEST-Koordinaten sind nicht die Koordinaten, die dabei herauskommen.** Unter
+  GNOME-Wayland nimmt mutter die Ereignisse von XWayland entgegen und rechnet sie mit dem
+  Skalierungsfaktor der Sitzung hoch: ein `XTestFakeMotionEvent` auf (500,500) setzt den
+  Zeiger hier tatsächlich auf **(1000,1000)**. `XQueryPointer` meldet danach die *echte*
+  Lage, `XGetGeometry` ebenfalls — **die Eingabeseite ist die einzige, die skaliert.**
+  Das zeigt sich nicht als Fehler: es wird geklickt, es kommt auch an (die Leerlaufuhr der
+  Sitzung springt zurück), nur eben an der doppelten Stelle. Man trifft scheinbar zufällig
+  mal etwas und mal nichts und sucht den Fehler in der App.
+  **Gegenmittel:** `zeiger` **misst** den Faktor beim ersten Zug, statt ihn anzunehmen.
+- **Das X-Wurzelfenster ist unter Wayland kein verlässliches Abbild.** Eine Aufnahme davon
+  zeigt alten Inhalt neben neuem — beim ersten Versuch sah es aus, als zeichne die App ihr
+  Fenster **doppelt**. `import -window <id>` liest dagegen das Fenster selbst und liefert
+  ein sauberes Bild. Dazu zwei Eigenheiten des hiesigen ImageMagick (7.1.2-29):
+  `import -window root <datei>` scheitert mit „missing an image filename", obwohl der
+  X-Delegat vorhanden ist — **mit einer Fensterkennung statt `root` läuft derselbe Aufruf
+  durch**; und der GNOME-Weg über D-Bus (`org.gnome.Shell.Screenshot`) antwortet mit
+  „Screenshot is not allowed", der Portal-Weg braucht eine Rückfrage beim Nutzer.
+- **Nicht maximieren, während eine Kette läuft.** `super+Up` auf ein bereits maximiertes
+  Fenster hebt die Maximierung auf; GNOME setzt es danach mit **anderer Geometrie** wieder
+  zusammen (hier von 2560 auf 3072 px Breite). Alle vorher gemessenen Koordinaten sind dann
+  falsch, und weil das Fenster trotzdem normal aussieht, sucht man lange. **Geometrie einmal
+  mit `zeiger fenster` holen und danach nichts mehr an der Fenstergröße ändern.**
+- **Was sich so nicht prüfen lässt: der Stift.** XTEST erzeugt Maus- und Tastaturereignisse.
+  Druck, Neigung und die Unterscheidung Stift/Finger entstehen im Digitizer und lassen sich
+  nicht nachbilden — ein Zug mit `zeiger` prüft deshalb immer den **Rückfallpfad**, nie den
+  Stiftpfad. Dafür gibt es **F9** (§4.10): die Anzeige schreibt hin, was wirklich ankommt,
+  und ist auf einem Foto nachlesbar.
+- **Avalonias Menüs und Flyouts fehlen auf der Fensteraufnahme**, aus demselben Grund wie
+  unter Windows (sie sind eigene Fenster). Unter Windows hilft `-Voll`; hier hilft das
+  nicht, weil die Vollbildaufnahme unbrauchbar ist. Wer einen Menüpfad belegen will, holt
+  sich die Kennung des Popups über die Fensterliste und fotografiert **die**.
 
 **Markdown-Export — `Hyperlink` erbt von `Span`**
 
@@ -1716,6 +2040,18 @@ jedem Skript, der Rechner läuft auf 200 %.
 Menüs sind eigene Fenster und fehlen sonst auf dem Foto, und ein offen gelassenes Menü läuft
 im nächsten Aufruf gegen die Wand. Zu allen Fallstricken siehe §7 „Fernsteuern".
 
+**Auf dem CachyOS-Laptop** stattdessen (§4.10; `zeiger` einmalig bauen, siehe §5b):
+
+```bash
+tools/linux/schau.sh --db /tmp/gonk-probe.sqlite --bild /tmp/schuss.png
+tools/linux/klick.sh --bild /tmp/schuss.png w:120,191 '#Return' 'w:z:800,450>1600,400'
+```
+
+**Koordinaten mit `w:` angeben.** Sie sind dann relativ zur linken oberen Ecke des Fensters
+— genau so, wie man sie auf einer Fensteraufnahme misst — und `zeiger` rechnet Ursprung
+**und** Skalierungsfaktor selbst dazu. Wer echte Bildschirmpixel einsetzt, liegt unter
+Wayland um den Faktor 2 daneben (§7 „Fernsteuern unter Wayland").
+
 Der ältere, ausführliche Weg steht im V1-Handoff §7 — inklusive der Stolpersteine
 (Umbenennen-Modus nach dem Anlegen, Bild-hoch/-runter greift im `FlowDocumentScrollViewer`
 nicht, die IDE reißt den Fokus zurück).
@@ -1728,6 +2064,7 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 
 | Runde | Datum | Was |
 |---|---|---|
+| V2-11 | 2026-08-03 | **Phase 3, zweiter Brocken — die Zeichenfläche steht** (§4.10), erstmals **auf dem CachyOS-Laptop** gebaut. **Notizbuch und Whiteboard zeichnen, radieren und speichern unter Linux**; Textdokumente bleiben ausgegraut (M1-Vorgabe, `Tab.NoCanvasYet` in beiden Tabellen darauf umformuliert). Der Renderer bekommt **Avalonias eigenen `SKCanvas`** über `ISkiaSharpApiLeaseFeature` — möglich, weil `Avalonia.Skia` an derselben SkiaSharp-Fassung hängt wie Core (3.119.4); ein offizielles `SkiaSharp.Views.Avalonia` gibt es nicht, und eine gerasterte Zwischenfläche wäre eine volle Bildkopie je Bild gewesen. Damit ist die offene Frage aus §5a beantwortet. **Vierte Avalonia-Eigenheit aufgelöst:** `Render` läuft auf dem Render-Faden — gelöst durch **Aufzeichnen** (`SKPictureRecorder` auf dem Oberflächen-Faden, `DrawPicture` auf dem Render-Faden), was nebenbei den Zwischenspeicher vektoriell und damit zoomfest macht. Eingabepfad mit `GetIntermediatePoints()`, **erkanntem statt angenommenem Druck** (Avalonia meldet für ein druckloses Gerät glatt 0,5) samt wirksamem Rückfall, zweistufiger Handballenabweisung, Radiergummi-Ende und Stiftknopf. **Neigung kommt an, wird aber nicht gespeichert** — `WbPoint` hat keinen Platz dafür, das ist eine offene Formatfrage (§5). Neu als Messgerät: die **Stift-Anzeige mit F9**. Trefferprüfung und Lasso als **`WbHit` nach Core** gezogen (15 neue Tests, jetzt 115 Core / 128 gesamt); der WPF-Kopf behält bewusst seine Fassung. **Neu: `tools/linux/`** — `schau.sh`, `klick.sh` und ein eigener `zeiger` über X11/XTEST, ohne Fremdpaket; die Lücke, die §5b nicht kannte. **Drei Fehler am laufenden Programm gefunden** (§7): Zugriff auf ein fremdes Steuerelement im Renderdurchlauf (Fehlerbild: leere Werkzeugleiste), Tastaturfokus auf dem Rahmen statt auf der Fläche, und die Vorgabetinte, die dem App-Theme statt dem Papier folgte (Fehlerbild: hell auf weiß). Dazu drei Wayland-Fallen fürs Fernsteuern (Eingabekoordinaten um Faktor 2 skaliert, X-Wurzelaufnahme unbrauchbar, Maximieren ändert die Geometrie). Geprüft **ohne** echte Daten — Nutzer-Entscheidung: selbst angelegte Notizbücher sind für den Eingabepfad die bessere Probe |
 | V2-10 | 2026-08-03 | **Phase 3, erster Brocken** (§4.9): **`src/GonkNote.Avalonia` steht und läuft** — Avalonia **12.1.1** auf `net10.0` (dieselbe Fassung, mit der §5a gemessen hat), alle **zwölf** Schnittstellen aus `Core/Platform/` umgesetzt, davon drei bewusst als vorhandener Rückfall. Ordnerbaum und Galerie aus **demselben** `MainViewModel` wie der WPF-Kopf. **Farbtabelle in Core** (`Core/Theming/`, 20 Farben **inklusive Papier**) statt eines zweiten Paars fest verdrahteter Theme-Dateien — die Entscheidung, die §6 für diesen Zeitpunkt vorgesehen hatte; Wächter `FarbtabelleTests` hält beide Fassungen zusammen. **Noch keine Zeichenfläche**, das ist der nächste Brocken. Drei Avalonia-Eigenheiten aufgelöst: synchrone Schnittstelle gegen asynchrones Toolkit (`Modal.PushFrame`), keine MessageBox (eigenes `MessageWindow`, neue Schlüssel `Dlg.Yes`/`Dlg.No`), keine Icon-Schrift unter Linux (Vektorformen). **Zwei Übersetzungsfallen am laufenden Programm gefunden** (§7): Avalonia frischt Indexer-Bindungen nicht auf, und es hält die Quelle einer Bindung nicht am Leben — das zweite fiel erst nach einem erzwungenen Sammellauf auf, als halb übersetzte Oberfläche. Version auf **0.3.0**, `About.Version` in beiden Tabellen auf Phase 3. CI baut den Kopf im Linux-Lauf mit; `schau.ps1`/`kette.ps1` um `-Kopf` und `-Voll` erweitert. An einer Kopie der echten Datenbank in **beiden** Sprachen und **beiden** Themes geprüft, WPF-Kopf an derselben Kopie unverändert, echte DB byteweise identisch. Entschieden: **Phase 3 wird unter Windows entwickelt**, nicht auf dem Laptop (§5b) |
 | V2-9 | 2026-08-02 | **Phase 2, Schritte 3+4 — Phase 2 damit fertig** (§4.8): **LiteDB raus aus dem Produktivpfad**, Persistenz über `Microsoft.Data.Sqlite` mit `System.Text.Json`-Source-Generator (`GonkJson`); die `_type`-Namen leben als `[JsonDerivedType]` **wörtlich** weiter. Neues Projekt `src/GonkNote.Legacy/` als einziger Ort mit LiteDB — liest Altdatenbanken **ReadOnly** ein; iOS wird es nie sehen. Migration automatisch beim ersten Start, in eine `.neu`-Datei und erst nach dem Commit umbenannt; die Altdatei bleibt unangetastet. `BlobStore` über `AppPaths.BlobFolder` (Schritt 4), Stamm `gonknote` bewusst unverändert. `AlteTypnamenTests` vom Roundtrip- zum **Migrations**-Wächter (3 neue Tests, jetzt 90). Sicherheitslücke in einem mitgezogenen SQLitePCLRaw über transitives Pinning behoben. An einer Kopie der echten Datenbank **feldweise** verglichen (27 Einträge, 160 Striche / 6308 Punkte, 32 Bilder byteweise gleich) und am laufenden Programm in beiden Sprachen geprüft; Altdatei danach byteweise identisch. Alle vier mitgelieferten Dokumente auf `gonknote.sqlite` nachgezogen (Dauerregel 1) — dort steht die Sicherungsanleitung —, dazu `THIRD-PARTY-NOTICES.md` und die seit V2-3 veralteten `net8.0`-Angaben |
 | V2-8 | 2026-07-31 | **Phase 2, Schritte 1+2** (§4.7): `Core/Platform/` mit zwölf Schnittstellen und `IPlatformServices` als Bündel, WPF-Umsetzungen in `src/GonkNote.Wpf/Platform/`, `ThemeService` → `WpfThemeHost`. **`GonkNote.ViewModels` ist eigene `net10.0`-Assembly** — der Ringschluss aus §4.2 ist weg, `Core` und `ViewModels` sind nachweislich WPF-frei. Bildimport und OCR-Vorbereitung nach `WbImagePrep` in Core gezogen: damit sind die **letzten zwei Lücken aus §4.4 zu** (8 neue Tests, jetzt 87). Zwei Übersetzungsfehler am laufenden Programm gefunden und behoben (§7 „Übersetzung"). In beiden Sprachen mit einer DB-Kopie gegengeprüft, PDF-Export über den PDFium-Rückweg gemessen |

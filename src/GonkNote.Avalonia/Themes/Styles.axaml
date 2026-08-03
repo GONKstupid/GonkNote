@@ -45,6 +45,28 @@
         <StreamGeometry x:Key="Icon.Seitenleiste">M2,3 H14 V13 H2 Z M6.5,3 V13</StreamGeometry>
         <StreamGeometry x:Key="Icon.Design">M13,10.5 A6,6 0 1 1 6,2.2 A5,5 0 0 0 13,10.5 Z</StreamGeometry>
 
+        <!-- Werkzeuge der Zeichenfläche (Phase 3, zweiter Brocken).
+             Dieselbe Machart: 16×16, gestrichen, keine Flächen. Die Werkzeugleiste des
+             WPF-Kopfs holt diese Symbole aus „Segoe Fluent Icons"; hier ist jedes eine
+             eigene Form (HANDOFF §7 „Die Icon-Schrift gibt es unter Linux nicht"). -->
+
+        <StreamGeometry x:Key="Icon.Stift">M2.5,13.5 L3.4,10.6 L10.6,3.4 A1.4,1.4 0 0 1 12.6,5.4 L5.4,12.6 Z M9.6,4.4 L11.6,6.4</StreamGeometry>
+        <StreamGeometry x:Key="Icon.Bleistift">M2.5,13.5 L3.4,10.6 L10.6,3.4 A1.4,1.4 0 0 1 12.6,5.4 L5.4,12.6 Z M3.4,10.6 L5.4,12.6</StreamGeometry>
+        <StreamGeometry x:Key="Icon.Textmarker">M4,10 L9.5,4.5 A1.6,1.6 0 0 1 11.8,6.8 L6.3,12.3 H4 Z M2.5,14.5 H13.5</StreamGeometry>
+        <StreamGeometry x:Key="Icon.Radierer">M5.5,13.5 L2.4,10.4 A1.2,1.2 0 0 1 2.4,8.7 L8.7,2.4 A1.2,1.2 0 0 1 10.4,2.4 L13.6,5.6 A1.2,1.2 0 0 1 13.6,7.3 L7.3,13.5 Z M5.5,5.5 L10.5,10.5 M5.5,13.5 H13.5</StreamGeometry>
+        <StreamGeometry x:Key="Icon.Lasso">M8,3 C11.9,3 14.5,4.9 14.5,7.2 C14.5,9.6 11.9,11.5 8,11.5 C4.1,11.5 1.5,9.6 1.5,7.2 C1.5,4.9 4.1,3 8,3 Z M5,11 C5,12.6 5.6,13.6 6.4,14.2</StreamGeometry>
+        <StreamGeometry x:Key="Icon.Verschieben">M3,2.5 L3,11.5 L5.4,9.4 L7.1,13.4 L8.9,12.6 L7.2,8.7 L10.4,8.3 Z</StreamGeometry>
+        <StreamGeometry x:Key="Icon.Hand">M5,8.5 V4.2 A1,1 0 0 1 7,4.2 V7.5 M7,7.5 V3.2 A1,1 0 0 1 9,3.2 V7.5 M9,7.5 V4.2 A1,1 0 0 1 11,4.2 V9 M11,7 A1,1 0 0 1 13,7 V10 A4.5,4.5 0 0 1 8.5,14.5 H8 A4.5,4.5 0 0 1 3.5,10 V8.5 A1,1 0 0 1 5,8.5</StreamGeometry>
+
+        <StreamGeometry x:Key="Icon.Rueckgaengig">M6,4 L2.5,7 L6,10 M2.5,7 H10 A3.5,3.5 0 0 1 10,14 H6</StreamGeometry>
+        <StreamGeometry x:Key="Icon.Wiederholen">M10,4 L13.5,7 L10,10 M13.5,7 H6 A3.5,3.5 0 0 0 6,14 H10</StreamGeometry>
+
+        <StreamGeometry x:Key="Icon.ZoomPlus">M7,2 A5,5 0 1 1 7,12 A5,5 0 1 1 7,2 M10.6,10.6 L14.5,14.5 M7,4.5 V9.5 M4.5,7 H9.5</StreamGeometry>
+        <StreamGeometry x:Key="Icon.ZoomMinus">M7,2 A5,5 0 1 1 7,12 A5,5 0 1 1 7,2 M10.6,10.6 L14.5,14.5 M4.5,7 H9.5</StreamGeometry>
+
+        <StreamGeometry x:Key="Icon.Vor">M6,3 L11,8 L6,13</StreamGeometry>
+        <StreamGeometry x:Key="Icon.Papierkorb">M3,4.5 H13 M6.5,4.5 V2.8 H9.5 V4.5 M4.3,4.5 L5,13.5 H11 L11.7,4.5 M6.7,6.8 V11.4 M9.3,6.8 V11.4</StreamGeometry>
+
     </Styles.Resources>
 
     <!-- ==== Knöpfe ==================================================================== -->
@@ -171,6 +193,65 @@
         <Setter Property="FontSize" Value="13"/>
         <Setter Property="MinHeight" Value="38"/>
         <Setter Property="Padding" Value="12,0"/>
+    </Style>
+
+    <!-- ==== Werkzeugleiste der Zeichenfläche ========================================== -->
+
+    <!-- Werkzeugknopf: quadratisch und flach wie „Button.symbol", aber schaltend. Der
+         eingerastete Zustand ist die Akzentfläche — im WPF-Kopf macht das derselbe
+         ToggleButton-Stil in Themes/Styles.xaml. -->
+    <Style Selector="ToggleButton.werkzeug">
+        <Setter Property="Width" Value="34"/>
+        <Setter Property="Height" Value="34"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="CornerRadius" Value="7"/>
+        <Setter Property="Foreground" Value="{DynamicResource Brush.Text}"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+    </Style>
+    <Style Selector="ToggleButton.werkzeug:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource Brush.Hover}"/>
+    </Style>
+    <Style Selector="ToggleButton.werkzeug:checked /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource Brush.AccentSoft}"/>
+    </Style>
+    <Style Selector="ToggleButton.werkzeug:checked Path">
+        <Setter Property="Stroke" Value="{DynamicResource Brush.Accent}"/>
+    </Style>
+
+    <!-- Farbkachel: ein Kreis in der Tintenfarbe. Ausgewählt = Ring drumherum. -->
+    <Style Selector="RadioButton.farbe">
+        <Setter Property="Width" Value="26"/>
+        <Setter Property="Height" Value="26"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="Margin" Value="1,0"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Name="Ring" Width="26" Height="26" CornerRadius="13"
+                        BorderThickness="2" BorderBrush="Transparent">
+                    <Ellipse Width="16" Height="16"
+                             Fill="{TemplateBinding Background}"
+                             Stroke="{DynamicResource Brush.Border}" StrokeThickness="1"/>
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <Style Selector="RadioButton.farbe:checked /template/ Border#Ring">
+        <Setter Property="BorderBrush" Value="{DynamicResource Brush.Accent}"/>
+    </Style>
+    <Style Selector="RadioButton.farbe:pointerover /template/ Border#Ring">
+        <Setter Property="Background" Value="{DynamicResource Brush.Hover}"/>
+    </Style>
+
+    <!-- Trennstrich zwischen den Gruppen der Werkzeugleiste. -->
+    <Style Selector="Border.trenner">
+        <Setter Property="Width" Value="1"/>
+        <Setter Property="Margin" Value="6,7"/>
+        <Setter Property="Background" Value="{DynamicResource Brush.Border}"/>
     </Style>
 
     <!-- ==== Menüleiste ================================================================ -->

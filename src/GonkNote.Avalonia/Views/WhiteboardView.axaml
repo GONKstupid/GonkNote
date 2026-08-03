@@ -1,0 +1,160 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:views="clr-namespace:GonkNote.Views"
+             xmlns:loc="clr-namespace:GonkNote.Services"
+             xmlns:vm="clr-namespace:GonkNote.ViewModels;assembly=GonkNote.ViewModels"
+             x:Class="GonkNote.Views.WhiteboardView"
+             x:DataType="vm:WhiteboardTabViewModel"
+             Focusable="True">
+
+    <!-- Die Zeichenfläche des Linux-Kopfs. Aufbau wie beim WPF-Gegenstück
+         (src/GonkNote.Wpf/Views/WhiteboardView.xaml), aber **bewusst kürzer**: für
+         Meilenstein M1 zählen Seiten anzeigen, zeichnen, radieren, speichern. Sticker,
+         OCR, Zahlenblock, Schnellaktionen und Geodreieck sind nicht M1 (HANDOFF §6).
+
+         Die Farben kommen durchgehend aus der Farbtabelle in Core, über die von
+         AvaloniaThemeHost gelegten „Brush.X"-Ressourcen — hier steht keine einzige. -->
+
+    <DockPanel>
+
+        <!-- ==================== Werkzeugleiste ==================== -->
+        <Border DockPanel.Dock="Top" Background="{DynamicResource Brush.ToolbarBg}"
+                BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,0,0,1">
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                <StackPanel Orientation="Horizontal" Margin="8,5" Spacing="1">
+
+                    <Button x:Name="BtnUndo" Classes="flach symbol" Click="Undo_Click"
+                            ToolTip.Tip="{loc:T Action.Undo}">
+                        <Path Classes="symbol" Data="{StaticResource Icon.Rueckgaengig}"
+                              Stroke="{DynamicResource Brush.Text}"/>
+                    </Button>
+                    <Button x:Name="BtnRedo" Classes="flach symbol" Click="Redo_Click"
+                            ToolTip.Tip="{loc:T Action.Redo}">
+                        <Path Classes="symbol" Data="{StaticResource Icon.Wiederholen}"
+                              Stroke="{DynamicResource Brush.Text}"/>
+                    </Button>
+
+                    <Border Classes="trenner"/>
+
+                    <!-- Stifte. Tag = der ToolType-Name; der Code-Behind liest ihn, statt je
+                         Knopf ein eigenes Ereignis zu haben (wie im WPF-Kopf). -->
+                    <ToggleButton x:Name="BtnPen" Classes="werkzeug" Tag="Pen"
+                                  IsCheckedChanged="Tool_Changed" ToolTip.Tip="{loc:T Tool.Pen}">
+                        <Path Classes="symbol" Data="{StaticResource Icon.Stift}"
+                              Stroke="{DynamicResource Brush.Text}"/>
+                    </ToggleButton>
+                    <ToggleButton x:Name="BtnPencil" Classes="werkzeug" Tag="Pencil"
+                                  IsCheckedChanged="Tool_Changed" ToolTip.Tip="{loc:T Tool.Pencil}">
+                        <Path Classes="symbol" Data="{StaticResource Icon.Bleistift}"
+                              Stroke="{DynamicResource Brush.Text}"/>
+                    </ToggleButton>
+                    <ToggleButton x:Name="BtnHighlighter" Classes="werkzeug" Tag="Highlighter"
+                                  IsCheckedChanged="Tool_Changed" ToolTip.Tip="{loc:T Tool.Highlighter}">
+                        <Path Classes="symbol" Data="{StaticResource Icon.Textmarker}"
+                              Stroke="{DynamicResource Brush.Text}"/>
+                    </ToggleButton>
+                    <ToggleButton x:Name="BtnEraser" Classes="werkzeug" Tag="Eraser"
+                                  IsCheckedChanged="Tool_Changed" ToolTip.Tip="{loc:T Tool.Eraser}">
+                        <Path Classes="symbol" Data="{StaticResource Icon.Radierer}"
+                              Stroke="{DynamicResource Brush.Text}"/>
+                    </ToggleButton>
+
+                    <Border Classes="trenner"/>
+
+                    <ToggleButton x:Name="BtnLasso" Classes="werkzeug" Tag="Lasso"
+                                  IsCheckedChanged="Tool_Changed" ToolTip.Tip="{loc:T Tool.Lasso}">
+                        <Path Classes="symbol" Data="{StaticResource Icon.Lasso}"
+                              Stroke="{DynamicResource Brush.Text}"/>
+                    </ToggleButton>
+                    <ToggleButton x:Name="BtnMove" Classes="werkzeug" Tag="Move"
+                                  IsCheckedChanged="Tool_Changed" ToolTip.Tip="{loc:T Tool.Move.Tip}">
+                        <Path Classes="symbol" Data="{StaticResource Icon.Verschieben}"
+                              Stroke="{DynamicResource Brush.Text}"/>
+                    </ToggleButton>
+                    <ToggleButton x:Name="BtnPan" Classes="werkzeug" Tag="Pan"
+                                  IsCheckedChanged="Tool_Changed" ToolTip.Tip="{loc:T Tool.Hand.Tip}">
+                        <Path Classes="symbol" Data="{StaticResource Icon.Hand}"
+                              Stroke="{DynamicResource Brush.Text}"/>
+                    </ToggleButton>
+
+                    <Border Classes="trenner"/>
+
+                    <!-- Farben. Die erste Kachel ist „auto": schwarz auf hellen, weiß auf
+                         dunklen Seiten — sie wird im Zeichenpfad nachgeführt. -->
+                    <RadioButton x:Name="AutoSwatch" Classes="farbe" GroupName="Tinte" Tag="auto"
+                                 IsChecked="True" IsCheckedChanged="Color_Changed"/>
+                    <RadioButton Classes="farbe" GroupName="Tinte" Tag="#FFE11D48" Background="#E11D48"
+                                 IsCheckedChanged="Color_Changed"/>
+                    <RadioButton Classes="farbe" GroupName="Tinte" Tag="#FF2563EB" Background="#2563EB"
+                                 IsCheckedChanged="Color_Changed"/>
+                    <RadioButton Classes="farbe" GroupName="Tinte" Tag="#FF16A34A" Background="#16A34A"
+                                 IsCheckedChanged="Color_Changed"/>
+                    <RadioButton Classes="farbe" GroupName="Tinte" Tag="#FFF59E0B" Background="#F59E0B"
+                                 IsCheckedChanged="Color_Changed"/>
+                    <RadioButton Classes="farbe" GroupName="Tinte" Tag="#FF7C3AED" Background="#7C3AED"
+                                 IsCheckedChanged="Color_Changed"/>
+
+                    <Border Classes="trenner"/>
+
+                    <!-- Größe. Bedient je nach Werkzeug die Strichstärke oder den
+                         Radierradius — beide Werte werden getrennt gemerkt, damit ein
+                         Werkzeugwechsel den jeweils anderen nicht überschreibt. -->
+                    <TextBlock x:Name="WidthLabel" VerticalAlignment="Center" Width="26"
+                               TextAlignment="Right" FontSize="12"
+                               Foreground="{DynamicResource Brush.TextMuted}"/>
+                    <Slider x:Name="WidthSlider" Width="110" Minimum="0.5" Maximum="40" Value="2.5"
+                            VerticalAlignment="Center" Margin="6,0"
+                            PropertyChanged="WidthSlider_Changed"/>
+
+                    <Border Classes="trenner"/>
+
+                    <Button Classes="flach symbol" Click="ZoomOut_Click" ToolTip.Tip="{loc:T Zoom.Out}">
+                        <Path Classes="symbol" Data="{StaticResource Icon.ZoomMinus}"
+                              Stroke="{DynamicResource Brush.Text}"/>
+                    </Button>
+                    <Button x:Name="ZoomLabel" Classes="flach" Click="ZoomReset_Click"
+                            ToolTip.Tip="{loc:T Zoom.Reset}" MinWidth="52" Content="100 %"
+                            FontSize="12" Foreground="{DynamicResource Brush.TextMuted}"/>
+                    <Button Classes="flach symbol" Click="ZoomIn_Click" ToolTip.Tip="{loc:T Zoom.In}">
+                        <Path Classes="symbol" Data="{StaticResource Icon.ZoomPlus}"
+                              Stroke="{DynamicResource Brush.Text}"/>
+                    </Button>
+
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+
+        <!-- ==================== Seitenleiste unten ==================== -->
+        <Border x:Name="PageBar" DockPanel.Dock="Bottom"
+                Background="{DynamicResource Brush.ToolbarBg}"
+                BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,1,0,0">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="8,4" Spacing="2">
+                <Button Classes="flach symbol" Click="PrevPage_Click">
+                    <Path Classes="symbol" Data="{StaticResource Icon.Zurueck}"
+                          Stroke="{DynamicResource Brush.Text}"/>
+                </Button>
+                <TextBlock x:Name="PageLabel" VerticalAlignment="Center" MinWidth="110"
+                           TextAlignment="Center" FontSize="12"
+                           Foreground="{DynamicResource Brush.TextMuted}"/>
+                <Button Classes="flach symbol" Click="NextPage_Click">
+                    <Path Classes="symbol" Data="{StaticResource Icon.Vor}"
+                          Stroke="{DynamicResource Brush.Text}"/>
+                </Button>
+                <Border Classes="trenner"/>
+                <Button Classes="flach symbol" Click="AddPage_Click" ToolTip.Tip="{loc:T Page.Add}">
+                    <Path Classes="symbol" Data="{StaticResource Icon.Plus}"
+                          Stroke="{DynamicResource Brush.Text}"/>
+                </Button>
+                <Button Classes="flach symbol" Click="DeletePage_Click" ToolTip.Tip="{loc:T Page.Delete}">
+                    <Path Classes="symbol" Data="{StaticResource Icon.Papierkorb}"
+                          Stroke="{DynamicResource Brush.Text}"/>
+                </Button>
+            </StackPanel>
+        </Border>
+
+        <!-- ==================== Die Fläche ==================== -->
+        <!-- ClipToBounds, damit ein Strich am Rand nicht über die Werkzeugleiste läuft. -->
+        <views:SkiaCanvas x:Name="Skia" ClipToBounds="True"/>
+
+    </DockPanel>
+</UserControl>

@@ -1,6 +1,6 @@
 # Gonk Note V2 — Projektübergabe
 
-**Stand: 2026-08-04 · Version 0.3.0 · net10.0 · SkiaSharp 3 · SQLite · Avalonia 12 · Phase 3 abgeschlossen, ✅ M1 erreicht · beide Schulden aus Phase 3 eingelöst**
+**Stand: 2026-08-04 · Version 0.3.0 · net10.0 · SkiaSharp 3 · SQLite · Avalonia 12 · ✅ M1 erreicht · beide Schulden aus Phase 3 eingelöst · Phase 4 läuft (Schritt 1 von 6)**
 
 > **📌 Dauerregeln des Nutzers — gelten immer, ohne Nachfragen:**
 >
@@ -72,7 +72,7 @@ und iPadOS** — Greenfield-Solution, in die der wiederverwendbare Code aus V1 w
 | **V2 (hier gearbeitet)** | `C:\Dev\Zed\gonk-note-V2`, Branch `main` → <https://github.com/GONKstupid/GonkNote> (**privat**), Remote über **SSH** (§5c) |
 | **V2 auf dem Linux-Laptop** | `~/Zed/gonk-note-V2/GonkNote` (CachyOS) — nur für den Stylus-Prototyp und den Core-Build, siehe §5a/§5b |
 | **V1 (Referenz, nicht anfassen)** | `C:\Dev\Zed\gonk-note`, Branch `main`, <https://github.com/GONKstupid/gonk-note> |
-| **Roadmap (die Vorgabe)** | `C:\Users\manue\Desktop\gonk-note-port-RM.MD` |
+| **Roadmap (die Vorgabe)** | `C:\Users\manue\Desktop\GonkNote-TM\gonk-note-port-RM.MD` — **umgezogen**, hier stand bis 2026-08-04 der Pfad direkt auf dem Desktop |
 | **V1-Handoff (alle Alt-Erfahrungen)** | `C:\Dev\Zed\gonk-note\HANDOFF.md` — **weiterhin gültig**, §4 Fallen und §7 Testen dort lesen |
 
 **In dieser Reihenfolge vorgehen:**
@@ -155,17 +155,31 @@ da: derselbe Prüflauf ist einmal mit dem alten und einmal mit dem neuen Stand g
 worden, und die Aufnahmen sind **Pixel für Pixel identisch**. Dazu zeigt der WPF-Über-Dialog
 endlich den **Datenordner**, wie der Linux-Kopf es tut.
 
-**Als Nächstes:** Phase 4 — die eigene Dokument-Engine in `Core/Text/` (§6). **M1 ist ein
-gültiger Ausstiegspunkt**; Phase 4 ist die, an der Projekte sterben.
+Danach **Phase 4, Schritt 1** (§4.14): **das eigene Dokumentmodell steht** in `Core/Text/` —
+`TdDocument` → `TdBlock` → `TdInline` mit nullbaren Formaten und einer vierstufigen Kaskade,
+dazu ein eigenes Speicherformat (Kennung `GNTD` + Json über den Source-Generator) und **DOCX
+in beide Richtungen** als das Tor, das die Roadmap nach jedem Schritt verlangt. Der Befund,
+der die ganze Phase begründet, steht in §4.14: `TextDoc.Rtf` enthält RTF oder ein
+WPF-`XamlPackage` — **das Speicherformat der Textdokumente ist Windows, in Bytes gegossen**,
+und solange das so ist, bleiben Textdokumente unter Linux ausgegraut, egal wie gut die
+Oberfläche wird.
+
+**Als Nächstes:** Phase 4, **Schritt 2 — Seitenumbruch** (§6). Strikt in der Reihenfolge aus
+Roadmap §5, nach jedem Schritt DOCX-Roundtrip. **M1 bleibt ein gültiger Ausstiegspunkt**;
+Phase 4 ist die, an der Projekte sterben.
+
+> **Vor Schritt 2 steht eine Entscheidung an**, die der Nutzer treffen muss: wie die
+> Bestandsdokumente aus `TextDoc.Rtf` herüberkommen. Vorschlag und Begründung in §6
+> („Wie die Bestandsdokumente herüberkommen").
 
 **Tests laufen lassen:**
 
 ```powershell
-dotnet test -c Release        # Windows: beide Projekte, 159 Tests
+dotnet test -c Release        # Windows: beide Projekte, 196 Tests
 ```
 
 ```bash
-dotnet test tests/GonkNote.Core.Tests   # Linux: 146 Tests, laufen in ~7 s
+dotnet test tests/GonkNote.Core.Tests   # Linux: 183 Tests, laufen in ~7 s
 ```
 
 ---
@@ -226,6 +240,10 @@ jetzt bei **159** (146 Core + 13 WPF).
 Testzahl bleibt bei **159**: es ist nichts dazugekommen, es sind zwei Fassungen weniger
 geworden. **Genau das ist das Ergebnis** — die Wächter, die vorher nur die Core-Fassung
 gehalten haben (`TrefferTests`, `MarkdownTests`), halten jetzt beide Köpfe.
+
+**Erledigt in Phase 4, Schritt 1:** §4.14 — das **Dokumentmodell** in `Core/Text/` samt
+Speicherformat und DOCX-Roundtrip. Testzahl jetzt **196** (183 Core + 13 WPF). Noch nirgends
+angeschlossen; das ist Absicht und in §4.14 begründet.
 
 **Erledigt in Phase 0:**
 
@@ -288,6 +306,9 @@ gonk-note-V2/
 │  │  ├─ Text/                   Markdown — der Zerleger hinter den vier mitgelieferten
 │  │  │                          Dokumenten (§4.12)                  ← neu in Phase 3
 │  │  │                          seit §4.13 von BEIDEN Köpfen benutzt
+│  │  │                          TdDocument/TdBlock/TdInline + TdFormat — das eigene
+│  │  │                          Dokumentmodell, TdJson (Speicherformat) und TdDocx
+│  │  │                          (DOCX in beide Richtungen)           ← neu in Phase 4
 │  │  └─ Localization/           Loc + LocGerman + LocEnglish        ← neu in Phase 0
 │  │
 │  ├─ GonkNote.ViewModels/       net10.0 · EIGENE Assembly seit Phase 2 (§4.7)
@@ -335,7 +356,7 @@ gonk-note-V2/
 │                                Legacy, **Avalonia**) — §4.6, seit Phase 3 §4.9
 │
 ├─ tests/
-│  ├─ GonkNote.Core.Tests/       net10.0 · läuft auch unter Linux · 146 Tests
+│  ├─ GonkNote.Core.Tests/       net10.0 · läuft auch unter Linux · 183 Tests
 │  │  └─ Snapshots/*.sha256      Pixelhashes des Renderers (Golden-Files)
 │  └─ GonkNote.Wpf.Tests/        net10.0-windows · nur Windows · 13 Tests
 │     ├─ Fixtures/               referenz.md, referenz-docx.txt (Golden-Files)
@@ -1364,6 +1385,159 @@ schließt statt zu öffnen.
 
 ---
 
+### 4.14 Phase 4, Schritt 1 — das Dokumentmodell steht
+
+Umgesetzt am 2026-08-04 unter Windows, direkt im Anschluss an §4.13. **Der erste Schritt der
+Reihenfolge, die Roadmap §5 vorschreibt:** Absätze + Zeichenformate → Seitenumbruch → Listen
+→ Tabellen → Felder/TOC → Diagramme.
+
+#### Der Befund, der die ganze Phase begründet
+
+`TextDoc.Rtf` heißt nicht nur historisch so — das Feld enthält **RTF oder ein
+WPF-`XamlPackage`** (ZIP, erkennbar am „PK"), beides erzeugt von
+`System.Windows.Documents.TextRange.Save/Load`. **Das Speicherformat der Textdokumente ist
+Windows, in Bytes gegossen.**
+
+Daraus folgt mehr, als „der Editor fehlt noch": Solange das das Format ist, bleiben
+Textdokumente unter Linux ausgegraut, **egal wie gut die Oberfläche wird** — es gibt nichts,
+was der Linux-Kopf lesen könnte. Phase 4 ist deshalb nicht nur ein Editor-Umbau, sondern ein
+Formatwechsel, und der gehört in denselben Vorsichtsbereich wie §4.8.
+
+#### Was jetzt in `Core/Text/` steht
+
+| Datei | Inhalt |
+|---|---|
+| `TdFormat.cs` | `TdCharFormat`, `TdParaFormat` — nullbare Felder plus `Over()`-Kaskade |
+| `TdDocument.cs` | `TdDocument` → `TdBlock`(`TdParagraph`, `TdPageBreak`) → `TdInline`(`TdRun`, `TdLineBreak`) |
+| `TdJson.cs` | Speicherformat: Kennung `GNTD` + UTF-8-Json über den Source-Generator |
+| `TdDocx.cs` | DOCX in **beide** Richtungen gegen das Modell — das Tor aus Roadmap §5 |
+
+**Das Namenspräfix `Td` folgt dem Haus:** `Wb*` für das Whiteboard, `Md*` für Markdown,
+`Td*` für das Textdokument. Es ist hier zusätzlich praktisch notwendig: `Paragraph`, `Run`,
+`Table`, `Section` und `Hyperlink` heißen in `System.Windows.Documents` genauso, und die
+Exporter, die als Nächstes umgeschrieben werden, müssten sonst jede Zeile mit einem Alias
+versehen.
+
+#### Die eine Entscheidung, die das Modell trägt: `null` heißt „nicht gesetzt"
+
+Jedes Formatfeld ist nullbar, und **`null` ist nicht „Standardwert", sondern „hier steht
+nichts"**. Das ist der Unterschied, an dem ein Texteditor sonst scheitert: Wer in einer
+Überschrift ein Wort fett macht, setzt genau ein Feld — Schrift und Größe müssen weiter von
+der Überschrift kommen. Trüge jeder Lauf eine vollständige Kopie des Formats, ginge jede
+spätere Änderung an der Überschrift an allen bereits geschriebenen Läufen vorbei.
+
+Gerechnet wird über `Over()`, **dasselbe Muster wie `ThemeDefinition.Over` in
+`Core/Theming`** — der eigene Wert gewinnt, wo er gesetzt ist, sonst zählt die Unterlage. Die
+Kette ist vierstufig: Stück → Absatz → Dokument → `Standard`. Nur `Standard` ist überall
+belegt, `Aufgeloest()` kann deshalb nie `null` liefern.
+
+**Der Preis dafür steht im Speicherformat:** `TdJson` benutzt
+`DefaultIgnoreCondition = WhenWritingNull` und damit **das Gegenteil von `GonkJson`**. Dort
+werden Standardwerte mitgeschrieben, weil „Feld fehlt" und „Feld ist 0" sonst
+ununterscheidbar wären; hier ist genau diese Unterscheidung der ganze Sinn. Ein Format hat
+neun bzw. zehn Felder, ein Dokument hat sehr viele Läufe — stünde in jedem neunmal `null`,
+wäre das kein kleiner Unterschied.
+
+#### Die Diskriminatoren sind kurz, und das ist eine Entscheidung
+
+`"p"`, `"run"`, `"break"`, `"pagebreak"` — nicht `"Namensraum.Typ, Assembly"` wie bei
+`WbElement`. Dort ist die lange Form ein **Erbe**: LiteDB hat sie so geschrieben, und
+Bestandsdaten hängen daran (§7). Dieses Format ist neu und hat kein solches Erbe. Es gibt
+keinen Grund, einen Assemblynamen in jede Datei zu schreiben — und schon gar keinen, ihn
+dadurch für immer unveränderlich zu machen.
+
+**Reserviert, damit spätere Schritte die Namen nicht zweimal vergeben:** `"list"` (Schritt 3),
+`"table"` (Schritt 4), `"hyperlink"` und `"field"` (Schritt 5), `"image"` und `"chart"`
+(Schritt 6). Wächter: `Die_Diskriminatoren_stehen_fest` hält sie **wörtlich** fest, genau wie
+`AlteTypnamenTests` es für die alten tut.
+
+#### Warum `Section` noch fehlt
+
+Die Roadmap nennt `Document → Section → Block → Inline`. `Section` fehlt in Schritt 1, und
+zwar nicht aus Versehen: Ein Abschnitt trägt seine eigene Seiteneinrichtung, und die steht
+heute **vollständig an `TextDoc`** (Format, Ränder, Kopf-/Fußzeile, Wasserzeichen). Sie hier
+ein zweites Mal zu führen wäre genau die Doppelung, die §4.10 beschreibt — zwei Fassungen
+derselben Angabe driften auseinander, ohne dass es auffällt. `Section` kommt mit dem
+Seitenumbruch (Schritt 2), wo sie etwas zu tun bekommt.
+
+**`TdPageBreak` steht dagegen schon jetzt da**, obwohl das Seitenlayout erst Schritt 2 ist:
+Der heutige Editor kann einen Seitenumbruch einfügen, ein Bestandsdokument kann ihn also
+enthalten, und ein Modell, das ihn nicht kennt, würde ihn bei der Übernahme still
+verschlucken. **Ein verlorener Seitenumbruch fällt erst beim Drucken auf.**
+
+#### Das DOCX-Tor — und warum es nicht der eigene Roundtrip ist
+
+Die Roadmap verlangt es wörtlich: „Nach jedem Schritt muss der DOCX-Roundtrip-Test grün
+sein." Der Grund steht in derselben Zeile — Phase 4 ist die, an der Projekte sterben, und ein
+Modell ohne Gegenprobe wächst so lange weiter, bis niemand mehr weiß, welcher Teil davon je
+funktioniert hat.
+
+**DOCX ist dafür die richtige Gegenprobe, weil es ein fremdes Format ist.** Der eigene
+Json-Roundtrip (`DokumentmodellTests`) beweist nur, dass Schreiben und Lesen zueinander
+passen — auch wenn beide denselben Fehler machen. DOCX kennt die eigenen Bequemlichkeiten
+nicht und hat sofort vier Stellen aufgedeckt, an denen das Modell und das Format sich nicht
+von selbst decken; alle vier stehen jetzt als eigener Wächter da:
+
+| Stelle | Worum es geht |
+|---|---|
+| **Hängender Einzug** | DOCX kennt dafür **zwei** Felder (`firstLine`, `hanging`), beide positiv. Wer nur eines schreibt, macht aus −0,5 cm ein +0,5 cm — aus einer Aufzählung wird ein Einzug in die falsche Richtung |
+| **`<w:b/>` ohne `val`** | heißt **„an"**. Ein naives `Val?.Value ?? false` macht jede fette Stelle eines fremden Dokuments still normal — und zwar nur bei Dateien aus Word, nie bei den eigenen |
+| **Leerzeichen am Rand** | überleben nur mit `xml:space="preserve"`. Sonst sitzt der Text nach dem Speichern zusammengeschoben da, nicht beim Tippen |
+| **Hervorhebung „aus"** | `null` = nicht gesetzt, `""` = ausdrücklich keine. In DOCX ist Letzteres die Füllung `auto` und **nicht** das Fehlen des Elements |
+
+Dazu prüft `TdDocx.Pruefen` gegen das **Office-2019-Schema**, dieselbe Messlatte wie beim
+heutigen `DocxExporter`: ein Dokument, das Word nicht öffnet, ist kein Export. Deshalb ist
+die Reihenfolge der Kindelemente in `TdDocx` Schema und keine Geschmacksfrage (`CT_RPr`:
+rFonts, b, i, strike, color, sz, u, shd, vertAlign — `CT_PPr`: keepNext, pageBreakBefore,
+spacing, ind, jc, outlineLvl).
+
+> **Das ist nicht der Ersatz für `DocxExporter`/`DocxImporter`.** Die laufen weiter und
+> bedienen die App; sie werden abgelöst, wenn das Modell alles kann, was sie können
+> („danach umverdrahten", Roadmap §5). Sie **parallel** zu pflegen wäre die Falle aus §4.10 —
+> deshalb steht in `TdDocx` nur, was das Modell heute wirklich trägt, und alles andere wirft
+> statt still zu verschwinden (`Was_noch_nicht_geht_verschwindet_nicht_still`).
+
+#### Eine Sicherheitslücke, die erst hier auftauchen konnte
+
+Core hat für DOCX `DocumentFormat.OpenXml` bekommen — der von Roadmap §0.3 vorgesehene
+Endzustand. Der Build meldete daraufhin **NU1903**: das mitgezogene `System.IO.Packaging`
+8.0.0 hat zwei bekannte Lücken. Behoben wie bei SQLitePCLRaw (§7) über das transitive Pinning
+plus eine `PackageVersion`-Zeile auf 10.0.10.
+
+**Die Lehre steckt darin, warum es vorher nie aufgefallen ist:** Der WPF-Kopf benutzt
+OpenXml seit jeher — aber unter `net10.0-windows` mit WPF kommt `System.IO.Packaging` aus dem
+Framework (WindowsDesktop), es wird gar kein NuGet-Paket geholt. Erst als **Core** die
+Referenz bekam, reines `net10.0`, wurde daraus eine echte Abhängigkeit. **Dasselbe Paket kann
+je Ziel-Framework eine andere Abhängigkeitskette haben** — eine Lücke taucht dann dort auf,
+wo man sie nicht sucht. Für Phase 5 (iOS) ist das derselbe Punkt.
+
+#### Ein Wächter, der zu genau war
+
+Drei Roundtrip-Tests waren zuerst rot, und zwar zu Recht rot aussehend und trotzdem kein
+Codefehler: Einzüge kamen als 1,4993 cm statt 1,5 cm zurück. **Ein Twip ist 1/1440 Zoll =
+0,0018 cm** — feiner kann DOCX einen Einzug gar nicht ablegen. Der Test verlangte drei
+Nachkommastellen und prüfte damit nicht den eigenen Code, sondern die Auflösung eines fremden
+Formats.
+
+Behoben am **Test**, nicht am Code: Zentimeter werden auf zwei Stellen verglichen (0,005 cm,
+immer noch dreimal feiner als ein Twip), Punktwerte weiter auf drei — `pt·20` ergibt ganze
+Twips und geht auf. **Merksatz: eine Toleranz gehört an die Auflösung des Formats, nicht an
+die Genauigkeit der Fließkommazahl.**
+
+#### Stand und was ausdrücklich noch nicht gilt
+
+**37 neue Tests** (18 Modell, 19 DOCX), Gesamtzahl **196** (183 Core + 13 WPF). Beide Köpfe
+bauen mit 0 Warnungen.
+
+**Am laufenden Programm ist hier nichts zu sehen, und das ist richtig so:** Das Modell ist
+noch **nirgends angeschlossen** — kein Editor schreibt hinein, keine Datenbank liest daraus,
+`TextDoc.Rtf` ist unverändert. Es gibt in diesem Schritt nichts, was ein Bildschirmfoto
+zeigen könnte; die Gegenprobe ist der DOCX-Roundtrip, und der ist ein fremdes Format und
+damit strenger als ein Foto. **Der Anschluss ans laufende Programm kommt mit der Übernahme**
+(siehe §6, „Wie die Bestandsdokumente herüberkommen").
+
+---
+
 ## 5. Entscheidungen
 
 **Getroffen, alle umgesetzt:**
@@ -1901,12 +2075,57 @@ Neubauten:
 geworden. `TrefferTests` und `MarkdownTests` bewachen ab jetzt **beide** Köpfe statt nur den
 Linux-Kopf.
 
+### Läuft: Phase 4 — eigene Dokument-Engine
+
+**Strikt in der Reihenfolge aus Roadmap §5, nach jedem Schritt DOCX-Roundtrip.** Die
+Reihenfolge ist kein Vorschlag: sie ist die Antwort auf „Dokument-Engine wird zum Fass ohne
+Boden", das einzige Risiko, das die Roadmap mit **hoch** einstuft.
+
+- [x] **1. Absätze + Zeichenformate** (§4.14, 2026-08-04). Modell, Speicherformat und das
+      DOCX-Tor stehen; 37 neue Wächter. **Noch nirgends angeschlossen** — das ist Absicht
+- [ ] 2. **Seitenumbruch** — hier kommt `TdSection` dazu, und mit ihr die Seiteneinrichtung.
+      Achtung: die steht heute an `TextDoc`; **eine der beiden muss weichen**, sonst ist es
+      die Doppelung aus §4.10
+- [ ] 3. Listen — `"list"` ist als Diskriminator reserviert
+- [ ] 4. Tabellen, inkl. verbundener Zellen
+- [ ] 5. Felder und Inhaltsverzeichnis — `TdParaFormat.OutlineLevel` steht seit Schritt 1
+      bereit und ist die verlässliche Quelle, die das `FlowDocument` nie hatte
+- [ ] 6. Diagramme
+- [ ] Danach umverdrahten: `Docx`-/`Markdown`-Im-/Export und `PdfExporter` gegen das eigene
+      Modell (§4.1 löst sich damit auf), Ribbon in Avalonia neu
+
+#### Wie die Bestandsdokumente herüberkommen — **vor Schritt 2 zu entscheiden**
+
+`TextDoc.Rtf` enthält RTF oder ein WPF-`XamlPackage` (§4.14). Das Modell kann beides nicht
+lesen, und der Linux-Kopf konnte es nie. **Der Vorschlag folgt der Entscheidung, die für die
+Datenbank schon gefallen ist** (§4.8, „additiv, die alte Datei bleibt unversehrt liegen"):
+
+- Ein **neues Feld** an `TextDoc` neben `Rtf`, nicht statt dessen. Die alten Bytes werden nie
+  überschrieben — dieselbe Regel, aus der `gonknote.db` neben `gonknote.sqlite` liegen bleibt.
+- Die Übernahme läuft **auf dem Windows-Rechner**, einmalig beim Öffnen: nur dort gibt es das
+  `FlowDocument`, das RTF und XamlPackage überhaupt lesen kann. Der Linux-Kopf kann eine
+  Altdatei nicht übernehmen und darf das auch nicht versuchen.
+- Ein Dokument, das noch nicht übernommen ist, muss unter Linux **sagen, was los ist**, statt
+  leer aufzugehen. „Leer" ist von „kaputt" für den Nutzer nicht zu unterscheiden — dieselbe
+  Begründung wie bei `Ohne_Leser_wird_nicht_stillschweigend_neu_angefangen` (§7).
+
+**Was daran offen ist und der Nutzer entscheiden muss:** ob die Übernahme **still** läuft
+(wie die SQLite-Migration) oder ob sie sich zeigt. Bei der Datenbank war „still" richtig,
+weil nichts verlorengehen konnte. Hier kann etwas verlorengehen: RTF und XamlPackage tragen
+Dinge, die das Modell **vor Schritt 6** noch nicht kennt — Tabellen, Bilder, Diagramme. Eine
+stille Übernahme vor Schritt 6 wäre stiller Datenverlust.
+
+> **Deshalb der Vorschlag: die Übernahme kommt zuletzt, nicht zuerst.** Erst wenn das Modell
+> alles kann, was ein Bestandsdokument enthalten darf, ist sie verlustfrei. Bis dahin bleibt
+> `Rtf` das führende Feld und das Modell läuft daneben — geprüft über DOCX, nicht über
+> Nutzerdaten.
+
 ### Der Rest (Roadmap §5)
 
 | Phase | Inhalt | Aufwand | Ziel |
 |---|---|---|---|
 | 3 | Avalonia-Shell für Linux — **fertig** | 6–8 W. | ✅ **M1 erreicht** — Notizbuch + Whiteboard laufen unter Linux, Textdokumente ausgegraut |
-| 4 | Eigene Dokument-Engine in `Core/Text/` | 8–12 W. | **M2** — Funktionsgleichheit Linux ↔ Windows |
+| 4 | Eigene Dokument-Engine in `Core/Text/` — **läuft, Schritt 1 von 6** | 8–12 W. | **M2** — Funktionsgleichheit Linux ↔ Windows |
 | 5 | iPadOS-Head, Apple Pencil, PDFKit/Vision, AOT-Härtung | 6–10 W. | **M3** — TestFlight-Build |
 | 6 | Flatpak/AppImage, App Store | 2–4 W. | Veröffentlichung |
 
@@ -2488,6 +2707,40 @@ und keine davon sieht wie ein Fehler aus.
   eine geklärte Lizenz (§6); ein mit Skia gemaltes Rechteck braucht keine. Dabei nie
   achsensymmetrisch malen, sonst fällt eine vertauschte Achse nicht auf.
 
+**Neu aus Phase 4 — Dokumentformat und DOCX (§4.14)**
+
+- **Dasselbe Paket kann je Ziel-Framework eine andere Abhängigkeitskette haben.**
+  `DocumentFormat.OpenXml` zieht auf reinem `net10.0` ein `System.IO.Packaging` aus NuGet
+  nach — mit zwei bekannten Lücken (NU1903). Unter `net10.0-windows` mit WPF kommt dieselbe
+  Klasse aus dem Framework, und es wird gar kein Paket geholt. Der WPF-Kopf benutzt OpenXml
+  seit jeher; aufgefallen ist es erst, als **Core** die Referenz bekam. **Eine Lücke taucht
+  dort auf, wo man sie nicht sucht** — behoben über das transitive Pinning wie bei
+  SQLitePCLRaw. Für den iOS-Kopf gilt dasselbe noch einmal.
+- **`<w:b/>` ohne `w:val` heißt „an".** Ein `Val?.Value ?? false` beim Lesen macht damit jede
+  fette Stelle eines **fremden** Dokuments still normal — und nur die: die eigenen Dateien
+  schreiben `val` immer mit, das Fehlerbild tritt also erst beim Import aus Word auf und nie
+  im eigenen Roundtrip. Gilt genauso für `i`, `strike`, `keepNext` und `pageBreakBefore`.
+  Wächter: `Eine_Auszeichnung_ohne_Wert_gilt_als_gesetzt`.
+- **Ein hängender Einzug ist in DOCX kein negativer Einzug**, sondern ein eigenes Feld
+  (`w:hanging` statt `w:firstLine`), und beide sind positiv. Wer nur eines schreibt, macht
+  aus −0,5 cm ein +0,5 cm.
+- **Ohne `xml:space="preserve"` fallen führende und mehrfache Leerzeichen weg** — nach dem
+  Speichern, nicht beim Tippen.
+- **Die Reihenfolge der Kindelemente in `w:rPr` und `w:pPr` ist Schema.** Vertauscht ergibt
+  sie kein schiefes Bild, sondern eine Datei, die Word nicht öffnet. Deshalb prüft
+  `TdDocx.Pruefen` mit dem `OpenXmlValidator` gegen Office 2019 — dieselbe Messlatte, die
+  `DocxExporter` seit jeher anlegt.
+- **Eine Toleranz gehört an die Auflösung des Formats, nicht an die der Fließkommazahl.**
+  Ein Twip ist 1/1440 Zoll = **0,0018 cm**; aus 1,5 cm werden 850 Twips und daraus wieder
+  1,4993 cm. Ein Roundtrip-Test, der drei Nachkommastellen verlangt, prüft nicht den eigenen
+  Code, sondern die Auflösung eines fremden Formats — und wird nach dem ersten falschen
+  Alarm abgeschaltet. Zentimeter deshalb auf zwei Stellen, Punkt auf drei (`pt·20` geht auf).
+- **`null` heißt im Dokumentmodell „nicht gesetzt" und nicht „Standardwert".** Wer das
+  einebnet, kann Fett in einer fetten Überschrift nie wieder abschalten. Deshalb schreibt
+  `TdJson` mit `WhenWritingNull` — **das Gegenteil von `GonkJson`**, und aus dem
+  entgegengesetzten Grund: dort wäre „Feld fehlt" gegen „Feld ist 0" der Verlust, hier ist
+  genau diese Unterscheidung der Inhalt.
+
 **Neu aus Phase 3 — Testen**
 
 - **Ein Testlauf, der nicht zurückkommt, ist ein Fehlschlag und kein langsamer Rechner.**
@@ -2511,7 +2764,7 @@ cd C:\Dev\Zed\gonk-note-V2
 dotnet build -c Release      # 0 Fehler / 0 Warnungen
 dotnet build -c Debug        # schneller, ohne Self-Contained/win-x64
 
-dotnet test -c Release       # beide Testprojekte, 159 Tests
+dotnet test -c Release       # beide Testprojekte, 196 Tests
 
 # Golden-Files bewusst neu setzen (danach den Diff lesen, siehe §4.6)
 $env:GONK_SNAPSHOT_UPDATE=1; dotnet test tests\GonkNote.Core.Tests; $env:GONK_SNAPSHOT_UPDATE=$null
@@ -2598,6 +2851,7 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 
 | Runde | Datum | Was |
 |---|---|---|
+| V2-18 | 2026-08-04 | **Phase 4 beginnt: Schritt 1 — Absätze und Zeichenformate** (§4.14), strikt in der Reihenfolge aus Roadmap §5. **Der Befund, der die Phase begründet, steht jetzt schwarz auf weiß:** `TextDoc.Rtf` enthält RTF **oder ein WPF-`XamlPackage`** — das Speicherformat der Textdokumente ist Windows, in Bytes gegossen. Solange das so ist, bleiben Textdokumente unter Linux ausgegraut, egal wie gut die Oberfläche wird; Phase 4 ist deshalb kein Editor-Umbau, sondern ein Formatwechsel und gehört in denselben Vorsichtsbereich wie §4.8. Neu in `Core/Text/`: **`TdDocument` → `TdBlock`(`TdParagraph`, `TdPageBreak`) → `TdInline`(`TdRun`, `TdLineBreak`)** mit `TdCharFormat`/`TdParaFormat`. **Die tragende Entscheidung: `null` heißt „nicht gesetzt" und nicht „Standardwert"** — sonst könnte man Fett in einer fetten Überschrift nie wieder abschalten, und jede spätere Änderung an der Überschrift ginge an allen geschriebenen Läufen vorbei. Gerechnet wird über `Over()`, **dasselbe Muster wie `ThemeDefinition.Over`**, vierstufig: Stück → Absatz → Dokument → Standard. Das Speicherformat (`TdJson`, Kennung `GNTD` + Json über den Source-Generator) schreibt deshalb mit `WhenWritingNull` — **dem Gegenteil von `GonkJson`**, und aus dem entgegengesetzten Grund. Die **Diskriminatoren sind kurz** (`"p"`, `"run"`, …) statt „Namensraum.Typ, Assembly": die lange Form bei `WbElement` ist ein LiteDB-Erbe, dieses Format hat keines — Namen für die späteren Schritte sind reserviert und wörtlich festgenagelt. **`Section` fehlt bewusst** (die Seiteneinrichtung steht an `TextDoc`, zwei Fassungen wären §4.10), **`TdPageBreak` steht bewusst schon da** (der heutige Editor kann ihn einfügen, und ein verschluckter Seitenumbruch fällt erst beim Drucken auf). **Das Tor, das die Roadmap nach jedem Schritt verlangt, ist gebaut:** `TdDocx` schreibt und liest DOCX gegen das Modell und prüft gegen das Office-2019-Schema. **Warum DOCX und nicht der eigene Roundtrip:** ein fremdes Format kennt die eigenen Bequemlichkeiten nicht — es hat sofort vier Stellen aufgedeckt, die jetzt eigene Wächter haben (hängender Einzug ist in DOCX ein eigenes Feld und kein Vorzeichen; `<w:b/>` **ohne** `val` heißt „an", was nur bei fremden Dateien zuschlägt; Leerzeichen am Rand brauchen `xml:space="preserve"`; „Hervorhebung aus" ist die Füllung `auto` und nicht das Fehlen des Elements). **Eine Sicherheitslücke gefunden, die vorher gar nicht auftauchen konnte:** Core bekam `DocumentFormat.OpenXml` und damit `System.IO.Packaging` 8.0.0 mit zwei Lücken (NU1903) — unter `net10.0-windows` mit WPF kommt dieselbe Klasse aus dem Framework, es wird gar kein Paket geholt. **Dasselbe Paket kann je Ziel-Framework eine andere Abhängigkeitskette haben**; behoben über das transitive Pinning wie bei SQLitePCLRaw. **Drei Wächter waren zu genau und wurden korrigiert, nicht der Code:** ein Twip ist 0,0018 cm, und ein Roundtrip-Test, der drei Nachkommastellen in Zentimetern verlangt, prüft die Auflösung eines fremden Formats statt des eigenen Codes. **37 neue Tests, jetzt 196** (183 Core + 13 WPF), beide Köpfe 0 Warnungen. **Am laufenden Programm ist hier nichts zu sehen, und das ist richtig so** — das Modell ist noch nirgends angeschlossen, `TextDoc.Rtf` ist unverändert, und die Gegenprobe ist der DOCX-Roundtrip. **Offen und vor Schritt 2 zu entscheiden:** wie die Bestandsdokumente herüberkommen (§6) — Vorschlag: zuletzt und nicht zuerst, weil eine Übernahme vor Schritt 6 stiller Datenverlust wäre |
 | V2-17 | 2026-08-04 | **Die zwei benannten Schulden aus Phase 3 sind eingelöst** (§4.13), auf dem Windows-Rechner — dem einzigen, auf dem der WPF-Kopf baut. (1) **`WhiteboardView.Selection.cs` rechnet mit `WbHit` aus Core**: `RotatePt`, `HitElement`, `HitTestElement`, `SegOrPointDist`, `ShapeOutlineDist`, `AllCornersInside`, der Lasso-Kern und `ComputeSelectionBounds` sind als eigene Rechnung verschwunden, 384 → 290 Zeilen. Die **Namen** bleiben als Einzeiler stehen: sie haben elf Aufrufstellen in fünf anderen Partials, und wegkommen sollte die zweite Rechnung, nicht die zweite Bezeichnung. (2) **`MarkdownFlow` ruft `Markdown.Parse`** und malt nur noch den Blockbaum, 339 → 232 Zeilen. **Die Endlosschleife aus §4.12 kam ohne eigenen Handgriff mit** — wer die Grammatik wegwirft, wirft den Fehler mit weg; das ist der Unterschied zwischen „an zwei Stellen reparieren" und „eine Stelle haben". Nebenbei entfällt das `[ThreadStatic]`-Feld für den Dokument-Verweis: es gab es nur, weil Zitatblöcke sich selbst erneut aufriefen, und ein `MdQuote` bringt seinen Inhalt bereits zerlegt mit. (3) **Der WPF-Über-Dialog zeigt den Datenordner** — die Zeile aus §4.12; sie war nötig und nicht kosmetisch, weil `About.Subtitle` seit §4.12 keinen Pfad mehr nennt und die Angabe auf Windows sonst ganz fehlte. **Das Wort „pixelgleich" ist gemessen, nicht behauptet:** derselbe Prüflauf gegen dieselbe Master-Datenbank, einmal mit dem alten Stand (`git stash` auf die eine Datei) und einmal mit dem neuen — **alle drei Bildpaare Pixel für Pixel identisch, 2906×1826, null Abweichung**. Ein Testlauf hätte das nicht hergegeben: er prüft, was er kennt, der Bildvergleich prüft alles, was auf dem Schirm steht. **Für Phase 4 ist das jetzt das Muster.** Dafür musste `kette.ps1` erst **ziehen** lernen (`"x1,y1>x2,y2>…"`, mit Interpolation) — das Linux-Gegenstück kann es seit §4.10, unter Windows fehlte es, und ohne Ziehen ist die Auswahl gar nicht fernsteuerbar. **Zwei Fernsteuer-Fallen dabei gefunden** (§7): die PowerShell-Pipeline entpackt verschachtelte Arrays, sodass `SetCursorPos` ein Array statt einer Zahl bekommt; und ein Klick auf einen Untermenü-Eintrag **schließt** das Untermenü, wenn der Hover es schon geöffnet hat — der nächste Klick landet dann darunter, und auf dem Foto sieht man die Ursache nicht, weil der Hover das Menü bis zur Aufnahme wieder öffnet. Geprüft ohne echte Daten, beide Markdown-Dialoge in **beiden** Sprachen (Überschriften, verschachtelte Listen, Zitat, Code-Block, **Tabelle**, und der Verweis „Erste Schritte" öffnet die Anleitung). **159 Tests unverändert grün** — nichts dazugekommen, zwei Fassungen weniger; `TrefferTests` und `MarkdownTests` bewachen ab jetzt beide Köpfe |
 | V2-16 | 2026-08-04 | **Nachlese zu V2-15, wieder auf Nutzerwunsch.** (1) **Die große Ordner-Kachel bekommt ihre eigene Strichstärke** (`4,5` statt `0,7`, `MainWindow.axaml`). Grund und allgemeine Lehre: **`StrokeThickness` wächst nicht mit `Stretch` mit** — der Wert steht in Gerätepunkten und nicht in denen der Geometrie, weshalb dieselben 0,7, die im Baum bei 16 px kräftig aussehen, bei 118 px ein Haarstrich sind. Wer künftig eine Vektorform groß zeigt, muss die Stärke dort eigens setzen. In der Seitenleiste bleibt alles wie es war. (2) **`Icon.Textmarker` im dritten Anlauf**, jetzt **oben offen**: der Schaft ist am oberen Rand abgeschnitten, zwei Stege stehen über der Bandlinie, unten die Keilspitze. Genau daran lagen die ersten beiden Fassungen daneben — eine geschlossene Kappe macht daraus einen Stift mit Deckel. **Neu als Arbeitsweise:** eine Form beurteilt man schneller, indem man dieselbe Pfadangabe als `.svg` groß rendert (`magick … -filter point -resize 400x`), als indem man die App neu startet; die Gegenprobe am laufenden Programm bleibt Pflicht, aber einmal statt bei jedem Zwischenstand. **Dabei eine teure Wayland-Falle gefunden** (§7): **`import -window` liefert manchmal ein Bild, das mehrere Schritte alt ist** — man klickt, das Foto zeigt keine Wirkung, man korrigiert Koordinaten, und in Wahrheit hat schon der erste Klick gesessen. Vier Durchgänge sind so verloren gegangen. Gegenmittel: zwei Aufnahmen hashen und bei Gleichstand eine Aktion mit unübersehbarer Wirkung auslösen |
 | V2-15 | 2026-08-03 | **Nachlese zu V2-14, beides auf Nutzerwunsch.** (1) Der **Klon-Befehl zeigt jetzt auf V2** (`GonkNote.git`) — in beiden Erste-Schritte-Fassungen, dazu der Issues-Verweis am Ende. Damit ist §5 „Noch offen" Punkt 3 nach zweimaligem Zurückstellen entschieden; fällig geworden war er dadurch, dass die Anleitung daneben `src/GonkNote.Avalonia` nennt, ein Projekt, das es im V1-Repo nicht gibt. **Das Repo ist weiterhin privat** — der Befehl läuft heute nur für Konten mit Zugriff, und das wird mit §6 „Vor dem Öffentlich-Schalten" richtig. (2) **Zwei Vektorformen zurück auf die V1-Gestalt**: `Icon.Folder` ist wieder der klassische Ordner **mit Reiter** oben links (statt der „modernen" Fassung mit Schräge), `Icon.Textmarker` ein **aufrechter, breiter** Marker mit Bandlinie und Keilspitze (statt eines schräg liegenden, der neben dem Bleistift wie ein zweiter Stift aussah). Gezeichnet **nach dem Zeichen, das der WPF-Kopf dafür benutzt** (Segoe Fluent `E8B7`/`E7E6`) und nicht nach dem Vorschaubild — die Vorlage steht im Repo und ist damit nachprüfbar. Zwei Lehren stehen jetzt am Symbolblock in `Themes/Styles.axaml`: beim Marker ist **die Breite** das Erkennungsmerkmal und nicht die Neigung, und **die Bandlinie braucht Abstand zum oberen Rand** — im ersten Anlauf verschmolz sie bei 16 px mit der gerundeten Kappe zu einem einzigen Strich. In drei Größen am laufenden Programm angesehen (Baum 16 px, Schnellzugriff 21 px, Galerie-Kachel 118 px). Die übrigen neuen Symbole bleiben, wie sie sind — der Nutzer hält sie für besser als die V1-Fassungen. Der WPF-Kopf ist nicht betroffen: er zeichnet weiter mit der Icon-Schrift |

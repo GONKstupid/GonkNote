@@ -24,6 +24,13 @@
     <PackageReference Include="Docnet.Core" />
     <!-- SVG-Rendering für das Geodreieck-Overlay -->
     <PackageReference Include="Svg.Skia" />
+    <!-- DOCX seit Phase 4, Schritt 1. Steht hier und nicht mehr nur im WPF-Kopf, weil das
+         Dokumentformat ab jetzt gegen das **eigene** Modell (Core/Text) geht statt gegen ein
+         FlowDocument — und weil die Roadmap (§0.3) genau das als Ziel nennt:
+         Docx{Im,Ex}porter wandern nach Core, sobald die Engine steht.
+         Das Paket ist reines verwaltetes .NET und plattformneutral; der Linux- und der
+         iPadOS-Kopf bekommen es damit ohne Zutun mit. -->
+    <PackageReference Include="DocumentFormat.OpenXml" />
   </ItemGroup>
 
   <!-- Die Geodreieck-Grafiken sind hier bewusst NICHT eingebettet. Sie liegen als lose

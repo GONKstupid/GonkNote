@@ -22,6 +22,20 @@
     <PackageVersion Include="SkiaSharp.Views.WPF" Version="3.119.4" />
     <PackageVersion Include="Svg.Skia" Version="5.1.1" />
     <PackageVersion Include="DocumentFormat.OpenXml" Version="3.1.0" />
+    <!-- Von DocumentFormat.OpenXml mitgezogen. **Festgeschrieben, weil 8.0.0 zwei bekannte
+         Lücken hat** (NU1903: GHSA-f32c-w444-8ppv, GHSA-qj66-m88j-hmgj) — derselbe Fall wie
+         bei SQLitePCLRaw unten, und derselbe Weg über das transitive Pinning oben.
+
+         **Aufgefallen ist es erst in Phase 4**, obwohl der WPF-Kopf das Paket seit jeher
+         benutzt: unter `net10.0-windows` mit WPF kommt System.IO.Packaging aus dem
+         Framework (WindowsDesktop), es wird also gar kein NuGet-Paket geholt. Erst als
+         GonkNote.Core — reines `net10.0` — die OpenXml-Referenz bekam, wurde daraus eine
+         echte Abhängigkeit. Merksatz: dasselbe Paket kann je Ziel-Framework eine andere
+         Abhängigkeitskette haben, und eine Lücke taucht dann auf, wo man sie nicht sucht.
+
+         Beim nächsten Anheben von DocumentFormat.OpenXml prüfen, ob diese Zeile noch nötig
+         ist — ein Pin, den niemand mehr braucht, hält irgendwann eine Fassung fest. -->
+    <PackageVersion Include="System.IO.Packaging" Version="10.0.10" />
     <!-- PDF-Rasterung (PDFium). Hat Linux-Builds, fehlt auf iOS → Phase 2: IPdfRasterizer -->
     <PackageVersion Include="Docnet.Core" Version="2.6.0" />
     <!-- OCR. Windows/Linux; auf iOS ersetzt durch Vision → Phase 2: IOcrEngine -->

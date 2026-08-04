@@ -2456,6 +2456,10 @@ Sticker, Texterkennung, Zahlenblock, Schnellaktionen und Geodreieck gehören ohn
 dazu. **Alles davon steht jetzt auch in den vier mitgelieferten Dokumenten**, mit Begründung
 (§4.12).
 
+> **Seit 2026-08-04 hat das eine Phase:** „Vorgemerkt: Phase 4.5" weiter unten. Bis dahin
+> war es benannt, aber **keiner Phase zugeordnet** — und M2 („Funktionsgleichheit") damit
+> unerreichbar. Aufgefallen ist es durch eine Rückfrage des Nutzers, nicht beim Planen.
+
 > **✅ M1 ist ausgerufen** (Nutzer-Entscheidung 2026-08-03, §5): Notizbuch und Whiteboard
 > laufen unter Linux, Textdokumente sind ausgegraut — der Wortlaut von M1. Damit ist auch
 > der gültige Ausstiegspunkt erreicht, den die Roadmap dafür vorsieht.
@@ -2535,12 +2539,57 @@ stille Übernahme vor Schritt 6 wäre stiller Datenverlust.
 > `Rtf` das führende Feld und das Modell läuft daneben — geprüft über DOCX, nicht über
 > Nutzerdaten.
 
+### Vorgemerkt: Phase 4.5 — die fehlenden Werkzeuge des Linux-Kopfs
+
+**Nutzer-Entscheidung 2026-08-04, nach einer Rückfrage — und die Rückfrage war berechtigt.**
+
+**Der Befund:** Diese Werkzeuge waren **benannt, aber nicht eingeplant**. Sie stehen in §6
+(„Was Phase 3 bewusst ausgelassen hat"), und **beide README-Fassungen sagen es den Nutzern
+wörtlich**: „Formen-Stift, Textfelder, Notizzettel, Sticker, Zahlenblock, Quick-Options-Menü,
+Lineal und Geodreieck — *kommen nach der Dokument-Engine*". Nur besaß sie **keine Phase**:
+Roadmap-Phase 4 enthält die Dokument-Engine, das Umverdrahten der Exporter und das Ribbon,
+Phase 5 ist iPadOS, dazwischen steht nichts.
+
+> **Der eigentliche Fehler im Plan ist nicht das Vergessen, sondern M2.** Die Roadmap
+> definiert M2 als **„Funktionsgleichheit Linux ↔ Windows"** und hängt ihn an das Ende von
+> Phase 4. Diese Werkzeuge gehören zur Funktionsgleichheit — **M2 ist mit Phase 4 allein
+> also gar nicht erreichbar.** Der Aufwandsschätzer (8–12 Wochen) deckt nur die Engine.
+
+**Was dazugehört** — alles davon ist **im Windows-Kopf vorhanden** und fehlt nur im
+Avalonia-Kopf:
+
+| | |
+|---|---|
+| **Werkzeuge zum Anlegen** | Formen (Linie, Pfeil, Rechteck, Ellipse, Dreieck) samt Füllung und Deckkraft, **Formen-Stift** (erkennt gezeichnete Formen), Textfelder, Notizzettel, Sticker |
+| **Zeichenhilfen** | Lineal und Geodreieck (drehbar, rastend; eigene SVG aus dem Datenordner) |
+| **Auswahl** | Drehen und Skalieren — heute kann der Linux-Kopf nur verschieben und löschen |
+| **Einfügen** | Bilder (PNG/JPEG/BMP/GIF/WebP/SVG) und **PDF-/Word-Seiten** mit Seitenauswahl |
+| **Bedienung** | **Langdruck auf den Größenregler → Zahlenblock**, Schnellaktionen-Menü auf der Fläche, **die Reihenfolge der Werkzeugleiste** wie im Windows-Kopf |
+| **Dienste** | Texterkennung (OCR) und Rechtschreibprüfung — **die zwei Ausnahmen**: sie brauchen Gegenstücke zu den Windows-Diensten (`IOcrEngine`, `ISpellChecker` stehen seit Phase 2), das ist eigene Arbeit und keine reine Portierung |
+
+**Wann: zwischen Phase 4 und Phase 5.** Begründung, in dieser Reihenfolge:
+
+1. **Erst die Engine, dann die Werkzeuge.** Textdokumente sind unter Linux ausgegraut — das
+   ist das größere Loch, und es blockiert zusätzlich Import/Export (§4.1).
+2. **Vor dem iPad, nicht danach.** Phase 5 baut den dritten Kopf auf derselben
+   Avalonia-Grundlage. Wer die Werkzeuge erst danach baut, baut sie **zweimal** — einmal für
+   Linux, einmal für iPadOS. Davor gebaut, bekommt der iPad-Kopf sie fast geschenkt (nur der
+   UI-Umbau bleibt, Roadmap Phase 5).
+3. **M2 wird damit wieder wahr.** Er wandert ans Ende von Phase 4.5 statt ans Ende von
+   Phase 4.
+
+> **Nicht vergessen:** Das ist eine Ergänzung zu `gonk-note-port-RM.MD`, nicht daraus
+> abgeleitet — dieselbe Lage wie bei den eigenen Farbschemata unten. **Wer die Roadmap-Datei
+> auf dem Desktop pflegt, sollte Phase 4.5 dort nachtragen und M2 verschieben**, sonst steht
+> beides nur hier.
+
 ### Der Rest (Roadmap §5)
 
 | Phase | Inhalt | Aufwand | Ziel |
 |---|---|---|---|
 | 3 | Avalonia-Shell für Linux — **fertig** | 6–8 W. | ✅ **M1 erreicht** — Notizbuch + Whiteboard laufen unter Linux, Textdokumente ausgegraut |
-| 4 | Eigene Dokument-Engine in `Core/Text/` — **läuft, Schritt 1 von 6** | 8–12 W. | **M2** — Funktionsgleichheit Linux ↔ Windows |
+| 4 | Eigene Dokument-Engine in `Core/Text/` — **läuft, Schritte 1–4 von 6** | 8–12 W. | ~~M2~~ — Textdokumente laufen unter Linux |
+| **4.5** | **Die fehlenden Werkzeuge des Linux-Kopfs** (Formen, Lineal/Geodreieck, Textfelder, Sticker, Notizzettel, Bild-/PDF-Import, Zahlenblock, Schnellaktionen, Werkzeugleisten-Anordnung, Drehen/Skalieren) — **neu eingeschoben, siehe oben** | offen | **M2** — Funktionsgleichheit Linux ↔ Windows |
 | 5 | iPadOS-Head, Apple Pencil, PDFKit/Vision, AOT-Härtung | 6–10 W. | **M3** — TestFlight-Build |
 | 6 | Flatpak/AppImage, App Store | 2–4 W. | Veröffentlichung |
 
@@ -3371,6 +3420,7 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 
 | Runde | Datum | Was |
 |---|---|---|
+| V2-24 | 2026-08-04 | **Phase 4.5 in den Plan aufgenommen** (§6), nach einer Rückfrage des Nutzers — und die Rückfrage war berechtigt. **Der Befund:** Die fehlenden Werkzeuge des Linux-Kopfs (Formen, Formen-Stift, Lineal/Geodreieck, Textfelder, Notizzettel, Sticker, Bild-/PDF-Import, Zahlenblock per Langdruck, Schnellaktionen, Werkzeugleisten-Anordnung, Drehen/Skalieren der Auswahl) waren **benannt, aber keiner Phase zugeordnet**. Sie stehen in §6 („Was Phase 3 bewusst ausgelassen hat"), und beide README-Fassungen sagen es den Nutzern wörtlich („kommen nach der Dokument-Engine") — nur besaß sie keine Phase: Roadmap-Phase 4 enthält die Dokument-Engine, Phase 5 ist iPadOS, dazwischen stand nichts. **Der eigentliche Fehler im Plan war nicht das Vergessen, sondern M2:** die Roadmap definiert ihn als „Funktionsgleichheit Linux ↔ Windows" und hängt ihn ans Ende von Phase 4 — diese Werkzeuge gehören zur Funktionsgleichheit, **M2 war mit Phase 4 allein also gar nicht erreichbar**, und der Aufwandsschätzer deckte nur die Engine. **Entschieden: eine eigene Phase 4.5 zwischen 4 und 5**, aus drei Gründen — erst die Engine (Textdokumente sind das größere Loch und blockieren Import/Export), aber **vor dem iPad**, weil Phase 5 auf derselben Avalonia-Grundlage aufsetzt und die Werkzeuge sonst **zweimal** gebaut würden; M2 wandert ans Ende von 4.5. **Zur Klarstellung, weil es leicht zu verwechseln ist:** das **Diagramm-Werkzeug** gehört *nicht* dazu — Diagramme sind eine Textdokument-Funktion und stehen als Schritt 6 in Phase 4. OCR und Rechtschreibprüfung sind die zwei Ausnahmen in 4.5: sie brauchen Gegenstücke zu den Windows-Diensten und sind eigene Arbeit statt reiner Portierung. **Nachzutragen in `gonk-note-port-RM.MD` auf dem Desktop** — die Ergänzung steht sonst nur hier |
 | V2-23 | 2026-08-04 | **Phase 4, Schritt 4 abgeschlossen: das Tabellen-Layout** (§4.19). `TdPage` hat jetzt neben `Lines` auch **`TableRows`** — eine zweite Liste und keine gemeinsame, denn **eine Tabellenzeile ist keine Zeile**: sie hat Zellen, und deren Inhalt sind wieder Zeilen. Der Preis ist gering, der Gewinn groß: `TdLine` bleibt, was es war, und die 27 Wächter aus §4.16 mussten nicht angefasst werden. **Die Rechnung muss zweimal laufen:** wie hoch eine senkrecht verbundene Zelle die Zeilen macht, über die sie reicht, steht erst fest, wenn diese Zeilen ihre eigene Höhe kennen — erst jede Zeile für sich (die `Restart`-Zelle **ohne** ihre Höhe, sonst zöge sie die erste Zeile allein hoch), dann die Verteilung. **Fehlt Platz, wächst die letzte Zeile der Verbindung**, nicht die erste und nicht alle gleichmäßig: gleichmäßig sähe gefälliger aus, verschöbe aber die Zeilen dazwischen gegenüber ihren unverbundenen Nachbarn, und dann fluchtet die Tabelle nicht mehr. **Zwei Dinge, die man beim ersten Anlauf falsch macht:** der Zellinhalt bricht in der **Innen**breite um (ein vergessener Innenabstand ist kein sichtbarer Fehler, sondern Text, der am Rand klebt und eine Zeile zu spät umbricht), und eine Fortsetzungszelle bekommt keinen Ort, **schiebt aber die Spalte weiter** — wer sie überspringt, setzt alles dahinter eine Spalte zu weit links. **Die Kopfzeile wiederholt sich** auf jeder Folgeseite und ist als Wiederholung erkennbar (`IsRepeatedHeader`) — sie steht im Modell einmal, auf dem Papier mehrfach, und wer sie beim Zurückrechnen mitzählt, findet den Cursor an der falschen Stelle; wiederholt wird nur, wenn danach noch Platz für eine Inhaltszeile bleibt. **Zwei Fehler haben die Wächter gefunden:** die Nummerierung erreichte Absätze **in Zellen** nicht (`TdDocument.Paragraphs()` lief nur über die oberste Ebene, und `TdListNumbering` läuft über genau diesen Durchlauf — ein Listenpunkt in einer Tabelle bekam keine Marke; das Fehlerbild ist ein Punkt ohne Nummer, kein Absturz), und ein Wächter rechnete falsch statt des Codes („rechts oben" ist elf Zeichen und bricht auf einer 8-cm-Spalte selbst um — derselbe Merksatz wie in §4.16). **Eine benannte Lücke bleibt und ist mit einem eigenen Wächter festgehalten:** eine Tabelle **in** einer Zelle wird vom Umbruch noch nicht gesetzt. Das Modell trägt sie, DOCX schreibt und liest sie — nur eine gesetzte Zelle hat noch keine Tabellenzeilen. Sie ist damit **sichtbar leer statt still falsch**, und wer sie schließt, macht den Test rot und muss ihn umschreiben. **15 neue Wächter, jetzt 299** (286 Core + 13 WPF), alle drei Projekte 0 Warnungen. **Als Nächstes: Schritt 5, Felder und Inhaltsverzeichnis** |
 | V2-22 | 2026-08-04 | **Phase 4, Schritt 4, erster Teil: Tabellen im Modell und in DOCX** (§4.18). Wie Schritt 2 in zwei Hälften; die Layout-Rechnung folgt. **Warum das der gefährlichste Schritt bisher ist:** eine Tabelle hat drei Dinge, die jedes für sich still schiefgehen — das Raster, die Verbindungen und die Rahmen —, alle drei liegen in DOCX anders als erwartet, und ein Fehler darin sieht nicht nach einem Fehler aus, sondern nach einer Tabelle, die „irgendwie verrutscht" ist. **Drei Entscheidungen, die DOCX vorgibt und die trotzdem die richtigen sind:** das **Raster steht an der Tabelle** und nicht an den Zellen (eine Spaltenbreite gilt für die ganze Spalte; je Zelle geführt stünde derselbe Wert je Zeile noch einmal, und eine Zeile mit abweichender Vorstellung von Spalte 2 ist gar nicht darstellbar); eine **senkrechte Verbindung ist `Restart` + `Continue`** und kein „RowSpan = 3" (jede Zeile behält ihre volle Zellenzahl, und daran hängt, dass Spaltenzählung und Rahmen stimmen); **Zellen enthalten Blöcke** und nicht Text — ein zweiter Absatz, eine Liste, eine weitere Tabelle, alles geprüft. **Vier DOCX-Fallen** (§7): Rahmen werden in **Achtel-Punkt** gemessen (wer Punkte einträgt, bekommt eine achtmal zu dicke Linie — das sieht nicht nach einem Umrechnungsfehler aus, sondern nach unabsichtlich fetten Rändern); eine Fortsetzungszelle trägt ein `vMerge` **ohne Wert**, nicht eines mit „continue"; **zwei Tabellen hintereinander verschmelzen in Word zu einer**, dazwischen gehört ein leerer Absatz, ebenso hinter der letzten; und eine Zelle ohne Absatz ist schemawidrig, während eine Fortsetzungszelle zwangsläufig keinen Inhalt hat. **Die letzten beiden erzeugen Absätze, die kein Inhalt sind** — kämen sie beim Lesen zurück, wüchse das Dokument mit **jedem Speichern** um eine Leerzeile je Tabelle, die Sorte Fehler, die man erst nach dem fünften Speichern bemerkt und dann nicht mehr zurückdrehen kann. Der Leser nimmt sie an genau den Stellen wieder heraus; Wächter ist ein Roundtrip, der **zweimal** läuft und beide Male dasselbe ergeben muss. **Der eine Fall, der nicht auf Anhieb stimmte:** endet ein *nicht letzter* Abschnitt mit einer Tabelle, trägt der Trennabsatz die `sectPr` — und galt deswegen als „hat ein Format" und damit als Inhalt. Eine `sectPr` zählt jetzt ausdrücklich nicht als Absatzformat. **21 neue Wächter, jetzt 284** (271 Core + 13 WPF), dazu eine Tabelle in beiden Beispieldokumenten; alle drei Projekte 0 Warnungen |
 | V2-21 | 2026-08-04 | **Phase 4, Schritt 3: Listen** (§4.17). **Die tragende Entscheidung: ein Listenpunkt ist ein Absatz mit einer Angabe (`TdParagraph.List`) und kein eigener Blocktyp.** Die naheliegende Bauart — ein Listenblock mit Punkten darin, wie ihn `MdList` für Markdown hat — ist hier die falsche: dort wird nur **gelesen**, hier wird bearbeitet. Eingabe drücken, Ebene wechseln, einen Punkt herausnehmen, zwei Listen verschmelzen bleibt so jeweils eine Absatzänderung statt eines Baumumbaus, und `TdLayout` braucht keinen zweiten Umbruchpfad. DOCX macht es genauso (`w:numPr` am Absatz). **Die Nummer steht nirgends — sie wird gerechnet** (`TdListNumbering`): sie hängt davon ab, was **vor** einem Punkt steht, und gespeichert müsste sie bei jeder Einfügung im ganzen Dokument nachgezogen werden; jede vergessene Stelle wäre eine Liste, die nach dem Löschen der 2 bei 3 weiterzählt. **Die Stelle, an der so eine Rechnung schiefgeht, ist das Einrücken:** eine tiefere Ebene muss bei jedem Einrücken neu anfangen, sonst zählt die zweite Unterliste dort weiter, wo die erste aufgehört hat — und das bemerkt man erst bei der dritten Ebene. Dazu drei Fälle aus fremden Dateien, die keinen Absturz ergeben dürfen: eine zu tiefe Ebene, ein Verweis auf eine Liste, die es nicht gibt, und ein `start="0"` bei römischer Zählung. **Die Marke ist kein Lauf** (`TdLine.Marker` statt `Runs`) — sonst wird sie mitkopiert, lässt sich auswählen und der Cursor kann davor stehen. **Der Unterschied zwischen einer Liste und einem Absatz mit „• " davor** steckt im Umbruch: bei einer Liste beginnt der Text **jeder** Zeile am Einzug und die Marke steht davor; `hanging` gibt bei einer Liste an, wie weit die **Marke** links steht, nicht der Text. Wer das verwechselt, rückt die zweite Zeile unter die Marke. **Zwei DOCX-Eigenheiten** (§7): `abstractNum` ist die Vorlage, `num` die Instanz — nur Letztere trägt die Kennung; und im XML stehen erst alle `abstractNum`, dann alle `num`, verschachtelt öffnet Word die Datei nicht (beim Lesen umgekehrt: ein `num` kann auf eine Vorlage zeigen, die erst danach kommt). **Eine Aufräumarbeit fiel dabei an:** die X-Werte des Umbruchs waren bis hierher relativ zum Einzug statt zum Textbereich — für einen Zeichner die falsche Zahl, und mit Listen (Marke und Text an verschiedenen Einzügen) vollends unhaltbar. `XCm` enthält jetzt alles. **29 neue Wächter, jetzt 263** (250 Core + 13 WPF); Listen sind zusätzlich in beide Beispieldokumente eingezogen — die Regel „wer das Modell erweitert, erweitert das Beispiel mit" gilt auch für den, der sie aufgeschrieben hat. **Als Nächstes: Schritt 4, Tabellen** |

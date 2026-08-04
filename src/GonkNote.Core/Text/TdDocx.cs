@@ -76,24 +76,60 @@ public static class TdDocx
 
         StandardformateSchreiben(doc, main);
 
-        foreach (var block in doc.Blocks)
-        {
-            switch (block)
-            {
-                case TdParagraph p: body.AppendChild(AbsatzSchreiben(p)); break;
-                case TdPageBreak: body.AppendChild(SeitenumbruchSchreiben()); break;
+        // Felder (PAGE/NUMPAGES) beim Öffnen aktualisieren lassen — sonst zeigt Word die
+        // beim Schreiben eingesetzte 1 statt der echten Seitenzahl.
+        main.AddNewPart<DocumentSettingsPart>().Settings =
+            new W.Settings(new W.UpdateFieldsOnOpen { Val = true });
 
-                // Ein neuer Blocktyp ohne Zweig würde hier still verschwinden — und ein
-                // verlorener Block fällt erst dem Leser auf, nicht dem Diff.
-                default:
-                    throw new NotSupportedException(
-                        $"{block.GetType().Name} kann noch nicht nach DOCX — siehe die Reihenfolge in Roadmap §5.");
+        for (int i = 0; i < doc.Sections.Count; i++)
+        {
+            var abschnitt = doc.Sections[i];
+            bool letzter = i == doc.Sections.Count - 1;
+
+            var absaetze = new List<W.Paragraph>();
+            foreach (var block in abschnitt.Blocks)
+            {
+                switch (block)
+                {
+                    case TdParagraph p: absaetze.Add(AbsatzSchreiben(p)); break;
+                    case TdPageBreak: absaetze.Add(SeitenumbruchSchreiben()); break;
+
+                    // Ein neuer Blocktyp ohne Zweig würde hier still verschwinden — und ein
+                    // verlorener Block fällt erst dem Leser auf, nicht dem Diff.
+                    default:
+                        throw new NotSupportedException(
+                            $"{block.GetType().Name} kann noch nicht nach DOCX — siehe die Reihenfolge in Roadmap §5.");
+                }
+            }
+
+            // Ein Abschnitt ohne Absatz kann seine sectPr nicht tragen (die hängt am letzten
+            // Absatz) — und Word zeigt dafür ein Dokument ohne Einfügemarke.
+            if (absaetze.Count == 0) absaetze.Add(new W.Paragraph());
+            foreach (var a in absaetze) body.AppendChild(a);
+
+            var sectPr = SeiteSchreiben(abschnitt.Page, main);
+
+            // **Die Stelle, an der DOCX unsymmetrisch ist:** die Einrichtung des *letzten*
+            // Abschnitts steht am Ende des Körpers, die aller anderen im Absatzformat ihres
+            // jeweils letzten Absatzes. Wer sie überall ans Körperende hängt, bekommt ein
+            // Dokument mit genau einer Seiteneinrichtung — und merkt es erst am Ausdruck.
+            if (letzter)
+            {
+                body.AppendChild(sectPr);
+            }
+            else
+            {
+                var letzterAbsatz = absaetze[^1];
+                var pPr = letzterAbsatz.ParagraphProperties;
+                if (pPr is null)
+                {
+                    pPr = new W.ParagraphProperties();
+                    letzterAbsatz.InsertAt(pPr, 0);
+                }
+                // Schema: sectPr steht in pPr ganz hinten (nur pPrChange folgt noch).
+                pPr.AppendChild(sectPr);
             }
         }
-
-        // Ein Körper ohne Absatz ist zwar schemakonform, aber Word zeigt dafür ein Dokument
-        // ohne Einfügemarke. Dieselbe Vorsorge trifft der heutige DocxExporter.
-        if (!body.HasChildren) body.AppendChild(new W.Paragraph());
 
         main.Document.Save();
     }
@@ -261,6 +297,175 @@ public static class TdDocx
         return pPr;
     }
 
+    // ==================== Seiteneinrichtung ====================
+
+    private static W.SectionProperties SeiteSchreiben(TdPageSetup seite, MainDocumentPart main)
+    {
+        var sectPr = new W.SectionProperties();
+
+        // Schema-Reihenfolge (CT_SectPr): die Verweise auf Kopf-/Fußzeile stehen **vor**
+        // pgSz und pgMar.
+        if (seite.HeaderText.Length > 0)
+        {
+            var teil = main.AddNewPart<HeaderPart>();
+            teil.Header = new W.Header(KopfFussAbsatzSchreiben(seite.HeaderText));
+            sectPr.AppendChild(new W.HeaderReference
+            {
+                Type = W.HeaderFooterValues.Default,
+                Id = main.GetIdOfPart(teil),
+            });
+        }
+        if (seite.FooterText.Length > 0)
+        {
+            var teil = main.AddNewPart<FooterPart>();
+            teil.Footer = new W.Footer(KopfFussAbsatzSchreiben(seite.FooterText));
+            sectPr.AppendChild(new W.FooterReference
+            {
+                Type = W.HeaderFooterValues.Default,
+                Id = main.GetIdOfPart(teil),
+            });
+        }
+
+        sectPr.AppendChild(new W.PageSize
+        {
+            Width = (uint)CmZuTwips(seite.WidthCm),
+            Height = (uint)CmZuTwips(seite.HeightCm),
+            // Word leitet die Ausrichtung **nicht** aus den Maßen ab: ohne orient dreht es
+            // ein quer eingetragenes Blatt beim Drucken wieder hoch.
+            Orient = seite.IstQuerformat ? W.PageOrientationValues.Landscape : W.PageOrientationValues.Portrait,
+        });
+
+        sectPr.AppendChild(new W.PageMargin
+        {
+            Left = (uint)CmZuTwips(seite.MarginLeftCm),
+            Right = (uint)CmZuTwips(seite.MarginRightCm),
+            Top = CmZuTwips(seite.MarginTopCm),
+            Bottom = CmZuTwips(seite.MarginBottomCm),
+            Header = 0,
+            Footer = 0,
+            Gutter = 0,
+        });
+
+        if (seite.SuppressOnFirstPage) sectPr.AppendChild(new W.TitlePage());
+
+        return sectPr;
+    }
+
+    /// <summary>
+    /// Eine Kopf- oder Fußzeile. <c>{SEITE}</c> und <c>{SEITEN}</c> werden zu **echten**
+    /// Word-Feldern (PAGE, NUMPAGES) — als bloßer Text stünde in einem exportierten Dokument
+    /// auf jeder Seite dieselbe Zahl. <c>{DATUM}</c> und <c>{TITEL}</c> bleiben vorerst
+    /// wörtlich stehen; sie werden mit den Feldern in Schritt 5 nachgezogen.
+    /// </summary>
+    private static W.Paragraph KopfFussAbsatzSchreiben(string vorlage)
+    {
+        var absatz = new W.Paragraph();
+
+        foreach (string teil in ZerlegtNachPlatzhaltern(vorlage))
+        {
+            if (teil.Length == 0) continue;
+
+            if (teil is "{SEITE}" or "{SEITEN}")
+            {
+                absatz.AppendChild(new W.SimpleField(new W.Run(new W.Text("1")))
+                {
+                    Instruction = teil == "{SEITE}" ? " PAGE " : " NUMPAGES ",
+                });
+            }
+            else
+            {
+                absatz.AppendChild(new W.Run(
+                    new W.Text(teil) { Space = SpaceProcessingModeValues.Preserve }));
+            }
+        }
+        return absatz;
+    }
+
+    /// <summary>Zerlegt „Seite {SEITE} von {SEITEN}" in Text- und Platzhalterstücke.</summary>
+    private static IEnumerable<string> ZerlegtNachPlatzhaltern(string vorlage)
+    {
+        int pos = 0;
+        while (pos < vorlage.Length)
+        {
+            int auf = vorlage.IndexOf('{', pos);
+            if (auf < 0) break;
+            int zu = vorlage.IndexOf('}', auf);
+            if (zu < 0) break;
+
+            if (auf > pos) yield return vorlage[pos..auf];
+            yield return vorlage[auf..(zu + 1)];
+            pos = zu + 1;
+        }
+        if (pos < vorlage.Length) yield return vorlage[pos..];
+    }
+
+    private static TdPageSetup SeiteLesen(W.SectionProperties sectPr, MainDocumentPart main)
+    {
+        var seite = new TdPageSetup();
+
+        if (sectPr.GetFirstChild<W.PageSize>() is { } groesse)
+        {
+            if (groesse.Width?.Value is { } b) seite.WidthCm = TwipsZuCm(b);
+            if (groesse.Height?.Value is { } h) seite.HeightCm = TwipsZuCm(h);
+        }
+
+        if (sectPr.GetFirstChild<W.PageMargin>() is { } rand)
+        {
+            if (rand.Left?.Value is { } l) seite.MarginLeftCm = TwipsZuCm(l);
+            if (rand.Right?.Value is { } r) seite.MarginRightCm = TwipsZuCm(r);
+            if (rand.Top?.Value is { } o) seite.MarginTopCm = TwipsZuCm(o);
+            if (rand.Bottom?.Value is { } u) seite.MarginBottomCm = TwipsZuCm(u);
+        }
+
+        seite.SuppressOnFirstPage = sectPr.GetFirstChild<W.TitlePage>() is not null;
+
+        foreach (var verweis in sectPr.Elements<W.HeaderReference>())
+        {
+            if (verweis.Type?.Value != W.HeaderFooterValues.Default || verweis.Id?.Value is not { } id) continue;
+            if (main.GetPartById(id) is HeaderPart { Header: { } kopf })
+                seite.HeaderText = KopfFussTextLesen(kopf);
+        }
+        foreach (var verweis in sectPr.Elements<W.FooterReference>())
+        {
+            if (verweis.Type?.Value != W.HeaderFooterValues.Default || verweis.Id?.Value is not { } id) continue;
+            if (main.GetPartById(id) is FooterPart { Footer: { } fuss })
+                seite.FooterText = KopfFussTextLesen(fuss);
+        }
+
+        return seite;
+    }
+
+    /// <summary>
+    /// Der Weg zurück: PAGE- und NUMPAGES-Felder werden wieder zu <c>{SEITE}</c> und
+    /// <c>{SEITEN}</c>. Ohne das käme aus einem Rückimport die beim Schreiben eingesetzte
+    /// „1" als gewöhnlicher Text — und die Kopfzeile zeigte auf jeder Seite Seite 1.
+    /// </summary>
+    private static string KopfFussTextLesen(OpenXmlElement kopfOderFuss)
+    {
+        var sb = new System.Text.StringBuilder();
+
+        foreach (var absatz in kopfOderFuss.Elements<W.Paragraph>())
+        {
+            foreach (var teil in absatz.ChildElements)
+            {
+                switch (teil)
+                {
+                    case W.SimpleField feld:
+                        string anweisung = feld.Instruction?.Value ?? "";
+                        sb.Append(anweisung.Contains("NUMPAGES", StringComparison.OrdinalIgnoreCase) ? "{SEITEN}"
+                                : anweisung.Contains("PAGE", StringComparison.OrdinalIgnoreCase) ? "{SEITE}"
+                                : "");
+                        break;
+
+                    case W.Run lauf:
+                        foreach (var t in lauf.Elements<W.Text>()) sb.Append(t.Text);
+                        break;
+                }
+            }
+        }
+        return sb.ToString();
+    }
+
     // ==================== Lesen ====================
 
     /// <summary>Liest ein DOCX in das eigene Modell.</summary>
@@ -285,11 +490,32 @@ public static class TdDocx
 
         StandardformateLesen(doc, main);
 
+        var laufend = new TdSection();
+
         foreach (var absatz in body.Elements<W.Paragraph>())
         {
-            if (IstSeitenumbruch(absatz)) { doc.Blocks.Add(new TdPageBreak()); continue; }
-            doc.Blocks.Add(AbsatzLesen(absatz));
+            if (IstSeitenumbruch(absatz)) laufend.Blocks.Add(new TdPageBreak());
+            else laufend.Blocks.Add(AbsatzLesen(absatz));
+
+            // Eine sectPr **im** Absatzformat beendet den Abschnitt — sie gehört zu allem,
+            // was bis hierher kam, und nicht zu dem, was folgt. Das ist die Gegenrichtung
+            // zur Unsymmetrie beim Schreiben.
+            if (absatz.ParagraphProperties?.SectionProperties is { } sectPr)
+            {
+                laufend.Page = SeiteLesen(sectPr, main);
+                doc.Sections.Add(laufend);
+                laufend = new TdSection();
+            }
         }
+
+        // Der letzte Abschnitt trägt seine Einrichtung am Ende des Körpers.
+        if (body.GetFirstChild<W.SectionProperties>() is { } letzte)
+            laufend.Page = SeiteLesen(letzte, main);
+
+        // Ein DOCX endet immer mit einem Abschnitt, auch wenn er leer ist — nur ein Dokument
+        // ohne jeden Absatz **und** ohne sectPr bekommt keinen.
+        if (laufend.Blocks.Count > 0 || doc.Sections.Count == 0) doc.Sections.Add(laufend);
+
         return doc;
     }
 

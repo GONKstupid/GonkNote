@@ -164,22 +164,24 @@ WPF-`XamlPackage` — **das Speicherformat der Textdokumente ist Windows, in Byt
 und solange das so ist, bleiben Textdokumente unter Linux ausgegraut, egal wie gut die
 Oberfläche wird.
 
-**Als Nächstes:** Phase 4, **Schritt 2 — Seitenumbruch** (§6). Strikt in der Reihenfolge aus
-Roadmap §5, nach jedem Schritt DOCX-Roundtrip. **M1 bleibt ein gültiger Ausstiegspunkt**;
-Phase 4 ist die, an der Projekte sterben.
+Zuletzt **Schritt 2, erster Teil** (§4.15): **Abschnitte und Seiteneinrichtung**. Auf
+Nutzer-Entscheidung wandert die Seiteneinrichtung aus `TextDoc` in `TdSection`; die
+Übernahme der Bestandsdokumente kommt **zuletzt**, nach Schritt 6, weil sie vorher stiller
+Datenverlust wäre. `TdPageSetup` speichert nur Maße — Formatname und Querformat werden daraus
+**abgelesen** statt gespeichert, damit es keine zweite Wahrheit gibt.
 
-> **Vor Schritt 2 steht eine Entscheidung an**, die der Nutzer treffen muss: wie die
-> Bestandsdokumente aus `TextDoc.Rtf` herüberkommen. Vorschlag und Begründung in §6
-> („Wie die Bestandsdokumente herüberkommen").
+**Als Nächstes:** Phase 4, **Schritt 2, zweiter Teil — die Layout-Rechnung** (§6): Zeilen-
+und Seitenumbruch mit Rändern. **M1 bleibt ein gültiger Ausstiegspunkt**; Phase 4 ist die, an
+der Projekte sterben.
 
 **Tests laufen lassen:**
 
 ```powershell
-dotnet test -c Release        # Windows: beide Projekte, 196 Tests
+dotnet test -c Release        # Windows: beide Projekte, 212 Tests
 ```
 
 ```bash
-dotnet test tests/GonkNote.Core.Tests   # Linux: 183 Tests, laufen in ~7 s
+dotnet test tests/GonkNote.Core.Tests   # Linux: 199 Tests, laufen in ~7 s
 ```
 
 ---
@@ -242,8 +244,12 @@ geworden. **Genau das ist das Ergebnis** — die Wächter, die vorher nur die Co
 gehalten haben (`TrefferTests`, `MarkdownTests`), halten jetzt beide Köpfe.
 
 **Erledigt in Phase 4, Schritt 1:** §4.14 — das **Dokumentmodell** in `Core/Text/` samt
-Speicherformat und DOCX-Roundtrip. Testzahl jetzt **196** (183 Core + 13 WPF). Noch nirgends
-angeschlossen; das ist Absicht und in §4.14 begründet.
+Speicherformat und DOCX-Roundtrip.
+
+**Erledigt in Phase 4, Schritt 2, erster Teil:** §4.15 — **Abschnitte und
+Seiteneinrichtung** (`TdSection`, `TdPageSetup`), DOCX-`sectPr` in beide Richtungen.
+Testzahl jetzt **212** (199 Core + 13 WPF). Beides ist noch nirgends angeschlossen; das ist
+Absicht und in §4.14 begründet.
 
 **Erledigt in Phase 0:**
 
@@ -356,7 +362,7 @@ gonk-note-V2/
 │                                Legacy, **Avalonia**) — §4.6, seit Phase 3 §4.9
 │
 ├─ tests/
-│  ├─ GonkNote.Core.Tests/       net10.0 · läuft auch unter Linux · 183 Tests
+│  ├─ GonkNote.Core.Tests/       net10.0 · läuft auch unter Linux · 199 Tests
 │  │  └─ Snapshots/*.sha256      Pixelhashes des Renderers (Golden-Files)
 │  └─ GonkNote.Wpf.Tests/        net10.0-windows · nur Windows · 13 Tests
 │     ├─ Fixtures/               referenz.md, referenz-docx.txt (Golden-Files)
@@ -1451,14 +1457,13 @@ dadurch für immer unveränderlich zu machen.
 (Schritt 6). Wächter: `Die_Diskriminatoren_stehen_fest` hält sie **wörtlich** fest, genau wie
 `AlteTypnamenTests` es für die alten tut.
 
-#### Warum `Section` noch fehlt
+#### Warum `Section` in Schritt 1 noch fehlte
 
-Die Roadmap nennt `Document → Section → Block → Inline`. `Section` fehlt in Schritt 1, und
-zwar nicht aus Versehen: Ein Abschnitt trägt seine eigene Seiteneinrichtung, und die steht
-heute **vollständig an `TextDoc`** (Format, Ränder, Kopf-/Fußzeile, Wasserzeichen). Sie hier
-ein zweites Mal zu führen wäre genau die Doppelung, die §4.10 beschreibt — zwei Fassungen
-derselben Angabe driften auseinander, ohne dass es auffällt. `Section` kommt mit dem
-Seitenumbruch (Schritt 2), wo sie etwas zu tun bekommt.
+Die Roadmap nennt `Document → Section → Block → Inline`. `Section` fehlte in Schritt 1, und
+zwar nicht aus Versehen: Ein Abschnitt trägt seine eigene Seiteneinrichtung, und die stand
+**vollständig an `TextDoc`** (Format, Ränder, Kopf-/Fußzeile, Wasserzeichen). Sie dort **und**
+hier zu führen wäre die Doppelung aus §4.10 gewesen. **Mit §4.15 ist sie da** — samt der
+Nutzer-Entscheidung, wohin die Seiteneinrichtung gehört.
 
 **`TdPageBreak` steht dagegen schon jetzt da**, obwohl das Seitenlayout erst Schritt 2 ist:
 Der heutige Editor kann einen Seitenumbruch einfügen, ein Bestandsdokument kann ihn also
@@ -1538,6 +1543,88 @@ damit strenger als ein Foto. **Der Anschluss ans laufende Programm kommt mit der
 
 ---
 
+### 4.15 Phase 4, Schritt 2 (erster Teil) — Abschnitte und Seiteneinrichtung
+
+Umgesetzt am 2026-08-04. **Schritt 2 heißt „Seitenumbruch" und hat zwei Hälften:** das
+Modell, das eine Seite überhaupt beschreiben kann (hier), und die Layout-Rechnung, die Zeilen
+und Seiten daraus umbricht (steht noch aus, siehe §6).
+
+#### Die Nutzer-Entscheidung, die diesen Schritt bestimmt hat
+
+**Gefragt war:** Die Seiteneinrichtung steht heute an `TextDoc`, also neben dem Inhalt.
+Bleibt sie dort, oder wandert sie ins Modell?
+
+**Entschieden (2026-08-04): sie wandert in `TdSection`**, und die Felder an `TextDoc` werden
+zur Quelle der einmaligen Übernahme. Was das kauft: mehrere Abschnitte je Dokument — Deckblatt
+quer, Rest hoch — und ein DOCX-Import, der `sectPr` vollständig lesen kann statt die zweite
+Einrichtung wegzuwerfen. Was es kostet: eine additive Migration nach dem Muster §4.8.
+
+> **Bis die Übernahme läuft (nach Schritt 6), stehen beide nebeneinander — und das ist
+> ausdrücklich *nicht* die Doppelung aus §4.10.** Sie beschreiben verschiedene Dokumente: die
+> alten im Altformat, die neuen im eigenen. Wer eine der beiden „aufräumt", bevor die
+> Übernahme steht, macht Bestandsdokumente unlesbar. Der Unterschied zur echten Doppelung ist
+> greifbar: dort gab es **zwei Rechnungen für dieselbe Sache**, hier gibt es **zwei Formate
+> für verschiedene Dateien**.
+
+#### Zwei Felder, die es bewusst nicht gibt
+
+Beide Male aus demselben Grund — **zwei Wahrheiten über dieselbe Sache driften auseinander**:
+
+- **Kein Formatname.** `TdPageSetup` speichert Breite und Höhe in Zentimetern, sonst nichts.
+  „A4" wird über `Name` aus der Größe **zurückerkannt**. Der heutige Editor legt stattdessen
+  `PageFormat = "A4"` ab und rechnet die Größe daraus aus — das geht gut, bis ein fremdes
+  DOCX hereinkommt, dessen `sectPr` Zahlen nennt und keinen Namen. **Eine eigene Größe ist
+  kein Fehler, sie hat nur keinen Namen** (`Name` gibt dann `null`).
+- **Kein Querformat-Schalter.** Querformat heißt: breiter als hoch. `IstQuerformat` liest das
+  ab, `Quer()`/`Hoch()` setzen es. Ein `bool` daneben wäre die zweite Wahrheit.
+
+**Die Toleranz beim Zurückerkennen (0,1 cm) ist Absicht:** ein Blatt geht durch DOCX in Twips
+und wieder zurück, und wer auf Gleichheit prüft, bekommt für ein A4-Blatt irgendwann
+„unbekannt".
+
+#### Die Stelle, an der DOCX unsymmetrisch ist
+
+**Die Seiteneinrichtung des *letzten* Abschnitts steht am Ende des Körpers, die aller anderen
+im Absatzformat ihres jeweils letzten Absatzes.** Wer alle ans Körperende hängt, bekommt ein
+Dokument mit genau einer Seiteneinrichtung — und merkt es erst am Ausdruck.
+
+Zwei Folgefallen, beide mit eigenem Wächter:
+
+- **Ein Abschnittswechsel darf keinen Absatz kosten.** Der Absatz, der die `sectPr` trägt,
+  ist Inhalt. Wer ihn beim Lesen als bloßen Träger abtut, verliert je Abschnitt eine Zeile.
+- **Ein Abschnitt darf mit einem Seitenumbruch enden.** Dann hängt die `sectPr` am
+  Umbruch-Absatz und muss beim Lesen trotzdem ein Seitenumbruch bleiben.
+
+#### Kopf- und Fußzeile gehen durch echte Felder
+
+`{SEITE}` und `{SEITEN}` werden zu **PAGE** und **NUMPAGES**, nicht zu Text. Als Text stünde
+in einem exportierten Dokument auf jeder Seite dieselbe Zahl. Beim Lesen geht es den Weg
+zurück — ohne den käme aus einem Rückimport die beim Schreiben eingesetzte „1" als
+gewöhnlicher Text zurück, und die Kopfzeile zeigte auf jeder Seite Seite 1. Dazu
+`UpdateFieldsOnOpen`, damit Word die Felder beim Öffnen rechnet.
+
+`{DATUM}` und `{TITEL}` bleiben vorerst wörtlich stehen; sie werden mit den Feldern in
+Schritt 5 nachgezogen. **Kopf- und Fußzeile sind aus demselben Grund noch Text und keine
+Absätze** — eine Kopfzeile ist im Grunde ein kleines Dokument mit Feldern darin, und ein
+Absatzbaum hier wäre heute ein Versprechen, das die Oberfläche nicht einlösen kann.
+
+#### Was in `TdPageSetup` ausdrücklich fehlt
+
+**Das Wasserzeichen.** Es steht weiter an `TextDoc`, weil es ein **Bild** ist und Bilder
+Schritt 6 sind. In DOCX ist es ohnehin eine kopfzeilenverankerte Zeichnung — es kommt also
+genau dann, wenn das Modell Bilder kann, und keinen Schritt früher.
+
+#### Stand
+
+**16 neue Wächter**, Gesamtzahl **212** (199 Core + 13 WPF). Alle drei Projekte 0 Warnungen.
+Wie in Schritt 1 gilt: **am laufenden Programm ist nichts zu sehen**, das Modell ist noch
+nicht angeschlossen.
+
+**Ausstehend in Schritt 2:** die Layout-Rechnung — Zeilenumbruch und Seitenumbruch mit
+Rändern. Erst damit hat `TextHoeheCm` einen Abnehmer.
+
+---
+
 ## 5. Entscheidungen
 
 **Getroffen, alle umgesetzt:**
@@ -1570,6 +1657,8 @@ damit strenger als ein Foto. **Der Anschluss ans laufende Programm kommt mit der
 | Wo der Markdown-Zerleger steht | **In Core** (`Core/Text/Markdown.cs`), nicht ein zweites Mal im Kopf — er zeichnet kein Pixel (§3, Faustregel), und zwei Fassungen derselben Grammatik driften auseinander (§4.12). ~~Der WPF-Kopf behält vorerst `MarkdownFlow`~~ — **seit 2026-08-04 ruft er `Markdown.Parse`** (§4.13). Entschieden 2026-08-03 |
 | Die zwei Schulden aus Phase 3 | **Eingelöst am 2026-08-04** (§4.13), beide unter Windows. `WbHit` und `Markdown.Parse` im WPF-Kopf; die Endlosschleife kam ohne eigenen Handgriff mit |
 | Wie „pixelgleich" belegt wird | **Zwei Läufe, ein Bildvergleich** — derselbe Prüflauf gegen dieselbe Master-Datenbank, einmal mit altem und einmal mit neuem Stand, danach Pixel für Pixel verglichen (§4.13). Ein Testlauf allein prüft nur, was er kennt. **Muster für jede weitere Zusammenlegung.** Entschieden 2026-08-04 |
+| Wo die Seiteneinrichtung steht | **In `TdSection`**, nicht mehr an `TextDoc` (§4.15). Das kauft mehrere Abschnitte je Dokument und einen DOCX-Import, der `sectPr` vollständig liest; es kostet eine additive Migration nach dem Muster §4.8. Bis die läuft, stehen beide nebeneinander — **verschiedene Formate für verschiedene Dateien**, nicht zwei Rechnungen für dieselbe Sache. Entschieden 2026-08-04 (Nutzer) |
+| Wann die Bestandsdokumente übernommen werden | **Zuletzt, nach Schritt 6** (§6). RTF und XamlPackage tragen Tabellen, Bilder und Diagramme; das Modell kann die erst ab Schritt 4 bzw. 6. Eine Übernahme davor wäre **stiller Datenverlust** — genau das, wovor §4.8 warnt. Bis dahin bleibt `Rtf` das führende Feld und das Modell wird über DOCX geprüft, nicht über Nutzerdaten. Entschieden 2026-08-04 (Nutzer) |
 | Namen der WPF-Hilfsmethoden | **Bleiben stehen** — `HitElement`, `HitTestElement`, `SelectByLasso`, `ComputeSelectionBounds` sind Einzeiler, die an `WbHit` weiterreichen. Elf Aufrufstellen in fünf Partials umzubenennen hätte den Diff verdreifacht, ohne am Ergebnis etwas zu ändern; wegkommen sollte die zweite **Rechnung**, nicht die zweite Bezeichnung (§4.13). Entschieden 2026-08-04 |
 
 **Noch offen:**
@@ -2083,9 +2172,12 @@ Boden", das einzige Risiko, das die Roadmap mit **hoch** einstuft.
 
 - [x] **1. Absätze + Zeichenformate** (§4.14, 2026-08-04). Modell, Speicherformat und das
       DOCX-Tor stehen; 37 neue Wächter. **Noch nirgends angeschlossen** — das ist Absicht
-- [ ] 2. **Seitenumbruch** — hier kommt `TdSection` dazu, und mit ihr die Seiteneinrichtung.
-      Achtung: die steht heute an `TextDoc`; **eine der beiden muss weichen**, sonst ist es
-      die Doppelung aus §4.10
+- [~] 2. **Seitenumbruch** — zwei Hälften:
+      - [x] **Modell** (§4.15): `TdSection` + `TdPageSetup`, DOCX-`sectPr` in beide
+            Richtungen, Kopf-/Fußzeile mit echten PAGE-Feldern. 16 neue Wächter
+      - [ ] **Layout-Rechnung**: Zeilenumbruch (Skia-Textmessung) und Seitenumbruch mit
+            Rändern, `KeepWithNext` und `PageBreakBefore`. Erst damit bekommt
+            `TdPageSetup.TextHoeheCm` einen Abnehmer
 - [ ] 3. Listen — `"list"` ist als Diskriminator reserviert
 - [ ] 4. Tabellen, inkl. verbundener Zellen
 - [ ] 5. Felder und Inhaltsverzeichnis — `TdParaFormat.OutlineLevel` steht seit Schritt 1
@@ -2707,7 +2799,24 @@ und keine davon sieht wie ein Fehler aus.
   eine geklärte Lizenz (§6); ein mit Skia gemaltes Rechteck braucht keine. Dabei nie
   achsensymmetrisch malen, sonst fällt eine vertauschte Achse nicht auf.
 
-**Neu aus Phase 4 — Dokumentformat und DOCX (§4.14)**
+**Neu aus Phase 4 — Dokumentformat und DOCX (§4.14, §4.15)**
+
+- **DOCX legt die Seiteneinrichtung unsymmetrisch ab.** Die des **letzten** Abschnitts steht
+  am Ende des Körpers, die aller anderen im `pPr` ihres jeweils letzten Absatzes. Wer alle ans
+  Körperende hängt, bekommt ein Dokument mit genau **einer** Seiteneinrichtung — und merkt es
+  erst am Ausdruck. Beim Lesen gilt dasselbe rückwärts: der Absatz, der die `sectPr` trägt,
+  ist **Inhalt** und kein bloßer Träger; wer ihn überspringt, verliert je Abschnitt eine Zeile.
+- **Word leitet die Ausrichtung nicht aus den Maßen ab.** Ohne `w:orient` dreht es ein quer
+  eingetragenes Blatt beim Drucken wieder hoch. Die Datei sieht dabei richtig aus, nur der
+  Ausdruck nicht.
+- **`{SEITE}` als Text steht auf jeder Seite gleich da.** Kopf- und Fußzeilen brauchen echte
+  Felder (PAGE, NUMPAGES) plus `UpdateFieldsOnOpen`. Und den Weg **zurück**: ohne ihn kommt
+  aus einem Rückimport die beim Schreiben eingesetzte „1" als gewöhnlicher Text.
+- **Zwei Wahrheiten über dieselbe Sache driften auseinander — auch im Kleinen.** Deshalb hat
+  `TdPageSetup` weder einen Formatnamen (`"A4"` wird aus der Größe zurückerkannt) noch einen
+  Querformat-Schalter (breiter als hoch = quer). Der heutige Editor speichert beides und
+  rechnet die Größe aus dem Namen — das bricht beim ersten fremden DOCX, dessen `sectPr`
+  Zahlen nennt und keinen Namen.
 
 - **Dasselbe Paket kann je Ziel-Framework eine andere Abhängigkeitskette haben.**
   `DocumentFormat.OpenXml` zieht auf reinem `net10.0` ein `System.IO.Packaging` aus NuGet
@@ -2851,6 +2960,7 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 
 | Runde | Datum | Was |
 |---|---|---|
+| V2-19 | 2026-08-04 | **Phase 4, Schritt 2, erster Teil: Abschnitte und Seiteneinrichtung** (§4.15). **Zwei Nutzer-Entscheidungen vorab eingeholt**, beide betrafen das Dateiformat und ließen sich nicht aus dem Bestand ableiten: (1) Die Seiteneinrichtung **wandert in `TdSection`**, die Felder an `TextDoc` werden zur Quelle der Übernahme — das kauft mehrere Abschnitte je Dokument (Deckblatt quer, Rest hoch) und einen DOCX-Import, der `sectPr` vollständig liest statt die zweite Einrichtung wegzuwerfen. (2) Die **Übernahme der Bestandsdokumente kommt zuletzt**, nach Schritt 6: RTF und XamlPackage tragen Tabellen, Bilder und Diagramme, und eine Übernahme davor wäre stiller Datenverlust. **Wichtig für den nächsten Leser:** bis dahin stehen `TextDoc` und `TdPageSetup` nebeneinander, und das ist **nicht** die Doppelung aus §4.10 — dort gab es zwei Rechnungen für dieselbe Sache, hier zwei Formate für verschiedene Dateien. Wer eine davon aufräumt, macht Bestandsdokumente unlesbar. **Zwei Felder gibt es bewusst nicht**, beide Male weil zwei Wahrheiten über dieselbe Sache auseinanderdriften: keinen Formatnamen (`"A4"` wird über `Name` aus der Größe zurückerkannt, Toleranz 0,1 cm, weil ein Blatt durch Twips geht) und keinen Querformat-Schalter (breiter als hoch = quer). Der heutige Editor speichert beides und rechnet die Größe aus dem Namen — das bricht beim ersten fremden DOCX, dessen `sectPr` Zahlen nennt. **Die teuerste Eigenheit dieses Teils:** DOCX legt die Seiteneinrichtung **unsymmetrisch** ab — die des letzten Abschnitts am Körperende, die aller anderen im `pPr` ihres letzten Absatzes. Wer alle ans Körperende hängt, bekommt ein Dokument mit genau einer Einrichtung und merkt es erst am Ausdruck; wer beim Lesen den Träger-Absatz überspringt, verliert je Abschnitt eine Zeile. Beides hat jetzt einen eigenen Wächter, ebenso der Abschnitt, der mit einem Seitenumbruch endet. **Kopf- und Fußzeile gehen durch echte Felder** (PAGE/NUMPAGES plus `UpdateFieldsOnOpen`) und beim Lesen wieder zurück zu `{SEITE}`/`{SEITEN}` — als Text stünde auf jeder Seite dieselbe Zahl. Das **Wasserzeichen bleibt an `TextDoc`**: es ist ein Bild, und Bilder sind Schritt 6. **16 neue Wächter, jetzt 212** (199 Core + 13 WPF), alle drei Projekte 0 Warnungen. **Dabei einmal PowerShell 5.1 in die Umlaut-Falle getappt**: `Get-Content -Raw` ohne `-Encoding` liest UTF-8 als ANSI, und das Zurückschreiben macht Mojibake aus jedem Umlaut — Quelldateien gehören durch das Edit-Werkzeug, nicht durch die Shell. **Ausstehend in Schritt 2:** die Layout-Rechnung (Zeilen- und Seitenumbruch); erst damit bekommt `TextHoeheCm` einen Abnehmer |
 | V2-18 | 2026-08-04 | **Phase 4 beginnt: Schritt 1 — Absätze und Zeichenformate** (§4.14), strikt in der Reihenfolge aus Roadmap §5. **Der Befund, der die Phase begründet, steht jetzt schwarz auf weiß:** `TextDoc.Rtf` enthält RTF **oder ein WPF-`XamlPackage`** — das Speicherformat der Textdokumente ist Windows, in Bytes gegossen. Solange das so ist, bleiben Textdokumente unter Linux ausgegraut, egal wie gut die Oberfläche wird; Phase 4 ist deshalb kein Editor-Umbau, sondern ein Formatwechsel und gehört in denselben Vorsichtsbereich wie §4.8. Neu in `Core/Text/`: **`TdDocument` → `TdBlock`(`TdParagraph`, `TdPageBreak`) → `TdInline`(`TdRun`, `TdLineBreak`)** mit `TdCharFormat`/`TdParaFormat`. **Die tragende Entscheidung: `null` heißt „nicht gesetzt" und nicht „Standardwert"** — sonst könnte man Fett in einer fetten Überschrift nie wieder abschalten, und jede spätere Änderung an der Überschrift ginge an allen geschriebenen Läufen vorbei. Gerechnet wird über `Over()`, **dasselbe Muster wie `ThemeDefinition.Over`**, vierstufig: Stück → Absatz → Dokument → Standard. Das Speicherformat (`TdJson`, Kennung `GNTD` + Json über den Source-Generator) schreibt deshalb mit `WhenWritingNull` — **dem Gegenteil von `GonkJson`**, und aus dem entgegengesetzten Grund. Die **Diskriminatoren sind kurz** (`"p"`, `"run"`, …) statt „Namensraum.Typ, Assembly": die lange Form bei `WbElement` ist ein LiteDB-Erbe, dieses Format hat keines — Namen für die späteren Schritte sind reserviert und wörtlich festgenagelt. **`Section` fehlt bewusst** (die Seiteneinrichtung steht an `TextDoc`, zwei Fassungen wären §4.10), **`TdPageBreak` steht bewusst schon da** (der heutige Editor kann ihn einfügen, und ein verschluckter Seitenumbruch fällt erst beim Drucken auf). **Das Tor, das die Roadmap nach jedem Schritt verlangt, ist gebaut:** `TdDocx` schreibt und liest DOCX gegen das Modell und prüft gegen das Office-2019-Schema. **Warum DOCX und nicht der eigene Roundtrip:** ein fremdes Format kennt die eigenen Bequemlichkeiten nicht — es hat sofort vier Stellen aufgedeckt, die jetzt eigene Wächter haben (hängender Einzug ist in DOCX ein eigenes Feld und kein Vorzeichen; `<w:b/>` **ohne** `val` heißt „an", was nur bei fremden Dateien zuschlägt; Leerzeichen am Rand brauchen `xml:space="preserve"`; „Hervorhebung aus" ist die Füllung `auto` und nicht das Fehlen des Elements). **Eine Sicherheitslücke gefunden, die vorher gar nicht auftauchen konnte:** Core bekam `DocumentFormat.OpenXml` und damit `System.IO.Packaging` 8.0.0 mit zwei Lücken (NU1903) — unter `net10.0-windows` mit WPF kommt dieselbe Klasse aus dem Framework, es wird gar kein Paket geholt. **Dasselbe Paket kann je Ziel-Framework eine andere Abhängigkeitskette haben**; behoben über das transitive Pinning wie bei SQLitePCLRaw. **Drei Wächter waren zu genau und wurden korrigiert, nicht der Code:** ein Twip ist 0,0018 cm, und ein Roundtrip-Test, der drei Nachkommastellen in Zentimetern verlangt, prüft die Auflösung eines fremden Formats statt des eigenen Codes. **37 neue Tests, jetzt 196** (183 Core + 13 WPF), beide Köpfe 0 Warnungen. **Am laufenden Programm ist hier nichts zu sehen, und das ist richtig so** — das Modell ist noch nirgends angeschlossen, `TextDoc.Rtf` ist unverändert, und die Gegenprobe ist der DOCX-Roundtrip. **Offen und vor Schritt 2 zu entscheiden:** wie die Bestandsdokumente herüberkommen (§6) — Vorschlag: zuletzt und nicht zuerst, weil eine Übernahme vor Schritt 6 stiller Datenverlust wäre |
 | V2-17 | 2026-08-04 | **Die zwei benannten Schulden aus Phase 3 sind eingelöst** (§4.13), auf dem Windows-Rechner — dem einzigen, auf dem der WPF-Kopf baut. (1) **`WhiteboardView.Selection.cs` rechnet mit `WbHit` aus Core**: `RotatePt`, `HitElement`, `HitTestElement`, `SegOrPointDist`, `ShapeOutlineDist`, `AllCornersInside`, der Lasso-Kern und `ComputeSelectionBounds` sind als eigene Rechnung verschwunden, 384 → 290 Zeilen. Die **Namen** bleiben als Einzeiler stehen: sie haben elf Aufrufstellen in fünf anderen Partials, und wegkommen sollte die zweite Rechnung, nicht die zweite Bezeichnung. (2) **`MarkdownFlow` ruft `Markdown.Parse`** und malt nur noch den Blockbaum, 339 → 232 Zeilen. **Die Endlosschleife aus §4.12 kam ohne eigenen Handgriff mit** — wer die Grammatik wegwirft, wirft den Fehler mit weg; das ist der Unterschied zwischen „an zwei Stellen reparieren" und „eine Stelle haben". Nebenbei entfällt das `[ThreadStatic]`-Feld für den Dokument-Verweis: es gab es nur, weil Zitatblöcke sich selbst erneut aufriefen, und ein `MdQuote` bringt seinen Inhalt bereits zerlegt mit. (3) **Der WPF-Über-Dialog zeigt den Datenordner** — die Zeile aus §4.12; sie war nötig und nicht kosmetisch, weil `About.Subtitle` seit §4.12 keinen Pfad mehr nennt und die Angabe auf Windows sonst ganz fehlte. **Das Wort „pixelgleich" ist gemessen, nicht behauptet:** derselbe Prüflauf gegen dieselbe Master-Datenbank, einmal mit dem alten Stand (`git stash` auf die eine Datei) und einmal mit dem neuen — **alle drei Bildpaare Pixel für Pixel identisch, 2906×1826, null Abweichung**. Ein Testlauf hätte das nicht hergegeben: er prüft, was er kennt, der Bildvergleich prüft alles, was auf dem Schirm steht. **Für Phase 4 ist das jetzt das Muster.** Dafür musste `kette.ps1` erst **ziehen** lernen (`"x1,y1>x2,y2>…"`, mit Interpolation) — das Linux-Gegenstück kann es seit §4.10, unter Windows fehlte es, und ohne Ziehen ist die Auswahl gar nicht fernsteuerbar. **Zwei Fernsteuer-Fallen dabei gefunden** (§7): die PowerShell-Pipeline entpackt verschachtelte Arrays, sodass `SetCursorPos` ein Array statt einer Zahl bekommt; und ein Klick auf einen Untermenü-Eintrag **schließt** das Untermenü, wenn der Hover es schon geöffnet hat — der nächste Klick landet dann darunter, und auf dem Foto sieht man die Ursache nicht, weil der Hover das Menü bis zur Aufnahme wieder öffnet. Geprüft ohne echte Daten, beide Markdown-Dialoge in **beiden** Sprachen (Überschriften, verschachtelte Listen, Zitat, Code-Block, **Tabelle**, und der Verweis „Erste Schritte" öffnet die Anleitung). **159 Tests unverändert grün** — nichts dazugekommen, zwei Fassungen weniger; `TrefferTests` und `MarkdownTests` bewachen ab jetzt beide Köpfe |
 | V2-16 | 2026-08-04 | **Nachlese zu V2-15, wieder auf Nutzerwunsch.** (1) **Die große Ordner-Kachel bekommt ihre eigene Strichstärke** (`4,5` statt `0,7`, `MainWindow.axaml`). Grund und allgemeine Lehre: **`StrokeThickness` wächst nicht mit `Stretch` mit** — der Wert steht in Gerätepunkten und nicht in denen der Geometrie, weshalb dieselben 0,7, die im Baum bei 16 px kräftig aussehen, bei 118 px ein Haarstrich sind. Wer künftig eine Vektorform groß zeigt, muss die Stärke dort eigens setzen. In der Seitenleiste bleibt alles wie es war. (2) **`Icon.Textmarker` im dritten Anlauf**, jetzt **oben offen**: der Schaft ist am oberen Rand abgeschnitten, zwei Stege stehen über der Bandlinie, unten die Keilspitze. Genau daran lagen die ersten beiden Fassungen daneben — eine geschlossene Kappe macht daraus einen Stift mit Deckel. **Neu als Arbeitsweise:** eine Form beurteilt man schneller, indem man dieselbe Pfadangabe als `.svg` groß rendert (`magick … -filter point -resize 400x`), als indem man die App neu startet; die Gegenprobe am laufenden Programm bleibt Pflicht, aber einmal statt bei jedem Zwischenstand. **Dabei eine teure Wayland-Falle gefunden** (§7): **`import -window` liefert manchmal ein Bild, das mehrere Schritte alt ist** — man klickt, das Foto zeigt keine Wirkung, man korrigiert Koordinaten, und in Wahrheit hat schon der erste Klick gesessen. Vier Durchgänge sind so verloren gegangen. Gegenmittel: zwei Aufnahmen hashen und bei Gleichstand eine Aktion mit unübersehbarer Wirkung auslösen |

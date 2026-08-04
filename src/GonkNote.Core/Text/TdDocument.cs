@@ -190,15 +190,6 @@ public sealed class TdPageBreak : TdBlock
 /// </para>
 ///
 /// <para>
-/// <b>Was hier bewusst noch nicht steht.</b> Die Roadmap nennt für das Modell
-/// <c>Document → Section → Block → Inline</c>. <c>Section</c> fehlt in Schritt 1, und zwar
-/// nicht aus Versehen: Ein Abschnitt trägt seine eigene Seiteneinrichtung, und die steht
-/// heute vollständig an <c>TextDoc</c> (Format, Ränder, Kopf-/Fußzeile, Wasserzeichen) — sie
-/// hier ein zweites Mal zu führen, wäre genau die Doppelung, die HANDOFF §4.10 beschreibt.
-/// <c>Section</c> kommt mit dem Seitenumbruch (Schritt 2), wo sie etwas zu tun bekommt.
-/// </para>
-///
-/// <para>
 /// <b>Das Modell zeichnet kein Pixel</b> und steht deshalb nach der Faustregel aus HANDOFF §3
 /// in Core — genau wie <c>Markdown</c> nebenan.
 /// </para>
@@ -212,7 +203,11 @@ public sealed class TdDocument
     /// </summary>
     public int Version { get; set; } = 1;
 
-    public List<TdBlock> Blocks { get; set; } = new();
+    /// <summary>
+    /// Die Abschnitte des Dokuments — mindestens einer. Jeder trägt seine eigene
+    /// Seiteneinrichtung (Schritt 2, <see cref="TdSection"/>).
+    /// </summary>
+    public List<TdSection> Sections { get; set; } = new();
 
     /// <summary>
     /// Grundformate des Dokuments. Sie liegen unter allem, was Absätze und Stücke setzen,
@@ -224,16 +219,28 @@ public sealed class TdDocument
     public TdParaFormat DefaultParaFormat { get; set; } = new();
 
     /// <summary>
-    /// Ein leeres Dokument ist **nicht** blocklos, sondern hat einen leeren Absatz — sonst
-    /// hätte der Cursor beim ersten Tastendruck keinen Ort.
+    /// Ein leeres Dokument ist **nicht** leer, sondern hat einen Abschnitt mit einem leeren
+    /// Absatz — sonst hätte der Cursor beim ersten Tastendruck keinen Ort.
     /// </summary>
-    public static TdDocument Leer() => new() { Blocks = { new TdParagraph() } };
+    public static TdDocument Leer() =>
+        new() { Sections = { new TdSection(new TdParagraph()) } };
+
+    /// <summary>
+    /// Alle Blöcke über alle Abschnitte hinweg, der Reihe nach. Für alles, was die
+    /// Seiteneinrichtung nicht interessiert — Wortzähler, Suche, Markdown-Export.
+    /// </summary>
+    public IEnumerable<TdBlock> Blocks()
+    {
+        foreach (var abschnitt in Sections)
+            foreach (var block in abschnitt.Blocks)
+                yield return block;
+    }
 
     /// <summary>Der ganze Text, Absätze durch Zeilenumbruch getrennt.</summary>
     public string PlainText()
     {
         var sb = new StringBuilder();
-        foreach (var b in Blocks)
+        foreach (var b in Blocks())
         {
             if (sb.Length > 0) sb.Append('\n');
             sb.Append(b.PlainText());
@@ -273,7 +280,7 @@ public sealed class TdDocument
     /// <summary>Alle Absätze der Reihe nach — der häufigste Durchlauf über ein Dokument.</summary>
     public IEnumerable<TdParagraph> Paragraphs()
     {
-        foreach (var b in Blocks)
+        foreach (var b in Blocks())
             if (b is TdParagraph p) yield return p;
     }
 }

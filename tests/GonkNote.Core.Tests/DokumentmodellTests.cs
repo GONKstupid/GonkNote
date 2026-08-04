@@ -91,7 +91,7 @@ public sealed class DokumentmodellTests
         var absatz = new TdParagraph { CharFormat = { FontSize = 20 } };
         var lauf = new TdRun("Wort", new TdCharFormat { Bold = true });
         absatz.Inlines.Add(lauf);
-        doc.Blocks.Add(absatz);
+        doc.Sections.Add(new TdSection(absatz));
 
         var f = doc.FormatVon(absatz, lauf);
 
@@ -136,7 +136,7 @@ public sealed class DokumentmodellTests
     {
         var doc = new TdDocument
         {
-            Blocks = { new TdParagraph("Ende"), new TdParagraph("Anfang") },
+            Sections = { new TdSection(new TdParagraph("Ende"), new TdParagraph("Anfang")) },
         };
 
         Assert.Equal("Ende\nAnfang", doc.PlainText());
@@ -149,25 +149,113 @@ public sealed class DokumentmodellTests
     {
         var doc = new TdDocument
         {
-            Blocks =
+            Sections =
             {
-                new TdParagraph([new TdRun("zwei   Wörter"), new TdLineBreak(), new TdRun("  drei")]),
-                new TdParagraph("   "),
+                new TdSection(
+                    new TdParagraph([new TdRun("zwei   Wörter"), new TdLineBreak(), new TdRun("  drei")]),
+                    new TdParagraph("   ")),
             },
         };
 
         Assert.Equal(3, doc.WordCount());
     }
 
-    /// <summary>Ein leeres Dokument hat einen Absatz — sonst hätte der Cursor keinen Ort.</summary>
+    /// <summary>
+    /// Der Klartext läuft über **alle** Abschnitte. Ein Abschnittswechsel ist eine Angabe
+    /// über das Blatt und keine über den Text — wer nur den ersten liest, verliert ab dem
+    /// Deckblatt alles.
+    /// </summary>
+    [Fact]
+    public void Der_Klartext_laeuft_ueber_alle_Abschnitte()
+    {
+        var doc = new TdDocument
+        {
+            Sections =
+            {
+                new TdSection(new TdParagraph("Deckblatt")),
+                new TdSection(new TdParagraph("Inhalt")),
+            },
+        };
+
+        Assert.Equal("Deckblatt\nInhalt", doc.PlainText());
+        Assert.Equal(2, doc.WordCount());
+        Assert.Equal(2, doc.Blocks().Count());
+    }
+
+    /// <summary>Ein leeres Dokument hat einen Abschnitt mit einem Absatz — sonst hätte der Cursor keinen Ort.</summary>
     [Fact]
     public void Ein_leeres_Dokument_hat_einen_leeren_Absatz()
     {
         var doc = TdDocument.Leer();
-        Assert.Single(doc.Blocks);
-        Assert.IsType<TdParagraph>(doc.Blocks[0]);
+        var abschnitt = Assert.Single(doc.Sections);
+        Assert.IsType<TdParagraph>(Assert.Single(abschnitt.Blocks));
         Assert.Equal("", doc.PlainText());
         Assert.Equal(0, doc.WordCount());
+    }
+
+    // ==================== Seiteneinrichtung ====================
+
+    /// <summary>
+    /// Querformat ist keine eigene Angabe, sondern „breiter als hoch". Ein zusätzliches
+    /// <c>bool</c> daneben wäre eine zweite Wahrheit über dieselbe Sache — die Doppelung aus
+    /// HANDOFF §4.10, nur im Kleinen.
+    /// </summary>
+    [Fact]
+    public void Querformat_steht_in_den_Massen_und_nicht_in_einem_Schalter()
+    {
+        var seite = TdPageSetup.A4;
+        Assert.False(seite.IstQuerformat);
+
+        seite.Quer();
+        Assert.True(seite.IstQuerformat);
+        Assert.Equal(29.7, seite.WidthCm, 2);
+        Assert.Equal(21.0, seite.HeightCm, 2);
+
+        // Zweimal drehen ändert nichts mehr — die Methoden setzen einen Zustand, sie
+        // schalten nicht um.
+        seite.Quer();
+        Assert.Equal(29.7, seite.WidthCm, 2);
+
+        seite.Hoch();
+        Assert.Equal(21.0, seite.WidthCm, 2);
+    }
+
+    /// <summary>
+    /// Der Formatname wird aus der Größe **zurückerkannt** und nicht gespeichert — sonst
+    /// könnten Name und Maße sich widersprechen. Ein quer liegendes A4 ist weiterhin A4.
+    /// </summary>
+    [Theory]
+    [InlineData(21.0, 29.7, "A4")]
+    [InlineData(29.7, 21.0, "A4")]
+    [InlineData(14.8, 21.0, "A5")]
+    [InlineData(29.7, 42.0, "A3")]
+    [InlineData(21.59, 27.94, "Letter")]
+    public void Der_Formatname_wird_aus_der_Groesse_erkannt(double b, double h, string name)
+    {
+        Assert.Equal(name, new TdPageSetup { WidthCm = b, HeightCm = h }.Name);
+    }
+
+    /// <summary>Eine eigene Größe ist kein Fehler — sie hat nur keinen Namen.</summary>
+    [Fact]
+    public void Eine_eigene_Groesse_hat_keinen_Namen_und_ist_trotzdem_gueltig()
+    {
+        Assert.Null(new TdPageSetup { WidthCm = 17.3, HeightCm = 24.1 }.Name);
+    }
+
+    /// <summary>
+    /// Der bedruckbare Bereich ist Blatt minus Ränder — und nie negativ. Ränder, die breiter
+    /// sind als das Blatt, kommen aus fremden Dateien; ein negativer Textbereich brächte den
+    /// Umbruch in Schritt 2b zum Stillstand.
+    /// </summary>
+    [Fact]
+    public void Der_bedruckbare_Bereich_wird_nicht_negativ()
+    {
+        var normal = TdPageSetup.A4;
+        Assert.Equal(17.0, normal.TextBreiteCm, 2);
+        Assert.Equal(25.7, normal.TextHoeheCm, 2);
+
+        var unsinnig = new TdPageSetup { WidthCm = 5, MarginLeftCm = 4, MarginRightCm = 4 };
+        Assert.Equal(0, unsinnig.TextBreiteCm);
     }
 
     // ==================== Speicherformat ====================
@@ -197,7 +285,7 @@ public sealed class DokumentmodellTests
     [Fact]
     public void Nicht_gesetzte_Formatfelder_landen_nicht_in_der_Datei()
     {
-        var doc = new TdDocument { Blocks = { new TdParagraph("schlicht") } };
+        var doc = new TdDocument { Sections = { new TdSection(new TdParagraph("schlicht")) } };
 
         string json = Text(TdFormatIo.Schreiben(doc));
 
@@ -216,10 +304,11 @@ public sealed class DokumentmodellTests
     {
         var doc = new TdDocument
         {
-            Blocks =
+            Sections =
             {
-                new TdParagraph([new TdRun("x"), new TdLineBreak()]),
-                new TdPageBreak(),
+                new TdSection(
+                    new TdParagraph([new TdRun("x"), new TdLineBreak()]),
+                    new TdPageBreak()),
             },
         };
 
@@ -293,8 +382,33 @@ public sealed class DokumentmodellTests
     {
         DefaultCharFormat = { FontFamily = "Calibri", FontSize = 11 },
         DefaultParaFormat = { SpaceAfterPt = 6, LineSpacing = 1.15 },
-        Blocks =
+        Sections =
         {
+            // Ein Deckblatt quer, der Rest hoch — der Fall, für den es Abschnitte gibt.
+            new TdSection(new TdParagraph("Deckblatt"))
+            {
+                Page = TdPageSetup.A4.Quer(),
+            },
+            new TdSection(Inhalt())
+            {
+                Page = new TdPageSetup
+                {
+                    WidthCm = 21.0,
+                    HeightCm = 29.7,
+                    MarginLeftCm = 2.5,
+                    MarginTopCm = 1.5,
+                    MarginRightCm = 2.5,
+                    MarginBottomCm = 2.0,
+                    HeaderText = "Gonk Note — {TITEL}",
+                    FooterText = "Seite {SEITE} von {SEITEN}",
+                    SuppressOnFirstPage = true,
+                },
+            },
+        },
+    };
+
+    private static TdBlock[] Inhalt() =>
+        [
             new TdParagraph([new TdRun("Kapitel 1")])
             {
                 Format = { OutlineLevel = 1, Alignment = TdAlign.Center, SpaceBeforePt = 12, KeepWithNext = true },
@@ -337,8 +451,7 @@ public sealed class DokumentmodellTests
             },
             new TdPageBreak(),
             new TdParagraph("Nach dem Umbruch.") { Format = { PageBreakBefore = true } },
-        },
-    };
+        ];
 
     private static void GleichesDokument(TdDocument a, TdDocument b)
     {
@@ -346,14 +459,24 @@ public sealed class DokumentmodellTests
         GleichesZeichenformat(a.DefaultCharFormat, b.DefaultCharFormat);
         GleichesAbsatzformat(a.DefaultParaFormat, b.DefaultParaFormat);
 
-        Assert.Equal(a.Blocks.Count, b.Blocks.Count);
-        for (int i = 0; i < a.Blocks.Count; i++)
+        Assert.Equal(a.Sections.Count, b.Sections.Count);
+        for (int s = 0; s < a.Sections.Count; s++)
         {
-            switch (a.Blocks[i])
+            GleicheSeite(a.Sections[s].Page, b.Sections[s].Page);
+            GleicheBloecke(a.Sections[s].Blocks, b.Sections[s].Blocks);
+        }
+    }
+
+    private static void GleicheBloecke(List<TdBlock> a, List<TdBlock> b)
+    {
+        Assert.Equal(a.Count, b.Count);
+        for (int i = 0; i < a.Count; i++)
+        {
+            switch (a[i])
             {
                 case TdParagraph pa:
                 {
-                    var pb = Assert.IsType<TdParagraph>(b.Blocks[i]);
+                    var pb = Assert.IsType<TdParagraph>(b[i]);
                     GleichesZeichenformat(pa.CharFormat, pb.CharFormat);
                     GleichesAbsatzformat(pa.Format, pb.Format);
 
@@ -370,17 +493,30 @@ public sealed class DokumentmodellTests
                 }
 
                 case TdPageBreak:
-                    Assert.IsType<TdPageBreak>(b.Blocks[i]);
+                    Assert.IsType<TdPageBreak>(b[i]);
                     break;
 
                 // Wer einen Blocktyp ergänzt und diesen Zweig vergisst, bekommt hier einen
                 // roten Lauf statt eines stillen Lochs im Wächter — dasselbe Muster wie in
                 // DatenbankRoundtripTests.GleichesElement.
                 default:
-                    Assert.Fail($"Kein Vergleich für {a.Blocks[i].GetType().Name} — bitte ergänzen.");
+                    Assert.Fail($"Kein Vergleich für {a[i].GetType().Name} — bitte ergänzen.");
                     break;
             }
         }
+    }
+
+    private static void GleicheSeite(TdPageSetup a, TdPageSetup b)
+    {
+        Assert.Equal(a.WidthCm, b.WidthCm, 2);
+        Assert.Equal(a.HeightCm, b.HeightCm, 2);
+        Assert.Equal(a.MarginLeftCm, b.MarginLeftCm, 2);
+        Assert.Equal(a.MarginTopCm, b.MarginTopCm, 2);
+        Assert.Equal(a.MarginRightCm, b.MarginRightCm, 2);
+        Assert.Equal(a.MarginBottomCm, b.MarginBottomCm, 2);
+        Assert.Equal(a.HeaderText, b.HeaderText);
+        Assert.Equal(a.FooterText, b.FooterText);
+        Assert.Equal(a.SuppressOnFirstPage, b.SuppressOnFirstPage);
     }
 
     private static void GleichesZeichenformat(TdCharFormat a, TdCharFormat b)

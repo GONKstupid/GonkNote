@@ -180,7 +180,7 @@ public sealed class DocxRoundtripTests
     [Fact]
     public void Leerzeichen_am_Rand_bleiben_stehen()
     {
-        var doc = new TdDocument { Blocks = { new TdParagraph("  zwei  Leerzeichen  ") } };
+        var doc = new TdDocument { Sections = { new TdSection(new TdParagraph("  zwei  Leerzeichen  ")) } };
 
         Assert.Equal("  zwei  Leerzeichen  ", Zurueck(doc).PlainText());
     }
@@ -194,12 +194,12 @@ public sealed class DocxRoundtripTests
     {
         var doc = new TdDocument
         {
-            Blocks = { new TdParagraph("davor"), new TdPageBreak(), new TdParagraph("danach") },
+            Sections = { new TdSection(new TdParagraph("davor"), new TdPageBreak(), new TdParagraph("danach")) },
         };
 
         var zurueck = Zurueck(doc);
 
-        Assert.Collection(zurueck.Blocks,
+        Assert.Collection(zurueck.Blocks(),
             b => Assert.Equal("davor", Assert.IsType<TdParagraph>(b).PlainText()),
             b => Assert.IsType<TdPageBreak>(b),
             b => Assert.Equal("danach", Assert.IsType<TdParagraph>(b).PlainText()));
@@ -215,12 +215,12 @@ public sealed class DocxRoundtripTests
     {
         var doc = new TdDocument
         {
-            Blocks = { new TdParagraph([new TdRun("oben"), new TdLineBreak(), new TdRun("unten")]) },
+            Sections = { new TdSection(new TdParagraph([new TdRun("oben"), new TdLineBreak(), new TdRun("unten")])) },
         };
 
         var zurueck = Zurueck(doc);
 
-        var absatz = Assert.IsType<TdParagraph>(Assert.Single(zurueck.Blocks));
+        var absatz = Assert.IsType<TdParagraph>(Assert.Single(zurueck.Blocks()));
         Assert.Collection(absatz.Inlines,
             i => Assert.IsType<TdRun>(i),
             i => Assert.IsType<TdLineBreak>(i),
@@ -256,7 +256,7 @@ public sealed class DocxRoundtripTests
         {
             DefaultCharFormat = { FontFamily = "Calibri", FontSize = 11 },
             DefaultParaFormat = { SpaceAfterPt = 6, LineSpacing = 1.15 },
-            Blocks = { new TdParagraph("schlicht") },
+            Sections = { new TdSection(new TdParagraph("schlicht")) },
         };
 
         var zurueck = Zurueck(doc);
@@ -282,7 +282,7 @@ public sealed class DocxRoundtripTests
     public void Was_noch_nicht_geht_verschwindet_nicht_still()
     {
         using var werkbank = new Werkbank("unbekannt");
-        var doc = new TdDocument { Blocks = { new NochNichtBlock() } };
+        var doc = new TdDocument { Sections = { new TdSection(new NochNichtBlock()) } };
 
         Assert.Throws<NotSupportedException>(
             () => TdDocx.Schreiben(doc, werkbank.Datei("x.docx")));
@@ -292,6 +292,164 @@ public sealed class DocxRoundtripTests
     private sealed class NochNichtBlock : TdBlock
     {
         public override string PlainText() => "";
+    }
+
+    // ==================== Seiteneinrichtung (Schritt 2) ====================
+
+    /// <summary>
+    /// Blattgröße und Ränder gehen durch <c>sectPr</c>. Geprüft mit einem Format, dessen
+    /// Umrechnung nicht glatt aufgeht (Letter), und mit Rändern, die sich voneinander
+    /// unterscheiden — vier gleiche Ränder würden eine vertauschte Reihenfolge nicht zeigen.
+    /// </summary>
+    [Fact]
+    public void Blattgroesse_und_Raender_ueberstehen_sectPr()
+    {
+        var seite = new TdPageSetup
+        {
+            WidthCm = 21.59,
+            HeightCm = 27.94,
+            MarginLeftCm = 3.0,
+            MarginTopCm = 1.0,
+            MarginRightCm = 2.0,
+            MarginBottomCm = 1.5,
+        };
+
+        var zurueck = Zurueck(MitSeite(seite)).Sections[0].Page;
+
+        Assert.Equal(21.59, zurueck.WidthCm, 2);
+        Assert.Equal(27.94, zurueck.HeightCm, 2);
+        Assert.Equal(3.0, zurueck.MarginLeftCm, 2);
+        Assert.Equal(1.0, zurueck.MarginTopCm, 2);
+        Assert.Equal(2.0, zurueck.MarginRightCm, 2);
+        Assert.Equal(1.5, zurueck.MarginBottomCm, 2);
+        Assert.Equal("Letter", zurueck.Name);
+    }
+
+    /// <summary>
+    /// <b>Word leitet die Ausrichtung nicht aus den Maßen ab.</b> Ohne <c>w:orient</c> dreht
+    /// es ein quer eingetragenes Blatt beim Drucken wieder hoch — die Datei sieht dabei
+    /// richtig aus, nur der Ausdruck nicht.
+    /// </summary>
+    [Fact]
+    public void Querformat_ueberlebt_und_traegt_seine_Ausrichtung()
+    {
+        var zurueck = Zurueck(MitSeite(TdPageSetup.A4.Quer())).Sections[0].Page;
+
+        Assert.True(zurueck.IstQuerformat);
+        Assert.Equal(29.7, zurueck.WidthCm, 2);
+        Assert.Equal(21.0, zurueck.HeightCm, 2);
+        Assert.Equal("A4", zurueck.Name);
+    }
+
+    /// <summary>
+    /// <b>Kopf- und Fußzeile gehen durch echte Felder.</b> <c>{SEITE}</c> als bloßer Text
+    /// stünde auf jeder Seite gleich da — deshalb wird daraus ein PAGE-Feld, und beim Lesen
+    /// wieder der Platzhalter. Ohne den Rückweg käme aus einem Rückimport die beim Schreiben
+    /// eingesetzte „1" als gewöhnlicher Text zurück.
+    /// </summary>
+    [Fact]
+    public void Kopf_und_Fusszeile_gehen_durch_echte_Felder()
+    {
+        var seite = new TdPageSetup
+        {
+            HeaderText = "Gonk Note — {TITEL}",
+            FooterText = "Seite {SEITE} von {SEITEN}",
+            SuppressOnFirstPage = true,
+        };
+
+        var zurueck = Zurueck(MitSeite(seite)).Sections[0].Page;
+
+        Assert.Equal("Gonk Note — {TITEL}", zurueck.HeaderText);
+        Assert.Equal("Seite {SEITE} von {SEITEN}", zurueck.FooterText);
+        Assert.True(zurueck.SuppressOnFirstPage);
+    }
+
+    /// <summary>Ohne Kopf-/Fußzeile entsteht auch kein leerer Teil im Dokument.</summary>
+    [Fact]
+    public void Ohne_Kopfzeile_bleibt_sie_leer()
+    {
+        var zurueck = Zurueck(MitSeite(TdPageSetup.A4)).Sections[0].Page;
+
+        Assert.Equal("", zurueck.HeaderText);
+        Assert.Equal("", zurueck.FooterText);
+        Assert.False(zurueck.SuppressOnFirstPage);
+    }
+
+    /// <summary>
+    /// <b>Die Stelle, an der DOCX unsymmetrisch ist.</b> Die Einrichtung des *letzten*
+    /// Abschnitts steht am Ende des Körpers, die aller anderen im Absatzformat ihres jeweils
+    /// letzten Absatzes. Wer alle ans Körperende hängt, bekommt ein Dokument mit genau einer
+    /// Seiteneinrichtung — und merkt es erst am Ausdruck.
+    /// </summary>
+    [Fact]
+    public void Zwei_Abschnitte_behalten_zwei_Seiteneinrichtungen()
+    {
+        var doc = new TdDocument
+        {
+            Sections =
+            {
+                new TdSection(new TdParagraph("Deckblatt")) { Page = TdPageSetup.A4.Quer() },
+                new TdSection(new TdParagraph("Inhalt")) { Page = TdPageSetup.A5 },
+            },
+        };
+
+        var zurueck = Zurueck(doc);
+
+        Assert.Equal(2, zurueck.Sections.Count);
+        Assert.Equal("Deckblatt", zurueck.Sections[0].Blocks[0].PlainText());
+        Assert.True(zurueck.Sections[0].Page.IstQuerformat);
+        Assert.Equal("A4", zurueck.Sections[0].Page.Name);
+
+        Assert.Equal("Inhalt", zurueck.Sections[1].Blocks[0].PlainText());
+        Assert.False(zurueck.Sections[1].Page.IstQuerformat);
+        Assert.Equal("A5", zurueck.Sections[1].Page.Name);
+    }
+
+    /// <summary>
+    /// Ein Abschnittswechsel darf keinen Absatz kosten. Die <c>sectPr</c> hängt am **letzten**
+    /// Absatz des Abschnitts, und der ist Inhalt — wer ihn beim Lesen als bloßen Träger
+    /// abtut, verliert je Abschnitt eine Zeile.
+    /// </summary>
+    [Fact]
+    public void Ein_Abschnittswechsel_kostet_keinen_Absatz()
+    {
+        var doc = new TdDocument
+        {
+            Sections =
+            {
+                new TdSection(new TdParagraph("eins"), new TdParagraph("zwei")),
+                new TdSection(new TdParagraph("drei")),
+            },
+        };
+
+        var zurueck = Zurueck(doc);
+
+        Assert.Equal(2, zurueck.Sections[0].Blocks.Count);
+        Assert.Equal("eins\nzwei\ndrei", zurueck.PlainText());
+    }
+
+    /// <summary>
+    /// Ein Abschnitt, dessen letzter Block ein Seitenumbruch ist, trägt seine
+    /// <c>sectPr</c> auf dem Umbruch-Absatz — und muss beim Lesen trotzdem ein
+    /// Seitenumbruch bleiben und kein leerer Absatz werden.
+    /// </summary>
+    [Fact]
+    public void Ein_Abschnitt_darf_mit_einem_Seitenumbruch_enden()
+    {
+        var doc = new TdDocument
+        {
+            Sections =
+            {
+                new TdSection(new TdParagraph("davor"), new TdPageBreak()),
+                new TdSection(new TdParagraph("danach")),
+            },
+        };
+
+        var zurueck = Zurueck(doc);
+
+        Assert.Equal(2, zurueck.Sections.Count);
+        Assert.IsType<TdPageBreak>(zurueck.Sections[0].Blocks[^1]);
+        Assert.Equal("danach", zurueck.Sections[1].Blocks[0].PlainText());
     }
 
     // ==================== Hilfsmittel ====================
@@ -305,10 +463,13 @@ public sealed class DocxRoundtripTests
     }
 
     private static TdDocument MitZeichenformat(TdCharFormat f) =>
-        new() { Blocks = { new TdParagraph([new TdRun("Wort", f)]) } };
+        new() { Sections = { new TdSection(new TdParagraph([new TdRun("Wort", f)])) } };
 
     private static TdDocument MitAbsatzformat(TdParaFormat f) =>
-        new() { Blocks = { new TdParagraph("Wort") { Format = f } } };
+        new() { Sections = { new TdSection(new TdParagraph("Wort") { Format = f }) } };
+
+    private static TdDocument MitSeite(TdPageSetup seite) =>
+        new() { Sections = { new TdSection(new TdParagraph("Wort")) { Page = seite } } };
 
     private static TdCharFormat ErstesStueck(TdDocument doc) =>
         doc.Paragraphs().First().Inlines[0].Format;
@@ -339,8 +500,32 @@ public sealed class DocxRoundtripTests
     {
         DefaultCharFormat = { FontFamily = "Calibri", FontSize = 11 },
         DefaultParaFormat = { SpaceAfterPt = 6, LineSpacing = 1.15 },
-        Blocks =
+        Sections =
         {
+            // Ein Deckblatt quer, der Rest hoch — der Fall, für den es Abschnitte gibt, und
+            // gleichzeitig der Fall, an dem DOCX unsymmetrisch ist: die sectPr des ersten
+            // Abschnitts steht im letzten Absatz, die des zweiten am Körperende.
+            new TdSection(new TdParagraph("Deckblatt")) { Page = TdPageSetup.A4.Quer() },
+            new TdSection(Inhalt())
+            {
+                Page = new TdPageSetup
+                {
+                    WidthCm = 21.0,
+                    HeightCm = 29.7,
+                    MarginLeftCm = 2.5,
+                    MarginTopCm = 1.5,
+                    MarginRightCm = 2.5,
+                    MarginBottomCm = 2.0,
+                    HeaderText = "Gonk Note — {TITEL}",
+                    FooterText = "Seite {SEITE} von {SEITEN}",
+                    SuppressOnFirstPage = true,
+                },
+            },
+        },
+    };
+
+    private static TdBlock[] Inhalt() =>
+        [
             new TdParagraph([new TdRun("Kapitel 1")])
             {
                 Format = { OutlineLevel = 1, Alignment = TdAlign.Center, SpaceBeforePt = 12, KeepWithNext = true },
@@ -383,22 +568,31 @@ public sealed class DocxRoundtripTests
             },
             new TdPageBreak(),
             new TdParagraph("Nach dem Umbruch.") { Format = { PageBreakBefore = true } },
-        },
-    };
+        ];
 
     private static void GleichesDokument(TdDocument a, TdDocument b)
     {
         GleichesZeichenformat(a.DefaultCharFormat, b.DefaultCharFormat);
         GleichesAbsatzformat(a.DefaultParaFormat, b.DefaultParaFormat);
 
-        Assert.Equal(a.Blocks.Count, b.Blocks.Count);
-        for (int i = 0; i < a.Blocks.Count; i++)
+        Assert.Equal(a.Sections.Count, b.Sections.Count);
+        for (int s = 0; s < a.Sections.Count; s++)
         {
-            switch (a.Blocks[i])
+            GleicheSeite(a.Sections[s].Page, b.Sections[s].Page);
+            GleicheBloecke(a.Sections[s].Blocks, b.Sections[s].Blocks);
+        }
+    }
+
+    private static void GleicheBloecke(List<TdBlock> a, List<TdBlock> b)
+    {
+        Assert.Equal(a.Count, b.Count);
+        for (int i = 0; i < a.Count; i++)
+        {
+            switch (a[i])
             {
                 case TdParagraph pa:
                 {
-                    var pb = Assert.IsType<TdParagraph>(b.Blocks[i]);
+                    var pb = Assert.IsType<TdParagraph>(b[i]);
                     GleichesZeichenformat(pa.CharFormat, pb.CharFormat);
                     GleichesAbsatzformat(pa.Format, pb.Format);
 
@@ -413,14 +607,27 @@ public sealed class DocxRoundtripTests
                 }
 
                 case TdPageBreak:
-                    Assert.IsType<TdPageBreak>(b.Blocks[i]);
+                    Assert.IsType<TdPageBreak>(b[i]);
                     break;
 
                 default:
-                    Assert.Fail($"Kein Vergleich für {a.Blocks[i].GetType().Name} — bitte ergänzen.");
+                    Assert.Fail($"Kein Vergleich für {a[i].GetType().Name} — bitte ergänzen.");
                     break;
             }
         }
+    }
+
+    private static void GleicheSeite(TdPageSetup a, TdPageSetup b)
+    {
+        GleicheZahlCm(a.WidthCm, b.WidthCm);
+        GleicheZahlCm(a.HeightCm, b.HeightCm);
+        GleicheZahlCm(a.MarginLeftCm, b.MarginLeftCm);
+        GleicheZahlCm(a.MarginTopCm, b.MarginTopCm);
+        GleicheZahlCm(a.MarginRightCm, b.MarginRightCm);
+        GleicheZahlCm(a.MarginBottomCm, b.MarginBottomCm);
+        Assert.Equal(a.HeaderText, b.HeaderText);
+        Assert.Equal(a.FooterText, b.FooterText);
+        Assert.Equal(a.SuppressOnFirstPage, b.SuppressOnFirstPage);
     }
 
     /// <summary>

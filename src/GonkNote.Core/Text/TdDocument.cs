@@ -312,10 +312,40 @@ public sealed class TdDocument
     public TdParaFormat FormatVon(TdParagraph absatz) =>
         absatz.Format.Over(DefaultParaFormat).Aufgeloest();
 
-    /// <summary>Alle Absätze der Reihe nach — der häufigste Durchlauf über ein Dokument.</summary>
+    /// <summary>
+    /// Alle Absätze der Reihe nach — der häufigste Durchlauf über ein Dokument.
+    ///
+    /// <para>
+    /// <b>Er steigt in Tabellenzellen ab</b>, und das ist keine Bequemlichkeit: Ein
+    /// Listenpunkt in einer Zelle ist ein Listenpunkt, und die Nummerierung
+    /// (<see cref="TdListNumbering"/>) läuft über genau diesen Durchlauf. Ohne den Abstieg
+    /// bekäme er keine Nummer — und das Fehlerbild wäre ein Aufzählungspunkt ohne Marke,
+    /// nicht ein Absturz.
+    /// </para>
+    /// </summary>
     public IEnumerable<TdParagraph> Paragraphs()
     {
         foreach (var b in Blocks())
-            if (b is TdParagraph p) yield return p;
+            foreach (var p in AbsaetzeIn(b))
+                yield return p;
+    }
+
+    /// <summary>Die Absätze eines Blocks, Tabellen eingeschlossen — auch verschachtelte.</summary>
+    private static IEnumerable<TdParagraph> AbsaetzeIn(TdBlock block)
+    {
+        switch (block)
+        {
+            case TdParagraph p:
+                yield return p;
+                break;
+
+            case TdTable t:
+                foreach (var zeile in t.Rows)
+                    foreach (var zelle in zeile.Cells)
+                        foreach (var innen in zelle.Blocks)
+                            foreach (var p in AbsaetzeIn(innen))
+                                yield return p;
+                break;
+        }
     }
 }

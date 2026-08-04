@@ -1,6 +1,6 @@
 ﻿# Gonk Note V2 — Projektübergabe
 
-**Stand: 2026-08-04 · Version 0.3.0 · net10.0 · SkiaSharp 3 · SQLite · Avalonia 12 · ✅ M1 erreicht · beide Schulden aus Phase 3 eingelöst · Phase 4 läuft (Schritte 1–3 fertig, 4 zur Hälfte)**
+**Stand: 2026-08-04 · Version 0.3.0 · net10.0 · SkiaSharp 3 · SQLite · Avalonia 12 · ✅ M1 erreicht · beide Schulden aus Phase 3 eingelöst · Phase 4 läuft (Schritte 1–4 von 6)**
 
 > **📌 Dauerregeln des Nutzers — gelten immer, ohne Nachfragen:**
 >
@@ -178,22 +178,27 @@ Angabe** und kein eigener Blocktyp — ausschlaggebend war die Bearbeitung, denn
 Eingabe, Ebenenwechsel und Herausnehmen Absatzänderungen statt Baumumbauten. Die **Nummer
 wird gerechnet, nicht gespeichert**: sie hängt davon ab, was vor einem Punkt steht.
 
-Zuletzt **Schritt 4, erster Teil** (§4.18): **Tabellen** im Modell und in DOCX. Das Raster
-steht an der Tabelle, eine senkrechte Verbindung ist `Restart` + `Continue` statt eines
-„RowSpan", und Zellen enthalten Blöcke — auch Listen und weitere Tabellen.
+Zuletzt **Schritt 4, ganz** (§4.18 und §4.19): **Tabellen**. Das Raster steht an der Tabelle,
+eine senkrechte Verbindung ist `Restart` + `Continue` statt eines „RowSpan", Zellen enthalten
+Blöcke. Das Layout verteilt die Höhe verbundener Zellen in **zwei Durchgängen** und wiederholt
+die Kopfzeile auf jeder Folgeseite. **Eine benannte Lücke bleibt:** eine Tabelle *in* einer
+Zelle wird noch nicht gesetzt — mit eigenem Wächter festgehalten, damit sie absichtlich
+verschwindet.
 
-**Als Nächstes:** Phase 4, **Schritt 4, zweiter Teil — das Tabellen-Layout** (§6). Strikt in
-der Reihenfolge aus Roadmap §5, nach jedem Schritt DOCX-Roundtrip. **M1 bleibt ein gültiger
-Ausstiegspunkt**; Phase 4 ist die, an der Projekte sterben.
+**Als Nächstes:** Phase 4, **Schritt 5 — Felder und Inhaltsverzeichnis** (§6).
+`TdParaFormat.OutlineLevel` steht seit Schritt 1 bereit und ist die verlässliche Quelle, die
+das `FlowDocument` nie hatte. Strikt in der Reihenfolge aus Roadmap §5, nach jedem Schritt
+DOCX-Roundtrip. **M1 bleibt ein gültiger Ausstiegspunkt**; Phase 4 ist die, an der Projekte
+sterben.
 
 **Tests laufen lassen:**
 
 ```powershell
-dotnet test -c Release        # Windows: beide Projekte, 284 Tests
+dotnet test -c Release        # Windows: beide Projekte, 299 Tests
 ```
 
 ```bash
-dotnet test tests/GonkNote.Core.Tests   # Linux: 271 Tests, laufen in ~11 s
+dotnet test tests/GonkNote.Core.Tests   # Linux: 286 Tests, laufen in ~11 s
 ```
 
 ---
@@ -266,9 +271,11 @@ Layout-Rechnung** — `TdLayout` bricht Zeilen und Seiten um, hinter der Naht
 **Erledigt in Phase 4, Schritt 3:** §4.17 — **Listen**. Ein Listenpunkt ist ein Absatz mit
 einer Angabe, die Nummer wird gerechnet statt gespeichert.
 
-**Erledigt in Phase 4, Schritt 4, erster Teil:** §4.18 — **Tabellen** im Modell und in DOCX,
-samt waagerechten und senkrechten Verbindungen. Testzahl jetzt **284** (271 Core + 13 WPF).
-Alles davon ist noch nirgends angeschlossen; das ist Absicht und in §4.14 begründet.
+**Erledigt in Phase 4, Schritt 4:** §4.18 (**Tabellen** im Modell und in DOCX, samt
+waagerechten und senkrechten Verbindungen) und §4.19 (**das Tabellen-Layout** — Spaltenbreiten,
+Zellumbruch, verteilte Höhe verbundener Zellen, wiederholte Kopfzeile). Testzahl jetzt **299**
+(286 Core + 13 WPF). Alles davon ist noch nirgends angeschlossen; das ist Absicht und in
+§4.14 begründet.
 
 **Erledigt in Phase 0:**
 
@@ -384,7 +391,7 @@ gonk-note-V2/
 │                                Legacy, **Avalonia**) — §4.6, seit Phase 3 §4.9
 │
 ├─ tests/
-│  ├─ GonkNote.Core.Tests/       net10.0 · läuft auch unter Linux · 271 Tests
+│  ├─ GonkNote.Core.Tests/       net10.0 · läuft auch unter Linux · 286 Tests
 │  │  └─ Snapshots/*.sha256      Pixelhashes des Renderers (Golden-Files)
 │  └─ GonkNote.Wpf.Tests/        net10.0-windows · nur Windows · 13 Tests
 │     ├─ Fixtures/               referenz.md, referenz-docx.txt (Golden-Files)
@@ -1860,11 +1867,74 @@ ersten Fassung von `IstLeererAbsatz` als „hat ein Format" und damit als Inhalt
 #### Stand
 
 **21 neue Wächter** in `TabellenTests`, dazu eine Tabelle in beiden Beispieldokumenten.
-Gesamtzahl **284** (271 Core + 13 WPF), alle drei Projekte 0 Warnungen.
 
-**Ausstehend in Schritt 4:** die Layout-Rechnung — Spaltenbreiten anwenden, Zellinhalt
-umbrechen, Zeilenhöhe aus der höchsten Zelle, Umbruch zwischen Zeilen mit wiederholter
-Kopfzeile.
+---
+
+### 4.19 Phase 4, Schritt 4 (zweiter Teil) — das Tabellen-Layout
+
+Umgesetzt am 2026-08-04. **Damit ist Schritt 4 abgeschlossen.**
+
+#### Eine zweite Liste je Seite, keine gemeinsame
+
+`TdPage` hat jetzt neben `Lines` auch **`TableRows`**. Beide tragen ihr `YCm`; der Zeichner
+geht sie in dieser Reihenfolge durch. Eine gemeinsame Liste wäre falsch, weil **eine
+Tabellenzeile keine Zeile ist**: sie hat Zellen, und deren Inhalt sind wieder Zeilen. Der
+Preis ist gering (zwei Listen statt einer), der Gewinn groß: `TdLine` bleibt genau das, was es
+war, und die 27 Wächter aus §4.16 mussten nicht angefasst werden.
+
+#### Die Rechnung, die zweimal laufen muss
+
+**Wie hoch eine senkrecht verbundene Zelle die Zeilen macht, über die sie reicht, steht erst
+fest, wenn diese Zeilen ihre eigene Höhe kennen.** Deshalb läuft die Auflösung in zwei
+Durchgängen: erst jede Zeile für sich (die `Restart`-Zelle **ohne** ihre Höhe, sonst zöge sie
+die erste Zeile allein hoch), dann die Verteilung.
+
+**Fehlt Platz, wächst die letzte Zeile der Verbindung** und nicht die erste und auch nicht
+alle gleichmäßig. Gleichmäßig sähe gefälliger aus, verschöbe aber die Zeilen dazwischen
+gegenüber ihren unverbundenen Nachbarn — und dann fluchtet die Tabelle nicht mehr.
+
+#### Zwei Dinge, die man beim ersten Anlauf falsch macht
+
+- **Der Zellinhalt bricht in der *Innen*breite um**, nicht in der Zellbreite. Ein vergessener
+  Innenabstand ist kein sichtbarer Fehler, sondern eine Tabelle, deren Text am Rand klebt und
+  eine Zeile zu spät umbricht.
+- **Eine Fortsetzungszelle bekommt keinen Ort und keinen Inhalt — sie schiebt aber die Spalte
+  weiter.** Wer sie einfach überspringt, setzt alles dahinter eine Spalte zu weit links.
+
+#### Die Kopfzeile wiederholt sich, und sie ist als Wiederholung erkennbar
+
+Sie steht im Modell **einmal**, auf dem Papier so oft, wie die Tabelle Seiten braucht.
+`TdLaidOutRow.IsRepeatedHeader` sagt es — wer sie beim Zurückrechnen auf den Text mitzählt,
+findet den Cursor an der falschen Stelle.
+
+Wiederholt wird sie nur, **wenn danach noch Platz für mindestens eine Inhaltszeile bleibt**.
+Sonst stünde eine Kopfzeile allein unten auf der Seite und die Tabelle begänne erst auf der
+nächsten. Und wiederholbar sind nur die **führenden** Zeilen mit `IsHeader` — eine Kopfzeile
+mitten in der Tabelle lässt sich nicht wiederholen; Word ignoriert sie ebenso.
+
+#### Zwei Fehler, die die Wächter gefunden haben
+
+- **Die Nummerierung erreichte Absätze in Zellen nicht.** `TdDocument.Paragraphs()` lief nur
+  über die Blöcke der obersten Ebene, und `TdListNumbering` läuft über genau diesen
+  Durchlauf — ein Listenpunkt in einer Tabelle bekam also keine Marke. Das Fehlerbild ist
+  ein Aufzählungspunkt ohne Nummer und kein Absturz. **`Paragraphs()` steigt jetzt in
+  Tabellenzellen ab**, auch in verschachtelte.
+- **Ein Wächter rechnete falsch, nicht der Code:** „rechts oben" ist elf Zeichen und bricht
+  bei 1 cm je Zeichen auf einer 8-cm-Spalte selbst um — der Test prüfte damit den Zellumbruch
+  statt der Höhenverteilung. Dieselbe Lehre wie in §4.16: wer mit runden Zahlen rechnet, muss
+  die Randbedingungen kennen.
+
+> **Benannte Lücke:** Eine Tabelle **in** einer Zelle wird vom Umbruch noch nicht gesetzt —
+> das Modell trägt sie und DOCX schreibt und liest sie, aber eine gesetzte Zelle hat noch
+> keine Tabellenzeilen. Sie ist damit **sichtbar leer statt still falsch**, und der Wächter
+> `Eine_Tabelle_in_einer_Zelle_wird_noch_nicht_gesetzt` hält den Zustand fest: wer die Lücke
+> schließt, macht diesen Test rot und muss ihn umschreiben. Sie verschwindet damit
+> absichtlich und nicht versehentlich.
+
+#### Stand
+
+**15 neue Wächter** in `TabellenUmbruchTests`. Gesamtzahl **299** (286 Core + 13 WPF), alle
+drei Projekte 0 Warnungen.
 
 ---
 
@@ -2426,11 +2496,13 @@ Boden", das einzige Risiko, das die Roadmap mit **hoch** einstuft.
             Naht `ITdTextMeasure`. 43 neue Wächter in Schritt 2
 - [x] **3. Listen** (§4.17). Der reservierte Diskriminator `"list"` wird **nicht** gebraucht:
       ein Listenpunkt ist ein Absatz mit einer Angabe, kein eigener Blocktyp. Er bleibt frei
-- [~] 4. **Tabellen, inkl. verbundener Zellen** — zwei Hälften:
+- [x] **4. Tabellen, inkl. verbundener Zellen** — zwei Hälften, beide fertig:
       - [x] **Modell und DOCX** (§4.18): `TdTable`/`TdTableRow`/`TdTableCell`, waagerechte und
-            senkrechte Verbindungen, Rahmen, Zellhintergrund, Tabellen in Zellen. 21 Wächter
-      - [ ] **Layout-Rechnung**: Spaltenbreiten anwenden, Zellinhalt umbrechen, Zeilenhöhe
-            aus der höchsten Zelle, Umbruch zwischen Zeilen mit wiederholter Kopfzeile
+            senkrechte Verbindungen, Rahmen, Zellhintergrund, Tabellen in Zellen
+      - [x] **Layout-Rechnung** (§4.19): Spaltenbreiten, Zellumbruch, Zeilenhöhe aus der
+            höchsten Zelle, Umbruch zwischen Zeilen mit wiederholter Kopfzeile. 36 Wächter
+            in Schritt 4. **Eine benannte Lücke bleibt:** eine Tabelle *in* einer Zelle wird
+            noch nicht gesetzt (§4.19), mit eigenem Wächter festgehalten
 - [ ] 5. Felder und Inhaltsverzeichnis — `TdParaFormat.OutlineLevel` steht seit Schritt 1
       bereit und ist die verlässliche Quelle, die das `FlowDocument` nie hatte
 - [ ] 6. Diagramme
@@ -3050,6 +3122,27 @@ und keine davon sieht wie ein Fehler aus.
   eine geklärte Lizenz (§6); ein mit Skia gemaltes Rechteck braucht keine. Dabei nie
   achsensymmetrisch malen, sonst fällt eine vertauschte Achse nicht auf.
 
+**Neu aus Phase 4 — Tabellen-Layout (§4.19)**
+
+- **Eine verbundene Zelle darf ihre erste Zeile nicht allein hochziehen.** Ihre Höhe verteilt
+  sich über die Zeilen, über die sie reicht — und wie viel überhaupt fehlt, steht erst fest,
+  wenn diese Zeilen ihre eigene Höhe kennen. **Die Rechnung braucht deshalb zwei Durchgänge.**
+  Fehlt Platz, wächst die **letzte** Zeile der Verbindung: gleichmäßig verteilt sähe
+  gefälliger aus, verschöbe aber die Zeilen dazwischen gegenüber ihren unverbundenen
+  Nachbarn, und dann fluchtet die Tabelle nicht mehr.
+- **Der Zellinhalt bricht in der Innenbreite um, nicht in der Zellbreite.** Ein vergessener
+  Innenabstand ist kein sichtbarer Fehler, sondern eine Tabelle, deren Text am Rand klebt und
+  eine Zeile zu spät umbricht.
+- **Eine Fortsetzungszelle bekommt keinen Ort — sie schiebt aber die Spalte weiter.** Wer sie
+  einfach überspringt, setzt alles dahinter eine Spalte zu weit links.
+- **Eine wiederholte Kopfzeile muss als Wiederholung erkennbar sein** (`IsRepeatedHeader`).
+  Sie steht im Modell einmal, auf dem Papier mehrfach; wer sie beim Zurückrechnen auf den
+  Text mitzählt, findet den Cursor an der falschen Stelle. Wiederholt wird nur, wenn danach
+  noch Platz für mindestens eine Inhaltszeile bleibt — sonst steht sie allein unten.
+- **`TdDocument.Paragraphs()` muss in Tabellenzellen absteigen.** Die Nummerierung läuft über
+  diesen Durchlauf; ohne den Abstieg bekommt ein Listenpunkt in einer Tabelle keine Marke,
+  und das Fehlerbild ist ein Punkt ohne Nummer, kein Absturz.
+
 **Neu aus Phase 4 — Tabellen (§4.18)**
 
 - **DOCX misst Rahmen in Achtel-Punkt.** Eine 0,5-pt-Linie ist die `4`. Wer Punkte einträgt,
@@ -3191,7 +3284,7 @@ cd C:\Dev\Zed\gonk-note-V2
 dotnet build -c Release      # 0 Fehler / 0 Warnungen
 dotnet build -c Debug        # schneller, ohne Self-Contained/win-x64
 
-dotnet test -c Release       # beide Testprojekte, 284 Tests
+dotnet test -c Release       # beide Testprojekte, 299 Tests
 
 # Golden-Files bewusst neu setzen (danach den Diff lesen, siehe §4.6)
 $env:GONK_SNAPSHOT_UPDATE=1; dotnet test tests\GonkNote.Core.Tests; $env:GONK_SNAPSHOT_UPDATE=$null
@@ -3278,6 +3371,7 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 
 | Runde | Datum | Was |
 |---|---|---|
+| V2-23 | 2026-08-04 | **Phase 4, Schritt 4 abgeschlossen: das Tabellen-Layout** (§4.19). `TdPage` hat jetzt neben `Lines` auch **`TableRows`** — eine zweite Liste und keine gemeinsame, denn **eine Tabellenzeile ist keine Zeile**: sie hat Zellen, und deren Inhalt sind wieder Zeilen. Der Preis ist gering, der Gewinn groß: `TdLine` bleibt, was es war, und die 27 Wächter aus §4.16 mussten nicht angefasst werden. **Die Rechnung muss zweimal laufen:** wie hoch eine senkrecht verbundene Zelle die Zeilen macht, über die sie reicht, steht erst fest, wenn diese Zeilen ihre eigene Höhe kennen — erst jede Zeile für sich (die `Restart`-Zelle **ohne** ihre Höhe, sonst zöge sie die erste Zeile allein hoch), dann die Verteilung. **Fehlt Platz, wächst die letzte Zeile der Verbindung**, nicht die erste und nicht alle gleichmäßig: gleichmäßig sähe gefälliger aus, verschöbe aber die Zeilen dazwischen gegenüber ihren unverbundenen Nachbarn, und dann fluchtet die Tabelle nicht mehr. **Zwei Dinge, die man beim ersten Anlauf falsch macht:** der Zellinhalt bricht in der **Innen**breite um (ein vergessener Innenabstand ist kein sichtbarer Fehler, sondern Text, der am Rand klebt und eine Zeile zu spät umbricht), und eine Fortsetzungszelle bekommt keinen Ort, **schiebt aber die Spalte weiter** — wer sie überspringt, setzt alles dahinter eine Spalte zu weit links. **Die Kopfzeile wiederholt sich** auf jeder Folgeseite und ist als Wiederholung erkennbar (`IsRepeatedHeader`) — sie steht im Modell einmal, auf dem Papier mehrfach, und wer sie beim Zurückrechnen mitzählt, findet den Cursor an der falschen Stelle; wiederholt wird nur, wenn danach noch Platz für eine Inhaltszeile bleibt. **Zwei Fehler haben die Wächter gefunden:** die Nummerierung erreichte Absätze **in Zellen** nicht (`TdDocument.Paragraphs()` lief nur über die oberste Ebene, und `TdListNumbering` läuft über genau diesen Durchlauf — ein Listenpunkt in einer Tabelle bekam keine Marke; das Fehlerbild ist ein Punkt ohne Nummer, kein Absturz), und ein Wächter rechnete falsch statt des Codes („rechts oben" ist elf Zeichen und bricht auf einer 8-cm-Spalte selbst um — derselbe Merksatz wie in §4.16). **Eine benannte Lücke bleibt und ist mit einem eigenen Wächter festgehalten:** eine Tabelle **in** einer Zelle wird vom Umbruch noch nicht gesetzt. Das Modell trägt sie, DOCX schreibt und liest sie — nur eine gesetzte Zelle hat noch keine Tabellenzeilen. Sie ist damit **sichtbar leer statt still falsch**, und wer sie schließt, macht den Test rot und muss ihn umschreiben. **15 neue Wächter, jetzt 299** (286 Core + 13 WPF), alle drei Projekte 0 Warnungen. **Als Nächstes: Schritt 5, Felder und Inhaltsverzeichnis** |
 | V2-22 | 2026-08-04 | **Phase 4, Schritt 4, erster Teil: Tabellen im Modell und in DOCX** (§4.18). Wie Schritt 2 in zwei Hälften; die Layout-Rechnung folgt. **Warum das der gefährlichste Schritt bisher ist:** eine Tabelle hat drei Dinge, die jedes für sich still schiefgehen — das Raster, die Verbindungen und die Rahmen —, alle drei liegen in DOCX anders als erwartet, und ein Fehler darin sieht nicht nach einem Fehler aus, sondern nach einer Tabelle, die „irgendwie verrutscht" ist. **Drei Entscheidungen, die DOCX vorgibt und die trotzdem die richtigen sind:** das **Raster steht an der Tabelle** und nicht an den Zellen (eine Spaltenbreite gilt für die ganze Spalte; je Zelle geführt stünde derselbe Wert je Zeile noch einmal, und eine Zeile mit abweichender Vorstellung von Spalte 2 ist gar nicht darstellbar); eine **senkrechte Verbindung ist `Restart` + `Continue`** und kein „RowSpan = 3" (jede Zeile behält ihre volle Zellenzahl, und daran hängt, dass Spaltenzählung und Rahmen stimmen); **Zellen enthalten Blöcke** und nicht Text — ein zweiter Absatz, eine Liste, eine weitere Tabelle, alles geprüft. **Vier DOCX-Fallen** (§7): Rahmen werden in **Achtel-Punkt** gemessen (wer Punkte einträgt, bekommt eine achtmal zu dicke Linie — das sieht nicht nach einem Umrechnungsfehler aus, sondern nach unabsichtlich fetten Rändern); eine Fortsetzungszelle trägt ein `vMerge` **ohne Wert**, nicht eines mit „continue"; **zwei Tabellen hintereinander verschmelzen in Word zu einer**, dazwischen gehört ein leerer Absatz, ebenso hinter der letzten; und eine Zelle ohne Absatz ist schemawidrig, während eine Fortsetzungszelle zwangsläufig keinen Inhalt hat. **Die letzten beiden erzeugen Absätze, die kein Inhalt sind** — kämen sie beim Lesen zurück, wüchse das Dokument mit **jedem Speichern** um eine Leerzeile je Tabelle, die Sorte Fehler, die man erst nach dem fünften Speichern bemerkt und dann nicht mehr zurückdrehen kann. Der Leser nimmt sie an genau den Stellen wieder heraus; Wächter ist ein Roundtrip, der **zweimal** läuft und beide Male dasselbe ergeben muss. **Der eine Fall, der nicht auf Anhieb stimmte:** endet ein *nicht letzter* Abschnitt mit einer Tabelle, trägt der Trennabsatz die `sectPr` — und galt deswegen als „hat ein Format" und damit als Inhalt. Eine `sectPr` zählt jetzt ausdrücklich nicht als Absatzformat. **21 neue Wächter, jetzt 284** (271 Core + 13 WPF), dazu eine Tabelle in beiden Beispieldokumenten; alle drei Projekte 0 Warnungen |
 | V2-21 | 2026-08-04 | **Phase 4, Schritt 3: Listen** (§4.17). **Die tragende Entscheidung: ein Listenpunkt ist ein Absatz mit einer Angabe (`TdParagraph.List`) und kein eigener Blocktyp.** Die naheliegende Bauart — ein Listenblock mit Punkten darin, wie ihn `MdList` für Markdown hat — ist hier die falsche: dort wird nur **gelesen**, hier wird bearbeitet. Eingabe drücken, Ebene wechseln, einen Punkt herausnehmen, zwei Listen verschmelzen bleibt so jeweils eine Absatzänderung statt eines Baumumbaus, und `TdLayout` braucht keinen zweiten Umbruchpfad. DOCX macht es genauso (`w:numPr` am Absatz). **Die Nummer steht nirgends — sie wird gerechnet** (`TdListNumbering`): sie hängt davon ab, was **vor** einem Punkt steht, und gespeichert müsste sie bei jeder Einfügung im ganzen Dokument nachgezogen werden; jede vergessene Stelle wäre eine Liste, die nach dem Löschen der 2 bei 3 weiterzählt. **Die Stelle, an der so eine Rechnung schiefgeht, ist das Einrücken:** eine tiefere Ebene muss bei jedem Einrücken neu anfangen, sonst zählt die zweite Unterliste dort weiter, wo die erste aufgehört hat — und das bemerkt man erst bei der dritten Ebene. Dazu drei Fälle aus fremden Dateien, die keinen Absturz ergeben dürfen: eine zu tiefe Ebene, ein Verweis auf eine Liste, die es nicht gibt, und ein `start="0"` bei römischer Zählung. **Die Marke ist kein Lauf** (`TdLine.Marker` statt `Runs`) — sonst wird sie mitkopiert, lässt sich auswählen und der Cursor kann davor stehen. **Der Unterschied zwischen einer Liste und einem Absatz mit „• " davor** steckt im Umbruch: bei einer Liste beginnt der Text **jeder** Zeile am Einzug und die Marke steht davor; `hanging` gibt bei einer Liste an, wie weit die **Marke** links steht, nicht der Text. Wer das verwechselt, rückt die zweite Zeile unter die Marke. **Zwei DOCX-Eigenheiten** (§7): `abstractNum` ist die Vorlage, `num` die Instanz — nur Letztere trägt die Kennung; und im XML stehen erst alle `abstractNum`, dann alle `num`, verschachtelt öffnet Word die Datei nicht (beim Lesen umgekehrt: ein `num` kann auf eine Vorlage zeigen, die erst danach kommt). **Eine Aufräumarbeit fiel dabei an:** die X-Werte des Umbruchs waren bis hierher relativ zum Einzug statt zum Textbereich — für einen Zeichner die falsche Zahl, und mit Listen (Marke und Text an verschiedenen Einzügen) vollends unhaltbar. `XCm` enthält jetzt alles. **29 neue Wächter, jetzt 263** (250 Core + 13 WPF); Listen sind zusätzlich in beide Beispieldokumente eingezogen — die Regel „wer das Modell erweitert, erweitert das Beispiel mit" gilt auch für den, der sie aufgeschrieben hat. **Als Nächstes: Schritt 4, Tabellen** |
 | V2-20 | 2026-08-04 | **Phase 4, Schritt 2 abgeschlossen: die Layout-Rechnung** (§4.16). `TdLayout` macht aus einem `TdDocument` Seiten mit Zeilen mit Stücken — jedes mit Ort und Maß, **durchgehend in Zentimetern und nicht in Pixeln**: ein Umbruch in Pixeln müsste bei jeder Zoomstufe neu laufen und brächte bei jeder ein anderes Ergebnis. **Die tragende Entscheidung ist eine Naht: `ITdTextMeasure`.** „Segoe UI" gibt es unter Linux nicht, und ein Schriftartenupdate verschiebt jede Breite — ein Umbruch-Test gegen echte Maße hätte auf Windows und im Linux-Lauf der CI verschiedene Ergebnisse und wäre nach dem ersten falschen Alarm abgeschaltet (dieselbe Überlegung, aus der §4.6 die Schrift aus den Renderer-Snapshots heraushält). Mit fester Messung — jedes Zeichen 1 cm, jede Zeile 1 cm — wird „nach zehn Zeichen umbrechen" zu einer Zahl, die stimmt oder nicht; von Skia bleibt `TdSkiaMeasure` mit einer Plausibilitätsprüfung übrig. **Benannte Abweichung von der Roadmap:** sie nennt SKShaper/HarfBuzz, hier misst `SKFont.MeasureText` — das trägt Kerning und reicht für Latein; HarfBuzz wird gebraucht, sobald arabische oder indische Schrift dazukommt, und die Naht ist genau die Stelle zum Austauschen. **„Nicht vom nächsten Absatz trennen" war im ersten Anlauf toter Code** — eine Liste zurückgehaltener Zeilen, die nie gefüllt wurde; aufgefallen beim Nachlesen, nicht im Test. Richtig ist eine **Gruppe**: solange ein Absatz `KeepWithNext` trägt, sammeln sich seine Zeilen samt denen der folgenden, und erst ein Absatz ohne bindet sie ab und setzt sie **am Stück**. Die Absatzabstände gehören dabei zur ersten bzw. letzten Zeile, nicht dazwischen — nur so wandern sie mit; beim Abstand davor muss die Grundlinie mitwandern, sonst sitzt der Text im Abstand. **Drei Stellen, an denen der Umbruch stehenbleiben könnte, haben einen Ausweg bekommen** (ein Wort breiter als die Zeile, eine Gruppe höher als eine Seite, ein Zerlegen ohne Fortschritt): alle erzeugen etwas **sichtbar Falsches** statt gar nichts — ein Lauf, der nicht zurückkommt, meldet keinen Fehler (§4.12). Dazu: Blocksatz lässt die letzte Zeile in Ruhe, der Leerraum am Zeilenanfang fällt weg, `PageBreakBefore` auf dem ersten Absatz erzeugt keine leere Seite, ein leerer Absatz hat trotzdem Höhe, jeder Abschnitt beginnt auf einer neuen Seite. **Drei Wächter waren zuerst rot und hatten unrecht:** „zehn Zeilen à 1 cm passen auf 10 cm" ergab sieben, weil `TdParaFormat.Standard` 8 pt Abstand nach jedem Absatz hat — der Test prüfte die Vorgabe mit, ohne es zu wissen. **27 neue Wächter, jetzt 234** (221 Core + 13 WPF), alle drei Projekte 0 Warnungen. **Als Nächstes: Schritt 3, Listen** |

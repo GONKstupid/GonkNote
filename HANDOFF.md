@@ -1,6 +1,6 @@
 # Gonk Note V2 — Projektübergabe
 
-**Stand: 2026-08-04 · Version 0.3.0 · net10.0 · SkiaSharp 3 · SQLite · Avalonia 12 · ✅ M1 erreicht · beide Schulden aus Phase 3 eingelöst · Phase 4 läuft (Schritt 1 von 6)**
+**Stand: 2026-08-04 · Version 0.3.0 · net10.0 · SkiaSharp 3 · SQLite · Avalonia 12 · ✅ M1 erreicht · beide Schulden aus Phase 3 eingelöst · Phase 4 läuft (Schritte 1 und 2 von 6)**
 
 > **📌 Dauerregeln des Nutzers — gelten immer, ohne Nachfragen:**
 >
@@ -164,24 +164,27 @@ WPF-`XamlPackage` — **das Speicherformat der Textdokumente ist Windows, in Byt
 und solange das so ist, bleiben Textdokumente unter Linux ausgegraut, egal wie gut die
 Oberfläche wird.
 
-Zuletzt **Schritt 2, erster Teil** (§4.15): **Abschnitte und Seiteneinrichtung**. Auf
-Nutzer-Entscheidung wandert die Seiteneinrichtung aus `TextDoc` in `TdSection`; die
-Übernahme der Bestandsdokumente kommt **zuletzt**, nach Schritt 6, weil sie vorher stiller
-Datenverlust wäre. `TdPageSetup` speichert nur Maße — Formatname und Querformat werden daraus
-**abgelesen** statt gespeichert, damit es keine zweite Wahrheit gibt.
+Zuletzt **Schritt 2, ganz** (§4.15 und §4.16): **Abschnitte, Seiteneinrichtung und die
+Layout-Rechnung**. Auf Nutzer-Entscheidung wandert die Seiteneinrichtung aus `TextDoc` in
+`TdSection`; die Übernahme der Bestandsdokumente kommt **zuletzt**, nach Schritt 6, weil sie
+vorher stiller Datenverlust wäre. `TdPageSetup` speichert nur Maße — Formatname und
+Querformat werden daraus **abgelesen** statt gespeichert, damit es keine zweite Wahrheit
+gibt. `TdLayout` bricht Zeilen und Seiten um; gemessen wird hinter der Naht
+**`ITdTextMeasure`**, damit der Umbruch auf jedem System dieselben Zahlen liefert und nicht
+von der installierten Schrift abhängt.
 
-**Als Nächstes:** Phase 4, **Schritt 2, zweiter Teil — die Layout-Rechnung** (§6): Zeilen-
-und Seitenumbruch mit Rändern. **M1 bleibt ein gültiger Ausstiegspunkt**; Phase 4 ist die, an
-der Projekte sterben.
+**Als Nächstes:** Phase 4, **Schritt 3 — Listen** (§6). Strikt in der Reihenfolge aus Roadmap
+§5, nach jedem Schritt DOCX-Roundtrip. **M1 bleibt ein gültiger Ausstiegspunkt**; Phase 4 ist
+die, an der Projekte sterben.
 
 **Tests laufen lassen:**
 
 ```powershell
-dotnet test -c Release        # Windows: beide Projekte, 212 Tests
+dotnet test -c Release        # Windows: beide Projekte, 234 Tests
 ```
 
 ```bash
-dotnet test tests/GonkNote.Core.Tests   # Linux: 199 Tests, laufen in ~7 s
+dotnet test tests/GonkNote.Core.Tests   # Linux: 221 Tests, laufen in ~7 s
 ```
 
 ---
@@ -246,10 +249,11 @@ gehalten haben (`TrefferTests`, `MarkdownTests`), halten jetzt beide Köpfe.
 **Erledigt in Phase 4, Schritt 1:** §4.14 — das **Dokumentmodell** in `Core/Text/` samt
 Speicherformat und DOCX-Roundtrip.
 
-**Erledigt in Phase 4, Schritt 2, erster Teil:** §4.15 — **Abschnitte und
-Seiteneinrichtung** (`TdSection`, `TdPageSetup`), DOCX-`sectPr` in beide Richtungen.
-Testzahl jetzt **212** (199 Core + 13 WPF). Beides ist noch nirgends angeschlossen; das ist
-Absicht und in §4.14 begründet.
+**Erledigt in Phase 4, Schritt 2:** §4.15 (**Abschnitte und Seiteneinrichtung** —
+`TdSection`, `TdPageSetup`, DOCX-`sectPr` in beide Richtungen) und §4.16 (**die
+Layout-Rechnung** — `TdLayout` bricht Zeilen und Seiten um, hinter der Naht
+`ITdTextMeasure`). Testzahl jetzt **234** (221 Core + 13 WPF). Alles davon ist noch nirgends
+angeschlossen; das ist Absicht und in §4.14 begründet.
 
 **Erledigt in Phase 0:**
 
@@ -312,9 +316,11 @@ gonk-note-V2/
 │  │  ├─ Text/                   Markdown — der Zerleger hinter den vier mitgelieferten
 │  │  │                          Dokumenten (§4.12)                  ← neu in Phase 3
 │  │  │                          seit §4.13 von BEIDEN Köpfen benutzt
-│  │  │                          TdDocument/TdBlock/TdInline + TdFormat — das eigene
-│  │  │                          Dokumentmodell, TdJson (Speicherformat) und TdDocx
-│  │  │                          (DOCX in beide Richtungen)           ← neu in Phase 4
+│  │  │                          TdDocument/TdSection/TdBlock/TdInline + TdFormat — das
+│  │  │                          eigene Dokumentmodell, TdJson (Speicherformat), TdDocx
+│  │  │                          (DOCX in beide Richtungen), TdLayout (Zeilen- und
+│  │  │                          Seitenumbruch) hinter der Naht ITdTextMeasure/
+│  │  │                          TdSkiaMeasure                        ← neu in Phase 4
 │  │  └─ Localization/           Loc + LocGerman + LocEnglish        ← neu in Phase 0
 │  │
 │  ├─ GonkNote.ViewModels/       net10.0 · EIGENE Assembly seit Phase 2 (§4.7)
@@ -362,7 +368,7 @@ gonk-note-V2/
 │                                Legacy, **Avalonia**) — §4.6, seit Phase 3 §4.9
 │
 ├─ tests/
-│  ├─ GonkNote.Core.Tests/       net10.0 · läuft auch unter Linux · 199 Tests
+│  ├─ GonkNote.Core.Tests/       net10.0 · läuft auch unter Linux · 221 Tests
 │  │  └─ Snapshots/*.sha256      Pixelhashes des Renderers (Golden-Files)
 │  └─ GonkNote.Wpf.Tests/        net10.0-windows · nur Windows · 13 Tests
 │     ├─ Fixtures/               referenz.md, referenz-docx.txt (Golden-Files)
@@ -1614,14 +1620,96 @@ Absatzbaum hier wäre heute ein Versprechen, das die Oberfläche nicht einlösen
 Schritt 6 sind. In DOCX ist es ohnehin eine kopfzeilenverankerte Zeichnung — es kommt also
 genau dann, wenn das Modell Bilder kann, und keinen Schritt früher.
 
+---
+
+### 4.16 Phase 4, Schritt 2 (zweiter Teil) — die Layout-Rechnung
+
+Umgesetzt am 2026-08-04. **Damit ist Schritt 2 abgeschlossen**: aus einem `TdDocument` und
+einer Schriftmessung werden Seiten mit Zeilen mit Stücken, jedes mit Ort und Maß.
+
+#### Eine Naht vor der Schriftmessung — und warum sie nötig war
+
+`TdLayout` misst nicht selbst, sondern fragt **`ITdTextMeasure`**. Zwei Gründe, und beide
+zählen:
+
+1. **Die Schriften unterscheiden sich je System.** „Segoe UI" gibt es unter Linux nicht —
+   dieselbe Falle wie bei der Icon-Schrift (§7). Ein Umbruch-Test gegen echte Schriftbreiten
+   hätte auf Windows und im Linux-Lauf der CI **verschiedene** Ergebnisse und wäre nach dem
+   ersten falschen Alarm abgeschaltet. Genau darum nimmt §4.6 die Schrift schon aus den
+   Renderer-Snapshots heraus.
+2. **Der Umbruch ist Rechnung, kein Zeichnen.** Mit der Naht davor prüfen die Wächter mit
+   festen Maßen — **jedes Zeichen 1 cm breit, jede Zeile 1 cm hoch** — und „nach zehn Zeichen
+   umbrechen" wird zu einer Zahl, die stimmt oder nicht. Was übrig bleibt, ist
+   `TdSkiaMeasure`: dreißig Zeilen, die Skia fragen, und die selbst nur auf Plausibilität
+   geprüft werden (breiterer Text misst mehr, größere Schrift misst mehr, fehlende Schrift
+   wirft nicht).
+
+**Gerechnet wird durchgehend in Zentimetern, nicht in Pixeln.** Das Modell rechnet so, DOCX
+rechnet so, und der Zoomfaktor gehört an die Stelle, die zeichnet. Ein Umbruch in Pixeln
+müsste bei jeder Zoomstufe neu laufen und brächte bei jeder ein leicht anderes Ergebnis.
+
+> **Abweichung von der Roadmap, benannt:** Sie nennt für den Zeilenumbruch
+> `SKShaper`/HarfBuzz. Hier misst `SKFont.MeasureText` — das trägt Kerning und reicht für
+> Latein vollständig. **HarfBuzz wird gebraucht, sobald arabische oder indische Schrift
+> dazukommt**; die Naht ist genau die Stelle, an der das dann ausgetauscht wird, ohne den
+> Umbruch anzufassen. Ein Paket, das heute nichts kann, was gebraucht wird, ist eine
+> Abhängigkeit ohne Gegenwert.
+
+#### Die Gruppe — wie „nicht vom nächsten Absatz trennen" wirklich funktioniert
+
+Der erste Anlauf war **toter Code**: eine Liste zurückgehaltener Zeilen, die nie gefüllt
+wurde. Aufgefallen beim Nachlesen, nicht im Test — ein Wächter dafür hätte auch gefehlt.
+
+Richtig ist: Solange ein Absatz `KeepWithNext` trägt, wandern seine Zeilen **nicht** sofort
+auf die Seite, sondern sammeln sich in einer Gruppe — zusammen mit denen der folgenden
+Absätze. Erst ein Absatz ohne `KeepWithNext` schließt die Gruppe, und dann wird sie **am
+Stück** gesetzt: passt sie nicht mehr, fängt sie ganz auf der nächsten Seite an. Eine
+Überschrift bleibt so bei ihrem ersten Absatz, statt allein unten zu stehen.
+
+**Die Abstände davor und danach gehören zur ersten bzw. letzten Zeile** und nicht zwischen
+die Zeilen — nur so wandern sie mit der Gruppe. Ein Abstand, der allein oben auf der neuen
+Seite landet, wäre ein sichtbarer Fehler. Beim Abstand **davor** wandert die Grundlinie mit:
+sie zählt ab der Zeilenoberkante, und die liegt jetzt höher; ohne das säße der Text im
+Abstand statt darunter.
+
+#### Drei Stellen, an denen der Umbruch stehenbleiben könnte
+
+Alle drei haben denselben Merksatz aus §4.12: **ein Lauf, der nicht zurückkommt, meldet
+keinen Fehler — er meldet gar nichts.**
+
+| Fall | Was passiert |
+|---|---|
+| **Ein Wort breiter als die Zeile** | Es steht allein in seiner Zeile und ragt heraus. Sichtbar falsch ist besser als ein Umbruch, der hängt |
+| **Eine Gruppe höher als eine Seite** | Sie bricht innerhalb um, statt ewig auf eine Seite zu warten, die groß genug ist |
+| **Ein Stück, das weder Leerraum noch Nicht-Leerraum ist** | Kann es nicht geben — die Zeile, die den Zähler trotzdem weiterrückt, steht trotzdem da |
+
+#### Was der Umbruch sonst noch richtig macht
+
+- **Blocksatz gilt nicht für die letzte Zeile eines Absatzes.** Sonst zöge ein Schlusswort
+  über die ganze Breite auseinander — der auffälligste Fehler, den ein Textsatz machen kann.
+  Ein erzwungener Zeilenumbruch beendet ebenfalls eine „letzte" Zeile.
+- **Der Leerraum am Zeilenanfang fällt weg.** Er gehört beim Zerlegen ans Wort davor, nicht
+  dazwischen — sonst rückte jede Folgezeile um ein Leerzeichen ein.
+- **`PageBreakBefore` auf dem ersten Absatz erzeugt keine leere Seite davor.** Der häufigste
+  Weg, wie ein Dokument ein weißes Deckblatt bekommt.
+- **Ein leerer Absatz hat eine Zeile mit Höhe** — sonst hätte der Cursor keinen Ort.
+- **Jeder Abschnitt beginnt auf einer neuen Seite**, und jede Seite kennt die Einrichtung
+  ihres Abschnitts. Ein fortlaufender Abschnittswechsel mitten auf der Seite wäre eine eigene
+  Angabe in `sectPr`, und die gibt es im Modell noch nicht.
+
+#### Ein Wächter, der zu wenig wusste
+
+Drei Umbruch-Tests waren zuerst rot: „zehn Zeilen à 1 cm passen auf 10 cm" ergab sieben.
+**Der Standard hat 8 pt Abstand nach jedem Absatz** — richtig so, aber jede Rechnung im Kopf
+geht daran vorbei. Behoben am Test: die Rechenbeispiele setzen den Abstand auf null, und wo
+er geprüft werden soll, steht er ausdrücklich am Absatz. **Merksatz: wer mit runden Zahlen
+rechnet, muss die Vorgabewerte kennen — sonst prüft er sie mit.**
+
 #### Stand
 
-**16 neue Wächter**, Gesamtzahl **212** (199 Core + 13 WPF). Alle drei Projekte 0 Warnungen.
-Wie in Schritt 1 gilt: **am laufenden Programm ist nichts zu sehen**, das Modell ist noch
-nicht angeschlossen.
-
-**Ausstehend in Schritt 2:** die Layout-Rechnung — Zeilenumbruch und Seitenumbruch mit
-Rändern. Erst damit hat `TextHoeheCm` einen Abnehmer.
+**43 neue Wächter in Schritt 2** (16 Modell, 27 Umbruch), Gesamtzahl **234** (221 Core +
+13 WPF). Alle drei Projekte 0 Warnungen. Wie in Schritt 1 gilt: **am laufenden Programm ist
+nichts zu sehen**, das Modell ist noch nicht angeschlossen.
 
 ---
 
@@ -2172,12 +2260,11 @@ Boden", das einzige Risiko, das die Roadmap mit **hoch** einstuft.
 
 - [x] **1. Absätze + Zeichenformate** (§4.14, 2026-08-04). Modell, Speicherformat und das
       DOCX-Tor stehen; 37 neue Wächter. **Noch nirgends angeschlossen** — das ist Absicht
-- [~] 2. **Seitenumbruch** — zwei Hälften:
+- [x] **2. Seitenumbruch** — zwei Hälften, beide fertig:
       - [x] **Modell** (§4.15): `TdSection` + `TdPageSetup`, DOCX-`sectPr` in beide
-            Richtungen, Kopf-/Fußzeile mit echten PAGE-Feldern. 16 neue Wächter
-      - [ ] **Layout-Rechnung**: Zeilenumbruch (Skia-Textmessung) und Seitenumbruch mit
-            Rändern, `KeepWithNext` und `PageBreakBefore`. Erst damit bekommt
-            `TdPageSetup.TextHoeheCm` einen Abnehmer
+            Richtungen, Kopf-/Fußzeile mit echten PAGE-Feldern
+      - [x] **Layout-Rechnung** (§4.16): `TdLayout` bricht Zeilen und Seiten um, hinter der
+            Naht `ITdTextMeasure`. 43 neue Wächter in Schritt 2
 - [ ] 3. Listen — `"list"` ist als Diskriminator reserviert
 - [ ] 4. Tabellen, inkl. verbundener Zellen
 - [ ] 5. Felder und Inhaltsverzeichnis — `TdParaFormat.OutlineLevel` steht seit Schritt 1
@@ -2799,6 +2886,32 @@ und keine davon sieht wie ein Fehler aus.
   eine geklärte Lizenz (§6); ein mit Skia gemaltes Rechteck braucht keine. Dabei nie
   achsensymmetrisch malen, sonst fällt eine vertauschte Achse nicht auf.
 
+**Neu aus Phase 4 — Umbruch (§4.16)**
+
+- **Eine Schriftmessung gehört hinter eine Naht.** „Segoe UI" gibt es unter Linux nicht, und
+  ein Schriftartenupdate verschiebt jede Breite. Ein Umbruch-Test gegen echte Maße hat auf
+  Windows und im Linux-Lauf der CI verschiedene Ergebnisse und wird nach dem ersten falschen
+  Alarm abgeschaltet. Mit `ITdTextMeasure` davor prüfen die Wächter mit festen Maßen und
+  bekommen exakte Zahlen; von Skia bleibt eine Plausibilitätsprüfung übrig.
+- **Im Umbruch wird in Zentimetern gerechnet, nicht in Pixeln.** Sonst müsste er bei jeder
+  Zoomstufe neu laufen und brächte bei jeder ein leicht anderes Ergebnis. Der Zoomfaktor
+  gehört an die Stelle, die zeichnet.
+- **Drei Stellen, an denen ein Umbruch stehenbleiben kann:** ein Wort breiter als die Zeile,
+  eine zusammengehaltene Gruppe höher als eine Seite, und ein Zerlegen, das den Zähler nicht
+  weiterrückt. Alle drei brauchen einen Ausweg, der etwas **sichtbar Falsches** erzeugt statt
+  gar nichts — ein Lauf, der nicht zurückkommt, meldet keinen Fehler (§4.12).
+- **Blocksatz gilt nicht für die letzte Zeile eines Absatzes** — und ein erzwungener
+  Zeilenumbruch beendet ebenfalls eine „letzte" Zeile. Ohne das zieht ein Schlusswort über die
+  ganze Breite auseinander.
+- **Der Leerraum gehört beim Zerlegen ans Wort davor, nicht dazwischen.** Sonst rückt jede
+  Zeile nach einem Umbruch um ein Leerzeichen ein, und bei Blocksatz fällt das sofort auf.
+- **Absatzabstände gehören zur ersten bzw. letzten Zeile**, nicht zwischen die Zeilen — nur
+  so wandern sie mit, wenn ein Absatz auf die nächste Seite rutscht. Beim Abstand *davor*
+  muss die Grundlinie mitwandern, sonst sitzt der Text im Abstand.
+- **Wer mit runden Zahlen rechnet, muss die Vorgabewerte kennen.** „Zehn Zeilen à 1 cm passen
+  auf 10 cm" ergab sieben — `TdParaFormat.Standard` hat 8 pt Abstand nach jedem Absatz. Der
+  Test prüfte die Vorgabe mit, ohne es zu wissen.
+
 **Neu aus Phase 4 — Dokumentformat und DOCX (§4.14, §4.15)**
 
 - **DOCX legt die Seiteneinrichtung unsymmetrisch ab.** Die des **letzten** Abschnitts steht
@@ -2960,6 +3073,7 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 
 | Runde | Datum | Was |
 |---|---|---|
+| V2-20 | 2026-08-04 | **Phase 4, Schritt 2 abgeschlossen: die Layout-Rechnung** (§4.16). `TdLayout` macht aus einem `TdDocument` Seiten mit Zeilen mit Stücken — jedes mit Ort und Maß, **durchgehend in Zentimetern und nicht in Pixeln**: ein Umbruch in Pixeln müsste bei jeder Zoomstufe neu laufen und brächte bei jeder ein anderes Ergebnis. **Die tragende Entscheidung ist eine Naht: `ITdTextMeasure`.** „Segoe UI" gibt es unter Linux nicht, und ein Schriftartenupdate verschiebt jede Breite — ein Umbruch-Test gegen echte Maße hätte auf Windows und im Linux-Lauf der CI verschiedene Ergebnisse und wäre nach dem ersten falschen Alarm abgeschaltet (dieselbe Überlegung, aus der §4.6 die Schrift aus den Renderer-Snapshots heraushält). Mit fester Messung — jedes Zeichen 1 cm, jede Zeile 1 cm — wird „nach zehn Zeichen umbrechen" zu einer Zahl, die stimmt oder nicht; von Skia bleibt `TdSkiaMeasure` mit einer Plausibilitätsprüfung übrig. **Benannte Abweichung von der Roadmap:** sie nennt SKShaper/HarfBuzz, hier misst `SKFont.MeasureText` — das trägt Kerning und reicht für Latein; HarfBuzz wird gebraucht, sobald arabische oder indische Schrift dazukommt, und die Naht ist genau die Stelle zum Austauschen. **„Nicht vom nächsten Absatz trennen" war im ersten Anlauf toter Code** — eine Liste zurückgehaltener Zeilen, die nie gefüllt wurde; aufgefallen beim Nachlesen, nicht im Test. Richtig ist eine **Gruppe**: solange ein Absatz `KeepWithNext` trägt, sammeln sich seine Zeilen samt denen der folgenden, und erst ein Absatz ohne bindet sie ab und setzt sie **am Stück**. Die Absatzabstände gehören dabei zur ersten bzw. letzten Zeile, nicht dazwischen — nur so wandern sie mit; beim Abstand davor muss die Grundlinie mitwandern, sonst sitzt der Text im Abstand. **Drei Stellen, an denen der Umbruch stehenbleiben könnte, haben einen Ausweg bekommen** (ein Wort breiter als die Zeile, eine Gruppe höher als eine Seite, ein Zerlegen ohne Fortschritt): alle erzeugen etwas **sichtbar Falsches** statt gar nichts — ein Lauf, der nicht zurückkommt, meldet keinen Fehler (§4.12). Dazu: Blocksatz lässt die letzte Zeile in Ruhe, der Leerraum am Zeilenanfang fällt weg, `PageBreakBefore` auf dem ersten Absatz erzeugt keine leere Seite, ein leerer Absatz hat trotzdem Höhe, jeder Abschnitt beginnt auf einer neuen Seite. **Drei Wächter waren zuerst rot und hatten unrecht:** „zehn Zeilen à 1 cm passen auf 10 cm" ergab sieben, weil `TdParaFormat.Standard` 8 pt Abstand nach jedem Absatz hat — der Test prüfte die Vorgabe mit, ohne es zu wissen. **27 neue Wächter, jetzt 234** (221 Core + 13 WPF), alle drei Projekte 0 Warnungen. **Als Nächstes: Schritt 3, Listen** |
 | V2-19 | 2026-08-04 | **Phase 4, Schritt 2, erster Teil: Abschnitte und Seiteneinrichtung** (§4.15). **Zwei Nutzer-Entscheidungen vorab eingeholt**, beide betrafen das Dateiformat und ließen sich nicht aus dem Bestand ableiten: (1) Die Seiteneinrichtung **wandert in `TdSection`**, die Felder an `TextDoc` werden zur Quelle der Übernahme — das kauft mehrere Abschnitte je Dokument (Deckblatt quer, Rest hoch) und einen DOCX-Import, der `sectPr` vollständig liest statt die zweite Einrichtung wegzuwerfen. (2) Die **Übernahme der Bestandsdokumente kommt zuletzt**, nach Schritt 6: RTF und XamlPackage tragen Tabellen, Bilder und Diagramme, und eine Übernahme davor wäre stiller Datenverlust. **Wichtig für den nächsten Leser:** bis dahin stehen `TextDoc` und `TdPageSetup` nebeneinander, und das ist **nicht** die Doppelung aus §4.10 — dort gab es zwei Rechnungen für dieselbe Sache, hier zwei Formate für verschiedene Dateien. Wer eine davon aufräumt, macht Bestandsdokumente unlesbar. **Zwei Felder gibt es bewusst nicht**, beide Male weil zwei Wahrheiten über dieselbe Sache auseinanderdriften: keinen Formatnamen (`"A4"` wird über `Name` aus der Größe zurückerkannt, Toleranz 0,1 cm, weil ein Blatt durch Twips geht) und keinen Querformat-Schalter (breiter als hoch = quer). Der heutige Editor speichert beides und rechnet die Größe aus dem Namen — das bricht beim ersten fremden DOCX, dessen `sectPr` Zahlen nennt. **Die teuerste Eigenheit dieses Teils:** DOCX legt die Seiteneinrichtung **unsymmetrisch** ab — die des letzten Abschnitts am Körperende, die aller anderen im `pPr` ihres letzten Absatzes. Wer alle ans Körperende hängt, bekommt ein Dokument mit genau einer Einrichtung und merkt es erst am Ausdruck; wer beim Lesen den Träger-Absatz überspringt, verliert je Abschnitt eine Zeile. Beides hat jetzt einen eigenen Wächter, ebenso der Abschnitt, der mit einem Seitenumbruch endet. **Kopf- und Fußzeile gehen durch echte Felder** (PAGE/NUMPAGES plus `UpdateFieldsOnOpen`) und beim Lesen wieder zurück zu `{SEITE}`/`{SEITEN}` — als Text stünde auf jeder Seite dieselbe Zahl. Das **Wasserzeichen bleibt an `TextDoc`**: es ist ein Bild, und Bilder sind Schritt 6. **16 neue Wächter, jetzt 212** (199 Core + 13 WPF), alle drei Projekte 0 Warnungen. **Dabei einmal PowerShell 5.1 in die Umlaut-Falle getappt**: `Get-Content -Raw` ohne `-Encoding` liest UTF-8 als ANSI, und das Zurückschreiben macht Mojibake aus jedem Umlaut — Quelldateien gehören durch das Edit-Werkzeug, nicht durch die Shell. **Ausstehend in Schritt 2:** die Layout-Rechnung (Zeilen- und Seitenumbruch); erst damit bekommt `TextHoeheCm` einen Abnehmer |
 | V2-18 | 2026-08-04 | **Phase 4 beginnt: Schritt 1 — Absätze und Zeichenformate** (§4.14), strikt in der Reihenfolge aus Roadmap §5. **Der Befund, der die Phase begründet, steht jetzt schwarz auf weiß:** `TextDoc.Rtf` enthält RTF **oder ein WPF-`XamlPackage`** — das Speicherformat der Textdokumente ist Windows, in Bytes gegossen. Solange das so ist, bleiben Textdokumente unter Linux ausgegraut, egal wie gut die Oberfläche wird; Phase 4 ist deshalb kein Editor-Umbau, sondern ein Formatwechsel und gehört in denselben Vorsichtsbereich wie §4.8. Neu in `Core/Text/`: **`TdDocument` → `TdBlock`(`TdParagraph`, `TdPageBreak`) → `TdInline`(`TdRun`, `TdLineBreak`)** mit `TdCharFormat`/`TdParaFormat`. **Die tragende Entscheidung: `null` heißt „nicht gesetzt" und nicht „Standardwert"** — sonst könnte man Fett in einer fetten Überschrift nie wieder abschalten, und jede spätere Änderung an der Überschrift ginge an allen geschriebenen Läufen vorbei. Gerechnet wird über `Over()`, **dasselbe Muster wie `ThemeDefinition.Over`**, vierstufig: Stück → Absatz → Dokument → Standard. Das Speicherformat (`TdJson`, Kennung `GNTD` + Json über den Source-Generator) schreibt deshalb mit `WhenWritingNull` — **dem Gegenteil von `GonkJson`**, und aus dem entgegengesetzten Grund. Die **Diskriminatoren sind kurz** (`"p"`, `"run"`, …) statt „Namensraum.Typ, Assembly": die lange Form bei `WbElement` ist ein LiteDB-Erbe, dieses Format hat keines — Namen für die späteren Schritte sind reserviert und wörtlich festgenagelt. **`Section` fehlt bewusst** (die Seiteneinrichtung steht an `TextDoc`, zwei Fassungen wären §4.10), **`TdPageBreak` steht bewusst schon da** (der heutige Editor kann ihn einfügen, und ein verschluckter Seitenumbruch fällt erst beim Drucken auf). **Das Tor, das die Roadmap nach jedem Schritt verlangt, ist gebaut:** `TdDocx` schreibt und liest DOCX gegen das Modell und prüft gegen das Office-2019-Schema. **Warum DOCX und nicht der eigene Roundtrip:** ein fremdes Format kennt die eigenen Bequemlichkeiten nicht — es hat sofort vier Stellen aufgedeckt, die jetzt eigene Wächter haben (hängender Einzug ist in DOCX ein eigenes Feld und kein Vorzeichen; `<w:b/>` **ohne** `val` heißt „an", was nur bei fremden Dateien zuschlägt; Leerzeichen am Rand brauchen `xml:space="preserve"`; „Hervorhebung aus" ist die Füllung `auto` und nicht das Fehlen des Elements). **Eine Sicherheitslücke gefunden, die vorher gar nicht auftauchen konnte:** Core bekam `DocumentFormat.OpenXml` und damit `System.IO.Packaging` 8.0.0 mit zwei Lücken (NU1903) — unter `net10.0-windows` mit WPF kommt dieselbe Klasse aus dem Framework, es wird gar kein Paket geholt. **Dasselbe Paket kann je Ziel-Framework eine andere Abhängigkeitskette haben**; behoben über das transitive Pinning wie bei SQLitePCLRaw. **Drei Wächter waren zu genau und wurden korrigiert, nicht der Code:** ein Twip ist 0,0018 cm, und ein Roundtrip-Test, der drei Nachkommastellen in Zentimetern verlangt, prüft die Auflösung eines fremden Formats statt des eigenen Codes. **37 neue Tests, jetzt 196** (183 Core + 13 WPF), beide Köpfe 0 Warnungen. **Am laufenden Programm ist hier nichts zu sehen, und das ist richtig so** — das Modell ist noch nirgends angeschlossen, `TextDoc.Rtf` ist unverändert, und die Gegenprobe ist der DOCX-Roundtrip. **Offen und vor Schritt 2 zu entscheiden:** wie die Bestandsdokumente herüberkommen (§6) — Vorschlag: zuletzt und nicht zuerst, weil eine Übernahme vor Schritt 6 stiller Datenverlust wäre |
 | V2-17 | 2026-08-04 | **Die zwei benannten Schulden aus Phase 3 sind eingelöst** (§4.13), auf dem Windows-Rechner — dem einzigen, auf dem der WPF-Kopf baut. (1) **`WhiteboardView.Selection.cs` rechnet mit `WbHit` aus Core**: `RotatePt`, `HitElement`, `HitTestElement`, `SegOrPointDist`, `ShapeOutlineDist`, `AllCornersInside`, der Lasso-Kern und `ComputeSelectionBounds` sind als eigene Rechnung verschwunden, 384 → 290 Zeilen. Die **Namen** bleiben als Einzeiler stehen: sie haben elf Aufrufstellen in fünf anderen Partials, und wegkommen sollte die zweite Rechnung, nicht die zweite Bezeichnung. (2) **`MarkdownFlow` ruft `Markdown.Parse`** und malt nur noch den Blockbaum, 339 → 232 Zeilen. **Die Endlosschleife aus §4.12 kam ohne eigenen Handgriff mit** — wer die Grammatik wegwirft, wirft den Fehler mit weg; das ist der Unterschied zwischen „an zwei Stellen reparieren" und „eine Stelle haben". Nebenbei entfällt das `[ThreadStatic]`-Feld für den Dokument-Verweis: es gab es nur, weil Zitatblöcke sich selbst erneut aufriefen, und ein `MdQuote` bringt seinen Inhalt bereits zerlegt mit. (3) **Der WPF-Über-Dialog zeigt den Datenordner** — die Zeile aus §4.12; sie war nötig und nicht kosmetisch, weil `About.Subtitle` seit §4.12 keinen Pfad mehr nennt und die Angabe auf Windows sonst ganz fehlte. **Das Wort „pixelgleich" ist gemessen, nicht behauptet:** derselbe Prüflauf gegen dieselbe Master-Datenbank, einmal mit dem alten Stand (`git stash` auf die eine Datei) und einmal mit dem neuen — **alle drei Bildpaare Pixel für Pixel identisch, 2906×1826, null Abweichung**. Ein Testlauf hätte das nicht hergegeben: er prüft, was er kennt, der Bildvergleich prüft alles, was auf dem Schirm steht. **Für Phase 4 ist das jetzt das Muster.** Dafür musste `kette.ps1` erst **ziehen** lernen (`"x1,y1>x2,y2>…"`, mit Interpolation) — das Linux-Gegenstück kann es seit §4.10, unter Windows fehlte es, und ohne Ziehen ist die Auswahl gar nicht fernsteuerbar. **Zwei Fernsteuer-Fallen dabei gefunden** (§7): die PowerShell-Pipeline entpackt verschachtelte Arrays, sodass `SetCursorPos` ein Array statt einer Zahl bekommt; und ein Klick auf einen Untermenü-Eintrag **schließt** das Untermenü, wenn der Hover es schon geöffnet hat — der nächste Klick landet dann darunter, und auf dem Foto sieht man die Ursache nicht, weil der Hover das Menü bis zur Aufnahme wieder öffnet. Geprüft ohne echte Daten, beide Markdown-Dialoge in **beiden** Sprachen (Überschriften, verschachtelte Listen, Zitat, Code-Block, **Tabelle**, und der Verweis „Erste Schritte" öffnet die Anleitung). **159 Tests unverändert grün** — nichts dazugekommen, zwei Fassungen weniger; `TrefferTests` und `MarkdownTests` bewachen ab jetzt beide Köpfe |

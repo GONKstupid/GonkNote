@@ -455,6 +455,25 @@ public sealed class DokumentmodellTests
             new TdParagraph("Unterpunkt") { List = new TdListRef(1, 1) },
             new TdParagraph("Ein Strich") { List = new TdListRef(2, 0) },
 
+            // Eine Tabelle mit beiden Verbindungsarten.
+            new TdTable(
+                new TdTableRow(
+                    new TdTableCell(new TdParagraph("Kopf über zwei")) { ColumnSpan = 2, Shading = "#DDEEFF" },
+                    TdTableCell.Text("Rest"))
+                { IsHeader = true, MinHeightCm = 1.0 },
+                new TdTableRow(
+                    new TdTableCell(new TdParagraph("verbunden")) { VerticalMerge = TdVerticalMerge.Restart },
+                    TdTableCell.Text("b"),
+                    new TdTableCell(new TdParagraph("c")) { VerticalAlign = TdVAlign.Bottom }),
+                new TdTableRow(
+                    new TdTableCell { VerticalMerge = TdVerticalMerge.Continue },
+                    TdTableCell.Text("e"),
+                    TdTableCell.Text("f")))
+            {
+                ColumnWidthsCm = { 4.0, 5.5, 3.25 },
+                Format = { InsideV = TdBorder.Keine, CellPaddingTopCm = 0.1 },
+            },
+
             new TdPageBreak(),
             new TdParagraph("Nach dem Umbruch.") { Format = { PageBreakBefore = true } },
         ];
@@ -523,6 +542,35 @@ public sealed class DokumentmodellTests
                 case TdPageBreak:
                     Assert.IsType<TdPageBreak>(b[i]);
                     break;
+
+                case TdTable ta:
+                {
+                    var tb = Assert.IsType<TdTable>(b[i]);
+
+                    Assert.Equal(ta.ColumnWidthsCm, tb.ColumnWidthsCm);
+                    Assert.Equal(ta.Format.InsideV, tb.Format.InsideV);
+                    Assert.Equal(ta.Format.CellPaddingTopCm, tb.Format.CellPaddingTopCm, 3);
+
+                    Assert.Equal(ta.Rows.Count, tb.Rows.Count);
+                    for (int z = 0; z < ta.Rows.Count; z++)
+                    {
+                        Assert.Equal(ta.Rows[z].IsHeader, tb.Rows[z].IsHeader);
+                        Assert.Equal(ta.Rows[z].MinHeightCm, tb.Rows[z].MinHeightCm);
+                        Assert.Equal(ta.Rows[z].Cells.Count, tb.Rows[z].Cells.Count);
+
+                        for (int s = 0; s < ta.Rows[z].Cells.Count; s++)
+                        {
+                            var za = ta.Rows[z].Cells[s];
+                            var zb = tb.Rows[z].Cells[s];
+                            Assert.Equal(za.ColumnSpan, zb.ColumnSpan);
+                            Assert.Equal(za.VerticalMerge, zb.VerticalMerge);
+                            Assert.Equal(za.Shading, zb.Shading);
+                            Assert.Equal(za.VerticalAlign, zb.VerticalAlign);
+                            GleicheBloecke(za.Blocks, zb.Blocks);
+                        }
+                    }
+                    break;
+                }
 
                 // Wer einen Blocktyp ergänzt und diesen Zweig vergisst, bekommt hier einen
                 // roten Lauf statt eines stillen Lochs im Wächter — dasselbe Muster wie in

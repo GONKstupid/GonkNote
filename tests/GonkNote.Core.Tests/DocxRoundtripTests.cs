@@ -573,6 +573,24 @@ public sealed class DocxRoundtripTests
             new TdParagraph("Zweiter Punkt") { List = new TdListRef(1, 0) },
             new TdParagraph("Ein Strich") { List = new TdListRef(2, 0) },
 
+            // Eine Tabelle mit beiden Verbindungsarten.
+            new TdTable(
+                new TdTableRow(
+                    new TdTableCell(new TdParagraph("Kopf über zwei")) { ColumnSpan = 2, Shading = "#DDEEFF" },
+                    TdTableCell.Text("Rest"))
+                { IsHeader = true },
+                new TdTableRow(
+                    new TdTableCell(new TdParagraph("verbunden")) { VerticalMerge = TdVerticalMerge.Restart },
+                    TdTableCell.Text("b"),
+                    TdTableCell.Text("c")),
+                new TdTableRow(
+                    new TdTableCell { VerticalMerge = TdVerticalMerge.Continue },
+                    TdTableCell.Text("e"),
+                    TdTableCell.Text("f")))
+            {
+                ColumnWidthsCm = { 4.0, 5.5, 3.25 },
+            },
+
             new TdPageBreak(),
             new TdParagraph("Nach dem Umbruch.") { Format = { PageBreakBefore = true } },
         ];
@@ -618,6 +636,34 @@ public sealed class DocxRoundtripTests
                 case TdPageBreak:
                     Assert.IsType<TdPageBreak>(b[i]);
                     break;
+
+                case TdTable ta:
+                {
+                    var tb = Assert.IsType<TdTable>(b[i]);
+
+                    Assert.Equal(ta.ColumnWidthsCm.Count, tb.ColumnWidthsCm.Count);
+                    for (int s = 0; s < ta.ColumnWidthsCm.Count; s++)
+                        GleicheZahlCm(ta.ColumnWidthsCm[s], tb.ColumnWidthsCm[s]);
+
+                    Assert.Equal(ta.Rows.Count, tb.Rows.Count);
+                    for (int z = 0; z < ta.Rows.Count; z++)
+                    {
+                        Assert.Equal(ta.Rows[z].IsHeader, tb.Rows[z].IsHeader);
+                        Assert.Equal(ta.Rows[z].Cells.Count, tb.Rows[z].Cells.Count);
+
+                        for (int s = 0; s < ta.Rows[z].Cells.Count; s++)
+                        {
+                            var za = ta.Rows[z].Cells[s];
+                            var zb = tb.Rows[z].Cells[s];
+                            Assert.Equal(za.ColumnSpan, zb.ColumnSpan);
+                            Assert.Equal(za.VerticalMerge, zb.VerticalMerge);
+                            Assert.Equal(za.Shading, zb.Shading);
+                            Assert.Equal(za.VerticalAlign, zb.VerticalAlign);
+                            GleicheBloecke(za.Blocks, zb.Blocks);
+                        }
+                    }
+                    break;
+                }
 
                 default:
                     Assert.Fail($"Kein Vergleich für {a[i].GetType().Name} — bitte ergänzen.");

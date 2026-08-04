@@ -97,13 +97,15 @@ public sealed class TdLineBreak : TdInline
 /// <inheritdoc cref="TdInline" path="/para[1]"/>
 ///
 /// <para>
-/// <b>Reserviert für spätere Schritte:</b> „list" (Schritt 3), „table" (Schritt 4),
-/// „image" und „chart" (Schritt 6).
+/// <b>Reserviert für spätere Schritte:</b> „image" und „chart" (Schritt 6). Der Name „list"
+/// ist **frei geblieben** — ein Listenpunkt ist ein Absatz mit einer Angabe und kein eigener
+/// Blocktyp (§4.17).
 /// </para>
 /// </summary>
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "t")]
 [JsonDerivedType(typeof(TdParagraph), "p")]
 [JsonDerivedType(typeof(TdPageBreak), "pagebreak")]
+[JsonDerivedType(typeof(TdTable), "table")]
 public abstract class TdBlock
 {
     /// <inheritdoc cref="TdInline.PlainText"/>

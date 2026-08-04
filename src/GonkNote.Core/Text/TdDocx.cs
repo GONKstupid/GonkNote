@@ -87,13 +87,37 @@ public static class TdDocx
             var abschnitt = doc.Sections[i];
             bool letzter = i == doc.Sections.Count - 1;
 
-            var absaetze = new List<W.Paragraph>();
+            // Absätze und Tabellen in Dokumentreihenfolge. Die sectPr eines nicht-letzten
+            // Abschnitts hängt am letzten **Absatz** — deshalb wird der eigens gemerkt.
+            var teile = new List<OpenXmlElement>();
+            W.Paragraph? letzterAbsatz = null;
+            bool vorherTabelle = false;
+
             foreach (var block in abschnitt.Blocks)
             {
                 switch (block)
                 {
-                    case TdParagraph p: absaetze.Add(AbsatzSchreiben(p)); break;
-                    case TdPageBreak: absaetze.Add(SeitenumbruchSchreiben()); break;
+                    case TdParagraph p:
+                        letzterAbsatz = AbsatzSchreiben(p);
+                        teile.Add(letzterAbsatz);
+                        vorherTabelle = false;
+                        break;
+
+                    case TdPageBreak:
+                        letzterAbsatz = SeitenumbruchSchreiben();
+                        teile.Add(letzterAbsatz);
+                        vorherTabelle = false;
+                        break;
+
+                    case TdTable t:
+                        // **Zwei Tabellen direkt hintereinander verschmelzen in Word zu
+                        // einer.** Das ist keine Eigenheit unseres Schreibers, sondern die
+                        // Art, wie Word ein Dokument einliest — dazwischen gehört ein
+                        // Absatz. Der Leser nimmt ihn an derselben Stelle wieder heraus.
+                        if (vorherTabelle) teile.Add(TrennabsatzSchreiben());
+                        teile.Add(TabelleSchreiben(t));
+                        vorherTabelle = true;
+                        break;
 
                     // Ein neuer Blocktyp ohne Zweig würde hier still verschwinden — und ein
                     // verlorener Block fällt erst dem Leser auf, nicht dem Diff.
@@ -103,10 +127,16 @@ public static class TdDocx
                 }
             }
 
-            // Ein Abschnitt ohne Absatz kann seine sectPr nicht tragen (die hängt am letzten
-            // Absatz) — und Word zeigt dafür ein Dokument ohne Einfügemarke.
-            if (absaetze.Count == 0) absaetze.Add(new W.Paragraph());
-            foreach (var a in absaetze) body.AppendChild(a);
+            // **Eine Tabelle am Ende des Körpers braucht einen Absatz dahinter**, sonst hat
+            // Word keine Stelle, an der der Cursor unter der Tabelle stehen kann — und der
+            // letzte Abschnitt hätte nichts, woran seine sectPr hängen könnte.
+            if (teile.Count == 0 || letzterAbsatz is null || vorherTabelle)
+            {
+                letzterAbsatz = TrennabsatzSchreiben();
+                teile.Add(letzterAbsatz);
+            }
+
+            foreach (var teil in teile) body.AppendChild(teil);
 
             var sectPr = SeiteSchreiben(abschnitt.Page, main);
 
@@ -120,7 +150,6 @@ public static class TdDocx
             }
             else
             {
-                var letzterAbsatz = absaetze[^1];
                 var pPr = letzterAbsatz.ParagraphProperties;
                 if (pPr is null)
                 {
@@ -348,6 +377,333 @@ public static class TdDocx
     /// </summary>
     private static W.Paragraph SeitenumbruchSchreiben() =>
         new(new W.Run(new W.Break { Type = W.BreakValues.Page }));
+
+    /// <summary>
+    /// Ein leerer Absatz, der nur da ist, damit Word das Dokument richtig liest — zwischen
+    /// zwei Tabellen und hinter der letzten. Er trägt eine Kennung, damit der Leser ihn
+    /// wieder herausnehmen kann und der Roundtrip nicht mit jedem Durchgang wächst.
+    /// </summary>
+    private static W.Paragraph TrennabsatzSchreiben() => new();
+
+    // ==================== Tabellen ====================
+
+    private static W.Table TabelleSchreiben(TdTable t)
+    {
+        var tabelle = new W.Table();
+
+        // Schema-Reihenfolge in CT_TblPr: tblW, tblBorders, tblCellMar.
+        var tblPr = new W.TableProperties();
+        tblPr.AppendChild(new W.TableWidth { Width = "0", Type = W.TableWidthUnitValues.Auto });
+        tblPr.AppendChild(RahmenSchreiben(t.Format));
+        tblPr.AppendChild(new W.TableCellMarginDefault(
+            new W.TopMargin { Width = CmZuTwips(t.Format.CellPaddingTopCm).ToString(), Type = W.TableWidthUnitValues.Dxa },
+            new W.TableCellLeftMargin { Width = (short)CmZuTwips(t.Format.CellPaddingLeftCm), Type = W.TableWidthValues.Dxa },
+            new W.BottomMargin { Width = CmZuTwips(t.Format.CellPaddingBottomCm).ToString(), Type = W.TableWidthUnitValues.Dxa },
+            new W.TableCellRightMargin { Width = (short)CmZuTwips(t.Format.CellPaddingRightCm), Type = W.TableWidthValues.Dxa }));
+        tabelle.AppendChild(tblPr);
+
+        // Das Raster. **Es steht einmal für die ganze Tabelle** und nicht je Zeile.
+        var raster = new W.TableGrid();
+        int spalten = t.Spaltenzahl();
+        for (int i = 0; i < spalten; i++)
+        {
+            double breite = i < t.ColumnWidthsCm.Count ? t.ColumnWidthsCm[i] : 0;
+            raster.AppendChild(new W.GridColumn { Width = CmZuTwips(breite).ToString() });
+        }
+        tabelle.AppendChild(raster);
+
+        foreach (var zeile in t.Rows) tabelle.AppendChild(ZeileSchreiben(zeile, t));
+
+        return tabelle;
+    }
+
+    private static W.TableBorders RahmenSchreiben(TdTableFormat f)
+    {
+        // Schema-Reihenfolge: top, left, bottom, right, insideH, insideV.
+        var rahmen = new W.TableBorders();
+        rahmen.AppendChild(Linie<W.TopBorder>(f.Top));
+        rahmen.AppendChild(Linie<W.LeftBorder>(f.Left));
+        rahmen.AppendChild(Linie<W.BottomBorder>(f.Bottom));
+        rahmen.AppendChild(Linie<W.RightBorder>(f.Right));
+        rahmen.AppendChild(Linie<W.InsideHorizontalBorder>(f.InsideH));
+        rahmen.AppendChild(Linie<W.InsideVerticalBorder>(f.InsideV));
+        return rahmen;
+    }
+
+    private static T Linie<T>(TdBorder b) where T : W.BorderType, new() => new()
+    {
+        // DOCX misst Rahmen in **Achtel-Punkt**. Eine 0,5-pt-Linie ist also die 4 — wer hier
+        // Punkte einträgt, bekommt eine achtmal zu dicke Linie.
+        Val = b.Sichtbar ? W.BorderValues.Single : W.BorderValues.None,
+        Size = (uint)Math.Max(0, Math.Round(b.WidthPt * 8)),
+        Color = b.Color.TrimStart('#'),
+        Space = 0,
+    };
+
+    private static W.TableRow ZeileSchreiben(TdTableRow zeile, TdTable t)
+    {
+        var tr = new W.TableRow();
+
+        if (zeile.IsHeader || zeile.MinHeightCm is not null)
+        {
+            // Schema-Reihenfolge in CT_TrPr: trHeight vor tblHeader.
+            var trPr = new W.TableRowProperties();
+            if (zeile.MinHeightCm is { } hoehe)
+                trPr.AppendChild(new W.TableRowHeight
+                {
+                    Val = (uint)CmZuTwips(hoehe),
+                    HeightType = W.HeightRuleValues.AtLeast,
+                });
+            if (zeile.IsHeader) trPr.AppendChild(new W.TableHeader());
+            tr.AppendChild(trPr);
+        }
+
+        int spalte = 0;
+        foreach (var zelle in zeile.Cells)
+        {
+            tr.AppendChild(ZelleSchreiben(zelle, t, spalte));
+            spalte += Math.Max(1, zelle.ColumnSpan);
+        }
+        return tr;
+    }
+
+    private static W.TableCell ZelleSchreiben(TdTableCell zelle, TdTable t, int abSpalte)
+    {
+        var tc = new W.TableCell();
+
+        // Schema-Reihenfolge in CT_TcPr: tcW, gridSpan, vMerge, shd, vAlign.
+        var tcPr = new W.TableCellProperties();
+
+        double breite = 0;
+        for (int i = 0; i < Math.Max(1, zelle.ColumnSpan); i++)
+            if (abSpalte + i < t.ColumnWidthsCm.Count) breite += t.ColumnWidthsCm[abSpalte + i];
+
+        tcPr.AppendChild(new W.TableCellWidth
+        {
+            Width = CmZuTwips(breite).ToString(),
+            Type = breite > 0 ? W.TableWidthUnitValues.Dxa : W.TableWidthUnitValues.Auto,
+        });
+
+        if (zelle.ColumnSpan > 1) tcPr.AppendChild(new W.GridSpan { Val = zelle.ColumnSpan });
+
+        if (zelle.VerticalMerge != TdVerticalMerge.None)
+        {
+            // **Eine Fortsetzung ist ein `vMerge` ohne Wert** — nicht eines mit „continue".
+            // Word schreibt es so, und ein Wert, den das Schema nicht kennt, macht die Datei
+            // unlesbar.
+            tcPr.AppendChild(zelle.VerticalMerge == TdVerticalMerge.Restart
+                ? new W.VerticalMerge { Val = W.MergedCellValues.Restart }
+                : new W.VerticalMerge());
+        }
+
+        if (zelle.Shading is { } farbe)
+            tcPr.AppendChild(new W.Shading
+            {
+                Val = W.ShadingPatternValues.Clear,
+                Color = "auto",
+                Fill = farbe.Length == 0 ? "auto" : farbe.TrimStart('#'),
+            });
+
+        if (zelle.VerticalAlign != TdVAlign.Top)
+            tcPr.AppendChild(new W.TableCellVerticalAlignment
+            {
+                Val = zelle.VerticalAlign == TdVAlign.Center
+                    ? W.TableVerticalAlignmentValues.Center
+                    : W.TableVerticalAlignmentValues.Bottom,
+            });
+
+        tc.AppendChild(tcPr);
+
+        bool hatAbsatz = false;
+        foreach (var block in zelle.Blocks)
+        {
+            switch (block)
+            {
+                case TdParagraph p: tc.AppendChild(AbsatzSchreiben(p)); hatAbsatz = true; break;
+                case TdPageBreak: tc.AppendChild(SeitenumbruchSchreiben()); hatAbsatz = true; break;
+
+                // **Eine Tabelle in einer Tabelle** ist erlaubt und braucht danach einen
+                // Absatz — dieselbe Regel wie im Körper.
+                case TdTable innen:
+                    tc.AppendChild(TabelleSchreiben(innen));
+                    tc.AppendChild(TrennabsatzSchreiben());
+                    hatAbsatz = true;
+                    break;
+
+                default:
+                    throw new NotSupportedException(
+                        $"{block.GetType().Name} kann noch nicht in eine Tabellenzelle — siehe Roadmap §5.");
+            }
+        }
+
+        // **Eine Zelle ohne Absatz ist schemawidrig.** Sie kommt zwangsläufig vor: eine
+        // Fortsetzungszelle trägt keinen Inhalt.
+        if (!hatAbsatz) tc.AppendChild(new W.Paragraph());
+
+        return tc;
+    }
+
+    private static TdTable TabelleLesen(W.Table tabelle)
+    {
+        var t = new TdTable();
+
+        if (tabelle.GetFirstChild<W.TableProperties>() is { } tblPr)
+        {
+            if (tblPr.TableBorders is { } rahmen) RahmenLesen(t.Format, rahmen);
+            if (tblPr.TableCellMarginDefault is { } rand)
+            {
+                if (rand.TableCellLeftMargin?.Width?.Value is { } l) t.Format.CellPaddingLeftCm = TwipsZuCm(l);
+                if (rand.TableCellRightMargin?.Width?.Value is { } r) t.Format.CellPaddingRightCm = TwipsZuCm(r);
+                if (rand.TopMargin?.Width?.Value is { } o && double.TryParse(o, out double ov))
+                    t.Format.CellPaddingTopCm = TwipsZuCm(ov);
+                if (rand.BottomMargin?.Width?.Value is { } u && double.TryParse(u, out double uv))
+                    t.Format.CellPaddingBottomCm = TwipsZuCm(uv);
+            }
+        }
+
+        if (tabelle.GetFirstChild<W.TableGrid>() is { } raster)
+            foreach (var spalte in raster.Elements<W.GridColumn>())
+                if (spalte.Width?.Value is { } b && double.TryParse(b, out double bv))
+                    t.ColumnWidthsCm.Add(TwipsZuCm(bv));
+
+        foreach (var tr in tabelle.Elements<W.TableRow>()) t.Rows.Add(ZeileLesen(tr));
+
+        return t;
+    }
+
+    private static void RahmenLesen(TdTableFormat f, W.TableBorders rahmen)
+    {
+        if (rahmen.TopBorder is { } o) f.Top = LinieLesen(o);
+        if (rahmen.LeftBorder is { } l) f.Left = LinieLesen(l);
+        if (rahmen.BottomBorder is { } u) f.Bottom = LinieLesen(u);
+        if (rahmen.RightBorder is { } r) f.Right = LinieLesen(r);
+        if (rahmen.InsideHorizontalBorder is { } ih) f.InsideH = LinieLesen(ih);
+        if (rahmen.InsideVerticalBorder is { } iv) f.InsideV = LinieLesen(iv);
+    }
+
+    private static TdBorder LinieLesen(W.BorderType b)
+    {
+        bool sichtbar = b.Val?.Value is { } art && art != W.BorderValues.None && art != W.BorderValues.Nil;
+        double staerke = sichtbar ? (b.Size?.Value ?? 4) / 8.0 : 0;
+        string farbe = b.Color?.Value is { } c && c != "auto" ? "#" + c : "#000000";
+        return new TdBorder(staerke, farbe);
+    }
+
+    private static TdTableRow ZeileLesen(W.TableRow tr)
+    {
+        var zeile = new TdTableRow();
+
+        if (tr.GetFirstChild<W.TableRowProperties>() is { } trPr)
+        {
+            zeile.IsHeader = trPr.GetFirstChild<W.TableHeader>() is not null;
+            if (trPr.GetFirstChild<W.TableRowHeight>()?.Val?.Value is { } h)
+                zeile.MinHeightCm = TwipsZuCm(h);
+        }
+
+        foreach (var tc in tr.Elements<W.TableCell>()) zeile.Cells.Add(ZelleLesen(tc));
+        return zeile;
+    }
+
+    private static TdTableCell ZelleLesen(W.TableCell tc)
+    {
+        var zelle = new TdTableCell();
+
+        if (tc.TableCellProperties is { } tcPr)
+        {
+            zelle.ColumnSpan = tcPr.GridSpan?.Val?.Value ?? 1;
+
+            if (tcPr.VerticalMerge is { } merge)
+                // Ohne Wert heißt „Fortsetzung" — genau wie beim `<w:b/>` ohne val (§7).
+                zelle.VerticalMerge = merge.Val?.Value == W.MergedCellValues.Restart
+                    ? TdVerticalMerge.Restart
+                    : TdVerticalMerge.Continue;
+
+            if (tcPr.Shading?.Fill?.Value is { } fuellung && fuellung != "auto")
+                zelle.Shading = "#" + fuellung;
+
+            if (tcPr.TableCellVerticalAlignment?.Val?.Value is { } aus)
+                zelle.VerticalAlign = aus == W.TableVerticalAlignmentValues.Center ? TdVAlign.Center
+                                    : aus == W.TableVerticalAlignmentValues.Bottom ? TdVAlign.Bottom
+                                    : TdVAlign.Top;
+        }
+
+        BloeckeLesen(tc, zelle.Blocks);
+
+        // Der Pflichtabsatz einer sonst leeren Zelle ist kein Inhalt — sonst bekäme jede
+        // Fortsetzungszelle beim Lesen einen leeren Absatz dazu, und der Roundtrip wüchse
+        // mit jedem Durchgang.
+        if (zelle.Blocks is [TdParagraph { Inlines.Count: 0 } leer] && leer.Format.IstLeer)
+            zelle.Blocks.Clear();
+
+        return zelle;
+    }
+
+    /// <summary>Absätze und Tabellen eines Behälters, in Dokumentreihenfolge.</summary>
+    private static List<OpenXmlElement> Inhaltskinder(OpenXmlElement behaelter) =>
+        [.. behaelter.ChildElements.Where(k => k is W.Paragraph or W.Table)];
+
+    /// <summary>
+    /// Liest Absätze und Tabellen eines Behälters (hier: einer Zelle) in
+    /// Dokumentreihenfolge. Der Körper geht einen eigenen Weg, weil dort zusätzlich die
+    /// Abschnittsgrenzen abzulesen sind.
+    /// </summary>
+    private static void BloeckeLesen(OpenXmlElement behaelter, List<TdBlock> ziel)
+    {
+        var kinder = Inhaltskinder(behaelter);
+
+        for (int i = 0; i < kinder.Count; i++)
+        {
+            if (kinder[i] is W.Table tabelle) { ziel.Add(TabelleLesen(tabelle)); continue; }
+            if (IstTrennabsatz(kinder, i)) continue;
+
+            var absatz = (W.Paragraph)kinder[i];
+            if (IstSeitenumbruch(absatz)) ziel.Add(new TdPageBreak());
+            else ziel.Add(AbsatzLesen(absatz));
+        }
+    }
+
+    /// <summary>
+    /// Ist das Kind an <paramref name="i"/> der leere Absatz, den der Schreiber **hinter**
+    /// eine Tabelle setzt? Er steht dort nicht als Inhalt, sondern weil zwei Tabellen ohne
+    /// ihn in Word zu einer verschmelzen und weil hinter der letzten Tabelle sonst keine
+    /// Einfügemarke stünde.
+    /// </summary>
+    private static bool IstTrennabsatz(List<OpenXmlElement> kinder, int i)
+    {
+        if (kinder[i] is not W.Paragraph absatz || !IstLeererAbsatz(absatz)) return false;
+
+        // Ohne eine Tabelle davor ist es ein gewöhnlicher leerer Absatz — und der ist Inhalt.
+        if (i == 0 || kinder[i - 1] is not W.Table) return false;
+
+        bool tabelleDanach = i + 1 < kinder.Count && kinder[i + 1] is W.Table;
+        bool letzterImKoerper = i == kinder.Count - 1;
+
+        // **Der dritte Fall, und der am wenigsten offensichtliche:** Endet ein *nicht
+        // letzter* Abschnitt mit einer Tabelle, ist der Trennabsatz weder von einer weiteren
+        // Tabelle gefolgt noch der letzte im Körper — er trägt aber die `sectPr`. Ohne diesen
+        // Zweig käme er als leerer Absatz zurück, und das Dokument bekäme mit jedem Speichern
+        // eine Leerzeile mehr.
+        bool traegtAbschnitt = absatz.ParagraphProperties?.SectionProperties is not null;
+
+        return tabelleDanach || letzterImKoerper || traegtAbschnitt;
+    }
+
+    /// <summary>
+    /// Ein Absatz ohne Inhalt und ohne eigenes Format.
+    /// <para>
+    /// <b>Eine <c>sectPr</c> zählt dabei nicht als Format.</b> Endet ein Abschnitt mit einer
+    /// Tabelle, trägt genau der Trennabsatz die Abschnittsangabe — würde er deswegen als
+    /// „nicht leer" gelten, käme er beim Lesen als leerer Absatz zurück, und der Roundtrip
+    /// wüchse mit jedem Durchgang um eine Zeile.
+    /// </para>
+    /// </summary>
+    private static bool IstLeererAbsatz(W.Paragraph absatz)
+    {
+        if (absatz.Elements<W.Run>().Any()) return false;
+        if (absatz.ParagraphProperties is not { } pPr) return true;
+
+        return pPr.ChildElements.All(k => k is W.SectionProperties);
+    }
 
     private static W.RunProperties ZeichenformatSchreiben(TdCharFormat f)
     {
@@ -633,11 +989,26 @@ public static class TdDocx
         ListenLesen(doc, main);
 
         var laufend = new TdSection();
+        var kinder = Inhaltskinder(body);
 
-        foreach (var absatz in body.Elements<W.Paragraph>())
+        for (int i = 0; i < kinder.Count; i++)
         {
-            if (IstSeitenumbruch(absatz)) laufend.Blocks.Add(new TdPageBreak());
-            else laufend.Blocks.Add(AbsatzLesen(absatz));
+            if (kinder[i] is W.Table tabelle)
+            {
+                laufend.Blocks.Add(TabelleLesen(tabelle));
+                continue;
+            }
+
+            var absatz = (W.Paragraph)kinder[i];
+
+            // Der Trennabsatz hinter einer Tabelle ist kein Inhalt — er ist nur da, damit
+            // Word das Dokument richtig liest. Er wird übersprungen, **kann aber trotzdem
+            // die sectPr tragen**, wenn ein Abschnitt mit einer Tabelle endet.
+            if (!IstTrennabsatz(kinder, i))
+            {
+                if (IstSeitenumbruch(absatz)) laufend.Blocks.Add(new TdPageBreak());
+                else laufend.Blocks.Add(AbsatzLesen(absatz));
+            }
 
             // Eine sectPr **im** Absatzformat beendet den Abschnitt — sie gehört zu allem,
             // was bis hierher kam, und nicht zu dem, was folgt. Das ist die Gegenrichtung

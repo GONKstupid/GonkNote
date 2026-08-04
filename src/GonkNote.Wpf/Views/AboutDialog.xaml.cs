@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Windows;
+using GonkNote.Core.Platform;
 using GonkNote.Services;
 
 namespace GonkNote.Views;
@@ -21,6 +22,11 @@ public partial class AboutDialog : Window
         // Sprache stimmt deshalb ohne Loc.LanguageChanged.
         var version = Assembly.GetExecutingAssembly().GetName().Version;
         VersionText.Text = Loc.T("About.Version", version?.ToString(3) ?? "?");
+
+        // Wo die Daten liegen, sagt seit HANDOFF §4.12 nicht mehr About.Subtitle — der Pfad
+        // unterscheidet sich zwischen den Plattformen. Der Linux-Kopf zeigt ihn schon;
+        // ohne diese Zeile fehlte die Angabe unter Windows ganz.
+        DataFolderText.Text = AppPaths.Current.DataFolder;
 
         ReadmeView.Document = MarkdownFlow.ToFlowDocument(EmbeddedDocs.Readme(), OpenDocument);
     }

@@ -21,8 +21,15 @@
         </StackPanel>
 
         <TextBlock DockPanel.Dock="Top" Foreground="{DynamicResource Brush.TextMuted}"
-                   TextWrapping="Wrap" Margin="0,0,0,12"
+                   TextWrapping="Wrap" Margin="0,0,0,8"
                    Text="{loc:T About.Subtitle}"/>
+
+        <!-- Der Datenordner. `About.Subtitle` nennt seit HANDOFF §4.12 keinen festen Pfad
+             mehr — er unterscheidet sich zwischen den Plattformen, und der Linux-Kopf zeigt
+             ihn schon so. Ohne diese Zeile fehlte die Angabe unter Windows ganz. -->
+        <TextBlock DockPanel.Dock="Top" x:Name="DataFolderText"
+                   Foreground="{DynamicResource Brush.TextMuted}"
+                   TextWrapping="Wrap" FontSize="11" Margin="0,0,0,12"/>
 
         <!-- Fußzeile -->
         <Button DockPanel.Dock="Bottom" Content="{loc:T Window.Close}" Style="{StaticResource AccentButton}"

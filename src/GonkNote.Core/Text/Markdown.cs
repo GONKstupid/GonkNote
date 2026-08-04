@@ -61,19 +61,19 @@ public sealed record MdLink(string Text, string Target) : MdInline;
 ///
 /// <para>
 /// <b>Warum das in Core steht und nicht im Kopf.</b> Zerlegen zeichnet kein Pixel und nimmt
-/// keine Eingabe entgegen; nach der Faustregel aus HANDOFF §3 gehört es damit hierher. Der
-/// WPF-Kopf hat für dieselbe Aufgabe <c>Services/MarkdownFlow.cs</c>, weil dessen Ergebnis
-/// unmittelbar ein <c>FlowDocument</c> ist — Zerlegen und Darstellen in einem. Der
-/// Linux-Kopf kann das nicht übernehmen: Avalonia hat kein <c>FlowDocument</c> (HANDOFF
-/// §4.1). Statt die Grammatik ein zweites Mal abzuschreiben, steht sie einmal hier und
-/// jeder Kopf malt nur noch.
+/// keine Eingabe entgegen; nach der Faustregel aus HANDOFF §3 gehört es damit hierher. Bis
+/// Phase 3 waren Zerlegen und Darstellen im WPF-Kopf dasselbe
+/// (<c>Services/MarkdownFlow.cs</c>), weil dessen Ergebnis unmittelbar ein
+/// <c>FlowDocument</c> ist. Der Linux-Kopf kann das nicht übernehmen: Avalonia hat kein
+/// <c>FlowDocument</c> (HANDOFF §4.1). Statt die Grammatik ein zweites Mal abzuschreiben,
+/// steht sie einmal hier und jeder Kopf malt nur noch.
 /// </para>
 ///
 /// <para>
-/// <b>Damit steht dieselbe Grammatik vorerst an zwei Stellen</b> — hier und in
-/// <c>MarkdownFlow</c> —, genau wie es §4.10 bei <c>WbHit</c> beschreibt. Das ist eine
-/// Schuld, kein Zustand: <c>MarkdownFlow</c> gehört auf dem Windows-Rechner auf diesen
-/// Zerleger umgestellt, wo sich der Umbau am laufenden Programm gegenprüfen lässt.
+/// <b>Beide Köpfe zerlegen hiermit</b> — <c>Views/MarkdownView.cs</c> (Avalonia) seit
+/// Phase 3, <c>Services/MarkdownFlow.cs</c> (WPF) seit dem 2026-08-04 (HANDOFF §4.13).
+/// Die Endlosschleife unten stand deshalb eine Zeit lang auch dort; sie ist mit dem
+/// Umstellen verschwunden, ohne dass jemand sie eigens beheben musste.
 /// </para>
 /// </summary>
 public static partial class Markdown
@@ -274,7 +274,8 @@ public static partial class Markdown
     // **`[GeneratedRegex]` und nicht `RegexOptions.Compiled`.** Das eine erzeugt seinen Code
     // zur Übersetzungszeit, das andere zur Laufzeit über `Reflection.Emit` — und den gibt es
     // unter NativeAOT nicht (HANDOFF §1, derselbe Grund, aus dem LiteDB weichen musste).
-    // `MarkdownFlow` im WPF-Kopf benutzt noch die Laufzeitfassung; dort ist es folgenlos.
+    // Seit §4.13 gibt es keine Laufzeitfassung mehr: `MarkdownFlow` hat mit der Grammatik
+    // auch seinen `RegexOptions.Compiled` verloren.
 
     [GeneratedRegex(@"^(#{1,6})\s+(.*)$")]
     private static partial Regex HeadingRegex();

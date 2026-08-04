@@ -17,11 +17,16 @@ namespace GonkNote.Core.Editing;
 /// ohne dass es jemandem auffällt — die Auswahl säße dann je Kopf ein paar Pixel anders.
 /// </para>
 /// <para>
-/// <b>Der WPF-Kopf ist bewusst nicht umgestellt.</b> Er lässt sich auf dem Linux-Laptop
-/// nicht bauen (HANDOFF §5b), und ein Umbau ohne Gegenprobe am laufenden Programm wäre
-/// genau die Art Änderung, vor der §7 warnt. Er behält seine private Fassung, bis das auf
-/// dem Windows-Rechner zusammengelegt wird — dieselbe Lage wie bei der Farbtabelle (§4.9).
-/// Wächter, die beide Fassungen zusammenhalten: <c>TrefferTests</c>.
+/// <b>Beide Köpfe rechnen hiermit</b> — der Avalonia-Kopf seit Phase 3, der WPF-Kopf seit
+/// dem 2026-08-04 (HANDOFF §4.13). Dazwischen lag die private Fassung bewusst noch in
+/// <c>WhiteboardView.Selection.cs</c>: sie ließ sich auf dem Linux-Laptop nicht bauen, und
+/// ein Umbau ohne Gegenprobe am laufenden Programm wäre genau die Art Änderung, vor der §7
+/// warnt. Die Gegenprobe ist nachgeholt und hat <b>pixelgleiche</b> Aufnahmen ergeben.
+/// Wächter: <c>TrefferTests</c> — sie halten damit heute beide Köpfe.
+/// </para>
+/// <para>
+/// <b>Was im Kopf bleibt, hängt am Steuerelement:</b> die Toleranzen (<c>5f/Zoom</c>,
+/// <c>12f/Zoom</c>), der Zustand und die Griffe. Gerechnet wird hier.
 /// </para>
 /// </summary>
 public static class WbHit

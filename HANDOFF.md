@@ -1,6 +1,6 @@
 # Gonk Note V2 — Projektübergabe
 
-**Stand: 2026-08-03 · Version 0.3.0 · net10.0 · SkiaSharp 3 · SQLite · Avalonia 12 · Phase 3 abgeschlossen, ✅ M1 erreicht**
+**Stand: 2026-08-04 · Version 0.3.0 · net10.0 · SkiaSharp 3 · SQLite · Avalonia 12 · Phase 3 abgeschlossen, ✅ M1 erreicht · beide Schulden aus Phase 3 eingelöst**
 
 > **📌 Dauerregeln des Nutzers — gelten immer, ohne Nachfragen:**
 >
@@ -138,7 +138,7 @@ Linux; gezeichnet wird von `WbRenderer` aus Core auf Avalonias **eigenem `SKCanv
 **Textdokumente bleiben ausgegraut** — das ist so vorgesehen (M1). Dazu ein Linux-Pendant
 der Fernsteuer-Werkzeuge (`tools/linux/`), das es bisher gar nicht gab.
 
-Zuletzt **Phase 3, Brocken 6 und 7** (§4.12), ebenfalls auf dem Laptop: **Drag & Drop im
+Dann **Phase 3, Brocken 6 und 7** (§4.12), ebenfalls auf dem Laptop: **Drag & Drop im
 Baum, die einblendbare Titelleiste, die Einstellungen-Seitenleiste der Zeichenfläche** und
 das **`EmbeddedDocs`-Gegenstück** — „Hilfe → Erste Schritte" und das gerenderte README
 erscheinen jetzt auch unter Linux. Der Markdown-**Zerleger** ist dafür nach `Core/Text/`
@@ -146,10 +146,17 @@ gewandert; jeder Kopf malt nur noch. **Damit ist Phase 3 abgeschlossen und M1 au
 (Nutzer-Entscheidung), und die vier mitgelieferten Dokumente beschreiben im selben Zug beide
 Ausgaben (Dauerregel 1).
 
+Zuletzt, **wieder unter Windows: die zwei benannten Schulden aus Phase 3 sind eingelöst**
+(§4.13). Der WPF-Kopf rechnet Trefferprüfung und Lasso jetzt mit **`WbHit` aus Core**, und
+`MarkdownFlow` ruft **`Markdown.Parse`** statt selbst zu zerlegen — die Endlosschleife aus
+§4.12 ist damit mitgekommen. **Dieselbe Geometrie und dieselbe Grammatik stehen nicht mehr
+doppelt.** Dass die Auswahl dabei nicht um Pixel gewandert ist, steht nicht als Behauptung
+da: derselbe Prüflauf ist einmal mit dem alten und einmal mit dem neuen Stand gefahren
+worden, und die Aufnahmen sind **Pixel für Pixel identisch**. Dazu zeigt der WPF-Über-Dialog
+endlich den **Datenordner**, wie der Linux-Kopf es tut.
+
 **Als Nächstes:** Phase 4 — die eigene Dokument-Engine in `Core/Text/` (§6). **M1 ist ein
-gültiger Ausstiegspunkt**; Phase 4 ist die, an der Projekte sterben. Wer weitermacht, liest
-vorher die zwei benannten Schulden in §6 („Steht doppelt") — beide sind auf dem
-Windows-Rechner fällig.
+gültiger Ausstiegspunkt**; Phase 4 ist die, an der Projekte sterben.
 
 **Tests laufen lassen:**
 
@@ -214,6 +221,12 @@ Core, Linux-Werkzeuge) und §4.11 (Neigung im Dateiformat).
 Einstellungen-Seitenleiste, `EmbeddedDocs` samt Markdown-Zerleger in Core). Testzahl steht
 jetzt bei **159** (146 Core + 13 WPF).
 
+**Erledigt nach Phase 3:** §4.13 — die **zwei benannten Schulden** sind eingelöst
+(`WbHit` und `Markdown.Parse` im WPF-Kopf), dazu der Datenordner im WPF-Über-Dialog. Die
+Testzahl bleibt bei **159**: es ist nichts dazugekommen, es sind zwei Fassungen weniger
+geworden. **Genau das ist das Ergebnis** — die Wächter, die vorher nur die Core-Fassung
+gehalten haben (`TrefferTests`, `MarkdownTests`), halten jetzt beide Köpfe.
+
 **Erledigt in Phase 0:**
 
 - **Geklont statt kopiert.** `git clone` aus V1 → die 122 Commits sind mitgekommen, `origin`
@@ -268,11 +281,13 @@ gonk-note-V2/
 │  │  │                          PdfImporter, DocumentHealth
 │  │  ├─ Editing/                WbErase — punktgenaues Radieren
 │  │  │                          WbHit — Trefferprüfung und Lasso (§4.10)  ← neu in Phase 3
+│  │  │                          seit §4.13 von BEIDEN Köpfen benutzt
 │  │  ├─ Theming/                die Farbtabelle (§4.9)              ← neu in Phase 3
 │  │  │                          ThemeColor (20 Farben), HexColor, ThemeDefinition,
 │  │  │                          Themes.Light/.Dark — ein Theme ist eine Datentabelle
 │  │  ├─ Text/                   Markdown — der Zerleger hinter den vier mitgelieferten
 │  │  │                          Dokumenten (§4.12)                  ← neu in Phase 3
+│  │  │                          seit §4.13 von BEIDEN Köpfen benutzt
 │  │  └─ Localization/           Loc + LocGerman + LocEnglish        ← neu in Phase 0
 │  │
 │  ├─ GonkNote.ViewModels/       net10.0 · EIGENE Assembly seit Phase 2 (§4.7)
@@ -334,7 +349,9 @@ gonk-note-V2/
 │  │  └─ messungen/              Rohberichte der Läufe
 │  ├─ schau.ps1                  App mit DB-Kopie starten und fotografieren (§8)
 │  ├─ klick.ps1                  ein Klick / Tastendruck + neues Foto
-│  ├─ kette.ps1                  mehrere Klicks in EINEM Durchgang — für Menüpfade (§7)
+│  ├─ kette.ps1                  mehrere Klicks in EINEM Durchgang — für Menüpfade (§7);
+│  │                             seit §4.13 auch ZIEHEN ("x1,y1>x2,y2>…"), ohne das sich
+│  │                             Lasso und Verschieben nicht fernsteuern lassen
 │  └─ linux/                     das Gegenstück dazu unter Linux (§4.10)  ← neu in Phase 3
 │     ├─ schau.sh                Kopf starten und fotografieren
 │     ├─ klick.sh                Schritte abarbeiten + Foto
@@ -942,6 +959,9 @@ wäre genau die Art Änderung, vor der §7 warnt. **Damit steht dieselbe Geometr
 Stellen** — das ist eine Schuld, kein Zustand; sie gehört auf dem Windows-Rechner
 zusammengelegt. Neuer Wächter: `TrefferTests` (15 Tests).
 
+> **✅ Eingelöst am 2026-08-04** (§4.13): der WPF-Kopf rechnet mit `WbHit`, die private
+> Fassung in `WhiteboardView.Selection.cs` ist weg. Pixelgleichheit belegt.
+
 #### Die Linux-Werkzeuge — die Lücke, die §5b nicht kannte
 
 Die drei Skripte unter `tools/` sind Windows-PowerShell und haben unter Linux **kein**
@@ -1096,6 +1116,9 @@ zwei Stellen** — eine Schuld, kein Zustand; sie gehört auf dem Windows-Rechne
 zusammengelegt. Der Umbau ist dort klein: `MarkdownFlow` behält seine `FlowDocument`-Hälfte
 und ruft `Markdown.Parse` statt selbst zu zerlegen.
 
+> **✅ Eingelöst am 2026-08-04** (§4.13). Der Umbau war tatsächlich klein — und er hat die
+> Datei um ein Drittel kürzer gemacht.
+
 **`[GeneratedRegex]` statt `RegexOptions.Compiled`.** Das eine erzeugt seinen Code zur
 Übersetzungszeit, das andere zur Laufzeit über `Reflection.Emit` — und den gibt es unter
 NativeAOT nicht (§1, derselbe Grund, aus dem LiteDB weichen musste). `MarkdownFlow` benutzt
@@ -1198,10 +1221,10 @@ betroffen** — er zeichnet diese Symbole weiter mit der Icon-Schrift.
 > das ist genau das, was Avalonia zeichnet, und kostet keinen Neustart. Die Gegenprobe am
 > laufenden Programm bleibt trotzdem Pflicht — nur eben einmal statt bei jedem Zwischenstand.
 
-> **Offen geblieben, klein und benannt:** Der **WPF**-Über-Dialog könnte den Datenordner
-> genauso anzeigen wie der Linux-Kopf es tut. Das ist eine Zeile XAML und eine Zeile
-> Code — sie steht hier nicht, weil sie sich auf diesem Rechner nicht am laufenden Programm
-> gegenprüfen lässt.
+> **~~Offen geblieben, klein und benannt:~~** ~~Der **WPF**-Über-Dialog könnte den
+> Datenordner genauso anzeigen wie der Linux-Kopf es tut.~~ **✅ Erledigt am 2026-08-04**
+> (§4.13): eine Zeile XAML, eine Zeile Code, am laufenden Programm angesehen — der Dialog
+> zeigt `C:\Users\…\AppData\Roaming\GonkNote` unter dem Untertitel.
 
 #### Am laufenden Programm geprüft (Dauerregel 1 und 4)
 
@@ -1227,6 +1250,117 @@ aus `tools/linux/` haben jeden Schritt fotografiert:
 **lauter leeren Umschaltern** auf. `EinstellungenSpiegeln` steigt aus, solange die Leiste
 unsichtbar ist — und sie wurde vor dem Sichtbarmachen gerufen. Auf einem Foto sieht das aus,
 als würde die Seite nicht ausgelesen; die Ursache war die Reihenfolge zweier Zeilen.
+
+---
+
+### 4.13 Die zwei Schulden aus Phase 3 sind eingelöst
+
+Umgesetzt am 2026-08-04, **auf dem Windows-Rechner** — dem einzigen, auf dem der WPF-Kopf
+baut und sich am laufenden Programm gegenprüfen lässt. Genau darum standen beide Punkte
+seit §4.10 und §4.12 als *benannte* Schuld da und nicht als Versäumnis.
+
+#### Was zusammengelegt wurde
+
+| Stand doppelt | Jetzt |
+|---|---|
+| Trefferprüfung und Lasso | `WhiteboardView.Selection.cs` ruft **`WbHit`** aus Core. `RotatePt`, `HitElement`, `HitTestElement`, `SegOrPointDist`, `ShapeOutlineDist`, `AllCornersInside`, der Lasso-Kern und `ComputeSelectionBounds` sind als eigene Rechnung verschwunden — die Datei ist von 384 auf 290 Zeilen geschrumpft |
+| Markdown-Grammatik | `MarkdownFlow` ruft **`Markdown.Parse`** und malt nur noch den Blockbaum. Von 339 auf 232 Zeilen; `System.Text.RegularExpressions` ist als `using` weg |
+
+**Die Namen sind absichtlich stehen geblieben.** `HitElement`, `HitTestElement`,
+`SelectByLasso` und `ComputeSelectionBounds` gibt es weiter — als Einzeiler, die an `WbHit`
+weiterreichen. Sie haben zusammen **elf** Aufrufstellen in fünf anderen Partials
+(`Input`, `Import`, `QuickMenu`, `Stickers`, `Ocr`); die alle anzufassen hätte den Diff
+verdreifacht und jede dieser Stellen zu einer neuen Fehlerquelle gemacht, ohne dass sich am
+Ergebnis etwas ändert. **Der Zweck war, die zweite Rechnung loszuwerden, nicht die zweite
+Bezeichnung.** Was hier bleibt, hängt am Steuerelement: `Zoom` für die Toleranzen (`5f/Zoom`,
+`12f/Zoom`), `_page` und `_selection` für den Zustand, die Griffe für die Darstellung.
+
+#### Die Endlosschleife ist mitgekommen — ohne dass jemand sie anfassen musste
+
+§4.12 verlangt ausdrücklich, sie beim Zusammenlegen mitzuziehen: eine **Tabellenzeile ohne
+Trennzeile** darunter landet im Absatz-Zweig, den die Schleife dort selbst abweist, sodass
+der Zeilenzähler stillsteht. In `Markdown.Parse` ist sie behoben (die erste Zeile wird
+bedingungslos genommen).
+
+**Der Punkt daran:** es war *kein* zusätzlicher Handgriff. Wer die Grammatik wegwirft, wirft
+den Fehler mit weg — das ist der Unterschied zwischen „an zwei Stellen reparieren" und
+„eine Stelle haben". Wächter bleibt `Eine_Tabelle_braucht_ihre_Trennzeile`, und er bewacht
+seit heute beide Köpfe.
+
+#### Der Über-Dialog zeigt den Datenordner
+
+Die Zeile aus §4.12 („Offen geblieben, klein und benannt"). Ein `TextBlock` in
+`AboutDialog.xaml`, `AppPaths.Current.DataFolder` in `AboutDialog.xaml.cs` — genau wie im
+Linux-Kopf. **Sie war nötig, nicht kosmetisch:** `About.Subtitle` nennt seit §4.12 keinen
+festen Pfad mehr, weil er unter Linux falsch war; ohne diese Zeile fehlte die Angabe auf
+Windows damit **ganz**. Der Untertitel-Rand ist von 12 auf 8 gegangen, damit die zwei Zeilen
+zusammengehören.
+
+#### „Pixelgleich" ist hier gemessen und nicht behauptet
+
+Der Auftrag war, am laufenden Programm zu prüfen, dass Lasso und Verschieben **pixelgleich**
+liegen wie vorher. Nachlesen und Testlauf reichen dafür nicht: `TrefferTests` bewacht
+`WbHit`, aber nicht, dass der WPF-Kopf dieselben Toleranzen einsetzt wie seine alte Fassung.
+
+**Der Aufbau, und warum er so aussieht:**
+
+1. Eine **Master-Datenbank** einmal anlegen — zwei Striche und ein Rechteck, gezeichnet und
+   gespeichert. Sie wird für beide Läufe kopiert. **Das ist der entscheidende Teil:** würde
+   in jedem Lauf neu gezeichnet, unterschieden sich schon die Strichpunkte, und jeder
+   Vergleich wäre wertlos.
+2. Ein **Prüflauf** als Skript, mit festen Bildschirmkoordinaten: Dokument über den Baum
+   öffnen → Lasso-Werkzeug → eine Umkreisung um alle drei Elemente → Foto → aus der Auswahl
+   heraus um (145,145) ziehen → Foto.
+3. Diesen Lauf **zweimal**: einmal mit dem neuen Stand, dann `git stash push` **nur** auf
+   `WhiteboardView.Selection.cs`, neu bauen, denselben Lauf mit dem alten.
+4. Die Aufnahmen **Pixel für Pixel** vergleichen.
+
+**Ergebnis: alle drei Bildpaare identisch, 2906×1826, null abweichende Pixel.** Auswahlrahmen,
+Schnellmenü, Skaliergriff und die verschobenen Elemente liegen auf denselben Koordinaten.
+
+> **Warum das mehr wert ist als ein grüner Testlauf:** Ein Test prüft, was er kennt. Dieser
+> Vergleich prüft **alles, was auf dem Schirm steht** — auch das, woran beim Umbau niemand
+> gedacht hat. Er kostet zwei Läufe und einen `git stash`, und er ist der einzige Beleg, der
+> das Wort „pixelgleich" trägt. **Für jede weitere Zusammenlegung dieser Art ist er das
+> Muster** (Phase 4 wird davon mehrere haben).
+
+#### Der Zieh-Schritt, der dafür erst gebaut werden musste
+
+Lasso und Verschieben sind **Ziehbewegungen**. `kette.ps1` und `klick.ps1` konnten nur
+klicken und tippen — ein Klick allein erzeugt keine Auswahl, der Prüflauf war damit gar
+nicht fernsteuerbar. Das Linux-Gegenstück kann es seit §4.10 (`klick.sh`, `z:`); unter
+Windows fehlte es schlicht.
+
+Neu in `kette.ps1`: ein Schritt der Form **`"x1,y1>x2,y2>…"`** — aufsetzen, über alle
+Stützpunkte fahren, loslassen. **Zwischen den Stützpunkten wird interpoliert** (12
+Teilschritte), denn die App sammelt ihre Lassopunkte aus Mausbewegungen; ein einzelner
+Sprung ergäbe eine Gerade statt einer Umkreisung. Eine PowerShell-Eigenheit steckt darin
+(§7, „Fernsteuern").
+
+#### Am laufenden Programm geprüft (Dauerregel 1 und 4)
+
+**Ohne echte Daten** — für Geometrie und Markdown taugt eine selbst angelegte Datenbank
+besser, und die Schulunterlagen bleiben, wo sie sind. Gegen eine Wegwerf-DB in `%TEMP%`,
+die danach samt Blob-Ordner gelöscht wurde:
+
+- **Lasso und Verschieben:** der Pixelvergleich oben.
+- **„Hilfe → Erste Schritte"**, deutsch **und** englisch: Überschriften, Absätze, `Code`
+  mit Hinterlegung, fett/kursiv, Trennlinien, nummerierte Liste mit Verweisen,
+  **verschachtelte** Listen (Punkte unter Nummern), Zitatblock mit Akzentbalken, Code-Block.
+- **„Über Gonk Note"**, deutsch **und** englisch: die Versionszeile über `Loc`
+  („Version 0.3.0 · Portierung, Phase 3" / „· Port, phase 3"), der Untertitel **ohne** Pfad,
+  darunter der **Datenordner**, und das gerenderte README samt **Tabelle** (Kopfzeile
+  halbfett, Unterkanten an den Zellen, fetter Text in der Zelle).
+- **Der Verweis „Erste Schritte" im README** öffnet die Anleitung — angeklickt und
+  nachgewiesen. Das ist die Stelle, an der der Umbau am ehesten etwas hätte fallen lassen:
+  `MarkdownFlow` reichte den Handler bis dahin über ein `[ThreadStatic]`-Feld durch, weil
+  Zitatblöcke sich selbst erneut aufriefen. **Mit dem Blockbaum entfällt der Grund** — ein
+  `MdQuote` bringt seinen Inhalt bereits zerlegt mit —, der Handler ist jetzt ein
+  gewöhnlicher Parameter, und das Feld ist weg.
+
+**Zwei Fehler in der eigenen Arbeit gefunden**, beide beim Fernsteuern und beide in §7
+nachgetragen: die verschachtelten Arrays im neuen Zieh-Schritt, und der Untermenü-Klick, der
+schließt statt zu öffnen.
 
 ---
 
@@ -1259,7 +1393,10 @@ als würde die Seite nicht ausgelesen; die Ursache war die Reihenfolge zweier Ze
 | Linux-Fernsteuer-Werkzeuge | **Ja, minimal** — `schau.sh`, `klick.sh` und ein eigenes `zeiger` über X11/XTEST, ohne Fremdpaket (§4.10). Der Stift bleibt dabei Handarbeit. Entschieden 2026-08-03 |
 | Neigung im Dateiformat | **Ja, und zwar auf dem Laptop** (§4.11). Zwei Felder an `WbPoint`, bedingt geschrieben; nur der Bleistift wertet sie aus. Bestandsdateien und alle zwanzig Pixelhashes bleiben unverändert — deshalb war keine Windows-Gegenprobe nötig. Entschieden 2026-08-03 |
 | **Wird M1 ausgerufen?** | **Ja** — mit Brocken 6 und 7 ist der M1-Satz buchstäblich erfüllt: Notizbuch und Whiteboard laufen unter Linux, Textdokumente sind ausgegraut. Import/Export steht nicht im M1-Satz und hängt an §4.1 (Phase 4). **Die vier mitgelieferten Dokumente sind im selben Zug auf den Linux-Kopf erweitert worden** (§4.12). Entschieden 2026-08-03 |
-| Wo der Markdown-Zerleger steht | **In Core** (`Core/Text/Markdown.cs`), nicht ein zweites Mal im Kopf — er zeichnet kein Pixel (§3, Faustregel), und zwei Fassungen derselben Grammatik driften auseinander (§4.12). Der WPF-Kopf behält vorerst `MarkdownFlow`; das Zusammenlegen ist eine benannte Schuld. Entschieden 2026-08-03 |
+| Wo der Markdown-Zerleger steht | **In Core** (`Core/Text/Markdown.cs`), nicht ein zweites Mal im Kopf — er zeichnet kein Pixel (§3, Faustregel), und zwei Fassungen derselben Grammatik driften auseinander (§4.12). ~~Der WPF-Kopf behält vorerst `MarkdownFlow`~~ — **seit 2026-08-04 ruft er `Markdown.Parse`** (§4.13). Entschieden 2026-08-03 |
+| Die zwei Schulden aus Phase 3 | **Eingelöst am 2026-08-04** (§4.13), beide unter Windows. `WbHit` und `Markdown.Parse` im WPF-Kopf; die Endlosschleife kam ohne eigenen Handgriff mit |
+| Wie „pixelgleich" belegt wird | **Zwei Läufe, ein Bildvergleich** — derselbe Prüflauf gegen dieselbe Master-Datenbank, einmal mit altem und einmal mit neuem Stand, danach Pixel für Pixel verglichen (§4.13). Ein Testlauf allein prüft nur, was er kennt. **Muster für jede weitere Zusammenlegung.** Entschieden 2026-08-04 |
+| Namen der WPF-Hilfsmethoden | **Bleiben stehen** — `HitElement`, `HitTestElement`, `SelectByLasso`, `ComputeSelectionBounds` sind Einzeiler, die an `WbHit` weiterreichen. Elf Aufrufstellen in fünf Partials umzubenennen hätte den Diff verdreifacht, ohne am Ergebnis etwas zu ändern; wegkommen sollte die zweite **Rechnung**, nicht die zweite Bezeichnung (§4.13). Entschieden 2026-08-04 |
 
 **Noch offen:**
 
@@ -1746,15 +1883,23 @@ dazu. **Alles davon steht jetzt auch in den vier mitgelieferten Dokumenten**, mi
 > **Für den nächsten Brocken vorher lesen:** §4.10 und §4.12 (wie die Zeichenfläche und der
 > Kopf gebaut sind), §7 „Der Avalonia-Kopf" — dort stehen jetzt **zehn** Eigenheiten statt
 > vier — und §7 „Fernsteuern unter Wayland", ohne das sich auf dem Laptop nichts belegen
-> lässt.
+> lässt. **Wer etwas zusammenlegt, liest zusätzlich §4.13** („Pixelgleich ist hier
+> gemessen") — der Vergleich alt↔neu ist das Muster dafür.
 
-**Zwei benannte Schulden aus Phase 3**, beide auf dem Windows-Rechner fällig, weil sie sich
-nur dort am laufenden Programm gegenprüfen lassen:
+### Erledigt: die zwei Schulden aus Phase 3 — **eingelöst**
 
-| Steht doppelt | Zusammenlegen heißt |
+Am 2026-08-04 unter Windows abgearbeitet (§4.13). Beide waren Zusammenlegungen, keine
+Neubauten:
+
+| Stand doppelt | Erledigt durch |
 |---|---|
-| Trefferprüfung und Lasso (`WbHit` in Core ↔ `WhiteboardView.Selection.cs`) | den WPF-Kopf auf `WbHit` umstellen (§4.10) |
-| Markdown-Grammatik (`Core/Text/Markdown.cs` ↔ `Services/MarkdownFlow.cs`) | `MarkdownFlow` behält seine `FlowDocument`-Hälfte und ruft `Markdown.Parse` (§4.12) — **dabei die dort noch offene Endlosschleife mitnehmen** |
+| ✅ Trefferprüfung und Lasso (`WbHit` in Core ↔ `WhiteboardView.Selection.cs`) | Der WPF-Kopf rechnet mit `WbHit`; die private Fassung ist weg. **Pixelgleichheit gemessen**, nicht behauptet (§4.13) |
+| ✅ Markdown-Grammatik (`Core/Text/Markdown.cs` ↔ `Services/MarkdownFlow.cs`) | `MarkdownFlow` behält seine `FlowDocument`-Hälfte und ruft `Markdown.Parse`. **Die Endlosschleife kam ohne eigenen Handgriff mit** — wer die Grammatik wegwirft, wirft den Fehler mit weg |
+| ✅ (klein, aus §4.12) Datenordner im WPF-Über-Dialog | Eine Zeile XAML, eine Zeile Code — `About.Subtitle` nennt seit §4.12 keinen Pfad mehr, die Angabe fehlte auf Windows sonst ganz |
+
+**Die Testzahl bleibt bei 159.** Es ist nichts dazugekommen; es sind zwei Fassungen weniger
+geworden. `TrefferTests` und `MarkdownTests` bewachen ab jetzt **beide** Köpfe statt nur den
+Linux-Kopf.
 
 ### Der Rest (Roadmap §5)
 
@@ -2179,6 +2324,10 @@ weil sie bei der Portierung direkt zuschlagen:
   WPF-`ResourceDictionary`-Dateien), weil der WPF-Kopf bewusst nicht umgestellt wurde.
   `FarbtabelleTests` hält sie zusammen — **in beide Richtungen**. Wer eine Farbe ändert,
   ändert beide Stellen oder bekommt einen roten Lauf.
+  **Das ist die letzte verbliebene Doppelung dieser Art** — `WbHit` und die
+  Markdown-Grammatik sind mit §4.13 zusammengelegt. Sie ist aber eine andere Sorte: dort
+  standen zwei **Rechnungen**, hier stehen zwei **Datentabellen**, und ein Wächter hält sie
+  wirklich zusammen. Sie fällt mit den eigenen Farbschemata (§6), nicht vorher.
 - **Die Vorgabetinte gehört zum Papier, nicht zur App.** Eine Notizbuchseite ist
   standardmäßig `PageShade.Light` — **unabhängig vom App-Theme**, denn Papier soll wie
   Papier aussehen (V1-Vorgabe „Dark/Light bei hellem Papier", §1). Wer `DefaultInk` aus der
@@ -2209,6 +2358,34 @@ weil sie bei der Portierung direkt zuschlagen:
 - **Ein Doppelklick auf eine Galerie-Kachel malt einen Punkt in die Zeichenfläche**, wenn
   das Dokument schneller aufgeht als der zweite Klick kommt. Über den Baum öffnen ist
   sicherer.
+
+**Neu aus §4.13 — Fernsteuern, Ziehen und Untermenüs**
+
+- **Ohne Ziehen lässt sich die Auswahl gar nicht fernsteuern.** Lasso und Verschieben sind
+  Ziehbewegungen; ein Klick erzeugt keine Auswahl. `kette.ps1` kann das seit §4.13 mit einem
+  Schritt der Form `"x1,y1>x2,y2>…"`. **Zwischen den Stützpunkten muss interpoliert werden**
+  — die App sammelt ihre Lassopunkte aus Mausbewegungen, ein einzelner `SetCursorPos`-Sprung
+  ergäbe eine Gerade statt einer Umkreisung.
+- **Die PowerShell-Pipeline entpackt verschachtelte Arrays.**
+  `@($s -split '>' | ForEach-Object { [int[]]@($t[0], $t[1]) })` ergibt **keine** Liste von
+  Paaren, sondern eine flache Liste von Zahlen — `SetCursorPos` bekommt dann ein Array, wo
+  eine Zahl hingehört, und meldet „Die Argumenttypen stimmen nicht überein" an einer Zeile,
+  die richtig aussieht. **Gegenmittel: zwei getrennte Achsen-Arrays** (`$xs`, `$ys`) statt
+  einer Liste von Paaren.
+- **Ein Klick auf einen Untermenü-Eintrag *schließt* das Untermenü, wenn der Zeiger es
+  vorher schon per Hover geöffnet hat.** „Ansicht → Sprache → Englisch" scheiterte deshalb
+  reproduzierbar: der dritte Klick machte das Untermenü zu, der vierte landete auf dem, was
+  darunter lag — hier auf dem Notizbuch-Knopf der Seitenleiste, und es entstand ein
+  Notizbuch. **Das Foto zeigt dabei die Ursache nicht**, weil das Untermenü zum
+  Aufnahmezeitpunkt durch Hover wieder offen ist. **Gegenmittel: `-WaitMs` hochsetzen** (1400
+  statt 700 hat gereicht) und danach am Ergebnis prüfen, nicht am Zwischenfoto.
+- **Tastatur statt Maus hilft hier *nicht*.** Der naheliegende Ausweg
+  (`{DOWN}{DOWN}{DOWN}{RIGHT}…`) ging ins Leere, weil ein Baumeintrag im Umbenennen-Modus
+  stand und alle Tasten abfing. **Erst den Fokus klären, dann tippen.**
+- **`{PGDN}` im `FlowDocumentScrollViewer` greift nur, solange der Fokus im Dokument liegt**
+  — er geht schon beim nächsten `SetForegroundWindow` verloren, und dann rollt nichts mehr,
+  ohne dass es wie ein Fehler aussieht (V1-Handoff §7 kennt das). **Zuverlässig ist der
+  Rollbalken-Ziehgriff**, jetzt wo `kette.ps1` ziehen kann.
 
 **Neu aus Phase 3 — Fernsteuern des Avalonia-Kopfs**
 
@@ -2379,11 +2556,19 @@ jedes Mal neu getippt:
 
 .\tools\kette.ps1 -AppPid <pid> -Schritte '#{ESC}','292,45','122,211' -Voll   # Menüpfad
 .\tools\klick.ps1 -AppPid <pid> -X 251 -Y 406 -Doppel 1                       # Einzelschritt
+
+# Ziehen (seit §4.13) -- ein Lasso um drei Elemente, danach die Auswahl verschieben:
+.\tools\kette.ps1 -AppPid <pid> -Schritte '886,465>1698,465>1698,1481>886,1481>886,470',`
+                                          '1292,712>1437,857'
 ```
 
-Schritte sind `"x,y"`, `"x,y,2"` (Doppelklick), `"x,y,r"` (Rechtsklick) oder `"#TASTEN"`
-(SendKeys). **Koordinaten sind echte Bildschirmpixel** — `SetProcessDPIAware()` steht in
-jedem Skript, der Rechner läuft auf 200 %.
+Schritte sind `"x,y"`, `"x,y,2"` (Doppelklick), `"x,y,r"` (Rechtsklick), `"#TASTEN"`
+(SendKeys) oder **`"x1,y1>x2,y2>…"` (Ziehen über einen Pfad)**. **Koordinaten sind echte
+Bildschirmpixel** — `SetProcessDPIAware()` steht in jedem Skript, der Rechner läuft auf 200 %.
+
+**Ohne den Zieh-Schritt ist die Auswahl nicht fernsteuerbar** — ein Klick allein erzeugt
+keine. Zwischen den Stützpunkten wird interpoliert, weil die App ihre Lassopunkte aus
+Mausbewegungen sammelt (§7, „Ziehen und Untermenüs").
 
 **Beim Avalonia-Kopf zusätzlich `-Voll`** und **jede Kette mit `'#{ESC}'` beginnen**: seine
 Menüs sind eigene Fenster und fehlen sonst auf dem Foto, und ein offen gelassenes Menü läuft
@@ -2413,6 +2598,7 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 
 | Runde | Datum | Was |
 |---|---|---|
+| V2-17 | 2026-08-04 | **Die zwei benannten Schulden aus Phase 3 sind eingelöst** (§4.13), auf dem Windows-Rechner — dem einzigen, auf dem der WPF-Kopf baut. (1) **`WhiteboardView.Selection.cs` rechnet mit `WbHit` aus Core**: `RotatePt`, `HitElement`, `HitTestElement`, `SegOrPointDist`, `ShapeOutlineDist`, `AllCornersInside`, der Lasso-Kern und `ComputeSelectionBounds` sind als eigene Rechnung verschwunden, 384 → 290 Zeilen. Die **Namen** bleiben als Einzeiler stehen: sie haben elf Aufrufstellen in fünf anderen Partials, und wegkommen sollte die zweite Rechnung, nicht die zweite Bezeichnung. (2) **`MarkdownFlow` ruft `Markdown.Parse`** und malt nur noch den Blockbaum, 339 → 232 Zeilen. **Die Endlosschleife aus §4.12 kam ohne eigenen Handgriff mit** — wer die Grammatik wegwirft, wirft den Fehler mit weg; das ist der Unterschied zwischen „an zwei Stellen reparieren" und „eine Stelle haben". Nebenbei entfällt das `[ThreadStatic]`-Feld für den Dokument-Verweis: es gab es nur, weil Zitatblöcke sich selbst erneut aufriefen, und ein `MdQuote` bringt seinen Inhalt bereits zerlegt mit. (3) **Der WPF-Über-Dialog zeigt den Datenordner** — die Zeile aus §4.12; sie war nötig und nicht kosmetisch, weil `About.Subtitle` seit §4.12 keinen Pfad mehr nennt und die Angabe auf Windows sonst ganz fehlte. **Das Wort „pixelgleich" ist gemessen, nicht behauptet:** derselbe Prüflauf gegen dieselbe Master-Datenbank, einmal mit dem alten Stand (`git stash` auf die eine Datei) und einmal mit dem neuen — **alle drei Bildpaare Pixel für Pixel identisch, 2906×1826, null Abweichung**. Ein Testlauf hätte das nicht hergegeben: er prüft, was er kennt, der Bildvergleich prüft alles, was auf dem Schirm steht. **Für Phase 4 ist das jetzt das Muster.** Dafür musste `kette.ps1` erst **ziehen** lernen (`"x1,y1>x2,y2>…"`, mit Interpolation) — das Linux-Gegenstück kann es seit §4.10, unter Windows fehlte es, und ohne Ziehen ist die Auswahl gar nicht fernsteuerbar. **Zwei Fernsteuer-Fallen dabei gefunden** (§7): die PowerShell-Pipeline entpackt verschachtelte Arrays, sodass `SetCursorPos` ein Array statt einer Zahl bekommt; und ein Klick auf einen Untermenü-Eintrag **schließt** das Untermenü, wenn der Hover es schon geöffnet hat — der nächste Klick landet dann darunter, und auf dem Foto sieht man die Ursache nicht, weil der Hover das Menü bis zur Aufnahme wieder öffnet. Geprüft ohne echte Daten, beide Markdown-Dialoge in **beiden** Sprachen (Überschriften, verschachtelte Listen, Zitat, Code-Block, **Tabelle**, und der Verweis „Erste Schritte" öffnet die Anleitung). **159 Tests unverändert grün** — nichts dazugekommen, zwei Fassungen weniger; `TrefferTests` und `MarkdownTests` bewachen ab jetzt beide Köpfe |
 | V2-16 | 2026-08-04 | **Nachlese zu V2-15, wieder auf Nutzerwunsch.** (1) **Die große Ordner-Kachel bekommt ihre eigene Strichstärke** (`4,5` statt `0,7`, `MainWindow.axaml`). Grund und allgemeine Lehre: **`StrokeThickness` wächst nicht mit `Stretch` mit** — der Wert steht in Gerätepunkten und nicht in denen der Geometrie, weshalb dieselben 0,7, die im Baum bei 16 px kräftig aussehen, bei 118 px ein Haarstrich sind. Wer künftig eine Vektorform groß zeigt, muss die Stärke dort eigens setzen. In der Seitenleiste bleibt alles wie es war. (2) **`Icon.Textmarker` im dritten Anlauf**, jetzt **oben offen**: der Schaft ist am oberen Rand abgeschnitten, zwei Stege stehen über der Bandlinie, unten die Keilspitze. Genau daran lagen die ersten beiden Fassungen daneben — eine geschlossene Kappe macht daraus einen Stift mit Deckel. **Neu als Arbeitsweise:** eine Form beurteilt man schneller, indem man dieselbe Pfadangabe als `.svg` groß rendert (`magick … -filter point -resize 400x`), als indem man die App neu startet; die Gegenprobe am laufenden Programm bleibt Pflicht, aber einmal statt bei jedem Zwischenstand. **Dabei eine teure Wayland-Falle gefunden** (§7): **`import -window` liefert manchmal ein Bild, das mehrere Schritte alt ist** — man klickt, das Foto zeigt keine Wirkung, man korrigiert Koordinaten, und in Wahrheit hat schon der erste Klick gesessen. Vier Durchgänge sind so verloren gegangen. Gegenmittel: zwei Aufnahmen hashen und bei Gleichstand eine Aktion mit unübersehbarer Wirkung auslösen |
 | V2-15 | 2026-08-03 | **Nachlese zu V2-14, beides auf Nutzerwunsch.** (1) Der **Klon-Befehl zeigt jetzt auf V2** (`GonkNote.git`) — in beiden Erste-Schritte-Fassungen, dazu der Issues-Verweis am Ende. Damit ist §5 „Noch offen" Punkt 3 nach zweimaligem Zurückstellen entschieden; fällig geworden war er dadurch, dass die Anleitung daneben `src/GonkNote.Avalonia` nennt, ein Projekt, das es im V1-Repo nicht gibt. **Das Repo ist weiterhin privat** — der Befehl läuft heute nur für Konten mit Zugriff, und das wird mit §6 „Vor dem Öffentlich-Schalten" richtig. (2) **Zwei Vektorformen zurück auf die V1-Gestalt**: `Icon.Folder` ist wieder der klassische Ordner **mit Reiter** oben links (statt der „modernen" Fassung mit Schräge), `Icon.Textmarker` ein **aufrechter, breiter** Marker mit Bandlinie und Keilspitze (statt eines schräg liegenden, der neben dem Bleistift wie ein zweiter Stift aussah). Gezeichnet **nach dem Zeichen, das der WPF-Kopf dafür benutzt** (Segoe Fluent `E8B7`/`E7E6`) und nicht nach dem Vorschaubild — die Vorlage steht im Repo und ist damit nachprüfbar. Zwei Lehren stehen jetzt am Symbolblock in `Themes/Styles.axaml`: beim Marker ist **die Breite** das Erkennungsmerkmal und nicht die Neigung, und **die Bandlinie braucht Abstand zum oberen Rand** — im ersten Anlauf verschmolz sie bei 16 px mit der gerundeten Kappe zu einem einzigen Strich. In drei Größen am laufenden Programm angesehen (Baum 16 px, Schnellzugriff 21 px, Galerie-Kachel 118 px). Die übrigen neuen Symbole bleiben, wie sie sind — der Nutzer hält sie für besser als die V1-Fassungen. Der WPF-Kopf ist nicht betroffen: er zeichnet weiter mit der Icon-Schrift |
 | V2-14 | 2026-08-03 | **Phase 3, Brocken 6 und 7 — der Rest bis M1** (§4.12), auf dem CachyOS-Laptop. **Drag & Drop im Ordnerbaum** (verschieben, mit `Strg` kopieren; leere Fläche = Wurzel), die **einblendbare Titelleiste** des maximierten Fensters und die **Einstellungen-Seitenleiste** der Zeichenfläche (Muster, Farbton, Format, Ausrichtung — **nur** der Seiten-Abschnitt, weil es die anderen Werkzeuge nicht gibt). Dazu das **`EmbeddedDocs`-Gegenstück**: „Hilfe → Erste Schritte" und das gerenderte README erscheinen jetzt auch unter Linux. **Der Markdown-Zerleger ist dabei nach `Core/Text/` gewandert** statt ein zweites Mal abgeschrieben zu werden — er zeichnet kein Pixel (§3), und zwei Fassungen derselben Grammatik driften auseinander, ohne dass es auffällt; jeder Kopf malt nur noch. Wächter `MarkdownTests` (21 Tests, jetzt **146** Core / 159 gesamt) — **er hat sofort eine Endlosschleife gefunden, die auch in `MarkdownFlow` steckt**: eine Tabellenzeile ohne Trennzeile darunter landet im Absatz-Zweig, den sie selbst abweist, sodass `Parse` nie weiterrückt. Aufgefallen ist das nicht an einer roten Meldung, sondern daran, dass der Testlauf nicht mehr zurückkam (§7, neu). **Drei weitere Avalonia-Eigenheiten** (§7): Ziehen läuft auch in der App über XDND, weshalb es ein prozessinternes `DataFormat` braucht; `DoDragDropAsync` verlangt die `PointerPressedEventArgs`; ein anklickbarer Verweis ist ein Steuerelement (`InlineUIContainer`) und kein `Run`. Die Titelleiste braucht hier **keinen** MinMax-Hook — X11 maximiert gegen `_NET_WORKAREA`, `WindowBounds` bleibt zu Recht Windows-only. **Zwei Texte am laufenden Programm als falsch entlarvt** und in beiden Tabellen behoben: `About.Subtitle` nannte fest `%APPDATA%\GonkNote` (direkt über der Zeile mit dem echten Ordner), und der Werkzeugtipp der Seitenleiste versprach vier Abschnitte, von denen es einen gibt (neuer Schlüssel `Wb.Settings.PageTip`). **Ein eigener Fehler dabei gefunden:** die Leiste ging mit lauter leeren Umschaltern auf — `EinstellungenSpiegeln` wurde vor dem Sichtbarmachen gerufen und stieg deshalb sofort wieder aus. **Nutzer-Entscheidung: M1 wird ausgerufen** — und im selben Zug sind **alle vier mitgelieferten Dokumente** auf beide Ausgaben erweitert worden (Dauerregel 1): neuer Abschnitt „Zwei Ausgaben, eine App" mit einer Tabelle, was der Linux-Ausgabe fehlt und warum, dazu Bau-, Pfad- und Sicherungsanweisungen je System. Geprüft ohne echte Daten, in **beiden** Sprachen, jeder Schritt mit `tools/linux/` fotografiert. **Offen bleibt** der V1-Klon-Befehl in beiden Erste-Schritte-Fassungen (§5, Punkt 3) — er fällt jetzt stärker auf, weil daneben `src/GonkNote.Avalonia` steht |

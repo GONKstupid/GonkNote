@@ -4,8 +4,14 @@
 # SetForegroundWindow nach vorn — und genau das schliesst ein offenes Menue-Popup.
 # Menuepfade brauchen deshalb eine Kette ohne Fokuswechsel dazwischen.
 #
-# Schritte als "x,y" (Klick), "x,y,2" (Doppelklick), "x,y,r" (Rechtsklick)
-# oder "#TASTEN" (SendKeys).
+# Schritte als "x,y" (Klick), "x,y,2" (Doppelklick), "x,y,r" (Rechtsklick),
+# "#TASTEN" (SendKeys) oder "x1,y1>x2,y2>..." (ZIEHEN ueber einen Pfad).
+#
+# Der Zieh-Schritt kam nach, weil Lasso und Verschieben ohne ihn nicht fernsteuerbar sind:
+# ein Klick allein erzeugt keine Auswahl. Das Linux-Gegenstueck (tools/linux/klick.sh) kann
+# das seit Phase 3 mit 'z:', unter Windows fehlte es. Zwischen den Stuetzpunkten wird
+# interpoliert -- die App sammelt ihre Lassopunkte aus Mausbewegungen, ein einzelner Sprung
+# ergaebe eine Gerade statt einer Umkreisung.
 param(
     [string[]]$Schritte,
     [string]$Shot   = "$env:TEMP\gonk-schuss.png",
@@ -44,6 +50,30 @@ Start-Sleep -Milliseconds 500
 foreach ($s in $Schritte) {
     if ($s.StartsWith('#')) {
         [Windows.Forms.SendKeys]::SendWait($s.Substring(1))
+    }
+    elseif ($s.Contains('>')) {
+        # Ziehen: aufsetzen, ueber alle Stuetzpunkte fahren, loslassen.
+        # Getrennte Achsen statt einer Liste von Paaren: die Pipeline entpackt
+        # verschachtelte Arrays, und SetCursorPos bekommt dann ein Array statt einer Zahl.
+        $xs = @(); $ys = @()
+        foreach ($punkt in ($s -split '>')) {
+            $t = $punkt -split ','
+            $xs += [int]$t[0]; $ys += [int]$t[1]
+        }
+        [C]::SetCursorPos($xs[0], $ys[0]) | Out-Null
+        Start-Sleep -Milliseconds 200
+        [C]::mouse_event([C]::DOWN, 0, 0, 0, [IntPtr]::Zero)
+        Start-Sleep -Milliseconds 120
+        for ($k = 1; $k -lt $xs.Count; $k++) {
+            for ($j = 1; $j -le 12; $j++) {
+                [C]::SetCursorPos(
+                    [int]($xs[$k - 1] + ($xs[$k] - $xs[$k - 1]) * $j / 12),
+                    [int]($ys[$k - 1] + ($ys[$k] - $ys[$k - 1]) * $j / 12)) | Out-Null
+                Start-Sleep -Milliseconds 12
+            }
+        }
+        Start-Sleep -Milliseconds 120
+        [C]::mouse_event([C]::UP, 0, 0, 0, [IntPtr]::Zero)
     }
     else {
         $t = $s -split ','

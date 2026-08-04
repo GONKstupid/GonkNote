@@ -9,6 +9,13 @@ namespace GonkNote.Views;
 /// <summary>
 /// Auswahl: Treffer-Erkennung, Lasso, Griffe, Verschieben/Skalieren/Drehen
 /// sowie Ausschneiden, Kopieren, Einfuegen und Loeschen.
+/// <para>
+/// <b>Die Geometrie steht seit Phase 3 in <see cref="WbHit"/>.</b> Bis dahin lag sie hier
+/// privat und ein zweites Mal im Linux-Kopf — zwei Fassungen derselben Formel driften
+/// auseinander, ohne dass es auffällt (HANDOFF §4.10). Was hier bleibt, hängt am
+/// Steuerelement: <c>Zoom</c> für die Toleranzen, <c>_page</c> und <c>_selection</c> für
+/// den Zustand, die Griffe für die Darstellung. Gerechnet wird in Core.
+/// </para>
 /// </summary>
 public partial class WhiteboardView
 {
@@ -23,13 +30,6 @@ public partial class WhiteboardView
 
     // ---------- Griffe für Einzelauswahl (mitgedreht) ----------
 
-    private static SKPoint RotatePt(SKPoint p, SKPoint pivot, float deg)
-    {
-        float r = deg * MathF.PI / 180f, cos = MathF.Cos(r), sin = MathF.Sin(r);
-        float dx = p.X - pivot.X, dy = p.Y - pivot.Y;
-        return new SKPoint(pivot.X + dx * cos - dy * sin, pivot.Y + dx * sin + dy * cos);
-    }
-
     /// <summary>Dreh-Griff (oben) und Skalier-Griff (unten rechts) eines einzelnen Elements, mitgedreht.</summary>
     private (SKPoint Rotate, SKPoint Scale, SKPoint TL, SKPoint TR, SKPoint BR, SKPoint BL) SingleHandles(WbElement el)
     {
@@ -42,8 +42,9 @@ public partial class WhiteboardView
         var bl = new SKPoint(b.Left - pad, b.Bottom + pad);
         var rot = new SKPoint(b.MidX, b.Top - pad - 28f / Zoom);
         float d = el.Rotation;
-        return (RotatePt(rot, ctr, d), RotatePt(br, ctr, d),
-                RotatePt(tl, ctr, d), RotatePt(tr, ctr, d), RotatePt(br, ctr, d), RotatePt(bl, ctr, d));
+        return (WbHit.Rotate(rot, ctr, d), WbHit.Rotate(br, ctr, d),
+                WbHit.Rotate(tl, ctr, d), WbHit.Rotate(tr, ctr, d),
+                WbHit.Rotate(br, ctr, d), WbHit.Rotate(bl, ctr, d));
     }
 
     private bool NearHandle(SKPoint c, SKPoint handle)
@@ -64,7 +65,7 @@ public partial class WhiteboardView
             var el = _selection.First();
             var b = ElementBounds(el);
             var ctr = new SKPoint(b.MidX, b.MidY);
-            var local = RotatePt(c, ctr, -el.Rotation);   // Zeiger in den ungedrehten Raum bringen
+            var local = WbHit.Rotate(c, ctr, -el.Rotation);   // Zeiger in den ungedrehten Raum bringen
             b.Inflate(10f / Zoom, 10f / Zoom);
             return b.Contains(local);
         }
@@ -94,123 +95,24 @@ public partial class WhiteboardView
         }
     }
 
-    private static bool HitElement(WbElement el, SKPoint c, float r)
-    {
-        // Gedrehte Elemente: Klickpunkt in den ungedrehten Raum zurückdrehen
-        if (el.Rotation != 0f)
-        {
-            var eb = ElementBounds(el);
-            c = RotatePt(c, new SKPoint(eb.MidX, eb.MidY), -el.Rotation);
-        }
-        switch (el)
-        {
-            case StrokeElement s:
-                float rr = r + s.Width / 2f;
-                for (int i = 0; i < s.Points.Count; i++)
-                {
-                    var p = s.Points[i];
-                    if (SegOrPointDist(s.Points, i, c) <= rr) return true;
-                }
-                return false;
-
-            case ShapeElement sh:
-                return ShapeOutlineDist(sh, c) <= r + sh.StrokeWidth / 2f;
-
-            case TextElement t:
-                var b = TextBounds(t);
-                b.Inflate(r, r);
-                return b.Contains(c);
-
-            case ImageElement im:
-                return SKRect.Create(im.X, im.Y, im.Width, im.Height).Contains(c);
-
-            case StickyNoteElement sn:
-                return SKRect.Create(sn.X, sn.Y, sn.Width, sn.Height).Contains(c);
-
-            default:
-                return false;
-        }
-    }
+    /// <summary>
+    /// Liegt der Zeiger (Radius <paramref name="r"/>) auf dem Element? Gerechnet wird in
+    /// <see cref="WbHit.Hit"/> — hier steht nur noch der Name, unter dem der Radierer und
+    /// die Direktauswahl ihn kennen.
+    /// </summary>
+    private static bool HitElement(WbElement el, SKPoint c, float r) => WbHit.Hit(el, c, r);
 
     /// <summary>
     /// Oberstes Objekt unter dem Zeiger für die Direktauswahl (Verschieben-Werkzeug).
     /// Vordergrund-Objekte (Striche/Formen/Text/Zettel) haben Vorrang vor Bildern/PDF-
-    /// Seiten, damit man einen Strich über einem Hintergrundbild greifen kann.
+    /// Seiten, damit man einen Strich über einem Hintergrundbild greifen kann — die
+    /// Reihenfolge steckt in <see cref="WbHit.Topmost"/>.
     /// </summary>
-    private WbElement? HitTestElement(SKPoint c)
-    {
-        if (_page == null) return null;
-        float tol = 5f / Zoom;
-        for (int pass = 0; pass < 2; pass++)
-            for (int i = _page.Elements.Count - 1; i >= 0; i--)
-            {
-                var el = _page.Elements[i];
-                bool isImage = el is ImageElement;
-                if (pass == 0 && isImage) continue;   // erst Vordergrund …
-                if (pass == 1 && !isImage) continue;   // … dann Bilder
-                if (HitElement(el, c, tol)) return el;
-            }
-        return null;
-    }
-
-    private static float SegOrPointDist(List<WbPoint> pts, int i, SKPoint c)
-    {
-        var a = new SKPoint(pts[i].X, pts[i].Y);
-        if (i + 1 >= pts.Count) return SKPoint.Distance(a, c);
-        var b = new SKPoint(pts[i + 1].X, pts[i + 1].Y);
-        return SegmentDistance(a, b, c);
-    }
+    private WbElement? HitTestElement(SKPoint c) =>
+        _page == null ? null : WbHit.Topmost(_page.Elements, c, 5f / Zoom);
 
     private static float SegmentDistance(SKPoint a, SKPoint b, SKPoint p) =>
         WbErase.SegmentDistance(a, b, p);
-
-    private static float ShapeOutlineDist(ShapeElement sh, SKPoint c)
-    {
-        var p1 = new SKPoint(sh.X1, sh.Y1);
-        var p2 = new SKPoint(sh.X2, sh.Y2);
-        switch (sh.Shape)
-        {
-            case ShapeKind.Line:
-            case ShapeKind.Arrow:
-                return SegmentDistance(p1, p2, c);
-
-            case ShapeKind.Rectangle:
-            {
-                var r = SKRect.Create(Math.Min(p1.X, p2.X), Math.Min(p1.Y, p2.Y),
-                                      Math.Abs(p2.X - p1.X), Math.Abs(p2.Y - p1.Y));
-                var tl = new SKPoint(r.Left, r.Top);
-                var tr = new SKPoint(r.Right, r.Top);
-                var br = new SKPoint(r.Right, r.Bottom);
-                var bl = new SKPoint(r.Left, r.Bottom);
-                return Math.Min(Math.Min(SegmentDistance(tl, tr, c), SegmentDistance(tr, br, c)),
-                                Math.Min(SegmentDistance(br, bl, c), SegmentDistance(bl, tl, c)));
-            }
-
-            case ShapeKind.Ellipse:
-            {
-                float cx = (p1.X + p2.X) / 2f, cy = (p1.Y + p2.Y) / 2f;
-                float rx = Math.Max(1f, Math.Abs(p2.X - p1.X) / 2f);
-                float ry = Math.Max(1f, Math.Abs(p2.Y - p1.Y) / 2f);
-                // Abstand grob über normalisierte Radialdistanz
-                float nx = (c.X - cx) / rx, ny = (c.Y - cy) / ry;
-                float d = MathF.Sqrt(nx * nx + ny * ny);
-                return Math.Abs(d - 1f) * Math.Min(rx, ry);
-            }
-
-            case ShapeKind.Triangle:
-            {
-                var (a, b2, c2) = TrianglePoints(sh);
-                return Math.Min(SegmentDistance(a, b2, c),
-                       Math.Min(SegmentDistance(b2, c2, c), SegmentDistance(c2, a, c)));
-            }
-
-            default:
-                return float.MaxValue;
-        }
-    }
-
-    private static (SKPoint A, SKPoint B, SKPoint C) TrianglePoints(ShapeElement sh) =>
-        WbRenderer.TrianglePoints(sh);
 
     // ==================== Lasso / Auswahl ====================
 
@@ -231,55 +133,23 @@ public partial class WhiteboardView
         return b;
     }
 
+    /// <summary>
+    /// Was das Lasso eingefangen hat. Die Regel „nur ~vollständig (≥ 95 %) Umschlossenes
+    /// zählt" (Nutzer-Wunsch aus V1) steht in <see cref="WbHit.InsideLasso"/>; hier bleibt
+    /// nur, was mit dem Ergebnis geschieht.
+    /// </summary>
     private void SelectByLasso(List<SKPoint> lasso)
     {
         if (_page == null) return;
-        using var path = new SKPath();
-        path.MoveTo(lasso[0]);
-        for (int i = 1; i < lasso.Count; i++) path.LineTo(lasso[i]);
-        path.Close();
 
         _selection.Clear();
-        foreach (var el in _page.Elements)
-        {
-            // Nutzer-Wunsch: nur Objekte auswählen, die ~vollständig (≥95 %) umschlossen
-            // sind – so lässt sich ein Strich greifen, ohne die PDF-Seite/Form dahinter
-            // mitzunehmen.
-            bool inside = el switch
-            {
-                StrokeElement s => s.Points.Count > 0 &&
-                    s.Points.Count(p => path.Contains(p.X, p.Y)) >= s.Points.Count * 0.95f,
-                ShapeElement sh => AllCornersInside(path, ElementBounds(sh)),
-                TextElement t => AllCornersInside(path, TextBounds(t)),
-                ImageElement im => AllCornersInside(path, SKRect.Create(im.X, im.Y, im.Width, im.Height)),
-                StickyNoteElement sn => AllCornersInside(path, SKRect.Create(sn.X, sn.Y, sn.Width, sn.Height)),
-                _ => false,
-            };
-            if (inside) _selection.Add(el);
-        }
+        foreach (var el in WbHit.InsideLasso(_page.Elements, lasso)) _selection.Add(el);
 
         if (_selection.Count > 0) ComputeSelectionBounds();
         Skia.InvalidateVisual();
     }
 
-    /// <summary>Alle vier Ecken (plus Mitte) eines Rechtecks liegen im Lasso-Pfad.</summary>
-    private static bool AllCornersInside(SKPath path, SKRect r) =>
-        path.Contains(r.Left, r.Top) && path.Contains(r.Right, r.Top) &&
-        path.Contains(r.Left, r.Bottom) && path.Contains(r.Right, r.Bottom) &&
-        path.Contains(r.MidX, r.MidY);
-
-    private void ComputeSelectionBounds()
-    {
-        bool first = true;
-        SKRect r = SKRect.Empty;
-        foreach (var el in _selection)
-        {
-            var b = ElementBounds(el);
-            if (first) { r = b; first = false; }
-            else r = SKRect.Union(r, b);
-        }
-        _selectionBounds = r;
-    }
+    private void ComputeSelectionBounds() => _selectionBounds = WbHit.Bounds(_selection);
 
     internal static SKRect ElementBounds(WbElement el) => WbRenderer.ElementBounds(el);
 

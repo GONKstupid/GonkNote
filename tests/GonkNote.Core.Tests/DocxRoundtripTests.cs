@@ -500,6 +500,7 @@ public sealed class DocxRoundtripTests
     {
         DefaultCharFormat = { FontFamily = "Calibri", FontSize = 11 },
         DefaultParaFormat = { SpaceAfterPt = 6, LineSpacing = 1.15 },
+        Lists = { TdListDefinition.Nummern(1), TdListDefinition.Punkte(2) },
         Sections =
         {
             // Ein Deckblatt quer, der Rest hoch — der Fall, für den es Abschnitte gibt, und
@@ -566,6 +567,12 @@ public sealed class DocxRoundtripTests
                     PageBreakBefore = false,
                 },
             },
+            // Zwei Listen, zwei Ebenen — Nummerierung und Aufzählung nebeneinander.
+            new TdParagraph("Erster Punkt") { List = new TdListRef(1, 0) },
+            new TdParagraph("Unterpunkt") { List = new TdListRef(1, 1) },
+            new TdParagraph("Zweiter Punkt") { List = new TdListRef(1, 0) },
+            new TdParagraph("Ein Strich") { List = new TdListRef(2, 0) },
+
             new TdPageBreak(),
             new TdParagraph("Nach dem Umbruch.") { Format = { PageBreakBefore = true } },
         ];
@@ -574,6 +581,7 @@ public sealed class DocxRoundtripTests
     {
         GleichesZeichenformat(a.DefaultCharFormat, b.DefaultCharFormat);
         GleichesAbsatzformat(a.DefaultParaFormat, b.DefaultParaFormat);
+        GleicheListen(a.Lists, b.Lists);
 
         Assert.Equal(a.Sections.Count, b.Sections.Count);
         for (int s = 0; s < a.Sections.Count; s++)
@@ -595,6 +603,7 @@ public sealed class DocxRoundtripTests
                     var pb = Assert.IsType<TdParagraph>(b[i]);
                     GleichesZeichenformat(pa.CharFormat, pb.CharFormat);
                     GleichesAbsatzformat(pa.Format, pb.Format);
+                    GleicherListenverweis(pa.List, pb.List);
 
                     Assert.Equal(pa.Inlines.Count, pb.Inlines.Count);
                     for (int k = 0; k < pa.Inlines.Count; k++)
@@ -613,6 +622,31 @@ public sealed class DocxRoundtripTests
                 default:
                     Assert.Fail($"Kein Vergleich für {a[i].GetType().Name} — bitte ergänzen.");
                     break;
+            }
+        }
+    }
+
+    private static void GleicherListenverweis(TdListRef? a, TdListRef? b)
+    {
+        if (a is null || b is null) { Assert.Equal(a is null, b is null); return; }
+        Assert.Equal(a.ListId, b.ListId);
+        Assert.Equal(a.Level, b.Level);
+    }
+
+    private static void GleicheListen(List<TdListDefinition> a, List<TdListDefinition> b)
+    {
+        Assert.Equal(a.Count, b.Count);
+        for (int i = 0; i < a.Count; i++)
+        {
+            Assert.Equal(a[i].Id, b[i].Id);
+            Assert.Equal(a[i].Levels.Count, b[i].Levels.Count);
+            for (int k = 0; k < a[i].Levels.Count; k++)
+            {
+                Assert.Equal(a[i].Levels[k].Marker, b[i].Levels[k].Marker);
+                Assert.Equal(a[i].Levels[k].Text, b[i].Levels[k].Text);
+                Assert.Equal(a[i].Levels[k].Start, b[i].Levels[k].Start);
+                GleicheZahlCm(a[i].Levels[k].IndentCm, b[i].Levels[k].IndentCm);
+                GleicheZahlCm(a[i].Levels[k].HangingCm, b[i].Levels[k].HangingCm);
             }
         }
     }

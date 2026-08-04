@@ -75,6 +75,7 @@ public static class TdDocx
         var body = main.Document.Body!;
 
         StandardformateSchreiben(doc, main);
+        ListenSchreiben(doc, main);
 
         // Felder (PAGE/NUMPAGES) beim Öffnen aktualisieren lassen — sonst zeigt Word die
         // beim Schreiben eingesetzte 1 statt der echten Seitenzahl.
@@ -161,11 +162,151 @@ public static class TdDocx
         });
     }
 
+    // ==================== Listen ====================
+
+    /// <summary>
+    /// Die Listendefinitionen als <c>numbering.xml</c>.
+    /// <para>
+    /// DOCX trennt hier zwei Dinge, die man leicht verwechselt: ein <c>abstractNum</c> ist
+    /// die **Vorlage** (wie sehen die neun Ebenen aus), ein <c>num</c> ist eine **Instanz**
+    /// davon — und nur die hat eine Kennung, auf die ein Absatz zeigt. Zwei Listen, die
+    /// gleich aussehen, aber getrennt zählen, sind zwei <c>num</c> auf dasselbe
+    /// <c>abstractNum</c>. Hier bekommt jede Definition beides, weil jede Liste im Modell
+    /// ohnehin ihre eigene ist.
+    /// </para>
+    /// </summary>
+    private static void ListenSchreiben(TdDocument doc, MainDocumentPart main)
+    {
+        if (doc.Lists.Count == 0) return;
+
+        var nummerierung = new W.Numbering();
+
+        // Schema-Reihenfolge: **erst alle abstractNum, dann alle num.** Verschachtelt
+        // geschrieben ergibt das eine Datei, die Word nicht öffnet.
+        foreach (var liste in doc.Lists)
+        {
+            var vorlage = new W.AbstractNum { AbstractNumberId = liste.Id };
+            vorlage.AppendChild(new W.MultiLevelType { Val = W.MultiLevelValues.HybridMultilevel });
+
+            for (int i = 0; i < liste.Levels.Count; i++)
+            {
+                var ebene = liste.Levels[i];
+                var lvl = new W.Level { LevelIndex = i };
+
+                // Schema-Reihenfolge in w:lvl: start, numFmt, lvlText, lvlJc, pPr.
+                lvl.AppendChild(new W.StartNumberingValue { Val = ebene.Start });
+                lvl.AppendChild(new W.NumberingFormat { Val = NachDocx(ebene.Marker) });
+                lvl.AppendChild(new W.LevelText { Val = ebene.Text });
+                lvl.AppendChild(new W.LevelJustification { Val = W.LevelJustificationValues.Left });
+                lvl.AppendChild(new W.PreviousParagraphProperties(new W.Indentation
+                {
+                    Left = CmZuTwips(ebene.IndentCm).ToString(),
+                    Hanging = CmZuTwips(ebene.HangingCm).ToString(),
+                }));
+
+                vorlage.AppendChild(lvl);
+            }
+            nummerierung.AppendChild(vorlage);
+        }
+
+        foreach (var liste in doc.Lists)
+        {
+            nummerierung.AppendChild(new W.NumberingInstance(
+                new W.AbstractNumId { Val = liste.Id })
+            {
+                NumberID = liste.Id,
+            });
+        }
+
+        main.AddNewPart<NumberingDefinitionsPart>().Numbering = nummerierung;
+    }
+
+    private static W.NumberFormatValues NachDocx(TdListMarker marke) => marke switch
+    {
+        TdListMarker.Decimal => W.NumberFormatValues.Decimal,
+        TdListMarker.LowerLetter => W.NumberFormatValues.LowerLetter,
+        TdListMarker.UpperLetter => W.NumberFormatValues.UpperLetter,
+        TdListMarker.LowerRoman => W.NumberFormatValues.LowerRoman,
+        TdListMarker.UpperRoman => W.NumberFormatValues.UpperRoman,
+        _ => W.NumberFormatValues.Bullet,
+    };
+
+    private static TdListMarker AusDocx(W.NumberFormatValues wert)
+    {
+        if (wert == W.NumberFormatValues.Decimal) return TdListMarker.Decimal;
+        if (wert == W.NumberFormatValues.LowerLetter) return TdListMarker.LowerLetter;
+        if (wert == W.NumberFormatValues.UpperLetter) return TdListMarker.UpperLetter;
+        if (wert == W.NumberFormatValues.LowerRoman) return TdListMarker.LowerRoman;
+        if (wert == W.NumberFormatValues.UpperRoman) return TdListMarker.UpperRoman;
+        return TdListMarker.Bullet;
+    }
+
+    private static void ListenLesen(TdDocument doc, MainDocumentPart main)
+    {
+        if (main.NumberingDefinitionsPart?.Numbering is not { } nummerierung) return;
+
+        // Erst die Vorlagen einsammeln, dann die Instanzen darauf abbilden — ein `num` kann
+        // auf ein `abstractNum` zeigen, das im XML **danach** steht.
+        var vorlagen = new Dictionary<int, List<TdListLevel>>();
+
+        foreach (var vorlage in nummerierung.Elements<W.AbstractNum>())
+        {
+            if (vorlage.AbstractNumberId?.Value is not { } id) continue;
+
+            var ebenen = new List<TdListLevel>();
+            foreach (var lvl in vorlage.Elements<W.Level>())
+            {
+                var ebene = new TdListLevel
+                {
+                    Start = lvl.StartNumberingValue?.Val?.Value ?? 1,
+                    Text = lvl.LevelText?.Val?.Value ?? "",
+                };
+                if (lvl.NumberingFormat?.Val?.Value is { } art) ebene.Marker = AusDocx(art);
+
+                if (lvl.PreviousParagraphProperties?.GetFirstChild<W.Indentation>() is { } einzug)
+                {
+                    if (einzug.Left?.Value is { } l && double.TryParse(l, out double lv)) ebene.IndentCm = TwipsZuCm(lv);
+                    if (einzug.Hanging?.Value is { } h && double.TryParse(h, out double hv)) ebene.HangingCm = TwipsZuCm(hv);
+                }
+                ebenen.Add(ebene);
+            }
+            vorlagen[id] = ebenen;
+        }
+
+        foreach (var instanz in nummerierung.Elements<W.NumberingInstance>())
+        {
+            if (instanz.NumberID?.Value is not { } id) continue;
+            if (instanz.AbstractNumId?.Val?.Value is not { } vorlagenId) continue;
+            if (!vorlagen.TryGetValue(vorlagenId, out var ebenen)) continue;
+
+            doc.Lists.Add(new TdListDefinition { Id = id, Levels = ebenen });
+        }
+    }
+
     private static W.Paragraph AbsatzSchreiben(TdParagraph p)
     {
         var absatz = new W.Paragraph();
 
         var pPr = AbsatzformatSchreiben(p.Format);
+
+        // Schema-Reihenfolge in CT_PPr: numPr steht **nach** pageBreakBefore und **vor**
+        // spacing. AbsatzformatSchreiben hat beides schon gesetzt, also wird hier
+        // eingefügt statt angehängt.
+        if (p.List is { } verweis)
+        {
+            var numPr = new W.NumberingProperties(
+                new W.NumberingLevelReference { Val = verweis.Level },
+                new W.NumberingId { Val = verweis.ListId });
+
+            OpenXmlElement? davor =
+                pPr.GetFirstChild<W.SpacingBetweenLines>() as OpenXmlElement
+                ?? pPr.GetFirstChild<W.Indentation>() as OpenXmlElement
+                ?? pPr.GetFirstChild<W.Justification>() as OpenXmlElement
+                ?? pPr.GetFirstChild<W.OutlineLevel>();
+
+            if (davor is null) pPr.AppendChild(numPr);
+            else pPr.InsertBefore(numPr, davor);
+        }
         // Das Zeichenformat des **ganzen** Absatzes steht in DOCX im pPr/rPr — nicht an
         // jedem Lauf. Genau so bleibt eine Überschrift änderbar, ohne jeden Lauf anzufassen.
         var absatzZeichen = ZeichenformatSchreiben(p.CharFormat);
@@ -489,6 +630,7 @@ public static class TdDocx
         if (main?.Document?.Body is not { } body) return doc;
 
         StandardformateLesen(doc, main);
+        ListenLesen(doc, main);
 
         var laufend = new TdSection();
 
@@ -557,6 +699,12 @@ public static class TdDocx
             p.Format = AbsatzformatLesen(pPr);
             if (pPr.ParagraphMarkRunProperties is { } marke)
                 p.CharFormat = ZeichenformatLesen(marke);
+
+            if (pPr.NumberingProperties is { } numPr && numPr.NumberingId?.Val?.Value is { } id)
+            {
+                // Eine fehlende Ebene heißt 0 — Word lässt `w:ilvl` bei der obersten weg.
+                p.List = new TdListRef(id, numPr.NumberingLevelReference?.Val?.Value ?? 0);
+            }
         }
 
         foreach (var lauf in absatz.Elements<W.Run>())

@@ -24,6 +24,14 @@ public sealed class TdLine
     /// <summary>Der Absatz, aus dem diese Zeile stammt — für Auswahl und Cursor.</summary>
     public TdParagraph? Source { get; set; }
 
+    /// <summary>
+    /// Die Aufzählungsmarke, falls dies die **erste** Zeile eines Listenpunkts ist. Sie steht
+    /// links vom Text (negatives <c>XCm</c>) und gehört nicht zu <see cref="Runs"/>: sie ist
+    /// nicht Teil des Textes, lässt sich nicht auswählen und wird beim Kopieren nicht
+    /// mitgenommen.
+    /// </summary>
+    public TdLaidOutRun? Marker { get; set; }
+
     public string PlainText() => string.Concat(Runs.Select(r => r.Text));
 }
 
@@ -80,8 +88,12 @@ public static class TdLayout
     {
         var ergebnis = new TdLayoutResult();
 
+        // Die Nummern hängen davon ab, was **vor** einem Punkt steht — sie werden deshalb
+        // einmal für das ganze Dokument gerechnet und nicht je Absatz.
+        var marken = TdListNumbering.Marken(doc);
+
         foreach (var abschnitt in doc.Sections)
-            AbschnittUmbrechen(doc, abschnitt, messung, ergebnis);
+            AbschnittUmbrechen(doc, abschnitt, messung, ergebnis, marken);
 
         // Ein Dokument ohne jeden Absatz hat trotzdem eine Seite — sonst gäbe es nichts
         // anzuzeigen und nichts zu drucken.
@@ -92,7 +104,8 @@ public static class TdLayout
     }
 
     private static void AbschnittUmbrechen(
-        TdDocument doc, TdSection abschnitt, ITdTextMeasure messung, TdLayoutResult ergebnis)
+        TdDocument doc, TdSection abschnitt, ITdTextMeasure messung, TdLayoutResult ergebnis,
+        Dictionary<TdParagraph, string> marken)
     {
         var seite = NeueSeite(abschnitt.Page, ergebnis);
         double hoehe = abschnitt.Page.TextHoeheCm;
@@ -165,7 +178,8 @@ public static class TdLayout
             // **Beim Abstand davor wandert die Grundlinie mit**: sie zählt ab der Oberkante
             // der Zeile, und die liegt jetzt um den Abstand höher. Ohne das säße der Text im
             // Abstand statt darunter.
-            var zeilen = AbsatzZeilen(doc, absatz, abschnitt.Page, messung);
+            var zeilen = AbsatzZeilen(doc, absatz, abschnitt.Page, messung,
+                marken.GetValueOrDefault(absatz));
             double vor = format.SpaceBeforePt!.Value * CmProPunkt;
             zeilen[0].HeightCm += vor;
             zeilen[0].BaselineCm += vor;
@@ -194,22 +208,49 @@ public static class TdLayout
     /// Bricht **einen** Absatz in Zeilen. Ohne Seitenbezug: wo die Zeilen später landen,
     /// entscheidet der Seitenumbruch.
     /// </summary>
+    /// <param name="marke">
+    /// Die schon gerechnete Aufzählungsmarke, falls dies ein Listenpunkt ist. Sie kommt von
+    /// außen, weil sie vom ganzen Dokument abhängt und nicht von diesem Absatz.
+    /// </param>
     public static List<TdLine> AbsatzZeilen(
-        TdDocument doc, TdParagraph absatz, TdPageSetup seite, ITdTextMeasure messung)
+        TdDocument doc, TdParagraph absatz, TdPageSetup seite, ITdTextMeasure messung,
+        string? marke = null)
     {
         var format = doc.FormatVon(absatz);
 
-        double breite = seite.TextBreiteCm - format.LeftIndentCm!.Value - format.RightIndentCm!.Value;
+        double links = format.LeftIndentCm!.Value;
         double ersteZeileVersatz = format.FirstLineIndentCm!.Value;
+
+        // **Bei einem Listenpunkt kommen Einzug und hängender Einzug aus der Ebene** — es sei
+        // denn, der Absatz sagt selbst etwas anderes. Genau so hält es DOCX: das `pPr` der
+        // Ebene ist die Vorlage, das des Absatzes schlägt sie.
+        var ebene = ListenEbene(doc, absatz);
+        if (ebene is not null)
+        {
+            if (absatz.Format.LeftIndentCm is null) links = ebene.IndentCm;
+            if (absatz.Format.FirstLineIndentCm is null) ersteZeileVersatz = -ebene.HangingCm;
+        }
+
+        // **Bei einem Listenpunkt beginnt der Text jeder Zeile am Einzug**, und die Marke
+        // steht davor. Das ist etwas anderes als ein gewöhnlicher hängender Einzug, bei dem
+        // die *erste* Zeile weiter links anfängt: dort steht der Text im Überhang, hier die
+        // Nummer. Word hält es genauso — der Wert `hanging` gibt bei einer Liste an, wie weit
+        // die Marke links steht, und nicht den Text.
+        if (ebene is not null && marke is not null) ersteZeileVersatz = 0;
+
+        // Alle X-Werte sind **relativ zum Textbereich der Seite**, nicht zum Einzug: das ist
+        // die Zahl, die der Zeichner braucht, und sie muss den Einzug schon enthalten.
+        double rechtsKante = seite.TextBreiteCm - format.RightIndentCm!.Value;
+        double breite = Math.Max(0.01, rechtsKante - links);
 
         var zeilen = new List<TdLine>();
         var aktuell = new TdLine { Source = absatz };
-        double x = Math.Max(0, ersteZeileVersatz);
-        double verfuegbar = Math.Max(0.01, breite - ersteZeileVersatz);
+        double zeilenStart = links + ersteZeileVersatz;
+        double x = zeilenStart;
 
         void ZeileAbschliessen(bool letzte)
         {
-            Ausrichten(aktuell, format.Alignment!.Value, breite, x, letzte);
+            Ausrichten(aktuell, format.Alignment!.Value, rechtsKante - x, letzte);
             HoeheSetzen(aktuell, doc, absatz, format.LineSpacing!.Value, messung);
             zeilen.Add(aktuell);
         }
@@ -217,8 +258,8 @@ public static class TdLayout
         void NeueZeile()
         {
             aktuell = new TdLine { Source = absatz };
-            x = 0;
-            verfuegbar = Math.Max(0.01, breite);
+            zeilenStart = links;
+            x = zeilenStart;
         }
 
         foreach (var inline in absatz.Inlines)
@@ -238,7 +279,7 @@ public static class TdLayout
             {
                 double stueckBreite = messung.WidthCm(stueck, zeichenformat);
 
-                if (x + stueckBreite > verfuegbar && aktuell.Runs.Count > 0)
+                if (x + stueckBreite > rechtsKante && aktuell.Runs.Count > 0)
                 {
                     ZeileAbschliessen(letzte: false);
                     NeueZeile();
@@ -261,7 +302,26 @@ public static class TdLayout
         }
 
         ZeileAbschliessen(letzte: true);
+
+        // Die Marke gehört an die **erste** Zeile und links vom Text. Sie steht bewusst nicht
+        // in `Runs`: sie ist kein Text, lässt sich nicht auswählen und wird nicht mitkopiert.
+        if (ebene is not null && marke is { Length: > 0 })
+        {
+            var markenformat = absatz.CharFormat.Over(doc.DefaultCharFormat).Aufgeloest();
+            zeilen[0].Marker = new TdLaidOutRun(
+                marke, markenformat,
+                links - ebene.HangingCm,
+                messung.WidthCm(marke, markenformat));
+        }
+
         return zeilen;
+    }
+
+    /// <summary>Die Ebene, auf die der Listenverweis eines Absatzes zeigt — oder <c>null</c>.</summary>
+    private static TdListLevel? ListenEbene(TdDocument doc, TdParagraph absatz)
+    {
+        if (absatz.List is not { } verweis) return null;
+        return doc.Lists.FirstOrDefault(l => l.Id == verweis.ListId)?.Level(verweis.Level);
     }
 
     /// <summary>
@@ -295,12 +355,10 @@ public static class TdLayout
     /// Schiebt die Stücke der Zeile an ihren Platz. **Blocksatz gilt nicht für die letzte
     /// Zeile eines Absatzes** — sonst zöge ein Schlusswort über die ganze Breite auseinander.
     /// </summary>
-    private static void Ausrichten(TdLine zeile, TdAlign ausrichtung, double breite, double belegt, bool letzte)
+    /// <param name="rest">Der Platz, der auf der Zeile noch frei ist.</param>
+    private static void Ausrichten(TdLine zeile, TdAlign ausrichtung, double rest, bool letzte)
     {
-        if (zeile.Runs.Count == 0) return;
-
-        double rest = breite - belegt;
-        if (rest <= 0) return;
+        if (zeile.Runs.Count == 0 || rest <= 0) return;
 
         switch (ausrichtung)
         {

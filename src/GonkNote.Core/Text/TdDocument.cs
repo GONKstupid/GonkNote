@@ -133,6 +133,26 @@ public sealed class TdParagraph : TdBlock
     /// </summary>
     public TdCharFormat CharFormat { get; set; } = new();
 
+    /// <summary>
+    /// Gehört dieser Absatz zu einer Liste, und zu welcher Ebene? <c>null</c> = kein
+    /// Listenpunkt.
+    ///
+    /// <para>
+    /// <b>Ein Listenpunkt ist ein Absatz mit einer Angabe — und kein eigener Blocktyp.</b>
+    /// Das ist die Entscheidung von Schritt 3, und sie folgt DOCX: dort trägt der Absatz ein
+    /// <c>w:numPr</c>, und die Liste selbst ist nur eine Definition anderswo. Der Gewinn ist
+    /// die Bearbeitung: Eingabe drücken, Ebene wechseln, einen Punkt aus der Liste
+    /// herausnehmen — alles bleibt eine Absatzänderung. Ein Listenblock mit Punkten darin
+    /// (wie ihn <c>MdList</c> für Markdown hat, wo nur gelesen wird) müsste bei jedem dieser
+    /// Handgriffe einen Baum umbauen.
+    /// </para>
+    /// <para>
+    /// <b>Die Nummer steht hier bewusst nicht.</b> Sie hängt nicht vom Absatz ab, sondern
+    /// davon, was vor ihm kommt — gerechnet wird sie in <see cref="TdListNumbering"/>.
+    /// </para>
+    /// </summary>
+    public TdListRef? List { get; set; }
+
     [JsonConstructor]
     public TdParagraph() { }
 
@@ -217,6 +237,19 @@ public sealed class TdDocument
 
     /// <inheritdoc cref="DefaultCharFormat"/>
     public TdParaFormat DefaultParaFormat { get; set; } = new();
+
+    /// <summary>
+    /// Die Listendefinitionen des Dokuments. Absätze verweisen über
+    /// <see cref="TdParagraph.List"/> darauf — eine Liste ist keine Klammer um ihre Punkte,
+    /// sondern eine Vorlage, auf die sie zeigen (Schritt 3, §4.17).
+    /// </summary>
+    public List<TdListDefinition> Lists { get; set; } = new();
+
+    /// <summary>
+    /// Die nächste freie Listenkennung. **Zwei Listen dürfen sich keine Kennung teilen** —
+    /// sonst zählte die zweite dort weiter, wo die erste aufgehört hat.
+    /// </summary>
+    public int NextListId() => Lists.Count == 0 ? 1 : Lists.Max(l => l.Id) + 1;
 
     /// <summary>
     /// Ein leeres Dokument ist **nicht** leer, sondern hat einen Abschnitt mit einem leeren

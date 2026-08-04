@@ -382,6 +382,7 @@ public sealed class DokumentmodellTests
     {
         DefaultCharFormat = { FontFamily = "Calibri", FontSize = 11 },
         DefaultParaFormat = { SpaceAfterPt = 6, LineSpacing = 1.15 },
+        Lists = { TdListDefinition.Nummern(1), TdListDefinition.Punkte(2) },
         Sections =
         {
             // Ein Deckblatt quer, der Rest hoch — der Fall, für den es Abschnitte gibt.
@@ -449,6 +450,11 @@ public sealed class DokumentmodellTests
                     PageBreakBefore = false,
                 },
             },
+            // Zwei Listen, zwei Ebenen — Nummerierung und Aufzählung nebeneinander.
+            new TdParagraph("Erster Punkt") { List = new TdListRef(1, 0) },
+            new TdParagraph("Unterpunkt") { List = new TdListRef(1, 1) },
+            new TdParagraph("Ein Strich") { List = new TdListRef(2, 0) },
+
             new TdPageBreak(),
             new TdParagraph("Nach dem Umbruch.") { Format = { PageBreakBefore = true } },
         ];
@@ -458,6 +464,21 @@ public sealed class DokumentmodellTests
         Assert.Equal(a.Version, b.Version);
         GleichesZeichenformat(a.DefaultCharFormat, b.DefaultCharFormat);
         GleichesAbsatzformat(a.DefaultParaFormat, b.DefaultParaFormat);
+
+        Assert.Equal(a.Lists.Count, b.Lists.Count);
+        for (int i = 0; i < a.Lists.Count; i++)
+        {
+            Assert.Equal(a.Lists[i].Id, b.Lists[i].Id);
+            Assert.Equal(a.Lists[i].Levels.Count, b.Lists[i].Levels.Count);
+            for (int k = 0; k < a.Lists[i].Levels.Count; k++)
+            {
+                Assert.Equal(a.Lists[i].Levels[k].Marker, b.Lists[i].Levels[k].Marker);
+                Assert.Equal(a.Lists[i].Levels[k].Text, b.Lists[i].Levels[k].Text);
+                Assert.Equal(a.Lists[i].Levels[k].Start, b.Lists[i].Levels[k].Start);
+                Assert.Equal(a.Lists[i].Levels[k].IndentCm, b.Lists[i].Levels[k].IndentCm, 3);
+                Assert.Equal(a.Lists[i].Levels[k].HangingCm, b.Lists[i].Levels[k].HangingCm, 3);
+            }
+        }
 
         Assert.Equal(a.Sections.Count, b.Sections.Count);
         for (int s = 0; s < a.Sections.Count; s++)
@@ -479,6 +500,13 @@ public sealed class DokumentmodellTests
                     var pb = Assert.IsType<TdParagraph>(b[i]);
                     GleichesZeichenformat(pa.CharFormat, pb.CharFormat);
                     GleichesAbsatzformat(pa.Format, pb.Format);
+
+                    Assert.Equal(pa.List is null, pb.List is null);
+                    if (pa.List is not null && pb.List is not null)
+                    {
+                        Assert.Equal(pa.List.ListId, pb.List.ListId);
+                        Assert.Equal(pa.List.Level, pb.List.Level);
+                    }
 
                     Assert.Equal(pa.Inlines.Count, pb.Inlines.Count);
                     for (int k = 0; k < pa.Inlines.Count; k++)

@@ -50,6 +50,36 @@ public sealed class TdPageSetup
     /// <summary>Kopf-/Fußzeile auf der ersten Seite unterdrücken (Deckblatt).</summary>
     public bool SuppressOnFirstPage { get; set; }
 
+    /// <summary>
+    /// Das Wasserzeichen — <c>null</c> = keines.
+    ///
+    /// <para>
+    /// <b>Es steht hier erst seit Schritt 6</b>, und §4.15 hat genau das angekündigt: Ein
+    /// Wasserzeichen ist ein **Bild**, und Bilder konnte das Modell bis dahin nicht. In DOCX
+    /// ist es ohnehin eine in der **Kopfzeile** verankerte Zeichnung — es gehört also zur
+    /// Seiteneinrichtung und nicht zum Inhalt, und es kommt genau dann, wenn das Modell Bilder
+    /// kann.
+    /// </para>
+    /// <para>
+    /// Ein <see cref="TdImage"/> und kein eigener Typ: Es ist ein Bild mit einer Größe, und
+    /// ein zweiter Typ dafür hätte dieselben drei Felder.
+    /// </para>
+    /// </summary>
+    public TdImage? Watermark { get; set; }
+
+    /// <summary>
+    /// Wie kräftig das Wasserzeichen steht: 1 = voll, 0 = unsichtbar.
+    ///
+    /// <para>
+    /// <b>In DOCX gibt es dafür keine Deckkraft.</b> Word blasst ein Wasserzeichen über
+    /// Helligkeit und Schwarzwert der Bilddaten auf (<c>gain</c>/<c>blacklevel</c>) — was
+    /// dabei herauskommt, sieht aus wie Transparenz, ist aber keine. Der Wert wird deshalb auf
+    /// <c>gain</c> abgebildet und von dort zurückgelesen; das ist eine **benannte Näherung**
+    /// und keine verlustfreie Umrechnung (§4.21).
+    /// </para>
+    /// </summary>
+    public double WatermarkOpacity { get; set; } = 0.35;
+
     // ---------------------------------------------------------------- Formate
 
     public static TdPageSetup A4 => new() { WidthCm = 21.0, HeightCm = 29.7 };

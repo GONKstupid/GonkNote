@@ -1,6 +1,6 @@
 ﻿# Gonk Note V2 — Projektübergabe
 
-**Stand: 2026-08-05 · Version 0.3.0 · net10.0 · SkiaSharp 3 · SQLite · Avalonia 12 · ✅ M1 erreicht · beide Schulden aus Phase 3 eingelöst · Phase 4 läuft (Schritte 1–5 von 6)**
+**Stand: 2026-08-05 · Version 0.3.0 · net10.0 · SkiaSharp 3 · SQLite · Avalonia 12 · ✅ M1 erreicht · beide Schulden aus Phase 3 eingelöst · ✅ Dokumentmodell vollständig (Phase 4, Schritte 1–6 von 6)**
 
 > **📌 Dauerregeln des Nutzers — gelten immer, ohne Nachfragen:**
 >
@@ -193,18 +193,28 @@ Das Verzeichnis liest `TdParaFormat.OutlineLevel` und damit **die verlässliche 
 läuft der Umbruch bei Bedarf **mehrfach, bis sich nichts mehr ändert**. Kopf- und Fußzeile
 haben ihre letzten zwei Platzhalter bekommen: `{DATUM}` und `{TITEL}` sind jetzt echte Felder.
 
-**Als Nächstes:** Phase 4, **Schritt 6 — Diagramme** (§6), der letzte der sechs. Strikt in der
-Reihenfolge aus Roadmap §5, nach jedem Schritt DOCX-Roundtrip. **M1 bleibt ein gültiger
-Ausstiegspunkt**; Phase 4 ist die, an der Projekte sterben.
+Zuletzt **Schritt 6** (§4.21): **Bilder und Diagramme — damit ist das Dokumentmodell
+vollständig.** Der Befund dahinter wiegt schwer: Der heutige Editor rendert ein Diagramm beim
+Einfügen zu einer **Bitmap** und wirft die Zahlen im selben Augenblick weg; ändern lässt es
+sich nie wieder. Im Modell stehen jetzt die Zahlen, und ein Diagramm geht als **echtes
+Diagramm** nach DOCX statt als Pixelbild. Bilder tragen einen Verweis auf den Blob-Speicher
+statt ihrer Bytes — die dritte Naht (`ITdImages`) nach Schriftmessung und Feldwerten. Das
+**Wasserzeichen** ist damit auch eingelöst, wie §4.15 es versprochen hatte.
+
+**Als Nächstes:** die Reihenfolge aus Roadmap §5 ist abgearbeitet — es folgt **„danach
+umverdrahten"**: `Docx`-/`Markdown`-Im-/Export und `PdfExporter` gegen das eigene Modell, das
+Ribbon in Avalonia, und **die Übernahme der Bestandsdokumente** (§6). **Dazu steht eine
+Nutzer-Entscheidung offen** — ob die Übernahme still läuft oder sich zeigt (§5, „Noch offen").
+**M1 bleibt ein gültiger Ausstiegspunkt.**
 
 **Tests laufen lassen:**
 
 ```powershell
-dotnet test -c Release        # Windows: beide Projekte, 356 Tests
+dotnet test -c Release        # Windows: beide Projekte, 397 Tests
 ```
 
 ```bash
-dotnet test tests/GonkNote.Core.Tests   # Linux: 343 Tests, laufen in ~11 s
+dotnet test tests/GonkNote.Core.Tests   # Linux: 384 Tests, laufen in ~11 s
 ```
 
 ---
@@ -283,8 +293,14 @@ Zellumbruch, verteilte Höhe verbundener Zellen, wiederholte Kopfzeile).
 
 **Erledigt in Phase 4, Schritt 5:** §4.20 — **Felder, Verweise und Inhaltsverzeichnis**.
 `TdField` und `TdHyperlink` als Textstücke, `TdToc` als Rechnung über die Gliederungsebenen,
-der Umbruch läuft bei Bedarf mehrfach. Testzahl jetzt **356** (343 Core + 13 WPF). Alles davon
-ist noch nirgends angeschlossen; das ist Absicht und in §4.14 begründet.
+der Umbruch läuft bei Bedarf mehrfach.
+
+**Erledigt in Phase 4, Schritt 6:** §4.21 — **Bilder und Diagramme**. `TdGraphic` mit
+`TdImage` (Verweis statt Bytes, hinter der Naht `ITdImages`) und `TdChart` (die **Zahlen**,
+nicht ein Bild davon); in DOCX ein echtes `c:chart` mit literalen Daten, dazu das
+Wasserzeichen aus §4.15. Testzahl jetzt **397** (384 Core + 13 WPF). **Damit ist die
+Reihenfolge aus Roadmap §5 abgearbeitet.** Alles davon ist noch nirgends angeschlossen; das
+ist Absicht und in §4.14 begründet — angeschlossen wird beim Umverdrahten (§6).
 
 **Erledigt in Phase 0:**
 
@@ -351,7 +367,8 @@ gonk-note-V2/
 │  │  │                          eigene Dokumentmodell, TdList (Listen samt der
 │  │  │                          gerechneten Nummerierung), TdField (Felder, Verweise und
 │  │  │                          die Feldwerte), TdToc (das gerechnete Inhaltsverzeichnis),
-│  │  │                          TdJson (Speicherformat),
+│  │  │                          TdGraphic (Bilder und Diagramme), TdImages (die Naht zu
+│  │  │                          den Bilddaten), TdJson (Speicherformat),
 │  │  │                          TdDocx (DOCX in beide Richtungen), TdLayout (Zeilen- und
 │  │  │                          Seitenumbruch) hinter der Naht ITdTextMeasure/
 │  │  │                          TdSkiaMeasure                        ← neu in Phase 4
@@ -402,7 +419,7 @@ gonk-note-V2/
 │                                Legacy, **Avalonia**) — §4.6, seit Phase 3 §4.9
 │
 ├─ tests/
-│  ├─ GonkNote.Core.Tests/       net10.0 · läuft auch unter Linux · 343 Tests
+│  ├─ GonkNote.Core.Tests/       net10.0 · läuft auch unter Linux · 384 Tests
 │  │  └─ Snapshots/*.sha256      Pixelhashes des Renderers (Golden-Files)
 │  └─ GonkNote.Wpf.Tests/        net10.0-windows · nur Windows · 13 Tests
 │     ├─ Fixtures/               referenz.md, referenz-docx.txt (Golden-Files)
@@ -2125,6 +2142,160 @@ Verzeichnis beim Speichern nicht wächst.
 
 ---
 
+### 4.21 Phase 4, Schritt 6 — Bilder und Diagramme · **das Modell ist vollständig**
+
+Umgesetzt am 2026-08-05. **Der letzte der sechs Schritte aus Roadmap §5.**
+
+#### Der Befund, der diesen Schritt begründet — und er wiegt schwer
+
+`ChartDialog` sagt es in seiner eigenen Kopfzeile: „**Das Ergebnis wird als Bitmap gerendert
+und in den Text eingefügt** (druck-/exportfähig, keine Live-Datenbindung)."
+
+**Die Zahlen sind damit im selben Augenblick verloren, in dem das Diagramm entsteht.** Ein
+Diagramm lässt sich nie wieder ändern, nur löschen und neu bauen; ein Tippfehler in einer
+Kategorie kostet die ganze Eingabe. Beim Export geht ein Pixelbild hinaus, wo Word ein
+Diagramm erwartet — und beim Drucken oder Zoomen wird es unscharf, weil es eine Bitmap ist.
+
+Das ist derselbe Befund wie in §4.14, nur eine Ebene tiefer: Dort war das **Format** der
+Textdokumente Windows in Bytes gegossen, hier ist der **Inhalt** eines Diagramms ein Bild
+davon. Beide Male ist die Antwort dieselbe — was sich ableiten lässt, wird nicht gespeichert.
+
+#### Die Entscheidung: das Diagramm speichert seine Zahlen, das Bild wird gerechnet
+
+`TdChart` trägt Art, Titel, Kategorien, Reihen und Palette. **Zum dritten Mal dasselbe Muster**
+nach der Listennummer (§4.17) und dem Feld (§4.20) — und drei Ableitungen sind hier schon im
+Modell zu Hause:
+
+| Gerechnet, nicht gespeichert | Warum |
+|---|---|
+| `ShowLegend` | Sie hat nur etwas zu sagen, wenn es mehr als eine Reihe gibt; beim Kuchen stehen die Namen an den Stücken |
+| `FarbeJeElement` | Kuchen immer, Säulen/Balken mit **einer** Reihe auch — aber **nicht** Linie oder Radar: eine Kurve, die alle zwei Punkte die Farbe wechselt, ist keine Kurve mehr |
+| `Kategorie(i)` | Eine fehlende Beschriftung wird beim **Anzeigen** zur laufenden Nummer. **Gespeichert wird nur, was jemand eingegeben hat** — ein erfundener Name in der Datei wäre eine Angabe, die niemand gemacht hat |
+
+Dazu eine Entscheidung, die klein aussieht: **Die Palette steht am Diagramm.** Der heutige
+Editor hält sie in einem **statischen** Feld des Dialogs — sie gilt für die Sitzung und ist
+beim nächsten Start weg; zwei Diagramme in derselben Datei können deshalb verschieden
+aussehen, ohne dass die Datei den Unterschied kennt. **Ein Dokument muss sich selbst
+erklären.**
+
+#### Ein Diagramm geht als Diagramm hinaus — und ohne zweite Kopie seiner Zahlen
+
+`TdDocx` schreibt ein echtes `c:chart` mit **literalen Daten** (`c:strLit`/`c:numLit`). Word
+zeichnet es selbst, und beim Rückimport sind die Zahlen wieder da.
+
+**Ohne eingebettete Arbeitsmappe**, und das ist die Entscheidung dahinter: Word legt zu jedem
+Diagramm zusätzlich ein XLSX in die Datei — **dieselben Werte ein zweites Mal**, genau die
+Doppelung aus §4.10. **Der Preis steht hier, damit ihn niemand suchen muss:** Words Knopf
+„Daten bearbeiten" findet keine Mappe und bietet an, eine anzulegen. Angezeigt, gedruckt und
+zurückgelesen wird das Diagramm einwandfrei.
+
+**Punkt und Punkt+Linie sind in DrawingML ein Liniendiagramm.** `c:scatterChart` verlangt
+Zahlen auf **beiden** Achsen, und unsere Kategorien sind Text. Die drei unterscheiden sich
+deshalb nur darin, ob die Linie unsichtbar ist (`a:ln` mit `a:noFill`) und ob eine Marke
+dasteht — und genau daran erkennt der Leser sie zurück. **Die Linie wird unsichtbar gemacht
+und nicht weggelassen:** ein Liniendiagramm ohne `a:ln` zeichnet Word mit Linie.
+
+#### Das Bild trägt einen Verweis und keine Bytes — die dritte Naht
+
+`TdImage` speichert `BlobId` + `Extension` + Maß. Die Bytes kommen über **`ITdImages`**, die
+dritte Naht nach `ITdTextMeasure` (§4.16) und `TdFieldContext` (§4.20).
+
+**Der Grund ist gemessen und nicht gemeint** (aus `DocumentImages` in V1): Als die Bilder noch
+im Dokument lagen, wurde ein Word-Dokument mit drei Fotos (2 MB JPEG) zu **16,8 MB** — WPF
+kodierte jedes als PNG neu — und riss die 16-MB-Grenze von LiteDB. Seitdem liegt das Original
+unangetastet im Blob-Speicher, und beim Export gehen **genau diese Bytes** wieder hinaus.
+`Extension` gehört deshalb dazu: Ohne sie müsste der Export raten, und ein JPEG, das als PNG
+hinausgeht, ist um ein Vielfaches größer.
+
+Zwei Fälle, die dabei auseinandergehalten werden müssen:
+
+- **Keine Naht mitgegeben → Ausnahme.** Ein Bild, das ohne Meldung verschwindet, ist die Sorte
+  Fehler, die man erst am fertigen Ausdruck bemerkt.
+- **Blob fehlt → das eine Bild fällt weg, der Export läuft weiter.** Das ist **kein**
+  Programmierfehler, sondern eine unvollständige Sicherung: Der Blob-Ordner wird beim Kopieren
+  gern vergessen (Dauerregel 4). So hält es der heutige `DocxExporter` auch.
+
+**Die Kennung eines Bildes ist keine Aussage über das Dokument**, sondern über den Ort seiner
+Daten — beim Lesen bekommt es eine neue, weil die Bytes neu abgelegt werden. Der Wächter
+vergleicht deshalb die **Bytes** und nicht die Kennung.
+
+#### Warum Bild und Diagramm Stücke sind und keine Blöcke
+
+**In DOCX steht eine Zeichnung immer in einem Lauf** (`w:drawing`). Ein bildbreites Foto ist
+dort ein Absatz, der nichts als dieses Bild enthält. Ein zweiter, block-eigener Weg wäre eine
+zweite Wahrheit über dieselbe Sache und ein zweiter Pfad im Umbruch.
+
+**Die reservierten Namen „image" und „chart" auf `TdBlock` bleiben deshalb frei** — dasselbe
+Bild wie bei „list" in §4.17. Von den drei für Phase 4 reservierten Blocknamen ist damit
+keiner gebraucht worden, und alle vier Inline-Namen sind vergeben.
+
+Gemeinsam ist beiden `TdGraphic`: ein **Kasten** mit Maß in Zentimetern. Der Umbruch behandelt
+sie deshalb gleich und **misst sie nicht** — ein Bild ist so breit, wie es im Dokument steht,
+und auf jedem System gleich. Zwei Dinge daran waren nicht offensichtlich:
+
+- **Eine Grafik steht *auf* der Grundlinie, nicht darin.** Ihre Höhe zählt ganz nach oben und
+  schiebt die Grundlinie hinunter; Word setzt ein eingebundenes Bild genauso. Ohne das ragte
+  ein Bild in die nächste Zeile, und der Seitenumbruch rechnete mit einer Höhe, die es nicht
+  gibt — das Fehlerbild wäre ein Bild, das über den Seitenrand läuft.
+- **Die Absatzmarke ist immer dabei.** Ein Absatz mit nur einem winzigen Bild wäre sonst
+  **schmaler als ein leerer**. `HoeheSetzen` geht deshalb jetzt immer von der Schrift des
+  Absatzes aus und nimmt die Stücke als Aufschlag — der Sonderfall „leere Zeile" ist damit
+  derselbe Weg wie jeder andere und kein eigener Zweig mehr.
+
+Eine zu breite Grafik bekommt denselben Ausweg wie das überlange Wort (§4.16): Sie steht allein
+in ihrer Zeile und ragt heraus. **Sichtbar falsch ist besser als ein Umbruch, der nicht
+zurückkommt.**
+
+#### Das Wasserzeichen — §4.15 eingelöst
+
+Es steht jetzt an `TdPageSetup` (`Watermark` + `WatermarkOpacity`), und zwar als `TdImage`: Es
+**ist** ein Bild mit einer Größe, ein eigener Typ hätte dieselben drei Felder.
+
+In DOCX ist es eine **VML**-Zeichnung in der **Kopfzeile**. Das ist kein Rückschritt, sondern
+die Form, in der Word ein Wasserzeichen schreibt und erwartet — ein hinter dem Text liegendes,
+auf der Seite zentriertes Bild gibt es als eingebundene Zeichnung gar nicht. Drei Dinge daran:
+
+- **Das Wasserzeichen erzwingt eine Kopfzeile**, auch ohne Kopfzeilentext. Und es darf dabei
+  **nicht zu Kopfzeilentext werden** — eigener Wächter.
+- **Das Bild hängt am Kopfzeilenteil**, nicht am Hauptteil: Beziehungen gehören zu dem Teil,
+  der sie benutzt. Wer die Kennung am Hauptteil holt, bekommt eine Datei, in der Word das
+  Wasserzeichen nicht findet.
+- **Deckkraft gibt es in DOCX nicht.** Word blasst über Helligkeit auf (`gain`/`blacklevel`);
+  der Wert wird auf `gain` abgebildet und von dort zurückgelesen. **Eine benannte Näherung**,
+  keine verlustfreie Umrechnung.
+
+#### Zwei benannte Zugeständnisse
+
+- **Eine Farbe, die kein Element benutzt, überlebt DOCX nicht.** Die Palette wird so weit
+  geschrieben, wie sie vergeben wird (`FarbenGebraucht`); im eigenen Format steht sie
+  vollständig. Ein Diagramm mit sechs Farben und zwei Reihen kommt aus DOCX mit zweien zurück.
+- **Eine Zeichnung, die weder Bild noch Diagramm ist** — eine Form, ein SmartArt — verschwindet
+  beim Lesen. Das Modell hat dafür keinen Ort, und ein leerer Kasten wäre eine Behauptung über
+  etwas, das wir nicht kennen.
+
+#### Was damit **nicht** erledigt ist
+
+- **Gezeichnet wird noch nichts.** Aus einem `TdChart` ein Bild zu machen ist Sache des Kopfes
+  und gehört zum Umverdrahten — der Umbruch reserviert den Kasten, mehr braucht er nicht zu
+  wissen. Das ist dieselbe Trennung wie beim Text: **der Umbruch ist Rechnung, kein Zeichnen**
+  (§4.16).
+- **Die benannte Lücke aus §4.19 bleibt:** eine Tabelle *in* einer Zelle wird vom Umbruch noch
+  nicht gesetzt. Sie hat ihren eigenen Wächter und verschwindet damit absichtlich.
+
+#### Stand
+
+**41 neue Wächter** (27 in `GrafikTests`, 14 in `DocxRoundtripTests`), dazu Bild, Diagramm und
+Wasserzeichen in **beiden** Beispieldokumenten. Gesamtzahl **397** (384 Core + 13 WPF), alle
+drei Projekte 0 Warnungen.
+
+**Damit ist die Reihenfolge aus Roadmap §5 abgearbeitet** — Absätze/Zeichenformate →
+Seitenumbruch → Listen → Tabellen → Felder/TOC → Diagramme. Das Modell kann alles, was ein
+Bestandsdokument enthalten darf; **die Übernahme ist damit nicht mehr durch fehlende Fähigkeiten
+blockiert** (§5, „Wann die Bestandsdokumente übernommen werden"). Angeschlossen ist es
+weiterhin nirgends — das kommt mit dem Umverdrahten (§6).
+
+---
+
 ## 5. Entscheidungen
 
 **Getroffen, alle umgesetzt:**
@@ -2169,6 +2340,10 @@ Verzeichnis beim Speichern nicht wächst.
 | Wie ein Verweis abgelegt wird | **Als Klammer um Stücke, mit dem Ziel als Zeichenkette** (§4.20). Ein `Uri` vereinheitlicht und macht aus `kapitel-2.md` einen `file:///`-Pfad — genau der Fehler aus §7 („Markdown-Export"). Ein Ziel mit `#` wird in DOCX ein Anker und keine Beziehung. Entschieden 2026-08-05 |
 | Ob das Feldergebnis mitgeschrieben wird | **Nein** (§4.20). Ein mitgeschriebenes Inhaltsverzeichnis käme beim Lesen als Absätze zurück, und das Dokument wüchse mit **jedem** Speichern um ein ganzes Verzeichnis — dieselbe Falle wie beim Trennabsatz (§4.18), nur mit dreißig Zeilen statt einer. Word füllt das Feld beim Öffnen (`UpdateFieldsOnOpen`). Beim **Lesen** wird das Ergebnis eines *bekannten* Feldes verworfen, das eines unbekannten behalten — eine Rechenvorschrift zu verlieren ist verschmerzbar, Text zu verlieren nicht. Entschieden 2026-08-05 |
 | Ob Kopf-/Fußzeile Absätze werden | **Nein, sie bleiben Text mit Platzhaltern** (§4.20). Die Begründung aus §4.15 gilt unverändert; eingelöst ist nur das Versprechen, dass **alle vier** Platzhalter echte Felder werden — `{DATUM}` und `{TITEL}` waren bis Schritt 5 wörtlicher Text. Entschieden 2026-08-05 |
+| Was ein Diagramm speichert | **Seine Zahlen, nicht ein Bild davon** (§4.21). Der heutige Editor rendert es beim Einfügen zu einer Bitmap — danach lässt es sich nie wieder ändern, und beim Export geht ein Pixelbild hinaus, wo Word ein Diagramm erwartet. Legende, Farbvergabe und fehlende Beschriftungen werden **gerechnet**, zum dritten Mal nach §4.17 und §4.20. Entschieden 2026-08-05 |
+| Wie ein Diagramm nach DOCX kommt | **Als echtes `c:chart` mit literalen Daten**, ohne eingebettete Arbeitsmappe (§4.21). Die Mappe wären dieselben Zahlen ein zweites Mal (§4.10). Der Preis, benannt: Words Knopf „Daten bearbeiten" findet keine Mappe und bietet an, eine anzulegen; angezeigt, gedruckt und zurückgelesen wird einwandfrei. Entschieden 2026-08-05 |
+| Wo die Bytes eines Bildes liegen | **Im Blob-Speicher, hinter der Naht `ITdImages`** — im Dokument steht ein Verweis (§4.21). **Gemessen und nicht gemeint:** als sie in V1 noch im Dokument lagen, wurde ein Dokument mit drei Fotos (2 MB) zu 16,8 MB und riss die 16-MB-Grenze von LiteDB. Fehlt die Naht, wirft der Export; fehlt ein einzelner Blob, fällt nur dieses Bild weg. Entschieden 2026-08-05 |
+| Ob Bild und Diagramm Blöcke sind | **Nein, Stücke** (`TdInline`, §4.21). In DOCX steht eine Zeichnung immer in einem Lauf; ein bildbreites Foto ist ein Absatz, der nichts als dieses Bild enthält. Die reservierten Blocknamen „image" und „chart" bleiben frei — wie „list" in §4.17. Entschieden 2026-08-05 |
 | Namen der WPF-Hilfsmethoden | **Bleiben stehen** — `HitElement`, `HitTestElement`, `SelectByLasso`, `ComputeSelectionBounds` sind Einzeiler, die an `WbHit` weiterreichen. Elf Aufrufstellen in fünf Partials umzubenennen hätte den Diff verdreifacht, ohne am Ergebnis etwas zu ändern; wegkommen sollte die zweite **Rechnung**, nicht die zweite Bezeichnung (§4.13). Entschieden 2026-08-04 |
 
 **Noch offen:**
@@ -2704,11 +2879,14 @@ Boden", das einzige Risiko, das die Roadmap mit **hoch** einstuft.
       den Wert, `TdHyperlink` das Ziel **wörtlich**, `TdToc` rechnet über
       `TdParaFormat.OutlineLevel` — die verlässliche Quelle, die das `FlowDocument` nie hatte.
       Der Umbruch läuft dafür mehrfach, bis sich nichts mehr ändert. 57 neue Wächter
-- [ ] 6. Diagramme — **der letzte der sechs.** Die Diskriminatoren `"image"` und `"chart"`
-      sind dafür seit Schritt 1 reserviert (§4.14); mit den Bildern kommen auch das
-      Wasserzeichen (§4.15) und die Tabelle *in* einer Zelle in Reichweite (§4.19)
+- [x] **6. Diagramme** (§4.21) — **und Bilder, denn ein Diagramm *ist* heute ein Bild.**
+      `TdChart` speichert die **Zahlen** und geht als echtes `c:chart` nach DOCX; `TdImage`
+      trägt einen Verweis auf den Blob-Speicher hinter der Naht `ITdImages`. Das
+      **Wasserzeichen** aus §4.15 ist mitgekommen. 41 neue Wächter. **Die reservierten
+      Blocknamen `"image"`/`"chart"` blieben frei** — beide sind Stücke, wie in DOCX
 - [ ] Danach umverdrahten: `Docx`-/`Markdown`-Im-/Export und `PdfExporter` gegen das eigene
-      Modell (§4.1 löst sich damit auf), Ribbon in Avalonia neu
+      Modell (§4.1 löst sich damit auf), Ribbon in Avalonia neu. **Dazu gehört das Zeichnen
+      eines `TdChart`** — der Umbruch reserviert nur den Kasten (§4.21)
 
 #### Wie die Bestandsdokumente herüberkommen — **vor Schritt 2 zu entscheiden**
 
@@ -2727,14 +2905,19 @@ Datenbank schon gefallen ist** (§4.8, „additiv, die alte Datei bleibt unverse
 
 **Was daran offen ist und der Nutzer entscheiden muss:** ob die Übernahme **still** läuft
 (wie die SQLite-Migration) oder ob sie sich zeigt. Bei der Datenbank war „still" richtig,
-weil nichts verlorengehen konnte. Hier kann etwas verlorengehen: RTF und XamlPackage tragen
-Dinge, die das Modell **vor Schritt 6** noch nicht kennt — Tabellen, Bilder, Diagramme. Eine
-stille Übernahme vor Schritt 6 wäre stiller Datenverlust.
+weil nichts verlorengehen konnte.
 
-> **Deshalb der Vorschlag: die Übernahme kommt zuletzt, nicht zuerst.** Erst wenn das Modell
-> alles kann, was ein Bestandsdokument enthalten darf, ist sie verlustfrei. Bis dahin bleibt
-> `Rtf` das führende Feld und das Modell läuft daneben — geprüft über DOCX, nicht über
-> Nutzerdaten.
+> **Der Vorschlag von damals — die Übernahme kommt zuletzt, nicht zuerst — ist eingelöst:**
+> **Seit Schritt 6 (§4.21) kann das Modell alles, was ein Bestandsdokument enthalten darf** —
+> Tabellen, Bilder, Diagramme, Felder, Verweise, Wasserzeichen. Die Begründung „eine Übernahme
+> davor wäre stiller Datenverlust" ist damit ausgeräumt, und **die Frage still-oder-sichtbar
+> ist jetzt fällig**. Bis sie beantwortet ist, bleibt `Rtf` das führende Feld und das Modell
+> läuft daneben — geprüft über DOCX, nicht über Nutzerdaten.
+>
+> **Was der Antwort trotzdem im Weg steht, auch bei einem vollständigen Modell:** RTF und
+> XamlPackage können Dinge tragen, die *kein* Modell kennt (eingebettete Objekte, Formen,
+> Kommentare). Eine Übernahme sollte deshalb prüfen, was sie nicht versteht, statt es
+> stillschweigend fallen zu lassen — dieselbe Regel wie bei `Was_noch_nicht_geht_verschwindet_nicht_still`.
 
 ### Vorgemerkt: Phase 4.5 — die fehlenden Werkzeuge des Linux-Kopfs
 
@@ -2785,7 +2968,7 @@ Avalonia-Kopf:
 | Phase | Inhalt | Aufwand | Ziel |
 |---|---|---|---|
 | 3 | Avalonia-Shell für Linux — **fertig** | 6–8 W. | ✅ **M1 erreicht** — Notizbuch + Whiteboard laufen unter Linux, Textdokumente ausgegraut |
-| 4 | Eigene Dokument-Engine in `Core/Text/` — **läuft, Schritte 1–5 von 6** | 8–12 W. | ~~M2~~ — Textdokumente laufen unter Linux |
+| 4 | Eigene Dokument-Engine in `Core/Text/` — **Modell fertig (6 von 6), es fehlt das Umverdrahten** | 8–12 W. | ~~M2~~ — Textdokumente laufen unter Linux |
 | **4.5** | **Die fehlenden Werkzeuge des Linux-Kopfs** (Formen, Lineal/Geodreieck, Textfelder, Sticker, Notizzettel, Bild-/PDF-Import, Zahlenblock, Schnellaktionen, Werkzeugleisten-Anordnung, Drehen/Skalieren) — **neu eingeschoben, siehe oben** | offen | **M2** — Funktionsgleichheit Linux ↔ Windows |
 | 5 | iPadOS-Head, Apple Pencil, PDFKit/Vision, AOT-Härtung | 6–10 W. | **M3** — TestFlight-Build |
 | 6 | Flatpak/AppImage, App Store | 2–4 W. | Veröffentlichung |
@@ -3368,6 +3551,39 @@ und keine davon sieht wie ein Fehler aus.
   eine geklärte Lizenz (§6); ein mit Skia gemaltes Rechteck braucht keine. Dabei nie
   achsensymmetrisch malen, sonst fällt eine vertauschte Achse nicht auf.
 
+**Neu aus Phase 4 — Bilder und Diagramme (§4.21)**
+
+- **Ein Diagramm, das als Bitmap gespeichert wird, ist danach nicht mehr änderbar.** Genau das
+  tut der heutige Editor (`ChartDialog`), und es fällt nicht auf, weil das Bild ja richtig
+  aussieht. Im Modell stehen die Zahlen; Legende, Farbvergabe und fehlende Beschriftungen
+  werden gerechnet.
+- **Ein eingebettetes Arbeitsblatt zu einem Diagramm sind dieselben Zahlen ein zweites Mal.**
+  Word schreibt es, wir nicht — literale Daten (`c:strLit`/`c:numLit`) tragen dasselbe. Der
+  Preis ist benannt: Words „Daten bearbeiten" findet keine Mappe.
+- **`c:scatterChart` verlangt Zahlen auf beiden Achsen.** Ein Punktdiagramm über *Kategorien*
+  ist deshalb ein Liniendiagramm mit unsichtbarer Linie — und die Linie muss ausdrücklich
+  unsichtbar gemacht werden (`a:ln`/`a:noFill`), denn ohne `a:ln` zeichnet Word eine.
+- **Bilddaten gehören nicht ins Dokument.** In V1 gemessen: drei Fotos (2 MB) wurden im
+  XamlPackage zu 16,8 MB und rissen die 16-MB-Grenze von LiteDB, weil WPF jedes Bild als PNG
+  neu kodierte. Im Dokument steht ein Verweis, im Export gehen die **Originalbytes** hinaus —
+  dafür braucht der Export die Endung, sonst rät er.
+- **Fehlende Bilddaten sind zweierlei.** Keine Naht mitgegeben = Programmierfehler, also
+  Ausnahme. Ein einzelner Blob fehlt = unvollständige Sicherung (der Blob-Ordner wird beim
+  Kopieren vergessen, Dauerregel 4), also dieses eine Bild überspringen und weitermachen.
+- **Die Kennung eines Bildes ist keine Aussage über das Dokument.** Beim Lesen bekommt es eine
+  neue, weil die Bytes neu abgelegt werden — ein Roundtrip-Wächter muss die **Bytes**
+  vergleichen, nicht die Kennung.
+- **Eine Grafik steht *auf* der Grundlinie, nicht darin.** Ihre Höhe zählt ganz nach oben.
+  Ohne das rechnet der Seitenumbruch mit einer Höhe, die es nicht gibt, und ein Bild läuft über
+  den Seitenrand.
+- **Die Absatzmarke ist immer dabei.** Sonst wäre ein Absatz mit einem winzigen Bild schmaler
+  als ein leerer. Die Zeilenhöhe geht deshalb von der Schrift des Absatzes aus und nimmt die
+  Stücke als Aufschlag.
+- **Ein Wasserzeichen ist VML und hängt in der Kopfzeile** — als eingebundene Zeichnung gibt es
+  ein hinter dem Text liegendes, zentriertes Bild gar nicht. Sein Bildteil hängt am
+  **Kopfzeilenteil**: Beziehungen gehören zu dem Teil, der sie benutzt. Und **Deckkraft kennt
+  DOCX nicht** — Word blasst über `gain` auf; das ist eine Näherung, keine Umrechnung.
+
 **Neu aus Phase 4 — Felder, Verweise und Verzeichnis (§4.20)**
 
 - **Ein Feld speichert seine Art und nicht seinen Wert.** Seitenzahl, Seitenanzahl und
@@ -3570,7 +3786,7 @@ cd C:\Dev\Zed\gonk-note-V2
 dotnet build -c Release      # 0 Fehler / 0 Warnungen
 dotnet build -c Debug        # schneller, ohne Self-Contained/win-x64
 
-dotnet test -c Release       # beide Testprojekte, 356 Tests
+dotnet test -c Release       # beide Testprojekte, 397 Tests
 
 # Golden-Files bewusst neu setzen (danach den Diff lesen, siehe §4.6)
 $env:GONK_SNAPSHOT_UPDATE=1; dotnet test tests\GonkNote.Core.Tests; $env:GONK_SNAPSHOT_UPDATE=$null
@@ -3657,6 +3873,7 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 
 | Runde | Datum | Was |
 |---|---|---|
+| V2-26 | 2026-08-05 | **Phase 4, Schritt 6: Bilder und Diagramme — das Dokumentmodell ist vollständig** (§4.21). **Der Befund wiegt schwer und steht in der Kopfzeile des heutigen Werkzeugs:** `ChartDialog` rendert ein Diagramm beim Einfügen zu einer **Bitmap** („keine Live-Datenbindung") — **die Zahlen sind im selben Augenblick weg**. Ein Diagramm lässt sich nie wieder ändern, nur löschen und neu bauen; beim Export geht ein Pixelbild hinaus, wo Word ein Diagramm erwartet. Derselbe Befund wie §4.14, eine Ebene tiefer. **`TdChart` speichert deshalb die Zahlen**, und Legende, Farbvergabe und fehlende Beschriftungen werden **gerechnet** — zum dritten Mal nach der Listennummer (§4.17) und dem Feld (§4.20). Dazu: **die Palette steht am Diagramm**, nicht in einem statischen Feld des Dialogs, das beim nächsten Start weg ist — ein Dokument muss sich selbst erklären. **In DOCX ein echtes `c:chart` mit literalen Daten und ohne eingebettete Arbeitsmappe:** die Mappe wären dieselben Zahlen ein zweites Mal (§4.10); der Preis ist benannt (Words „Daten bearbeiten" findet keine Mappe). **Punkt und Punkt+Linie sind in DrawingML ein Liniendiagramm** — `c:scatterChart` verlangt Zahlen auf beiden Achsen, unsere Kategorien sind Text; die Linie wird ausdrücklich **unsichtbar gemacht**, denn ohne `a:ln` zeichnet Word eine. **`TdImage` trägt einen Verweis und keine Bytes**, hinter der **dritten Naht** `ITdImages` (nach Schriftmessung und Feldwerten) — gemessen in V1: drei Fotos (2 MB) wurden im XamlPackage zu **16,8 MB** und rissen die 16-MB-Grenze von LiteDB. Fehlt die Naht, **wirft** der Export; fehlt ein einzelner Blob, fällt nur dieses Bild weg (unvollständige Sicherung, Dauerregel 4). **Die Kennung eines Bildes ist keine Aussage über das Dokument** — der Wächter vergleicht die Bytes. **Bild und Diagramm sind Stücke und keine Blöcke**, weil eine Zeichnung in DOCX immer in einem Lauf steht; die reservierten Blocknamen `"image"`/`"chart"` bleiben frei wie `"list"` in §4.17. **Zwei Dinge im Umbruch waren nicht offensichtlich:** eine Grafik steht **auf** der Grundlinie (ihre Höhe zählt nach oben, sonst läuft ein Bild über den Seitenrand), und **die Absatzmarke ist immer dabei** — sonst wäre ein Absatz mit einem winzigen Bild schmaler als ein leerer. **Das Wasserzeichen aus §4.15 ist eingelöst:** VML in der Kopfzeile, Bildteil am **Kopfzeilenteil** (nicht am Hauptteil), und Deckkraft über `gain` — eine benannte Näherung, denn DOCX kennt keine. **Zwei benannte Zugeständnisse:** eine ungenutzte Palettenfarbe überlebt DOCX nicht, und eine Zeichnung, die weder Bild noch Diagramm ist (Form, SmartArt), verschwindet beim Lesen. **41 neue Wächter, jetzt 397** (384 Core + 13 WPF), Bild, Diagramm und Wasserzeichen in **beiden** Beispieldokumenten, alle drei Projekte 0 Warnungen. **Damit ist die Reihenfolge aus Roadmap §5 abgearbeitet.** **Als Nächstes: umverdrahten** (Exporter, PdfExporter, Ribbon in Avalonia, das Zeichnen eines `TdChart`) — und **die Übernahme der Bestandsdokumente ist nicht mehr durch fehlende Fähigkeiten blockiert**; die Frage „still oder sichtbar" (§6) ist jetzt fällig |
 | V2-25 | 2026-08-05 | **Phase 4, Schritt 5: Felder, Verweise und Inhaltsverzeichnis** (§4.20). **Die tragende Entscheidung: ein Feld speichert seine Art und nicht seinen Wert** — Seitenzahl, Seitenanzahl, Datum, Titel, Verzeichnis; gerechnet wird beim Umbruch, **dasselbe Muster wie bei der Listennummer** (§4.17) und aus demselben Grund: der Wert hängt von der Umgebung ab, und gespeichert wäre er nach der nächsten Änderung falsch — **still**, denn eine veraltete Seitenzahl sieht aus wie eine Seitenzahl. `TdField.PlainText()` gibt deshalb „" zurück. **Datum und Titel kommen von außen** (`TdFieldContext`): das ist die zweite Naht nach `ITdTextMeasure` und dieselbe Begründung — **Core fragt die Uhr nicht selbst**, sonst hinge jeder Wächter davon ab, wann er läuft; das Datumsmuster steht aus demselben Grund fest im Code statt in der Kultur des Rechners. **Der Umbruch fällt sich selbst ins Wort und läuft deshalb mehrfach:** die Seitenanzahl steht erst fest, wenn alles gesetzt ist, und ein Verzeichnis verschiebt durch seine eigene Länge die Überschriften, deren Seiten es nennt (Word rechnet ebenso mehrfach). Gelaufen wird bis zum Stillstand, **höchstens fünfmal** — eine Schleife auf einen Fixpunkt, den es nicht gibt, meldet keinen Fehler, sondern gar nichts (§4.16). **Die Seitenzahl wird nachträglich gesetzt**, wenn die Zeile ihre Seite bekommt: eine zusammengehaltene Gruppe kann noch rutschen, und eine vorher eingetragene Zahl läge um eins daneben. **`TdHyperlink` ist eine Klammer um Stücke** (wie die Tabellenzelle Blöcke enthält, §4.18), und **das Ziel ist eine Zeichenkette und kein `Uri`** — genau der Fehler aus §7, bei dem aus `kapitel-2.md` ein `file:///`-Pfad wird; ein `#`-Ziel wird in DOCX ein **Anker** und keine Beziehung. Daraus folgt `TdParagraph.FlacheStuecke()`: wer über `Inlines` läuft, sieht die Klammer und nicht ihren Text. **`TdToc` liest `TdParaFormat.OutlineLevel`** — der Punkt des ganzen Schritts, denn der heutige Markdown-Exporter **rät** die Ebene aus der Schriftgröße zurück und verliert sie, sobald jemand eine Überschrift kleiner stellt. **Die teuerste DOCX-Entscheidung: kein zwischengespeichertes Feldergebnis.** Ein mitgeschriebenes Verzeichnis käme beim Lesen als Absätze zurück, und das Dokument wüchse **mit jedem Speichern um ein ganzes Inhaltsverzeichnis** — dieselbe Falle wie beim Trennabsatz (§4.18), nur mit dreißig Zeilen statt einer; Wächter ist ein Roundtrip, der zweimal läuft. Beim **Lesen** fremder Dateien umgekehrt: das Ergebnis eines bekannten Feldes wird verworfen, das eines unbekannten **behalten** — eine Rechenvorschrift zu verlieren ist verschmerzbar, Text nicht. Felder stehen im Körper in der **dreiteiligen** Form (`begin`/`instrText`/`end`), weil ein Verzeichnis in ein Attribut nicht hineinpasst und zwei Formen nebeneinander die Doppelung aus §4.10 wären. **Textmarken werden erzeugt statt gespeichert** und nur, wenn es ein Verzeichnis gibt. **Zwei Stellen im Leser waren zu eng** und hätten still Text verloren: der Absatz-Leser lief nur über `w:r` (ein Verweis ist ein **Geschwister** des Laufs), und `IstLeererAbsatz` ebenso — ein Absatz mit nur einem Verweis galt als leer und wäre hinter einer Tabelle weggeworfen worden. **Kopf- und Fußzeile haben ihre letzten zwei Platzhalter bekommen:** `{DATUM}` und `{TITEL}` sind jetzt echte Felder, wie §4.15 es angekündigt hatte; die Zuordnung steht **einmal** in `TdField.Platzhalter`. **Ein benanntes Zugeständnis:** ein Feld ohne eigene Zusatzangabe bekommt auf dem Weg durch DOCX die Vorgabe eingetragen (`\@ "dd.MM.yyyy"`, `\o "1-3"`) — das Format kennt kein „nicht gesetzt" für einen Schalter; verlustfrei, aber nicht wörtlich, mit eigenem Wächter. **57 neue Wächter, jetzt 356** (343 Core + 13 WPF), Felder, Verweise und ein Verzeichnis in **beiden** Beispieldokumenten, alle drei Projekte 0 Warnungen. **Als Nächstes: Schritt 6, Diagramme** — der letzte der sechs |
 | V2-24 | 2026-08-04 | **Phase 4.5 in den Plan aufgenommen** (§6), nach einer Rückfrage des Nutzers — und die Rückfrage war berechtigt. **Der Befund:** Die fehlenden Werkzeuge des Linux-Kopfs (Formen, Formen-Stift, Lineal/Geodreieck, Textfelder, Notizzettel, Sticker, Bild-/PDF-Import, Zahlenblock per Langdruck, Schnellaktionen, Werkzeugleisten-Anordnung, Drehen/Skalieren der Auswahl) waren **benannt, aber keiner Phase zugeordnet**. Sie stehen in §6 („Was Phase 3 bewusst ausgelassen hat"), und beide README-Fassungen sagen es den Nutzern wörtlich („kommen nach der Dokument-Engine") — nur besaß sie keine Phase: Roadmap-Phase 4 enthält die Dokument-Engine, Phase 5 ist iPadOS, dazwischen stand nichts. **Der eigentliche Fehler im Plan war nicht das Vergessen, sondern M2:** die Roadmap definiert ihn als „Funktionsgleichheit Linux ↔ Windows" und hängt ihn ans Ende von Phase 4 — diese Werkzeuge gehören zur Funktionsgleichheit, **M2 war mit Phase 4 allein also gar nicht erreichbar**, und der Aufwandsschätzer deckte nur die Engine. **Entschieden: eine eigene Phase 4.5 zwischen 4 und 5**, aus drei Gründen — erst die Engine (Textdokumente sind das größere Loch und blockieren Import/Export), aber **vor dem iPad**, weil Phase 5 auf derselben Avalonia-Grundlage aufsetzt und die Werkzeuge sonst **zweimal** gebaut würden; M2 wandert ans Ende von 4.5. **Zur Klarstellung, weil es leicht zu verwechseln ist:** das **Diagramm-Werkzeug** gehört *nicht* dazu — Diagramme sind eine Textdokument-Funktion und stehen als Schritt 6 in Phase 4. OCR und Rechtschreibprüfung sind die zwei Ausnahmen in 4.5: sie brauchen Gegenstücke zu den Windows-Diensten und sind eigene Arbeit statt reiner Portierung. **Nachzutragen in `gonk-note-port-RM.MD` auf dem Desktop** — die Ergänzung steht sonst nur hier |
 | V2-23 | 2026-08-04 | **Phase 4, Schritt 4 abgeschlossen: das Tabellen-Layout** (§4.19). `TdPage` hat jetzt neben `Lines` auch **`TableRows`** — eine zweite Liste und keine gemeinsame, denn **eine Tabellenzeile ist keine Zeile**: sie hat Zellen, und deren Inhalt sind wieder Zeilen. Der Preis ist gering, der Gewinn groß: `TdLine` bleibt, was es war, und die 27 Wächter aus §4.16 mussten nicht angefasst werden. **Die Rechnung muss zweimal laufen:** wie hoch eine senkrecht verbundene Zelle die Zeilen macht, über die sie reicht, steht erst fest, wenn diese Zeilen ihre eigene Höhe kennen — erst jede Zeile für sich (die `Restart`-Zelle **ohne** ihre Höhe, sonst zöge sie die erste Zeile allein hoch), dann die Verteilung. **Fehlt Platz, wächst die letzte Zeile der Verbindung**, nicht die erste und nicht alle gleichmäßig: gleichmäßig sähe gefälliger aus, verschöbe aber die Zeilen dazwischen gegenüber ihren unverbundenen Nachbarn, und dann fluchtet die Tabelle nicht mehr. **Zwei Dinge, die man beim ersten Anlauf falsch macht:** der Zellinhalt bricht in der **Innen**breite um (ein vergessener Innenabstand ist kein sichtbarer Fehler, sondern Text, der am Rand klebt und eine Zeile zu spät umbricht), und eine Fortsetzungszelle bekommt keinen Ort, **schiebt aber die Spalte weiter** — wer sie überspringt, setzt alles dahinter eine Spalte zu weit links. **Die Kopfzeile wiederholt sich** auf jeder Folgeseite und ist als Wiederholung erkennbar (`IsRepeatedHeader`) — sie steht im Modell einmal, auf dem Papier mehrfach, und wer sie beim Zurückrechnen mitzählt, findet den Cursor an der falschen Stelle; wiederholt wird nur, wenn danach noch Platz für eine Inhaltszeile bleibt. **Zwei Fehler haben die Wächter gefunden:** die Nummerierung erreichte Absätze **in Zellen** nicht (`TdDocument.Paragraphs()` lief nur über die oberste Ebene, und `TdListNumbering` läuft über genau diesen Durchlauf — ein Listenpunkt in einer Tabelle bekam keine Marke; das Fehlerbild ist ein Punkt ohne Nummer, kein Absturz), und ein Wächter rechnete falsch statt des Codes („rechts oben" ist elf Zeichen und bricht auf einer 8-cm-Spalte selbst um — derselbe Merksatz wie in §4.16). **Eine benannte Lücke bleibt und ist mit einem eigenen Wächter festgehalten:** eine Tabelle **in** einer Zelle wird vom Umbruch noch nicht gesetzt. Das Modell trägt sie, DOCX schreibt und liest sie — nur eine gesetzte Zelle hat noch keine Tabellenzeilen. Sie ist damit **sichtbar leer statt still falsch**, und wer sie schließt, macht den Test rot und muss ihn umschreiben. **15 neue Wächter, jetzt 299** (286 Core + 13 WPF), alle drei Projekte 0 Warnungen. **Als Nächstes: Schritt 5, Felder und Inhaltsverzeichnis** |

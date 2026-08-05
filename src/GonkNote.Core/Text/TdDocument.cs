@@ -24,10 +24,9 @@ namespace GonkNote.Core.Text;
 /// </para>
 ///
 /// <para>
-/// <b>Reserviert für spätere Schritte, damit niemand die Namen zweimal vergibt:</b> „image"
-/// (Bilder im Fließtext, Schritt 6). „hyperlink" und „field" waren dafür bis Schritt 5
-/// vorgemerkt und sind seitdem vergeben. Ergänzen ist unbedenklich — eine Datei, die einen
-/// Namen nicht enthält, stört sich nicht daran. Umbenennen ist es nicht.
+/// <b>Alle für Phase 4 vorgemerkten Namen sind vergeben:</b> „hyperlink" und „field" mit
+/// Schritt 5, „image" und „chart" mit Schritt 6. Ergänzen ist unbedenklich — eine Datei, die
+/// einen Namen nicht enthält, stört sich nicht daran. Umbenennen ist es nicht.
 /// </para>
 /// </summary>
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "t")]
@@ -35,6 +34,8 @@ namespace GonkNote.Core.Text;
 [JsonDerivedType(typeof(TdLineBreak), "break")]
 [JsonDerivedType(typeof(TdField), "field")]
 [JsonDerivedType(typeof(TdHyperlink), "hyperlink")]
+[JsonDerivedType(typeof(TdImage), "image")]
+[JsonDerivedType(typeof(TdChart), "chart")]
 public abstract class TdInline
 {
     /// <summary>Zeichenformat dieses Stücks, als **Abweichung** vom Absatz. Nie <c>null</c>.</summary>
@@ -99,9 +100,11 @@ public sealed class TdLineBreak : TdInline
 /// <inheritdoc cref="TdInline" path="/para[1]"/>
 ///
 /// <para>
-/// <b>Reserviert für spätere Schritte:</b> „image" und „chart" (Schritt 6). Der Name „list"
-/// ist **frei geblieben** — ein Listenpunkt ist ein Absatz mit einer Angabe und kein eigener
-/// Blocktyp (§4.17).
+/// <b>Drei reservierte Namen sind frei geblieben, und zwar mit Absicht:</b> „list", weil ein
+/// Listenpunkt ein Absatz mit einer Angabe ist und kein eigener Blocktyp (§4.17); „image" und
+/// „chart", weil eine Zeichnung in DOCX immer in einem Lauf steht und ein bildbreites Foto
+/// deshalb ein Absatz ist, der nichts als dieses Bild enthält (§4.21). Sie stehen auf
+/// <see cref="TdInline"/>.
 /// </para>
 /// </summary>
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "t")]
@@ -363,6 +366,23 @@ public sealed class TdDocument
         foreach (var b in Blocks())
             foreach (var p in AbsaetzeIn(b))
                 yield return p;
+    }
+
+    /// <summary>
+    /// Die Kennungen aller Bilder, die dieses Dokument benutzt — für den Aufräumlauf
+    /// verwaister Blobs.
+    /// <para>
+    /// <b>Er muss vollständig sein, und zwar in die falsche Richtung:</b> Eine Kennung zu
+    /// viel kostet Platz, eine zu wenig löscht ein Bild, das noch gebraucht wird. Deshalb
+    /// läuft er über <see cref="Paragraphs"/> — der steigt in Tabellenzellen ab (§4.19) — und
+    /// über <see cref="TdParagraph.FlacheStuecke"/>, der in Verweise hineingeht (§4.20).
+    /// </para>
+    /// </summary>
+    public IEnumerable<Guid> UsedImages()
+    {
+        foreach (var absatz in Paragraphs())
+            foreach (var (stueck, _) in absatz.FlacheStuecke())
+                if (stueck is TdImage bild) yield return bild.BlobId;
     }
 
     /// <summary>Die Absätze eines Blocks, Tabellen eingeschlossen — auch verschachtelte.</summary>

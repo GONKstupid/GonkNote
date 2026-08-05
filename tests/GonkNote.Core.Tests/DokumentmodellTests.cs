@@ -312,6 +312,8 @@ public sealed class DokumentmodellTests
                         new TdLineBreak(),
                         new TdField(TdFieldKind.PageNumber),
                         TdHyperlink.Text("ziel.md", "y"),
+                        new TdImage(Guid.NewGuid(), "png", 1, 1),
+                        new TdChart(TdChartKind.Pie, 1, 1),
                     ]),
                     new TdPageBreak(),
                     new TdTable(TdTableRow.Text("z"))),
@@ -327,6 +329,8 @@ public sealed class DokumentmodellTests
         Assert.Contains("\"t\":\"break\"", json);
         Assert.Contains("\"t\":\"field\"", json);
         Assert.Contains("\"t\":\"hyperlink\"", json);
+        Assert.Contains("\"t\":\"image\"", json);
+        Assert.Contains("\"t\":\"chart\"", json);
         // Und der Text eines Laufs steht unter "s" — auch das ist Format.
         Assert.Contains("\"s\":\"x\"", json);
     }
@@ -412,10 +416,18 @@ public sealed class DokumentmodellTests
                     HeaderText = "Gonk Note — {TITEL}",
                     FooterText = "Seite {SEITE} von {SEITEN}",
                     SuppressOnFirstPage = true,
+
+                    // Das Wasserzeichen gehört zur Seiteneinrichtung und nicht zum Inhalt —
+                    // in DOCX hängt es in der Kopfzeile (§4.21).
+                    Watermark = new TdImage(Wasserzeichenkennung, "png", 12.0, 8.0),
+                    WatermarkOpacity = 0.4,
                 },
             },
         },
     };
+
+    private static readonly Guid Bildkennung = new("88888888-8888-8888-8888-888888888888");
+    private static readonly Guid Wasserzeichenkennung = new("99999999-9999-9999-9999-999999999999");
 
     private static TdBlock[] Inhalt() =>
         [
@@ -506,6 +518,23 @@ public sealed class DokumentmodellTests
                 ColumnWidthsCm = { 4.0, 5.5, 3.25 },
                 Format = { InsideV = TdBorder.Keine, CellPaddingTopCm = 0.1 },
             },
+
+            // Ein Bild und ein Diagramm — beide sind Stücke und keine Blöcke (§4.21).
+            new TdParagraph([new TdImage(Bildkennung, "jpg", 6.5, 4.25) { AltText = "Der Aufbau" }]),
+            new TdParagraph([
+                new TdChart(TdChartKind.Line, 12.0, 7.5)
+                {
+                    Title = "Woche",
+                    Categories = { "Mo", "Di", "Mi" },
+                    Series =
+                    {
+                        new TdChartSeries("Umsatz", 4, 7, 3),
+                        new TdChartSeries("Kosten", 2, 3, 2.5),
+                    },
+                    Palette = { "#2563EB", "#14B8A6" },
+                    AltText = "Umsatz und Kosten",
+                },
+            ]),
 
             new TdPageBreak(),
             new TdParagraph("Nach dem Umbruch.") { Format = { PageBreakBefore = true } },
@@ -646,10 +675,54 @@ public sealed class DokumentmodellTests
                     break;
                 }
 
+                case TdImage ba:
+                {
+                    var bb = (TdImage)b[k];
+                    Assert.Equal(ba.BlobId, bb.BlobId);
+                    Assert.Equal(ba.Extension, bb.Extension);
+                    GleicheGrafik(ba, bb);
+                    break;
+                }
+
+                case TdChart da:
+                {
+                    var db = (TdChart)b[k];
+                    GleichesDiagramm(da, db);
+                    GleicheGrafik(da, db);
+                    break;
+                }
+
                 default:
                     Assert.Fail($"Kein Vergleich für {a[k].GetType().Name} — bitte ergänzen.");
                     break;
             }
+        }
+    }
+
+    private static void GleicheGrafik(TdGraphic a, TdGraphic b)
+    {
+        Assert.Equal(a.WidthCm, b.WidthCm, 2);
+        Assert.Equal(a.HeightCm, b.HeightCm, 2);
+        Assert.Equal(a.AltText, b.AltText);
+    }
+
+    /// <summary>
+    /// <b>Ein Diagramm ist seine Daten.</b> Wer nur Art und Größe vergliche, bemerkte nicht,
+    /// dass die Zahlen fehlen — und genau die sind der Grund, warum es das Diagramm im Modell
+    /// überhaupt gibt (§4.21).
+    /// </summary>
+    private static void GleichesDiagramm(TdChart a, TdChart b)
+    {
+        Assert.Equal(a.Kind, b.Kind);
+        Assert.Equal(a.Title, b.Title);
+        Assert.Equal(a.Categories, b.Categories);
+        Assert.Equal(a.Palette, b.Palette);
+
+        Assert.Equal(a.Series.Count, b.Series.Count);
+        for (int i = 0; i < a.Series.Count; i++)
+        {
+            Assert.Equal(a.Series[i].Name, b.Series[i].Name);
+            Assert.Equal(a.Series[i].Values, b.Series[i].Values);
         }
     }
 
@@ -664,6 +737,15 @@ public sealed class DokumentmodellTests
         Assert.Equal(a.HeaderText, b.HeaderText);
         Assert.Equal(a.FooterText, b.FooterText);
         Assert.Equal(a.SuppressOnFirstPage, b.SuppressOnFirstPage);
+
+        Assert.Equal(a.Watermark is null, b.Watermark is null);
+        if (a.Watermark is not null && b.Watermark is not null)
+        {
+            Assert.Equal(a.Watermark.BlobId, b.Watermark.BlobId);
+            Assert.Equal(a.Watermark.Extension, b.Watermark.Extension);
+            GleicheGrafik(a.Watermark, b.Watermark);
+            Assert.Equal(a.WatermarkOpacity, b.WatermarkOpacity, 2);
+        }
     }
 
     private static void GleichesZeichenformat(TdCharFormat a, TdCharFormat b)

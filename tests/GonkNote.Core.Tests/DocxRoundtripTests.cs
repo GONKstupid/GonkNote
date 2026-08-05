@@ -1,4 +1,5 @@
 using GonkNote.Core.Text;
+using SkiaSharp;
 
 namespace GonkNote.Core.Tests;
 
@@ -55,8 +56,8 @@ public sealed class DocxRoundtripTests
         string pfad = werkbank.Datei("referenz.docx");
         var original = Beispiel();
 
-        TdDocx.Schreiben(original, pfad);
-        var zurueck = TdDocx.Lesen(pfad);
+        TdDocx.Schreiben(original, pfad, Bilder);
+        var zurueck = TdDocx.Lesen(pfad, Bilder);
 
         GleichesDokument(original, zurueck);
     }
@@ -72,7 +73,7 @@ public sealed class DocxRoundtripTests
         using var werkbank = new Werkbank("schema");
         string pfad = werkbank.Datei("referenz.docx");
 
-        TdDocx.Schreiben(Beispiel(), pfad);
+        TdDocx.Schreiben(Beispiel(), pfad, Bilder);
 
         Assert.Equal(0, TdDocx.Pruefen(pfad));
     }
@@ -694,14 +695,226 @@ public sealed class DocxRoundtripTests
         Assert.Equal("Seite {SEITE} von {SEITEN}", zurueck.FooterText);
     }
 
+    // ==================== Bilder und Diagramme (Schritt 6) ====================
+
+    /// <summary>
+    /// <b>Die Originalbytes gehen unverändert hinaus und kommen unverändert zurück.</b> Das
+    /// ist der ganze Grund, warum die Bytes nicht im Dokument stehen: Neu kodiert wurde in V1
+    /// aus 2 MB Vorlage ein 16,8-MB-Export (§4.21).
+    /// </summary>
+    [Fact]
+    public void Ein_Bild_uebersteht_DOCX_mit_seinen_Bytes()
+    {
+        var doc = MitStuecken(new TdImage(Bildkennung, "png", 6.5, 4.25) { AltText = "Der Aufbau" });
+
+        var bild = Assert.IsType<TdImage>(Zurueck(doc).Paragraphs().First().Inlines[0]);
+
+        Assert.Equal(6.5, bild.WidthCm, 2);
+        Assert.Equal(4.25, bild.HeightCm, 2);
+        Assert.Equal("png", bild.Extension);
+        Assert.Equal("Der Aufbau", bild.AltText);
+        Assert.Equal(Bilder.Lesen(Bildkennung), Bilder.Lesen(bild.BlobId));
+    }
+
+    /// <summary>
+    /// Ohne die Naht zu den Bilddaten **wirft** der Export, statt ein leeres Dokument zu
+    /// schreiben. Ein Bild, das ohne Meldung verschwindet, ist die Sorte Fehler, die man erst
+    /// am fertigen Ausdruck bemerkt (§7, „Was noch nicht geht, verschwindet nicht still").
+    /// </summary>
+    [Fact]
+    public void Ohne_Bildspeicher_wirft_ein_Bild()
+    {
+        using var werkbank = new Werkbank("ohne-bilder");
+        var doc = MitStuecken(new TdImage(Bildkennung, "png", 4, 3));
+
+        Assert.Throws<NotSupportedException>(
+            () => TdDocx.Schreiben(doc, werkbank.Datei("x.docx")));
+    }
+
+    /// <summary>
+    /// <b>Ein fehlender Blob ist kein Programmierfehler</b>, sondern eine unvollständige
+    /// Sicherung — der Blob-Ordner wird beim Kopieren gern vergessen (Dauerregel 4). Das eine
+    /// Bild fällt weg, der Rest des Dokuments geht hinaus; so hält es der heutige
+    /// <c>DocxExporter</c> auch.
+    /// </summary>
+    [Fact]
+    public void Ein_fehlendes_Bild_bricht_den_Export_nicht_ab()
+    {
+        var doc = new TdDocument
+        {
+            Sections =
+            {
+                new TdSection(new TdParagraph([
+                    new TdRun("davor "),
+                    new TdImage(Guid.NewGuid(), "png", 4, 3),
+                    new TdRun(" danach"),
+                ])),
+            },
+        };
+
+        Assert.Equal("davor  danach", Zurueck(doc).PlainText());
+    }
+
+    /// <summary>
+    /// Jede Diagrammart geht hin und zurück. **Punkt und Punkt+Linie sind dabei die
+    /// heikelsten:** In DrawingML sind beide ein Liniendiagramm — <c>c:scatterChart</c>
+    /// verlangt Zahlen auf beiden Achsen, und unsere Kategorien sind Text. Sie unterscheiden
+    /// sich nur darin, ob die Linie unsichtbar ist und ob eine Marke dasteht.
+    /// </summary>
+    [Theory]
+    [InlineData(TdChartKind.Column)]
+    [InlineData(TdChartKind.Bar)]
+    [InlineData(TdChartKind.Line)]
+    [InlineData(TdChartKind.Scatter)]
+    [InlineData(TdChartKind.ScatterLine)]
+    [InlineData(TdChartKind.Pie)]
+    [InlineData(TdChartKind.Radar)]
+    public void Jede_Diagrammart_uebersteht_DOCX(TdChartKind art)
+    {
+        var d = new TdChart(art, 12, 8)
+        {
+            Categories = { "Mo", "Di", "Mi" },
+            Series = { new TdChartSeries("Umsatz", 4, 7, 3) },
+            Palette = { "#2563EB", "#14B8A6", "#EC4899" },
+        };
+        // Bei Linie, Punkt und Radar wird die Farbe je **Reihe** vergeben — dann trägt das
+        // Diagramm auch nur eine.
+        if (!d.FarbeJeElement) d.Palette.RemoveRange(1, 2);
+
+        var zurueck = Assert.IsType<TdChart>(
+            Zurueck(MitStuecken(d)).Paragraphs().First().Inlines[0]);
+
+        Assert.Equal(art, zurueck.Kind);
+        Assert.Equal(["Mo", "Di", "Mi"], zurueck.Categories);
+        Assert.Equal([4.0, 7.0, 3.0], Assert.Single(zurueck.Series).Values);
+        Assert.Equal(d.Palette, zurueck.Palette);
+    }
+
+    /// <summary>
+    /// <b>Ein Diagramm behält seine Zahlen — das ist der ganze Schritt.</b> Der heutige Editor
+    /// rendert es beim Einfügen zu einer Bitmap und wirft sie damit weg; hier gehen sie durch
+    /// ein fremdes Format und kommen wieder.
+    /// </summary>
+    [Fact]
+    public void Ein_Diagramm_behaelt_seine_Zahlen()
+    {
+        var d = new TdChart(TdChartKind.Column, 12, 8)
+        {
+            Title = "Woche",
+            Categories = { "Mo", "Di", "Mi" },
+            Series =
+            {
+                new TdChartSeries("Umsatz", 4, 7.5, 3),
+                new TdChartSeries("Kosten", 2, 3, 2.5),
+            },
+            Palette = { "#2563EB", "#14B8A6" },
+        };
+
+        var zurueck = Assert.IsType<TdChart>(
+            Zurueck(MitStuecken(d)).Paragraphs().First().Inlines[0]);
+
+        Assert.Equal("Woche", zurueck.Title);
+        Assert.Equal(["Umsatz", "Kosten"], zurueck.Series.Select(r => r.Name));
+        Assert.Equal([4.0, 7.5, 3.0], zurueck.Series[0].Values);
+        Assert.Equal([2.0, 3.0, 2.5], zurueck.Series[1].Values);
+    }
+
+    /// <summary>
+    /// <b>Ein Diagramm geht als Diagramm hinaus und nicht als Bild.</b> Word zeichnet es
+    /// selbst — deshalb liegt ein <c>ChartPart</c> in der Datei und kein <c>ImagePart</c>.
+    /// </summary>
+    [Fact]
+    public void Ein_Diagramm_geht_als_Diagramm_hinaus_und_nicht_als_Bild()
+    {
+        using var werkbank = new Werkbank("diagramm");
+        string pfad = werkbank.Datei("d.docx");
+
+        TdDocx.Schreiben(MitStuecken(GrafikTests.Diagramm()), pfad, Bilder);
+
+        using var docx = DocumentFormat.OpenXml.Packaging.WordprocessingDocument.Open(pfad, false);
+        var main = docx.MainDocumentPart!;
+
+        Assert.Single(main.ChartParts);
+        Assert.Empty(main.ImageParts);
+    }
+
+    /// <summary>
+    /// <b>Und es bringt seine Zahlen nicht ein zweites Mal mit.</b> Word legt zu jedem
+    /// Diagramm zusätzlich eine Arbeitsmappe in die Datei — dieselben Werte noch einmal, und
+    /// genau davor warnt §4.10. Geschrieben werden literale Daten
+    /// (<c>c:strLit</c>/<c>c:numLit</c>).
+    /// <para>
+    /// <b>Der Preis, benannt:</b> Words Knopf „Daten bearbeiten" findet keine Mappe und bietet
+    /// an, eine anzulegen. Angezeigt und gedruckt wird das Diagramm einwandfrei.
+    /// </para>
+    /// </summary>
+    [Fact]
+    public void Ein_Diagramm_bringt_keine_zweite_Kopie_seiner_Zahlen_mit()
+    {
+        using var werkbank = new Werkbank("ohne-mappe");
+        string pfad = werkbank.Datei("d.docx");
+
+        TdDocx.Schreiben(MitStuecken(GrafikTests.Diagramm()), pfad, Bilder);
+
+        using var docx = DocumentFormat.OpenXml.Packaging.WordprocessingDocument.Open(pfad, false);
+        var teil = docx.MainDocumentPart!.ChartParts.First();
+
+        Assert.Empty(teil.Parts);
+        Assert.Contains("numLit", TeilXml(teil));
+        Assert.DoesNotContain("numRef", TeilXml(teil));
+    }
+
+    /// <summary>
+    /// <b>Das Wasserzeichen hängt in der Kopfzeile</b> — dort und nirgends sonst kennt DOCX
+    /// eines. §4.15 hat es auf diesen Schritt vertagt, weil es ein Bild ist; hier ist es.
+    /// Es erzwingt eine Kopfzeile, auch wenn kein Kopfzeilentext dasteht.
+    /// </summary>
+    [Fact]
+    public void Das_Wasserzeichen_haengt_in_der_Kopfzeile()
+    {
+        var seite = new TdPageSetup
+        {
+            Watermark = new TdImage(Wasserzeichenkennung, "png", 12.0, 8.0),
+            WatermarkOpacity = 0.4,
+        };
+
+        var zurueck = Zurueck(MitSeite(seite)).Sections[0].Page;
+
+        Assert.NotNull(zurueck.Watermark);
+        Assert.Equal(12.0, zurueck.Watermark!.WidthCm, 2);
+        Assert.Equal(8.0, zurueck.Watermark.HeightCm, 2);
+        Assert.Equal(0.4, zurueck.WatermarkOpacity, 2);
+        Assert.Equal(Bilder.Lesen(Wasserzeichenkennung), Bilder.Lesen(zurueck.Watermark.BlobId));
+
+        // Und es ist **kein** Kopfzeilentext geworden.
+        Assert.Equal("", zurueck.HeaderText);
+    }
+
     // ==================== Hilfsmittel ====================
+
+    private static readonly Guid Bildkennung = new("88888888-8888-8888-8888-888888888888");
+    private static readonly Guid Wasserzeichenkennung = new("99999999-9999-9999-9999-999999999999");
+
+    /// <summary>
+    /// Der Bildspeicher für alle Wächter dieser Klasse.
+    /// <para>
+    /// <b>Einer für alle, und das ist unbedenklich:</b> Er bildet seine Kennungen aus dem
+    /// **Inhalt** (<see cref="TdMemoryImages"/>), und die Testprojekte laufen ohnehin seriell
+    /// (§7, „Statische Zustände zwingen zu seriellen Tests"). Zweimal dasselbe Bild abzulegen
+    /// ergibt zweimal dieselbe Kennung — das Ergebnis hängt damit nicht von der
+    /// Testreihenfolge ab.
+    /// </para>
+    /// </summary>
+    private static readonly TdMemoryImages Bilder = new TdMemoryImages()
+        .Mit(Bildkennung, Beispieldokument.Bild(120, 80, SKColors.CornflowerBlue))
+        .Mit(Wasserzeichenkennung, Beispieldokument.Bild(64, 64, SKColors.LightGray));
 
     private static TdDocument Zurueck(TdDocument doc)
     {
         using var strom = new MemoryStream();
-        TdDocx.Schreiben(doc, strom);
+        TdDocx.Schreiben(doc, strom, Bilder);
         strom.Position = 0;
-        return TdDocx.Lesen(strom);
+        return TdDocx.Lesen(strom, Bilder);
     }
 
     private static TdDocument MitZeichenformat(TdCharFormat f) =>
@@ -768,7 +981,13 @@ public sealed class DocxRoundtripTests
     private static string Hauptteil(string pfad)
     {
         using var docx = DocumentFormat.OpenXml.Packaging.WordprocessingDocument.Open(pfad, false);
-        using var lesen = new StreamReader(docx.MainDocumentPart!.GetStream(FileMode.Open, FileAccess.Read));
+        return TeilXml(docx.MainDocumentPart!);
+    }
+
+    /// <inheritdoc cref="Hauptteil"/>
+    private static string TeilXml(DocumentFormat.OpenXml.Packaging.OpenXmlPart teil)
+    {
+        using var lesen = new StreamReader(teil.GetStream(FileMode.Open, FileAccess.Read));
         return lesen.ReadToEnd();
     }
 
@@ -806,6 +1025,11 @@ public sealed class DocxRoundtripTests
                     HeaderText = "Gonk Note — {TITEL}",
                     FooterText = "Seite {SEITE} von {SEITEN}",
                     SuppressOnFirstPage = true,
+
+                    // In DOCX hängt das Wasserzeichen in der Kopfzeile — es gehört zur
+                    // Seiteneinrichtung und nicht zum Inhalt (§4.21).
+                    Watermark = new TdImage(Wasserzeichenkennung, "png", 12.0, 8.0),
+                    WatermarkOpacity = 0.4,
                 },
             },
         },
@@ -900,6 +1124,24 @@ public sealed class DocxRoundtripTests
             {
                 ColumnWidthsCm = { 4.0, 5.5, 3.25 },
             },
+
+            // Ein Bild und ein Diagramm. Beide sind **Stücke** und keine Blöcke: in DOCX steht
+            // eine Zeichnung immer in einem Lauf (§4.21).
+            new TdParagraph([new TdImage(Bildkennung, "png", 6.5, 4.25) { AltText = "Der Aufbau" }]),
+            new TdParagraph([
+                new TdChart(TdChartKind.Line, 12.0, 7.5)
+                {
+                    Title = "Woche",
+                    Categories = { "Mo", "Di", "Mi" },
+                    Series =
+                    {
+                        new TdChartSeries("Umsatz", 4, 7, 3),
+                        new TdChartSeries("Kosten", 2, 3, 2.5),
+                    },
+                    Palette = { "#2563EB", "#14B8A6" },
+                    AltText = "Umsatz und Kosten",
+                },
+            ]),
 
             new TdPageBreak(),
             new TdParagraph("Nach dem Umbruch.") { Format = { PageBreakBefore = true } },
@@ -1003,6 +1245,28 @@ public sealed class DocxRoundtripTests
                     break;
                 }
 
+                case TdImage ba:
+                    GleichesBild(ba, (TdImage)b[k]);
+                    break;
+
+                case TdChart da:
+                {
+                    var db = (TdChart)b[k];
+                    Assert.Equal(da.Kind, db.Kind);
+                    Assert.Equal(da.Title, db.Title);
+                    Assert.Equal(da.Categories, db.Categories);
+                    Assert.Equal(da.Palette, db.Palette);
+
+                    Assert.Equal(da.Series.Count, db.Series.Count);
+                    for (int s = 0; s < da.Series.Count; s++)
+                    {
+                        Assert.Equal(da.Series[s].Name, db.Series[s].Name);
+                        Assert.Equal(da.Series[s].Values, db.Series[s].Values);
+                    }
+                    GleicheGrafik(da, db);
+                    break;
+                }
+
                 case TdHyperlink ha:
                 {
                     var hb = (TdHyperlink)b[k];
@@ -1043,6 +1307,26 @@ public sealed class DocxRoundtripTests
         }
     }
 
+    private static void GleicheGrafik(TdGraphic a, TdGraphic b)
+    {
+        GleicheZahlCm(a.WidthCm, b.WidthCm);
+        GleicheZahlCm(a.HeightCm, b.HeightCm);
+        Assert.Equal(a.AltText, b.AltText);
+    }
+
+    /// <summary>
+    /// <b>Verglichen werden die Bytes und nicht die Kennung.</b> Die Kennung eines Bildes ist
+    /// keine Aussage über das Dokument, sondern über den Ort seiner Daten — beim Lesen bekommt
+    /// es eine neue, weil die Bytes neu abgelegt werden. Was gleich bleiben muss, ist das
+    /// **Bild**: dieselben Bytes, unverändert durch den Export (§4.21).
+    /// </summary>
+    private static void GleichesBild(TdImage a, TdImage b)
+    {
+        Assert.Equal(a.Extension, b.Extension);
+        GleicheGrafik(a, b);
+        Assert.Equal(Bilder.Lesen(a.BlobId), Bilder.Lesen(b.BlobId));
+    }
+
     private static void GleicheSeite(TdPageSetup a, TdPageSetup b)
     {
         GleicheZahlCm(a.WidthCm, b.WidthCm);
@@ -1054,6 +1338,16 @@ public sealed class DocxRoundtripTests
         Assert.Equal(a.HeaderText, b.HeaderText);
         Assert.Equal(a.FooterText, b.FooterText);
         Assert.Equal(a.SuppressOnFirstPage, b.SuppressOnFirstPage);
+
+        Assert.Equal(a.Watermark is null, b.Watermark is null);
+        if (a.Watermark is not null && b.Watermark is not null)
+        {
+            GleichesBild(a.Watermark, b.Watermark);
+
+            // **Deckkraft gibt es in DOCX nicht** — sie geht über `gain` und kommt als
+            // Festkommazahl zurück (§4.21). Zwei Stellen sind dafür genau genug.
+            Assert.Equal(a.WatermarkOpacity, b.WatermarkOpacity, 2);
+        }
     }
 
     /// <summary>

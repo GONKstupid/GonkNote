@@ -17,13 +17,19 @@ namespace GonkNote.Core.Text;
 /// wer das nicht weiß, lässt den Nutzer eine Seitenzahl bearbeiten, die beim nächsten Umbruch
 /// wieder überschrieben wird — dieselbe Überlegung wie bei der Aufzählungsmarke (§4.17).
 /// </param>
+/// <param name="Graphic">
+/// Das Bild oder Diagramm, dessen Kasten dieses Stück ist — <c>null</c> bei Text. <b>Sein
+/// <see cref="TdGraphic.HeightCm"/> ist die einzige Höhe, die nicht aus der Schrift kommt</b>;
+/// der Zeichner malt hier statt Buchstaben, und <see cref="Text"/> ist leer.
+/// </param>
 public sealed record TdLaidOutRun(
     string Text,
     TdCharFormat Format,
     double XCm,
     double WidthCm,
     TdHyperlink? Link = null,
-    TdField? Field = null);
+    TdField? Field = null,
+    TdGraphic? Graphic = null);
 
 /// <summary>Eine gesetzte Zeile.</summary>
 public sealed class TdLine
@@ -834,6 +840,27 @@ public static class TdLayout
 
             var zeichenformat = doc.FormatVon(absatz, stueck);
 
+            if (stueck is TdGraphic grafik)
+            {
+                // **Eine Grafik wird nicht gemessen, sie hat ihr Maß dabei.** Die
+                // Schriftmessung hat hier nichts zu suchen — ein Bild ist so breit, wie es im
+                // Dokument steht, und auf jedem System gleich.
+                double kasten = Math.Max(0, grafik.WidthCm);
+
+                // Ist sie breiter als die Zeile, steht sie allein darin und ragt heraus —
+                // derselbe Ausweg wie beim überlangen Wort (§4.16). Sichtbar falsch ist besser
+                // als ein Umbruch, der nicht zurückkommt.
+                if (x + kasten > rechtsKante && aktuell.Runs.Count > 0)
+                {
+                    ZeileAbschliessen(letzte: false);
+                    NeueZeile();
+                }
+
+                aktuell.Runs.Add(new TdLaidOutRun("", zeichenformat, x, kasten, verweis, null, grafik));
+                x += kasten;
+                continue;
+            }
+
             if (stueck is TdField feld)
             {
                 // **Ein Feld bricht nicht in sich um.** Sein Wert ist ein Stück und kein Text:
@@ -949,26 +976,40 @@ public static class TdLayout
     private static void HoeheSetzen(
         TdLine zeile, TdDocument doc, TdParagraph absatz, double zeilenabstand, ITdTextMeasure messung)
     {
-        TdFontMetrics groesstes;
+        // **Die Schrift des Absatzes ist immer dabei**, auch wenn kein Stück sie benutzt: Die
+        // Absatzmarke steht am Zeilenende und hat eine Höhe. Ohne sie hätte ein leerer Absatz
+        // keine Höhe und der Cursor keinen Ort — und eine Zeile mit nur einem winzigen Bild
+        // wäre schmaler als eine leere.
+        var absatzschrift = messung.Metrics(absatz.CharFormat.Over(doc.DefaultCharFormat).Aufgeloest());
 
-        if (zeile.Runs.Count == 0)
+        double auf = absatzschrift.AscentCm;
+        double ab = absatzschrift.DescentCm;
+        double zeilenhoehe = absatzschrift.LineHeightCm;
+
+        foreach (var r in zeile.Runs)
         {
-            groesstes = messung.Metrics(absatz.CharFormat.Over(doc.DefaultCharFormat).Aufgeloest());
-        }
-        else
-        {
-            double auf = 0, ab = 0, zeilenhoehe = 0;
-            foreach (var r in zeile.Runs)
+                // **Eine Grafik steht auf der Grundlinie und nicht darin.** Ihre Höhe zählt
+                // deshalb ganz nach oben: sie schiebt die Grundlinie hinunter, statt die Zeile
+                // nach unten zu überschreiten. Word setzt ein eingebundenes Bild genauso —
+                // seine Unterkante sitzt auf der Grundlinie.
+            if (r.Graphic is { } g)
             {
-                var m = messung.Metrics(r.Format);
-                auf = Math.Max(auf, m.AscentCm);
-                ab = Math.Max(ab, m.DescentCm);
-                zeilenhoehe = Math.Max(zeilenhoehe, m.LineHeightCm);
+                auf = Math.Max(auf, g.HeightCm);
+                continue;
             }
-            groesstes = new TdFontMetrics(auf, ab, zeilenhoehe);
+
+            var m = messung.Metrics(r.Format);
+            auf = Math.Max(auf, m.AscentCm);
+            ab = Math.Max(ab, m.DescentCm);
+            zeilenhoehe = Math.Max(zeilenhoehe, m.LineHeightCm);
         }
 
-        zeile.BaselineCm = groesstes.AscentCm;
-        zeile.HeightCm = groesstes.LineHeightCm * zeilenabstand;
+        // Die Zeile muss mindestens so hoch sein, wie über und unter der Grundlinie gebraucht
+        // wird. Bei reinem Text ändert das nichts — der Zeilenvorschub ist ohnehin größer.
+        // Bei einer Grafik ist es der ganze Unterschied.
+        zeilenhoehe = Math.Max(zeilenhoehe, auf + ab);
+
+        zeile.BaselineCm = auf;
+        zeile.HeightCm = zeilenhoehe * zeilenabstand;
     }
 }

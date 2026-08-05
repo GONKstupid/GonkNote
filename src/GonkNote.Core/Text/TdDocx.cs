@@ -1,6 +1,12 @@
+using System.Globalization;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Validation;
+using A = DocumentFormat.OpenXml.Drawing;
+using C = DocumentFormat.OpenXml.Drawing.Charts;
+using DW = DocumentFormat.OpenXml.Drawing.Wordprocessing;
+using PIC = DocumentFormat.OpenXml.Drawing.Pictures;
+using V = DocumentFormat.OpenXml.Vml;
 using W = DocumentFormat.OpenXml.Wordprocessing;
 
 namespace GonkNote.Core.Text;
@@ -70,6 +76,21 @@ public static class TdDocx
         public MainDocumentPart Main { get; } = main;
 
         /// <summary>
+        /// Woher die Bytes eines Bildes kommen. <c>null</c> ist erlaubt, solange das Dokument
+        /// keine Bilder hat — wer eines schreibt und die Naht nicht mitgibt, bekommt eine
+        /// Ausnahme und kein stillschweigend leeres Dokument (§4.21).
+        /// </summary>
+        public ITdImages? Bilder { get; init; }
+
+        private uint _zeichnung;
+
+        /// <summary>
+        /// Die Kennung der nächsten Zeichnung. **Dokumentweit eindeutig und größer als null** —
+        /// Word verwirft eine Zeichnung mit der Id 0 kommentarlos.
+        /// </summary>
+        public uint NaechsteZeichnung() => ++_zeichnung;
+
+        /// <summary>
         /// Werden Sprungziele für Überschriften geschrieben?
         /// <para>
         /// <b>Nur, wenn es ein Inhaltsverzeichnis gibt.</b> Eine Textmarke ist ein Ziel; ohne
@@ -94,20 +115,25 @@ public static class TdDocx
     }
 
     /// <summary>Schreibt das Dokument als DOCX an <paramref name="pfad"/>.</summary>
-    public static void Schreiben(TdDocument doc, string pfad)
+    /// <param name="bilder">
+    /// Woher die Bildbytes kommen (§4.21). Wird nur gebraucht, wenn das Dokument Bilder
+    /// enthält — ein Diagramm braucht sie nicht, denn es geht als **Diagramm** hinaus und
+    /// nicht als Bild.
+    /// </param>
+    public static void Schreiben(TdDocument doc, string pfad, ITdImages? bilder = null)
     {
         using var docx = WordprocessingDocument.Create(pfad, WordprocessingDocumentType.Document);
-        Fuellen(doc, docx);
+        Fuellen(doc, docx, bilder);
     }
 
-    /// <summary>Schreibt das Dokument als DOCX in einen Strom.</summary>
-    public static void Schreiben(TdDocument doc, Stream ziel)
+    /// <inheritdoc cref="Schreiben(TdDocument, string, ITdImages?)"/>
+    public static void Schreiben(TdDocument doc, Stream ziel, ITdImages? bilder = null)
     {
         using var docx = WordprocessingDocument.Create(ziel, WordprocessingDocumentType.Document);
-        Fuellen(doc, docx);
+        Fuellen(doc, docx, bilder);
     }
 
-    private static void Fuellen(TdDocument doc, WordprocessingDocument docx)
+    private static void Fuellen(TdDocument doc, WordprocessingDocument docx, ITdImages? bilder)
     {
         var main = docx.AddMainDocumentPart();
         main.Document = new W.Document(new W.Body());
@@ -116,7 +142,7 @@ public static class TdDocx
         StandardformateSchreiben(doc, main);
         ListenSchreiben(doc, main);
 
-        var k = new Kontext(main) { Textmarken = TdToc.Enthaelt(doc) };
+        var k = new Kontext(main) { Textmarken = TdToc.Enthaelt(doc), Bilder = bilder };
 
         // Felder (PAGE/NUMPAGES) beim Öffnen aktualisieren lassen — sonst zeigt Word die
         // beim Schreiben eingesetzte 1 statt der echten Seitenzahl.
@@ -179,7 +205,7 @@ public static class TdDocx
 
             foreach (var teil in teile) body.AppendChild(teil);
 
-            var sectPr = SeiteSchreiben(abschnitt.Page, main);
+            var sectPr = SeiteSchreiben(abschnitt.Page, main, k);
 
             // **Die Stelle, an der DOCX unsymmetrisch ist:** die Einrichtung des *letzten*
             // Abschnitts steht am Ende des Körpers, die aller anderen im Absatzformat ihres
@@ -445,6 +471,17 @@ public static class TdDocx
                 FeldSchreiben(absatz, feld);
                 break;
 
+            case TdGraphic grafik:
+                if (ZeichnungSchreiben(grafik, k) is { } zeichnung)
+                {
+                    var lauf = new W.Run();
+                    var rPr = ZeichenformatSchreiben(grafik.Format);
+                    if (rPr.HasChildren) lauf.AppendChild(rPr);
+                    lauf.AppendChild(zeichnung);
+                    absatz.AppendChild(lauf);
+                }
+                break;
+
             case TdRun r:
             {
                 var lauf = new W.Run();
@@ -671,6 +708,517 @@ public static class TdDocx
     /// </summary>
     private static W.Paragraph TrennabsatzSchreiben() => new();
 
+    // ==================== Bilder und Diagramme ====================
+
+    // Ein Zentimeter sind 360 000 EMU („English Metric Units"), die Einheit jeder Zeichnung
+    // in OOXML. Sie geht in Zoll **und** in Zentimetern auf — genau dafür ist sie erfunden.
+    private const double EmuProCm = 360000.0;
+
+    private static long CmZuEmu(double cm) => (long)Math.Round(Math.Max(0, cm) * EmuProCm);
+    private static double EmuZuCm(double emu) => emu / EmuProCm;
+
+    private const string UriBild = "http://schemas.openxmlformats.org/drawingml/2006/picture";
+    private const string UriDiagramm = "http://schemas.openxmlformats.org/drawingml/2006/chart";
+
+    private static W.Drawing? ZeichnungSchreiben(TdGraphic grafik, Kontext k) => grafik switch
+    {
+        TdImage bild => BildSchreiben(bild, k),
+        TdChart diagramm => DiagrammSchreiben(diagramm, k),
+        _ => throw new NotSupportedException(
+            $"{grafik.GetType().Name} kann noch nicht nach DOCX — siehe die Reihenfolge in Roadmap §5."),
+    };
+
+    /// <summary>
+    /// Der Rahmen, den jede Zeichnung braucht: Maß, Kennung, Alternativtext — und darin das,
+    /// was sie ausmacht. Bild und Diagramm unterscheiden sich in OOXML **nur** im Inhalt der
+    /// <c>a:graphicData</c> und in deren <c>uri</c>.
+    /// </summary>
+    private static W.Drawing ZeichnungsrahmenSchreiben(
+        TdGraphic grafik, uint id, string name, OpenXmlElement inhalt, string uri)
+    {
+        var eigenschaften = new DW.DocProperties { Id = id, Name = name };
+        if (grafik.AltText is { Length: > 0 } alt) eigenschaften.Description = alt;
+
+        return new W.Drawing(new DW.Inline(
+            new DW.Extent { Cx = CmZuEmu(grafik.WidthCm), Cy = CmZuEmu(grafik.HeightCm) },
+            eigenschaften,
+            new A.Graphic(new A.GraphicData(inhalt) { Uri = uri })));
+    }
+
+    /// <summary>
+    /// Bildtyp aus der Endung des Originals. Unbekanntes geht als PNG hinaus — dieselbe
+    /// Zuordnung, die der heutige <c>DocxExporter</c> benutzt.
+    /// </summary>
+    private static PartTypeInfo BildTeilTyp(string endung) => endung switch
+    {
+        "jpg" or "jpeg" => ImagePartType.Jpeg,
+        "gif" => ImagePartType.Gif,
+        "bmp" => ImagePartType.Bmp,
+        "tif" or "tiff" => ImagePartType.Tiff,
+        _ => ImagePartType.Png,
+    };
+
+    private static string BildEndung(ImagePart teil) => teil.ContentType switch
+    {
+        "image/jpeg" => "jpg",
+        "image/png" => "png",
+        "image/gif" => "gif",
+        "image/bmp" => "bmp",
+        "image/tiff" => "tif",
+        _ => "png",
+    };
+
+    /// <summary>
+    /// Ein Bild. **Die Originalbytes gehen unverändert hinaus** — neu kodiert würde aus einem
+    /// 2-MB-Foto ein Vielfaches (§4.21).
+    /// </summary>
+    private static W.Drawing? BildSchreiben(TdImage bild, Kontext k)
+    {
+        if (k.Bilder is null)
+            throw new NotSupportedException(
+                "Das Dokument enthält ein Bild, aber es wurde kein Bildspeicher mitgegeben — " +
+                "TdDocx.Schreiben(doc, ziel, bilder) benutzen (HANDOFF §4.21).");
+
+        // **Ein fehlender Blob ist kein Programmierfehler**, sondern eine unvollständige
+        // Sicherung (Dauerregel 4: der Blob-Ordner wird gern vergessen). Das eine Bild fällt
+        // weg, der Export läuft weiter — so hält es der heutige DocxExporter auch.
+        if (k.Bilder.Lesen(bild.BlobId) is not { } daten) return null;
+
+        var teil = k.Main.AddImagePart(BildTeilTyp(bild.Extension));
+        using (var strom = new MemoryStream(daten)) teil.FeedData(strom);
+
+        uint id = k.NaechsteZeichnung();
+        long cx = CmZuEmu(bild.WidthCm), cy = CmZuEmu(bild.HeightCm);
+
+        return ZeichnungsrahmenSchreiben(bild, id, $"Bild {id}", new PIC.Picture(
+            new PIC.NonVisualPictureProperties(
+                new PIC.NonVisualDrawingProperties { Id = 0U, Name = $"Bild {id}" },
+                new PIC.NonVisualPictureDrawingProperties()),
+            new PIC.BlipFill(
+                new A.Blip { Embed = k.Main.GetIdOfPart(teil) },
+                new A.Stretch(new A.FillRectangle())),
+            new PIC.ShapeProperties(
+                new A.Transform2D(
+                    new A.Offset { X = 0L, Y = 0L },
+                    new A.Extents { Cx = cx, Cy = cy }),
+                new A.PresetGeometry(new A.AdjustValueList()) { Preset = A.ShapeTypeValues.Rectangle })),
+            UriBild);
+    }
+
+    // Zwei Achsen, zwei Kennungen. Sie müssen nur innerhalb **eines** Diagramms eindeutig
+    // sein; jedes bekommt seinen eigenen Teil.
+    private const uint AchseKategorie = 111111111u;
+    private const uint AchseWerte = 222222222u;
+
+    /// <summary>
+    /// Ein Diagramm — als **echtes** Diagramm und nicht als Bild.
+    ///
+    /// <para>
+    /// <b>Das ist der Unterschied zum heutigen Editor</b>, der ein Diagramm beim Einfügen zu
+    /// einer Bitmap rendert und die Zahlen damit wegwirft (§4.21). Hier gehen die Zahlen
+    /// hinaus: Word zeigt ein Diagramm, das es selbst zeichnet, und beim Rückimport sind sie
+    /// wieder da.
+    /// </para>
+    /// <para>
+    /// <b>Mit literalen Daten (<c>c:strLit</c>/<c>c:numLit</c>) und ohne eingebettete
+    /// Arbeitsmappe.</b> Word legt seine Diagramme sonst zusätzlich als XLSX in die Datei —
+    /// **dieselben Zahlen ein zweites Mal**, und genau davor warnt §4.10. Der Preis steht in
+    /// §4.21: Words Knopf „Daten bearbeiten" findet keine Mappe und bietet an, eine anzulegen.
+    /// Angezeigt und gedruckt wird das Diagramm einwandfrei.
+    /// </para>
+    /// </summary>
+    private static W.Drawing DiagrammSchreiben(TdChart d, Kontext k)
+    {
+        var teil = k.Main.AddNewPart<ChartPart>();
+        teil.ChartSpace = DiagrammraumBauen(d);
+
+        uint id = k.NaechsteZeichnung();
+        return ZeichnungsrahmenSchreiben(d, id, $"Diagramm {id}",
+            new C.ChartReference { Id = k.Main.GetIdOfPart(teil) }, UriDiagramm);
+    }
+
+    private static C.ChartSpace DiagrammraumBauen(TdChart d)
+    {
+        var diagramm = new C.Chart();
+
+        // Schema-Reihenfolge in CT_Chart: title, autoTitleDeleted, plotArea, legend,
+        // plotVisOnly.
+        if (d.Title.Length > 0)
+        {
+            diagramm.AppendChild(new C.Title(
+                new C.ChartText(new C.RichText(
+                    new A.BodyProperties(),
+                    new A.ListStyle(),
+                    new A.Paragraph(new A.Run(new A.Text(d.Title))))),
+                new C.Overlay { Val = false }));
+            diagramm.AppendChild(new C.AutoTitleDeleted { Val = false });
+        }
+        else
+        {
+            // Ohne diese Angabe erfindet Word einen Titel aus dem Namen der ersten Reihe.
+            diagramm.AppendChild(new C.AutoTitleDeleted { Val = true });
+        }
+
+        diagramm.AppendChild(FlaecheBauen(d));
+
+        if (d.ShowLegend)
+            diagramm.AppendChild(new C.Legend(
+                new C.LegendPosition { Val = C.LegendPositionValues.Right },
+                new C.Overlay { Val = false }));
+
+        diagramm.AppendChild(new C.PlotVisibleOnly { Val = true });
+
+        return new C.ChartSpace(diagramm);
+    }
+
+    private static C.PlotArea FlaecheBauen(TdChart d)
+    {
+        var flaeche = new C.PlotArea(new C.Layout());
+        flaeche.AppendChild(GruppeBauen(d));
+
+        // **Ein Kuchen hat keine Achsen** — und ein Balkendiagramm hat sie vertauscht: die
+        // Kategorien stehen links, die Werte unten.
+        if (d.Kind == TdChartKind.Pie) return flaeche;
+
+        bool waagerecht = d.Kind == TdChartKind.Bar;
+
+        flaeche.AppendChild(new C.CategoryAxis(
+            new C.AxisId { Val = AchseKategorie },
+            new C.Scaling(new C.Orientation { Val = C.OrientationValues.MinMax }),
+            new C.Delete { Val = false },
+            new C.AxisPosition { Val = waagerecht ? C.AxisPositionValues.Left : C.AxisPositionValues.Bottom },
+            new C.CrossingAxis { Val = AchseWerte }));
+
+        flaeche.AppendChild(new C.ValueAxis(
+            new C.AxisId { Val = AchseWerte },
+            new C.Scaling(new C.Orientation { Val = C.OrientationValues.MinMax }),
+            new C.Delete { Val = false },
+            new C.AxisPosition { Val = waagerecht ? C.AxisPositionValues.Bottom : C.AxisPositionValues.Left },
+            new C.MajorGridlines(),
+            new C.CrossingAxis { Val = AchseKategorie }));
+
+        return flaeche;
+    }
+
+    /// <summary>
+    /// Die Diagrammgruppe. **Punkt und Punkt+Linie sind in DrawingML ein Liniendiagramm** —
+    /// <c>c:scatterChart</c> verlangt Zahlen auf **beiden** Achsen, und unsere Kategorien sind
+    /// Text. Beim Punktdiagramm wird die Linie unsichtbar gemacht, statt sie wegzulassen: ein
+    /// Liniendiagramm ohne <c>a:ln</c> zeichnet Word mit Linie.
+    /// </summary>
+    private static OpenXmlElement GruppeBauen(TdChart d)
+    {
+        int punkte = d.Punktzahl();
+
+        switch (d.Kind)
+        {
+            case TdChartKind.Pie:
+            {
+                var gruppe = new C.PieChart(new C.VaryColors { Val = true });
+                if (d.Series.Count > 0)
+                {
+                    var reihe = new C.PieChartSeries(
+                        new C.Index { Val = 0U }, new C.Order { Val = 0U });
+                    if (NameBauen(d.Series[0]) is { } name) reihe.AppendChild(name);
+                    foreach (var punkt in FarbpunkteBauen(d, punkte)) reihe.AppendChild(punkt);
+                    reihe.AppendChild(KategorienBauen(d, punkte));
+                    reihe.AppendChild(WerteBauen(d.Series[0]));
+                    gruppe.AppendChild(reihe);
+                }
+                gruppe.AppendChild(new C.FirstSliceAngle { Val = 0 });
+                return gruppe;
+            }
+
+            case TdChartKind.Radar:
+            {
+                var gruppe = new C.RadarChart(
+                    new C.RadarStyle { Val = C.RadarStyleValues.Marker },
+                    new C.VaryColors { Val = false });
+
+                for (int i = 0; i < d.Series.Count; i++)
+                {
+                    var reihe = new C.RadarChartSeries(
+                        new C.Index { Val = (uint)i }, new C.Order { Val = (uint)i });
+                    if (NameBauen(d.Series[i]) is { } name) reihe.AppendChild(name);
+                    reihe.AppendChild(LinieBauen(d.Farbe(i), sichtbar: true));
+                    reihe.AppendChild(MarkeBauen(d.Farbe(i), sichtbar: true));
+                    reihe.AppendChild(KategorienBauen(d, punkte));
+                    reihe.AppendChild(WerteBauen(d.Series[i]));
+                    gruppe.AppendChild(reihe);
+                }
+                gruppe.AppendChild(new C.AxisId { Val = AchseKategorie });
+                gruppe.AppendChild(new C.AxisId { Val = AchseWerte });
+                return gruppe;
+            }
+
+            case TdChartKind.Line or TdChartKind.Scatter or TdChartKind.ScatterLine:
+            {
+                bool linie = d.Kind != TdChartKind.Scatter;
+                bool marke = d.Kind != TdChartKind.Line;
+
+                var gruppe = new C.LineChart(
+                    new C.Grouping { Val = C.GroupingValues.Standard },
+                    new C.VaryColors { Val = false });
+
+                for (int i = 0; i < d.Series.Count; i++)
+                {
+                    var reihe = new C.LineChartSeries(
+                        new C.Index { Val = (uint)i }, new C.Order { Val = (uint)i });
+                    if (NameBauen(d.Series[i]) is { } name) reihe.AppendChild(name);
+                    reihe.AppendChild(LinieBauen(d.Farbe(i), linie));
+                    reihe.AppendChild(MarkeBauen(d.Farbe(i), marke));
+                    reihe.AppendChild(KategorienBauen(d, punkte));
+                    reihe.AppendChild(WerteBauen(d.Series[i]));
+                    gruppe.AppendChild(reihe);
+                }
+                gruppe.AppendChild(new C.AxisId { Val = AchseKategorie });
+                gruppe.AppendChild(new C.AxisId { Val = AchseWerte });
+                return gruppe;
+            }
+
+            default:
+            {
+                var gruppe = new C.BarChart(
+                    new C.BarDirection
+                    {
+                        Val = d.Kind == TdChartKind.Bar
+                            ? C.BarDirectionValues.Bar
+                            : C.BarDirectionValues.Column,
+                    },
+                    new C.BarGrouping { Val = C.BarGroupingValues.Clustered },
+                    new C.VaryColors { Val = d.FarbeJeElement });
+
+                for (int i = 0; i < d.Series.Count; i++)
+                {
+                    var reihe = new C.BarChartSeries(
+                        new C.Index { Val = (uint)i }, new C.Order { Val = (uint)i });
+                    if (NameBauen(d.Series[i]) is { } name) reihe.AppendChild(name);
+                    if (!d.FarbeJeElement) reihe.AppendChild(FuellungBauen(d.Farbe(i)));
+                    if (d.FarbeJeElement)
+                        foreach (var punkt in FarbpunkteBauen(d, punkte)) reihe.AppendChild(punkt);
+                    reihe.AppendChild(KategorienBauen(d, punkte));
+                    reihe.AppendChild(WerteBauen(d.Series[i]));
+                    gruppe.AppendChild(reihe);
+                }
+                gruppe.AppendChild(new C.GapWidth { Val = 150 });
+                gruppe.AppendChild(new C.AxisId { Val = AchseKategorie });
+                gruppe.AppendChild(new C.AxisId { Val = AchseWerte });
+                return gruppe;
+            }
+        }
+    }
+
+    private static C.SeriesText? NameBauen(TdChartSeries reihe) =>
+        reihe.Name.Length == 0 ? null : new C.SeriesText(new C.NumericValue(reihe.Name));
+
+    private static C.CategoryAxisData KategorienBauen(TdChart d, int punkte)
+    {
+        var literal = new C.StringLiteral(new C.PointCount { Val = (uint)punkte });
+        for (int i = 0; i < punkte; i++)
+            literal.AppendChild(new C.StringPoint(new C.NumericValue(d.Kategorie(i))) { Index = (uint)i });
+        return new C.CategoryAxisData(literal);
+    }
+
+    private static C.Values WerteBauen(TdChartSeries reihe)
+    {
+        var literal = new C.NumberLiteral(
+            new C.FormatCode("General"),
+            new C.PointCount { Val = (uint)reihe.Values.Count });
+
+        for (int i = 0; i < reihe.Values.Count; i++)
+            literal.AppendChild(new C.NumericPoint(
+                new C.NumericValue(reihe.Values[i].ToString("R", CultureInfo.InvariantCulture)))
+            { Index = (uint)i });
+
+        return new C.Values(literal);
+    }
+
+    private static string HexOhneRaute(string farbe) => farbe.TrimStart('#').ToUpperInvariant();
+
+    private static C.ChartShapeProperties FuellungBauen(string farbe) =>
+        new(new A.SolidFill(new A.RgbColorModelHex { Val = HexOhneRaute(farbe) }));
+
+    private static C.ChartShapeProperties LinieBauen(string farbe, bool sichtbar) =>
+        new(sichtbar
+            ? new A.Outline(new A.SolidFill(new A.RgbColorModelHex { Val = HexOhneRaute(farbe) })) { Width = 28575 }
+            : new A.Outline(new A.NoFill()));
+
+    private static C.Marker MarkeBauen(string farbe, bool sichtbar) =>
+        sichtbar
+            ? new C.Marker(
+                new C.Symbol { Val = C.MarkerStyleValues.Circle },
+                new C.Size { Val = 6 },
+                FuellungBauen(farbe))
+            : new C.Marker(new C.Symbol { Val = C.MarkerStyleValues.None });
+
+    /// <summary>
+    /// Farbe je **Element** statt je Reihe — beim Kuchen und bei einer einzelnen Reihe. Das
+    /// ist die Regel des heutigen Editors, hier nur an einer Stelle statt in seiner
+    /// Zeichenroutine.
+    /// </summary>
+    private static IEnumerable<C.DataPoint> FarbpunkteBauen(TdChart d, int punkte)
+    {
+        for (int i = 0; i < punkte; i++)
+            yield return new C.DataPoint(
+                new C.Index { Val = (uint)i },
+                new C.Bubble3D { Val = false },
+                FuellungBauen(d.Farbe(i)));
+    }
+
+    // -------------------------------------------------------------- Lesen
+
+    private static TdGraphic? ZeichnungLesen(W.Drawing zeichnung, Lesestand stand)
+    {
+        double breite = 0, hoehe = 0;
+        if (zeichnung.Descendants<DW.Extent>().FirstOrDefault() is { } ausdehnung)
+        {
+            breite = EmuZuCm(ausdehnung.Cx?.Value ?? 0);
+            hoehe = EmuZuCm(ausdehnung.Cy?.Value ?? 0);
+        }
+
+        string? alt = zeichnung.Descendants<DW.DocProperties>().FirstOrDefault()?.Description?.Value;
+        if (alt is { Length: 0 }) alt = null;
+
+        if (zeichnung.Descendants<C.ChartReference>().FirstOrDefault()?.Id?.Value is { } diagrammId
+            && stand.Teil.GetPartById(diagrammId) is ChartPart { ChartSpace: { } raum }
+            && raum.GetFirstChild<C.Chart>() is { } inhalt)
+        {
+            var d = DiagrammLesen(inhalt);
+            d.WidthCm = breite;
+            d.HeightCm = hoehe;
+            d.AltText = alt;
+            return d;
+        }
+
+        if (zeichnung.Descendants<A.Blip>().FirstOrDefault()?.Embed?.Value is { } bildId
+            && stand.Teil.GetPartById(bildId) is ImagePart bildteil)
+        {
+            if (stand.Bilder is null)
+                throw new NotSupportedException(
+                    "Das Dokument enthält ein Bild, aber es wurde kein Bildspeicher mitgegeben — " +
+                    "TdDocx.Lesen(quelle, bilder) benutzen (HANDOFF §4.21).");
+
+            using var strom = bildteil.GetStream();
+            using var speicher = new MemoryStream();
+            strom.CopyTo(speicher);
+            byte[] daten = speicher.ToArray();
+
+            string endung = BildEndung(bildteil);
+            return new TdImage(stand.Bilder.Ablegen(daten, endung), endung, breite, hoehe)
+            {
+                AltText = alt,
+            };
+        }
+
+        // Eine Zeichnung, die weder Bild noch Diagramm ist (eine Form, ein SmartArt): Sie
+        // verschwindet, und das ist ein benannter Verlust — das Modell hat dafür keinen Ort,
+        // und ein leerer Kasten wäre eine Behauptung über etwas, das wir nicht kennen.
+        return null;
+    }
+
+    private static TdChart DiagrammLesen(C.Chart inhalt)
+    {
+        var d = new TdChart();
+
+        if (inhalt.Title?.ChartText?.RichText is { } text)
+            d.Title = string.Concat(text.Descendants<A.Text>().Select(t => t.Text));
+
+        var flaeche = inhalt.PlotArea;
+        if (flaeche is null) return d;
+
+        OpenXmlElement? gruppe = null;
+
+        if (flaeche.GetFirstChild<C.BarChart>() is { } balken)
+        {
+            gruppe = balken;
+            d.Kind = balken.BarDirection?.Val?.Value == C.BarDirectionValues.Bar
+                ? TdChartKind.Bar
+                : TdChartKind.Column;
+        }
+        else if (flaeche.GetFirstChild<C.PieChart>() is { } kuchen)
+        {
+            gruppe = kuchen;
+            d.Kind = TdChartKind.Pie;
+        }
+        else if (flaeche.GetFirstChild<C.RadarChart>() is { } radar)
+        {
+            gruppe = radar;
+            d.Kind = TdChartKind.Radar;
+        }
+        else if (flaeche.GetFirstChild<C.LineChart>() is { } linie)
+        {
+            gruppe = linie;
+
+            // **Punkt, Punkt+Linie und Linie sind alle drei ein Liniendiagramm** — sie
+            // unterscheiden sich darin, ob die Linie unsichtbar ist und ob es eine Marke gibt.
+            var erste = linie.Elements<C.LineChartSeries>().FirstOrDefault();
+            bool ohneLinie = erste?.ChartShapeProperties?.GetFirstChild<A.Outline>()
+                ?.GetFirstChild<A.NoFill>() is not null;
+            bool mitMarke = erste?.Marker?.Symbol?.Val?.Value is { } symbol
+                            && symbol != C.MarkerStyleValues.None;
+
+            d.Kind = ohneLinie ? TdChartKind.Scatter
+                   : mitMarke ? TdChartKind.ScatterLine
+                   : TdChartKind.Line;
+        }
+
+        if (gruppe is null) return d;
+
+        var reihen = gruppe.ChildElements
+            .Where(e => e is C.BarChartSeries or C.LineChartSeries or C.PieChartSeries or C.RadarChartSeries)
+            .ToList();
+
+        bool ersteReihe = true;
+        foreach (var reihe in reihen)
+        {
+            var werte = new TdChartSeries
+            {
+                Name = reihe.GetFirstChild<C.SeriesText>()?.Descendants<C.NumericValue>()
+                    .FirstOrDefault()?.Text ?? "",
+            };
+
+            if (reihe.GetFirstChild<C.Values>() is { } zahlen)
+                foreach (var v in zahlen.Descendants<C.NumericValue>())
+                    if (double.TryParse(v.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out double z))
+                        werte.Values.Add(z);
+
+            // Die Kategorien stehen bei **jeder** Reihe gleich — einmal lesen genügt.
+            if (ersteReihe && reihe.GetFirstChild<C.CategoryAxisData>() is { } kategorien)
+                foreach (var v in kategorien.Descendants<C.NumericValue>())
+                    d.Categories.Add(v.Text ?? "");
+
+            d.Series.Add(werte);
+            ersteReihe = false;
+        }
+
+        FarbenLesen(d, reihen);
+        return d;
+    }
+
+    /// <summary>
+    /// Die Palette zurücklesen: bei Farbe je Element aus den <c>c:dPt</c> der ersten Reihe,
+    /// sonst aus je einer Reihe.
+    /// <para>
+    /// <b>Gelesen wird die erste Farbangabe je Element</b>, gleich ob sie an der Füllung oder
+    /// an der Linie hängt — beim Punktdiagramm hat die Linie ausdrücklich **keine** Farbe, und
+    /// die Marke trägt sie.
+    /// </para>
+    /// </summary>
+    private static void FarbenLesen(TdChart d, List<OpenXmlElement> reihen)
+    {
+        if (reihen.Count == 0) return;
+
+        var quellen = d.FarbeJeElement
+            ? reihen[0].Elements<C.DataPoint>().Cast<OpenXmlElement>().ToList()
+            : reihen;
+
+        foreach (var quelle in quellen)
+        {
+            if (quelle.Descendants<A.RgbColorModelHex>().FirstOrDefault()?.Val?.Value is { } hex)
+                d.Palette.Add("#" + hex.ToUpperInvariant());
+        }
+    }
+
     // ==================== Tabellen ====================
 
     private static W.Table TabelleSchreiben(TdTable t, Kontext k)
@@ -829,7 +1377,7 @@ public static class TdDocx
         return tc;
     }
 
-    private static TdTable TabelleLesen(W.Table tabelle, OpenXmlPart teil)
+    private static TdTable TabelleLesen(W.Table tabelle, Lesestand teil)
     {
         var t = new TdTable();
 
@@ -875,7 +1423,7 @@ public static class TdDocx
         return new TdBorder(staerke, farbe);
     }
 
-    private static TdTableRow ZeileLesen(W.TableRow tr, OpenXmlPart teil)
+    private static TdTableRow ZeileLesen(W.TableRow tr, Lesestand teil)
     {
         var zeile = new TdTableRow();
 
@@ -890,7 +1438,7 @@ public static class TdDocx
         return zeile;
     }
 
-    private static TdTableCell ZelleLesen(W.TableCell tc, OpenXmlPart teil)
+    private static TdTableCell ZelleLesen(W.TableCell tc, Lesestand teil)
     {
         var zelle = new TdTableCell();
 
@@ -933,7 +1481,7 @@ public static class TdDocx
     /// Dokumentreihenfolge. Der Körper geht einen eigenen Weg, weil dort zusätzlich die
     /// Abschnittsgrenzen abzulesen sind.
     /// </summary>
-    private static void BloeckeLesen(OpenXmlElement behaelter, List<TdBlock> ziel, OpenXmlPart teil)
+    private static void BloeckeLesen(OpenXmlElement behaelter, List<TdBlock> ziel, Lesestand teil)
     {
         var kinder = Inhaltskinder(behaelter);
 
@@ -1087,16 +1635,30 @@ public static class TdDocx
 
     // ==================== Seiteneinrichtung ====================
 
-    private static W.SectionProperties SeiteSchreiben(TdPageSetup seite, MainDocumentPart main)
+    private static W.SectionProperties SeiteSchreiben(TdPageSetup seite, MainDocumentPart main, Kontext k)
     {
         var sectPr = new W.SectionProperties();
 
         // Schema-Reihenfolge (CT_SectPr): die Verweise auf Kopf-/Fußzeile stehen **vor**
         // pgSz und pgMar.
-        if (seite.HeaderText.Length > 0)
+        //
+        // **Das Wasserzeichen erzwingt eine Kopfzeile, auch ohne Kopfzeilentext** — in DOCX
+        // hängt es dort und nirgends sonst (§4.21).
+        if (seite.HeaderText.Length > 0 || seite.Watermark is not null)
         {
             var teil = main.AddNewPart<HeaderPart>();
-            teil.Header = new W.Header(KopfFussAbsatzSchreiben(seite.HeaderText));
+            var kopf = new W.Header();
+
+            if (seite.Watermark is { } zeichen &&
+                WasserzeichenSchreiben(zeichen, seite.WatermarkOpacity, teil, k) is { } absatz)
+                kopf.AppendChild(absatz);
+
+            // Ein Kopfzeilenteil ohne Absatz ist schemawidrig — dieselbe Regel wie bei der
+            // Tabellenzelle (§4.18).
+            if (seite.HeaderText.Length > 0 || !kopf.HasChildren)
+                kopf.AppendChild(KopfFussAbsatzSchreiben(seite.HeaderText));
+
+            teil.Header = kopf;
             sectPr.AppendChild(new W.HeaderReference
             {
                 Type = W.HeaderFooterValues.Default,
@@ -1178,6 +1740,127 @@ public static class TdDocx
         return absatz;
     }
 
+    // ==================== Wasserzeichen ====================
+
+    // Ein Punkt ist 1/72 Zoll — die Einheit, in der VML seine Maße angibt.
+    private const double PunktProCm = 72.0 / 2.54;
+
+    /// <summary>
+    /// Das Wasserzeichen als Absatz für die Kopfzeile.
+    ///
+    /// <para>
+    /// <b>Es ist eine VML-Zeichnung und keine DrawingML.</b> Das ist kein Rückschritt, sondern
+    /// die Form, in der Word ein Wasserzeichen schreibt und erwartet — ein hinter dem Text
+    /// liegendes, auf der Seite zentriertes Bild gibt es als eingebundene Zeichnung
+    /// (<c>wp:inline</c>) gar nicht.
+    /// </para>
+    /// <para>
+    /// <b>Das Bild hängt am Kopfzeilenteil</b>, nicht am Hauptteil: Beziehungen gehören zu dem
+    /// Teil, der sie benutzt. Wer die Kennung am Hauptteil holt, bekommt eine Datei, in der
+    /// Word das Wasserzeichen nicht findet.
+    /// </para>
+    /// </summary>
+    private static W.Paragraph? WasserzeichenSchreiben(
+        TdImage zeichen, double deckkraft, HeaderPart teil, Kontext k)
+    {
+        if (k.Bilder is null)
+            throw new NotSupportedException(
+                "Der Abschnitt hat ein Wasserzeichen, aber es wurde kein Bildspeicher mitgegeben — " +
+                "TdDocx.Schreiben(doc, ziel, bilder) benutzen (HANDOFF §4.21).");
+
+        if (k.Bilder.Lesen(zeichen.BlobId) is not { } daten) return null;
+
+        var bildteil = teil.AddImagePart(BildTeilTyp(zeichen.Extension));
+        using (var strom = new MemoryStream(daten)) bildteil.FeedData(strom);
+
+        double breite = zeichen.WidthCm * PunktProCm;
+        double hoehe = zeichen.HeightCm * PunktProCm;
+
+        string stil = string.Create(CultureInfo.InvariantCulture,
+            $"position:absolute;margin-left:0;margin-top:0;width:{breite:0.##}pt;height:{hoehe:0.##}pt;" +
+            $"z-index:-251658752;mso-position-horizontal:center;mso-position-horizontal-relative:margin;" +
+            $"mso-position-vertical:center;mso-position-vertical-relative:margin");
+
+        var bilddaten = new V.ImageData
+        {
+            RelationshipId = teil.GetIdOfPart(bildteil),
+            Title = "Wasserzeichen",
+            // **Deckkraft gibt es hier nicht** — Word blasst über Helligkeit auf. `gain` ist
+            // eine Festkommazahl mit 16 Nachkommastellen und dem Suffix „f".
+            Gain = GainAusDeckkraft(deckkraft),
+        };
+
+        return new W.Paragraph(new W.Run(new W.Picture(
+            new V.Shape(bilddaten)
+            {
+                Id = "Wasserzeichen",
+                Style = stil,
+            })));
+    }
+
+    private static string GainAusDeckkraft(double deckkraft) =>
+        ((int)Math.Round(Math.Clamp(deckkraft, 0, 1) * 65536)).ToString(CultureInfo.InvariantCulture) + "f";
+
+    private static double DeckkraftAusGain(string? gain)
+    {
+        if (gain is null) return 1;
+        string zahl = gain.TrimEnd('f', 'F');
+        return double.TryParse(zahl, NumberStyles.Float, CultureInfo.InvariantCulture, out double wert)
+            ? Math.Clamp(wert / 65536.0, 0, 1)
+            : 1;
+    }
+
+    /// <summary>
+    /// Liest das Wasserzeichen aus einem Kopfzeilenteil zurück. Die Größe steht in der
+    /// VML-Stilangabe (<c>width:400pt;height:300pt</c>) — die einzige Stelle, an der dieses
+    /// Format ein Maß führt.
+    /// </summary>
+    private static void WasserzeichenLesen(TdPageSetup seite, W.Header kopf, HeaderPart teil, Lesestand stand)
+    {
+        foreach (var form in kopf.Descendants<V.Shape>())
+        {
+            if (form.GetFirstChild<V.ImageData>() is not { } bilddaten) continue;
+            if (bilddaten.RelationshipId?.Value is not { } id) continue;
+            if (teil.GetPartById(id) is not ImagePart bildteil) continue;
+
+            if (stand.Bilder is null)
+                throw new NotSupportedException(
+                    "Das Dokument hat ein Wasserzeichen, aber es wurde kein Bildspeicher mitgegeben — " +
+                    "TdDocx.Lesen(quelle, bilder) benutzen (HANDOFF §4.21).");
+
+            using var strom = bildteil.GetStream();
+            using var speicher = new MemoryStream();
+            strom.CopyTo(speicher);
+
+            string endung = BildEndung(bildteil);
+            seite.Watermark = new TdImage(
+                stand.Bilder.Ablegen(speicher.ToArray(), endung), endung,
+                StilmassCm(form.Style?.Value, "width"),
+                StilmassCm(form.Style?.Value, "height"));
+            seite.WatermarkOpacity = DeckkraftAusGain(bilddaten.Gain?.Value);
+            return;
+        }
+    }
+
+    /// <summary>Ein Maß aus einer VML-Stilangabe, in Zentimetern. Fehlt es, ist es 0.</summary>
+    private static double StilmassCm(string? stil, string name)
+    {
+        if (stil is null) return 0;
+
+        foreach (string teil in stil.Split(';'))
+        {
+            int doppelpunkt = teil.IndexOf(':');
+            if (doppelpunkt < 0) continue;
+            if (!teil[..doppelpunkt].Trim().Equals(name, StringComparison.OrdinalIgnoreCase)) continue;
+
+            string wert = teil[(doppelpunkt + 1)..].Trim().TrimEnd('p', 't', 'P', 'T');
+            return double.TryParse(wert, NumberStyles.Float, CultureInfo.InvariantCulture, out double punkt)
+                ? punkt / PunktProCm
+                : 0;
+        }
+        return 0;
+    }
+
     /// <summary>Zerlegt „Seite {SEITE} von {SEITEN}" in Text- und Platzhalterstücke.</summary>
     private static IEnumerable<string> ZerlegtNachPlatzhaltern(string vorlage)
     {
@@ -1196,7 +1879,7 @@ public static class TdDocx
         if (pos < vorlage.Length) yield return vorlage[pos..];
     }
 
-    private static TdPageSetup SeiteLesen(W.SectionProperties sectPr, MainDocumentPart main)
+    private static TdPageSetup SeiteLesen(W.SectionProperties sectPr, MainDocumentPart main, Lesestand stand)
     {
         var seite = new TdPageSetup();
 
@@ -1220,13 +1903,16 @@ public static class TdDocx
         {
             if (verweis.Type?.Value != W.HeaderFooterValues.Default || verweis.Id?.Value is not { } id) continue;
             if (main.GetPartById(id) is HeaderPart { Header: { } kopf } kopfteil)
-                seite.HeaderText = KopfFussTextLesen(kopf, kopfteil);
+            {
+                seite.HeaderText = KopfFussTextLesen(kopf, stand.Auf(kopfteil));
+                WasserzeichenLesen(seite, kopf, kopfteil, stand);
+            }
         }
         foreach (var verweis in sectPr.Elements<W.FooterReference>())
         {
             if (verweis.Type?.Value != W.HeaderFooterValues.Default || verweis.Id?.Value is not { } id) continue;
             if (main.GetPartById(id) is FooterPart { Footer: { } fuss } fussteil)
-                seite.FooterText = KopfFussTextLesen(fuss, fussteil);
+                seite.FooterText = KopfFussTextLesen(fuss, stand.Auf(fussteil));
         }
 
         return seite;
@@ -1244,7 +1930,7 @@ public static class TdDocx
     /// Zeichenkette „PAGE" als Text.
     /// </para>
     /// </summary>
-    private static string KopfFussTextLesen(OpenXmlElement kopfOderFuss, OpenXmlPart dokumentteil)
+    private static string KopfFussTextLesen(OpenXmlElement kopfOderFuss, Lesestand dokumentteil)
     {
         var sb = new System.Text.StringBuilder();
 
@@ -1264,21 +1950,40 @@ public static class TdDocx
 
     // ==================== Lesen ====================
 
+    /// <summary>
+    /// Was beim Lesen gebraucht wird: der Dokumentteil, aus dem gerade gelesen wird — eine
+    /// Kopfzeile führt ihre eigenen Beziehungen und Bilder —, und wohin Bilddaten gehen.
+    /// </summary>
+    private sealed class Lesestand(OpenXmlPart teil, ITdImages? bilder)
+    {
+        public OpenXmlPart Teil { get; } = teil;
+
+        /// <inheritdoc cref="Kontext.Bilder"/>
+        public ITdImages? Bilder { get; } = bilder;
+
+        /// <summary>Derselbe Stand, aber auf einem anderen Teil (Kopf-/Fußzeile).</summary>
+        public Lesestand Auf(OpenXmlPart anderer) => new(anderer, Bilder);
+    }
+
     /// <summary>Liest ein DOCX in das eigene Modell.</summary>
-    public static TdDocument Lesen(string pfad)
+    /// <param name="bilder">
+    /// Wohin die Bytes eingebetteter Bilder gehen (§4.21). Ohne diese Naht wirft ein Dokument
+    /// mit Bildern — ein stillschweigend übergangenes Bild wäre Datenverlust.
+    /// </param>
+    public static TdDocument Lesen(string pfad, ITdImages? bilder = null)
     {
         using var docx = WordprocessingDocument.Open(pfad, false);
-        return Lesen(docx);
+        return Lesen(docx, bilder);
     }
 
-    /// <summary>Liest ein DOCX aus einem Strom.</summary>
-    public static TdDocument Lesen(Stream quelle)
+    /// <inheritdoc cref="Lesen(string, ITdImages?)"/>
+    public static TdDocument Lesen(Stream quelle, ITdImages? bilder = null)
     {
         using var docx = WordprocessingDocument.Open(quelle, false);
-        return Lesen(docx);
+        return Lesen(docx, bilder);
     }
 
-    private static TdDocument Lesen(WordprocessingDocument docx)
+    private static TdDocument Lesen(WordprocessingDocument docx, ITdImages? bilder)
     {
         var doc = new TdDocument();
         var main = docx.MainDocumentPart;
@@ -1287,6 +1992,7 @@ public static class TdDocx
         StandardformateLesen(doc, main);
         ListenLesen(doc, main);
 
+        var stand = new Lesestand(main, bilder);
         var laufend = new TdSection();
         var kinder = Inhaltskinder(body);
 
@@ -1294,7 +2000,7 @@ public static class TdDocx
         {
             if (kinder[i] is W.Table tabelle)
             {
-                laufend.Blocks.Add(TabelleLesen(tabelle, main));
+                laufend.Blocks.Add(TabelleLesen(tabelle, stand));
                 continue;
             }
 
@@ -1306,7 +2012,7 @@ public static class TdDocx
             if (!IstTrennabsatz(kinder, i))
             {
                 if (IstSeitenumbruch(absatz)) laufend.Blocks.Add(new TdPageBreak());
-                else laufend.Blocks.Add(AbsatzLesen(absatz, main));
+                else laufend.Blocks.Add(AbsatzLesen(absatz, stand));
             }
 
             // Eine sectPr **im** Absatzformat beendet den Abschnitt — sie gehört zu allem,
@@ -1314,7 +2020,7 @@ public static class TdDocx
             // zur Unsymmetrie beim Schreiben.
             if (absatz.ParagraphProperties?.SectionProperties is { } sectPr)
             {
-                laufend.Page = SeiteLesen(sectPr, main);
+                laufend.Page = SeiteLesen(sectPr, main, stand);
                 doc.Sections.Add(laufend);
                 laufend = new TdSection();
             }
@@ -1322,7 +2028,7 @@ public static class TdDocx
 
         // Der letzte Abschnitt trägt seine Einrichtung am Ende des Körpers.
         if (body.GetFirstChild<W.SectionProperties>() is { } letzte)
-            laufend.Page = SeiteLesen(letzte, main);
+            laufend.Page = SeiteLesen(letzte, main, stand);
 
         // Ein DOCX endet immer mit einem Abschnitt, auch wenn er leer ist — nur ein Dokument
         // ohne jeden Absatz **und** ohne sectPr bekommt keinen.
@@ -1359,7 +2065,7 @@ public static class TdDocx
             && br.Type.Value == W.BreakValues.Page;
     }
 
-    private static TdParagraph AbsatzLesen(W.Paragraph absatz, OpenXmlPart teil)
+    private static TdParagraph AbsatzLesen(W.Paragraph absatz, Lesestand teil)
     {
         var p = new TdParagraph();
         var pPr = absatz.ParagraphProperties;
@@ -1391,7 +2097,7 @@ public static class TdDocx
     /// </para>
     /// </summary>
     private static void StueckeLesen(
-        OpenXmlElement behaelter, List<TdInline> ziel, OpenXmlPart teil, Feldleser leser)
+        OpenXmlElement behaelter, List<TdInline> ziel, Lesestand teil, Feldleser leser)
     {
         foreach (var kind in behaelter.ChildElements)
         {
@@ -1415,7 +2121,7 @@ public static class TdDocx
                 }
 
                 case W.Run lauf:
-                    LaufLesen(lauf, ziel, leser);
+                    LaufLesen(lauf, ziel, teil, leser);
                     break;
 
                 // Textmarken sind Sprungziele und kein Inhalt. Sie werden beim Schreiben aus
@@ -1428,7 +2134,7 @@ public static class TdDocx
         }
     }
 
-    private static void LaufLesen(W.Run lauf, List<TdInline> ziel, Feldleser leser)
+    private static void LaufLesen(W.Run lauf, List<TdInline> ziel, Lesestand stand, Feldleser leser)
     {
         var format = lauf.RunProperties is { } rPr ? ZeichenformatLesen(rPr) : new TdCharFormat();
 
@@ -1457,6 +2163,11 @@ public static class TdDocx
                 case W.Break:
                     Anhaengen(new TdLineBreak { Format = format.Kopie() });
                     break;
+
+                case W.Drawing zeichnung when ZeichnungLesen(zeichnung, stand) is { } grafik:
+                    grafik.Format = format.Kopie();
+                    Anhaengen(grafik);
+                    break;
             }
         }
 
@@ -1472,12 +2183,12 @@ public static class TdDocx
     /// <c>#</c> zurück; alles andere kommt aus der Beziehung — und zwar als
     /// <c>OriginalString</c>, damit ein relatives Ziel relativ bleibt (§7).
     /// </summary>
-    private static string VerweisZielLesen(W.Hyperlink verweis, OpenXmlPart teil)
+    private static string VerweisZielLesen(W.Hyperlink verweis, Lesestand teil)
     {
         if (verweis.Anchor?.Value is { Length: > 0 } anker) return "#" + anker;
         if (verweis.Id?.Value is not { } id) return "";
 
-        foreach (var beziehung in teil.HyperlinkRelationships)
+        foreach (var beziehung in teil.Teil.HyperlinkRelationships)
             if (beziehung.Id == id) return beziehung.Uri.OriginalString;
 
         // Eine Beziehung, die es nicht gibt, kommt aus einer beschädigten Datei. Der Linktext

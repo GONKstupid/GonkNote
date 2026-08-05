@@ -171,6 +171,12 @@ internal static class Beispieldokument
     {
         Id = DokumentId,
         Rtf = "PK kein echtes ZIP, nur Bytes"u8.ToArray(),
+        // Das Altformat und das eigene Modell stehen **nebeneinander** (§4.22) — beide Felder
+        // gehören ins Beispiel, sonst bewacht der Roundtrip das neue nicht. Der Vermerk ist
+        // absichtlich nicht leer: der Standardwert würde ein fehlendes Speichern nicht zeigen.
+        Model = "GNTD{\"Version\":1}"u8.ToArray(),
+        MigrationIssue = "Beim letzten Versuch ging etwas schief.",
+
         Images = [ElementBildId, SeitenBildId],
         PageFormat = "Letter",
         Landscape = true,

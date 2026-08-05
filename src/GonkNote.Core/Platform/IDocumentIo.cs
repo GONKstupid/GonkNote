@@ -15,6 +15,21 @@ public sealed record ExportResult(
     int MissingImages = 0);
 
 /// <summary>
+/// Was die Übernahme eines Bestandsdokuments ins eigene Modell ergeben hat.
+///
+/// <para>
+/// <b>Sie läuft still, ein Fehler dabei nicht</b> (Nutzer-Entscheidung 2026-08-05). Bei der
+/// Datenbankübernahme (§4.8) war „still" durchgehend richtig, weil nichts verlorengehen
+/// konnte. Hier kann etwas verlorengehen: RTF und XamlPackage können Dinge tragen, die kein
+/// Modell kennt. Was gelingt, gelingt deshalb wortlos; was misslingt, wird **benannt** —
+/// dieselbe Regel wie bei <c>Was_noch_nicht_geht_verschwindet_nicht_still</c>.
+/// </para>
+/// </summary>
+/// <param name="Migrated">Ist <see cref="TextDoc.Model"/> jetzt gefüllt?</param>
+/// <param name="Issue">Was schiefging; <c>null</c> = nichts.</param>
+public sealed record MigrationResult(bool Migrated, string? Issue = null);
+
+/// <summary>
 /// Import und Export von Textdokumenten und Tafeln.
 /// <para>
 /// <b>Warum das eine Schnittstelle ist und kein Core-Code:</b> DOCX-, Markdown- und
@@ -46,4 +61,23 @@ public interface IDocumentIo
 
     /// <summary>Schreibt eine Tafel; das Format ergibt sich aus der Endung von <paramref name="path"/>.</summary>
     ExportResult ExportBoard(WhiteboardDoc doc, string title, string path);
+
+    /// <summary>
+    /// Kann dieser Kopf ein Bestandsdokument übernehmen?
+    /// <para>
+    /// <b>Nur der Windows-Kopf kann es</b>, und das ist keine Bequemlichkeit: RTF und
+    /// XamlPackage liest ausschließlich <c>System.Windows.Documents.TextRange</c>. Der
+    /// Linux-Kopf darf es deshalb nicht versuchen — er würde ein leeres Dokument erzeugen und
+    /// hätte damit den Inhalt scheinbar gelöscht.
+    /// </para>
+    /// </summary>
+    bool CanMigrate { get; }
+
+    /// <summary>
+    /// Übernimmt <paramref name="doc"/> aus dem Altformat ins eigene Modell und füllt
+    /// <see cref="TextDoc.Model"/>. <b>Wirft nicht</b> — was schiefgeht, steht im Ergebnis:
+    /// eine Ausnahme mitten im Öffnen eines Dokuments wäre für den Nutzer dasselbe wie ein
+    /// Absturz.
+    /// </summary>
+    MigrationResult Migrate(TextDoc doc);
 }

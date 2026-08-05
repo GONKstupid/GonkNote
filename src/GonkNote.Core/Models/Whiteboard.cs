@@ -389,7 +389,40 @@ public class WhiteboardDoc
 public class TextDoc
 {
     public Guid Id { get; set; }
+
+    /// <summary>
+    /// Der Inhalt im **Altformat**: RTF oder ein WPF-<c>XamlPackage</c> (ZIP, erkennbar am
+    /// „PK"). Das Feld heißt historisch <c>Rtf</c> und trägt beides.
+    /// <para>
+    /// <b>Es wird nie überschrieben</b>, auch nicht nach der Übernahme — dieselbe Regel, aus
+    /// der <c>gonknote.db</c> neben <c>gonknote.sqlite</c> liegen bleibt (HANDOFF §4.8, §4.22).
+    /// Solange es dasteht, ist eine misslungene Übernahme kein Datenverlust, sondern ein
+    /// Versuch, der wiederholt werden kann.
+    /// </para>
+    /// </summary>
     public byte[] Rtf { get; set; } = Array.Empty<byte>();
+
+    /// <summary>
+    /// Derselbe Inhalt im **eigenen** Dokumentmodell (Kennung <c>GNTD</c>, siehe
+    /// <c>TdFormatIo</c>). Leer = noch nicht übernommen.
+    /// <para>
+    /// <b>Ein neues Feld neben <see cref="Rtf"/> und nicht statt dessen</b> — additiv, wie die
+    /// Datenbankübernahme in §4.8. Wer voll ist, führt: steht hier etwas, wird daraus gelesen;
+    /// sonst aus <see cref="Rtf"/>.
+    /// </para>
+    /// </summary>
+    public byte[] Model { get; set; } = Array.Empty<byte>();
+
+    /// <summary>
+    /// Was bei der letzten Übernahme schiefging; leer = nichts.
+    /// <para>
+    /// <b>Er steht im Dokument und nicht nur in einem Hinweisfenster</b>, das man weggeklickt
+    /// hat: Ein Fehler, den niemand mehr nachlesen kann, ist bei der nächsten Frage „warum
+    /// sieht das anders aus?" verschwunden. Die Übernahme läuft still — **ein Fehler dabei
+    /// nicht** (Nutzer-Entscheidung 2026-08-05, §4.22).
+    /// </para>
+    /// </summary>
+    public string MigrationIssue { get => _migrationIssue; set => _migrationIssue = value ?? ""; }
 
     /// <summary>
     /// Bilder dieses Dokuments im Blob-Speicher. Wird beim Speichern neu geschrieben und
@@ -407,6 +440,7 @@ public class TextDoc
     private string _pageFormat = "A4";
     private string _headerText = "";
     private string _footerText = "";
+    private string _migrationIssue = "";
 
     /// <summary>Papierformat: "A4", "A5", "A3" oder "Letter".</summary>
     public string PageFormat

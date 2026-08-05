@@ -673,8 +673,47 @@ public sealed class MainViewModel : ObservableObject
             ? new TextTabViewModel(vm.Item, _db)
             : new WhiteboardTabViewModel(vm.Item, _db);
 
+        if (tab is TextTabViewModel text) Uebernehmen(text);
+
         OpenTabs.Add(tab);
         SelectedTab = tab;
+    }
+
+    /// <summary>
+    /// Übernimmt ein Bestandsdokument einmalig ins eigene Modell — beim Öffnen, **still**.
+    ///
+    /// <para>
+    /// <b>Nutzer-Entscheidung 2026-08-05: still übernehmen, Fehler aber zeigen.</b> Was gelingt,
+    /// gelingt wortlos — wie die Datenbankübernahme in §4.8, und aus demselben Grund: Ein
+    /// Hinweis, den man bei jedem Dokument wegklicken muss, wird nach dem dritten Mal nicht
+    /// mehr gelesen. Was **misslingt**, wird benannt: hier kann etwas verlorengehen, denn RTF
+    /// und XamlPackage können Dinge tragen, die kein Modell kennt.
+    /// </para>
+    /// <para>
+    /// <b>Das Altfeld bleibt in beiden Fällen unangetastet</b> (§4.22). Eine misslungene
+    /// Übernahme ist deshalb kein Datenverlust, sondern ein Versuch, der beim nächsten Öffnen
+    /// wiederholt wird — genau das ist gewollt, denn dazwischen kann ein Fehler behoben worden
+    /// sein.
+    /// </para>
+    /// </summary>
+    private void Uebernehmen(TextTabViewModel tab)
+    {
+        var doc = tab.Doc;
+
+        // Schon übernommen, oder es gibt nichts zu übernehmen.
+        if (doc.Model.Length > 0 || doc.Rtf.Length == 0) return;
+
+        // Der Linux-Kopf kann es nicht und darf es nicht versuchen — er würde ein leeres
+        // Dokument erzeugen und den Inhalt damit scheinbar löschen.
+        if (!_platform.Documents.CanMigrate) return;
+
+        var ergebnis = _platform.Documents.Migrate(doc);
+        _db.SaveText(doc);
+
+        if (!ergebnis.Migrated)
+            _platform.Dialogs.Inform(
+                Loc.T("Msg.MigrationFailed", tab.Title, ergebnis.Issue ?? ""),
+                DialogSeverity.Warning);
     }
 
     public void CloseTab(DocumentTabViewModel tab)

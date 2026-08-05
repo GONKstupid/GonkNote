@@ -494,6 +494,12 @@ internal static class LocEnglish
 
         // ---- Messages ----
         ["Msg.ImportFailed"] = "Import failed:",
+        // The migration to the own document model runs silently — only a failure speaks up
+        // (user decision 2026-08-05, HANDOFF §4.22). {0} = name, {1} = reason.
+        ["Msg.MigrationFailed"] =
+            "“{0}” could not be migrated to the new document format:\n{1}\n\n" +
+            "The document is unchanged and can still be edited — " +
+            "the attempt will be repeated the next time it is opened.",
         ["Msg.OpenDocumentFirst"] = "Please open a document first.",
         ["Msg.ExportFailed"] = "Export failed:\n{0}",
         ["Msg.ExportedPages"] = "{0} pages exported to:\n{1}\n\nOpen the first file?",

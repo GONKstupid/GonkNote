@@ -139,6 +139,42 @@ public static class DocumentImages
         All(doc).Select(i => i.Tag).OfType<BlobRef>().Select(r => r.Id);
 
     /// <summary>
+    /// Verweis eines Bildes – vorhandener oder neu angelegter.
+    /// <para>
+    /// Bilder ohne Verweis in den Blob-Speicher übernehmen: Diagramme aus der App, eingefügte
+    /// Zwischenablage-Bilder und alle Dokumente aus der Zeit, als die Bilder noch im Datensatz
+    /// lagen. Nur hier gibt es keine Originaldatei mehr, deshalb wird verlustfrei als PNG
+    /// gesichert.
+    /// </para>
+    /// <para>
+    /// <b>Öffentlich seit der Übernahme</b> (§4.22): <see cref="FlowZuTd"/> braucht denselben
+    /// Weg, und eine zweite Fassung davon wäre die Doppelung aus §4.10 — mit dem Fehlerbild
+    /// „dasselbe Bild liegt zweimal im Blob-Speicher".
+    /// </para>
+    /// </summary>
+    public static BlobRef? Adopt(Image image, BlobStore blobs)
+    {
+        if (image.Tag is BlobRef vorhanden) return vorhanden;
+        if (image.Source is not BitmapSource source) return null;
+
+        try
+        {
+            var encoder = new PngBitmapEncoder();
+            encoder.Frames.Add(BitmapFrame.Create(source));
+            using var ms = new MemoryStream();
+            encoder.Save(ms);
+
+            var reference = new BlobRef(blobs.Put(ms.ToArray()), "png");
+            image.Tag = reference;
+            return reference;
+        }
+        catch
+        {
+            return null;   // dann bleibt dieses eine Bild eben im Dokument
+        }
+    }
+
+    /// <summary>
     /// Setzt für die Dauer des Rückgabewerts die **Originale** als Bildquelle ein. Für den
     /// Export: gerastert wird aus dem Original, nicht aus der Anzeige-Ableitung – sonst wäre
     /// ein seitenbreites Foto im PDF weicher als in der Vorlage.
@@ -208,38 +244,12 @@ public static class DocumentImages
         {
             foreach (var image in All(doc))
             {
-                var reference = image.Tag as BlobRef? ?? Adopt(image, blobs);
+                var reference = DocumentImages.Adopt(image, blobs);
                 if (reference == null) continue;
 
                 _saved.Add((image, image.Source, image.ToolTip));
                 image.ToolTip = reference.Value.ToString();
                 image.Source = Placeholder;
-            }
-        }
-
-        /// <summary>
-        /// Bilder ohne Verweis in den Blob-Speicher übernehmen – Diagramme aus der App,
-        /// eingefügte Zwischenablage-Bilder und alle Dokumente aus der Zeit, als die Bilder
-        /// noch im Datensatz lagen. Nur hier gibt es keine Originaldatei mehr, deshalb wird
-        /// verlustfrei als PNG gesichert.
-        /// </summary>
-        private static BlobRef? Adopt(Image image, BlobStore blobs)
-        {
-            if (image.Source is not BitmapSource source) return null;
-            try
-            {
-                var encoder = new PngBitmapEncoder();
-                encoder.Frames.Add(BitmapFrame.Create(source));
-                using var ms = new MemoryStream();
-                encoder.Save(ms);
-
-                var reference = new BlobRef(blobs.Put(ms.ToArray()), "png");
-                image.Tag = reference;
-                return reference;
-            }
-            catch
-            {
-                return null;   // dann bleibt dieses eine Bild eben im Dokument
             }
         }
 

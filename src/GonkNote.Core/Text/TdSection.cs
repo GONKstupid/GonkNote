@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace GonkNote.Core.Text;
 
 /// <summary>
@@ -87,7 +89,15 @@ public sealed class TdPageSetup
     public static TdPageSetup A3 => new() { WidthCm = 29.7, HeightCm = 42.0 };
     public static TdPageSetup Letter => new() { WidthCm = 21.59, HeightCm = 27.94 };
 
-    /// <summary>Ist die Breite größer als die Höhe?</summary>
+    /// <summary>
+    /// Ist die Breite größer als die Höhe?
+    /// <para>
+    /// <b><c>JsonIgnore</c> wie bei allen abgeleiteten Werten hier:</b> Was aus den Maßen
+    /// folgt, gehört nicht in die Datei — sonst stünde dort eine zweite Wahrheit, die
+    /// veralten kann (§4.14, gefunden in §4.22).
+    /// </para>
+    /// </summary>
+    [JsonIgnore]
     public bool IstQuerformat => WidthCm > HeightCm;
 
     /// <summary>Dreht auf Querformat, falls es nicht schon so liegt.</summary>
@@ -114,6 +124,7 @@ public sealed class TdPageSetup
     /// „unbekannt".
     /// </para>
     /// </summary>
+    [JsonIgnore]
     public string? Name
     {
         get
@@ -131,10 +142,12 @@ public sealed class TdPageSetup
         }
     }
 
-    /// <summary>Die bedruckbare Breite — Blatt minus linkem und rechtem Rand.</summary>
+    /// <inheritdoc cref="IstQuerformat"/>
+    [JsonIgnore]
     public double TextBreiteCm => Math.Max(0, WidthCm - MarginLeftCm - MarginRightCm);
 
-    /// <summary>Die bedruckbare Höhe — Blatt minus oberem und unterem Rand.</summary>
+    /// <inheritdoc cref="IstQuerformat"/>
+    [JsonIgnore]
     public double TextHoeheCm => Math.Max(0, HeightCm - MarginTopCm - MarginBottomCm);
 
     public TdPageSetup Kopie() => (TdPageSetup)MemberwiseClone();

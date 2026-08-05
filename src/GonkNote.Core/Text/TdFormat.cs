@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace GonkNote.Core.Text;
 
 /// <summary>Waagerechte Ausrichtung eines Absatzes.</summary>
@@ -104,7 +106,16 @@ public sealed class TdCharFormat
     /// </summary>
     public TdCharFormat Aufgeloest() => Over(Standard);
 
-    /// <summary>Ist überhaupt etwas gesetzt? Ein leeres Format wird beim Speichern weggelassen.</summary>
+    /// <summary>
+    /// Ist überhaupt etwas gesetzt? Ein leeres Format wird beim Speichern weggelassen.
+    /// <para>
+    /// <b><c>JsonIgnore</c>, und das ist kein Schmuck:</b> Ohne es steht in **jedem** Format
+    /// jeder Datei ein <c>"IstLeer":false</c> — ein abgeleiteter Wert, der später wie
+    /// gespeicherte Wahrheit aussieht (§4.14). Gefunden am laufenden Programm, nicht im Test
+    /// (§4.22).
+    /// </para>
+    /// </summary>
+    [JsonIgnore]
     public bool IstLeer =>
         FontFamily is null && FontSize is null && Bold is null && Italic is null &&
         Underline is null && Strikethrough is null && Color is null && Highlight is null &&
@@ -193,6 +204,8 @@ public sealed class TdParaFormat
     /// <inheritdoc cref="TdCharFormat.Aufgeloest"/>
     public TdParaFormat Aufgeloest() => Over(Standard);
 
+    /// <inheritdoc cref="TdCharFormat.IstLeer"/>
+    [JsonIgnore]
     public bool IstLeer =>
         Alignment is null && LeftIndentCm is null && RightIndentCm is null &&
         FirstLineIndentCm is null && SpaceBeforePt is null && SpaceAfterPt is null &&

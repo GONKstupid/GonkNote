@@ -4,6 +4,7 @@ using System.Windows.Documents;
 using GonkNote.Core.Models;
 using GonkNote.Core.Platform;
 using GonkNote.Core.Services;
+using GonkNote.Core.Text;
 using GonkNote.Services;
 
 namespace GonkNote.Platform;
@@ -89,6 +90,39 @@ public sealed class WpfDocumentIo : IDocumentIo
         return new ExportResult(written, 0, DocumentHealth.MissingImages(doc));
 
         static List<string> Run(Action export, string path) { export(); return [path]; }
+    }
+
+    /// <summary>
+    /// <b>Ja</b> — und nur hier. RTF und XamlPackage liest ausschließlich
+    /// <c>TextRange.Load</c>, und das gibt es nur unter Windows (§4.22).
+    /// </summary>
+    public bool CanMigrate => true;
+
+    public MigrationResult Migrate(TextDoc doc)
+    {
+        if (doc.Rtf.Length == 0) return new MigrationResult(false);
+
+        try
+        {
+            var flow = LoadFlowDocument(doc);
+
+            // Die Bilder sind nach dem Laden noch Verweise im ToolTip — erst danach hängen sie
+            // wieder am Tag, und nur so findet die Übernahme ihre Blobs (DocumentImages).
+            DocumentImages.Attach(flow, BlobStore.Current!);
+
+            var modell = FlowZuTd.Umwandeln(doc, flow, BlobStore.Current!);
+            doc.Model = TdFormatIo.Schreiben(modell);
+            doc.MigrationIssue = "";
+            return new MigrationResult(true);
+        }
+        catch (Exception ex)
+        {
+            // **Das Altfeld bleibt unangetastet.** Eine misslungene Übernahme ist damit kein
+            // Datenverlust, sondern ein Versuch, der wiederholt werden kann — die Regel aus
+            // §4.8, hier ein zweites Mal.
+            doc.MigrationIssue = ex.Message;
+            return new MigrationResult(false, ex.Message);
+        }
     }
 
     /// <summary>Baut aus den gespeicherten Bytes eines Textdokuments ein FlowDocument.</summary>

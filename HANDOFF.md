@@ -1,6 +1,6 @@
-﻿# Gonk Note V2 — Projektübergabe
+# Gonk Note V2 — Projektübergabe
 
-**Stand: 2026-08-05 · Version 0.3.0 · net10.0 · SkiaSharp 3 · SQLite · Avalonia 12 · ✅ M1 erreicht · beide Schulden aus Phase 3 eingelöst · ✅ Dokumentmodell vollständig (Phase 4, Schritte 1–6 von 6)**
+**Stand: 2026-08-05 · Version 0.3.0 · net10.0 · SkiaSharp 3 · SQLite · Avalonia 12 · ✅ M1 erreicht · ✅ Dokumentmodell vollständig (Phase 4, Schritte 1–6 von 6) · ✅ Übernahme der Bestandsdokumente läuft**
 
 > **📌 Dauerregeln des Nutzers — gelten immer, ohne Nachfragen:**
 >
@@ -201,20 +201,28 @@ Diagramm** nach DOCX statt als Pixelbild. Bilder tragen einen Verweis auf den Bl
 statt ihrer Bytes — die dritte Naht (`ITdImages`) nach Schriftmessung und Feldwerten. Das
 **Wasserzeichen** ist damit auch eingelöst, wie §4.15 es versprochen hatte.
 
+Zuletzt **die Übernahme der Bestandsdokumente** (§4.22) — sie war seit §4.15 vorgemerkt und
+durch das unfertige Modell blockiert. **Nutzer-Entscheidung: still, aber ein Fehler wird
+gespiegelt.** `TextDoc` hat zwei neue Felder neben `Rtf` (`Model`, `MigrationIssue`), `Rtf`
+selbst wird **nie** überschrieben, und `FlowZuTd` im WPF-Kopf wandelt um — nur dort, denn RTF
+und XamlPackage liest ausschließlich Windows. **Am laufenden Programm mit einer Kopie der
+echten Daten geprüft**, und dabei einen Fehler gefunden, den fünf Schritte lang kein Test sehen
+konnte: gerechnete Werte standen mit in der Datei (§4.22).
+
 **Als Nächstes:** die Reihenfolge aus Roadmap §5 ist abgearbeitet — es folgt **„danach
 umverdrahten"**: `Docx`-/`Markdown`-Im-/Export und `PdfExporter` gegen das eigene Modell, das
-Ribbon in Avalonia, und **die Übernahme der Bestandsdokumente** (§6). **Dazu steht eine
-Nutzer-Entscheidung offen** — ob die Übernahme still läuft oder sich zeigt (§5, „Noch offen").
-**M1 bleibt ein gültiger Ausstiegspunkt.**
+Zeichnen eines `TdChart`, das Ribbon in Avalonia. **Erst damit wird das übernommene Modell
+sichtbar** — heute liest der Editor weiter aus `Rtf` (§6). **M1 bleibt ein gültiger
+Ausstiegspunkt.**
 
 **Tests laufen lassen:**
 
 ```powershell
-dotnet test -c Release        # Windows: beide Projekte, 397 Tests
+dotnet test -c Release        # Windows: beide Projekte, 409 Tests
 ```
 
 ```bash
-dotnet test tests/GonkNote.Core.Tests   # Linux: 384 Tests, laufen in ~11 s
+dotnet test tests/GonkNote.Core.Tests   # Linux: 385 Tests, laufen in ~11 s
 ```
 
 ---
@@ -298,9 +306,13 @@ der Umbruch läuft bei Bedarf mehrfach.
 **Erledigt in Phase 4, Schritt 6:** §4.21 — **Bilder und Diagramme**. `TdGraphic` mit
 `TdImage` (Verweis statt Bytes, hinter der Naht `ITdImages`) und `TdChart` (die **Zahlen**,
 nicht ein Bild davon); in DOCX ein echtes `c:chart` mit literalen Daten, dazu das
-Wasserzeichen aus §4.15. Testzahl jetzt **397** (384 Core + 13 WPF). **Damit ist die
-Reihenfolge aus Roadmap §5 abgearbeitet.** Alles davon ist noch nirgends angeschlossen; das
-ist Absicht und in §4.14 begründet — angeschlossen wird beim Umverdrahten (§6).
+Wasserzeichen aus §4.15. **Damit ist die Reihenfolge aus Roadmap §5 abgearbeitet.**
+
+**Erledigt nach Phase 4:** §4.22 — **die Übernahme der Bestandsdokumente**. `TextDoc.Model`
+neben `Rtf`, `FlowZuTd` im WPF-Kopf, still mit gespiegelten Fehlern (Nutzer-Entscheidung).
+Testzahl jetzt **409** (385 Core + 24 WPF) — das WPF-Projekt ist von 13 auf 24 gewachsen, denn
+die Übernahme steht auf `FlowDocument` und lässt sich nur dort prüfen. **Angezeigt wird das
+übernommene Modell noch nicht** — das kommt mit dem Umverdrahten (§6).
 
 **Erledigt in Phase 0:**
 
@@ -369,6 +381,8 @@ gonk-note-V2/
 │  │  │                          die Feldwerte), TdToc (das gerechnete Inhaltsverzeichnis),
 │  │  │                          TdGraphic (Bilder und Diagramme), TdImages (die Naht zu
 │  │  │                          den Bilddaten), TdJson (Speicherformat),
+│  │  │                          — die Übernahme aus dem Altformat steht als FlowZuTd
+│  │  │                          im WPF-Kopf, weil nur der RTF lesen kann (§4.22)
 │  │  │                          TdDocx (DOCX in beide Richtungen), TdLayout (Zeilen- und
 │  │  │                          Seitenumbruch) hinter der Naht ITdTextMeasure/
 │  │  │                          TdSkiaMeasure                        ← neu in Phase 4
@@ -406,11 +420,13 @@ gonk-note-V2/
 │     ├─ Platform/               die Umsetzungen zu Core/Platform     ← neu in Phase 2
 │     │                          Wpf* je Schnittstelle + WpfPlatformServices (das Bündel),
 │     │                          WpfThemeHost (war die statische Klasse ThemeService),
-│     │                          WpfDocumentIo (die FlowDocument-Naht aus §4.1)
+│     │                          WpfDocumentIo (die FlowDocument-Naht aus §4.1; seit
+│     │                          §4.22 auch die Übernahme der Bestandsdokumente)
 │     ├─ Views/                  Whiteboard (Partials), TextEditor (Partials), Dialoge
 │     ├─ Themes/                 Light/Dark/Styles
 │     └─ Services/               alles mit WPF-Bezug (§4.1):
 │                                Docx/Markdown-Im-/Export, MarkdownFlow, PdfExporter,
+│                                FlowZuTd (die Übernahme ins eigene Modell, §4.22),
 │                                TextStyles, DocumentImages, EmbeddedDocs, OcrService,
 │                                SpellCheckSupport, TitleBarTheme,
 │                                WindowBounds, Localization/TExtension.cs
@@ -419,9 +435,9 @@ gonk-note-V2/
 │                                Legacy, **Avalonia**) — §4.6, seit Phase 3 §4.9
 │
 ├─ tests/
-│  ├─ GonkNote.Core.Tests/       net10.0 · läuft auch unter Linux · 384 Tests
+│  ├─ GonkNote.Core.Tests/       net10.0 · läuft auch unter Linux · 385 Tests
 │  │  └─ Snapshots/*.sha256      Pixelhashes des Renderers (Golden-Files)
-│  └─ GonkNote.Wpf.Tests/        net10.0-windows · nur Windows · 13 Tests
+│  └─ GonkNote.Wpf.Tests/        net10.0-windows · nur Windows · 24 Tests
 │     ├─ Fixtures/               referenz.md, referenz-docx.txt (Golden-Files)
 │     └─ FarbtabelleTests.cs     hält Core/Theming und Themes/*.xaml zusammen (§4.9)
 │
@@ -2296,6 +2312,126 @@ weiterhin nirgends — das kommt mit dem Umverdrahten (§6).
 
 ---
 
+### 4.22 Die Übernahme der Bestandsdokumente — still, aber nicht stumm
+
+Umgesetzt am 2026-08-05, direkt nach Schritt 6. **Sie war seit §4.15 vorgemerkt und durch das
+unfertige Modell blockiert;** mit §4.21 fiel die Blockade weg.
+
+#### Die Nutzer-Entscheidung
+
+**Gefragt war:** Läuft die Übernahme still (wie die SQLite-Migration, §4.8) oder zeigt sie
+sich?
+
+**Entschieden (2026-08-05): still — aber ein Fehler dabei wird dem Nutzer gespiegelt.**
+
+Das ist genau die richtige Teilung, und sie steht an zwei verschiedenen Stellen:
+
+- **Was gelingt, gelingt wortlos.** Ein Hinweis, den man bei jedem Dokument wegklicken muss,
+  wird nach dem dritten Mal nicht mehr gelesen — dann ist auch der eine wichtige weg.
+- **Was misslingt, wird benannt.** Bei der Datenbank (§4.8) war „still" durchgehend richtig,
+  weil nichts verlorengehen konnte. Hier kann etwas verlorengehen: RTF und XamlPackage können
+  Dinge tragen, die kein Modell kennt.
+
+#### Was das Dokument dabei bekommt
+
+`TextDoc` hat zwei neue Felder — **additiv, wie in §4.8**:
+
+| Feld | Inhalt |
+|---|---|
+| `Model` | Derselbe Inhalt im eigenen Format (`GNTD` + Json). Leer = noch nicht übernommen |
+| `MigrationIssue` | Was beim letzten Versuch schiefging; leer = nichts |
+
+**`Rtf` wird nie überschrieben** — auch nicht nach einer gelungenen Übernahme. Daraus folgt
+das Wichtigste: **Eine misslungene Übernahme ist kein Datenverlust, sondern ein Versuch, der
+beim nächsten Öffnen wiederholt wird.** Das ist gewollt, denn dazwischen kann ein Fehler
+behoben worden sein.
+
+**Der Vermerk steht im Dokument und nicht nur in einem Hinweisfenster**, das man weggeklickt
+hat: Ein Fehler, den niemand mehr nachlesen kann, ist bei der nächsten Frage „warum sieht das
+anders aus?" verschwunden.
+
+#### Sie läuft nur auf dem Windows-Rechner, und das ist eine Schranke
+
+`IDocumentIo.CanMigrate` — der WPF-Kopf sagt ja, der Linux-Kopf nein. RTF und XamlPackage
+liest ausschließlich `System.Windows.Documents.TextRange`. **Ein Versuch unter Linux ergäbe
+ein leeres Dokument, und das wäre schlimmer als gar keine Übernahme:** Der Inhalt sähe
+gelöscht aus, obwohl er unversehrt in `Rtf` steht.
+
+`Migrate` **wirft nicht** — was schiefgeht, steht im Ergebnis. Eine Ausnahme mitten im Öffnen
+eines Dokuments wäre für den Nutzer dasselbe wie ein Absturz.
+
+#### Die eine Stelle, an der Raten richtig ist
+
+`FlowZuTd` wandelt ein `FlowDocument` in ein `TdDocument`. Der interessanteste Teil ist die
+**Gliederungsebene**: Das `FlowDocument` hat keinen Platz dafür (§4.20), also wird sie aus der
+Schriftgröße zurückerkannt — mit `TextStyles.HeadingLevel`, derselben Rechnung, die der
+heutige Markdown-Export benutzt.
+
+> **Das ist kein Rückschritt, sondern der Übergang selbst.** Geraten wird **einmal**, bei der
+> Übernahme. Danach steht die Ebene als eigener Wert im Modell und muss nie wieder geraten
+> werden. Genau das ist der Unterschied zwischen einer Übernahme und einem Format.
+
+Zwei weitere Entscheidungen in derselben Datei:
+
+- **Nur örtlich gesetzte Werte werden übernommen** (`ReadLocalValue`). Das Werkzeug passt
+  genau: Es unterscheidet „hier steht nichts" von „hier steht der Vorgabewert" — dieselbe
+  Unterscheidung, auf der das ganze Modell steht (§4.14). Ein `FontSize` abzufragen gäbe immer
+  eine Zahl, auch eine geerbte, und dann trüge jeder Lauf eine vollständige Formatkopie.
+- **`Bold`, `Italic` und `Underline` tragen ihre Bedeutung im Typ**, nicht in einer
+  Eigenschaft. `ReadLocalValue(FontWeightProperty)` gibt für ein `Bold` **nichts** zurück. Wer
+  nur örtliche Werte liest, verliert damit genau die drei Auszeichnungen, die der Editor am
+  häufigsten setzt — gefunden vom Wächter, nicht beim Nachdenken.
+
+#### Zwei Umrechnungen, die man beim ersten Anlauf falsch macht
+
+- **WPF kennt `RowSpan` an der Zelle, das Modell kennt `Restart` + `Continue` je Zeile**
+  (§4.18). Eine von oben hineinragende Zelle muss in **jeder** überdeckten Zeile nachgetragen
+  werden — sonst rutscht alles dahinter eine Spalte nach links, und die Tabelle sieht
+  „irgendwie verrutscht" aus statt falsch.
+- **Eine verschachtelte Liste ist dieselbe Liste eine Ebene tiefer** (§4.17), nicht eine
+  zweite. Zwei Definitionen daraus zu machen hieße, dass die innere wieder bei 1 anfängt.
+
+#### Die Übernahme fasst die Vorlage nicht an
+
+Sie liest ein `FlowDocument`, das im Editor offen sein kann. Der erste Entwurf hat einen Block
+kurz aus seinem Elternteil genommen, um ihn einzeln weiterzureichen — **das hätte ihn vor den
+Augen des Nutzers verschwinden lassen.** Jetzt gibt es einen Weg für einen einzelnen Block,
+und ein eigener Wächter vergleicht Blockzahl und Text vorher/nachher.
+
+#### Was der Lauf am laufenden Programm gefunden hat
+
+Geprüft mit einer **Kopie** der echten Datenbank (Dauerregel 4): Dokument angelegt, Text und
+Überschrift gesetzt, geschlossen, wieder geöffnet. Ergebnis: **kein Hinweisfenster**, `Model`
+mit gültiger `GNTD`-Kennung gefüllt, `Rtf` unangetastet (weiterhin „PK…"), `MigrationIssue`
+leer, `"OutlineLevel":1` an der Überschrift — die Ebenenerkennung greift.
+
+**Und dabei ein Fehler, den fünf Schritte lang kein Test gesehen hat:** In der Datei stand in
+**jedem** Format ein `"IstLeer":false`, in **jeder** Seiteneinrichtung ein `"IstQuerformat"`
+samt `TextBreiteCm`, `TextHoeheCm` und dem zurückerkannten Formatnamen. Alles gerechnete
+Werte — genau das, wovor §4.14 warnt („ein abgeleiteter Wert in der Datei sieht später wie
+gespeicherte Wahrheit aus").
+
+> **Warum kein Roundtrip-Test das finden konnte:** Er liest diese Felder ja gar nicht zurück —
+> sie haben keinen Setter. Geschrieben wurden sie trotzdem. **Ein Roundtrip prüft, was
+> zurückkommt, nicht was dasteht.** Behoben mit `[JsonIgnore]`, und der neue Wächter
+> `Gerechnete_Werte_landen_nicht_in_der_Datei` sieht auf die Datei statt auf das Ergebnis.
+
+**Die echte Datenbank enthält übrigens kein einziges Textdokument mit Inhalt** — die Übernahme
+ließ sich an ihr also gar nicht messen. Auch das ist ein Befund und keine Fußnote: Wer sie für
+den Beweis gehalten hätte, hätte einen Haken hinter etwas gesetzt, das nie gelaufen ist.
+
+#### Stand
+
+**12 neue Wächter** (11 in `UebernahmeTests`, 1 in `DokumentmodellTests`), dazu die beiden
+neuen `TextDoc`-Felder im Datenbank-Beispiel. Gesamtzahl **409** (385 Core + 24 WPF), alle
+drei Projekte 0 Warnungen.
+
+**Ausdrücklich noch nicht:** Das übernommene Modell wird **noch nicht angezeigt** — der Editor
+liest weiter aus `Rtf`. Die Übernahme füllt vor, das Umverdrahten schaltet um (§6). Solange
+beides nebeneinandersteht, ist ein Fehler in der Übernahme harmlos: Es sieht sie noch niemand.
+
+---
+
 ## 5. Entscheidungen
 
 **Getroffen, alle umgesetzt:**
@@ -2344,6 +2480,8 @@ weiterhin nirgends — das kommt mit dem Umverdrahten (§6).
 | Wie ein Diagramm nach DOCX kommt | **Als echtes `c:chart` mit literalen Daten**, ohne eingebettete Arbeitsmappe (§4.21). Die Mappe wären dieselben Zahlen ein zweites Mal (§4.10). Der Preis, benannt: Words Knopf „Daten bearbeiten" findet keine Mappe und bietet an, eine anzulegen; angezeigt, gedruckt und zurückgelesen wird einwandfrei. Entschieden 2026-08-05 |
 | Wo die Bytes eines Bildes liegen | **Im Blob-Speicher, hinter der Naht `ITdImages`** — im Dokument steht ein Verweis (§4.21). **Gemessen und nicht gemeint:** als sie in V1 noch im Dokument lagen, wurde ein Dokument mit drei Fotos (2 MB) zu 16,8 MB und riss die 16-MB-Grenze von LiteDB. Fehlt die Naht, wirft der Export; fehlt ein einzelner Blob, fällt nur dieses Bild weg. Entschieden 2026-08-05 |
 | Ob Bild und Diagramm Blöcke sind | **Nein, Stücke** (`TdInline`, §4.21). In DOCX steht eine Zeichnung immer in einem Lauf; ein bildbreites Foto ist ein Absatz, der nichts als dieses Bild enthält. Die reservierten Blocknamen „image" und „chart" bleiben frei — wie „list" in §4.17. Entschieden 2026-08-05 |
+| Wie die Übernahme abläuft | **Still — aber ein Fehler wird gespiegelt** (§4.22). Was gelingt, gelingt wortlos: ein Hinweis, den man bei jedem Dokument wegklickt, wird nach dem dritten Mal nicht mehr gelesen. Was misslingt, wird benannt und **im Dokument vermerkt** (`MigrationIssue`) — anders als bei der Datenbank (§4.8) kann hier etwas verlorengehen. `Rtf` bleibt unangetastet, der Versuch wird beim nächsten Öffnen wiederholt. Entschieden 2026-08-05 (Nutzer) |
+| Aufräumen vor der Veröffentlichung | **Ja, als eigener Schritt in Phase 6** (§6). Erst aufräumen, **dann** noch einmal vollständig prüfen, dann veröffentlichen — wer nach dem Aufräumen nicht mehr prüft, veröffentlicht einen Stand, den nie jemand gesehen hat. Entschieden 2026-08-05 (Nutzer) |
 | Namen der WPF-Hilfsmethoden | **Bleiben stehen** — `HitElement`, `HitTestElement`, `SelectByLasso`, `ComputeSelectionBounds` sind Einzeiler, die an `WbHit` weiterreichen. Elf Aufrufstellen in fünf Partials umzubenennen hätte den Diff verdreifacht, ohne am Ergebnis etwas zu ändern; wegkommen sollte die zweite **Rechnung**, nicht die zweite Bezeichnung (§4.13). Entschieden 2026-08-04 |
 
 **Noch offen:**
@@ -2903,9 +3041,13 @@ Datenbank schon gefallen ist** (§4.8, „additiv, die alte Datei bleibt unverse
   leer aufzugehen. „Leer" ist von „kaputt" für den Nutzer nicht zu unterscheiden — dieselbe
   Begründung wie bei `Ohne_Leser_wird_nicht_stillschweigend_neu_angefangen` (§7).
 
-**Was daran offen ist und der Nutzer entscheiden muss:** ob die Übernahme **still** läuft
-(wie die SQLite-Migration) oder ob sie sich zeigt. Bei der Datenbank war „still" richtig,
-weil nichts verlorengehen konnte.
+> **✅ Entschieden und umgesetzt am 2026-08-05 (§4.22): still — aber ein Fehler wird dem
+> Nutzer gespiegelt.** Was hier steht, ist damit gebaut; der Absatz bleibt als Begründung
+> stehen.
+
+**Die Frage, die dahinterstand:** ob die Übernahme **still** läuft (wie die SQLite-Migration)
+oder ob sie sich zeigt. Bei der Datenbank war „still" richtig, weil nichts verlorengehen
+konnte.
 
 > **Der Vorschlag von damals — die Übernahme kommt zuletzt, nicht zuerst — ist eingelöst:**
 > **Seit Schritt 6 (§4.21) kann das Modell alles, was ein Bestandsdokument enthalten darf** —
@@ -2971,7 +3113,34 @@ Avalonia-Kopf:
 | 4 | Eigene Dokument-Engine in `Core/Text/` — **Modell fertig (6 von 6), es fehlt das Umverdrahten** | 8–12 W. | ~~M2~~ — Textdokumente laufen unter Linux |
 | **4.5** | **Die fehlenden Werkzeuge des Linux-Kopfs** (Formen, Lineal/Geodreieck, Textfelder, Sticker, Notizzettel, Bild-/PDF-Import, Zahlenblock, Schnellaktionen, Werkzeugleisten-Anordnung, Drehen/Skalieren) — **neu eingeschoben, siehe oben** | offen | **M2** — Funktionsgleichheit Linux ↔ Windows |
 | 5 | iPadOS-Head, Apple Pencil, PDFKit/Vision, AOT-Härtung | 6–10 W. | **M3** — TestFlight-Build |
-| 6 | Flatpak/AppImage, App Store | 2–4 W. | Veröffentlichung |
+| 6 | **Aufräumen (neu, siehe unten)**, dann Flatpak/AppImage, App Store | 2–4 W. + Aufräumen | Veröffentlichung |
+
+#### Neu in Phase 6: aufräumen, dann prüfen, dann erst veröffentlichen
+
+**Nutzer-Entscheidung 2026-08-05.** Vor dem Öffentlich-Schalten wird der Code **einmal
+durchgeputzt**, und **danach** läuft die Prüfung noch einmal vollständig — erst dann geht das
+Projekt hinaus. Die Reihenfolge ist der Punkt: aufräumen, prüfen, veröffentlichen. Wer nach
+dem Aufräumen nicht mehr prüft, veröffentlicht einen Stand, den nie jemand gesehen hat.
+
+**Was dabei ansteht** (die Liste ergibt sich aus dem, was die Phasen bewusst stehen gelassen
+haben — sie ist beim Aufräumen zu ergänzen, nicht abzuarbeiten wie ein Vertrag):
+
+| | |
+|---|---|
+| **Aufgelöste Nähte wegräumen** | Was das Umverdrahten übrig lässt: `§4.1` löst sich auf, und mit ihm die Frage, was noch im WPF-Kopf steht, weil es dort stehen **musste**, und was nur, weil es dort stand |
+| **Benannte Lücken schließen oder benennen** | Tabelle *in* einer Zelle (§4.19), ungenutzte Palettenfarben und fremde Zeichnungen (§4.21) — jede ist heute mit einem Wächter festgehalten und muss vor der Veröffentlichung entweder zu oder bewusst offen sein |
+| **Toter Code und Altlasten** | Was nach dem Umverdrahten niemand mehr ruft. **Der Compiler findet das nicht** — was `public` ist, sieht benutzt aus |
+| **Doku gegen den Code lesen** | §7 ist über zwölf Runden gewachsen; einzelne Fallen sind seitdem ausgeräumt (z. B. §4.2). Was nicht mehr gilt, gehört als **erledigt gekennzeichnet** und nicht gelöscht — die Begründung ist mehr wert als der Hinweis |
+| **`HANDOFF.md` raus** | Steht als erster Punkt in „Vor dem Öffentlich-Schalten" und ist der einzige Punkt mit einer History-Frage (Rewrite oder nicht) |
+
+> **Und danach der ganze Prüflauf, nicht nur die Tests:** beide Testprojekte, beide Köpfe mit
+> 0 Warnungen, die vier mitgelieferten Dokumente in **beiden** Sprachen am laufenden Programm
+> (Dauerregel 1) und ein Durchgang mit einer **Kopie** der echten Daten (Dauerregel 4).
+> Aufräumen ist die Sorte Änderung, die nichts kaputt machen soll — und genau deshalb prüft
+> sie niemand nach.
+
+> **Nicht vergessen:** Auch das ist eine Ergänzung zu `gonk-note-port-RM.MD` und nicht daraus
+> abgeleitet — **wer die Roadmap-Datei auf dem Desktop pflegt, sollte es dort nachtragen.**
 
 > **M1 ist ein gültiger Ausstiegspunkt.** Phase 4 ist die, an der Projekte sterben — dort
 > strikt in der Reihenfolge Absätze/Zeichenformate → Seitenumbruch → Listen → Tabellen →
@@ -3551,6 +3720,31 @@ und keine davon sieht wie ein Fehler aus.
   eine geklärte Lizenz (§6); ein mit Skia gemaltes Rechteck braucht keine. Dabei nie
   achsensymmetrisch malen, sonst fällt eine vertauschte Achse nicht auf.
 
+**Neu aus Phase 4 — die Übernahme (§4.22)**
+
+- **Ein Roundtrip prüft, was zurückkommt — nicht, was dasteht.** Fünf Schritte lang schrieb
+  das eigene Format in jedes Format ein `"IstLeer":false` und in jede Seiteneinrichtung vier
+  gerechnete Werte. Kein Test konnte es sehen: Die Felder haben keinen Setter, werden also nie
+  gelesen. **Gefunden am laufenden Programm**, behoben mit `[JsonIgnore]`; der neue Wächter
+  sieht auf die **Datei**.
+- **`ReadLocalValue` unterscheidet „nicht gesetzt" von „Vorgabewert".** Genau die
+  Unterscheidung, auf der das Modell steht (§4.14) — eine Eigenschaft direkt abzufragen gäbe
+  immer einen Wert, auch einen geerbten, und dann trüge jeder Lauf eine vollständige
+  Formatkopie.
+- **Aber `Bold`, `Italic` und `Underline` tragen ihre Bedeutung im Typ**, nicht in einer
+  Eigenschaft: `ReadLocalValue(FontWeightProperty)` gibt für ein `Bold` nichts zurück. Wer nur
+  örtliche Werte liest, verliert die drei häufigsten Auszeichnungen.
+- **Eine Umwandlung darf ihre Vorlage nicht anfassen.** Das `FlowDocument` kann im Editor offen
+  sein — ein Block, der kurz aus seinem Elternteil genommen wird, verschwindet vor den Augen
+  des Nutzers.
+- **Geraten wird einmal, bei der Übernahme.** Die Gliederungsebene kommt aus der Schriftgröße,
+  weil das `FlowDocument` keinen Platz dafür hat — danach steht sie als eigener Wert im Modell.
+  **Das ist der Unterschied zwischen einer Übernahme und einem Format.**
+- **Die Übernahme läuft nur dort, wo das Altformat lesbar ist.** Unter Linux gäbe ein Versuch
+  ein leeres Dokument — und das sähe aus wie gelöschter Inhalt, obwohl er unversehrt danebenliegt.
+- **Eine Übernahme wirft nicht.** Sie läuft beim Öffnen; eine Ausnahme dort ist für den Nutzer
+  dasselbe wie ein Absturz. Was schiefgeht, steht im Ergebnis **und im Dokument**.
+
 **Neu aus Phase 4 — Bilder und Diagramme (§4.21)**
 
 - **Ein Diagramm, das als Bitmap gespeichert wird, ist danach nicht mehr änderbar.** Genau das
@@ -3786,7 +3980,7 @@ cd C:\Dev\Zed\gonk-note-V2
 dotnet build -c Release      # 0 Fehler / 0 Warnungen
 dotnet build -c Debug        # schneller, ohne Self-Contained/win-x64
 
-dotnet test -c Release       # beide Testprojekte, 397 Tests
+dotnet test -c Release       # beide Testprojekte, 409 Tests
 
 # Golden-Files bewusst neu setzen (danach den Diff lesen, siehe §4.6)
 $env:GONK_SNAPSHOT_UPDATE=1; dotnet test tests\GonkNote.Core.Tests; $env:GONK_SNAPSHOT_UPDATE=$null
@@ -3873,6 +4067,7 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 
 | Runde | Datum | Was |
 |---|---|---|
+| V2-27 | 2026-08-05 | **Die Übernahme der Bestandsdokumente läuft** (§4.22) — seit §4.15 vorgemerkt, durch das unfertige Modell blockiert, mit §4.21 freigeworden. **Nutzer-Entscheidung: still, aber ein Fehler wird gespiegelt.** Die Teilung ist der Punkt: Was gelingt, gelingt wortlos (ein Hinweis, den man bei jedem Dokument wegklickt, wird nach dem dritten Mal nicht mehr gelesen); was misslingt, wird benannt **und im Dokument vermerkt** (`MigrationIssue`) — anders als bei der Datenbank (§4.8) kann hier etwas verlorengehen, denn RTF und XamlPackage tragen Dinge, die kein Modell kennt. `TextDoc` bekommt zwei Felder **neben** `Rtf` (`Model`, `MigrationIssue`), und **`Rtf` wird nie überschrieben** — daraus folgt das Wichtigste: eine misslungene Übernahme ist kein Datenverlust, sondern ein Versuch, der beim nächsten Öffnen wiederholt wird. **Sie läuft nur auf dem Windows-Rechner** (`IDocumentIo.CanMigrate`), und das ist eine Schranke und keine Lücke: RTF liest ausschließlich `TextRange`, ein Versuch unter Linux ergäbe ein **leeres** Dokument — schlimmer als gar keine Übernahme, weil der Inhalt gelöscht aussähe. `Migrate` **wirft nicht**: sie läuft beim Öffnen, und eine Ausnahme dort ist für den Nutzer ein Absturz. **`FlowZuTd` ist die eine Stelle, an der Raten richtig ist:** Die Gliederungsebene kommt aus der Schriftgröße, weil das `FlowDocument` keinen Platz dafür hat — **geraten wird einmal, danach steht sie als eigener Wert im Modell**, und genau das ist der Unterschied zwischen einer Übernahme und einem Format. Übernommen werden **nur örtlich gesetzte Werte** (`ReadLocalValue` unterscheidet „nicht gesetzt" von „Vorgabewert", §4.14) — **aber `Bold`/`Italic`/`Underline` tragen ihre Bedeutung im Typ**, dort gibt `ReadLocalValue` nichts zurück, und wer das übersieht, verliert die drei häufigsten Auszeichnungen (vom Wächter gefunden). Dazu zwei Umrechnungen: WPFs `RowSpan` → `Restart`+`Continue` **je Zeile** (§4.18, sonst rutscht alles dahinter eine Spalte nach links) und eine verschachtelte Liste als **dieselbe** Liste eine Ebene tiefer (§4.17). **Die Umwandlung fasst die Vorlage nicht an** — der erste Entwurf nahm einen Block kurz aus seinem Elternteil, was ihn im offenen Editor hätte verschwinden lassen; eigener Wächter. **Am laufenden Programm mit einer Kopie der echten Daten geprüft:** kein Hinweisfenster, `Model` mit gültiger `GNTD`-Kennung, `Rtf` unangetastet, `"OutlineLevel":1` an der Überschrift. **Dabei ein Fehler, den fünf Schritte lang kein Test sehen konnte:** In jedem Format stand ein `"IstLeer":false`, in jeder Seiteneinrichtung vier gerechnete Werte — **ein Roundtrip prüft, was zurückkommt, nicht was dasteht** (die Felder haben keinen Setter). Behoben mit `[JsonIgnore]`, neuer Wächter sieht auf die Datei. **Nebenbefund:** die echte Datenbank enthält **kein einziges** Textdokument mit Inhalt — die Übernahme ließ sich an ihr gar nicht messen, und wer sie für den Beweis gehalten hätte, hätte einen Haken hinter etwas gesetzt, das nie lief. **12 neue Wächter, jetzt 409** (385 Core + 24 WPF), alle drei Projekte 0 Warnungen. **Ebenfalls entschieden (Nutzer): Phase 6 bekommt einen Aufräum-Schritt** — erst putzen, **dann** noch einmal vollständig prüfen, dann veröffentlichen (§6) |
 | V2-26 | 2026-08-05 | **Phase 4, Schritt 6: Bilder und Diagramme — das Dokumentmodell ist vollständig** (§4.21). **Der Befund wiegt schwer und steht in der Kopfzeile des heutigen Werkzeugs:** `ChartDialog` rendert ein Diagramm beim Einfügen zu einer **Bitmap** („keine Live-Datenbindung") — **die Zahlen sind im selben Augenblick weg**. Ein Diagramm lässt sich nie wieder ändern, nur löschen und neu bauen; beim Export geht ein Pixelbild hinaus, wo Word ein Diagramm erwartet. Derselbe Befund wie §4.14, eine Ebene tiefer. **`TdChart` speichert deshalb die Zahlen**, und Legende, Farbvergabe und fehlende Beschriftungen werden **gerechnet** — zum dritten Mal nach der Listennummer (§4.17) und dem Feld (§4.20). Dazu: **die Palette steht am Diagramm**, nicht in einem statischen Feld des Dialogs, das beim nächsten Start weg ist — ein Dokument muss sich selbst erklären. **In DOCX ein echtes `c:chart` mit literalen Daten und ohne eingebettete Arbeitsmappe:** die Mappe wären dieselben Zahlen ein zweites Mal (§4.10); der Preis ist benannt (Words „Daten bearbeiten" findet keine Mappe). **Punkt und Punkt+Linie sind in DrawingML ein Liniendiagramm** — `c:scatterChart` verlangt Zahlen auf beiden Achsen, unsere Kategorien sind Text; die Linie wird ausdrücklich **unsichtbar gemacht**, denn ohne `a:ln` zeichnet Word eine. **`TdImage` trägt einen Verweis und keine Bytes**, hinter der **dritten Naht** `ITdImages` (nach Schriftmessung und Feldwerten) — gemessen in V1: drei Fotos (2 MB) wurden im XamlPackage zu **16,8 MB** und rissen die 16-MB-Grenze von LiteDB. Fehlt die Naht, **wirft** der Export; fehlt ein einzelner Blob, fällt nur dieses Bild weg (unvollständige Sicherung, Dauerregel 4). **Die Kennung eines Bildes ist keine Aussage über das Dokument** — der Wächter vergleicht die Bytes. **Bild und Diagramm sind Stücke und keine Blöcke**, weil eine Zeichnung in DOCX immer in einem Lauf steht; die reservierten Blocknamen `"image"`/`"chart"` bleiben frei wie `"list"` in §4.17. **Zwei Dinge im Umbruch waren nicht offensichtlich:** eine Grafik steht **auf** der Grundlinie (ihre Höhe zählt nach oben, sonst läuft ein Bild über den Seitenrand), und **die Absatzmarke ist immer dabei** — sonst wäre ein Absatz mit einem winzigen Bild schmaler als ein leerer. **Das Wasserzeichen aus §4.15 ist eingelöst:** VML in der Kopfzeile, Bildteil am **Kopfzeilenteil** (nicht am Hauptteil), und Deckkraft über `gain` — eine benannte Näherung, denn DOCX kennt keine. **Zwei benannte Zugeständnisse:** eine ungenutzte Palettenfarbe überlebt DOCX nicht, und eine Zeichnung, die weder Bild noch Diagramm ist (Form, SmartArt), verschwindet beim Lesen. **41 neue Wächter, jetzt 397** (384 Core + 13 WPF), Bild, Diagramm und Wasserzeichen in **beiden** Beispieldokumenten, alle drei Projekte 0 Warnungen. **Damit ist die Reihenfolge aus Roadmap §5 abgearbeitet.** **Als Nächstes: umverdrahten** (Exporter, PdfExporter, Ribbon in Avalonia, das Zeichnen eines `TdChart`) — und **die Übernahme der Bestandsdokumente ist nicht mehr durch fehlende Fähigkeiten blockiert**; die Frage „still oder sichtbar" (§6) ist jetzt fällig |
 | V2-25 | 2026-08-05 | **Phase 4, Schritt 5: Felder, Verweise und Inhaltsverzeichnis** (§4.20). **Die tragende Entscheidung: ein Feld speichert seine Art und nicht seinen Wert** — Seitenzahl, Seitenanzahl, Datum, Titel, Verzeichnis; gerechnet wird beim Umbruch, **dasselbe Muster wie bei der Listennummer** (§4.17) und aus demselben Grund: der Wert hängt von der Umgebung ab, und gespeichert wäre er nach der nächsten Änderung falsch — **still**, denn eine veraltete Seitenzahl sieht aus wie eine Seitenzahl. `TdField.PlainText()` gibt deshalb „" zurück. **Datum und Titel kommen von außen** (`TdFieldContext`): das ist die zweite Naht nach `ITdTextMeasure` und dieselbe Begründung — **Core fragt die Uhr nicht selbst**, sonst hinge jeder Wächter davon ab, wann er läuft; das Datumsmuster steht aus demselben Grund fest im Code statt in der Kultur des Rechners. **Der Umbruch fällt sich selbst ins Wort und läuft deshalb mehrfach:** die Seitenanzahl steht erst fest, wenn alles gesetzt ist, und ein Verzeichnis verschiebt durch seine eigene Länge die Überschriften, deren Seiten es nennt (Word rechnet ebenso mehrfach). Gelaufen wird bis zum Stillstand, **höchstens fünfmal** — eine Schleife auf einen Fixpunkt, den es nicht gibt, meldet keinen Fehler, sondern gar nichts (§4.16). **Die Seitenzahl wird nachträglich gesetzt**, wenn die Zeile ihre Seite bekommt: eine zusammengehaltene Gruppe kann noch rutschen, und eine vorher eingetragene Zahl läge um eins daneben. **`TdHyperlink` ist eine Klammer um Stücke** (wie die Tabellenzelle Blöcke enthält, §4.18), und **das Ziel ist eine Zeichenkette und kein `Uri`** — genau der Fehler aus §7, bei dem aus `kapitel-2.md` ein `file:///`-Pfad wird; ein `#`-Ziel wird in DOCX ein **Anker** und keine Beziehung. Daraus folgt `TdParagraph.FlacheStuecke()`: wer über `Inlines` läuft, sieht die Klammer und nicht ihren Text. **`TdToc` liest `TdParaFormat.OutlineLevel`** — der Punkt des ganzen Schritts, denn der heutige Markdown-Exporter **rät** die Ebene aus der Schriftgröße zurück und verliert sie, sobald jemand eine Überschrift kleiner stellt. **Die teuerste DOCX-Entscheidung: kein zwischengespeichertes Feldergebnis.** Ein mitgeschriebenes Verzeichnis käme beim Lesen als Absätze zurück, und das Dokument wüchse **mit jedem Speichern um ein ganzes Inhaltsverzeichnis** — dieselbe Falle wie beim Trennabsatz (§4.18), nur mit dreißig Zeilen statt einer; Wächter ist ein Roundtrip, der zweimal läuft. Beim **Lesen** fremder Dateien umgekehrt: das Ergebnis eines bekannten Feldes wird verworfen, das eines unbekannten **behalten** — eine Rechenvorschrift zu verlieren ist verschmerzbar, Text nicht. Felder stehen im Körper in der **dreiteiligen** Form (`begin`/`instrText`/`end`), weil ein Verzeichnis in ein Attribut nicht hineinpasst und zwei Formen nebeneinander die Doppelung aus §4.10 wären. **Textmarken werden erzeugt statt gespeichert** und nur, wenn es ein Verzeichnis gibt. **Zwei Stellen im Leser waren zu eng** und hätten still Text verloren: der Absatz-Leser lief nur über `w:r` (ein Verweis ist ein **Geschwister** des Laufs), und `IstLeererAbsatz` ebenso — ein Absatz mit nur einem Verweis galt als leer und wäre hinter einer Tabelle weggeworfen worden. **Kopf- und Fußzeile haben ihre letzten zwei Platzhalter bekommen:** `{DATUM}` und `{TITEL}` sind jetzt echte Felder, wie §4.15 es angekündigt hatte; die Zuordnung steht **einmal** in `TdField.Platzhalter`. **Ein benanntes Zugeständnis:** ein Feld ohne eigene Zusatzangabe bekommt auf dem Weg durch DOCX die Vorgabe eingetragen (`\@ "dd.MM.yyyy"`, `\o "1-3"`) — das Format kennt kein „nicht gesetzt" für einen Schalter; verlustfrei, aber nicht wörtlich, mit eigenem Wächter. **57 neue Wächter, jetzt 356** (343 Core + 13 WPF), Felder, Verweise und ein Verzeichnis in **beiden** Beispieldokumenten, alle drei Projekte 0 Warnungen. **Als Nächstes: Schritt 6, Diagramme** — der letzte der sechs |
 | V2-24 | 2026-08-04 | **Phase 4.5 in den Plan aufgenommen** (§6), nach einer Rückfrage des Nutzers — und die Rückfrage war berechtigt. **Der Befund:** Die fehlenden Werkzeuge des Linux-Kopfs (Formen, Formen-Stift, Lineal/Geodreieck, Textfelder, Notizzettel, Sticker, Bild-/PDF-Import, Zahlenblock per Langdruck, Schnellaktionen, Werkzeugleisten-Anordnung, Drehen/Skalieren der Auswahl) waren **benannt, aber keiner Phase zugeordnet**. Sie stehen in §6 („Was Phase 3 bewusst ausgelassen hat"), und beide README-Fassungen sagen es den Nutzern wörtlich („kommen nach der Dokument-Engine") — nur besaß sie keine Phase: Roadmap-Phase 4 enthält die Dokument-Engine, Phase 5 ist iPadOS, dazwischen stand nichts. **Der eigentliche Fehler im Plan war nicht das Vergessen, sondern M2:** die Roadmap definiert ihn als „Funktionsgleichheit Linux ↔ Windows" und hängt ihn ans Ende von Phase 4 — diese Werkzeuge gehören zur Funktionsgleichheit, **M2 war mit Phase 4 allein also gar nicht erreichbar**, und der Aufwandsschätzer deckte nur die Engine. **Entschieden: eine eigene Phase 4.5 zwischen 4 und 5**, aus drei Gründen — erst die Engine (Textdokumente sind das größere Loch und blockieren Import/Export), aber **vor dem iPad**, weil Phase 5 auf derselben Avalonia-Grundlage aufsetzt und die Werkzeuge sonst **zweimal** gebaut würden; M2 wandert ans Ende von 4.5. **Zur Klarstellung, weil es leicht zu verwechseln ist:** das **Diagramm-Werkzeug** gehört *nicht* dazu — Diagramme sind eine Textdokument-Funktion und stehen als Schritt 6 in Phase 4. OCR und Rechtschreibprüfung sind die zwei Ausnahmen in 4.5: sie brauchen Gegenstücke zu den Windows-Diensten und sind eigene Arbeit statt reiner Portierung. **Nachzutragen in `gonk-note-port-RM.MD` auf dem Desktop** — die Ergänzung steht sonst nur hier |

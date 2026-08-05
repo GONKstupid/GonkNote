@@ -516,6 +516,12 @@ internal static class LocGerman
 
         // ---- Meldungen ----
         ["Msg.ImportFailed"] = "Import fehlgeschlagen:",
+        // Die Übernahme ins eigene Dokumentmodell läuft still — nur ein Fehler dabei meldet
+        // sich (Nutzer-Entscheidung 2026-08-05, HANDOFF §4.22). {0} = Name, {1} = Grund.
+        ["Msg.MigrationFailed"] =
+            "„{0}“ konnte nicht ins neue Dokumentformat übernommen werden:\n{1}\n\n" +
+            "Das Dokument ist unverändert und lässt sich weiter bearbeiten — " +
+            "der Versuch wird beim nächsten Öffnen wiederholt.",
         ["Msg.OpenDocumentFirst"] = "Bitte zuerst ein Dokument öffnen.",
         ["Msg.ExportFailed"] = "Export fehlgeschlagen:\n{0}",
         ["Msg.ExportedPages"] = "{0} Seiten exportiert nach:\n{1}\n\nErste Datei öffnen?",

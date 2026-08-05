@@ -37,6 +37,22 @@ public sealed class AvaloniaDocumentIo : IDocumentIo
     public ExportResult ExportBoard(WhiteboardDoc doc, string title, string path) => throw Fehlt();
 
     /// <summary>
+    /// <b>Nein — und das ist keine Lücke, sondern eine Schranke.</b> RTF und XamlPackage liest
+    /// ausschließlich <c>System.Windows.Documents.TextRange</c>. Ein Versuch hier ergäbe ein
+    /// **leeres** Dokument, und das wäre schlimmer als gar keine Übernahme: Der Inhalt sähe
+    /// gelöscht aus, obwohl er unversehrt in <see cref="TextDoc.Rtf"/> steht (§4.22).
+    /// </summary>
+    public bool CanMigrate => false;
+
+    /// <summary>
+    /// Wirft **nicht**, sondern sagt „nichts getan". Die Übernahme läuft beim Öffnen eines
+    /// Dokuments; eine Ausnahme an dieser Stelle wäre für den Nutzer dasselbe wie ein Absturz,
+    /// und es ist ja nichts kaputt — dieses Dokument wartet nur auf den Windows-Rechner.
+    /// </summary>
+    public MigrationResult Migrate(TextDoc doc) =>
+        new(false, Loc.T("Io.NotOnThisPlatform"));
+
+    /// <summary>
     /// Der Aufrufer im <c>MainViewModel</c> fängt diese Ausnahme und zeigt ihre Meldung
     /// (<c>Msg.ExportFailed</c> bzw. <c>Msg.ImportFailed</c>) — es kommt also ein Satz an
     /// den Nutzer und nicht ein Absturz.

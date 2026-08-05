@@ -59,6 +59,13 @@ public sealed class DatenbankRoundtripTests
             var geladen = db.GetText(original.Id);
 
             Assert.Equal(original.Rtf, geladen.Rtf);
+
+            // **Beide Felder nebeneinander**: das Altformat und das eigene Modell. Das eine
+            // wird nie überschrieben, das andere ist leer, solange die Übernahme aussteht
+            // (§4.22).
+            Assert.Equal(original.Model, geladen.Model);
+            Assert.Equal(original.MigrationIssue, geladen.MigrationIssue);
+
             Assert.Equal(original.Images, geladen.Images);
             Assert.Equal(original.PageFormat, geladen.PageFormat);
             Assert.Equal(original.Landscape, geladen.Landscape);

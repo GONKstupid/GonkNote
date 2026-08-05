@@ -295,6 +295,36 @@ public sealed class DokumentmodellTests
     }
 
     /// <summary>
+    /// <b>Und schon gar keine abgeleiteten Werte.</b> Ein gerechneter Wert in der Datei sieht
+    /// später wie gespeicherte Wahrheit aus (§4.14) — und veraltet beim ersten Öffnen mit
+    /// einer neuen Fassung.
+    /// <para>
+    /// <b>Dieser Wächter fehlte fünf Schritte lang</b>, und gefunden wurde die Lücke nicht im
+    /// Test, sondern am laufenden Programm: In jedem Format stand ein <c>"IstLeer":false</c>,
+    /// in jeder Seiteneinrichtung ein <c>"IstQuerformat"</c> samt Textbereich (§4.22). Der
+    /// eigene Roundtrip konnte es nicht sehen — er liest die Felder ja gar nicht zurück.
+    /// </para>
+    /// </summary>
+    [Fact]
+    public void Gerechnete_Werte_landen_nicht_in_der_Datei()
+    {
+        string json = Text(TdFormatIo.Schreiben(Beispiel()));
+
+        foreach (string abgeleitet in
+                 new[] { "IstLeer", "IstQuerformat", "TextBreiteCm", "TextHoeheCm",
+                         "IstTextmarke", "IstFortsetzung", "ShowLegend", "FarbeJeElement",
+                         "FarbenGebraucht" })
+        {
+            Assert.DoesNotContain($"\"{abgeleitet}\"", json);
+        }
+
+        // `TdPageSetup.Name` lässt sich nicht am Feldnamen prüfen — eine Reihe eines Diagramms
+        // hat auch einen `Name`, und der ist echte Angabe. Geprüft wird deshalb sein **Wert**:
+        // Das Beispiel steht auf A4, und „A4" darf nirgends in der Datei stehen.
+        Assert.DoesNotContain("A4", json);
+    }
+
+    /// <summary>
     /// Die Diskriminatoren sind Datenformat. Sie stehen hier **wörtlich** — genau wie
     /// <c>AlteTypnamenTests</c> die alten <c>_type</c>-Namen wörtlich festhält. Wer einen
     /// Typ umbenennt, bekommt einen roten Lauf und nicht ein stilles Dokument ohne Inhalt.

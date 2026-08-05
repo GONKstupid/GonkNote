@@ -21,10 +21,10 @@ namespace GonkNote.Core.Text;
 ///
 /// <para>
 /// <b>Was hier absichtlich noch fehlt</b>, weil es der Reihenfolge aus Roadmap §5 folgt:
-/// Listen (Schritt 3), Tabellen (Schritt 4), Felder und Inhaltsverzeichnis (Schritt 5),
-/// Bilder und Diagramme (Schritt 6). Seiteneinrichtung, Kopf-/Fußzeile und Wasserzeichen
-/// kommen mit dem Seitenumbruch (Schritt 2) dazu — sie hängen an <c>TextDoc</c> und nicht
-/// am Inhalt.
+/// Bilder und Diagramme (Schritt 6). Alles davor ist da — Absätze und Zeichenformate
+/// (Schritt 1), Abschnitte samt Kopf- und Fußzeile (Schritt 2), Listen (Schritt 3), Tabellen
+/// (Schritt 4), Felder, Verweise und Inhaltsverzeichnis (Schritt 5). Das Wasserzeichen hängt
+/// an <c>TextDoc</c> und ist ein Bild; es kommt mit Schritt 6.
 /// </para>
 ///
 /// <para>
@@ -54,6 +54,45 @@ public static class TdDocx
 
     // ==================== Schreiben ====================
 
+    /// <summary>
+    /// Was beim Schreiben für das **ganze** Dokument gilt.
+    ///
+    /// <para>
+    /// Der <c>MainDocumentPart</c> steht hier, weil ein Verweis eine Beziehung braucht
+    /// (<c>r:id</c>) und die am Dokumentteil hängt, nicht am Absatz. Und der Zähler steht hier,
+    /// weil Textmarken **dokumentweit** eindeutig sein müssen: zwei Marken mit derselben
+    /// Kennung sind kein Schemafehler, sondern ein Inhaltsverzeichnis, dessen Einträge alle an
+    /// dieselbe Stelle springen.
+    /// </para>
+    /// </summary>
+    private sealed class Kontext(MainDocumentPart main)
+    {
+        public MainDocumentPart Main { get; } = main;
+
+        /// <summary>
+        /// Werden Sprungziele für Überschriften geschrieben?
+        /// <para>
+        /// <b>Nur, wenn es ein Inhaltsverzeichnis gibt.</b> Eine Textmarke ist ein Ziel; ohne
+        /// Verzeichnis zeigt niemand darauf, und ein Dokument voller unbenutzter Marken ist
+        /// beim Nachsehen im XML schwerer zu lesen als eines ohne.
+        /// </para>
+        /// </summary>
+        public bool Textmarken { get; init; }
+
+        private int _naechste;
+
+        /// <summary>
+        /// Der Name der nächsten Textmarke. <c>_Toc</c> ist Words eigene Schreibweise für
+        /// Verzeichnis-Sprungziele — wer einen eigenen Namen erfindet, bekommt ein
+        /// Verzeichnis, das Word beim Aktualisieren neu aufbaut und dabei anders benennt.
+        /// </summary>
+        public (string Name, int Id) NaechsteTextmarke()
+        {
+            _naechste++;
+            return ($"_Toc{_naechste:D8}", _naechste);
+        }
+    }
+
     /// <summary>Schreibt das Dokument als DOCX an <paramref name="pfad"/>.</summary>
     public static void Schreiben(TdDocument doc, string pfad)
     {
@@ -77,6 +116,8 @@ public static class TdDocx
         StandardformateSchreiben(doc, main);
         ListenSchreiben(doc, main);
 
+        var k = new Kontext(main) { Textmarken = TdToc.Enthaelt(doc) };
+
         // Felder (PAGE/NUMPAGES) beim Öffnen aktualisieren lassen — sonst zeigt Word die
         // beim Schreiben eingesetzte 1 statt der echten Seitenzahl.
         main.AddNewPart<DocumentSettingsPart>().Settings =
@@ -98,7 +139,7 @@ public static class TdDocx
                 switch (block)
                 {
                     case TdParagraph p:
-                        letzterAbsatz = AbsatzSchreiben(p);
+                        letzterAbsatz = AbsatzSchreiben(p, k);
                         teile.Add(letzterAbsatz);
                         vorherTabelle = false;
                         break;
@@ -115,7 +156,7 @@ public static class TdDocx
                         // Art, wie Word ein Dokument einliest — dazwischen gehört ein
                         // Absatz. Der Leser nimmt ihn an derselben Stelle wieder heraus.
                         if (vorherTabelle) teile.Add(TrennabsatzSchreiben());
-                        teile.Add(TabelleSchreiben(t));
+                        teile.Add(TabelleSchreiben(t, k));
                         vorherTabelle = true;
                         break;
 
@@ -312,7 +353,7 @@ public static class TdDocx
         }
     }
 
-    private static W.Paragraph AbsatzSchreiben(TdParagraph p)
+    private static W.Paragraph AbsatzSchreiben(TdParagraph p, Kontext k)
     {
         var absatz = new W.Paragraph();
 
@@ -343,32 +384,277 @@ public static class TdDocx
             pPr.AppendChild(new W.ParagraphMarkRunProperties(absatzZeichen.ChildElements.Select(c => c.CloneNode(true))));
         if (pPr.HasChildren) absatz.AppendChild(pPr);
 
-        foreach (var inline in p.Inlines)
+        // **Das Sprungziel einer Überschrift.** Es steht *im* Absatz und umschließt seinen
+        // Inhalt — eine Textmarke ist eine Spanne, kein Punkt. Geschrieben wird sie nur, wenn
+        // das Dokument ein Inhaltsverzeichnis hat (siehe Kontext.Textmarken).
+        int? textmarke = null;
+        if (k.Textmarken && p.Format.OutlineLevel is > 0)
         {
-            var lauf = new W.Run();
-            var rPr = ZeichenformatSchreiben(inline.Format);
-            if (rPr.HasChildren) lauf.AppendChild(rPr);
+            var (name, id) = k.NaechsteTextmarke();
+            absatz.AppendChild(new W.BookmarkStart { Id = id.ToString(), Name = name });
+            textmarke = id;
+        }
 
-            switch (inline)
+        foreach (var inline in p.Inlines) StueckSchreiben(absatz, inline, k);
+
+        if (textmarke is { } ende) absatz.AppendChild(new W.BookmarkEnd { Id = ende.ToString() });
+
+        return absatz;
+    }
+
+    /// <summary>
+    /// Schreibt ein Textstück in seinen Absatz.
+    /// <para>
+    /// <b>Der Verweis steht vor dem Lauf</b> — nicht als Laune, sondern weil er einer ist, der
+    /// Läufe enthält. Dieselbe Erbfolge wie im <c>FlowDocument</c>, wo <c>Hyperlink</c> von
+    /// <c>Span</c> erbt und der allgemeinere Fall das Ziel verschluckt (§7).
+    /// </para>
+    /// </summary>
+    private static void StueckSchreiben(OpenXmlElement absatz, TdInline inline, Kontext k)
+    {
+        switch (inline)
+        {
+            case TdHyperlink verweis:
             {
-                case TdRun r:
-                    // Space="preserve": ohne das fielen führende und mehrfache Leerzeichen weg,
-                    // und der Text säße nach dem Roundtrip zusammengeschoben da.
-                    lauf.AppendChild(new W.Text(r.Text) { Space = SpaceProcessingModeValues.Preserve });
-                    break;
+                var element = new W.Hyperlink();
 
-                case TdLineBreak:
-                    lauf.AppendChild(new W.Break());
-                    break;
+                if (verweis.IstTextmarke)
+                {
+                    // Ein Verweis **in dasselbe Dokument** ist keine Beziehung auf eine Datei,
+                    // sondern ein Anker. Wer ihn als Beziehung schreibt, bekommt einen Link,
+                    // der Word ein zweites Fenster öffnen lässt.
+                    element.Anchor = verweis.Target[1..];
+                }
+                else if (verweis.Target.Length > 0)
+                {
+                    // **`OriginalString` und nicht `AbsoluteUri`**: sonst wird aus dem relativen
+                    // Ziel `kapitel-2.md` ein absoluter `file:///`-Pfad (§7).
+                    var beziehung = k.Main.AddHyperlinkRelationship(
+                        new Uri(verweis.Target, UriKind.RelativeOrAbsolute), isExternal: true);
+                    element.Id = beziehung.Id;
+                }
 
-                default:
-                    throw new NotSupportedException(
-                        $"{inline.GetType().Name} kann noch nicht nach DOCX — siehe die Reihenfolge in Roadmap §5.");
+                foreach (var innen in verweis.Inlines) StueckSchreiben(element, innen, k);
+
+                // Ein leerer Verweis ist schemawidrig und wäre ohnehin nicht anklickbar.
+                if (element.HasChildren) absatz.AppendChild(element);
+                break;
             }
 
-            absatz.AppendChild(lauf);
+            case TdField feld:
+                FeldSchreiben(absatz, feld);
+                break;
+
+            case TdRun r:
+            {
+                var lauf = new W.Run();
+                var rPr = ZeichenformatSchreiben(r.Format);
+                if (rPr.HasChildren) lauf.AppendChild(rPr);
+
+                // Space="preserve": ohne das fielen führende und mehrfache Leerzeichen weg,
+                // und der Text säße nach dem Roundtrip zusammengeschoben da.
+                lauf.AppendChild(new W.Text(r.Text) { Space = SpaceProcessingModeValues.Preserve });
+                absatz.AppendChild(lauf);
+                break;
+            }
+
+            case TdLineBreak b:
+            {
+                var lauf = new W.Run();
+                var rPr = ZeichenformatSchreiben(b.Format);
+                if (rPr.HasChildren) lauf.AppendChild(rPr);
+                lauf.AppendChild(new W.Break());
+                absatz.AppendChild(lauf);
+                break;
+            }
+
+            default:
+                throw new NotSupportedException(
+                    $"{inline.GetType().Name} kann noch nicht nach DOCX — siehe die Reihenfolge in Roadmap §5.");
         }
-        return absatz;
+    }
+
+    // ==================== Felder ====================
+
+    /// <summary>
+    /// Die Anweisung eines Feldes, so wie Word sie schreibt.
+    /// <para>
+    /// Die Zusatzangabe steht in ihrer eigenen Schreibweise (<c>\@</c> für das Datumsmuster,
+    /// <c>\o</c> für die Ebenen des Verzeichnisses) — beim Lesen wird genau sie wieder
+    /// herausgeholt, damit die Angabe unverändert hin und zurück geht.
+    /// </para>
+    /// </summary>
+    private static string Anweisung(TdField feld) => feld.Kind switch
+    {
+        TdFieldKind.PageNumber => " PAGE ",
+        TdFieldKind.PageCount => " NUMPAGES ",
+        TdFieldKind.Date =>
+            $" DATE \\@ \"{feld.Argument ?? TdFieldValues.DatumsmusterStandard}\" ",
+        TdFieldKind.Title => " TITLE ",
+        _ => " TOC \\o \"" + Ebenenangabe(feld) + "\" \\h \\z \\u ",
+    };
+
+    private static string Ebenenangabe(TdField feld)
+    {
+        var (von, bis) = TdToc.Ebenen(feld.Argument);
+        return TdToc.Ebenenangabe(von, bis);
+    }
+
+    /// <summary>
+    /// Ein Feld in der **dreiteiligen** Form: <c>fldChar begin</c>, <c>instrText</c>,
+    /// <c>fldChar end</c>.
+    ///
+    /// <para>
+    /// <b>Warum nicht überall <c>fldSimple</c>.</b> Für PAGE und NUMPAGES reicht die kurze
+    /// Form, für ein Inhaltsverzeichnis nicht: dessen Ergebnis sind ganze Absätze mit eigenen
+    /// Verweisen, und die haben in einem Attribut keinen Platz. Zwei Formen nebeneinander zu
+    /// schreiben wäre die Doppelung aus §4.10 — deshalb schreibt der Körper **eine**, und zwar
+    /// die, die alles kann.
+    /// </para>
+    ///
+    /// <para>
+    /// <b>Ohne zwischengespeichertes Ergebnis</b>, also ohne <c>separate</c>-Teil. Das ist die
+    /// wichtigste Entscheidung an dieser Stelle: Ein mitgeschriebenes Verzeichnis käme beim
+    /// Lesen als gewöhnliche Absätze zurück, und das Dokument wüchse **mit jedem Speichern um
+    /// ein ganzes Inhaltsverzeichnis** — dieselbe Falle wie beim Trennabsatz zwischen zwei
+    /// Tabellen (§4.18), nur mit dreißig Zeilen statt einer. Word füllt das Feld beim Öffnen,
+    /// dafür steht <c>UpdateFieldsOnOpen</c> im Dokument.
+    /// </para>
+    /// </summary>
+    private static void FeldSchreiben(OpenXmlElement ziel, TdField feld)
+    {
+        var format = ZeichenformatSchreiben(feld.Format);
+
+        W.Run Lauf(OpenXmlElement inhalt)
+        {
+            var lauf = new W.Run();
+            if (format.HasChildren)
+                lauf.AppendChild(new W.RunProperties(format.ChildElements.Select(c => c.CloneNode(true))));
+            lauf.AppendChild(inhalt);
+            return lauf;
+        }
+
+        ziel.AppendChild(Lauf(new W.FieldChar { FieldCharType = W.FieldCharValues.Begin }));
+        ziel.AppendChild(Lauf(new W.FieldCode(Anweisung(feld)) { Space = SpaceProcessingModeValues.Preserve }));
+        ziel.AppendChild(Lauf(new W.FieldChar { FieldCharType = W.FieldCharValues.End }));
+    }
+
+    /// <summary>
+    /// Die Feldart und ihre Zusatzangabe aus einer Anweisung — oder <c>null</c>, wenn wir das
+    /// Feld nicht kennen.
+    /// <para>
+    /// Word hängt an fast jedes Feld noch Schalter an (<c>\* MERGEFORMAT</c>); ausgewertet
+    /// wird deshalb nur das **erste Wort** und die eine Angabe, die uns gehört.
+    /// </para>
+    /// </summary>
+    private static TdField? FeldAusAnweisung(string anweisung)
+    {
+        string text = anweisung.Trim();
+        if (text.Length == 0) return null;
+
+        int ende = text.IndexOfAny([' ', '\t']);
+        string name = (ende < 0 ? text : text[..ende]).ToUpperInvariant();
+
+        return name switch
+        {
+            "PAGE" => new TdField(TdFieldKind.PageNumber),
+            "NUMPAGES" => new TdField(TdFieldKind.PageCount),
+            "DATE" => new TdField(TdFieldKind.Date, Schalterwert(text, "\\@")),
+            "TITLE" => new TdField(TdFieldKind.Title),
+            "TOC" => new TdField(TdFieldKind.TableOfContents, Schalterwert(text, "\\o")),
+            _ => null,
+        };
+    }
+
+    /// <summary>Der Wert eines Schalters: <c>\@ "dd.MM.yyyy"</c> ergibt <c>dd.MM.yyyy</c>.</summary>
+    private static string? Schalterwert(string anweisung, string schalter)
+    {
+        int start = anweisung.IndexOf(schalter, StringComparison.Ordinal);
+        if (start < 0) return null;
+
+        int auf = anweisung.IndexOf('"', start + schalter.Length);
+        if (auf < 0) return null;
+
+        int zu = anweisung.IndexOf('"', auf + 1);
+        return zu < 0 ? null : anweisung[(auf + 1)..zu];
+    }
+
+    /// <summary>
+    /// Liest die dreiteilige Feldform: zwischen <c>begin</c> und <c>end</c> steht die
+    /// Anweisung, nach einem <c>separate</c> das zwischengespeicherte Ergebnis.
+    ///
+    /// <para>
+    /// <b>Ein Feldergebnis ist kein Text.</b> Ein Dokument aus Word bringt es mit — ein
+    /// Inhaltsverzeichnis kommt dort als dreißig Absätze samt Seitenzahlen daher. Wer das als
+    /// Inhalt liest, hat das Verzeichnis zweimal im Dokument: einmal als Feld und einmal als
+    /// Text, der beim nächsten Aktualisieren nicht mitwandert.
+    /// </para>
+    /// <para>
+    /// <b>Ein Feld, das wir nicht kennen, verliert seine Rechenvorschrift — aber nicht seinen
+    /// Text.</b> Dann wird das Ergebnis doch übernommen: eine <c>REF</c>-Angabe wieder
+    /// ausrechnen zu können ist schön, aber ihren Text zu verlieren ist Datenverlust.
+    /// </para>
+    /// </summary>
+    private sealed class Feldleser
+    {
+        private int _tiefe;
+        private bool _imErgebnis;
+        private TdCharFormat _format = new();
+        private readonly System.Text.StringBuilder _anweisung = new();
+        private readonly List<TdInline> _ergebnis = new();
+
+        /// <summary>Steht der Leser gerade in einem Feld?</summary>
+        public bool Aktiv => _tiefe > 0;
+
+        /// <param name="format">
+        /// Das Zeichenformat des Laufs, der das Feld eröffnet. Word legt es dort ab, und ohne
+        /// diese Übernahme verlöre ein kursiv gesetztes Datum seine Auszeichnung.
+        /// </param>
+        public void Beginn(TdCharFormat format)
+        {
+            _tiefe++;
+            if (_tiefe != 1) return;
+
+            _imErgebnis = false;
+            _format = format;
+            _anweisung.Clear();
+            _ergebnis.Clear();
+        }
+
+        public void Trenner()
+        {
+            if (_tiefe == 1) _imErgebnis = true;
+        }
+
+        public void Anweisung(string teil)
+        {
+            if (_tiefe == 1 && !_imErgebnis) _anweisung.Append(teil);
+        }
+
+        /// <summary>Ein Stück aus dem Ergebnisteil — es wird nur gebraucht, wenn wir das Feld nicht kennen.</summary>
+        public void Ergebnis(TdInline stueck)
+        {
+            if (_tiefe == 1 && _imErgebnis) _ergebnis.Add(stueck);
+        }
+
+        /// <summary>Beendet das Feld und hängt an, was davon ins Dokument gehört.</summary>
+        public void Ende(List<TdInline> ziel)
+        {
+            if (_tiefe == 0) return;      // ein `end` ohne `begin` — fremde Datei, kein Absturz
+            _tiefe--;
+            if (_tiefe != 0) return;
+
+            if (FeldAusAnweisung(_anweisung.ToString()) is { } feld)
+            {
+                feld.Format = _format;
+                ziel.Add(feld);
+            }
+            else ziel.AddRange(_ergebnis);
+
+            _anweisung.Clear();
+            _ergebnis.Clear();
+            _imErgebnis = false;
+        }
     }
 
     /// <summary>
@@ -387,7 +673,7 @@ public static class TdDocx
 
     // ==================== Tabellen ====================
 
-    private static W.Table TabelleSchreiben(TdTable t)
+    private static W.Table TabelleSchreiben(TdTable t, Kontext k)
     {
         var tabelle = new W.Table();
 
@@ -412,7 +698,7 @@ public static class TdDocx
         }
         tabelle.AppendChild(raster);
 
-        foreach (var zeile in t.Rows) tabelle.AppendChild(ZeileSchreiben(zeile, t));
+        foreach (var zeile in t.Rows) tabelle.AppendChild(ZeileSchreiben(zeile, t, k));
 
         return tabelle;
     }
@@ -440,7 +726,7 @@ public static class TdDocx
         Space = 0,
     };
 
-    private static W.TableRow ZeileSchreiben(TdTableRow zeile, TdTable t)
+    private static W.TableRow ZeileSchreiben(TdTableRow zeile, TdTable t, Kontext k)
     {
         var tr = new W.TableRow();
 
@@ -461,13 +747,13 @@ public static class TdDocx
         int spalte = 0;
         foreach (var zelle in zeile.Cells)
         {
-            tr.AppendChild(ZelleSchreiben(zelle, t, spalte));
+            tr.AppendChild(ZelleSchreiben(zelle, t, spalte, k));
             spalte += Math.Max(1, zelle.ColumnSpan);
         }
         return tr;
     }
 
-    private static W.TableCell ZelleSchreiben(TdTableCell zelle, TdTable t, int abSpalte)
+    private static W.TableCell ZelleSchreiben(TdTableCell zelle, TdTable t, int abSpalte, Kontext k)
     {
         var tc = new W.TableCell();
 
@@ -519,13 +805,13 @@ public static class TdDocx
         {
             switch (block)
             {
-                case TdParagraph p: tc.AppendChild(AbsatzSchreiben(p)); hatAbsatz = true; break;
+                case TdParagraph p: tc.AppendChild(AbsatzSchreiben(p, k)); hatAbsatz = true; break;
                 case TdPageBreak: tc.AppendChild(SeitenumbruchSchreiben()); hatAbsatz = true; break;
 
                 // **Eine Tabelle in einer Tabelle** ist erlaubt und braucht danach einen
                 // Absatz — dieselbe Regel wie im Körper.
                 case TdTable innen:
-                    tc.AppendChild(TabelleSchreiben(innen));
+                    tc.AppendChild(TabelleSchreiben(innen, k));
                     tc.AppendChild(TrennabsatzSchreiben());
                     hatAbsatz = true;
                     break;
@@ -543,7 +829,7 @@ public static class TdDocx
         return tc;
     }
 
-    private static TdTable TabelleLesen(W.Table tabelle)
+    private static TdTable TabelleLesen(W.Table tabelle, OpenXmlPart teil)
     {
         var t = new TdTable();
 
@@ -566,7 +852,7 @@ public static class TdDocx
                 if (spalte.Width?.Value is { } b && double.TryParse(b, out double bv))
                     t.ColumnWidthsCm.Add(TwipsZuCm(bv));
 
-        foreach (var tr in tabelle.Elements<W.TableRow>()) t.Rows.Add(ZeileLesen(tr));
+        foreach (var tr in tabelle.Elements<W.TableRow>()) t.Rows.Add(ZeileLesen(tr, teil));
 
         return t;
     }
@@ -589,7 +875,7 @@ public static class TdDocx
         return new TdBorder(staerke, farbe);
     }
 
-    private static TdTableRow ZeileLesen(W.TableRow tr)
+    private static TdTableRow ZeileLesen(W.TableRow tr, OpenXmlPart teil)
     {
         var zeile = new TdTableRow();
 
@@ -600,11 +886,11 @@ public static class TdDocx
                 zeile.MinHeightCm = TwipsZuCm(h);
         }
 
-        foreach (var tc in tr.Elements<W.TableCell>()) zeile.Cells.Add(ZelleLesen(tc));
+        foreach (var tc in tr.Elements<W.TableCell>()) zeile.Cells.Add(ZelleLesen(tc, teil));
         return zeile;
     }
 
-    private static TdTableCell ZelleLesen(W.TableCell tc)
+    private static TdTableCell ZelleLesen(W.TableCell tc, OpenXmlPart teil)
     {
         var zelle = new TdTableCell();
 
@@ -627,7 +913,7 @@ public static class TdDocx
                                     : TdVAlign.Top;
         }
 
-        BloeckeLesen(tc, zelle.Blocks);
+        BloeckeLesen(tc, zelle.Blocks, teil);
 
         // Der Pflichtabsatz einer sonst leeren Zelle ist kein Inhalt — sonst bekäme jede
         // Fortsetzungszelle beim Lesen einen leeren Absatz dazu, und der Roundtrip wüchse
@@ -647,18 +933,18 @@ public static class TdDocx
     /// Dokumentreihenfolge. Der Körper geht einen eigenen Weg, weil dort zusätzlich die
     /// Abschnittsgrenzen abzulesen sind.
     /// </summary>
-    private static void BloeckeLesen(OpenXmlElement behaelter, List<TdBlock> ziel)
+    private static void BloeckeLesen(OpenXmlElement behaelter, List<TdBlock> ziel, OpenXmlPart teil)
     {
         var kinder = Inhaltskinder(behaelter);
 
         for (int i = 0; i < kinder.Count; i++)
         {
-            if (kinder[i] is W.Table tabelle) { ziel.Add(TabelleLesen(tabelle)); continue; }
+            if (kinder[i] is W.Table tabelle) { ziel.Add(TabelleLesen(tabelle, teil)); continue; }
             if (IstTrennabsatz(kinder, i)) continue;
 
             var absatz = (W.Paragraph)kinder[i];
             if (IstSeitenumbruch(absatz)) ziel.Add(new TdPageBreak());
-            else ziel.Add(AbsatzLesen(absatz));
+            else ziel.Add(AbsatzLesen(absatz, teil));
         }
     }
 
@@ -699,7 +985,12 @@ public static class TdDocx
     /// </summary>
     private static bool IstLeererAbsatz(W.Paragraph absatz)
     {
+        // Ein Verweis und ein Feld in der kurzen Form sind **Geschwister** des Laufs, nicht
+        // Teile von ihm. Wer nur nach Läufen sucht, hält einen Absatz, der nur einen Verweis
+        // enthält, für leer — und wirft ihn hinter einer Tabelle weg.
         if (absatz.Elements<W.Run>().Any()) return false;
+        if (absatz.Elements<W.Hyperlink>().Any()) return false;
+        if (absatz.Elements<W.SimpleField>().Any()) return false;
         if (absatz.ParagraphProperties is not { } pPr) return true;
 
         return pPr.ChildElements.All(k => k is W.SectionProperties);
@@ -849,10 +1140,22 @@ public static class TdDocx
     }
 
     /// <summary>
-    /// Eine Kopf- oder Fußzeile. <c>{SEITE}</c> und <c>{SEITEN}</c> werden zu **echten**
-    /// Word-Feldern (PAGE, NUMPAGES) — als bloßer Text stünde in einem exportierten Dokument
-    /// auf jeder Seite dieselbe Zahl. <c>{DATUM}</c> und <c>{TITEL}</c> bleiben vorerst
-    /// wörtlich stehen; sie werden mit den Feldern in Schritt 5 nachgezogen.
+    /// Eine Kopf- oder Fußzeile. **Alle vier Platzhalter werden zu echten Word-Feldern** —
+    /// <c>{SEITE}</c>, <c>{SEITEN}</c>, <c>{DATUM}</c> und <c>{TITEL}</c>. Als bloßer Text
+    /// stünde auf jeder Seite dieselbe Zahl, und ein Datum wäre auf ewig der Tag des Exports.
+    ///
+    /// <para>
+    /// <b>Die Zuordnung kommt aus <see cref="TdField.Platzhalter"/></b> und steht nicht noch
+    /// einmal hier: eine zweite Tabelle für dieselbe Sache driftet (§4.10). Bis Schritt 5
+    /// standen <c>{DATUM}</c> und <c>{TITEL}</c> hier wörtlich im Text — sie hatten kein Feld,
+    /// zu dem sie hätten werden können.
+    /// </para>
+    /// <para>
+    /// <b>Hier reicht die kurze Form <c>fldSimple</c></b>, anders als im Körper: In einer
+    /// Kopfzeile steht nie ein Inhaltsverzeichnis, und mehr als eine Zeile Ergebnis braucht
+    /// keines dieser Felder. Der Leser kennt trotzdem beide Formen — ein fremdes Dokument
+    /// schreibt hier gern die lange.
+    /// </para>
     /// </summary>
     private static W.Paragraph KopfFussAbsatzSchreiben(string vorlage)
     {
@@ -862,12 +1165,9 @@ public static class TdDocx
         {
             if (teil.Length == 0) continue;
 
-            if (teil is "{SEITE}" or "{SEITEN}")
+            if (TdField.ArtVonPlatzhalter(teil) is { } art)
             {
-                absatz.AppendChild(new W.SimpleField(new W.Run(new W.Text("1")))
-                {
-                    Instruction = teil == "{SEITE}" ? " PAGE " : " NUMPAGES ",
-                });
+                absatz.AppendChild(new W.SimpleField { Instruction = Anweisung(new TdField(art)) });
             }
             else
             {
@@ -919,45 +1219,44 @@ public static class TdDocx
         foreach (var verweis in sectPr.Elements<W.HeaderReference>())
         {
             if (verweis.Type?.Value != W.HeaderFooterValues.Default || verweis.Id?.Value is not { } id) continue;
-            if (main.GetPartById(id) is HeaderPart { Header: { } kopf })
-                seite.HeaderText = KopfFussTextLesen(kopf);
+            if (main.GetPartById(id) is HeaderPart { Header: { } kopf } kopfteil)
+                seite.HeaderText = KopfFussTextLesen(kopf, kopfteil);
         }
         foreach (var verweis in sectPr.Elements<W.FooterReference>())
         {
             if (verweis.Type?.Value != W.HeaderFooterValues.Default || verweis.Id?.Value is not { } id) continue;
-            if (main.GetPartById(id) is FooterPart { Footer: { } fuss })
-                seite.FooterText = KopfFussTextLesen(fuss);
+            if (main.GetPartById(id) is FooterPart { Footer: { } fuss } fussteil)
+                seite.FooterText = KopfFussTextLesen(fuss, fussteil);
         }
 
         return seite;
     }
 
     /// <summary>
-    /// Der Weg zurück: PAGE- und NUMPAGES-Felder werden wieder zu <c>{SEITE}</c> und
-    /// <c>{SEITEN}</c>. Ohne das käme aus einem Rückimport die beim Schreiben eingesetzte
-    /// „1" als gewöhnlicher Text — und die Kopfzeile zeigte auf jeder Seite Seite 1.
+    /// Der Weg zurück: aus den Feldern werden wieder Platzhalter. Ohne ihn käme aus einem
+    /// Rückimport die beim Schreiben eingesetzte Zahl als gewöhnlicher Text — und die
+    /// Kopfzeile zeigte auf jeder Seite Seite 1.
+    ///
+    /// <para>
+    /// <b>Gelesen werden beide Feldformen.</b> Die eigene Datei hat die kurze; ein fremdes
+    /// Dokument bringt die lange mit, und dann steht der Feldname in einem <c>instrText</c>
+    /// mitten zwischen Läufen. Wer nur die kurze kennt, bekommt aus einer Word-Kopfzeile die
+    /// Zeichenkette „PAGE" als Text.
+    /// </para>
     /// </summary>
-    private static string KopfFussTextLesen(OpenXmlElement kopfOderFuss)
+    private static string KopfFussTextLesen(OpenXmlElement kopfOderFuss, OpenXmlPart dokumentteil)
     {
         var sb = new System.Text.StringBuilder();
 
         foreach (var absatz in kopfOderFuss.Elements<W.Paragraph>())
         {
-            foreach (var teil in absatz.ChildElements)
-            {
-                switch (teil)
-                {
-                    case W.SimpleField feld:
-                        string anweisung = feld.Instruction?.Value ?? "";
-                        sb.Append(anweisung.Contains("NUMPAGES", StringComparison.OrdinalIgnoreCase) ? "{SEITEN}"
-                                : anweisung.Contains("PAGE", StringComparison.OrdinalIgnoreCase) ? "{SEITE}"
-                                : "");
-                        break;
+            var stuecke = new List<TdInline>();
+            StueckeLesen(absatz, stuecke, dokumentteil, new Feldleser());
 
-                    case W.Run lauf:
-                        foreach (var t in lauf.Elements<W.Text>()) sb.Append(t.Text);
-                        break;
-                }
+            foreach (var stueck in stuecke)
+            {
+                if (stueck is TdField feld) sb.Append(TdField.PlatzhalterVonArt(feld.Kind) ?? "");
+                else sb.Append(stueck.PlainText());
             }
         }
         return sb.ToString();
@@ -995,7 +1294,7 @@ public static class TdDocx
         {
             if (kinder[i] is W.Table tabelle)
             {
-                laufend.Blocks.Add(TabelleLesen(tabelle));
+                laufend.Blocks.Add(TabelleLesen(tabelle, main));
                 continue;
             }
 
@@ -1007,7 +1306,7 @@ public static class TdDocx
             if (!IstTrennabsatz(kinder, i))
             {
                 if (IstSeitenumbruch(absatz)) laufend.Blocks.Add(new TdPageBreak());
-                else laufend.Blocks.Add(AbsatzLesen(absatz));
+                else laufend.Blocks.Add(AbsatzLesen(absatz, main));
             }
 
             // Eine sectPr **im** Absatzformat beendet den Abschnitt — sie gehört zu allem,
@@ -1060,7 +1359,7 @@ public static class TdDocx
             && br.Type.Value == W.BreakValues.Page;
     }
 
-    private static TdParagraph AbsatzLesen(W.Paragraph absatz)
+    private static TdParagraph AbsatzLesen(W.Paragraph absatz, OpenXmlPart teil)
     {
         var p = new TdParagraph();
         var pPr = absatz.ParagraphProperties;
@@ -1078,29 +1377,112 @@ public static class TdDocx
             }
         }
 
-        foreach (var lauf in absatz.Elements<W.Run>())
+        StueckeLesen(absatz, p.Inlines, teil, new Feldleser());
+        return p;
+    }
+
+    /// <summary>
+    /// Liest die Textstücke eines Absatzes — oder eines Verweises darin.
+    /// <para>
+    /// Der Durchlauf geht über **alle** Kinder und nicht nur über die Läufe: ein Verweis, ein
+    /// Feld in der kurzen Form und eine Textmarke sind Geschwister des Laufs, keine Teile von
+    /// ihm. Wer nur <c>w:r</c> einsammelt, verliert jeden Verweistext, ohne dass ein Test
+    /// darüber stolpert — er hat ja Text bekommen, nur weniger.
+    /// </para>
+    /// </summary>
+    private static void StueckeLesen(
+        OpenXmlElement behaelter, List<TdInline> ziel, OpenXmlPart teil, Feldleser leser)
+    {
+        foreach (var kind in behaelter.ChildElements)
         {
-            var format = lauf.RunProperties is { } rPr ? ZeichenformatLesen(rPr) : new TdCharFormat();
-
-            foreach (var teil in lauf.ChildElements)
+            switch (kind)
             {
-                switch (teil)
+                case W.Hyperlink verweis:
                 {
-                    case W.Text t:
-                        p.Inlines.Add(new TdRun(t.Text, format.Kopie()));
-                        break;
-
-                    // Ein Umbruch ohne Typ ist der Zeilenumbruch innerhalb des Absatzes.
-                    // Ein Seitenumbruch mitten im Absatz wird hier bewusst zum Zeilenumbruch:
-                    // das Modell kennt ihn erst ab Schritt 2 als Blockeigenschaft, und ein
-                    // stillschweigend verschluckter Umbruch wäre schlechter als ein sichtbarer.
-                    case W.Break:
-                        p.Inlines.Add(new TdLineBreak { Format = format.Kopie() });
-                        break;
+                    var link = new TdHyperlink { Target = VerweisZielLesen(verweis, teil) };
+                    StueckeLesen(verweis, link.Inlines, teil, leser);
+                    if (link.Inlines.Count > 0) ziel.Add(link);
+                    break;
                 }
+
+                // Die kurze Feldform — Word schreibt sie für einfache Felder, wir für Kopf-
+                // und Fußzeilen.
+                case W.SimpleField einfach:
+                {
+                    if (FeldAusAnweisung(einfach.Instruction?.Value ?? "") is { } feld) ziel.Add(feld);
+                    else StueckeLesen(einfach, ziel, teil, leser);   // unbekannt: der Text bleibt
+                    break;
+                }
+
+                case W.Run lauf:
+                    LaufLesen(lauf, ziel, leser);
+                    break;
+
+                // Textmarken sind Sprungziele und kein Inhalt. Sie werden beim Schreiben aus
+                // den Gliederungsebenen neu erzeugt (§4.20) — gespeichert wären sie ein
+                // zweiter Name für dieselbe Überschrift, und der erste driftet.
+                case W.BookmarkStart:
+                case W.BookmarkEnd:
+                    break;
             }
         }
-        return p;
+    }
+
+    private static void LaufLesen(W.Run lauf, List<TdInline> ziel, Feldleser leser)
+    {
+        var format = lauf.RunProperties is { } rPr ? ZeichenformatLesen(rPr) : new TdCharFormat();
+
+        foreach (var teil in lauf.ChildElements)
+        {
+            switch (teil)
+            {
+                case W.FieldChar marke when marke.FieldCharType?.Value is { } art:
+                    if (art == W.FieldCharValues.Begin) leser.Beginn(format.Kopie());
+                    else if (art == W.FieldCharValues.Separate) leser.Trenner();
+                    else if (art == W.FieldCharValues.End) leser.Ende(ziel);
+                    break;
+
+                case W.FieldCode anweisung:
+                    leser.Anweisung(anweisung.Text);
+                    break;
+
+                case W.Text t:
+                    Anhaengen(new TdRun(t.Text, format.Kopie()));
+                    break;
+
+                // Ein Umbruch ohne Typ ist der Zeilenumbruch innerhalb des Absatzes.
+                // Ein Seitenumbruch mitten im Absatz wird hier bewusst zum Zeilenumbruch:
+                // das Modell kennt ihn erst ab Schritt 2 als Blockeigenschaft, und ein
+                // stillschweigend verschluckter Umbruch wäre schlechter als ein sichtbarer.
+                case W.Break:
+                    Anhaengen(new TdLineBreak { Format = format.Kopie() });
+                    break;
+            }
+        }
+
+        void Anhaengen(TdInline stueck)
+        {
+            if (leser.Aktiv) leser.Ergebnis(stueck);
+            else ziel.Add(stueck);
+        }
+    }
+
+    /// <summary>
+    /// Das Ziel eines Verweises. Ein Anker zeigt ins eigene Dokument und bekommt das
+    /// <c>#</c> zurück; alles andere kommt aus der Beziehung — und zwar als
+    /// <c>OriginalString</c>, damit ein relatives Ziel relativ bleibt (§7).
+    /// </summary>
+    private static string VerweisZielLesen(W.Hyperlink verweis, OpenXmlPart teil)
+    {
+        if (verweis.Anchor?.Value is { Length: > 0 } anker) return "#" + anker;
+        if (verweis.Id?.Value is not { } id) return "";
+
+        foreach (var beziehung in teil.HyperlinkRelationships)
+            if (beziehung.Id == id) return beziehung.Uri.OriginalString;
+
+        // Eine Beziehung, die es nicht gibt, kommt aus einer beschädigten Datei. Der Linktext
+        // bleibt trotzdem stehen — ein Verweis ohne Ziel ist besser als ein verlorener Satz.
+        return "";
     }
 
     private static TdCharFormat ZeichenformatLesen(OpenXmlElement rPr)

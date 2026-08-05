@@ -452,6 +452,248 @@ public sealed class DocxRoundtripTests
         Assert.Equal("danach", zurueck.Sections[1].Blocks[0].PlainText());
     }
 
+    // ==================== Felder und Verweise (Schritt 5) ====================
+
+    /// <summary>
+    /// <b>Ein relatives Ziel bleibt relativ.</b> Das ist die Entscheidung aus §7
+    /// („Markdown-Export"): Wer beim Lesen <c>AbsoluteUri</c> nimmt statt
+    /// <c>OriginalString</c>, macht aus <c>kapitel-2.md</c> einen <c>file:///</c>-Pfad, der
+    /// auf jedem anderen Rechner ins Leere zeigt — und sichtbar wird das erst beim
+    /// Anklicken.
+    /// </summary>
+    [Theory]
+    [InlineData("kapitel-2.md")]
+    [InlineData("../oben/datei.md")]
+    [InlineData("https://example.org/pfad?a=1&b=2")]
+    public void Ein_Verweisziel_uebersteht_DOCX_woertlich(string ziel)
+    {
+        var doc = MitStuecken(TdHyperlink.Text(ziel, "Text"));
+
+        var verweis = Assert.IsType<TdHyperlink>(Zurueck(doc).Paragraphs().First().Inlines[0]);
+
+        Assert.Equal(ziel, verweis.Target);
+        Assert.Equal("Text", verweis.PlainText());
+    }
+
+    /// <summary>
+    /// Ein Verweis **ins eigene Dokument** ist in DOCX kein Dateiverweis, sondern ein Anker.
+    /// Als Beziehung geschrieben öffnete Word ein zweites Fenster auf dieselbe Datei.
+    /// </summary>
+    [Fact]
+    public void Ein_Verweis_ins_eigene_Dokument_wird_ein_Anker()
+    {
+        var doc = MitStuecken(TdHyperlink.Text("#marke", "dorthin"));
+
+        var verweis = Assert.IsType<TdHyperlink>(Zurueck(doc).Paragraphs().First().Inlines[0]);
+
+        Assert.Equal("#marke", verweis.Target);
+        Assert.True(verweis.IstTextmarke);
+    }
+
+    /// <summary>
+    /// Ein Verweis ist eine Klammer um Läufe und kein Lauf mit einem Zusatzfeld — die
+    /// Auszeichnung **innerhalb** des Linktextes muss deshalb erhalten bleiben.
+    /// </summary>
+    [Fact]
+    public void Ein_Verweis_behaelt_die_Auszeichnung_seines_Textes()
+    {
+        var doc = MitStuecken(new TdHyperlink("ziel.md",
+            new TdRun("normal "),
+            new TdRun("fett", new TdCharFormat { Bold = true })));
+
+        var verweis = Assert.IsType<TdHyperlink>(Zurueck(doc).Paragraphs().First().Inlines[0]);
+
+        Assert.Equal(2, verweis.Inlines.Count);
+        Assert.Null(verweis.Inlines[0].Format.Bold);
+        Assert.True(verweis.Inlines[1].Format.Bold);
+    }
+
+    /// <summary>Jede Feldart geht als Feld hin und zurück — und nicht als Text.</summary>
+    [Theory]
+    [InlineData(TdFieldKind.PageNumber, null)]
+    [InlineData(TdFieldKind.PageCount, null)]
+    [InlineData(TdFieldKind.Date, "yyyy-MM-dd")]
+    [InlineData(TdFieldKind.Title, null)]
+    [InlineData(TdFieldKind.TableOfContents, "2-4")]
+    public void Jede_Feldart_uebersteht_DOCX(TdFieldKind art, string? angabe)
+    {
+        var doc = MitStuecken(new TdField(art, angabe));
+
+        var feld = Assert.IsType<TdField>(Zurueck(doc).Paragraphs().First().Inlines[0]);
+
+        Assert.Equal(art, feld.Kind);
+        Assert.Equal(angabe, feld.Argument);
+    }
+
+    /// <summary>
+    /// <b>Ein Feld ohne eigene Angabe bekommt in DOCX die Vorgabe eingetragen</b> — das Format
+    /// kennt kein „nicht gesetzt" für einen Schalter. Das ist der einzige Weg, auf dem ein
+    /// Feld beim Roundtrip etwas dazubekommt, und er ist harmlos: eingetragen wird genau der
+    /// Wert, mit dem gerechnet worden wäre. Der Wächter steht hier, damit es niemanden
+    /// überrascht.
+    /// </summary>
+    [Fact]
+    public void Ein_Feld_ohne_Angabe_bekommt_die_Vorgabe_eingetragen()
+    {
+        var datum = Assert.IsType<TdField>(
+            Zurueck(MitStuecken(new TdField(TdFieldKind.Date))).Paragraphs().First().Inlines[0]);
+        var verzeichnis = Assert.IsType<TdField>(
+            Zurueck(MitStuecken(new TdField(TdFieldKind.TableOfContents))).Paragraphs().First().Inlines[0]);
+
+        Assert.Equal(TdFieldValues.DatumsmusterStandard, datum.Argument);
+        Assert.Equal("1-3", verzeichnis.Argument);
+    }
+
+    /// <summary>
+    /// Das Feld steht in der **dreiteiligen** Form da — <c>begin</c>, <c>instrText</c>,
+    /// <c>end</c>. Für PAGE reichte die kurze; ein Inhaltsverzeichnis, dessen Ergebnis ganze
+    /// Absätze sind, passt dort nicht hinein, und zwei Formen nebeneinander wären die
+    /// Doppelung aus §4.10.
+    /// </summary>
+    [Fact]
+    public void Ein_Feld_im_Koerper_steht_in_der_dreiteiligen_Form()
+    {
+        using var werkbank = new Werkbank("dreiteilig");
+        string pfad = werkbank.Datei("toc.docx");
+
+        TdDocx.Schreiben(MitStuecken(new TdField(TdFieldKind.TableOfContents)), pfad);
+
+        string xml = Hauptteil(pfad);
+        Assert.Contains("w:fldCharType=\"begin\"", xml);
+        Assert.Contains("w:instrText", xml);
+        Assert.Contains("TOC", xml);
+        Assert.Contains("w:fldCharType=\"end\"", xml);
+        Assert.DoesNotContain("fldSimple", xml);
+    }
+
+    /// <summary>
+    /// <b>Das Feld wird ohne zwischengespeichertes Ergebnis geschrieben</b>, also ohne
+    /// <c>separate</c>-Teil. Käme das Verzeichnis mit, läse der Import es als gewöhnliche
+    /// Absätze, und das Dokument wüchse **mit jedem Speichern um ein ganzes
+    /// Inhaltsverzeichnis** — dieselbe Falle wie beim Trennabsatz zwischen zwei Tabellen
+    /// (§4.18), nur mit dreißig Zeilen statt einer. Der Wächter läuft deshalb zweimal.
+    /// </summary>
+    [Fact]
+    public void Ein_Dokument_mit_Verzeichnis_waechst_beim_Speichern_nicht()
+    {
+        var doc = Beispiel();
+
+        var einmal = Zurueck(doc);
+        var zweimal = Zurueck(einmal);
+
+        GleichesDokument(einmal, zweimal);
+    }
+
+    /// <summary>
+    /// <b>Ein Feldergebnis ist kein Text.</b> Ein Dokument aus Word bringt es mit — dort steht
+    /// zwischen <c>separate</c> und <c>end</c>, was zuletzt gerechnet wurde. Wer es als Inhalt
+    /// liest, hat die Seitenzahl zweimal: einmal als Feld und einmal als Zahl, die nie wieder
+    /// nachgerechnet wird.
+    /// </summary>
+    [Fact]
+    public void Ein_zwischengespeichertes_Ergebnis_wird_nicht_zu_Text()
+    {
+        using var werkbank = new Werkbank("ergebnis");
+        string pfad = werkbank.Datei("fremd.docx");
+
+        TdDocx.Schreiben(MitStuecken(new TdField(TdFieldKind.PageNumber)), pfad);
+        ErgebnisEinsetzen(pfad, "42");
+
+        var absatz = TdDocx.Lesen(pfad).Paragraphs().First();
+
+        var feld = Assert.IsType<TdField>(Assert.Single(absatz.Inlines));
+        Assert.Equal(TdFieldKind.PageNumber, feld.Kind);
+        Assert.Equal("", absatz.PlainText());
+    }
+
+    /// <summary>
+    /// <b>Ein Feld, das wir nicht kennen, verliert seine Rechenvorschrift — aber nicht seinen
+    /// Text.</b> Eine <c>REF</c>-Angabe wieder ausrechnen zu können wäre schön; ihren Text zu
+    /// verlieren ist Datenverlust.
+    /// </summary>
+    [Fact]
+    public void Ein_unbekanntes_Feld_behaelt_seinen_Text()
+    {
+        using var werkbank = new Werkbank("unbekanntes-feld");
+        string pfad = werkbank.Datei("fremd.docx");
+
+        TdDocx.Schreiben(MitStuecken(new TdField(TdFieldKind.PageNumber)), pfad);
+        ErgebnisEinsetzen(pfad, "Querverweis");
+        AnweisungErsetzen(pfad, " REF _Ref12345 \\h ");
+
+        Assert.Equal("Querverweis", TdDocx.Lesen(pfad).Paragraphs().First().PlainText());
+    }
+
+    /// <summary>
+    /// Ein Inhaltsverzeichnis braucht **Sprungziele**, sonst führt jeder Eintrag nirgendwohin.
+    /// Geschrieben werden sie an den Überschriften und in Words eigener Schreibweise
+    /// (<c>_Toc…</c>) — und beim Lesen wieder übergangen: eine Textmarke ist ein Ziel und kein
+    /// Inhalt.
+    /// </summary>
+    [Fact]
+    public void Ueberschriften_bekommen_Sprungziele_wenn_es_ein_Verzeichnis_gibt()
+    {
+        using var werkbank = new Werkbank("textmarken");
+        string mit = werkbank.Datei("mit.docx");
+        string ohne = werkbank.Datei("ohne.docx");
+
+        TdDocx.Schreiben(new TdDocument
+        {
+            Sections =
+            {
+                new TdSection(
+                    new TdParagraph([new TdField(TdFieldKind.TableOfContents)]),
+                    new TdParagraph("Kapitel") { Format = { OutlineLevel = 1 } }),
+            },
+        }, mit);
+
+        TdDocx.Schreiben(new TdDocument
+        {
+            Sections = { new TdSection(new TdParagraph("Kapitel") { Format = { OutlineLevel = 1 } }) },
+        }, ohne);
+
+        Assert.Contains("_Toc00000001", Hauptteil(mit));
+
+        // Ohne Verzeichnis zeigt niemand auf eine Marke — dann steht auch keine da.
+        Assert.DoesNotContain("bookmarkStart", Hauptteil(ohne));
+
+        // Und beim Lesen wird sie nicht zu Inhalt.
+        Assert.Equal(2, TdDocx.Lesen(mit).Paragraphs().Count());
+        Assert.Equal("Kapitel", TdDocx.Lesen(mit).PlainText());
+    }
+
+    /// <summary>
+    /// <b>Alle vier Platzhalter der Kopf- und Fußzeile sind jetzt echte Felder.</b> Bis
+    /// Schritt 5 standen <c>{DATUM}</c> und <c>{TITEL}</c> dort wörtlich im Text — sie hatten
+    /// kein Feld, zu dem sie hätten werden können (§4.15). Als Text wäre das Datum auf ewig
+    /// der Tag des Exports.
+    /// </summary>
+    [Fact]
+    public void Alle_vier_Platzhalter_werden_zu_echten_Feldern()
+    {
+        using var werkbank = new Werkbank("kopfzeile");
+        string pfad = werkbank.Datei("kopf.docx");
+
+        var seite = new TdPageSetup
+        {
+            HeaderText = "{TITEL} — {DATUM}",
+            FooterText = "Seite {SEITE} von {SEITEN}",
+        };
+
+        TdDocx.Schreiben(MitSeite(seite), pfad);
+
+        string kopf = Kopfzeile(pfad);
+        Assert.Contains("TITLE", kopf);
+        Assert.Contains("DATE", kopf);
+        Assert.DoesNotContain("{TITEL}", kopf);
+        Assert.DoesNotContain("{DATUM}", kopf);
+
+        // Und der Weg zurück macht wieder Platzhalter daraus.
+        var zurueck = TdDocx.Lesen(pfad).Sections[0].Page;
+        Assert.Equal("{TITEL} — {DATUM}", zurueck.HeaderText);
+        Assert.Equal("Seite {SEITE} von {SEITEN}", zurueck.FooterText);
+    }
+
     // ==================== Hilfsmittel ====================
 
     private static TdDocument Zurueck(TdDocument doc)
@@ -471,15 +713,18 @@ public sealed class DocxRoundtripTests
     private static TdDocument MitSeite(TdPageSetup seite) =>
         new() { Sections = { new TdSection(new TdParagraph("Wort")) { Page = seite } } };
 
+    private static TdDocument MitStuecken(params TdInline[] stuecke) =>
+        new() { Sections = { new TdSection(new TdParagraph(stuecke)) } };
+
     private static TdCharFormat ErstesStueck(TdDocument doc) =>
         doc.Paragraphs().First().Inlines[0].Format;
 
     /// <summary>
-    /// Entfernt das <c>w:val</c>-Attribut eines Elements im gespeicherten DOCX — so schreibt
-    /// Word eine gesetzte Auszeichnung. Von Hand am XML, weil sich das über die
-    /// OpenXml-Objekte nicht erzeugen lässt.
+    /// Schreibt das XML des Hauptteils um. **Von Hand**, weil sich manches, was Word schreibt,
+    /// über die OpenXml-Objekte gar nicht erzeugen lässt — und genau daran scheitert ein
+    /// Import, den nur der eigene Export geprüft hat.
     /// </summary>
-    private static void WertAmElementEntfernen(string pfad, string element)
+    private static void XmlAendern(string pfad, Func<string, string> aendern)
     {
         using var docx = DocumentFormat.OpenXml.Packaging.WordprocessingDocument.Open(pfad, true);
         var teil = docx.MainDocumentPart!;
@@ -488,11 +733,52 @@ public sealed class DocxRoundtripTests
         using (var lesen = new StreamReader(teil.GetStream(FileMode.Open, FileAccess.Read)))
             xml = lesen.ReadToEnd();
 
-        xml = System.Text.RegularExpressions.Regex.Replace(
-            xml, $"<w:{element} w:val=\"[^\"]*\" ?/>", $"<w:{element}/>");
+        xml = aendern(xml);
 
         using var schreiben = new StreamWriter(teil.GetStream(FileMode.Create, FileAccess.Write));
         schreiben.Write(xml);
+    }
+
+    /// <summary>
+    /// Entfernt das <c>w:val</c>-Attribut eines Elements im gespeicherten DOCX — so schreibt
+    /// Word eine gesetzte Auszeichnung.
+    /// </summary>
+    private static void WertAmElementEntfernen(string pfad, string element) =>
+        XmlAendern(pfad, xml => System.Text.RegularExpressions.Regex.Replace(
+            xml, $"<w:{element} w:val=\"[^\"]*\" ?/>", $"<w:{element}/>"));
+
+    /// <summary>
+    /// Setzt ein zwischengespeichertes Feldergebnis ein — den <c>separate</c>-Teil samt Text,
+    /// wie Word ihn schreibt und wie wir ihn bewusst **nicht** schreiben (§4.20).
+    /// </summary>
+    private static void ErgebnisEinsetzen(string pfad, string text) =>
+        XmlAendern(pfad, xml => System.Text.RegularExpressions.Regex.Replace(
+            xml,
+            "<w:r><w:fldChar w:fldCharType=\"end\" ?/></w:r>",
+            $"<w:r><w:fldChar w:fldCharType=\"separate\" /></w:r><w:r><w:t>{text}</w:t></w:r>$0"));
+
+    /// <summary>Tauscht die Anweisung eines Feldes gegen eine andere.</summary>
+    private static void AnweisungErsetzen(string pfad, string anweisung) =>
+        XmlAendern(pfad, xml => System.Text.RegularExpressions.Regex.Replace(
+            xml,
+            "<w:instrText[^>]*>[^<]*</w:instrText>",
+            $"<w:instrText xml:space=\"preserve\">{anweisung}</w:instrText>"));
+
+    /// <summary>Das XML des Hauptteils — für Wächter, die auf die Datei selbst sehen müssen.</summary>
+    private static string Hauptteil(string pfad)
+    {
+        using var docx = DocumentFormat.OpenXml.Packaging.WordprocessingDocument.Open(pfad, false);
+        using var lesen = new StreamReader(docx.MainDocumentPart!.GetStream(FileMode.Open, FileAccess.Read));
+        return lesen.ReadToEnd();
+    }
+
+    /// <inheritdoc cref="Hauptteil"/>
+    private static string Kopfzeile(string pfad)
+    {
+        using var docx = DocumentFormat.OpenXml.Packaging.WordprocessingDocument.Open(pfad, false);
+        var teil = docx.MainDocumentPart!.HeaderParts.First();
+        using var lesen = new StreamReader(teil.GetStream(FileMode.Open, FileAccess.Read));
+        return lesen.ReadToEnd();
     }
 
     /// <inheritdoc cref="DokumentmodellTests"/>
@@ -527,6 +813,10 @@ public sealed class DocxRoundtripTests
 
     private static TdBlock[] Inhalt() =>
         [
+            // Das Inhaltsverzeichnis: ein Feld in der dreiteiligen Form, dazu die Textmarken
+            // an den Überschriften, die es aufzählt (§4.20).
+            new TdParagraph([new TdField(TdFieldKind.TableOfContents, "1-2")]),
+
             new TdParagraph([new TdRun("Kapitel 1")])
             {
                 Format = { OutlineLevel = 1, Alignment = TdAlign.Center, SpaceBeforePt = 12, KeepWithNext = true },
@@ -567,6 +857,26 @@ public sealed class DocxRoundtripTests
                     PageBreakBefore = false,
                 },
             },
+            // Verweise und Felder: ein relatives Ziel, eine Textmarke im eigenen Dokument, und
+            // vier Feldarten — zwei davon mit eigener Zusatzangabe.
+            new TdParagraph([
+                new TdRun("Siehe "),
+                new TdHyperlink("kapitel-2.md",
+                    new TdRun("Kapitel "),
+                    new TdRun("zwei", new TdCharFormat { Bold = true })),
+                new TdRun(", "),
+                TdHyperlink.Text("#marke", "hier im Text"),
+                new TdRun(" — Stand "),
+                new TdField(TdFieldKind.Date, "yyyy-MM-dd"),
+                new TdRun(", Seite "),
+                new TdField(TdFieldKind.PageNumber),
+                new TdRun(" von "),
+                new TdField(TdFieldKind.PageCount),
+                new TdRun(" in "),
+                new TdField(TdFieldKind.Title) { Format = { Italic = true } },
+                new TdRun("."),
+            ]),
+
             // Zwei Listen, zwei Ebenen — Nummerierung und Aufzählung nebeneinander.
             new TdParagraph("Erster Punkt") { List = new TdListRef(1, 0) },
             new TdParagraph("Unterpunkt") { List = new TdListRef(1, 1) },
@@ -622,14 +932,7 @@ public sealed class DocxRoundtripTests
                     GleichesZeichenformat(pa.CharFormat, pb.CharFormat);
                     GleichesAbsatzformat(pa.Format, pb.Format);
                     GleicherListenverweis(pa.List, pb.List);
-
-                    Assert.Equal(pa.Inlines.Count, pb.Inlines.Count);
-                    for (int k = 0; k < pa.Inlines.Count; k++)
-                    {
-                        Assert.Equal(pa.Inlines[k].GetType(), pb.Inlines[k].GetType());
-                        Assert.Equal(pa.Inlines[k].PlainText(), pb.Inlines[k].PlainText());
-                        GleichesZeichenformat(pa.Inlines[k].Format, pb.Inlines[k].Format);
-                    }
+                    GleicheStuecke(pa.Inlines, pb.Inlines);
                     break;
                 }
 
@@ -667,6 +970,49 @@ public sealed class DocxRoundtripTests
 
                 default:
                     Assert.Fail($"Kein Vergleich für {a[i].GetType().Name} — bitte ergänzen.");
+                    break;
+            }
+        }
+    }
+
+    /// <inheritdoc cref="DokumentmodellTests"/>
+    private static void GleicheStuecke(List<TdInline> a, List<TdInline> b)
+    {
+        Assert.Equal(a.Count, b.Count);
+        for (int k = 0; k < a.Count; k++)
+        {
+            Assert.Equal(a[k].GetType(), b[k].GetType());
+            GleichesZeichenformat(a[k].Format, b[k].Format);
+
+            switch (a[k])
+            {
+                case TdRun ra:
+                    Assert.Equal(ra.Text, ((TdRun)b[k]).Text);
+                    break;
+
+                case TdLineBreak:
+                    break;
+
+                // **Ein Feld hat keinen Klartext** — wer nur den vergliche, bemerkte nicht,
+                // dass aus einem Datumsfeld ein Titel geworden ist.
+                case TdField fa:
+                {
+                    var fb = (TdField)b[k];
+                    Assert.Equal(fa.Kind, fb.Kind);
+                    Assert.Equal(fa.Argument, fb.Argument);
+                    break;
+                }
+
+                case TdHyperlink ha:
+                {
+                    var hb = (TdHyperlink)b[k];
+                    Assert.Equal(ha.Target, hb.Target);
+                    GleicheStuecke(ha.Inlines, hb.Inlines);
+                    break;
+                }
+
+                default:
+                    Assert.Fail($"Kein Vergleich für {a[k].GetType().Name} — bitte ergänzen.");
                     break;
             }
         }

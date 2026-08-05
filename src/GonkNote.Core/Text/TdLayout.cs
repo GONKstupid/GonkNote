@@ -5,7 +5,25 @@ namespace GonkNote.Core.Text;
 /// <param name="Format">Das **aufgelöste** Zeichenformat; der Zeichner muss nichts mehr kaskadieren.</param>
 /// <param name="XCm">Abstand vom linken Rand des Textbereichs.</param>
 /// <param name="WidthCm">Breite des Stücks.</param>
-public sealed record TdLaidOutRun(string Text, TdCharFormat Format, double XCm, double WidthCm);
+/// <param name="Link">
+/// Der Verweis, zu dem dieses Stück gehört — <c>null</c>, wenn es keiner ist. **Er steht hier
+/// und nicht nur im Modell**, weil der Zeichner beim Klick nur das gesetzte Ergebnis vor sich
+/// hat: ohne diese Angabe müsste er aus einem Punkt auf dem Papier den Absatz zurückrechnen,
+/// um das Ziel zu finden.
+/// </param>
+/// <param name="Field">
+/// Das Feld, dessen gerechneter Wert dieses Stück ist — <c>null</c> bei gewöhnlichem Text.
+/// <b>Ein Feld ist unteilbar:</b> der Cursor gehört davor oder dahinter und nicht hinein, und
+/// wer das nicht weiß, lässt den Nutzer eine Seitenzahl bearbeiten, die beim nächsten Umbruch
+/// wieder überschrieben wird — dieselbe Überlegung wie bei der Aufzählungsmarke (§4.17).
+/// </param>
+public sealed record TdLaidOutRun(
+    string Text,
+    TdCharFormat Format,
+    double XCm,
+    double WidthCm,
+    TdHyperlink? Link = null,
+    TdField? Field = null);
 
 /// <summary>Eine gesetzte Zeile.</summary>
 public sealed class TdLine
@@ -31,6 +49,14 @@ public sealed class TdLine
     /// mitgenommen.
     /// </summary>
     public TdLaidOutRun? Marker { get; set; }
+
+    /// <summary>
+    /// Gehört diese Zeile zu einem gesetzten Inhaltsverzeichnis? Sie steht dann **nicht** so
+    /// im Dokument: ihr Absatz ist gerechnet, nicht geschrieben (§4.20). Wer sie beim
+    /// Zurückrechnen auf den Text mitzählt, findet den Cursor an der falschen Stelle —
+    /// dieselbe Vorsicht wie bei <see cref="TdLaidOutRow.IsRepeatedHeader"/>.
+    /// </summary>
+    public bool IsTocEntry { get; set; }
 
     public string PlainText() => string.Concat(Runs.Select(r => r.Text));
 }
@@ -135,6 +161,22 @@ public sealed class TdLayoutResult
 public static class TdLayout
 {
     /// <summary>
+    /// Wie oft der Umbruch höchstens läuft, wenn Felder ihn von sich selbst abhängig machen
+    /// (Schritt 5).
+    ///
+    /// <para>
+    /// <b>Die Rechnung fällt sich hier ins Wort, und das ist keine Schwäche des Entwurfs,
+    /// sondern die Sache selbst:</b> Die Seitenanzahl steht erst fest, wenn alles gesetzt ist
+    /// — und ein Inhaltsverzeichnis braucht die Seitenzahlen der Überschriften, verschiebt
+    /// diese Überschriften aber durch seine eigene Länge. Word rechnet deshalb ebenfalls
+    /// mehrfach. Gelaufen wird, bis sich nichts mehr ändert, **höchstens aber so oft**: eine
+    /// Schleife, die auf einen Fixpunkt wartet, den es nicht gibt, meldet keinen Fehler — sie
+    /// meldet gar nichts (§4.16).
+    /// </para>
+    /// </summary>
+    private const int HoechstensDurchgaenge = 5;
+
+    /// <summary>
     /// Bricht das ganze Dokument um.
     /// <para>
     /// <b>Jeder Abschnitt beginnt auf einer neuen Seite.</b> Das ist DOCX' Vorgabe für
@@ -143,368 +185,544 @@ public static class TdLayout
     /// eigene Angabe, und die gibt es noch nicht.
     /// </para>
     /// </summary>
-    public static TdLayoutResult Umbrechen(TdDocument doc, ITdTextMeasure messung)
+    /// <param name="felder">
+    /// Datum und Titel für die Felder aus Schritt 5. <c>null</c> = <see cref="TdFieldContext.Ohne"/>
+    /// — Core fragt die Uhr nicht selbst (§4.20).
+    /// </param>
+    public static TdLayoutResult Umbrechen(TdDocument doc, ITdTextMeasure messung, TdFieldContext? felder = null)
     {
-        var ergebnis = new TdLayoutResult();
+        var kontext = felder ?? TdFieldContext.Ohne;
 
-        // Die Nummern hängen davon ab, was **vor** einem Punkt steht — sie werden deshalb
-        // einmal für das ganze Dokument gerechnet und nicht je Absatz.
-        var marken = TdListNumbering.Marken(doc);
+        var ergebnis = new Lauf(doc, messung, kontext, vorher: null).Umbrechen();
 
-        foreach (var abschnitt in doc.Sections)
-            AbschnittUmbrechen(doc, abschnitt, messung, ergebnis, marken);
+        // Ohne Felder, die vom Umbruch abhängen, ist der erste Durchgang auch der letzte.
+        if (!HaengtVomUmbruchAb(doc)) return ergebnis;
 
-        // Ein Dokument ohne jeden Absatz hat trotzdem eine Seite — sonst gäbe es nichts
-        // anzuzeigen und nichts zu drucken.
-        if (ergebnis.Pages.Count == 0)
-            ergebnis.Pages.Add(new TdPage { Number = 1, Setup = doc.Sections.FirstOrDefault()?.Page ?? TdPageSetup.A4 });
+        string signatur = Signatur(ergebnis);
+        for (int i = 1; i < HoechstensDurchgaenge; i++)
+        {
+            var naechster = new Lauf(doc, messung, kontext, vorher: ergebnis).Umbrechen();
+            string naechsteSignatur = Signatur(naechster);
+
+            ergebnis = naechster;
+            if (naechsteSignatur == signatur) break;
+            signatur = naechsteSignatur;
+        }
 
         return ergebnis;
     }
 
-    private static void AbschnittUmbrechen(
-        TdDocument doc, TdSection abschnitt, ITdTextMeasure messung, TdLayoutResult ergebnis,
-        Dictionary<TdParagraph, string> marken)
+    /// <summary>
+    /// Hängt im Dokument etwas vom Ergebnis des Umbruchs ab? Nur dann lohnt ein zweiter
+    /// Durchgang — die Seitenzahl allein tut es nicht, die steht beim Setzen der Zeile fest.
+    /// </summary>
+    private static bool HaengtVomUmbruchAb(TdDocument doc)
     {
-        var seite = NeueSeite(abschnitt.Page, ergebnis);
-        double hoehe = abschnitt.Page.TextHoeheCm;
-        double y = 0;
+        foreach (var absatz in doc.Paragraphs())
+            foreach (var (stueck, _) in absatz.FlacheStuecke())
+                if (stueck is TdField { Kind: TdFieldKind.PageCount or TdFieldKind.TableOfContents })
+                    return true;
+        return false;
+    }
 
-        // **Die Gruppe ist der Kern von „nicht vom nächsten Absatz trennen".** Solange ein
-        // Absatz `KeepWithNext` trägt, wandern seine Zeilen nicht sofort auf die Seite,
-        // sondern sammeln sich hier — zusammen mit denen der folgenden Absätze. Erst wenn
-        // ein Absatz ohne `KeepWithNext` kommt, wird die ganze Gruppe **am Stück** gesetzt.
-        // Eine Überschrift bleibt so bei ihrem ersten Absatz, statt allein unten zu stehen.
-        var gruppe = new List<TdLine>();
+    /// <summary>
+    /// Ein Fingerabdruck des Ergebnisses. Er muss **nicht** jedes Pixel erfassen, sondern
+    /// das, was sich zwischen zwei Durchgängen ändern kann: wie viele Seiten es gibt und wie
+    /// viel auf jeder steht.
+    /// </summary>
+    private static string Signatur(TdLayoutResult ergebnis) =>
+        string.Join(";", ergebnis.Pages.Select(s => $"{s.Lines.Count}/{s.TableRows.Count}"));
 
-        void GruppeSetzen()
+    // ==================== Ein Durchgang ====================
+
+    /// <summary>
+    /// Ein einzelner Durchgang des Umbruchs.
+    ///
+    /// <para>
+    /// <b>Eine Klasse und keine Kette von Argumenten:</b> Dokument, Messung, Feldwerte,
+    /// Listenmarken und das Ergebnis des vorigen Durchgangs gelten für den ganzen Lauf und
+    /// werden sonst durch sieben Methoden gereicht. Sie stehen deshalb einmal hier —
+    /// erzeugt wird pro Durchgang eine neue Instanz, damit nichts aus dem vorigen
+    /// stehenbleibt.
+    /// </para>
+    /// </summary>
+    private sealed class Lauf(
+        TdDocument doc, ITdTextMeasure messung, TdFieldContext kontext, TdLayoutResult? vorher)
+    {
+        private readonly TdLayoutResult _ergebnis = new();
+
+        /// <summary>
+        /// Die Nummern hängen davon ab, was **vor** einem Punkt steht — sie werden deshalb
+        /// einmal für das ganze Dokument gerechnet und nicht je Absatz.
+        /// </summary>
+        private readonly Dictionary<TdParagraph, string> _marken = TdListNumbering.Marken(doc);
+
+        /// <summary>
+        /// Die Gesamtzahl der Seiten aus dem **vorigen** Durchgang — im ersten gibt es keine,
+        /// und ein <c>{SEITEN}</c> steht dann leer da statt mit einer erfundenen Zahl.
+        /// </summary>
+        private int? Seitenzahl => vorher?.PageCount;
+
+        public TdLayoutResult Umbrechen()
         {
-            if (gruppe.Count == 0) return;
+            foreach (var abschnitt in doc.Sections) AbschnittUmbrechen(abschnitt);
 
-            double gebraucht = gruppe.Sum(z => z.HeightCm);
-
-            // Passt sie als Ganzes nicht mehr, fängt sie auf einer neuen Seite an — aber nur,
-            // wenn die aktuelle überhaupt schon etwas trägt. Sonst entstünde eine leere Seite
-            // vor einer Gruppe, die auf **keine** Seite passt.
-            if (y + gebraucht > hoehe && seite.Lines.Count > 0)
-            {
-                seite = NeueSeite(abschnitt.Page, ergebnis);
-                y = 0;
-            }
-
-            foreach (var zeile in gruppe)
-            {
-                // **Eine Gruppe, die höher ist als eine ganze Seite, muss trotzdem
-                // weiterlaufen.** Sie bricht dann innerhalb um — sichtbar unschön ist besser
-                // als ein Umbruch, der nicht zurückkommt (dieselbe Lehre wie bei
-                // `Eine_Tabelle_braucht_ihre_Trennzeile`, §4.12).
-                if (y + zeile.HeightCm > hoehe && seite.Lines.Count > 0)
+            // Ein Dokument ohne jeden Absatz hat trotzdem eine Seite — sonst gäbe es nichts
+            // anzuzeigen und nichts zu drucken.
+            if (_ergebnis.Pages.Count == 0)
+                _ergebnis.Pages.Add(new TdPage
                 {
-                    seite = NeueSeite(abschnitt.Page, ergebnis);
+                    Number = 1,
+                    Setup = doc.Sections.FirstOrDefault()?.Page ?? TdPageSetup.A4,
+                });
+
+            return _ergebnis;
+        }
+
+        private void AbschnittUmbrechen(TdSection abschnitt)
+        {
+            var seite = NeueSeite(abschnitt.Page);
+            double hoehe = abschnitt.Page.TextHoeheCm;
+            double y = 0;
+
+            // **Die Gruppe ist der Kern von „nicht vom nächsten Absatz trennen".** Solange ein
+            // Absatz `KeepWithNext` trägt, wandern seine Zeilen nicht sofort auf die Seite,
+            // sondern sammeln sich hier — zusammen mit denen der folgenden Absätze. Erst wenn
+            // ein Absatz ohne `KeepWithNext` kommt, wird die ganze Gruppe **am Stück** gesetzt.
+            // Eine Überschrift bleibt so bei ihrem ersten Absatz, statt allein unten zu stehen.
+            var gruppe = new List<TdLine>();
+
+            void GruppeSetzen()
+            {
+                if (gruppe.Count == 0) return;
+
+                double gebraucht = gruppe.Sum(z => z.HeightCm);
+
+                // Passt sie als Ganzes nicht mehr, fängt sie auf einer neuen Seite an — aber nur,
+                // wenn die aktuelle überhaupt schon etwas trägt. Sonst entstünde eine leere Seite
+                // vor einer Gruppe, die auf **keine** Seite passt.
+                if (y + gebraucht > hoehe && seite.Lines.Count > 0)
+                {
+                    seite = NeueSeite(abschnitt.Page);
                     y = 0;
                 }
 
-                zeile.YCm = y;
-                seite.Lines.Add(zeile);
-                y += zeile.HeightCm;
-            }
-            gruppe.Clear();
-        }
-
-        void SeiteWechseln()
-        {
-            GruppeSetzen();
-            seite = NeueSeite(abschnitt.Page, ergebnis);
-            y = 0;
-        }
-
-        foreach (var block in abschnitt.Blocks)
-        {
-            if (block is TdPageBreak) { SeiteWechseln(); continue; }
-
-            if (block is TdTable tabelle)
-            {
-                // Eine Tabelle bricht **zwischen** ihren Zeilen um und gehört deshalb nicht
-                // in die Gruppe: sie wäre sonst als Ganzes unteilbar.
-                GruppeSetzen();
-                TabelleSetzen(doc, tabelle, abschnitt, messung, marken, ergebnis,
-                    ref seite, ref y, hoehe);
-                continue;
-            }
-
-            if (block is not TdParagraph absatz) continue;
-
-            var format = doc.FormatVon(absatz);
-
-            // Ein erzwungener Umbruch **vor** dem Absatz — aber nicht, wenn die Seite ohnehin
-            // noch leer ist: sonst entstünde eine leere Seite davor.
-            if (format.PageBreakBefore == true && (seite.Lines.Count > 0 || gruppe.Count > 0))
-                SeiteWechseln();
-
-            // Die Abstände davor und danach werden der ersten bzw. letzten Zeile zugeschlagen.
-            // So bleiben sie Teil der Gruppe und wandern mit ihr — ein Abstand, der allein
-            // oben auf der neuen Seite landet, wäre ein sichtbarer Fehler.
-            //
-            // **Beim Abstand davor wandert die Grundlinie mit**: sie zählt ab der Oberkante
-            // der Zeile, und die liegt jetzt um den Abstand höher. Ohne das säße der Text im
-            // Abstand statt darunter.
-            var zeilen = AbsatzZeilen(doc, absatz, abschnitt.Page, messung,
-                marken.GetValueOrDefault(absatz));
-            double vor = format.SpaceBeforePt!.Value * CmProPunkt;
-            zeilen[0].HeightCm += vor;
-            zeilen[0].BaselineCm += vor;
-            zeilen[^1].HeightCm += format.SpaceAfterPt!.Value * CmProPunkt;
-
-            gruppe.AddRange(zeilen);
-
-            if (format.KeepWithNext != true) GruppeSetzen();
-        }
-
-        GruppeSetzen();
-    }
-
-    private static TdPage NeueSeite(TdPageSetup einrichtung, TdLayoutResult ergebnis)
-    {
-        var seite = new TdPage { Number = ergebnis.Pages.Count + 1, Setup = einrichtung };
-        ergebnis.Pages.Add(seite);
-        return seite;
-    }
-
-    // ==================== Tabellen ====================
-
-    /// <summary>
-    /// Setzt eine Tabelle. **Sie bricht zwischen ihren Zeilen um**, und die Kopfzeilen
-    /// werden auf jeder Folgeseite wiederholt.
-    /// </summary>
-    private static void TabelleSetzen(
-        TdDocument doc, TdTable tabelle, TdSection abschnitt, ITdTextMeasure messung,
-        Dictionary<TdParagraph, string> marken, TdLayoutResult ergebnis,
-        ref TdPage seite, ref double y, double hoehe)
-    {
-        if (tabelle.Rows.Count == 0) return;
-
-        var breiten = tabelle.Spaltenbreiten(abschnitt.Page.TextBreiteCm);
-        var gesetzt = new List<TdLaidOutRow>();
-
-        foreach (var zeile in tabelle.Rows)
-            gesetzt.Add(ZeileSetzen(doc, tabelle, zeile, breiten, abschnitt, messung, marken));
-
-        SenkrechteVerbindungenAufloesen(tabelle, gesetzt);
-
-        // Die Kopfzeilen sind die **führenden** Zeilen mit `IsHeader`. Eine Kopfzeile mitten
-        // in der Tabelle lässt sich nicht wiederholen — Word ignoriert sie ebenso, und das
-        // ist keine Eigenheit, sondern die einzige Lesart, die sich umbrechen lässt.
-        int kopfzeilen = 0;
-        while (kopfzeilen < gesetzt.Count && tabelle.Rows[kopfzeilen].IsHeader) kopfzeilen++;
-        double kopfhoehe = gesetzt.Take(kopfzeilen).Sum(z => z.HeightCm);
-
-        bool kopfSteht = false;
-
-        for (int i = 0; i < gesetzt.Count; i++)
-        {
-            var zeile = gesetzt[i];
-            bool istKopf = i < kopfzeilen;
-
-            // **Eine Zeile, die höher ist als die Seite, darf nicht in eine Endlosschleife
-            // führen.** Sie kommt auf die (leere) Seite und ragt heraus — derselbe Ausweg
-            // wie beim überlangen Wort und bei der zu großen Gruppe (§4.16).
-            if (y + zeile.HeightCm > hoehe && seite.Lines.Count + seite.TableRows.Count > 0)
-            {
-                seite = NeueSeite(abschnitt.Page, ergebnis);
-                y = 0;
-                kopfSteht = false;
-            }
-
-            // Auf einer Folgeseite die Kopfzeilen wiederholen — aber nur, wenn danach noch
-            // Platz für mindestens eine Inhaltszeile bleibt. Sonst stünde eine Kopfzeile
-            // allein auf der Seite und die Tabelle begänne erst auf der nächsten.
-            if (!istKopf && !kopfSteht && kopfzeilen > 0 &&
-                y + kopfhoehe + zeile.HeightCm <= hoehe)
-            {
-                for (int k = 0; k < kopfzeilen; k++)
+                foreach (var zeile in gruppe)
                 {
-                    var wiederholt = ZeileSetzen(doc, tabelle, tabelle.Rows[k], breiten,
-                        abschnitt, messung, marken);
-                    wiederholt.IsRepeatedHeader = true;
-                    wiederholt.YCm = y;
-                    seite.TableRows.Add(wiederholt);
-                    y += wiederholt.HeightCm;
+                    // **Eine Gruppe, die höher ist als eine ganze Seite, muss trotzdem
+                    // weiterlaufen.** Sie bricht dann innerhalb um — sichtbar unschön ist besser
+                    // als ein Umbruch, der nicht zurückkommt (dieselbe Lehre wie bei
+                    // `Eine_Tabelle_braucht_ihre_Trennzeile`, §4.12).
+                    if (y + zeile.HeightCm > hoehe && seite.Lines.Count > 0)
+                    {
+                        seite = NeueSeite(abschnitt.Page);
+                        y = 0;
+                    }
+
+                    zeile.YCm = y;
+                    SeitenzahlNachziehen(zeile, seite.Number);
+                    seite.Lines.Add(zeile);
+                    y += zeile.HeightCm;
                 }
-            }
-            if (!istKopf) kopfSteht = true;
-
-            zeile.YCm = y;
-            seite.TableRows.Add(zeile);
-            y += zeile.HeightCm;
-        }
-    }
-
-    private static TdLaidOutRow ZeileSetzen(
-        TdDocument doc, TdTable tabelle, TdTableRow zeile, double[] breiten,
-        TdSection abschnitt, ITdTextMeasure messung, Dictionary<TdParagraph, string> marken)
-    {
-        var gesetzt = new TdLaidOutRow { Table = tabelle, Source = zeile };
-        var f = tabelle.Format;
-
-        double x = 0;
-        int spalte = 0;
-        double inhaltshoehe = 0;
-
-        foreach (var zelle in zeile.Cells)
-        {
-            int spannweite = Math.Max(1, zelle.ColumnSpan);
-
-            double breite = 0;
-            for (int i = 0; i < spannweite && spalte + i < breiten.Length; i++)
-                breite += breiten[spalte + i];
-
-            // **Fortsetzungszellen bekommen keinen Ort und keinen Inhalt** — ihr Inhalt steht
-            // in der Restart-Zelle darüber. Sie schieben aber die Spalte weiter, sonst säße
-            // alles dahinter eine Spalte zu weit links.
-            if (!zelle.IstFortsetzung)
-            {
-                var gesetzteZelle = ZelleSetzen(doc, zelle, x, breite, f, abschnitt, messung, marken);
-                gesetzt.Cells.Add(gesetzteZelle);
-
-                double hoehe = gesetzteZelle.Lines.Sum(z => z.HeightCm)
-                               + f.CellPaddingTopCm + f.CellPaddingBottomCm;
-
-                // Eine Zelle, die über mehrere Zeilen reicht, darf **diese** Zeile nicht
-                // hochziehen — ihre Höhe verteilt sich, und das entscheidet erst
-                // SenkrechteVerbindungenAufloesen.
-                if (zelle.VerticalMerge != TdVerticalMerge.Restart)
-                    inhaltshoehe = Math.Max(inhaltshoehe, hoehe);
+                gruppe.Clear();
             }
 
-            x += breite;
-            spalte += spannweite;
+            void SeiteWechseln()
+            {
+                GruppeSetzen();
+                seite = NeueSeite(abschnitt.Page);
+                y = 0;
+            }
+
+            foreach (var block in abschnitt.Blocks)
+            {
+                if (block is TdPageBreak) { SeiteWechseln(); continue; }
+
+                if (block is TdTable tabelle)
+                {
+                    // Eine Tabelle bricht **zwischen** ihren Zeilen um und gehört deshalb nicht
+                    // in die Gruppe: sie wäre sonst als Ganzes unteilbar.
+                    GruppeSetzen();
+                    TabelleSetzen(tabelle, abschnitt, ref seite, ref y, hoehe);
+                    continue;
+                }
+
+                if (block is not TdParagraph absatz) continue;
+
+                var format = doc.FormatVon(absatz);
+
+                // Ein erzwungener Umbruch **vor** dem Absatz — aber nicht, wenn die Seite ohnehin
+                // noch leer ist: sonst entstünde eine leere Seite davor.
+                if (format.PageBreakBefore == true && (seite.Lines.Count > 0 || gruppe.Count > 0))
+                    SeiteWechseln();
+
+                // Die Abstände davor und danach werden der ersten bzw. letzten Zeile zugeschlagen.
+                // So bleiben sie Teil der Gruppe und wandern mit ihr — ein Abstand, der allein
+                // oben auf der neuen Seite landet, wäre ein sichtbarer Fehler.
+                //
+                // **Beim Abstand davor wandert die Grundlinie mit**: sie zählt ab der Oberkante
+                // der Zeile, und die liegt jetzt um den Abstand höher. Ohne das säße der Text im
+                // Abstand statt darunter.
+                var zeilen = AbsatzOderVerzeichnis(absatz, abschnitt.Page, seite.Number);
+                double vor = format.SpaceBeforePt!.Value * CmProPunkt;
+                zeilen[0].HeightCm += vor;
+                zeilen[0].BaselineCm += vor;
+                zeilen[^1].HeightCm += format.SpaceAfterPt!.Value * CmProPunkt;
+
+                gruppe.AddRange(zeilen);
+
+                if (format.KeepWithNext != true) GruppeSetzen();
+            }
+
+            GruppeSetzen();
         }
 
-        gesetzt.HeightCm = Math.Max(zeile.MinHeightCm ?? 0, inhaltshoehe);
-        return gesetzt;
-    }
-
-    private static TdLaidOutCell ZelleSetzen(
-        TdDocument doc, TdTableCell zelle, double x, double breite, TdTableFormat f,
-        TdSection abschnitt, ITdTextMeasure messung, Dictionary<TdParagraph, string> marken)
-    {
-        var gesetzt = new TdLaidOutCell
+        private TdPage NeueSeite(TdPageSetup einrichtung)
         {
-            XCm = x,
-            WidthCm = breite,
-            Source = zelle,
-        };
+            var seite = new TdPage { Number = _ergebnis.Pages.Count + 1, Setup = einrichtung };
+            _ergebnis.Pages.Add(seite);
+            return seite;
+        }
 
-        // Der Inhalt bricht in der **Innenbreite** um, nicht in der Zellbreite. Ein
-        // vergessener Innenabstand ist kein sichtbarer Fehler, sondern eine Tabelle, deren
-        // Text am Rand klebt und eine Zeile zu spät umbricht.
-        double innen = Math.Max(0.1, breite - f.CellPaddingLeftCm - f.CellPaddingRightCm);
+        // ==================== Felder ====================
 
-        // Die Zelle ist eine eigene kleine Seite: der Zellinhalt kennt weder Seitenränder noch
-        // die Einzüge der Tabelle, nur seine eigene Breite.
-        var zellseite = new TdPageSetup
+        /// <summary>
+        /// Setzt die Seitenzahl in einer Zeile richtig, sobald feststeht, auf welcher Seite sie
+        /// landet.
+        ///
+        /// <para>
+        /// <b>Warum das nachträglich geschieht:</b> Eine Zeile wird umbrochen, bevor entschieden
+        /// ist, wohin sie kommt — eine zusammengehaltene Gruppe kann noch auf die nächste Seite
+        /// rutschen. Ein <c>PAGE</c>-Feld, das beim Umbrechen die damals aktuelle Nummer
+        /// bekommt, stünde dann um eins daneben.
+        /// </para>
+        /// <para>
+        /// <b>Die Zeile wird dafür nicht neu umbrochen.</b> Wächst die Zahl von 9 auf 10, ist das
+        /// Stück eine Ziffer breiter, als beim Messen angenommen — Word rechnet an dieser Stelle
+        /// genauso ungenau. Ein vollständiges Neuumbrechen bei jedem Seitenwechsel wäre eine
+        /// Rechnung, die sich selbst ins Wort fällt, und der Gewinn wäre eine Ziffer.
+        /// </para>
+        /// </summary>
+        private void SeitenzahlNachziehen(TdLine zeile, int seitennummer)
         {
-            WidthCm = innen,
-            HeightCm = abschnitt.Page.HeightCm,
-            MarginLeftCm = 0,
-            MarginRightCm = 0,
-            MarginTopCm = 0,
-            MarginBottomCm = 0,
-        };
-
-        double y = 0;
-        foreach (var block in zelle.Blocks)
-        {
-            // **Benannte Lücke: eine Tabelle *in* einer Zelle wird hier nicht gesetzt.**
-            // Das Modell trägt sie, DOCX schreibt und liest sie (§4.18) — nur der Umbruch
-            // kennt sie noch nicht, denn dafür bräuchte eine gesetzte Zelle ihrerseits
-            // Tabellenzeilen. Sie ist damit sichtbar leer statt still falsch, und der
-            // Wächter `Eine_Tabelle_in_einer_Zelle_wird_noch_nicht_gesetzt` hält den Zustand
-            // fest, damit er absichtlich verschwindet und nicht versehentlich.
-            if (block is not TdParagraph absatz) continue;
-
-            var format = doc.FormatVon(absatz);
-            var zeilen = AbsatzZeilen(doc, absatz, zellseite, messung, marken.GetValueOrDefault(absatz));
-
-            double vor = format.SpaceBeforePt!.Value * CmProPunkt;
-            zeilen[0].HeightCm += vor;
-            zeilen[0].BaselineCm += vor;
-            zeilen[^1].HeightCm += format.SpaceAfterPt!.Value * CmProPunkt;
-
-            foreach (var zeile in zeilen)
+            for (int i = 0; i < zeile.Runs.Count; i++)
             {
+                if (zeile.Runs[i].Field is not { Kind: TdFieldKind.PageNumber } feld) continue;
+
+                zeile.Runs[i] = zeile.Runs[i] with
+                {
+                    Text = TdFieldValues.Text(feld, kontext, seitennummer, Seitenzahl),
+                };
+            }
+        }
+
+        /// <summary>
+        /// Die Zeilen eines Absatzes — oder, wenn er ein Inhaltsverzeichnis ist, dessen
+        /// Einträge.
+        ///
+        /// <para>
+        /// <b>Ein Verzeichnisabsatz wird ersetzt, nicht ergänzt.</b> Was in ihm steht, ist das
+        /// Feld und nicht der Text; auf dem Papier stehen die Überschriften des Dokuments.
+        /// Solange es keine gibt, bleibt eine leere Zeile stehen — sonst hätte der Cursor an
+        /// der Stelle des Verzeichnisses keinen Ort.
+        /// </para>
+        /// </summary>
+        private List<TdLine> AbsatzOderVerzeichnis(TdParagraph absatz, TdPageSetup seite, int seitennummer)
+        {
+            if (TdToc.Feld(absatz) is not { } feld)
+                return AbsatzZeilen(doc, absatz, seite, messung, _marken.GetValueOrDefault(absatz),
+                    kontext, seitennummer, Seitenzahl);
+
+            var eintraege = TdToc.Eintraege(doc, vorher, feld.Argument);
+            if (eintraege.Count == 0)
+                return AbsatzZeilen(doc, new TdParagraph { CharFormat = absatz.CharFormat, Format = absatz.Format },
+                    seite, messung, marke: null, kontext, seitennummer, Seitenzahl);
+
+            var zeichenformat = absatz.CharFormat.Over(doc.DefaultCharFormat).Aufgeloest();
+            var zeilen = new List<TdLine>();
+
+            foreach (var eintrag in eintraege)
+            {
+                var eintragsabsatz = TdToc.EintragsAbsatz(eintrag, absatz.CharFormat.Kopie());
+                var eintragszeilen = AbsatzZeilen(doc, eintragsabsatz, seite, messung, marke: null,
+                    kontext, seitennummer, Seitenzahl);
+
+                // Die Zeilen gehören zum **Verzeichnisabsatz** und nicht zum gerechneten
+                // Eintragsabsatz: Letzteren gibt es im Dokument nicht, und ein Cursor, der auf
+                // ihn zeigt, zeigt ins Leere.
+                foreach (var zeile in eintragszeilen)
+                {
+                    zeile.Source = absatz;
+                    zeile.IsTocEntry = true;
+                }
+
+                if (eintrag.Page > 0) SeitenzahlAnsEnde(eintragszeilen[^1], eintrag.Page, zeichenformat, seite);
+
+                zeilen.AddRange(eintragszeilen);
+            }
+
+            return zeilen;
+        }
+
+        /// <summary>
+        /// Hängt die Seitenzahl eines Verzeichniseintrags rechtsbündig an seine letzte Zeile.
+        /// <para>
+        /// In Word steht dort ein Tabulator mit Füllzeichen. Den kennt das Modell nicht, und
+        /// einen dafür zu erfinden hieße, ein halbes Feature an der falschen Stelle zu bauen —
+        /// für das Verzeichnis genügt der rechte Rand, und den kennt der Umbruch ohnehin.
+        /// </para>
+        /// </summary>
+        private void SeitenzahlAnsEnde(TdLine zeile, int nummer, TdCharFormat format, TdPageSetup seite)
+        {
+            string text = nummer.ToString();
+            double breite = messung.WidthCm(text, format);
+            zeile.Runs.Add(new TdLaidOutRun(text, format, Math.Max(0, seite.TextBreiteCm - breite), breite));
+        }
+
+        // ==================== Tabellen ====================
+
+        /// <summary>
+        /// Setzt eine Tabelle. **Sie bricht zwischen ihren Zeilen um**, und die Kopfzeilen
+        /// werden auf jeder Folgeseite wiederholt.
+        /// </summary>
+        private void TabelleSetzen(
+            TdTable tabelle, TdSection abschnitt, ref TdPage seite, ref double y, double hoehe)
+        {
+            if (tabelle.Rows.Count == 0) return;
+
+            var breiten = tabelle.Spaltenbreiten(abschnitt.Page.TextBreiteCm);
+            var gesetzt = new List<TdLaidOutRow>();
+
+            foreach (var zeile in tabelle.Rows)
+                gesetzt.Add(ZeileSetzen(tabelle, zeile, breiten, abschnitt, seite.Number));
+
+            SenkrechteVerbindungenAufloesen(tabelle, gesetzt);
+
+            // Die Kopfzeilen sind die **führenden** Zeilen mit `IsHeader`. Eine Kopfzeile mitten
+            // in der Tabelle lässt sich nicht wiederholen — Word ignoriert sie ebenso, und das
+            // ist keine Eigenheit, sondern die einzige Lesart, die sich umbrechen lässt.
+            int kopfzeilen = 0;
+            while (kopfzeilen < gesetzt.Count && tabelle.Rows[kopfzeilen].IsHeader) kopfzeilen++;
+            double kopfhoehe = gesetzt.Take(kopfzeilen).Sum(z => z.HeightCm);
+
+            bool kopfSteht = false;
+
+            for (int i = 0; i < gesetzt.Count; i++)
+            {
+                var zeile = gesetzt[i];
+                bool istKopf = i < kopfzeilen;
+
+                // **Eine Zeile, die höher ist als die Seite, darf nicht in eine Endlosschleife
+                // führen.** Sie kommt auf die (leere) Seite und ragt heraus — derselbe Ausweg
+                // wie beim überlangen Wort und bei der zu großen Gruppe (§4.16).
+                if (y + zeile.HeightCm > hoehe && seite.Lines.Count + seite.TableRows.Count > 0)
+                {
+                    seite = NeueSeite(abschnitt.Page);
+                    y = 0;
+                    kopfSteht = false;
+                }
+
+                // Auf einer Folgeseite die Kopfzeilen wiederholen — aber nur, wenn danach noch
+                // Platz für mindestens eine Inhaltszeile bleibt. Sonst stünde eine Kopfzeile
+                // allein auf der Seite und die Tabelle begänne erst auf der nächsten.
+                if (!istKopf && !kopfSteht && kopfzeilen > 0 &&
+                    y + kopfhoehe + zeile.HeightCm <= hoehe)
+                {
+                    for (int k = 0; k < kopfzeilen; k++)
+                    {
+                        var wiederholt = ZeileSetzen(tabelle, tabelle.Rows[k], breiten, abschnitt, seite.Number);
+                        wiederholt.IsRepeatedHeader = true;
+                        wiederholt.YCm = y;
+                        ZeileAufSeite(wiederholt, seite);
+                        y += wiederholt.HeightCm;
+                    }
+                }
+                if (!istKopf) kopfSteht = true;
+
                 zeile.YCm = y;
-                gesetzt.Lines.Add(zeile);
+                ZeileAufSeite(zeile, seite);
                 y += zeile.HeightCm;
             }
         }
 
-        return gesetzt;
-    }
-
-    /// <summary>
-    /// Verteilt die Höhe senkrecht verbundener Zellen.
-    /// <para>
-    /// <b>Die Rechnung läuft in zwei Durchgängen, und das ist nötig:</b> Wie hoch eine
-    /// verbundene Zelle die Zeilen macht, über die sie reicht, steht erst fest, wenn diese
-    /// Zeilen ihre eigene Höhe kennen. Erst danach lässt sich sagen, ob noch etwas fehlt.
-    /// </para>
-    /// </summary>
-    private static void SenkrechteVerbindungenAufloesen(TdTable tabelle, List<TdLaidOutRow> gesetzt)
-    {
-        for (int z = 0; z < tabelle.Rows.Count; z++)
+        /// <summary>
+        /// Setzt eine Tabellenzeile auf die Seite — und zieht dabei die Seitenzahlen in ihren
+        /// Zellen nach, aus demselben Grund wie bei einer gewöhnlichen Zeile.
+        /// </summary>
+        private void ZeileAufSeite(TdLaidOutRow zeile, TdPage seite)
         {
-            int spalte = 0;
-            int zellenIndex = 0;
+            foreach (var zelle in zeile.Cells)
+                foreach (var innen in zelle.Lines)
+                    SeitenzahlNachziehen(innen, seite.Number);
 
-            foreach (var zelle in tabelle.Rows[z].Cells)
+            seite.TableRows.Add(zeile);
+        }
+
+        private TdLaidOutRow ZeileSetzen(
+            TdTable tabelle, TdTableRow zeile, double[] breiten, TdSection abschnitt, int seitennummer)
+        {
+            var gesetzt = new TdLaidOutRow { Table = tabelle, Source = zeile };
+            var f = tabelle.Format;
+
+            double x = 0;
+            int spalte = 0;
+            double inhaltshoehe = 0;
+
+            foreach (var zelle in zeile.Cells)
             {
                 int spannweite = Math.Max(1, zelle.ColumnSpan);
 
-                if (zelle.VerticalMerge == TdVerticalMerge.Restart)
+                double breite = 0;
+                for (int i = 0; i < spannweite && spalte + i < breiten.Length; i++)
+                    breite += breiten[spalte + i];
+
+                // **Fortsetzungszellen bekommen keinen Ort und keinen Inhalt** — ihr Inhalt steht
+                // in der Restart-Zelle darüber. Sie schieben aber die Spalte weiter, sonst säße
+                // alles dahinter eine Spalte zu weit links.
+                if (!zelle.IstFortsetzung)
                 {
-                    // Wie viele Zeilen reicht sie? So viele Fortsetzungen folgen ihr in
-                    // derselben Spalte.
-                    int reicht = 1;
-                    for (int w = z + 1; w < tabelle.Rows.Count; w++)
-                    {
-                        if (ZelleAnSpalte(tabelle.Rows[w], spalte) is { IstFortsetzung: true }) reicht++;
-                        else break;
-                    }
+                    var gesetzteZelle = ZelleSetzen(zelle, x, breite, f, abschnitt, seitennummer);
+                    gesetzt.Cells.Add(gesetzteZelle);
 
-                    var gesetzteZelle = gesetzt[z].Cells[zellenIndex];
-                    gesetzteZelle.RowSpan = reicht;
+                    double hoehe = gesetzteZelle.Lines.Sum(z => z.HeightCm)
+                                   + f.CellPaddingTopCm + f.CellPaddingBottomCm;
 
-                    double vorhanden = 0;
-                    for (int w = z; w < z + reicht && w < gesetzt.Count; w++) vorhanden += gesetzt[w].HeightCm;
-
-                    double gebraucht = gesetzteZelle.Lines.Sum(l => l.HeightCm)
-                                       + tabelle.Format.CellPaddingTopCm + tabelle.Format.CellPaddingBottomCm;
-
-                    // Fehlt Platz, wächst die **letzte** Zeile der Verbindung. Sie
-                    // gleichmäßig zu verteilen sähe gefälliger aus, verschöbe aber die
-                    // Zeilen dazwischen gegenüber ihren unverbundenen Nachbarn.
-                    if (gebraucht > vorhanden && z + reicht - 1 < gesetzt.Count)
-                        gesetzt[z + reicht - 1].HeightCm += gebraucht - vorhanden;
+                    // Eine Zelle, die über mehrere Zeilen reicht, darf **diese** Zeile nicht
+                    // hochziehen — ihre Höhe verteilt sich, und das entscheidet erst
+                    // SenkrechteVerbindungenAufloesen.
+                    if (zelle.VerticalMerge != TdVerticalMerge.Restart)
+                        inhaltshoehe = Math.Max(inhaltshoehe, hoehe);
                 }
 
-                if (!zelle.IstFortsetzung) zellenIndex++;
+                x += breite;
                 spalte += spannweite;
             }
-        }
-    }
 
-    /// <summary>Die Zelle, die an Rasterspalte <paramref name="spalte"/> beginnt — oder <c>null</c>.</summary>
-    private static TdTableCell? ZelleAnSpalte(TdTableRow zeile, int spalte)
-    {
-        int s = 0;
-        foreach (var zelle in zeile.Cells)
-        {
-            if (s == spalte) return zelle;
-            s += Math.Max(1, zelle.ColumnSpan);
-            if (s > spalte) return null;
+            gesetzt.HeightCm = Math.Max(zeile.MinHeightCm ?? 0, inhaltshoehe);
+            return gesetzt;
         }
-        return null;
+
+        private TdLaidOutCell ZelleSetzen(
+            TdTableCell zelle, double x, double breite, TdTableFormat f, TdSection abschnitt, int seitennummer)
+        {
+            var gesetzt = new TdLaidOutCell
+            {
+                XCm = x,
+                WidthCm = breite,
+                Source = zelle,
+            };
+
+            // Der Inhalt bricht in der **Innenbreite** um, nicht in der Zellbreite. Ein
+            // vergessener Innenabstand ist kein sichtbarer Fehler, sondern eine Tabelle, deren
+            // Text am Rand klebt und eine Zeile zu spät umbricht.
+            double innen = Math.Max(0.1, breite - f.CellPaddingLeftCm - f.CellPaddingRightCm);
+
+            // Die Zelle ist eine eigene kleine Seite: der Zellinhalt kennt weder Seitenränder noch
+            // die Einzüge der Tabelle, nur seine eigene Breite.
+            var zellseite = new TdPageSetup
+            {
+                WidthCm = innen,
+                HeightCm = abschnitt.Page.HeightCm,
+                MarginLeftCm = 0,
+                MarginRightCm = 0,
+                MarginTopCm = 0,
+                MarginBottomCm = 0,
+            };
+
+            double y = 0;
+            foreach (var block in zelle.Blocks)
+            {
+                // **Benannte Lücke: eine Tabelle *in* einer Zelle wird hier nicht gesetzt.**
+                // Das Modell trägt sie, DOCX schreibt und liest sie (§4.18) — nur der Umbruch
+                // kennt sie noch nicht, denn dafür bräuchte eine gesetzte Zelle ihrerseits
+                // Tabellenzeilen. Sie ist damit sichtbar leer statt still falsch, und der
+                // Wächter `Eine_Tabelle_in_einer_Zelle_wird_noch_nicht_gesetzt` hält den Zustand
+                // fest, damit er absichtlich verschwindet und nicht versehentlich.
+                if (block is not TdParagraph absatz) continue;
+
+                var format = doc.FormatVon(absatz);
+                var zeilen = AbsatzOderVerzeichnis(absatz, zellseite, seitennummer);
+
+                double vor = format.SpaceBeforePt!.Value * CmProPunkt;
+                zeilen[0].HeightCm += vor;
+                zeilen[0].BaselineCm += vor;
+                zeilen[^1].HeightCm += format.SpaceAfterPt!.Value * CmProPunkt;
+
+                foreach (var zeile in zeilen)
+                {
+                    zeile.YCm = y;
+                    gesetzt.Lines.Add(zeile);
+                    y += zeile.HeightCm;
+                }
+            }
+
+            return gesetzt;
+        }
+
+        /// <summary>
+        /// Verteilt die Höhe senkrecht verbundener Zellen.
+        /// <para>
+        /// <b>Die Rechnung läuft in zwei Durchgängen, und das ist nötig:</b> Wie hoch eine
+        /// verbundene Zelle die Zeilen macht, über die sie reicht, steht erst fest, wenn diese
+        /// Zeilen ihre eigene Höhe kennen. Erst danach lässt sich sagen, ob noch etwas fehlt.
+        /// </para>
+        /// </summary>
+        private static void SenkrechteVerbindungenAufloesen(TdTable tabelle, List<TdLaidOutRow> gesetzt)
+        {
+            for (int z = 0; z < tabelle.Rows.Count; z++)
+            {
+                int spalte = 0;
+                int zellenIndex = 0;
+
+                foreach (var zelle in tabelle.Rows[z].Cells)
+                {
+                    int spannweite = Math.Max(1, zelle.ColumnSpan);
+
+                    if (zelle.VerticalMerge == TdVerticalMerge.Restart)
+                    {
+                        // Wie viele Zeilen reicht sie? So viele Fortsetzungen folgen ihr in
+                        // derselben Spalte.
+                        int reicht = 1;
+                        for (int w = z + 1; w < tabelle.Rows.Count; w++)
+                        {
+                            if (ZelleAnSpalte(tabelle.Rows[w], spalte) is { IstFortsetzung: true }) reicht++;
+                            else break;
+                        }
+
+                        var gesetzteZelle = gesetzt[z].Cells[zellenIndex];
+                        gesetzteZelle.RowSpan = reicht;
+
+                        double vorhanden = 0;
+                        for (int w = z; w < z + reicht && w < gesetzt.Count; w++) vorhanden += gesetzt[w].HeightCm;
+
+                        double gebraucht = gesetzteZelle.Lines.Sum(l => l.HeightCm)
+                                           + tabelle.Format.CellPaddingTopCm + tabelle.Format.CellPaddingBottomCm;
+
+                        // Fehlt Platz, wächst die **letzte** Zeile der Verbindung. Sie
+                        // gleichmäßig zu verteilen sähe gefälliger aus, verschöbe aber die
+                        // Zeilen dazwischen gegenüber ihren unverbundenen Nachbarn.
+                        if (gebraucht > vorhanden && z + reicht - 1 < gesetzt.Count)
+                            gesetzt[z + reicht - 1].HeightCm += gebraucht - vorhanden;
+                    }
+
+                    if (!zelle.IstFortsetzung) zellenIndex++;
+                    spalte += spannweite;
+                }
+            }
+        }
+
+        /// <summary>Die Zelle, die an Rasterspalte <paramref name="spalte"/> beginnt — oder <c>null</c>.</summary>
+        private static TdTableCell? ZelleAnSpalte(TdTableRow zeile, int spalte)
+        {
+            int s = 0;
+            foreach (var zelle in zeile.Cells)
+            {
+                if (s == spalte) return zelle;
+                s += Math.Max(1, zelle.ColumnSpan);
+                if (s > spalte) return null;
+            }
+            return null;
+        }
     }
 
     // ==================== Zeilenumbruch ====================
@@ -519,10 +737,17 @@ public static class TdLayout
     /// Die schon gerechnete Aufzählungsmarke, falls dies ein Listenpunkt ist. Sie kommt von
     /// außen, weil sie vom ganzen Dokument abhängt und nicht von diesem Absatz.
     /// </param>
+    /// <param name="felder">Datum und Titel für die Felder (Schritt 5).</param>
+    /// <param name="seitennummer">
+    /// Die Seite, auf der die Zeilen **voraussichtlich** landen. Endgültig gesetzt wird eine
+    /// Seitenzahl erst beim Setzen der Zeile (§4.20).
+    /// </param>
+    /// <param name="seiten">Die Gesamtzahl der Seiten, soweit sie schon feststeht.</param>
     public static List<TdLine> AbsatzZeilen(
         TdDocument doc, TdParagraph absatz, TdPageSetup seite, ITdTextMeasure messung,
-        string? marke = null)
+        string? marke = null, TdFieldContext? felder = null, int seitennummer = 1, int? seiten = null)
     {
+        var kontext = felder ?? TdFieldContext.Ohne;
         var format = doc.FormatVon(absatz);
 
         double links = format.LeftIndentCm!.Value;
@@ -569,43 +794,61 @@ public static class TdLayout
             x = zeilenStart;
         }
 
-        foreach (var inline in absatz.Inlines)
+        // Setzt ein Stück und bricht davor um, wenn es nicht mehr passt.
+        void StueckSetzen(string stueck, TdCharFormat zeichenformat, TdHyperlink? verweis, TdField? feld)
         {
-            if (inline is TdLineBreak)
+            double stueckBreite = messung.WidthCm(stueck, zeichenformat);
+
+            if (x + stueckBreite > rechtsKante && aktuell.Runs.Count > 0)
+            {
+                ZeileAbschliessen(letzte: false);
+                NeueZeile();
+
+                // Nach einem Umbruch fällt der führende Leerraum weg — sonst rückte jede
+                // Folgezeile um ein Leerzeichen ein.
+                string ohneLeerraum = stueck.TrimStart();
+                if (ohneLeerraum.Length == 0) return;
+                if (ohneLeerraum.Length != stueck.Length)
+                    stueckBreite = messung.WidthCm(ohneLeerraum, zeichenformat);
+
+                aktuell.Runs.Add(new TdLaidOutRun(ohneLeerraum, zeichenformat, x, stueckBreite, verweis, feld));
+                x += stueckBreite;
+                return;
+            }
+
+            aktuell.Runs.Add(new TdLaidOutRun(stueck, zeichenformat, x, stueckBreite, verweis, feld));
+            x += stueckBreite;
+        }
+
+        // **Der Durchlauf ist flach**: ein Verweis erscheint nicht selbst, sondern seine
+        // Stücke. Wer hier über `Inlines` liefe, sähe den Verweis und nicht seinen Text
+        // (§7, „Markdown-Export").
+        foreach (var (stueck, verweis) in absatz.FlacheStuecke())
+        {
+            if (stueck is TdLineBreak)
             {
                 ZeileAbschliessen(letzte: true);   // ein erzwungener Umbruch wird nicht gestreckt
                 NeueZeile();
                 continue;
             }
 
-            if (inline is not TdRun lauf || lauf.Text.Length == 0) continue;
+            var zeichenformat = doc.FormatVon(absatz, stueck);
 
-            var zeichenformat = doc.FormatVon(absatz, lauf);
-
-            foreach (string stueck in InWoerter(lauf.Text))
+            if (stueck is TdField feld)
             {
-                double stueckBreite = messung.WidthCm(stueck, zeichenformat);
-
-                if (x + stueckBreite > rechtsKante && aktuell.Runs.Count > 0)
-                {
-                    ZeileAbschliessen(letzte: false);
-                    NeueZeile();
-
-                    // Nach einem Umbruch fällt der führende Leerraum weg — sonst rückte jede
-                    // Folgezeile um ein Leerzeichen ein.
-                    string ohneLeerraum = stueck.TrimStart();
-                    if (ohneLeerraum.Length == 0) continue;
-                    if (ohneLeerraum.Length != stueck.Length)
-                        stueckBreite = messung.WidthCm(ohneLeerraum, zeichenformat);
-
-                    aktuell.Runs.Add(new TdLaidOutRun(ohneLeerraum, zeichenformat, x, stueckBreite));
-                    x += stueckBreite;
-                    continue;
-                }
-
-                aktuell.Runs.Add(new TdLaidOutRun(stueck, zeichenformat, x, stueckBreite));
-                x += stueckBreite;
+                // **Ein Feld bricht nicht in sich um.** Sein Wert ist ein Stück und kein Text:
+                // eine Seitenzahl, deren zweite Ziffer in der nächsten Zeile steht, wäre keine
+                // Seitenzahl mehr. Deshalb geht es ungeteilt durch, auch wenn es Leerraum
+                // enthält (ein Titel darf einen haben).
+                string wert = TdFieldValues.Text(feld, kontext, seitennummer, seiten);
+                if (wert.Length > 0) StueckSetzen(wert, zeichenformat, verweis, feld);
+                continue;
             }
+
+            if (stueck is not TdRun lauf || lauf.Text.Length == 0) continue;
+
+            foreach (string wort in InWoerter(lauf.Text))
+                StueckSetzen(wort, zeichenformat, verweis, null);
         }
 
         ZeileAbschliessen(letzte: true);

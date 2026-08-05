@@ -1,6 +1,6 @@
 ﻿# Gonk Note V2 — Projektübergabe
 
-**Stand: 2026-08-04 · Version 0.3.0 · net10.0 · SkiaSharp 3 · SQLite · Avalonia 12 · ✅ M1 erreicht · beide Schulden aus Phase 3 eingelöst · Phase 4 läuft (Schritte 1–4 von 6)**
+**Stand: 2026-08-05 · Version 0.3.0 · net10.0 · SkiaSharp 3 · SQLite · Avalonia 12 · ✅ M1 erreicht · beide Schulden aus Phase 3 eingelöst · Phase 4 läuft (Schritte 1–5 von 6)**
 
 > **📌 Dauerregeln des Nutzers — gelten immer, ohne Nachfragen:**
 >
@@ -185,20 +185,26 @@ die Kopfzeile auf jeder Folgeseite. **Eine benannte Lücke bleibt:** eine Tabell
 Zelle wird noch nicht gesetzt — mit eigenem Wächter festgehalten, damit sie absichtlich
 verschwindet.
 
-**Als Nächstes:** Phase 4, **Schritt 5 — Felder und Inhaltsverzeichnis** (§6).
-`TdParaFormat.OutlineLevel` steht seit Schritt 1 bereit und ist die verlässliche Quelle, die
-das `FlowDocument` nie hatte. Strikt in der Reihenfolge aus Roadmap §5, nach jedem Schritt
-DOCX-Roundtrip. **M1 bleibt ein gültiger Ausstiegspunkt**; Phase 4 ist die, an der Projekte
-sterben.
+Zuletzt **Schritt 5** (§4.20): **Felder, Verweise und das Inhaltsverzeichnis**. Ein Feld
+speichert seinen Wert nicht, sondern seine **Art** — Seitenzahl, Seitenanzahl, Datum, Titel,
+Inhaltsverzeichnis; gerechnet wird beim Umbruch, dasselbe Muster wie bei der Listennummer.
+Das Verzeichnis liest `TdParaFormat.OutlineLevel` und damit **die verlässliche Quelle, die das
+`FlowDocument` nie hatte**. Weil die Seitenanzahl erst feststeht, wenn alles gesetzt ist,
+läuft der Umbruch bei Bedarf **mehrfach, bis sich nichts mehr ändert**. Kopf- und Fußzeile
+haben ihre letzten zwei Platzhalter bekommen: `{DATUM}` und `{TITEL}` sind jetzt echte Felder.
+
+**Als Nächstes:** Phase 4, **Schritt 6 — Diagramme** (§6), der letzte der sechs. Strikt in der
+Reihenfolge aus Roadmap §5, nach jedem Schritt DOCX-Roundtrip. **M1 bleibt ein gültiger
+Ausstiegspunkt**; Phase 4 ist die, an der Projekte sterben.
 
 **Tests laufen lassen:**
 
 ```powershell
-dotnet test -c Release        # Windows: beide Projekte, 299 Tests
+dotnet test -c Release        # Windows: beide Projekte, 356 Tests
 ```
 
 ```bash
-dotnet test tests/GonkNote.Core.Tests   # Linux: 286 Tests, laufen in ~11 s
+dotnet test tests/GonkNote.Core.Tests   # Linux: 343 Tests, laufen in ~11 s
 ```
 
 ---
@@ -273,9 +279,12 @@ einer Angabe, die Nummer wird gerechnet statt gespeichert.
 
 **Erledigt in Phase 4, Schritt 4:** §4.18 (**Tabellen** im Modell und in DOCX, samt
 waagerechten und senkrechten Verbindungen) und §4.19 (**das Tabellen-Layout** — Spaltenbreiten,
-Zellumbruch, verteilte Höhe verbundener Zellen, wiederholte Kopfzeile). Testzahl jetzt **299**
-(286 Core + 13 WPF). Alles davon ist noch nirgends angeschlossen; das ist Absicht und in
-§4.14 begründet.
+Zellumbruch, verteilte Höhe verbundener Zellen, wiederholte Kopfzeile).
+
+**Erledigt in Phase 4, Schritt 5:** §4.20 — **Felder, Verweise und Inhaltsverzeichnis**.
+`TdField` und `TdHyperlink` als Textstücke, `TdToc` als Rechnung über die Gliederungsebenen,
+der Umbruch läuft bei Bedarf mehrfach. Testzahl jetzt **356** (343 Core + 13 WPF). Alles davon
+ist noch nirgends angeschlossen; das ist Absicht und in §4.14 begründet.
 
 **Erledigt in Phase 0:**
 
@@ -340,7 +349,9 @@ gonk-note-V2/
 │  │  │                          seit §4.13 von BEIDEN Köpfen benutzt
 │  │  │                          TdDocument/TdSection/TdBlock/TdInline + TdFormat — das
 │  │  │                          eigene Dokumentmodell, TdList (Listen samt der
-│  │  │                          gerechneten Nummerierung), TdJson (Speicherformat),
+│  │  │                          gerechneten Nummerierung), TdField (Felder, Verweise und
+│  │  │                          die Feldwerte), TdToc (das gerechnete Inhaltsverzeichnis),
+│  │  │                          TdJson (Speicherformat),
 │  │  │                          TdDocx (DOCX in beide Richtungen), TdLayout (Zeilen- und
 │  │  │                          Seitenumbruch) hinter der Naht ITdTextMeasure/
 │  │  │                          TdSkiaMeasure                        ← neu in Phase 4
@@ -391,7 +402,7 @@ gonk-note-V2/
 │                                Legacy, **Avalonia**) — §4.6, seit Phase 3 §4.9
 │
 ├─ tests/
-│  ├─ GonkNote.Core.Tests/       net10.0 · läuft auch unter Linux · 286 Tests
+│  ├─ GonkNote.Core.Tests/       net10.0 · läuft auch unter Linux · 343 Tests
 │  │  └─ Snapshots/*.sha256      Pixelhashes des Renderers (Golden-Files)
 │  └─ GonkNote.Wpf.Tests/        net10.0-windows · nur Windows · 13 Tests
 │     ├─ Fixtures/               referenz.md, referenz-docx.txt (Golden-Files)
@@ -1938,6 +1949,182 @@ drei Projekte 0 Warnungen.
 
 ---
 
+### 4.20 Phase 4, Schritt 5 — Felder, Verweise und das Inhaltsverzeichnis
+
+Umgesetzt am 2026-08-05. **Der vorletzte der sechs Schritte aus Roadmap §5.**
+
+#### Die Entscheidung, die alles andere nach sich zieht: ein Feld speichert seine Art, nicht seinen Wert
+
+`TdField` trägt `Kind` (Seitenzahl, Seitenanzahl, Datum, Titel, Inhaltsverzeichnis) und
+höchstens eine Zusatzangabe — **keinen Text**. Das ist **dasselbe Muster wie bei der
+Listennummer** (§4.17), und aus demselben Grund: Der Wert hängt nicht vom Feld ab, sondern von
+seiner Umgebung. Die Seitenzahl hängt daran, wo das Feld nach dem Umbruch landet; die
+Seitenanzahl am ganzen Dokument; das Verzeichnis an jeder Überschrift darin.
+
+**Gespeichert wäre jeder dieser Werte nach der nächsten Änderung falsch — und zwar still.**
+Eine veraltete Seitenzahl sieht aus wie eine Seitenzahl. Deshalb gibt `TdField.PlainText()`
+eine leere Zeichenkette zurück: Im Dokument steht ein Feld und keine Zahl.
+
+Gerechnet wird in `TdFieldValues`, und **die Werte, die nicht im Dokument stehen, kommen von
+außen**: `TdFieldContext` trägt Datum und Titel. Das ist die zweite Naht nach `ITdTextMeasure`
+und dieselbe Begründung (§4.16) — **Core fragt die Uhr nicht selbst.** Ein `DateTime.Now`
+mitten in der Rechnung machte jeden Wächter davon abhängig, wann er läuft, und jedes
+Golden-File einen Tag später falsch (§7). Aus demselben Grund steht das Datumsmuster fest im
+Code (`dd.MM.yyyy`) und wird nicht aus der Kultur des Rechners geholt: Dasselbe Dokument muss
+auf jedem System dasselbe Datum zeigen.
+
+#### Der Umbruch fällt sich selbst ins Wort — und läuft deshalb mehrfach
+
+**Die Seitenanzahl steht erst fest, wenn alles gesetzt ist. Und ein Inhaltsverzeichnis braucht
+die Seitenzahlen der Überschriften, verschiebt diese Überschriften aber durch seine eigene
+Länge.** Das ist keine Schwäche des Entwurfs, sondern die Sache selbst; Word rechnet an
+derselben Stelle ebenfalls mehrfach.
+
+`TdLayout.Umbrechen` läuft deshalb, **bis sich nichts mehr ändert, höchstens aber fünfmal**.
+Der Vergleich geht über einen Fingerabdruck des Ergebnisses (Zeilen und Tabellenzeilen je
+Seite); im Normalfall sind zwei Durchgänge fertig. Die Obergrenze ist kein Schmuck: **eine
+Schleife, die auf einen Fixpunkt wartet, den es nicht gibt, meldet keinen Fehler — sie meldet
+gar nichts** (§4.16, dieselbe Lehre wie beim überlangen Wort).
+
+Ein zweiter Durchgang läuft **nur, wenn das Dokument etwas enthält, das davon abhängt** — ein
+`NUMPAGES`-Feld oder ein Verzeichnis. Eine bloße Seitenzahl braucht ihn nicht.
+
+#### Die Seitenzahl wird nachträglich gesetzt, und das ist der Grund
+
+Eine Zeile wird umbrochen, **bevor** entschieden ist, wohin sie kommt: Eine zusammengehaltene
+Gruppe (§4.16) kann noch auf die nächste Seite rutschen. Ein `PAGE`-Feld, das beim Umbrechen
+die damals aktuelle Nummer bekäme, stünde dann um eins daneben — und eine Seitenzahl, die um
+eins danebenliegt, sieht aus wie eine Seitenzahl. Deshalb wird sie in dem Augenblick gesetzt,
+in dem die Zeile auf ihre Seite kommt.
+
+**Die Zeile wird dafür nicht neu umbrochen.** Wächst die Zahl von 9 auf 10, ist das Stück eine
+Ziffer breiter als beim Messen angenommen. Word rechnet hier genauso ungenau; ein vollständiges
+Neuumbrechen bei jedem Seitenwechsel wäre eine Rechnung, die sich selbst ins Wort fällt, und
+der Gewinn wäre eine Ziffer.
+
+#### Ein Verweis ist eine Klammer und kein Lauf mit Zusatzfeld
+
+`TdHyperlink` enthält **Stücke** — dieselbe Entscheidung wie bei der Tabellenzelle, die Blöcke
+enthält (§4.18). In einem Verweis darf ein Wort fett sein, und DOCX hält es mit `w:hyperlink`
+ebenso.
+
+**Das Ziel ist eine Zeichenkette und kein `Uri`.** Das ist die Entscheidung, an der der
+Markdown-Export schon einmal gescheitert ist (§7): Ein `Uri` vereinheitlicht, und aus dem
+relativen Ziel `kapitel-2.md` wird beim nächsten Schreiben ein absoluter `file:///`-Pfad, der
+auf jedem anderen Rechner ins Leere zeigt. Beim Lesen gilt dasselbe: `OriginalString`, nie
+`AbsoluteUri`. Ein Ziel mit `#` zeigt ins eigene Dokument und wird in DOCX ein **Anker** und
+keine Beziehung — als Beziehung geschrieben öffnete Word ein zweites Fenster auf dieselbe Datei.
+
+**Daraus folgt eine Regel für jede Stelle, die über Stücke läuft:** `TdParagraph.FlacheStuecke()`
+liefert die Stücke *innerhalb* eines Verweises. Wer über `Inlines` läuft, sieht die Klammer und
+nicht ihren Inhalt — die Zeile bliebe leer, und niemand bekäme eine Meldung. Das ist die
+Erbfolge aus §7 („Hyperlink erbt von Span"), nur mit umgekehrtem Vorzeichen.
+
+#### Das Inhaltsverzeichnis — und warum dieser Schritt überhaupt lohnt
+
+`TdToc` liest **`TdParaFormat.OutlineLevel`**. Das ist der Punkt des ganzen Schritts: Der
+heutige Markdown-Exporter **rät** die Ebene aus der Schriftgröße zurück (`HeadingPrefix`
+rechnet gegen `TextStyles`), weil das `FlowDocument` keinen Platz für sie hat — wer eine
+Überschrift kleiner stellt, verliert dort ihre Ebene, und ein Verzeichnis daraus ist eine
+Vermutung. Im eigenen Modell steht sie seit Schritt 1 als eigener Wert.
+
+Auch das Verzeichnis wird **gerechnet und nicht gespeichert**; ein abgelegtes wäre nach der
+ersten Umbenennung einer Überschrift falsch. Vier Dinge, die es dabei richtig machen muss:
+
+- **Es steht nicht in sich selbst.** Ein Verzeichnisabsatz mit einer Gliederungsebene wäre
+  sonst sein eigener erster Eintrag — und bekäme mit jedem Durchgang eine Zeile mehr.
+- **Der Durchlauf steigt in Tabellenzellen ab** (`TdDocument.Paragraphs()`), denn eine
+  Überschrift kann auch dort stehen — dieselbe Lehre, die §4.19 gekostet hat.
+- **Ein leeres Verzeichnis behält seine Zeile.** Sonst hätte der Cursor an seiner Stelle keinen
+  Ort (§4.16, leerer Absatz).
+- **Eine Verzeichniszeile ist als solche erkennbar** (`TdLine.IsTocEntry`) und zeigt auf den
+  Absatz mit dem Feld, nicht auf den gerechneten Eintragsabsatz — den gibt es im Dokument
+  nicht. Dieselbe Vorsicht wie bei `IsRepeatedHeader` (§4.19).
+
+**Die Seitenzahl steht rechtsbündig am Zeilenende.** In Word ist das ein Tabulator mit
+Füllzeichen; den kennt das Modell nicht, und einen dafür zu erfinden hieße, ein halbes Feature
+an der falschen Stelle zu bauen. Für ein Verzeichnis genügt der rechte Rand, und den kennt der
+Umbruch ohnehin. Tabulatoren gehören zum Editor-Schritt und nicht hierher.
+
+#### Die teuerste DOCX-Entscheidung: kein zwischengespeichertes Ergebnis
+
+Ein Feld steht im Körper in der **dreiteiligen** Form da — `fldChar begin`, `instrText`,
+`fldChar end`. Für `PAGE` reichte die kurze (`fldSimple`); ein Inhaltsverzeichnis, dessen
+Ergebnis ganze Absätze mit eigenen Verweisen sind, passt dort nicht hinein, und zwei Formen
+nebeneinander zu schreiben wäre die Doppelung aus §4.10.
+
+**Geschrieben wird ohne den `separate`-Teil, also ohne Ergebnis.** Das ist die wichtigste
+Entscheidung an dieser Stelle: Ein mitgeschriebenes Verzeichnis käme beim Lesen als gewöhnliche
+Absätze zurück, und das Dokument **wüchse mit jedem Speichern um ein ganzes
+Inhaltsverzeichnis** — dieselbe Falle wie beim Trennabsatz zwischen zwei Tabellen (§4.18), nur
+mit dreißig Zeilen statt einer. Word füllt das Feld beim Öffnen; dafür steht seit §4.15
+`UpdateFieldsOnOpen` in der Datei.
+
+**Beim Lesen gilt die Gegenrichtung, und die ist für fremde Dateien gebaut:** Ein Dokument aus
+Word *hat* dieses Ergebnis. **Ein Feldergebnis ist kein Text** — wer es als Inhalt liest, hat
+das Verzeichnis zweimal im Dokument, einmal als Feld und einmal als Text, der beim nächsten
+Aktualisieren nicht mitwandert. Mit einer Ausnahme: **Ein Feld, das wir nicht kennen, verliert
+seine Rechenvorschrift — aber nicht seinen Text.** Eine `REF`-Angabe wieder ausrechnen zu
+können wäre schön; ihren Text zu verlieren ist Datenverlust.
+
+#### Textmarken: erzeugt, nicht gespeichert — und nur wenn jemand darauf zeigt
+
+Die Sprungziele des Verzeichnisses (`_Toc00000001` …) werden beim Schreiben aus den
+Gliederungsebenen erzeugt und beim Lesen übergangen. **Gespeichert wären sie ein zweiter Name
+für dieselbe Überschrift**, und der zweite driftet. Geschrieben werden sie **nur, wenn das
+Dokument ein Verzeichnis enthält** — eine Marke ist ein Ziel, und ohne Verzeichnis zeigt
+niemand darauf.
+
+Ihre Kennungen müssen **dokumentweit** eindeutig sein. Zwei Marken mit derselben Kennung sind
+kein Schemafehler, sondern ein Verzeichnis, dessen Einträge alle an dieselbe Stelle springen —
+deshalb hält ein Schreib-Kontext den Zähler für das ganze Dokument.
+
+#### Kopf- und Fußzeile: die zwei letzten Platzhalter sind eingelöst
+
+§4.15 hat es angekündigt, hier steht es ein: **`{DATUM}` und `{TITEL}` sind jetzt echte Felder**
+(`DATE`, `TITLE`), wie `{SEITE}` und `{SEITEN}` es seit §4.15 sind. Als Text wäre das Datum auf
+ewig der Tag des Exports.
+
+Die Zuordnung Platzhalter ↔ Feldart steht dabei **einmal** (`TdField.Platzhalter`) und nicht
+noch einmal im DOCX-Schreiber. Der Platzhaltertext ist deutsch **und bleibt es**: er steht so in
+Bestandsdokumenten in `TextDoc.HeaderText`, ist also Datenformat und keine Übersetzung.
+
+**Kopf- und Fußzeile bleiben trotzdem Text und werden keine Absätze.** Die Begründung aus §4.15
+gilt unverändert — ein Absatzbaum dort wäre ein Versprechen, das die Oberfläche nicht einlösen
+kann. Was sich geändert hat, ist nur, dass die vier Platzhalter jetzt ein Gegenstück haben.
+
+#### Zwei Stellen, an denen das Lesen vorher zu eng war
+
+Beide fielen erst mit diesem Schritt auf, und beide hätten still Text verloren:
+
+- **Der Absatz-Leser lief nur über `w:r`.** Ein Verweis und ein `fldSimple` sind aber
+  **Geschwister** des Laufs und keine Teile von ihm — wer nur Läufe einsammelt, verliert jeden
+  Verweistext, ohne dass ein Test darüber stolpert: Er hat ja Text bekommen, nur weniger.
+- **`IstLeererAbsatz` sah ebenfalls nur nach Läufen.** Ein Absatz, der nur einen Verweis
+  enthält, galt damit als leer — und wäre hinter einer Tabelle als Trennabsatz weggeworfen
+  worden (§4.18).
+
+#### Ein benanntes Zugeständnis
+
+**Ein Feld ohne eigene Zusatzangabe bekommt auf dem Weg durch DOCX die Vorgabe eingetragen**
+(`DATE` → `\@ "dd.MM.yyyy"`, `TOC` → `\o "1-3"`). Das Format kennt kein „nicht gesetzt" für
+einen Schalter. Der Roundtrip ist damit an dieser einen Stelle nicht wörtlich — aber
+verlustfrei: Eingetragen wird genau der Wert, mit dem ohnehin gerechnet worden wäre. Ein
+eigener Wächter hält es fest, damit es niemanden überrascht.
+
+#### Stand
+
+**57 neue Wächter** (40 in `FelderTests`, 17 in `DocxRoundtripTests`), dazu Felder, Verweise
+und ein Inhaltsverzeichnis in **beiden** Beispieldokumenten. Gesamtzahl **356** (343 Core +
+13 WPF), alle drei Projekte 0 Warnungen.
+
+**Am laufenden Programm ist wie in allen Schritten der Phase 4 nichts zu sehen** — das Modell
+ist noch nirgends angeschlossen (§4.14). Die Gegenprobe ist der DOCX-Roundtrip gegen das
+Office-2019-Schema, und er läuft für das Beispieldokument **zweimal**, damit ein Dokument mit
+Verzeichnis beim Speichern nicht wächst.
+
+---
+
 ## 5. Entscheidungen
 
 **Getroffen, alle umgesetzt:**
@@ -1976,6 +2163,12 @@ drei Projekte 0 Warnungen.
 | Wo die Listennummer steht | **Nirgends — sie wird gerechnet** (`TdListNumbering`). Sie hängt davon ab, was vor einem Punkt steht; gespeichert wäre sie bei jeder Einfügung im ganzen Dokument nachzuziehen, und jede vergessene Stelle wäre eine Liste, die nach dem Löschen der 2 bei 3 weiterzählt. DOCX macht es aus demselben Grund so. Entschieden 2026-08-04 |
 | Wo die Seiteneinrichtung steht | **In `TdSection`**, nicht mehr an `TextDoc` (§4.15). Das kauft mehrere Abschnitte je Dokument und einen DOCX-Import, der `sectPr` vollständig liest; es kostet eine additive Migration nach dem Muster §4.8. Bis die läuft, stehen beide nebeneinander — **verschiedene Formate für verschiedene Dateien**, nicht zwei Rechnungen für dieselbe Sache. Entschieden 2026-08-04 (Nutzer) |
 | Wann die Bestandsdokumente übernommen werden | **Zuletzt, nach Schritt 6** (§6). RTF und XamlPackage tragen Tabellen, Bilder und Diagramme; das Modell kann die erst ab Schritt 4 bzw. 6. Eine Übernahme davor wäre **stiller Datenverlust** — genau das, wovor §4.8 warnt. Bis dahin bleibt `Rtf` das führende Feld und das Modell wird über DOCX geprüft, nicht über Nutzerdaten. Entschieden 2026-08-04 (Nutzer) |
+| Was ein Feld speichert | **Seine Art, nicht seinen Wert** (§4.20). Seitenzahl, Seitenanzahl und Inhaltsverzeichnis hängen von der Umgebung ab und nicht vom Feld; gespeichert wären sie nach der nächsten Änderung falsch, und zwar still — eine veraltete Seitenzahl sieht aus wie eine Seitenzahl. Dasselbe Muster wie bei der Listennummer (§4.17). Entschieden 2026-08-05 |
+| Woher Datum und Titel kommen | **Von außen, über `TdFieldContext`** (§4.20). **Core fragt die Uhr nicht selbst** — dieselbe Begründung wie bei `ITdTextMeasure` (§4.16): ein `DateTime.Now` in der Rechnung machte jeden Wächter davon abhängig, wann er läuft. Aus demselben Grund steht das Datumsmuster fest im Code statt in der Kultur des Rechners. Entschieden 2026-08-05 |
+| Wie oft der Umbruch läuft | **So oft, bis sich nichts mehr ändert — höchstens fünfmal** (§4.20). Die Seitenanzahl steht erst am Ende fest, und ein Inhaltsverzeichnis verschiebt durch seine Länge die Überschriften, deren Seiten es nennt. Word rechnet ebenso mehrfach; die Obergrenze steht da, weil eine Schleife auf einen Fixpunkt, den es nicht gibt, keinen Fehler meldet, sondern gar nichts (§4.16). Entschieden 2026-08-05 |
+| Wie ein Verweis abgelegt wird | **Als Klammer um Stücke, mit dem Ziel als Zeichenkette** (§4.20). Ein `Uri` vereinheitlicht und macht aus `kapitel-2.md` einen `file:///`-Pfad — genau der Fehler aus §7 („Markdown-Export"). Ein Ziel mit `#` wird in DOCX ein Anker und keine Beziehung. Entschieden 2026-08-05 |
+| Ob das Feldergebnis mitgeschrieben wird | **Nein** (§4.20). Ein mitgeschriebenes Inhaltsverzeichnis käme beim Lesen als Absätze zurück, und das Dokument wüchse mit **jedem** Speichern um ein ganzes Verzeichnis — dieselbe Falle wie beim Trennabsatz (§4.18), nur mit dreißig Zeilen statt einer. Word füllt das Feld beim Öffnen (`UpdateFieldsOnOpen`). Beim **Lesen** wird das Ergebnis eines *bekannten* Feldes verworfen, das eines unbekannten behalten — eine Rechenvorschrift zu verlieren ist verschmerzbar, Text zu verlieren nicht. Entschieden 2026-08-05 |
+| Ob Kopf-/Fußzeile Absätze werden | **Nein, sie bleiben Text mit Platzhaltern** (§4.20). Die Begründung aus §4.15 gilt unverändert; eingelöst ist nur das Versprechen, dass **alle vier** Platzhalter echte Felder werden — `{DATUM}` und `{TITEL}` waren bis Schritt 5 wörtlicher Text. Entschieden 2026-08-05 |
 | Namen der WPF-Hilfsmethoden | **Bleiben stehen** — `HitElement`, `HitTestElement`, `SelectByLasso`, `ComputeSelectionBounds` sind Einzeiler, die an `WbHit` weiterreichen. Elf Aufrufstellen in fünf Partials umzubenennen hätte den Diff verdreifacht, ohne am Ergebnis etwas zu ändern; wegkommen sollte die zweite **Rechnung**, nicht die zweite Bezeichnung (§4.13). Entschieden 2026-08-04 |
 
 **Noch offen:**
@@ -2507,9 +2700,13 @@ Boden", das einzige Risiko, das die Roadmap mit **hoch** einstuft.
             höchsten Zelle, Umbruch zwischen Zeilen mit wiederholter Kopfzeile. 36 Wächter
             in Schritt 4. **Eine benannte Lücke bleibt:** eine Tabelle *in* einer Zelle wird
             noch nicht gesetzt (§4.19), mit eigenem Wächter festgehalten
-- [ ] 5. Felder und Inhaltsverzeichnis — `TdParaFormat.OutlineLevel` steht seit Schritt 1
-      bereit und ist die verlässliche Quelle, die das `FlowDocument` nie hatte
-- [ ] 6. Diagramme
+- [x] **5. Felder und Inhaltsverzeichnis** (§4.20). `TdField` speichert die **Art** und nicht
+      den Wert, `TdHyperlink` das Ziel **wörtlich**, `TdToc` rechnet über
+      `TdParaFormat.OutlineLevel` — die verlässliche Quelle, die das `FlowDocument` nie hatte.
+      Der Umbruch läuft dafür mehrfach, bis sich nichts mehr ändert. 57 neue Wächter
+- [ ] 6. Diagramme — **der letzte der sechs.** Die Diskriminatoren `"image"` und `"chart"`
+      sind dafür seit Schritt 1 reserviert (§4.14); mit den Bildern kommen auch das
+      Wasserzeichen (§4.15) und die Tabelle *in* einer Zelle in Reichweite (§4.19)
 - [ ] Danach umverdrahten: `Docx`-/`Markdown`-Im-/Export und `PdfExporter` gegen das eigene
       Modell (§4.1 löst sich damit auf), Ribbon in Avalonia neu
 
@@ -2588,7 +2785,7 @@ Avalonia-Kopf:
 | Phase | Inhalt | Aufwand | Ziel |
 |---|---|---|---|
 | 3 | Avalonia-Shell für Linux — **fertig** | 6–8 W. | ✅ **M1 erreicht** — Notizbuch + Whiteboard laufen unter Linux, Textdokumente ausgegraut |
-| 4 | Eigene Dokument-Engine in `Core/Text/` — **läuft, Schritte 1–4 von 6** | 8–12 W. | ~~M2~~ — Textdokumente laufen unter Linux |
+| 4 | Eigene Dokument-Engine in `Core/Text/` — **läuft, Schritte 1–5 von 6** | 8–12 W. | ~~M2~~ — Textdokumente laufen unter Linux |
 | **4.5** | **Die fehlenden Werkzeuge des Linux-Kopfs** (Formen, Lineal/Geodreieck, Textfelder, Sticker, Notizzettel, Bild-/PDF-Import, Zahlenblock, Schnellaktionen, Werkzeugleisten-Anordnung, Drehen/Skalieren) — **neu eingeschoben, siehe oben** | offen | **M2** — Funktionsgleichheit Linux ↔ Windows |
 | 5 | iPadOS-Head, Apple Pencil, PDFKit/Vision, AOT-Härtung | 6–10 W. | **M3** — TestFlight-Build |
 | 6 | Flatpak/AppImage, App Store | 2–4 W. | Veröffentlichung |
@@ -3171,6 +3368,46 @@ und keine davon sieht wie ein Fehler aus.
   eine geklärte Lizenz (§6); ein mit Skia gemaltes Rechteck braucht keine. Dabei nie
   achsensymmetrisch malen, sonst fällt eine vertauschte Achse nicht auf.
 
+**Neu aus Phase 4 — Felder, Verweise und Verzeichnis (§4.20)**
+
+- **Ein Feld speichert seine Art und nicht seinen Wert.** Seitenzahl, Seitenanzahl und
+  Inhaltsverzeichnis hängen von der Umgebung ab; gespeichert wären sie nach der nächsten
+  Änderung falsch, und das Fehlerbild ist **kein** Fehlerbild — eine veraltete Seitenzahl sieht
+  aus wie eine Seitenzahl.
+- **Core fragt die Uhr nicht.** Datum und Titel kommen über `TdFieldContext` herein, wie die
+  Schriftmaße über `ITdTextMeasure`. Ein `DateTime.Now` in der Rechnung macht jeden Wächter
+  davon abhängig, wann er läuft. Das Datumsmuster steht aus demselben Grund fest im Code und
+  nicht in der Kultur des Rechners.
+- **Die Seitenzahl wird gesetzt, wenn die Zeile ihre Seite bekommt — nicht beim Umbrechen.**
+  Eine zusammengehaltene Gruppe kann noch auf die nächste Seite rutschen; eine Zahl, die vorher
+  eingetragen wurde, liegt dann um eins daneben.
+- **Der Umbruch läuft mehrfach und hat eine Obergrenze.** Die Seitenanzahl steht erst am Ende
+  fest, und ein Verzeichnis verschiebt durch seine Länge die Überschriften, deren Seiten es
+  nennt. Gelaufen wird bis zum Stillstand, höchstens fünfmal — eine Schleife auf einen
+  Fixpunkt, den es nicht gibt, meldet keinen Fehler, sondern gar nichts (§4.16).
+- **Ein Feldergebnis darf nicht mitgeschrieben werden.** Sonst käme es beim Lesen als Text
+  zurück, und das Dokument wüchse mit jedem Speichern um ein ganzes Inhaltsverzeichnis —
+  dieselbe Falle wie beim Trennabsatz zwischen zwei Tabellen (§4.18). Beim **Lesen** fremder
+  Dateien gilt umgekehrt: das Ergebnis eines bekannten Feldes wird verworfen, das eines
+  unbekannten behalten. Eine Rechenvorschrift zu verlieren ist verschmerzbar, Text nicht.
+- **Ein Verweis, ein `fldSimple` und eine Textmarke sind Geschwister des Laufs, keine Teile von
+  ihm.** Wer beim Lesen nur `w:r` einsammelt, verliert jeden Verweistext — und merkt es nicht,
+  weil er ja Text bekommen hat, nur weniger. Dasselbe gilt für jede Prüfung „ist dieser Absatz
+  leer": ein Absatz mit nur einem Verweis ist nicht leer.
+- **Das Ziel eines Verweises ist eine Zeichenkette und kein `Uri`** — sonst wird aus
+  `kapitel-2.md` ein absoluter `file:///`-Pfad (§7, „Markdown-Export"). Ein Ziel mit `#` ist in
+  DOCX ein **Anker** und keine Beziehung; als Beziehung geschrieben öffnet Word ein zweites
+  Fenster auf dieselbe Datei.
+- **Wer über die Stücke eines Absatzes läuft, muss in die Verweise hineinsteigen**
+  (`TdParagraph.FlacheStuecke()`). Über `Inlines` sieht man die Klammer und nicht ihren Inhalt,
+  und die Zeile bleibt leer.
+- **Textmarken werden erzeugt, nicht gespeichert** — und nur, wenn es ein Verzeichnis gibt.
+  Gespeichert wären sie ein zweiter Name für dieselbe Überschrift. Ihre Kennungen müssen
+  dokumentweit eindeutig sein, sonst springen alle Einträge an dieselbe Stelle.
+- **Ein Verzeichnis darf sich nicht selbst enthalten** und muss in Tabellenzellen absteigen
+  (dieselbe Lehre wie bei der Nummerierung, §4.19). Ein leeres behält seine Zeile, sonst hat der
+  Cursor an seiner Stelle keinen Ort.
+
 **Neu aus Phase 4 — Tabellen-Layout (§4.19)**
 
 - **Eine verbundene Zelle darf ihre erste Zeile nicht allein hochziehen.** Ihre Höhe verteilt
@@ -3333,7 +3570,7 @@ cd C:\Dev\Zed\gonk-note-V2
 dotnet build -c Release      # 0 Fehler / 0 Warnungen
 dotnet build -c Debug        # schneller, ohne Self-Contained/win-x64
 
-dotnet test -c Release       # beide Testprojekte, 299 Tests
+dotnet test -c Release       # beide Testprojekte, 356 Tests
 
 # Golden-Files bewusst neu setzen (danach den Diff lesen, siehe §4.6)
 $env:GONK_SNAPSHOT_UPDATE=1; dotnet test tests\GonkNote.Core.Tests; $env:GONK_SNAPSHOT_UPDATE=$null
@@ -3420,6 +3657,7 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 
 | Runde | Datum | Was |
 |---|---|---|
+| V2-25 | 2026-08-05 | **Phase 4, Schritt 5: Felder, Verweise und Inhaltsverzeichnis** (§4.20). **Die tragende Entscheidung: ein Feld speichert seine Art und nicht seinen Wert** — Seitenzahl, Seitenanzahl, Datum, Titel, Verzeichnis; gerechnet wird beim Umbruch, **dasselbe Muster wie bei der Listennummer** (§4.17) und aus demselben Grund: der Wert hängt von der Umgebung ab, und gespeichert wäre er nach der nächsten Änderung falsch — **still**, denn eine veraltete Seitenzahl sieht aus wie eine Seitenzahl. `TdField.PlainText()` gibt deshalb „" zurück. **Datum und Titel kommen von außen** (`TdFieldContext`): das ist die zweite Naht nach `ITdTextMeasure` und dieselbe Begründung — **Core fragt die Uhr nicht selbst**, sonst hinge jeder Wächter davon ab, wann er läuft; das Datumsmuster steht aus demselben Grund fest im Code statt in der Kultur des Rechners. **Der Umbruch fällt sich selbst ins Wort und läuft deshalb mehrfach:** die Seitenanzahl steht erst fest, wenn alles gesetzt ist, und ein Verzeichnis verschiebt durch seine eigene Länge die Überschriften, deren Seiten es nennt (Word rechnet ebenso mehrfach). Gelaufen wird bis zum Stillstand, **höchstens fünfmal** — eine Schleife auf einen Fixpunkt, den es nicht gibt, meldet keinen Fehler, sondern gar nichts (§4.16). **Die Seitenzahl wird nachträglich gesetzt**, wenn die Zeile ihre Seite bekommt: eine zusammengehaltene Gruppe kann noch rutschen, und eine vorher eingetragene Zahl läge um eins daneben. **`TdHyperlink` ist eine Klammer um Stücke** (wie die Tabellenzelle Blöcke enthält, §4.18), und **das Ziel ist eine Zeichenkette und kein `Uri`** — genau der Fehler aus §7, bei dem aus `kapitel-2.md` ein `file:///`-Pfad wird; ein `#`-Ziel wird in DOCX ein **Anker** und keine Beziehung. Daraus folgt `TdParagraph.FlacheStuecke()`: wer über `Inlines` läuft, sieht die Klammer und nicht ihren Text. **`TdToc` liest `TdParaFormat.OutlineLevel`** — der Punkt des ganzen Schritts, denn der heutige Markdown-Exporter **rät** die Ebene aus der Schriftgröße zurück und verliert sie, sobald jemand eine Überschrift kleiner stellt. **Die teuerste DOCX-Entscheidung: kein zwischengespeichertes Feldergebnis.** Ein mitgeschriebenes Verzeichnis käme beim Lesen als Absätze zurück, und das Dokument wüchse **mit jedem Speichern um ein ganzes Inhaltsverzeichnis** — dieselbe Falle wie beim Trennabsatz (§4.18), nur mit dreißig Zeilen statt einer; Wächter ist ein Roundtrip, der zweimal läuft. Beim **Lesen** fremder Dateien umgekehrt: das Ergebnis eines bekannten Feldes wird verworfen, das eines unbekannten **behalten** — eine Rechenvorschrift zu verlieren ist verschmerzbar, Text nicht. Felder stehen im Körper in der **dreiteiligen** Form (`begin`/`instrText`/`end`), weil ein Verzeichnis in ein Attribut nicht hineinpasst und zwei Formen nebeneinander die Doppelung aus §4.10 wären. **Textmarken werden erzeugt statt gespeichert** und nur, wenn es ein Verzeichnis gibt. **Zwei Stellen im Leser waren zu eng** und hätten still Text verloren: der Absatz-Leser lief nur über `w:r` (ein Verweis ist ein **Geschwister** des Laufs), und `IstLeererAbsatz` ebenso — ein Absatz mit nur einem Verweis galt als leer und wäre hinter einer Tabelle weggeworfen worden. **Kopf- und Fußzeile haben ihre letzten zwei Platzhalter bekommen:** `{DATUM}` und `{TITEL}` sind jetzt echte Felder, wie §4.15 es angekündigt hatte; die Zuordnung steht **einmal** in `TdField.Platzhalter`. **Ein benanntes Zugeständnis:** ein Feld ohne eigene Zusatzangabe bekommt auf dem Weg durch DOCX die Vorgabe eingetragen (`\@ "dd.MM.yyyy"`, `\o "1-3"`) — das Format kennt kein „nicht gesetzt" für einen Schalter; verlustfrei, aber nicht wörtlich, mit eigenem Wächter. **57 neue Wächter, jetzt 356** (343 Core + 13 WPF), Felder, Verweise und ein Verzeichnis in **beiden** Beispieldokumenten, alle drei Projekte 0 Warnungen. **Als Nächstes: Schritt 6, Diagramme** — der letzte der sechs |
 | V2-24 | 2026-08-04 | **Phase 4.5 in den Plan aufgenommen** (§6), nach einer Rückfrage des Nutzers — und die Rückfrage war berechtigt. **Der Befund:** Die fehlenden Werkzeuge des Linux-Kopfs (Formen, Formen-Stift, Lineal/Geodreieck, Textfelder, Notizzettel, Sticker, Bild-/PDF-Import, Zahlenblock per Langdruck, Schnellaktionen, Werkzeugleisten-Anordnung, Drehen/Skalieren der Auswahl) waren **benannt, aber keiner Phase zugeordnet**. Sie stehen in §6 („Was Phase 3 bewusst ausgelassen hat"), und beide README-Fassungen sagen es den Nutzern wörtlich („kommen nach der Dokument-Engine") — nur besaß sie keine Phase: Roadmap-Phase 4 enthält die Dokument-Engine, Phase 5 ist iPadOS, dazwischen stand nichts. **Der eigentliche Fehler im Plan war nicht das Vergessen, sondern M2:** die Roadmap definiert ihn als „Funktionsgleichheit Linux ↔ Windows" und hängt ihn ans Ende von Phase 4 — diese Werkzeuge gehören zur Funktionsgleichheit, **M2 war mit Phase 4 allein also gar nicht erreichbar**, und der Aufwandsschätzer deckte nur die Engine. **Entschieden: eine eigene Phase 4.5 zwischen 4 und 5**, aus drei Gründen — erst die Engine (Textdokumente sind das größere Loch und blockieren Import/Export), aber **vor dem iPad**, weil Phase 5 auf derselben Avalonia-Grundlage aufsetzt und die Werkzeuge sonst **zweimal** gebaut würden; M2 wandert ans Ende von 4.5. **Zur Klarstellung, weil es leicht zu verwechseln ist:** das **Diagramm-Werkzeug** gehört *nicht* dazu — Diagramme sind eine Textdokument-Funktion und stehen als Schritt 6 in Phase 4. OCR und Rechtschreibprüfung sind die zwei Ausnahmen in 4.5: sie brauchen Gegenstücke zu den Windows-Diensten und sind eigene Arbeit statt reiner Portierung. **Nachzutragen in `gonk-note-port-RM.MD` auf dem Desktop** — die Ergänzung steht sonst nur hier |
 | V2-23 | 2026-08-04 | **Phase 4, Schritt 4 abgeschlossen: das Tabellen-Layout** (§4.19). `TdPage` hat jetzt neben `Lines` auch **`TableRows`** — eine zweite Liste und keine gemeinsame, denn **eine Tabellenzeile ist keine Zeile**: sie hat Zellen, und deren Inhalt sind wieder Zeilen. Der Preis ist gering, der Gewinn groß: `TdLine` bleibt, was es war, und die 27 Wächter aus §4.16 mussten nicht angefasst werden. **Die Rechnung muss zweimal laufen:** wie hoch eine senkrecht verbundene Zelle die Zeilen macht, über die sie reicht, steht erst fest, wenn diese Zeilen ihre eigene Höhe kennen — erst jede Zeile für sich (die `Restart`-Zelle **ohne** ihre Höhe, sonst zöge sie die erste Zeile allein hoch), dann die Verteilung. **Fehlt Platz, wächst die letzte Zeile der Verbindung**, nicht die erste und nicht alle gleichmäßig: gleichmäßig sähe gefälliger aus, verschöbe aber die Zeilen dazwischen gegenüber ihren unverbundenen Nachbarn, und dann fluchtet die Tabelle nicht mehr. **Zwei Dinge, die man beim ersten Anlauf falsch macht:** der Zellinhalt bricht in der **Innen**breite um (ein vergessener Innenabstand ist kein sichtbarer Fehler, sondern Text, der am Rand klebt und eine Zeile zu spät umbricht), und eine Fortsetzungszelle bekommt keinen Ort, **schiebt aber die Spalte weiter** — wer sie überspringt, setzt alles dahinter eine Spalte zu weit links. **Die Kopfzeile wiederholt sich** auf jeder Folgeseite und ist als Wiederholung erkennbar (`IsRepeatedHeader`) — sie steht im Modell einmal, auf dem Papier mehrfach, und wer sie beim Zurückrechnen mitzählt, findet den Cursor an der falschen Stelle; wiederholt wird nur, wenn danach noch Platz für eine Inhaltszeile bleibt. **Zwei Fehler haben die Wächter gefunden:** die Nummerierung erreichte Absätze **in Zellen** nicht (`TdDocument.Paragraphs()` lief nur über die oberste Ebene, und `TdListNumbering` läuft über genau diesen Durchlauf — ein Listenpunkt in einer Tabelle bekam keine Marke; das Fehlerbild ist ein Punkt ohne Nummer, kein Absturz), und ein Wächter rechnete falsch statt des Codes („rechts oben" ist elf Zeichen und bricht auf einer 8-cm-Spalte selbst um — derselbe Merksatz wie in §4.16). **Eine benannte Lücke bleibt und ist mit einem eigenen Wächter festgehalten:** eine Tabelle **in** einer Zelle wird vom Umbruch noch nicht gesetzt. Das Modell trägt sie, DOCX schreibt und liest sie — nur eine gesetzte Zelle hat noch keine Tabellenzeilen. Sie ist damit **sichtbar leer statt still falsch**, und wer sie schließt, macht den Test rot und muss ihn umschreiben. **15 neue Wächter, jetzt 299** (286 Core + 13 WPF), alle drei Projekte 0 Warnungen. **Als Nächstes: Schritt 5, Felder und Inhaltsverzeichnis** |
 | V2-22 | 2026-08-04 | **Phase 4, Schritt 4, erster Teil: Tabellen im Modell und in DOCX** (§4.18). Wie Schritt 2 in zwei Hälften; die Layout-Rechnung folgt. **Warum das der gefährlichste Schritt bisher ist:** eine Tabelle hat drei Dinge, die jedes für sich still schiefgehen — das Raster, die Verbindungen und die Rahmen —, alle drei liegen in DOCX anders als erwartet, und ein Fehler darin sieht nicht nach einem Fehler aus, sondern nach einer Tabelle, die „irgendwie verrutscht" ist. **Drei Entscheidungen, die DOCX vorgibt und die trotzdem die richtigen sind:** das **Raster steht an der Tabelle** und nicht an den Zellen (eine Spaltenbreite gilt für die ganze Spalte; je Zelle geführt stünde derselbe Wert je Zeile noch einmal, und eine Zeile mit abweichender Vorstellung von Spalte 2 ist gar nicht darstellbar); eine **senkrechte Verbindung ist `Restart` + `Continue`** und kein „RowSpan = 3" (jede Zeile behält ihre volle Zellenzahl, und daran hängt, dass Spaltenzählung und Rahmen stimmen); **Zellen enthalten Blöcke** und nicht Text — ein zweiter Absatz, eine Liste, eine weitere Tabelle, alles geprüft. **Vier DOCX-Fallen** (§7): Rahmen werden in **Achtel-Punkt** gemessen (wer Punkte einträgt, bekommt eine achtmal zu dicke Linie — das sieht nicht nach einem Umrechnungsfehler aus, sondern nach unabsichtlich fetten Rändern); eine Fortsetzungszelle trägt ein `vMerge` **ohne Wert**, nicht eines mit „continue"; **zwei Tabellen hintereinander verschmelzen in Word zu einer**, dazwischen gehört ein leerer Absatz, ebenso hinter der letzten; und eine Zelle ohne Absatz ist schemawidrig, während eine Fortsetzungszelle zwangsläufig keinen Inhalt hat. **Die letzten beiden erzeugen Absätze, die kein Inhalt sind** — kämen sie beim Lesen zurück, wüchse das Dokument mit **jedem Speichern** um eine Leerzeile je Tabelle, die Sorte Fehler, die man erst nach dem fünften Speichern bemerkt und dann nicht mehr zurückdrehen kann. Der Leser nimmt sie an genau den Stellen wieder heraus; Wächter ist ein Roundtrip, der **zweimal** läuft und beide Male dasselbe ergeben muss. **Der eine Fall, der nicht auf Anhieb stimmte:** endet ein *nicht letzter* Abschnitt mit einer Tabelle, trägt der Trennabsatz die `sectPr` — und galt deswegen als „hat ein Format" und damit als Inhalt. Eine `sectPr` zählt jetzt ausdrücklich nicht als Absatzformat. **21 neue Wächter, jetzt 284** (271 Core + 13 WPF), dazu eine Tabelle in beiden Beispieldokumenten; alle drei Projekte 0 Warnungen |

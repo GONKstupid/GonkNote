@@ -24,15 +24,17 @@ namespace GonkNote.Core.Text;
 /// </para>
 ///
 /// <para>
-/// <b>Reserviert für spätere Schritte, damit niemand die Namen zweimal vergibt:</b>
-/// „hyperlink" und „field" (Schritt 5, Felder/TOC), „image" (Bilder im Fließtext).
-/// Ergänzen ist unbedenklich — eine Datei, die einen Namen nicht enthält, stört sich nicht
-/// daran. Umbenennen ist es nicht.
+/// <b>Reserviert für spätere Schritte, damit niemand die Namen zweimal vergibt:</b> „image"
+/// (Bilder im Fließtext, Schritt 6). „hyperlink" und „field" waren dafür bis Schritt 5
+/// vorgemerkt und sind seitdem vergeben. Ergänzen ist unbedenklich — eine Datei, die einen
+/// Namen nicht enthält, stört sich nicht daran. Umbenennen ist es nicht.
 /// </para>
 /// </summary>
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "t")]
 [JsonDerivedType(typeof(TdRun), "run")]
 [JsonDerivedType(typeof(TdLineBreak), "break")]
+[JsonDerivedType(typeof(TdField), "field")]
+[JsonDerivedType(typeof(TdHyperlink), "hyperlink")]
 public abstract class TdInline
 {
     /// <summary>Zeichenformat dieses Stücks, als **Abweichung** vom Absatz. Nie <c>null</c>.</summary>
@@ -181,6 +183,39 @@ public sealed class TdParagraph : TdBlock
     /// </summary>
     public TdCharFormat FormatVon(TdInline inline) =>
         inline.Format.Over(CharFormat).Aufgeloest();
+
+    /// <summary>
+    /// Die Stücke des Absatzes, **flach** — ein Verweis erscheint nicht selbst, sondern seine
+    /// Stücke, jedes mit dem Verweis daneben.
+    ///
+    /// <para>
+    /// <b>Das ist die Erbfolge aus §7, nur andersherum aufgelöst.</b> Dort war die Falle, den
+    /// allgemeineren Fall (<c>Span</c>) vor dem besonderen (<c>Hyperlink</c>) zu behandeln und
+    /// dabei das Ziel zu verlieren. Wer hier über <see cref="Inlines"/> läuft, statt über
+    /// diesen Durchlauf, macht denselben Fehler mit umgekehrtem Vorzeichen: Er sieht den
+    /// Verweis und **nicht seinen Text** — die Zeile bliebe leer, und niemand bekäme eine
+    /// Fehlermeldung.
+    /// </para>
+    /// <para>
+    /// Ein Verweis in einem Verweis kommt nicht vor und wird deshalb nicht gesucht; ein
+    /// verschachtelter käme mit seinem äußeren Ziel heraus.
+    /// </para>
+    /// </summary>
+    public IEnumerable<(TdInline Stueck, TdHyperlink? Verweis)> FlacheStuecke()
+    {
+        foreach (var inline in Inlines)
+        {
+            if (inline is TdHyperlink verweis)
+            {
+                foreach (var innen in verweis.Inlines)
+                    yield return (innen, verweis);
+            }
+            else
+            {
+                yield return (inline, null);
+            }
+        }
+    }
 }
 
 /// <summary>

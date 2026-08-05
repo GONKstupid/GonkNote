@@ -307,8 +307,14 @@ public sealed class DokumentmodellTests
             Sections =
             {
                 new TdSection(
-                    new TdParagraph([new TdRun("x"), new TdLineBreak()]),
-                    new TdPageBreak()),
+                    new TdParagraph([
+                        new TdRun("x"),
+                        new TdLineBreak(),
+                        new TdField(TdFieldKind.PageNumber),
+                        TdHyperlink.Text("ziel.md", "y"),
+                    ]),
+                    new TdPageBreak(),
+                    new TdTable(TdTableRow.Text("z"))),
             },
         };
 
@@ -316,8 +322,11 @@ public sealed class DokumentmodellTests
 
         Assert.Contains("\"t\":\"p\"", json);
         Assert.Contains("\"t\":\"pagebreak\"", json);
+        Assert.Contains("\"t\":\"table\"", json);
         Assert.Contains("\"t\":\"run\"", json);
         Assert.Contains("\"t\":\"break\"", json);
+        Assert.Contains("\"t\":\"field\"", json);
+        Assert.Contains("\"t\":\"hyperlink\"", json);
         // Und der Text eines Laufs steht unter "s" — auch das ist Format.
         Assert.Contains("\"s\":\"x\"", json);
     }
@@ -410,6 +419,10 @@ public sealed class DokumentmodellTests
 
     private static TdBlock[] Inhalt() =>
         [
+            // Das Inhaltsverzeichnis steht vor den Überschriften, die es aufzählt — es ist ein
+            // Feld und trägt seinen Text nicht bei sich (§4.20).
+            new TdParagraph([new TdField(TdFieldKind.TableOfContents, "1-2")]),
+
             new TdParagraph([new TdRun("Kapitel 1")])
             {
                 Format = { OutlineLevel = 1, Alignment = TdAlign.Center, SpaceBeforePt = 12, KeepWithNext = true },
@@ -450,6 +463,26 @@ public sealed class DokumentmodellTests
                     PageBreakBefore = false,
                 },
             },
+            // Verweise und Felder: ein relatives Ziel, eine Textmarke im eigenen Dokument, und
+            // drei Feldarten mit eigener Zusatzangabe.
+            new TdParagraph([
+                new TdRun("Siehe "),
+                new TdHyperlink("kapitel-2.md",
+                    new TdRun("Kapitel "),
+                    new TdRun("zwei", new TdCharFormat { Bold = true })),
+                new TdRun(", "),
+                TdHyperlink.Text("#marke", "hier im Text"),
+                new TdRun(" — Stand "),
+                new TdField(TdFieldKind.Date, "yyyy-MM-dd"),
+                new TdRun(", Seite "),
+                new TdField(TdFieldKind.PageNumber),
+                new TdRun(" von "),
+                new TdField(TdFieldKind.PageCount),
+                new TdRun(" in "),
+                new TdField(TdFieldKind.Title, null) { Format = { Italic = true } },
+                new TdRun("."),
+            ]),
+
             // Zwei Listen, zwei Ebenen — Nummerierung und Aufzählung nebeneinander.
             new TdParagraph("Erster Punkt") { List = new TdListRef(1, 0) },
             new TdParagraph("Unterpunkt") { List = new TdListRef(1, 1) },
@@ -527,15 +560,7 @@ public sealed class DokumentmodellTests
                         Assert.Equal(pa.List.Level, pb.List.Level);
                     }
 
-                    Assert.Equal(pa.Inlines.Count, pb.Inlines.Count);
-                    for (int k = 0; k < pa.Inlines.Count; k++)
-                    {
-                        var ia = pa.Inlines[k];
-                        var ib = pb.Inlines[k];
-                        Assert.Equal(ia.GetType(), ib.GetType());
-                        Assert.Equal(ia.PlainText(), ib.PlainText());
-                        GleichesZeichenformat(ia.Format, ib.Format);
-                    }
+                    GleicheStuecke(pa.Inlines, pb.Inlines);
                     break;
                 }
 
@@ -577,6 +602,52 @@ public sealed class DokumentmodellTests
                 // DatenbankRoundtripTests.GleichesElement.
                 default:
                     Assert.Fail($"Kein Vergleich für {a[i].GetType().Name} — bitte ergänzen.");
+                    break;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Der Vergleich der Textstücke. <b>Ein Feld hat keinen Klartext</b> — wer nur
+    /// <c>PlainText</c> vergliche, bemerkte nicht, dass aus einem Datumsfeld ein Titel
+    /// geworden ist. Der <c>default</c>-Zweig ist Absicht: ein neuer Stücktyp macht diesen
+    /// Wächter rot, statt still an ihm vorbeizugehen.
+    /// </summary>
+    private static void GleicheStuecke(List<TdInline> a, List<TdInline> b)
+    {
+        Assert.Equal(a.Count, b.Count);
+        for (int k = 0; k < a.Count; k++)
+        {
+            Assert.Equal(a[k].GetType(), b[k].GetType());
+            GleichesZeichenformat(a[k].Format, b[k].Format);
+
+            switch (a[k])
+            {
+                case TdRun ra:
+                    Assert.Equal(ra.Text, ((TdRun)b[k]).Text);
+                    break;
+
+                case TdLineBreak:
+                    break;
+
+                case TdField fa:
+                {
+                    var fb = (TdField)b[k];
+                    Assert.Equal(fa.Kind, fb.Kind);
+                    Assert.Equal(fa.Argument, fb.Argument);
+                    break;
+                }
+
+                case TdHyperlink ha:
+                {
+                    var hb = (TdHyperlink)b[k];
+                    Assert.Equal(ha.Target, hb.Target);
+                    GleicheStuecke(ha.Inlines, hb.Inlines);
+                    break;
+                }
+
+                default:
+                    Assert.Fail($"Kein Vergleich für {a[k].GetType().Name} — bitte ergänzen.");
                     break;
             }
         }

@@ -1,6 +1,6 @@
 # Gonk Note V2 — Projektübergabe
 
-**Stand: 2026-08-09 · Version 0.3.0 · net10.0 · SkiaSharp 3 · SQLite · Avalonia 12 · ✅ M1 erreicht · ✅ Dokumentmodell vollständig (Phase 4, Schritte 1–6 von 6) · ✅ Übernahme der Bestandsdokumente läuft · ✅ DOCX und Markdown laufen gegen das Modell (§4.23)**
+**Stand: 2026-08-09 · Version 0.3.0 · net10.0 · SkiaSharp 3 · SQLite · Avalonia 12 · ✅ M1 erreicht · ✅ Dokumentmodell vollständig (Phase 4, Schritte 1–6 von 6) · ✅ Übernahme der Bestandsdokumente läuft · ✅ DOCX und Markdown laufen gegen das Modell (§4.23) · ✅ Zeichner steht (§4.24)**
 
 > **📌 Dauerregeln des Nutzers — gelten immer, ohne Nachfragen:**
 >
@@ -218,7 +218,7 @@ Ausstiegspunkt.**
 **Tests laufen lassen:**
 
 ```powershell
-dotnet test -c Release        # Windows: beide Projekte, 409 Tests
+dotnet test -c Release        # Windows: beide Projekte, 420 Tests
 ```
 
 ```bash
@@ -321,6 +321,12 @@ sind gelöscht. Dabei **fünf Fehler gefunden**, die im Modell-gegen-Modell-Roun
 waren — allen voran: das Absatz-Zeichenformat kam in Word gar nicht am Text an. **`Rtf` führt
 weiter**; PDF und PNG hängen noch am WPF-Paginator.
 
+**Erledigt danach:** §4.24 — **der Zeichner**. `TdRenderer` in Core malt eine gesetzte Seite mit
+SkiaSharp: Text mit allen Zeichenformaten, Aufzählungsmarken, Absatzlinien, Tabellen, Bilder,
+Kopf-/Fußzeile und Wasserzeichen. Testzahl jetzt **420** (396 Core + 24 WPF). **Ein Diagramm
+wird noch nicht gezeichnet** — es bekommt einen benannten Platzhalterkasten, die sieben Arten
+sind eine eigene Runde. **Angeschlossen ist der Zeichner noch nirgends** (§6).
+
 **Erledigt in Phase 0:**
 
 - **Geklont statt kopiert.** `git clone` aus V1 → die 122 Commits sind mitgekommen, `origin`
@@ -369,7 +375,8 @@ gonk-note-V2/
 │  │  │                          ISpellChecker, IPdfRasterizer, IFontProvider,
 │  │  │                          IDocumentIo — gebündelt in IPlatformServices
 │  │  ├─ Rendering/              WbRenderer (Skia), WbAidRenderer (Geodreieck), WbImages (§7),
-│  │  │                          WbImagePrep (Bildimport + OCR-Vorbereitung, §4.7)
+│  │  │                          WbImagePrep (Bildimport + OCR-Vorbereitung, §4.7),
+│  │  │                          TdRenderer (die gesetzte Seite → Pixel) ← neu in §4.24
 │  │  ├─ Services/               DatabaseService (SQLite, §4.8), GonkJson (Source-Generator),
 │  │  │                          ILegacyDatabaseReader, BlobStore, ImageCache, UndoStack,
 │  │  │                          PdfImporter, DocumentHealth
@@ -2561,6 +2568,75 @@ und die Anzeige im Linux-Kopf sind die nächsten drei Runden.
 
 ---
 
+### 4.24 Der Zeichner — aus einer gesetzten Seite werden Pixel
+
+Umgesetzt am 2026-08-09, direkt nach §4.23. `Core/Rendering/TdRenderer.cs` nimmt eine
+`TdPage` und eine `SKCanvas` und malt: Papier, Zeilen mit allen Zeichenformaten,
+Aufzählungsmarken, Absatzlinien, Tabellen (Hintergrund, Rahmen, Zellinhalt), Bilder,
+Kopf-/Fußzeile und Wasserzeichen.
+
+**Er rechnet nichts.** Jede Zahl steht schon im Umbruch — Ort und Maß in Zentimetern, das
+Zeichenformat bereits aufgelöst (§4.16). Was hier passiert, ist die Umrechnung in Pixel und der
+Aufruf von Skia. Genau dafür rechnet der Umbruch in Zentimetern: **eine Zoomstufe darf den
+Umbruch nicht ändern**, sonst bricht ein Dokument bei 150 % anders um als beim Drucken.
+
+**Er steht in Core und ist damit für beide Köpfe da.** SkiaSharp läuft unter Windows wie unter
+Linux; deshalb misst schon der Umbruch mit `TdSkiaMeasure`. Eine Zeile, die mit einer anderen
+Schriftmaschine gemessen als gezeichnet wird, bricht an einer Stelle um und steht an einer
+anderen.
+
+#### Die drei Stellen, an denen es schiefgeht
+
+1. **Punkt ist nicht Pixel.** Im Modell steht die Schriftgröße in **Punkt**, die Leinwand
+   rechnet in Pixeln. Eine Schrift, die ihre Punktzahl als Pixelzahl bekommt, ist bei 96 dpi
+   etwa dreimal zu klein — der Umbruch hätte für Zeilen gerechnet, die niemand so sieht. Der
+   Wächter `Der_Massstab_skaliert_auch_die_Schrift` misst deshalb die **Umschließung** der
+   Tinte bei zwei Maßstäben: sie muss sich verdoppeln, nicht gleich bleiben.
+2. **Der Zellinhalt zählt ab der Innenkante der Zelle**, nicht ab dem Textbereich. Der Umbruch
+   setzt ihn als eigene kleine Seite ohne Ränder (§4.19). Wer den Versatz vergisst, bekommt
+   eine Tabelle, deren Text links neben ihr steht — bei jeder Spalte weiter daneben.
+3. **Die Absatzlinie steht unter dem Absatz, nicht unter jeder Zeile.** Ein Absatz über drei
+   Zeilen hat *eine* Trennlinie; wer sie je Zeile zieht, bekommt liniertes Papier — und weil
+   das nach einer Gestaltungsabsicht aussieht, fällt es niemandem als Fehler auf.
+
+#### Benannte Lücke: ein Diagramm wird noch nicht gezeichnet
+
+`TdChart` bekommt einen **Kasten mit gestricheltem Rand und seinem Titel**, kein Diagramm. Die
+sieben Arten (Säule, Balken, Linie, Fläche, Punkte, Kuchen, Netz) samt Legende, Achsen und
+Beschriftung sind eine eigene Runde (§6). **Ein Kasten sagt „hier fehlt etwas", eine Leerstelle
+sagt „hier war nie etwas"** (§7) — derselbe Platzhalter erscheint, wenn zu einem Bild der Blob
+fehlt, und dort bedeutet er eine unvollständige Sicherung und keinen Programmierfehler
+(Dauerregel 4).
+
+#### Wie das geprüft wird — zweigeteilt, und das ist nötig
+
+**Text darf nicht gehasht werden** (§4.6): „Segoe UI" gibt es unter Linux nicht, der Zeichner
+fällt auf eine Ersatzschrift zurück, und ein Pixel-Hash prüfte dann die Schriftausstattung des
+Rechners statt den Zeichner — in der CI auf dem Ubuntu-Läufer dauerhaft rot.
+
+Deshalb: Was **geometrisch** ist (Papier, Rahmen, Zellhintergrund, Absatzlinie, Platzhalter,
+Wasserzeichen), wird an bekannten Stellen auf Farbe geprüft; was mit **Schrift** zu tun hat,
+über die Rechnung — mit der festen Messung aus `UmbruchTests` (ein Zeichen = 1 cm) steht vorher
+fest, wo etwas landen muss. **11 neue Wächter** in `ZeichnerTests`.
+
+> **Zwei davon waren zuerst falsch, und beide Male lag es am Wächter und nicht am Zeichner:**
+> Der Zelltest zählte die Rahmenlinie der Nachbarzelle als „Text in der falschen Spalte", und
+> der Linientest zählte eine 1 px starke Linie doppelt, weil die Kantenglättung sie auf zwei
+> Pixelzeilen verteilt. Gezählt werden jetzt **zusammenhängende Bänder** statt Pixelzeilen.
+
+#### Stand
+
+**420 Tests** (396 Core + 24 WPF) grün, alle Projekte 0 Warnungen. Am Augenschein geprüft: eine
+A4-Seite mit Überschrift, gemischten Zeichenformaten, Trennlinie, Aufzählung, Tabelle mit
+Kopfzeilenfüllung, Bild und Diagramm-Platzhalter kommt vollständig und an der richtigen Stelle
+heraus, samt aufgelöster Kopf- und Fußzeile.
+
+**Ausdrücklich noch nicht:** Der Zeichner ist **noch nirgends angeschlossen** — dieselbe
+Absicht wie bei §4.14. Der `PdfExporter` und die Anzeige im Linux-Kopf sind die nächsten zwei
+Runden; erst danach wird `Rtf` als führendes Feld abgelöst (§5).
+
+---
+
 ## 5. Entscheidungen
 
 **Getroffen, alle umgesetzt:**
@@ -3159,9 +3235,14 @@ Boden", das einzige Risiko, das die Roadmap mit **hoch** einstuft.
       der DOCX-Import kommt über `TdZuFlow` zurück in den Editor. `DocxExporter` und
       `MarkdownExporter` sind gelöscht. **Fünf Fehler dabei gefunden**, die der
       Modell-gegen-Modell-Roundtrip nicht sehen konnte
-- [ ] **Umverdrahten, zweiter Teil** — die drei, die noch fehlen, jede eine eigene Runde:
-      1. **Der Zeichner**: `TdLayout` → SkiaSharp. **Dazu gehört das Zeichnen eines
-         `TdChart`** — der Umbruch reserviert nur den Kasten (§4.21)
+- [x] **Der Zeichner** (§4.24, 2026-08-09): `TdRenderer` in Core malt eine gesetzte Seite mit
+      SkiaSharp — Text mit allen Zeichenformaten, Aufzählungsmarken, Absatzlinien, Tabellen,
+      Bilder, Kopf-/Fußzeile, Wasserzeichen. 11 neue Wächter. **Noch nirgends angeschlossen** —
+      dieselbe Absicht wie bei Schritt 1
+- [ ] **Umverdrahten, was noch fehlt** — jede eigene Runde:
+      1. **Die sieben Diagrammarten zeichnen** (Säule, Balken, Linie, Fläche, Punkte, Kuchen,
+         Netz) samt Legende, Achsen und Beschriftung. Bis dahin steht dort ein benannter
+         Platzhalterkasten (§4.24)
       2. **`PdfExporter`** gegen das Modell statt gegen den WPF-Paginator. Erst danach ist
          §4.1 ganz aufgelöst
       3. **Die Anzeige im Linux-Kopf** aus dem Modell, dazu das Ribbon in Avalonia neu.
@@ -3861,6 +3942,24 @@ und keine davon sieht wie ein Fehler aus.
   eine geklärte Lizenz (§6); ein mit Skia gemaltes Rechteck braucht keine. Dabei nie
   achsensymmetrisch malen, sonst fällt eine vertauschte Achse nicht auf.
 
+**Neu aus Phase 4 — der Zeichner (§4.24)**
+
+- **Punkt ist nicht Pixel.** Die Schriftgröße steht im Modell in Punkt, die Leinwand rechnet in
+  Pixeln, und der Maßstab kommt obendrauf: `Pixel = Punkt × 2,54/72 × Pixel-je-Zentimeter`. Wer
+  die Umrechnung vergisst, bekommt bei jeder Zoomstufe dieselbe winzige Schrift auf einer immer
+  größeren Seite — der Umbruch hat dann für Zeilen gerechnet, die niemand so sieht.
+- **Der Zellinhalt zählt ab der Innenkante der Zelle**, nicht ab dem Textbereich: Der Umbruch
+  setzt ihn als eigene kleine Seite ohne Ränder (§4.19). Ohne den Versatz steht der Text links
+  neben der Tabelle, bei jeder Spalte weiter daneben.
+- **Eine 1 px starke Linie kann zwei Pixelzeilen einfärben.** Liegt sie auf einer halben
+  Pixelgrenze, verteilt die Kantenglättung sie. Ein Wächter, der Pixelzeilen zählt, findet dann
+  zwei Linien, wo eine ist — **gezählt werden zusammenhängende Bänder.**
+- **Für alles mit Schrift ist die Umschließung belastbarer als die Pixelzahl.** Wie viele Pixel
+  ein Buchstabe einfärbt, hängt an Kantenglättung und Hinting und wächst bei kleinen Graden
+  nicht linear mit; wie groß er ist, schon.
+- **Ein Platzhalter skaliert mit.** Rahmenstärke, Strichlänge und Beschriftung in festen Pixeln
+  sehen bei 100 % richtig aus und beim Druck mit 300 dpi wie ein Haar mit einem Punkt darin.
+
 **Neu aus Phase 4 — das Umverdrahten (§4.23)**
 
 - **In Word erben Läufe ihr Format aus der Formatvorlage, nicht aus dem `w:pPr/w:rPr`.** Das
@@ -4147,7 +4246,7 @@ cd C:\Dev\Zed\gonk-note-V2
 dotnet build -c Release      # 0 Fehler / 0 Warnungen
 dotnet build -c Debug        # schneller, ohne Self-Contained/win-x64
 
-dotnet test -c Release       # beide Testprojekte, 409 Tests
+dotnet test -c Release       # beide Testprojekte, 420 Tests
 
 # Golden-Files bewusst neu setzen (danach den Diff lesen, siehe §4.6)
 $env:GONK_SNAPSHOT_UPDATE=1; dotnet test tests\GonkNote.Core.Tests; $env:GONK_SNAPSHOT_UPDATE=$null
@@ -4234,6 +4333,7 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 
 | Runde | Datum | Was |
 |---|---|---|
+| V2-29 | 2026-08-09 | **Der Zeichner steht** (§4.24) — `TdRenderer` in Core nimmt eine gesetzte Seite und eine `SKCanvas` und malt: Papier, Zeilen mit allen Zeichenformaten (fett, kursiv, unterstrichen, durchgestrichen, Hervorhebung, Hoch-/Tiefstellung, Farbe), Aufzählungsmarken, Absatzlinien, Tabellen mit Hintergrund und Rahmen, Bilder, Kopf-/Fußzeile mit aufgelösten Platzhaltern und das Wasserzeichen. **Er rechnet nichts** — jede Zahl steht schon im Umbruch, in Zentimetern und mit aufgelöstem Format (§4.16); hier wird nur in Pixel umgerechnet. Genau dafür rechnet der Umbruch in Zentimetern: eine Zoomstufe darf ihn nicht ändern, sonst bricht ein Dokument bei 150 % anders um als beim Drucken. **Drei Stellen, an denen es schiefgeht, und alle drei haben einen Wächter bekommen:** (1) **Punkt ist nicht Pixel** — die Größe steht im Modell in Punkt, die Leinwand rechnet in Pixeln, der Maßstab kommt obendrauf; wer das vergisst, bekommt bei jeder Zoomstufe dieselbe winzige Schrift auf einer immer größeren Seite. (2) **Der Zellinhalt zählt ab der Innenkante der Zelle**, nicht ab dem Textbereich (§4.19) — ohne den Versatz steht der Text links neben der Tabelle, bei jeder Spalte weiter daneben. (3) **Die Absatzlinie steht unter dem Absatz, nicht unter jeder Zeile** — sonst wird aus einem dreizeiligen Absatz liniertes Papier, und weil das nach Gestaltung aussieht, fällt es niemandem als Fehler auf. **Benannte Lücke:** Ein `TdChart` bekommt einen Kasten mit gestricheltem Rand und seinem Titel und noch kein Diagramm; die sieben Arten sind eine eigene Runde. Ein Kasten sagt „hier fehlt etwas", eine Leerstelle sagt „hier war nie etwas" (§7) — derselbe Platzhalter erscheint, wenn zu einem Bild der Blob fehlt. **Geprüft wird zweigeteilt, und das ist nötig:** Text darf nicht gehasht werden (§4.6, „Segoe UI" fehlt unter Linux), also wird das Geometrische an bekannten Stellen auf Farbe geprüft und alles mit Schrift über die Rechnung — mit der festen Messung aus `UmbruchTests` steht vorher fest, wo etwas landen muss. **Zwei der elf Wächter waren zuerst falsch, und beide Male lag es am Wächter:** Der Zelltest zählte die Rahmenlinie der Nachbarzelle als „Text in der falschen Spalte", der Linientest zählte eine 1 px starke Linie doppelt, weil die Kantenglättung sie auf zwei Pixelzeilen verteilt — gezählt werden jetzt zusammenhängende Bänder. Am Augenschein geprüft: eine A4-Seite mit Überschrift, gemischten Formaten, Trennlinie, Aufzählung, Tabelle, Bild und Platzhalter kommt vollständig und an der richtigen Stelle heraus. **420 Tests grün** (396 Core + 24 WPF), alle Projekte 0 Warnungen. **Angeschlossen ist er noch nirgends** — dieselbe Absicht wie bei Schritt 1; `PdfExporter` und die Anzeige im Linux-Kopf sind die nächsten zwei Runden |
 | V2-28 | 2026-08-09 | **Das Umverdrahten, erster Teil: DOCX und Markdown laufen gegen das Modell** (§4.23) — der letzte offene Punkt aus Phase 4, und **§4.1 ist damit zur Hälfte eingelöst**. Drei Schritte in dieser Reihenfolge, weil jeder auf dem vorigen steht: `TextDoc.Model` wird bei **jedem** Speichern mitgeschrieben (sonst exportierte ein Export aus dem Modell den Stand der einmaligen Übernahme statt dessen, was auf dem Schirm steht), dann Markdown über `TdMarkdown`, dann DOCX über `TdDocx` in **beide** Richtungen — beim Import macht `TdZuFlow` daraus wieder ein `XamlPackage`, sonst käme eine importierte Datei mit gefülltem Modell und leerem Editor an. `DocxExporter` und `MarkdownExporter` sind **gelöscht** (941 Zeilen); `DocxImporter` bleibt für den Whiteboard-Import. **Der eigentliche Ertrag sind fünf Fehler, die vorher niemand sehen konnte** — sie standen alle im Code, aber nichts lief durch diesen Weg, und ein Roundtrip Modell-gegen-Modell liest denselben falschen Ort wieder aus, den er beschrieben hat: (1) Das Absatz-Zeichenformat stand nur im `w:pPr/w:rPr`, das in Word **nur für die Absatzmarke** gilt — jede Überschrift wäre als Fließtext angekommen; (2) es gab keine `Heading`-Vorlagen, also blieben Navigationsbereich und Verzeichnis-Katalog leer; (3) die Ausrichtung wurde örtlich gelesen, aber ein `FlowDocument` steht von Haus aus auf **Blocksatz** — jedes Dokument wäre still linksbündig exportiert worden; (4) Grundschrift und Tabellenlinien kamen gar nicht mit (Tinte → Schwarz, Gainsboro → Schwarz); (5) das generierte Inhaltsverzeichnis wurde als toter Text übernommen und das echte `TOC`-Feld ging verloren. **Neu im Modell: `TdParaFormat.ExcludeFromToc`** — „ist das eine Überschrift?" und „gehört das ins Verzeichnis?" sind **zwei** Fragen, und Titel wie die Zeile „Inhaltsverzeichnis" beantworten sie verschieden; Word trennt es genauso (`Title`/`TOC Heading` gegen `w:outlineLvl`). **Nutzer-Entscheidung: der Titel bekommt im Markdown seine `#`-Überschrift.** Zwei Wächter mussten mit, und das ist keine Nebensache: `DocxAufriss` las `w:b w:val="0"` als „fett" und kannte die dreiteilige Feldform nicht — **ein Wächter, der das Falsche liest, ist schlimmer als keiner.** Die Golden-Files haben sich geändert und jede Zeile ist begründet (§4.6, Tabelle in §4.23): echte Felder statt eingebackenem Text, A4 exakt statt vier Twips daneben, Linien an der Tabelle statt an jeder Zelle. Am laufenden Programm mit einer **Kopie** der echten Datenbank geprüft (Dauerregel 4): Der Überschriften-**Lauf** im DOCX trägt jetzt `w:b`/`w:color`/`w:sz` — genau das war kaputt, und nur so ließ es sich zeigen. **409 Tests grün** (385 Core + 24 WPF), drei Projekte 0 Warnungen. **`Rtf` führt weiter**; Zeichner, `PdfExporter` und die Anzeige im Linux-Kopf sind die nächsten drei Runden |
 | V2-27 | 2026-08-05 | **Die Übernahme der Bestandsdokumente läuft** (§4.22) — seit §4.15 vorgemerkt, durch das unfertige Modell blockiert, mit §4.21 freigeworden. **Nutzer-Entscheidung: still, aber ein Fehler wird gespiegelt.** Die Teilung ist der Punkt: Was gelingt, gelingt wortlos (ein Hinweis, den man bei jedem Dokument wegklickt, wird nach dem dritten Mal nicht mehr gelesen); was misslingt, wird benannt **und im Dokument vermerkt** (`MigrationIssue`) — anders als bei der Datenbank (§4.8) kann hier etwas verlorengehen, denn RTF und XamlPackage tragen Dinge, die kein Modell kennt. `TextDoc` bekommt zwei Felder **neben** `Rtf` (`Model`, `MigrationIssue`), und **`Rtf` wird nie überschrieben** — daraus folgt das Wichtigste: eine misslungene Übernahme ist kein Datenverlust, sondern ein Versuch, der beim nächsten Öffnen wiederholt wird. **Sie läuft nur auf dem Windows-Rechner** (`IDocumentIo.CanMigrate`), und das ist eine Schranke und keine Lücke: RTF liest ausschließlich `TextRange`, ein Versuch unter Linux ergäbe ein **leeres** Dokument — schlimmer als gar keine Übernahme, weil der Inhalt gelöscht aussähe. `Migrate` **wirft nicht**: sie läuft beim Öffnen, und eine Ausnahme dort ist für den Nutzer ein Absturz. **`FlowZuTd` ist die eine Stelle, an der Raten richtig ist:** Die Gliederungsebene kommt aus der Schriftgröße, weil das `FlowDocument` keinen Platz dafür hat — **geraten wird einmal, danach steht sie als eigener Wert im Modell**, und genau das ist der Unterschied zwischen einer Übernahme und einem Format. Übernommen werden **nur örtlich gesetzte Werte** (`ReadLocalValue` unterscheidet „nicht gesetzt" von „Vorgabewert", §4.14) — **aber `Bold`/`Italic`/`Underline` tragen ihre Bedeutung im Typ**, dort gibt `ReadLocalValue` nichts zurück, und wer das übersieht, verliert die drei häufigsten Auszeichnungen (vom Wächter gefunden). Dazu zwei Umrechnungen: WPFs `RowSpan` → `Restart`+`Continue` **je Zeile** (§4.18, sonst rutscht alles dahinter eine Spalte nach links) und eine verschachtelte Liste als **dieselbe** Liste eine Ebene tiefer (§4.17). **Die Umwandlung fasst die Vorlage nicht an** — der erste Entwurf nahm einen Block kurz aus seinem Elternteil, was ihn im offenen Editor hätte verschwinden lassen; eigener Wächter. **Am laufenden Programm mit einer Kopie der echten Daten geprüft:** kein Hinweisfenster, `Model` mit gültiger `GNTD`-Kennung, `Rtf` unangetastet, `"OutlineLevel":1` an der Überschrift. **Dabei ein Fehler, den fünf Schritte lang kein Test sehen konnte:** In jedem Format stand ein `"IstLeer":false`, in jeder Seiteneinrichtung vier gerechnete Werte — **ein Roundtrip prüft, was zurückkommt, nicht was dasteht** (die Felder haben keinen Setter). Behoben mit `[JsonIgnore]`, neuer Wächter sieht auf die Datei. **Nebenbefund:** die echte Datenbank enthält **kein einziges** Textdokument mit Inhalt — die Übernahme ließ sich an ihr gar nicht messen, und wer sie für den Beweis gehalten hätte, hätte einen Haken hinter etwas gesetzt, das nie lief. **12 neue Wächter, jetzt 409** (385 Core + 24 WPF), alle drei Projekte 0 Warnungen. **Ebenfalls entschieden (Nutzer): Phase 6 bekommt einen Aufräum-Schritt** — erst putzen, **dann** noch einmal vollständig prüfen, dann veröffentlichen (§6) |
 | V2-26 | 2026-08-05 | **Phase 4, Schritt 6: Bilder und Diagramme — das Dokumentmodell ist vollständig** (§4.21). **Der Befund wiegt schwer und steht in der Kopfzeile des heutigen Werkzeugs:** `ChartDialog` rendert ein Diagramm beim Einfügen zu einer **Bitmap** („keine Live-Datenbindung") — **die Zahlen sind im selben Augenblick weg**. Ein Diagramm lässt sich nie wieder ändern, nur löschen und neu bauen; beim Export geht ein Pixelbild hinaus, wo Word ein Diagramm erwartet. Derselbe Befund wie §4.14, eine Ebene tiefer. **`TdChart` speichert deshalb die Zahlen**, und Legende, Farbvergabe und fehlende Beschriftungen werden **gerechnet** — zum dritten Mal nach der Listennummer (§4.17) und dem Feld (§4.20). Dazu: **die Palette steht am Diagramm**, nicht in einem statischen Feld des Dialogs, das beim nächsten Start weg ist — ein Dokument muss sich selbst erklären. **In DOCX ein echtes `c:chart` mit literalen Daten und ohne eingebettete Arbeitsmappe:** die Mappe wären dieselben Zahlen ein zweites Mal (§4.10); der Preis ist benannt (Words „Daten bearbeiten" findet keine Mappe). **Punkt und Punkt+Linie sind in DrawingML ein Liniendiagramm** — `c:scatterChart` verlangt Zahlen auf beiden Achsen, unsere Kategorien sind Text; die Linie wird ausdrücklich **unsichtbar gemacht**, denn ohne `a:ln` zeichnet Word eine. **`TdImage` trägt einen Verweis und keine Bytes**, hinter der **dritten Naht** `ITdImages` (nach Schriftmessung und Feldwerten) — gemessen in V1: drei Fotos (2 MB) wurden im XamlPackage zu **16,8 MB** und rissen die 16-MB-Grenze von LiteDB. Fehlt die Naht, **wirft** der Export; fehlt ein einzelner Blob, fällt nur dieses Bild weg (unvollständige Sicherung, Dauerregel 4). **Die Kennung eines Bildes ist keine Aussage über das Dokument** — der Wächter vergleicht die Bytes. **Bild und Diagramm sind Stücke und keine Blöcke**, weil eine Zeichnung in DOCX immer in einem Lauf steht; die reservierten Blocknamen `"image"`/`"chart"` bleiben frei wie `"list"` in §4.17. **Zwei Dinge im Umbruch waren nicht offensichtlich:** eine Grafik steht **auf** der Grundlinie (ihre Höhe zählt nach oben, sonst läuft ein Bild über den Seitenrand), und **die Absatzmarke ist immer dabei** — sonst wäre ein Absatz mit einem winzigen Bild schmaler als ein leerer. **Das Wasserzeichen aus §4.15 ist eingelöst:** VML in der Kopfzeile, Bildteil am **Kopfzeilenteil** (nicht am Hauptteil), und Deckkraft über `gain` — eine benannte Näherung, denn DOCX kennt keine. **Zwei benannte Zugeständnisse:** eine ungenutzte Palettenfarbe überlebt DOCX nicht, und eine Zeichnung, die weder Bild noch Diagramm ist (Form, SmartArt), verschwindet beim Lesen. **41 neue Wächter, jetzt 397** (384 Core + 13 WPF), Bild, Diagramm und Wasserzeichen in **beiden** Beispieldokumenten, alle drei Projekte 0 Warnungen. **Damit ist die Reihenfolge aus Roadmap §5 abgearbeitet.** **Als Nächstes: umverdrahten** (Exporter, PdfExporter, Ribbon in Avalonia, das Zeichnen eines `TdChart`) — und **die Übernahme der Bestandsdokumente ist nicht mehr durch fehlende Fähigkeiten blockiert**; die Frage „still oder sichtbar" (§6) ist jetzt fällig |

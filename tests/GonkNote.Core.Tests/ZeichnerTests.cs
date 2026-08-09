@@ -1,0 +1,430 @@
+using GonkNote.Core.Rendering;
+using GonkNote.Core.Text;
+using SkiaSharp;
+
+namespace GonkNote.Core.Tests;
+
+/// <summary>
+/// <see cref="TdRenderer"/> — aus einer gesetzten Seite werden Pixel (HANDOFF §4.24).
+///
+/// <para>
+/// <b>Was hier bewusst NICHT gehasht wird: alles mit Schrift.</b> Dieselbe Regel wie bei
+/// <see cref="RendererSnapshotTests"/> und aus demselben Grund (§4.6): „Segoe UI" gibt es unter
+/// Linux nicht, der Zeichner fällt dann auf eine Ersatzschrift zurück, und ein Hash über
+/// gezeichneten Text prüfte die Schriftausstattung des Rechners statt den Zeichner. Er wäre in
+/// der CI auf dem Ubuntu-Läufer dauerhaft rot.
+/// </para>
+/// <para>
+/// <b>Geprüft wird deshalb zweigeteilt:</b> die schriftfreien Teile (Papier, Tabellenrahmen,
+/// Zellhintergrund, Absatzlinie, Platzhalterkasten, Wasserzeichen) pixelgenau als Snapshot —
+/// und alles, was mit Text zu tun hat, über die **Rechnung**: mit einer festen Messung steht
+/// vorher fest, wo etwas landen muss, und danach wird nachgesehen, ob dort Farbe ist.
+/// </para>
+/// </summary>
+public sealed class ZeichnerTests
+{
+    /// <summary>Wie in <c>UmbruchTests</c>: ein Zeichen = 1 cm, eine Zeile = 1 cm.</summary>
+    private sealed class FesteMessung : ITdTextMeasure
+    {
+        public double WidthCm(string text, TdCharFormat format) => text.Length;
+
+        public TdFontMetrics Metrics(TdCharFormat format) => new(0.8, 0.2, 1.0);
+    }
+
+    /// <summary>Zehn Zeichen breit, zehn Zeilen hoch, 1 cm Rand ringsum.</summary>
+    private static TdPageSetup Blatt(double breite = 10, double hoehe = 10) => new()
+    {
+        WidthCm = breite + 2,
+        HeightCm = hoehe + 2,
+        MarginLeftCm = 1,
+        MarginRightCm = 1,
+        MarginTopCm = 1,
+        MarginBottomCm = 1,
+    };
+
+    private static TdDocument Dok(TdPageSetup seite, params TdBlock[] bloecke) => new()
+    {
+        DefaultParaFormat = { SpaceBeforePt = 0, SpaceAfterPt = 0 },
+        Sections = { new TdSection(bloecke) { Page = seite } },
+    };
+
+    private static TdPage Setzen(TdDocument doc) =>
+        TdLayout.Umbrechen(doc, new FesteMessung()).Pages[0];
+
+    /// <summary>Zeichnet auf eine weiße Fläche und gibt die Pixel zurück.</summary>
+    private static SKBitmap Malen(TdPage seite, double massstab, TdRenderContext kontext = default)
+    {
+        int breite = (int)Math.Ceiling(seite.Setup.WidthCm * massstab);
+        int hoehe = (int)Math.Ceiling(seite.Setup.HeightCm * massstab);
+
+        var bmp = new SKBitmap(new SKImageInfo(breite, hoehe, SKColorType.Rgba8888, SKAlphaType.Premul));
+        using (var leinwand = new SKCanvas(bmp))
+        {
+            leinwand.Clear(SKColors.Transparent);
+            TdRenderer.Seite(leinwand, seite, massstab, kontext);
+        }
+        return bmp;
+    }
+
+    /// <summary>Ist an dieser Stelle etwas anderes als Papier?</summary>
+    private static bool Farbig(SKBitmap bmp, int x, int y)
+    {
+        var p = bmp.GetPixel(x, y);
+        return p.Alpha > 0 && (p.Red < 245 || p.Green < 245 || p.Blue < 245);
+    }
+
+    /// <summary>
+    /// Ein einfarbiges PNG. **Erzeugt statt eingecheckt** — eine Binärdatei im Repo bräuchte
+    /// eine geklärte Lizenz (§6), eine Fläche in einer Farbe braucht keine.
+    /// </summary>
+    private static byte[] Png(int breite, int hoehe, SKColor farbe)
+    {
+        using var flaeche = SKSurface.Create(new SKImageInfo(breite, hoehe));
+        flaeche.Canvas.Clear(farbe);
+        using var abbild = flaeche.Snapshot();
+        using var daten = abbild.Encode(SKEncodedImageFormat.Png, 100);
+        return daten.ToArray();
+    }
+
+    /// <summary>Wie viele Pixel im Rechteck sind nicht Papier?</summary>
+    private static int FarbigeIm(SKBitmap bmp, int x, int y, int breite, int hoehe)
+    {
+        int treffer = 0;
+        for (int yy = y; yy < Math.Min(y + hoehe, bmp.Height); yy++)
+            for (int xx = x; xx < Math.Min(x + breite, bmp.Width); xx++)
+                if (Farbig(bmp, xx, yy)) treffer++;
+        return treffer;
+    }
+
+    /// <summary>
+    /// Die Umschließung aller nicht-weißen Pixel — leer, wenn nichts gezeichnet wurde.
+    /// <para>
+    /// <b>Für alles mit Schrift belastbarer als die Pixelzahl.</b> Wie viele Pixel ein
+    /// Buchstabe einfärbt, hängt an Kantenglättung und Hinting und wächst bei kleinen Graden
+    /// nicht linear mit; wie groß er ist, schon.
+    /// </para>
+    /// </summary>
+    private static SKRectI TinteKasten(SKBitmap bmp)
+    {
+        int links = int.MaxValue, oben = int.MaxValue, rechts = int.MinValue, unten = int.MinValue;
+
+        for (int y = 0; y < bmp.Height; y++)
+            for (int x = 0; x < bmp.Width; x++)
+            {
+                if (!Farbig(bmp, x, y)) continue;
+                if (x < links) links = x;
+                if (x > rechts) rechts = x;
+                if (y < oben) oben = y;
+                if (y > unten) unten = y;
+            }
+
+        return rechts < links ? SKRectI.Empty : new SKRectI(links, oben, rechts + 1, unten + 1);
+    }
+
+    // ==================== Die Seite selbst ====================
+
+    /// <summary>
+    /// <b>Das Papier ist weiß und füllt die Seite</b> — auch im dunklen Thema (§1). Was sich
+    /// verdunkelt, ist die Fläche um die Seite herum, und die gehört dem Kopf.
+    /// </summary>
+    [Fact]
+    public void Das_Papier_ist_weiss_und_deckt_die_ganze_Seite()
+    {
+        using var bmp = Malen(Setzen(Dok(Blatt(), new TdParagraph())), massstab: 10);
+
+        foreach (var (x, y) in new[] { (0, 0), (bmp.Width - 1, 0), (0, bmp.Height - 1), (bmp.Width - 1, bmp.Height - 1) })
+        {
+            var p = bmp.GetPixel(x, y);
+            Assert.Equal(255, p.Alpha);
+            Assert.Equal(SKColors.White, new SKColor(p.Red, p.Green, p.Blue));
+        }
+    }
+
+    /// <summary>
+    /// <b>Der Text beginnt am Seitenrand und nicht am Blattrand.</b> Der Umbruch legt seine
+    /// Maße ab der Oberkante des **Textbereichs** ab; wer die Ränder beim Zeichnen vergisst,
+    /// bekommt ein Dokument, das oben links klebt — und zwar auf jeder Seite gleich falsch,
+    /// also ohne dass es nach einem Fehler aussieht.
+    /// </summary>
+    [Fact]
+    public void Der_Text_sitzt_hinter_den_Seitenraendern()
+    {
+        var seite = Setzen(Dok(Blatt(), new TdParagraph("MMMM")));
+        using var bmp = Malen(seite, massstab: 20);
+
+        // 1 cm Rand bei 20 px/cm = die ersten 20 Pixel bleiben leer, in beiden Richtungen.
+        Assert.Equal(0, FarbigeIm(bmp, 0, 0, bmp.Width, 19));
+        Assert.Equal(0, FarbigeIm(bmp, 0, 0, 19, bmp.Height));
+
+        // Und im Textbereich steht etwas.
+        Assert.True(FarbigeIm(bmp, 20, 20, 100, 40) > 0, "Im Textbereich wurde nichts gezeichnet.");
+    }
+
+    /// <summary>
+    /// <b>Der Maßstab skaliert die Schrift mit.</b> Die Größe steht im Modell in **Punkt**, die
+    /// Leinwand rechnet in Pixeln — wer die Umrechnung vergisst, bekommt bei jeder Zoomstufe
+    /// dieselbe winzige Schrift auf einer immer größeren Seite. Geprüft wird nicht die
+    /// Buchstabenform (die hängt an der Schrift des Rechners), sondern dass die eingefärbte
+    /// Fläche mit dem Quadrat des Maßstabs wächst.
+    /// </summary>
+    [Fact]
+    public void Der_Massstab_skaliert_auch_die_Schrift()
+    {
+        var doc = Dok(Blatt(), new TdParagraph("MMMM"));
+
+        using var klein = Malen(Setzen(doc), massstab: 20);
+        using var gross = Malen(Setzen(doc), massstab: 40);
+
+        var a = TinteKasten(klein);
+        var b = TinteKasten(gross);
+
+        Assert.False(a.IsEmpty, "Bei kleinem Maßstab wurde nichts gezeichnet.");
+
+        // Doppelter Maßstab = doppelt so hohe und doppelt so breite Schrift. Die Spanne lässt
+        // Kantenglättung und Schriftraster Platz — **eine Schrift, die gar nicht mitskaliert,
+        // läge bei 1,0**, und genau das ist der Fehler, den dieser Wächter fängt.
+        Assert.InRange((double)b.Height / a.Height, 1.7, 2.4);
+        Assert.InRange((double)b.Width / a.Width, 1.7, 2.4);
+    }
+
+    // ==================== Tabellen ====================
+
+    private static TdTable Tabelle(string fuellung)
+    {
+        var t = new TdTable();
+        t.ColumnWidthsCm.Add(5);
+        t.ColumnWidthsCm.Add(5);
+        t.Format.Top = t.Format.Bottom = t.Format.Left = t.Format.Right = new TdBorder(1, "#FF0000");
+        t.Format.InsideH = t.Format.InsideV = new TdBorder(1, "#FF0000");
+
+        var zeile = new TdTableRow();
+        zeile.Cells.Add(new TdTableCell { Shading = fuellung, Blocks = { new TdParagraph() } });
+        zeile.Cells.Add(new TdTableCell { Blocks = { new TdParagraph() } });
+        t.Rows.Add(zeile);
+        return t;
+    }
+
+    /// <summary>
+    /// <b>Rahmen und Zellhintergrund landen dort, wo die Zelle steht.</b> Beides kommt aus dem
+    /// **Tabellen**format, nicht aus der Zelle (§4.18) — die Umrechnung ist die Stelle, an der
+    /// eine Tabelle „irgendwie verrutscht" aussieht statt falsch.
+    /// </summary>
+    [Fact]
+    public void Zellhintergrund_und_Rahmen_sitzen_an_der_Zelle()
+    {
+        var seite = Setzen(Dok(Blatt(), Tabelle("#00FF00")));
+        using var bmp = Malen(seite, massstab: 20);
+
+        var zeile = Assert.Single(seite.TableRows);
+        Assert.Equal(2, zeile.Cells.Count);
+
+        // Mitte der ersten Zelle: grün gefüllt. +20 px für den Seitenrand.
+        int mitteX = 20 + (int)(zeile.Cells[0].XCm * 20 + zeile.Cells[0].WidthCm * 20 / 2);
+        int mitteY = 20 + (int)(zeile.YCm * 20 + zeile.HeightCm * 20 / 2);
+        var fuellung = bmp.GetPixel(mitteX, mitteY);
+        Assert.Equal(new SKColor(0x00, 0xFF, 0x00), new SKColor(fuellung.Red, fuellung.Green, fuellung.Blue));
+
+        // Die zweite Zelle hat keine Füllung — dort steht das Papier.
+        int zweiteX = 20 + (int)(zeile.Cells[1].XCm * 20 + zeile.Cells[1].WidthCm * 20 / 2);
+        var leer = bmp.GetPixel(zweiteX, mitteY);
+        Assert.Equal(SKColors.White, new SKColor(leer.Red, leer.Green, leer.Blue));
+
+        // Auf der Oberkante der Zeile liegt der rote Rahmen.
+        Assert.True(Farbig(bmp, mitteX, 20 + (int)(zeile.YCm * 20)), "Kein Rahmen an der Oberkante.");
+    }
+
+    /// <summary>
+    /// <b>Der Zellinhalt zählt ab der Innenkante der Zelle</b>, nicht ab dem Textbereich — der
+    /// Umbruch setzt ihn als eigene kleine Seite ohne Ränder (§4.19). Wer den Versatz vergisst,
+    /// bekommt eine Tabelle, deren Text links neben ihr steht, und zwar bei jeder Spalte weiter
+    /// daneben. Geprüft an der **zweiten** Spalte, weil dort der Fehler am größten wäre.
+    /// </summary>
+    [Fact]
+    public void Der_Text_einer_Zelle_steht_in_ihrer_Spalte()
+    {
+        var t = new TdTable();
+        t.ColumnWidthsCm.Add(5);
+        t.ColumnWidthsCm.Add(5);
+
+        // **Ohne Rahmen** — sonst färbt die Linie der ersten Zelle die Spalte ein, und der
+        // Wächter fände Farbe dort, wo er gerade beweisen will, dass keine ist.
+        t.Format.Top = t.Format.Bottom = t.Format.Left = t.Format.Right = TdBorder.Keine;
+        t.Format.InsideH = t.Format.InsideV = TdBorder.Keine;
+
+        var zeile = new TdTableRow();
+        zeile.Cells.Add(new TdTableCell { Blocks = { new TdParagraph() } });
+        zeile.Cells.Add(new TdTableCell { Blocks = { new TdParagraph("MM") } });
+        t.Rows.Add(zeile);
+
+        var seite = Setzen(Dok(Blatt(), t));
+        using var bmp = Malen(seite, massstab: 20);
+
+        var gesetzt = Assert.Single(seite.TableRows);
+        int zweiteLinks = 20 + (int)(gesetzt.Cells[1].XCm * 20);
+        int obenY = 20 + (int)(gesetzt.YCm * 20);
+        int hoehe = (int)(gesetzt.HeightCm * 20);
+
+        // In der zweiten Spalte steht Text …
+        Assert.True(FarbigeIm(bmp, zweiteLinks, obenY, (int)(gesetzt.Cells[1].WidthCm * 20), hoehe) > 0,
+            "In der zweiten Spalte steht kein Text.");
+
+        // … und in der ersten nicht. Genau andersherum sähe es aus, wenn der Versatz fehlte.
+        Assert.Equal(0, FarbigeIm(bmp, 20, obenY, (int)(gesetzt.Cells[0].WidthCm * 20) - 1, hoehe));
+    }
+
+    // ==================== Absatzlinie ====================
+
+    /// <summary>
+    /// <b>Ein Absatz über drei Zeilen bekommt *eine* Trennlinie, nicht drei.</b> Wer sie je
+    /// Zeile zöge, bekäme liniertes Papier — und weil das nach einer Gestaltungsabsicht
+    /// aussieht, fiele es niemandem als Fehler auf.
+    /// </summary>
+    [Fact]
+    public void Die_Absatzlinie_steht_einmal_unter_dem_Absatz()
+    {
+        var absatz = new TdParagraph("aaaa bbbb cccc")
+        {
+            Format = { BottomBorder = new TdBorder(1, "#FF0000") },
+        };
+        var seite = Setzen(Dok(Blatt(), absatz));
+        using var bmp = Malen(seite, massstab: 20);
+
+        Assert.True(seite.Lines.Count >= 2, "Der Absatz sollte über mehrere Zeilen laufen.");
+
+        // Eine Linie erkennt man daran, dass eine ganze Pixelzeile über die Spaltenbreite rot
+        // ist. **Gezählt werden zusammenhängende Bänder und nicht Pixelzeilen:** Eine 1 px
+        // starke Linie auf einer halben Pixelgrenze wird von der Kantenglättung auf zwei
+        // Zeilen verteilt — wer Zeilen zählt, findet dann zwei Linien, wo eine ist.
+        int spanne = (int)(seite.Setup.TextBreiteCm * 20);
+        int baender = 0;
+        bool drin = false;
+
+        for (int y = 0; y < bmp.Height; y++)
+        {
+            int rote = 0;
+            for (int x = 21; x < 20 + spanne - 1; x++)
+            {
+                var p = bmp.GetPixel(x, y);
+                // „Rot überwiegt" statt „rein rot": die Glättung mischt Weiß dazu.
+                if (p.Red > p.Green + 40 && p.Red > p.Blue + 40) rote++;
+            }
+
+            bool volleZeile = rote > spanne * 0.9;
+            if (volleZeile && !drin) baender++;
+            drin = volleZeile;
+        }
+
+        Assert.Equal(1, baender);
+    }
+
+    // ==================== Grafiken ====================
+
+    /// <summary>
+    /// <b>Ein Diagramm wird als Kasten gezeichnet und verschwindet nicht still</b> (§7). Die
+    /// sieben Diagrammarten sind eine eigene Runde; bis dahin sagt der Kasten „hier fehlt
+    /// etwas", während eine Leerstelle sagte „hier war nie etwas".
+    /// </summary>
+    [Fact]
+    public void Ein_Diagramm_wird_als_benannter_Kasten_gezeichnet()
+    {
+        var diagramm = new TdChart(TdChartKind.Column, widthCm: 6, heightCm: 4);
+        var seite = Setzen(Dok(Blatt(), new TdParagraph([diagramm])));
+        using var bmp = Malen(seite, massstab: 20);
+
+        // Der Kasten steht im Textbereich und hat einen Rand — irgendwo dort ist Farbe.
+        Assert.True(FarbigeIm(bmp, 20, 20, (int)(6 * 20), (int)(4 * 20)) > 0,
+            "Für das Diagramm wurde nichts gezeichnet.");
+    }
+
+    /// <summary>
+    /// <b>Fehlt der Blob, fehlt das Bild und nicht die Seite</b> (Dauerregel 4). Eine
+    /// unvollständige Sicherung ist kein Programmierfehler — aber sie darf auch nicht
+    /// spurlos bleiben: der Platzhalterkasten bleibt stehen.
+    /// </summary>
+    [Fact]
+    public void Ein_Bild_ohne_Blob_kostet_das_Bild_und_nicht_die_Seite()
+    {
+        var bild = new TdImage(Guid.NewGuid(), "png", widthCm: 4, heightCm: 3);
+        var seite = Setzen(Dok(Blatt(), new TdParagraph([bild])));
+
+        using var bmp = Malen(seite, massstab: 20, new TdRenderContext(new TdMemoryImages()));
+
+        Assert.True(FarbigeIm(bmp, 20, 20, (int)(4 * 20), (int)(3 * 20)) > 0,
+            "Ohne Blob blieb die Stelle vollständig leer.");
+    }
+
+    /// <summary>Ein vorhandenes Bild wird gezeichnet — und zwar in seinen Kasten.</summary>
+    [Fact]
+    public void Ein_Bild_mit_Blob_wird_gezeichnet()
+    {
+        var bilder = new TdMemoryImages();
+        var id = bilder.Ablegen(Png(40, 30, SKColors.Blue), "png");
+
+        var bild = new TdImage(id, "png", widthCm: 4, heightCm: 3);
+        var seite = Setzen(Dok(Blatt(), new TdParagraph([bild])));
+
+        using var bmp = Malen(seite, massstab: 20, new TdRenderContext(bilder));
+
+        // Mitte des Bildkastens: blau. Der Kasten sitzt auf der Grundlinie der ersten Zeile.
+        var lauf = Assert.Single(seite.Lines[0].Runs);
+        double grundlinie = seite.Lines[0].YCm + seite.Lines[0].BaselineCm;
+        int x = 20 + (int)((lauf.XCm + 2) * 20);
+        int y = 20 + (int)((grundlinie - 1.5) * 20);
+
+        var p = bmp.GetPixel(x, y);
+        Assert.True(p.Blue > 200 && p.Red < 80, $"Erwartet Blau, gefunden {p}.");
+    }
+
+    // ==================== Kopf- und Fußzeile ====================
+
+    /// <summary>
+    /// <b>Die Platzhalter werden aufgelöst, und die Seitenzahl kennt nur der Zeichner.</b> Sie
+    /// steht nicht im Umbruch: Kopf- und Fußzeile gehören zur Seite und nicht zum Textfluss
+    /// (§4.15). Geprüft wird schriftfrei — dass im oberen und unteren Rand überhaupt etwas
+    /// steht, und dass auf der ersten Seite nichts steht, wenn sie unterdrückt ist.
+    /// </summary>
+    [Fact]
+    public void Kopfzeile_fehlt_auf_der_ersten_Seite_und_steht_auf_der_zweiten()
+    {
+        var blatt = Blatt();
+        blatt.HeaderText = "Seite {SEITE} von {SEITEN}";
+        blatt.SuppressOnFirstPage = true;
+
+        // Zwei Seiten: zehn Zeilen passen aufs Blatt, elf nicht.
+        var absaetze = Enumerable.Range(0, 12).Select(i => (TdBlock)new TdParagraph($"Z{i}")).ToArray();
+        var umbruch = TdLayout.Umbrechen(Dok(blatt, absaetze), new FesteMessung());
+        Assert.True(umbruch.PageCount >= 2);
+
+        var kontext = new TdRenderContext(Seitenzahl: umbruch.PageCount);
+
+        using var erste = Malen(umbruch.Pages[0], massstab: 20, kontext);
+        using var zweite = Malen(umbruch.Pages[1], massstab: 20, kontext);
+
+        // Oberer Rand = 1 cm = die ersten 20 Pixel.
+        Assert.Equal(0, FarbigeIm(erste, 0, 0, erste.Width, 19));
+        Assert.True(FarbigeIm(zweite, 0, 0, zweite.Width, 19) > 0,
+            "Auf Seite 2 steht keine Kopfzeile.");
+    }
+
+    /// <summary>
+    /// Das Wasserzeichen liegt **unter** dem Text. Andersherum stünde der Text darunter und
+    /// wäre je nach Deckkraft nicht mehr zu lesen.
+    /// </summary>
+    [Fact]
+    public void Das_Wasserzeichen_liegt_unter_dem_Text()
+    {
+        var bilder = new TdMemoryImages();
+        var blatt = Blatt();
+        blatt.Watermark = new TdImage(
+            bilder.Ablegen(Png(60, 60, SKColors.Red), "png"), "png",
+            blatt.WidthCm, blatt.HeightCm);
+        blatt.WatermarkOpacity = 1.0;
+
+        var seite = Setzen(Dok(blatt, new TdParagraph("MMMM")));
+        using var bmp = Malen(seite, massstab: 20, new TdRenderContext(bilder));
+
+        // Im Rand, wo kein Text steht, ist das Wasserzeichen zu sehen.
+        var rand = bmp.GetPixel(bmp.Width / 2, 10);
+        Assert.True(rand.Red > 150 && rand.Green < 120, $"Kein Wasserzeichen im Rand, gefunden {rand}.");
+    }
+}

@@ -35,6 +35,17 @@ public readonly record struct TdBorder(double WidthPt, string Color)
 {
     public static TdBorder Keine => new(0, "#000000");
 
+    /// <summary>
+    /// Hat diese Linie überhaupt eine Stärke?
+    /// <para>
+    /// <b><c>JsonIgnore</c>, und aus demselben Grund wie bei <c>TdCharFormat.IstLeer</c>:</b>
+    /// ohne es steht in **jedem** Rahmen jeder Datei ein <c>"Sichtbar":true</c> — ein
+    /// abgeleiteter Wert, der später wie gespeicherte Wahrheit aussieht (§4.14, §4.22). Der
+    /// Roundtrip konnte es nicht finden, denn das Feld hat keinen Setter und wird nie
+    /// zurückgelesen: **ein Roundtrip prüft, was zurückkommt, nicht was dasteht.**
+    /// </para>
+    /// </summary>
+    [JsonIgnore]
     public bool Sichtbar => WidthPt > 0;
 }
 

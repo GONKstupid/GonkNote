@@ -107,6 +107,31 @@ public sealed class TdCharFormat
     public TdCharFormat Aufgeloest() => Over(Standard);
 
     /// <summary>
+    /// Der Gegenweg zu <see cref="Over"/>: Was <paramref name="unterlage"/> ohnehin sagt, wird
+    /// zu <c>null</c> — übrig bleibt nur, worin sich dieses Format von ihr unterscheidet.
+    /// <para>
+    /// <b>Gebraucht beim Lesen von DOCX</b> (§4.23): Dort trägt jeder Lauf das Format seines
+    /// Absatzes mit, weil Word das <c>pPr/rPr</c> nur auf die Absatzmarke anwendet. Ohne diesen
+    /// Schritt käme aus jeder Word-Datei ein Modell zurück, in dem jeder Lauf eine vollständige
+    /// Formatkopie trägt — und damit wäre die Regel aus §4.14 (<c>null</c> heißt „nicht
+    /// gesetzt") an der Tür wieder abgegeben: eine spätere Änderung am Absatz ginge an allen
+    /// Läufen vorbei.
+    /// </para>
+    /// </summary>
+    public TdCharFormat Ohne(TdCharFormat unterlage) => new()
+    {
+        FontFamily = FontFamily == unterlage.FontFamily ? null : FontFamily,
+        FontSize = FontSize == unterlage.FontSize ? null : FontSize,
+        Bold = Bold == unterlage.Bold ? null : Bold,
+        Italic = Italic == unterlage.Italic ? null : Italic,
+        Underline = Underline == unterlage.Underline ? null : Underline,
+        Strikethrough = Strikethrough == unterlage.Strikethrough ? null : Strikethrough,
+        Color = Color == unterlage.Color ? null : Color,
+        Highlight = Highlight == unterlage.Highlight ? null : Highlight,
+        VerticalAlign = VerticalAlign == unterlage.VerticalAlign ? null : VerticalAlign,
+    };
+
+    /// <summary>
     /// Ist überhaupt etwas gesetzt? Ein leeres Format wird beim Speichern weggelassen.
     /// <para>
     /// <b><c>JsonIgnore</c>, und das ist kein Schmuck:</b> Ohne es steht in **jedem** Format
@@ -165,11 +190,55 @@ public sealed class TdParaFormat
     /// </summary>
     public int? OutlineLevel { get; set; }
 
+    /// <summary>
+    /// Der Absatz wird <b>als Überschrift gesetzt, gehört aber nicht ins
+    /// Inhaltsverzeichnis</b> (§4.23).
+    ///
+    /// <para>
+    /// <b>Es gibt genau zwei davon, und beide braucht man:</b> der <b>Titel</b> eines Dokuments
+    /// und die Zeile <b>„Inhaltsverzeichnis"</b> über dem Verzeichnis selbst. Beide sehen aus
+    /// wie eine Überschrift und sollen es auch sein — ein Titel muss im Markdown ein <c>#</c>
+    /// bekommen, sonst hat eine exportierte Datei keine oberste Überschrift. Im Verzeichnis
+    /// stehen dürfen sie trotzdem nicht: ein Verzeichnis, dessen erster Eintrag der
+    /// Dokumenttitel ist, und ein zweiter namens „Inhaltsverzeichnis", der auf sich selbst
+    /// zeigt.
+    /// </para>
+    /// <para>
+    /// <b>Word trennt das genauso</b> — die eingebauten Vorlagen <c>Title</c> und
+    /// <c>TOC Heading</c> bauen auf <c>Heading 1</c> auf und setzen <c>w:outlineLvl</c> auf
+    /// Fließtext. Genau diese Form schreibt <see cref="TdDocx"/>, und daraus liest sie den Wert
+    /// auch zurück: die Vorlage sagt den Rang, die Gliederungsebene das Verzeichnis.
+    /// </para>
+    /// </summary>
+    public bool? ExcludeFromToc { get; set; }
+
     /// <summary>Nicht vom nächsten Absatz trennen (Seitenumbruch, Schritt 2).</summary>
     public bool? KeepWithNext { get; set; }
 
     /// <summary>Seitenumbruch vor diesem Absatz erzwingen (Schritt 2).</summary>
     public bool? PageBreakBefore { get; set; }
+
+    /// <summary>
+    /// Die Linie **unter** dem Absatz. <c>null</c> = nicht gesetzt,
+    /// <see cref="TdBorder.Keine"/> = ausdrücklich keine — dieselbe Unterscheidung wie bei
+    /// <see cref="TdCharFormat.Highlight"/>.
+    ///
+    /// <para>
+    /// <b>Das ist die Trennlinie des Editors</b> („Einfügen → Trennlinie"). Im
+    /// <c>FlowDocument</c> ist sie ein <c>BlockUIContainer</c> mit einem 2 px hohen Rahmen —
+    /// also ein <b>Bedienelement</b> im Text, und dafür hat kein Dokumentformat einen Ort.
+    /// DOCX schreibt sie seit jeher als leeren Absatz mit einer Unterlinie
+    /// (<c>w:pBdr/w:bottom</c>), und genau das steht hier: <b>eine Linie ist eine Angabe am
+    /// Absatz und kein Block für sich.</b>
+    /// </para>
+    /// <para>
+    /// <b>Warum sie überhaupt ins Modell musste:</b> Ohne sie verschluckt die Übernahme jede
+    /// Trennlinie eines Bestandsdokuments — still, denn ein fehlender Strich sieht nicht nach
+    /// einem Fehler aus, sondern nach einem Dokument ohne Strich (§7,
+    /// „Was noch nicht geht, verschwindet nicht still").
+    /// </para>
+    /// </summary>
+    public TdBorder? BottomBorder { get; set; }
 
     /// <inheritdoc cref="TdCharFormat.Standard"/>
     public static TdParaFormat Standard => new()
@@ -182,8 +251,10 @@ public sealed class TdParaFormat
         SpaceAfterPt = 8,
         LineSpacing = 1,
         OutlineLevel = 0,
+        ExcludeFromToc = false,
         KeepWithNext = false,
         PageBreakBefore = false,
+        BottomBorder = TdBorder.Keine,
     };
 
     /// <inheritdoc cref="TdCharFormat.Over"/>
@@ -197,8 +268,10 @@ public sealed class TdParaFormat
         SpaceAfterPt = SpaceAfterPt ?? unterlage.SpaceAfterPt,
         LineSpacing = LineSpacing ?? unterlage.LineSpacing,
         OutlineLevel = OutlineLevel ?? unterlage.OutlineLevel,
+        ExcludeFromToc = ExcludeFromToc ?? unterlage.ExcludeFromToc,
         KeepWithNext = KeepWithNext ?? unterlage.KeepWithNext,
         PageBreakBefore = PageBreakBefore ?? unterlage.PageBreakBefore,
+        BottomBorder = BottomBorder ?? unterlage.BottomBorder,
     };
 
     /// <inheritdoc cref="TdCharFormat.Aufgeloest"/>
@@ -209,8 +282,8 @@ public sealed class TdParaFormat
     public bool IstLeer =>
         Alignment is null && LeftIndentCm is null && RightIndentCm is null &&
         FirstLineIndentCm is null && SpaceBeforePt is null && SpaceAfterPt is null &&
-        LineSpacing is null && OutlineLevel is null && KeepWithNext is null &&
-        PageBreakBefore is null;
+        LineSpacing is null && OutlineLevel is null && ExcludeFromToc is null &&
+        KeepWithNext is null && PageBreakBefore is null && BottomBorder is null;
 
     public TdParaFormat Kopie() => (TdParaFormat)MemberwiseClone();
 }

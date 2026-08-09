@@ -98,7 +98,14 @@ public static class TdToc
             // gegeben hat — sonst stünde das Verzeichnis in sich selbst.
             if (Feld(absatz) is not null) continue;
 
-            int ebene = doc.FormatVon(absatz).OutlineLevel!.Value;
+            var format = doc.FormatVon(absatz);
+
+            // Der Titel des Dokuments und die Zeile „Inhaltsverzeichnis" sind Überschriften,
+            // gehören aber nicht hierher (§4.23) — sonst führte das Verzeichnis den
+            // Dokumenttitel als ersten Eintrag und sich selbst als zweiten.
+            if (format.ExcludeFromToc == true) continue;
+
+            int ebene = format.OutlineLevel!.Value;
             if (ebene < von || ebene > bis) continue;
 
             string text = absatz.PlainText().Trim();

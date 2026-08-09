@@ -1,3 +1,5 @@
+using GonkNote.Core.Services;
+
 namespace GonkNote.Core.Text;
 
 /// <summary>
@@ -34,6 +36,28 @@ public interface ITdImages
     /// mitbringt.
     /// </summary>
     Guid Ablegen(byte[] daten, string endung);
+}
+
+/// <summary>
+/// Die Naht auf den <see cref="BlobStore"/> der App — der Weg, den Im- und Export in beiden
+/// Köpfen nehmen.
+///
+/// <para>
+/// <b>Sie steht in Core und nicht in jedem Kopf einzeln.</b> Beide Köpfe legen ihre Bilder in
+/// denselben Ordner neben der Datenbank (§4.8); zwei Fassungen dieser fünf Zeilen wären die
+/// Doppelung aus §4.10, mit dem Fehlerbild „dasselbe Bild liegt zweimal im Blob-Speicher".
+/// </para>
+/// <para>
+/// <b>Die Endung fällt hier weg, und das ist kein Verlust:</b> Der Blob-Speicher legt Bytes
+/// unter einer Kennung ab und kennt keine Dateitypen. Welcher Typ es ist, steht im Dokument
+/// (<see cref="TdImage.Extension"/>) — genau dort, wo der Export danach fragt.
+/// </para>
+/// </summary>
+public sealed class TdBlobImages(BlobStore blobs) : ITdImages
+{
+    public byte[]? Lesen(Guid id) => blobs.Read(id);
+
+    public Guid Ablegen(byte[] daten, string endung) => blobs.Put(daten);
 }
 
 /// <summary>

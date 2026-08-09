@@ -6,6 +6,7 @@
 - Heading2 ("heading 2") Gliederungsebene(0-basiert)=1
 - Heading3 ("heading 3") Gliederungsebene(0-basiert)=2
 - Heading4 ("heading 4") Gliederungsebene(0-basiert)=3
+- Title ("Title")
 
 ## Nummerierungen
 - numId=1 -> abstractNumId=1
@@ -15,61 +16,62 @@
 - Felder beim Öffnen aktualisieren: True
 
 ## Inhalt
-ABSATZ Ausrichtung=center Abstand=90/180 "Gonk Note — Referenzdokument"<fett,farbe:1B2B4B,größe:51>
-ABSATZ Ausrichtung=both Abstand=240/120 "Inhaltsverzeichnis"<fett,farbe:2563EB,größe:42>
+ABSATZ Vorlage=Title Ausrichtung=center Abstand=90/180 "Gonk Note — Referenzdokument"<fett,farbe:1B2B4B,größe:51>
+ABSATZ Vorlage=Title Ausrichtung=both Abstand=240/120 "Inhaltsverzeichnis"<fett,farbe:2563EB,größe:42>
 ABSATZ {FELD TOC \o "1-4" \h \z \u}
 ABSATZ Vorlage=Heading1 Ausrichtung=both Abstand=240/120 "Einleitung"<fett,farbe:2563EB,größe:42>
-ABSATZ Ausrichtung=both Abstand=30/90 "Dieser Absatz enthält "<farbe:1B2B4B,größe:22>"fetten"<fett,farbe:1B2B4B,größe:22>", "<farbe:1B2B4B,größe:22>"kursiven"<kursiv,farbe:1B2B4B,größe:22>" und "<farbe:1B2B4B,größe:22>"durchgestrichenen"<durchgestrichen,farbe:1B2B4B,größe:22>" Text sowie einen "<farbe:1B2B4B,größe:22>[VERWEIS https://github.com/GONKstupid/GonkNote: "Verweis"<unterstrichen,farbe:0066CC,größe:22>]"."<farbe:1B2B4B,größe:22>
+ABSATZ Ausrichtung=both Abstand=30/90 "Dieser Absatz enthält ""fetten"<fett>", ""kursiven"<kursiv>" und ""durchgestrichenen"<durchgestrichen>" Text sowie einen "[VERWEIS https://github.com/GONKstupid/GonkNote: "Verweis"]"."
 ABSATZ Vorlage=Heading2 Ausrichtung=both Abstand=180/90 "Tabelle"<fett,farbe:14B8A6,größe:33>
 TABELLE 4 Zeilen, Raster [2400, 1800, 1500]
+  RAHMEN single:DCDCDC Stärke=3
   Zeile 1:
-    ZELLE Füllung=B0C4DE Rahmen=single:DCDCDC
-      ABSATZ Ausrichtung=both "Fach"<fett,farbe:1B2B4B,größe:22>
-    ZELLE Füllung=B0C4DE Rahmen=single:DCDCDC
-      ABSATZ Ausrichtung=both "Note"<fett,farbe:1B2B4B,größe:22>
-    ZELLE Füllung=B0C4DE Rahmen=single:DCDCDC
-      ABSATZ Ausrichtung=both "Datum"<fett,farbe:1B2B4B,größe:22>
+    ZELLE Füllung=B0C4DE
+      ABSATZ Ausrichtung=both Abstand=0/0 "Fach"<fett>
+    ZELLE Füllung=B0C4DE
+      ABSATZ Ausrichtung=both Abstand=0/0 "Note"<fett>
+    ZELLE Füllung=B0C4DE
+      ABSATZ Ausrichtung=both Abstand=0/0 "Datum"<fett>
   Zeile 2:
-    ZELLE Füllung=- Rahmen=single:DCDCDC
-      ABSATZ Ausrichtung=both "Mathematik"<farbe:1B2B4B,größe:22>
-    ZELLE Füllung=- Rahmen=single:DCDCDC
-      ABSATZ Ausrichtung=both "2"<farbe:1B2B4B,größe:22>
-    ZELLE Füllung=- Rahmen=single:DCDCDC
-      ABSATZ Ausrichtung=both "12.03.2026"<farbe:1B2B4B,größe:22>
+    ZELLE Füllung=-
+      ABSATZ Ausrichtung=both Abstand=0/0 "Mathematik"
+    ZELLE Füllung=-
+      ABSATZ Ausrichtung=both Abstand=0/0 "2"
+    ZELLE Füllung=-
+      ABSATZ Ausrichtung=both Abstand=0/0 "12.03.2026"
   Zeile 3:
-    ZELLE Füllung=- Rahmen=single:DCDCDC
-      ABSATZ Ausrichtung=both "Deutsch"<farbe:1B2B4B,größe:22>
-    ZELLE Füllung=- Rahmen=single:DCDCDC
-      ABSATZ Ausrichtung=both "1"<farbe:1B2B4B,größe:22>
-    ZELLE Füllung=- Rahmen=single:DCDCDC
-      ABSATZ Ausrichtung=both "19.03.2026"<farbe:1B2B4B,größe:22>
+    ZELLE Füllung=-
+      ABSATZ Ausrichtung=both Abstand=0/0 "Deutsch"
+    ZELLE Füllung=-
+      ABSATZ Ausrichtung=both Abstand=0/0 "1"
+    ZELLE Füllung=-
+      ABSATZ Ausrichtung=both Abstand=0/0 "19.03.2026"
   Zeile 4:
-    ZELLE Füllung=- Rahmen=single:DCDCDC
-      ABSATZ Ausrichtung=both "Physik | Chemie"<farbe:1B2B4B,größe:22>
-    ZELLE Füllung=- Rahmen=single:DCDCDC
-      ABSATZ Ausrichtung=both "3"<farbe:1B2B4B,größe:22>
-    ZELLE Füllung=- Rahmen=single:DCDCDC
-      ABSATZ Ausrichtung=both "26.03.2026"<farbe:1B2B4B,größe:22>
+    ZELLE Füllung=-
+      ABSATZ Ausrichtung=both Abstand=0/0 "Physik | Chemie"
+    ZELLE Füllung=-
+      ABSATZ Ausrichtung=both Abstand=0/0 "3"
+    ZELLE Füllung=-
+      ABSATZ Ausrichtung=both Abstand=0/0 "26.03.2026"
 ABSATZ Vorlage=Heading2 Ausrichtung=both Abstand=180/90 "Bild"<fett,farbe:14B8A6,größe:33>
 ABSATZ Ausrichtung=both Abstand=60/150 [BILD 2286000x1428750 EMU, Teil=image/png 320x200]
 ABSATZ Vorlage=Heading3 Ausrichtung=both Abstand=150/60 "Diagramm"<fett,farbe:8B5CF6,größe:27>
 ABSATZ Ausrichtung=both Abstand=60/150 [BILD 2857500x1714500 EMU, Teil=image/png 400x240]
 ABSATZ Vorlage=Heading2 Ausrichtung=both Abstand=180/90 "Listen"<fett,farbe:14B8A6,größe:33>
-ABSATZ Ausrichtung=both Liste=numId1/Ebene0 Abstand=0/30 "Erster Punkt"<farbe:1B2B4B,größe:22>
-ABSATZ Ausrichtung=both Liste=numId1/Ebene0 Abstand=0/30 "Zweiter Punkt"<farbe:1B2B4B,größe:22>
-ABSATZ Ausrichtung=both Liste=numId1/Ebene0 Abstand=0/30 "Dritter Punkt"<farbe:1B2B4B,größe:22>
-ABSATZ Ausrichtung=both Liste=numId2/Ebene0 Abstand=0/30 "Erster Schritt"<farbe:1B2B4B,größe:22>
-ABSATZ Ausrichtung=both Liste=numId2/Ebene0 Abstand=0/30 "Zweiter Schritt"<farbe:1B2B4B,größe:22>
+ABSATZ Ausrichtung=both Liste=numId1/Ebene0 Abstand=0/30 "Erster Punkt"
+ABSATZ Ausrichtung=both Liste=numId1/Ebene0 Abstand=0/30 "Zweiter Punkt"
+ABSATZ Ausrichtung=both Liste=numId1/Ebene0 Abstand=0/30 "Dritter Punkt"
+ABSATZ Ausrichtung=both Liste=numId2/Ebene0 Abstand=0/30 "Erster Schritt"
+ABSATZ Ausrichtung=both Liste=numId2/Ebene0 Abstand=0/30 "Zweiter Schritt"
 ABSATZ Trennlinie (leer)
 ABSATZ Vorlage=Heading4 Ausrichtung=both Abstand=120/60 "Anhang"<fett,kursiv,farbe:EC4899,größe:24>
 ABSATZ Ausrichtung=right Abstand=120/120 "Rechtsbündig ausgerichtetes Zitat."<kursiv,farbe:6B7A99,größe:22>
 ABSATZ Ausrichtung=both Abstand=30/90 "Ein längerer Schlussabsatz, damit das Dokument über eine Seite hinausgeht und der Seitenumbruch, die Kopfzeile ab Seite zwei und die Fußzeilen-Zählung überhaupt geprüft werden können. Der Text hier hat keinen Inhalt, nur Länge — er soll den Umbruch erzwingen. Der Text hier hat keinen Inhalt, nur Länge — er soll den Umbruch erzwingen. Der Text hier hat keinen Inhalt, nur Länge — er soll den Umbruch erzwingen. Der Text hier hat keinen Inhalt, nur Länge — er soll den Umbruch erzwingen. Der Text hier hat keinen Inhalt, nur Länge — er soll den Umbruch erzwingen. Der Text hier hat keinen Inhalt, nur Länge — er soll den Umbruch erzwingen. Der Text hier hat keinen Inhalt, nur Länge — er soll den Umbruch erzwingen. Der Text hier hat keinen Inhalt, nur Länge — er soll den Umbruch erzwingen. Der Text hier hat keinen Inhalt, nur Länge — er soll den Umbruch erzwingen. Der Text hier hat keinen Inhalt, nur Länge — er soll den Umbruch erzwingen. Der Text hier hat keinen Inhalt, nur Länge — er soll den Umbruch erzwingen. Der Text hier hat keinen Inhalt, nur Länge — er soll den Umbruch erzwingen. Der Text hier hat keinen Inhalt, nur Länge — er soll den Umbruch erzwingen. Der Text hier hat keinen Inhalt, nur Länge — er soll den Umbruch erzwingen."<farbe:1B2B4B,größe:22>
-SEITE 11910x16845 Ausrichtung=portrait
+SEITE 11906x16838 Ausrichtung=portrait
 RÄNDER links=1417 oben=1134 rechts=1134 unten=1134
 KOPFZEILE-VERWEIS Typ=default
 FUSSZEILEN-VERWEIS Typ=default
 ERSTE SEITE ABWEICHEND
 
 ## Kopf- und Fußzeilen
-- Kopfzeile: Gonk Note — Referenzdokument
-- Fußzeile: Seite {PAGE}1 von {NUMPAGES}1
+- Kopfzeile: {TITLE}
+- Fußzeile: Seite {PAGE} von {NUMPAGES}

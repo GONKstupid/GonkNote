@@ -2,17 +2,12 @@
 
 # Inhaltsverzeichnis
 
-**Einleitung**
-
-Tabelle
-
-Bild
-
-Diagramm
-
-Listen
-
-Anhang
+- Einleitung
+  - Tabelle
+  - Bild
+    - Diagramm
+  - Listen
+      - Anhang
 
 # Einleitung
 

@@ -120,21 +120,30 @@ public static class TdDocx
     /// enthält — ein Diagramm braucht sie nicht, denn es geht als **Diagramm** hinaus und
     /// nicht als Bild.
     /// </param>
-    public static void Schreiben(TdDocument doc, string pfad, ITdImages? bilder = null)
+    /// <param name="titel">
+    /// Der Titel des Dokuments. <b>Er ist nicht Schmuck, sondern der Wert eines Feldes:</b>
+    /// Ein <see cref="TdFieldKind.Title"/>-Feld wird als <c>TITLE</c> geschrieben, und Word
+    /// füllt das aus den Kerneigenschaften der Datei (<c>dc:title</c>). Ohne ihn bliebe eine
+    /// Kopfzeile mit <c>{TITEL}</c> beim Öffnen leer.
+    /// </param>
+    public static void Schreiben(TdDocument doc, string pfad, ITdImages? bilder = null, string? titel = null)
     {
         using var docx = WordprocessingDocument.Create(pfad, WordprocessingDocumentType.Document);
-        Fuellen(doc, docx, bilder);
+        Fuellen(doc, docx, bilder, titel);
     }
 
-    /// <inheritdoc cref="Schreiben(TdDocument, string, ITdImages?)"/>
-    public static void Schreiben(TdDocument doc, Stream ziel, ITdImages? bilder = null)
+    /// <inheritdoc cref="Schreiben(TdDocument, string, ITdImages?, string?)"/>
+    public static void Schreiben(TdDocument doc, Stream ziel, ITdImages? bilder = null, string? titel = null)
     {
         using var docx = WordprocessingDocument.Create(ziel, WordprocessingDocumentType.Document);
-        Fuellen(doc, docx, bilder);
+        Fuellen(doc, docx, bilder, titel);
     }
 
-    private static void Fuellen(TdDocument doc, WordprocessingDocument docx, ITdImages? bilder)
+    private static void Fuellen(
+        TdDocument doc, WordprocessingDocument docx, ITdImages? bilder, string? titel = null)
     {
+        if (titel is { Length: > 0 }) docx.PackageProperties.Title = titel;
+
         var main = docx.AddMainDocumentPart();
         main.Document = new W.Document(new W.Body());
         var body = main.Document.Body!;
@@ -256,6 +265,66 @@ public static class TdDocx
             StyleId = "Normal",
             Default = true,
         });
+
+        UeberschriftenvorlagenSchreiben(doc, teil.Styles);
+    }
+
+    /// <summary>
+    /// Die Überschriftvorlagen <c>Heading1</c> … <c>Heading9</c> — <b>eine je Ebene, die im
+    /// Dokument wirklich vorkommt</b>.
+    ///
+    /// <para>
+    /// <b>Warum es mit <c>w:outlineLvl</c> am Absatz allein nicht getan ist.</b> Ein
+    /// Inhaltsverzeichnis-Feld findet seine Einträge zwar auch über die Gliederungsebene, aber
+    /// Words Navigationsbereich, „Zu Überschrift springen" und der Katalog beim Aktualisieren
+    /// eines Verzeichnisses gehen über die **Formatvorlage**. Eine Datei ohne sie öffnet sich
+    /// tadellos und fühlt sich in Word trotzdem falsch an — die Gliederung ist da, aber
+    /// unbenutzbar.
+    /// </para>
+    /// <para>
+    /// <b>Die Vorlage trägt bewusst kein Aussehen</b>, nur den Namen und die Ebene. Wie eine
+    /// Überschrift aussieht, steht im Modell am Absatz (<see cref="TdParagraph.CharFormat"/>)
+    /// und wird dort auch geschrieben. Stünde es zusätzlich in der Vorlage, gäbe es zwei
+    /// Quellen für dieselbe Aussage — und die, die gewinnt, wäre nicht die, die der Nutzer
+    /// bearbeitet hat (§4.10).
+    /// </para>
+    /// </summary>
+    private static void UeberschriftenvorlagenSchreiben(TdDocument doc, W.Styles styles)
+    {
+        var ebenen = new SortedSet<int>();
+        bool titel = false;
+
+        foreach (var absatz in doc.Paragraphs())
+        {
+            if (absatz.Format.OutlineLevel is not (> 0 and var ebene)) continue;
+
+            if (absatz.Format.ExcludeFromToc == true && ebene == 1) titel = true;
+            else ebenen.Add(ebene);
+        }
+
+        foreach (int ebene in ebenen)
+        {
+            styles.AppendChild(new W.Style(
+                new W.StyleName { Val = $"heading {ebene}" },
+                new W.BasedOn { Val = "Normal" },
+                new W.StyleParagraphProperties(new W.OutlineLevel { Val = ebene - 1 }))
+            {
+                Type = W.StyleValues.Paragraph,
+                StyleId = $"Heading{ebene}",
+            });
+        }
+
+        // Die Titelvorlage trägt **keine** Gliederungsebene — das ist ihr ganzer Zweck.
+        if (titel)
+        {
+            styles.AppendChild(new W.Style(
+                new W.StyleName { Val = "Title" },
+                new W.BasedOn { Val = "Normal" })
+            {
+                Type = W.StyleValues.Paragraph,
+                StyleId = TitelVorlage,
+            });
+        }
     }
 
     // ==================== Listen ====================
@@ -386,7 +455,7 @@ public static class TdDocx
         var pPr = AbsatzformatSchreiben(p.Format);
 
         // Schema-Reihenfolge in CT_PPr: numPr steht **nach** pageBreakBefore und **vor**
-        // spacing. AbsatzformatSchreiben hat beides schon gesetzt, also wird hier
+        // pBdr. AbsatzformatSchreiben hat beides schon gesetzt, also wird hier
         // eingefügt statt angehängt.
         if (p.List is { } verweis)
         {
@@ -395,7 +464,8 @@ public static class TdDocx
                 new W.NumberingId { Val = verweis.ListId });
 
             OpenXmlElement? davor =
-                pPr.GetFirstChild<W.SpacingBetweenLines>() as OpenXmlElement
+                pPr.GetFirstChild<W.ParagraphBorders>() as OpenXmlElement
+                ?? pPr.GetFirstChild<W.SpacingBetweenLines>() as OpenXmlElement
                 ?? pPr.GetFirstChild<W.Indentation>() as OpenXmlElement
                 ?? pPr.GetFirstChild<W.Justification>() as OpenXmlElement
                 ?? pPr.GetFirstChild<W.OutlineLevel>();
@@ -403,8 +473,11 @@ public static class TdDocx
             if (davor is null) pPr.AppendChild(numPr);
             else pPr.InsertBefore(numPr, davor);
         }
-        // Das Zeichenformat des **ganzen** Absatzes steht in DOCX im pPr/rPr — nicht an
-        // jedem Lauf. Genau so bleibt eine Überschrift änderbar, ohne jeden Lauf anzufassen.
+        // Das Zeichenformat des Absatzes kommt ins pPr/rPr — dort gilt es aber **nur für die
+        // Absatzmarke**, nicht für den Text darin. Word erbt Laufformate aus der
+        // Formatvorlage, nicht aus dem pPr. Deshalb wird es unten zusätzlich unter jeden Lauf
+        // gelegt (siehe `unterlage`); stünde es nur hier, verlöre eine Überschrift beim Export
+        // ihre Größe und Farbe und käme in Word als Fließtext an.
         var absatzZeichen = ZeichenformatSchreiben(p.CharFormat);
         if (absatzZeichen.HasChildren)
             pPr.AppendChild(new W.ParagraphMarkRunProperties(absatzZeichen.ChildElements.Select(c => c.CloneNode(true))));
@@ -421,7 +494,7 @@ public static class TdDocx
             textmarke = id;
         }
 
-        foreach (var inline in p.Inlines) StueckSchreiben(absatz, inline, k);
+        foreach (var inline in p.Inlines) StueckSchreiben(absatz, inline, k, p.CharFormat);
 
         if (textmarke is { } ende) absatz.AppendChild(new W.BookmarkEnd { Id = ende.ToString() });
 
@@ -436,7 +509,13 @@ public static class TdDocx
     /// <c>Span</c> erbt und der allgemeinere Fall das Ziel verschluckt (§7).
     /// </para>
     /// </summary>
-    private static void StueckSchreiben(OpenXmlElement absatz, TdInline inline, Kontext k)
+    /// <param name="unterlage">
+    /// Das Zeichenformat des Absatzes. Es wird **unter** jeden Lauf gelegt, weil Word das
+    /// <c>pPr/rPr</c> nur auf die Absatzmarke anwendet — dieselbe Erbfolge, die
+    /// <see cref="TdDocument.FormatVon(TdParagraph, TdInline)"/> rechnet, hier ausgeschrieben.
+    /// </param>
+    private static void StueckSchreiben(
+        OpenXmlElement absatz, TdInline inline, Kontext k, TdCharFormat unterlage)
     {
         switch (inline)
         {
@@ -460,7 +539,8 @@ public static class TdDocx
                     element.Id = beziehung.Id;
                 }
 
-                foreach (var innen in verweis.Inlines) StueckSchreiben(element, innen, k);
+                foreach (var innen in verweis.Inlines)
+                    StueckSchreiben(element, innen, k, verweis.Format.Over(unterlage));
 
                 // Ein leerer Verweis ist schemawidrig und wäre ohnehin nicht anklickbar.
                 if (element.HasChildren) absatz.AppendChild(element);
@@ -468,14 +548,14 @@ public static class TdDocx
             }
 
             case TdField feld:
-                FeldSchreiben(absatz, feld);
+                FeldSchreiben(absatz, feld, unterlage);
                 break;
 
             case TdGraphic grafik:
                 if (ZeichnungSchreiben(grafik, k) is { } zeichnung)
                 {
                     var lauf = new W.Run();
-                    var rPr = ZeichenformatSchreiben(grafik.Format);
+                    var rPr = ZeichenformatSchreiben(grafik.Format.Over(unterlage));
                     if (rPr.HasChildren) lauf.AppendChild(rPr);
                     lauf.AppendChild(zeichnung);
                     absatz.AppendChild(lauf);
@@ -485,7 +565,7 @@ public static class TdDocx
             case TdRun r:
             {
                 var lauf = new W.Run();
-                var rPr = ZeichenformatSchreiben(r.Format);
+                var rPr = ZeichenformatSchreiben(r.Format.Over(unterlage));
                 if (rPr.HasChildren) lauf.AppendChild(rPr);
 
                 // Space="preserve": ohne das fielen führende und mehrfache Leerzeichen weg,
@@ -498,7 +578,7 @@ public static class TdDocx
             case TdLineBreak b:
             {
                 var lauf = new W.Run();
-                var rPr = ZeichenformatSchreiben(b.Format);
+                var rPr = ZeichenformatSchreiben(b.Format.Over(unterlage));
                 if (rPr.HasChildren) lauf.AppendChild(rPr);
                 lauf.AppendChild(new W.Break());
                 absatz.AppendChild(lauf);
@@ -558,9 +638,9 @@ public static class TdDocx
     /// dafür steht <c>UpdateFieldsOnOpen</c> im Dokument.
     /// </para>
     /// </summary>
-    private static void FeldSchreiben(OpenXmlElement ziel, TdField feld)
+    private static void FeldSchreiben(OpenXmlElement ziel, TdField feld, TdCharFormat unterlage)
     {
-        var format = ZeichenformatSchreiben(feld.Format);
+        var format = ZeichenformatSchreiben(feld.Format.Over(unterlage));
 
         W.Run Lauf(OpenXmlElement inhalt)
         {
@@ -1583,11 +1663,25 @@ public static class TdDocx
 
     private static W.ParagraphProperties AbsatzformatSchreiben(TdParaFormat f)
     {
-        // Schema-Reihenfolge (CT_PPr): keepNext, pageBreakBefore, spacing, ind, jc, outlineLvl.
+        // Schema-Reihenfolge (CT_PPr): pStyle, keepNext, pageBreakBefore, numPr, pBdr, spacing,
+        // ind, jc, outlineLvl. `numPr` trägt AbsatzSchreiben nach — es kennt den Listenverweis.
         var pPr = new W.ParagraphProperties();
+
+        // **Die Überschriftvorlage — zusätzlich zur Gliederungsebene weiter unten, nicht
+        // statt ihrer.** Word braucht die Vorlage für Navigationsbereich und Verzeichnis-Katalog
+        // (siehe UeberschriftenvorlagenSchreiben), die Ebene dagegen ist das, was beim Lesen
+        // zurück ins Modell geht. Beide sagen dasselbe, und beide werden gebraucht.
+        if (f.OutlineLevel is > 0 and var ueberschrift)
+            pPr.AppendChild(new W.ParagraphStyleId { Val = Vorlagenname(ueberschrift, f.ExcludeFromToc) });
 
         if (f.KeepWithNext is { } halten) pPr.AppendChild(new W.KeepNext { Val = halten });
         if (f.PageBreakBefore is { } umbruch) pPr.AppendChild(new W.PageBreakBefore { Val = umbruch });
+
+        // Die Trennlinie. Eine Linie ohne Stärke wird **ausdrücklich** als `none`
+        // geschrieben und nicht weggelassen: „nicht gesetzt" und „keine Linie" sind im
+        // Modell zweierlei, und nur so kommt der Unterschied zurück.
+        if (f.BottomBorder is { } linie)
+            pPr.AppendChild(new W.ParagraphBorders(Linie<W.BottomBorder>(linie)));
 
         if (f.SpaceBeforePt is not null || f.SpaceAfterPt is not null || f.LineSpacing is not null)
         {
@@ -1627,11 +1721,31 @@ public static class TdDocx
             } });
 
         if (f.OutlineLevel is { } ebene)
+        {
             // Word zählt ab 0 und benutzt 9 für Fließtext — die eigene 0 ist genau das.
-            pPr.AppendChild(new W.OutlineLevel { Val = ebene == 0 ? 9 : ebene - 1 });
+            // **Und ein ausgeschlossener Absatz bekommt ebenfalls die 9**: Genau daran erkennt
+            // Words Verzeichnisfeld, dass es ihn übergehen soll. Sein Rang steht in der
+            // Vorlage und geht dadurch nicht verloren (§4.23).
+            bool ausgeschlossen = f.ExcludeFromToc == true;
+            pPr.AppendChild(new W.OutlineLevel { Val = ebene == 0 || ausgeschlossen ? 9 : ebene - 1 });
+        }
 
         return pPr;
     }
+
+    /// <summary>
+    /// Der Name der Word-Vorlage zu einer Überschriftebene. <b>Für die beiden Absätze, die
+    /// nicht ins Verzeichnis gehören, hat Word eigene eingebaute Vorlagen</b> — <c>Title</c>
+    /// für den Dokumenttitel und <c>TOCHeading</c> für die Zeile darüber. Beide bauen auf
+    /// <c>Heading 1</c> auf und stehen trotzdem nicht im Verzeichnis; wer stattdessen
+    /// <c>Heading1</c> schriebe, bekäme in Word beim Aktualisieren beide wieder hinein.
+    /// </summary>
+    private static string Vorlagenname(int ebene, bool? ausgeschlossen) =>
+        ausgeschlossen != true ? $"Heading{ebene}"
+        : ebene == 1 ? TitelVorlage
+        : $"Heading{ebene}";
+
+    private const string TitelVorlage = "Title";
 
     // ==================== Seiteneinrichtung ====================
 
@@ -2084,7 +2198,30 @@ public static class TdDocx
         }
 
         StueckeLesen(absatz, p.Inlines, teil, new Feldleser());
+
+        // **Der Gegenzug zur `unterlage` beim Schreiben** (§4.23): Jeder Lauf in DOCX trägt das
+        // Format seines Absatzes mit, denn Word wendet das `pPr/rPr` nur auf die Absatzmarke
+        // an. Bliebe das so stehen, käme aus jeder Word-Datei ein Modell zurück, in dem jeder
+        // Lauf eine vollständige Formatkopie trägt — genau das, was §4.14 verhindert.
+        EntdoppeltGegen(p.Inlines, p.CharFormat);
         return p;
+    }
+
+    /// <summary>
+    /// Nimmt aus jedem Textstück heraus, was <paramref name="unterlage"/> ohnehin sagt.
+    /// <inheritdoc cref="TdCharFormat.Ohne" path="/summary/para"/>
+    /// </summary>
+    private static void EntdoppeltGegen(List<TdInline> stuecke, TdCharFormat unterlage)
+    {
+        foreach (var stueck in stuecke)
+        {
+            // Beim Verweis erst die Kinder — sie stehen unter *seinem* aufgelösten Format,
+            // nicht unter dem des Absatzes.
+            if (stueck is TdHyperlink verweis)
+                EntdoppeltGegen(verweis.Inlines, verweis.Format.Over(unterlage));
+
+            stueck.Format = stueck.Format.Ohne(unterlage);
+        }
     }
 
     /// <summary>
@@ -2228,6 +2365,9 @@ public static class TdDocx
         if (pPr.GetFirstChild<W.KeepNext>() is { } k) f.KeepWithNext = k.Val?.Value ?? true;
         if (pPr.GetFirstChild<W.PageBreakBefore>() is { } pb) f.PageBreakBefore = pb.Val?.Value ?? true;
 
+        if (pPr.GetFirstChild<W.ParagraphBorders>()?.GetFirstChild<W.BottomBorder>() is { } linie)
+            f.BottomBorder = LinieLesen(linie);
+
         if (pPr.GetFirstChild<W.SpacingBetweenLines>() is { } abstand)
         {
             if (abstand.Before?.Value is { } vor && double.TryParse(vor, out double v)) f.SpaceBeforePt = TwipsZuPt(v);
@@ -2253,7 +2393,39 @@ public static class TdDocx
         if (pPr.GetFirstChild<W.OutlineLevel>()?.Val?.Value is { } ebene)
             f.OutlineLevel = ebene == 9 ? 0 : ebene + 1;
 
+        // **Der Rang steht in der Vorlage, das Verzeichnis in der Gliederungsebene** (§4.23).
+        // Ein Absatz mit Überschriftvorlage, dessen Ebene auf Fließtext steht, ist genau der
+        // Fall „sieht aus wie eine Überschrift, gehört aber nicht ins Verzeichnis" — Titel und
+        // die Zeile „Inhaltsverzeichnis". Ohne diesen Zweig käme der Titel als Fließtext zurück
+        // und verlöre im Markdown seine Raute.
+        if (VorlagenEbene(pPr.GetFirstChild<W.ParagraphStyleId>()?.Val?.Value) is { } rang)
+        {
+            if (f.OutlineLevel is null or 0)
+            {
+                f.OutlineLevel = rang;
+                f.ExcludeFromToc = true;
+            }
+        }
+
         return f;
+    }
+
+    /// <summary>
+    /// Die Überschriftebene hinter einem Vorlagennamen — <c>null</c>, wenn es keine Überschrift
+    /// ist. <c>Title</c> und <c>TOCHeading</c> zählen als Ebene 1: so heißen Words eingebaute
+    /// Vorlagen für genau die zwei Absätze, die oben stehen und trotzdem nicht ins Verzeichnis
+    /// gehören.
+    /// </summary>
+    private static int? VorlagenEbene(string? name)
+    {
+        if (name is not { Length: > 0 }) return null;
+        if (name is TitelVorlage or "TOCHeading") return 1;
+
+        return name.StartsWith("Heading", StringComparison.Ordinal) &&
+               int.TryParse(name.AsSpan("Heading".Length), out int ebene) &&
+               ebene is >= 1 and <= 9
+            ? ebene
+            : null;
     }
 
     // ==================== Gegenprobe ====================

@@ -1037,6 +1037,15 @@ public sealed class DocxRoundtripTests
 
     private static TdBlock[] Inhalt() =>
         [
+            // Der Titel: Überschrift ja, Verzeichniseintrag nein (§4.23). In DOCX ist das
+            // Words eingebaute Vorlage `Title` mit Gliederungsebene „Fließtext" — der
+            // Roundtrip prüft damit beide Hälften der Umrechnung.
+            new TdParagraph([new TdRun("Das Beispieldokument")])
+            {
+                Format = { OutlineLevel = 1, ExcludeFromToc = true, Alignment = TdAlign.Center },
+                CharFormat = { FontSize = 26, Bold = true },
+            },
+
             // Das Inhaltsverzeichnis: ein Feld in der dreiteiligen Form, dazu die Textmarken
             // an den Überschriften, die es aufzählt (§4.20).
             new TdParagraph([new TdField(TdFieldKind.TableOfContents, "1-2")]),
@@ -1378,6 +1387,7 @@ public sealed class DocxRoundtripTests
         GleicheZahl(a.SpaceAfterPt, b.SpaceAfterPt);
         GleicheZahl(a.LineSpacing, b.LineSpacing);
         Assert.Equal(a.OutlineLevel, b.OutlineLevel);
+        Assert.Equal(a.ExcludeFromToc, b.ExcludeFromToc);
         Assert.Equal(a.KeepWithNext, b.KeepWithNext);
         Assert.Equal(a.PageBreakBefore, b.PageBreakBefore);
     }

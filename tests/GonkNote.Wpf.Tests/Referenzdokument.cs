@@ -5,6 +5,7 @@ using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using GonkNote.Core.Services;
+using GonkNote.Core.Text;
 using GonkNote.Services;
 using SkiaSharp;
 using TextDoc = GonkNote.Core.Models.TextDoc;
@@ -150,6 +151,15 @@ internal static class Referenzdokument
 
         return doc;
     }
+
+    /// <summary>
+    /// Dasselbe Referenzdokument, einmal durch <see cref="FlowZuTd"/> gelaufen — das eigene
+    /// Modell, an dem die Golden-Files aus Phase 4 gemessen werden (HANDOFF §4.23,
+    /// „Umverdrahten"). Es ist derselbe Weg, den <c>WpfDocumentIo.Modell</c> für ein Dokument
+    /// ohne gespeichertes Modell nimmt.
+    /// </summary>
+    public static TdDocument Modell(BlobStore blobs) =>
+        FlowZuTd.Umwandeln(Einstellungen(), Bauen(blobs), blobs);
 
     // ---- Bausteine -----------------------------------------------------------------------
 

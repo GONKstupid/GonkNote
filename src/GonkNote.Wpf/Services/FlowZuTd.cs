@@ -51,6 +51,14 @@ public static class FlowZuTd
     public static TdDocument Umwandeln(TextDoc quelle, FlowDocument flow, BlobStore blobs)
     {
         var doc = new TdDocument();
+
+        // **Die Grundschrift des Dokuments gehört ins Dokument** und nicht in jeden Absatz: Im
+        // FlowDocument steht sie ganz oben (Schrift, Größe, Tinte), im Modell in
+        // `DefaultCharFormat` — und von dort in die `docDefaults` der DOCX-Datei. Ohne diesen
+        // Schritt bekäme jedes übernommene Dokument die Vorgabe des Modells (schwarz, 11 pt)
+        // statt seiner eigenen Tinte, und zwar still.
+        doc.DefaultCharFormat = GrundschriftVon(flow).Over(doc.DefaultCharFormat);
+
         var abschnitt = new TdSection { Page = SeiteUmwandeln(quelle, blobs) };
 
         var zustand = new Zustand(doc, blobs);
@@ -72,6 +80,15 @@ public static class FlowZuTd
 
         /// <summary>Die Liste, in der wir gerade stecken — <c>null</c> außerhalb.</summary>
         public TdListRef? Liste { get; set; }
+
+        /// <summary>
+        /// Stehen wir gerade in den generierten Einträgen eines Inhaltsverzeichnisses?
+        /// <para>
+        /// Sie werden übersprungen, weil an ihrer Stelle das <see cref="TdField"/> steht — siehe
+        /// <see cref="VerzeichnisErkannt"/>.
+        /// </para>
+        /// </summary>
+        public bool ImVerzeichnis { get; set; }
     }
 
     // ==================== Seiteneinrichtung ====================
@@ -126,8 +143,34 @@ public static class FlowZuTd
         switch (block)
         {
             case Paragraph p:
+            {
+                // **Ein generierter Verzeichniseintrag ist kein Absatz, sondern das Ergebnis
+                // eines Feldes** (§4.20). Er wird übersprungen; an seiner Stelle steht das Feld,
+                // das gleich hinter dem Titel angelegt wurde. Bliebe er stehen, hätte das
+                // Dokument das Verzeichnis zweimal — einmal als Feld und einmal als Text, der
+                // beim nächsten Öffnen veraltet ist.
+                if (zustand.ImVerzeichnis && TextStyles.IsTocEntry(p)) break;
+                zustand.ImVerzeichnis = false;
+
                 ziel.Add(AbsatzUmwandeln(p, zustand));
+
+                if (VerzeichnisErkannt(p))
+                {
+                    // **Vier Ebenen, nicht die üblichen drei** (`TdToc.EbeneBisStandard`): So
+                    // viele Überschriftvorlagen hat der Editor, und genau so viele sammelt er
+                    // in sein Verzeichnis ein (`TextStyles.CollectHeadings`). Bliebe es bei
+                    // drei, verschwände jede „Überschrift 4" aus dem Verzeichnis — im Editor
+                    // sichtbar, im Export nicht.
+                    ziel.Add(new TdParagraph([
+                        new TdField(TdFieldKind.TableOfContents)
+                        {
+                            Argument = TdToc.Ebenenangabe(TdToc.EbeneVonStandard, VorlagenEbenen),
+                        },
+                    ]));
+                    zustand.ImVerzeichnis = true;
+                }
                 break;
+            }
 
             case Section s:
                 // Ein `Section` im FlowDocument ist eine bloße Klammer und keine
@@ -136,21 +179,50 @@ public static class FlowZuTd
                 break;
 
             case List liste:
+                zustand.ImVerzeichnis = false;
                 ListeUmwandeln(liste, ziel, zustand, ebene: 0);
                 break;
 
             case Table tabelle:
+                zustand.ImVerzeichnis = false;
                 ziel.Add(TabelleUmwandeln(tabelle, zustand));
                 break;
 
             case BlockUIContainer behaelter:
+                zustand.ImVerzeichnis = false;
                 // Ein Bild auf Blockebene wird ein Absatz, der nichts als dieses Bild
                 // enthält — genau die Form, in der DOCX es kennt (§4.21).
                 if (GrafikAus(behaelter.Child, zustand) is { } grafik)
+                {
                     ziel.Add(new TdParagraph([grafik]));
+                    break;
+                }
+
+                // **Alles andere in einem Blockbehälter ist die Trennlinie** („Einfügen →
+                // Trennlinie" legt dort einen 2 px hohen Rahmen ab). Sie wird ein leerer
+                // Absatz mit einer Unterlinie — genau die Form, in der DOCX sie seit jeher
+                // kennt. Vorher fiel sie hier still heraus, und ein fehlender Strich sieht
+                // nicht nach einem Fehler aus, sondern nach einem Dokument ohne Strich.
+                ziel.Add(new TdParagraph { Format = { BottomBorder = LinieAus(behaelter.Child) } });
                 break;
         }
     }
+
+    /// <summary>
+    /// Ist dieser Absatz die Überschrift eines vom Editor erzeugten Inhaltsverzeichnisses?
+    /// <para>
+    /// <b>Erkannt wird am Text und an der Größe</b> — der heutige Editor hat keinen anderen
+    /// Marker, und genau so hat es der alte DOCX-Export auch gemacht. Das ist die letzte Stelle,
+    /// an der geraten wird: Ab hier steht das Verzeichnis als <see cref="TdField"/> im Modell
+    /// und muss nie wieder erkannt werden (§4.20).
+    /// </para>
+    /// </summary>
+    /// <summary>So viele Überschriftvorlagen kennt der Editor (<c>TextStyles.All</c>).</summary>
+    private static readonly int VorlagenEbenen = TextStyles.All.Max(s => s.HeadingLevel);
+
+    private static bool VerzeichnisErkannt(Paragraph p) =>
+        new TextRange(p.ContentStart, p.ContentEnd).Text.Trim() == TextStyles.TocTitle &&
+        p.FontSize >= 20;
 
     private static TdParagraph AbsatzUmwandeln(Paragraph p, Zustand zustand)
     {
@@ -169,14 +241,19 @@ public static class FlowZuTd
     {
         var f = new TdParaFormat();
 
-        if (Lokal(p, Block.TextAlignmentProperty) is TextAlignment aus)
-            f.Alignment = aus switch
-            {
-                TextAlignment.Center => TdAlign.Center,
-                TextAlignment.Right => TdAlign.Right,
-                TextAlignment.Justify => TdAlign.Justify,
-                _ => TdAlign.Left,
-            };
+        // **Die Ausrichtung wird als einzige nicht örtlich gelesen, sondern wirksam.** Ein
+        // `FlowDocument` steht von Haus aus auf `Justify` — anders als jede andere Eigenschaft
+        // ist der Vorgabewert hier also nicht der, den das Modell annimmt (`Left`). Wer nur
+        // `ReadLocalValue` fragt, übernimmt ein durchgehend im Blocksatz gesetztes Dokument als
+        // linksbündiges: kein Absturz, kein Testfehler — nur ein Export, der anders aussieht
+        // als der Bildschirm.
+        f.Alignment = p.TextAlignment switch
+        {
+            TextAlignment.Center => TdAlign.Center,
+            TextAlignment.Right => TdAlign.Right,
+            TextAlignment.Justify => TdAlign.Justify,
+            _ => TdAlign.Left,
+        };
 
         if (Lokal(p, Block.MarginProperty) is Thickness rand)
         {
@@ -196,13 +273,52 @@ public static class FlowZuTd
         if (Lokal(p, Paragraph.KeepWithNextProperty) is bool halten) f.KeepWithNext = halten;
         if (Lokal(p, Paragraph.BreakPageBeforeProperty) is bool umbruch) f.PageBreakBefore = umbruch;
 
+        // Ein Absatz **mit** Unterlinie: so kommt eine Trennlinie zurück, die einmal durch das
+        // eigene Modell gelaufen ist (TdZuFlow legt sie als Rahmen am Absatz ab, nicht als
+        // Blockbehälter). Der Behälter des heutigen Editors wird in BlockUmwandeln behandelt.
+        if (Lokal(p, Block.BorderThicknessProperty) is Thickness dicke && dicke.Bottom > 0)
+            f.BottomBorder = new TdBorder(
+                Pt(dicke.Bottom),
+                Lokal(p, Block.BorderBrushProperty) is SolidColorBrush pinsel
+                    ? Hex(pinsel.Color)
+                    : LinienfarbeStandard);
+
         // **Hier wird geraten, und hier ist es richtig:** Das FlowDocument hat keinen Platz für
         // eine Gliederungsebene, also wird sie aus der Schriftgröße zurückerkannt — danach
         // steht sie im Modell und muss nie wieder geraten werden (§4.20).
         int ebene = TextStyles.HeadingLevel(p);
-        if (ebene > 0) f.OutlineLevel = ebene;
+        if (ebene > 0)
+        {
+            f.OutlineLevel = ebene;
+        }
+        else if (TitelartigerAbsatz(p))
+        {
+            // Titel und die Zeile „Inhaltsverzeichnis": Überschrift ja, Verzeichniseintrag
+            // nein (§4.23). `TextStyles.HeadingLevel` gibt für beide bewusst 0 zurück — es
+            // beantwortet die Frage „gehört das ins Verzeichnis?" und nicht „ist das eine
+            // Überschrift?". Für den Export sind das zwei verschiedene Fragen.
+            f.OutlineLevel = 1;
+            f.ExcludeFromToc = true;
+        }
 
         return f;
+    }
+
+    /// <summary>
+    /// Ein Absatz, der als oberste Überschrift gesetzt wird, ohne im Verzeichnis zu stehen:
+    /// der <b>Titel</b> (Vorlage „Titel") und die Zeile <b>„Inhaltsverzeichnis"</b>. Beide
+    /// erkennt man im Altformat nur an Text und Größe — es ist dieselbe Stelle, an der schon
+    /// die Gliederungsebene geraten wird, und ab hier steht beides im Modell.
+    /// </summary>
+    private static bool TitelartigerAbsatz(Paragraph p)
+    {
+        string text = new TextRange(p.ContentStart, p.ContentEnd).Text.Trim();
+        if (text.Length == 0) return false;
+
+        if (text == TextStyles.TocTitle) return p.FontSize >= 20;
+
+        var titel = TextStyles.All.First(s => s.Name == "Titel");
+        return Math.Abs(p.FontSize - titel.Size) < 0.6;
     }
 
     // ==================== Listen ====================
@@ -288,6 +404,9 @@ public static class FlowZuTd
         foreach (var spalte in tabelle.Columns)
             t.ColumnWidthsCm.Add(spalte.Width.IsAbsolute ? Cm(spalte.Width.Value) : 0);
 
+        RahmenUebernehmen(tabelle, t.Format);
+        ZellabstandUebernehmen(tabelle, t.Format);
+
         // Je Spalte: wie viele Zeilen ragt eine Verbindung von oben noch herein?
         var offen = new Dictionary<int, int>();
 
@@ -336,6 +455,44 @@ public static class FlowZuTd
         }
 
         return t;
+    }
+
+    /// <summary>
+    /// Die Linien einer Tabelle. <b>WPF führt sie an jeder Zelle, das Modell und DOCX an der
+    /// Tabelle</b> (§4.18) — gelesen wird deshalb die **erste** Zelle, denn der Editor setzt
+    /// überall dieselbe Linie (<c>TextEditorView.Table</c>). Hat die Tabelle keine Zellen oder
+    /// keine Linie, bleibt der Standard des Modells stehen.
+    /// </summary>
+    private static void RahmenUebernehmen(Table tabelle, TdTableFormat format)
+    {
+        var erste = tabelle.RowGroups.SelectMany(g => g.Rows).SelectMany(z => z.Cells).FirstOrDefault();
+        if (erste is null) return;
+
+        double staerke = erste.BorderThickness.Bottom;
+        if (staerke <= 0) staerke = tabelle.BorderThickness.Bottom;
+        if (staerke <= 0) return;
+
+        var pinsel = erste.BorderBrush as SolidColorBrush ?? tabelle.BorderBrush as SolidColorBrush;
+        var linie = new TdBorder(Pt(staerke), pinsel is null ? LinienfarbeStandard : Hex(pinsel.Color));
+
+        format.Top = format.Left = format.Bottom = format.Right = linie;
+        format.InsideH = format.InsideV = linie;
+    }
+
+    /// <summary>
+    /// Der Innenabstand der Zellen — im Altformat das <c>Padding</c> jeder einzelnen, im Modell
+    /// eine Angabe für die ganze Tabelle. Dieselbe Umrechnung wie bei den Linien und aus
+    /// demselben Grund.
+    /// </summary>
+    private static void ZellabstandUebernehmen(Table tabelle, TdTableFormat format)
+    {
+        var erste = tabelle.RowGroups.SelectMany(g => g.Rows).SelectMany(z => z.Cells).FirstOrDefault();
+        if (erste is null) return;
+
+        format.CellPaddingLeftCm = Cm(erste.Padding.Left);
+        format.CellPaddingRightCm = Cm(erste.Padding.Right);
+        format.CellPaddingTopCm = Cm(erste.Padding.Top);
+        format.CellPaddingBottomCm = Cm(erste.Padding.Bottom);
     }
 
     // ==================== Textstücke ====================
@@ -424,7 +581,52 @@ public static class FlowZuTd
         return new TdImage(verweis.Id, verweis.Extension, Cm(breite), Cm(hoehe));
     }
 
+    /// <summary>
+    /// Die Farbe einer Trennlinie, wenn das Element keine nennt. **Derselbe Wert, den der
+    /// heutige DOCX-Export einträgt** (<c>AAAAAA</c>) — eine Trennlinie ohne Farbe gibt es
+    /// nicht, und Schwarz wäre ein sichtbar anderer Strich.
+    /// </summary>
+    private const string LinienfarbeStandard = "#AAAAAA";
+
+    /// <summary>
+    /// Die Linie hinter einem Blockbehälter. Der Editor legt dort einen <c>Border</c> ab; seine
+    /// Höhe ist die Stärke, seine Füllung die Farbe. Steht dort etwas anderes — ein Element,
+    /// das dieses Modell nicht kennt —, bleibt die übliche Trennlinie übrig: **eine Linie ist
+    /// besser als eine stille Lücke.**
+    /// </summary>
+    private static TdBorder LinieAus(UIElement? element)
+    {
+        double staerke = 0.75;
+        string farbe = LinienfarbeStandard;
+
+        if (element is System.Windows.Controls.Border rahmen)
+        {
+            if (!double.IsNaN(rahmen.Height) && rahmen.Height > 0) staerke = Pt(rahmen.Height);
+            if (rahmen.Background is SolidColorBrush pinsel) farbe = Hex(pinsel.Color);
+            else if (rahmen.BorderBrush is SolidColorBrush rand) farbe = Hex(rand.Color);
+        }
+
+        return new TdBorder(staerke, farbe);
+    }
+
     // ==================== Formate ====================
+
+    /// <summary>
+    /// Die Grundschrift des ganzen Dokuments. <c>FlowDocument</c> ist kein
+    /// <c>TextElement</c> — es trägt dieselben Eigenschaften, steht aber neben der Erbfolge und
+    /// nicht darin, deshalb hier eigens gelesen. Mehr als diese drei gibt es dort nicht zu
+    /// holen: fett oder kursiv setzt der Editor nie am Dokument selbst.
+    /// </summary>
+    private static TdCharFormat GrundschriftVon(FlowDocument flow)
+    {
+        var f = new TdCharFormat();
+
+        if (Lokal(flow, TextElement.FontFamilyProperty) is FontFamily schrift) f.FontFamily = schrift.Source;
+        if (Lokal(flow, TextElement.FontSizeProperty) is double groesse) f.FontSize = Pt(groesse);
+        if (Lokal(flow, TextElement.ForegroundProperty) is SolidColorBrush tinte) f.Color = Hex(tinte.Color);
+
+        return f;
+    }
 
     /// <summary>
     /// Das Zeichenformat eines Elements — **nur seine örtlich gesetzten Werte**.

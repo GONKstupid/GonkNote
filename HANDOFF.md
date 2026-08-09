@@ -1,6 +1,6 @@
 # Gonk Note V2 — Projektübergabe
 
-**Stand: 2026-08-05 · Version 0.3.0 · net10.0 · SkiaSharp 3 · SQLite · Avalonia 12 · ✅ M1 erreicht · ✅ Dokumentmodell vollständig (Phase 4, Schritte 1–6 von 6) · ✅ Übernahme der Bestandsdokumente läuft**
+**Stand: 2026-08-09 · Version 0.3.0 · net10.0 · SkiaSharp 3 · SQLite · Avalonia 12 · ✅ M1 erreicht · ✅ Dokumentmodell vollständig (Phase 4, Schritte 1–6 von 6) · ✅ Übernahme der Bestandsdokumente läuft · ✅ DOCX und Markdown laufen gegen das Modell (§4.23)**
 
 > **📌 Dauerregeln des Nutzers — gelten immer, ohne Nachfragen:**
 >
@@ -314,6 +314,13 @@ Testzahl jetzt **409** (385 Core + 24 WPF) — das WPF-Projekt ist von 13 auf 24
 die Übernahme steht auf `FlowDocument` und lässt sich nur dort prüfen. **Angezeigt wird das
 übernommene Modell noch nicht** — das kommt mit dem Umverdrahten (§6).
 
+**Erledigt danach:** §4.23 — **das Umverdrahten**. `TextDoc.Model` wird bei jedem Speichern
+mitgeschrieben, **DOCX und Markdown laufen gegen das Modell** (`TdDocx`, `TdMarkdown`), der
+DOCX-Import kommt über `TdZuFlow` zurück in den Editor. `DocxExporter` und `MarkdownExporter`
+sind gelöscht. Dabei **fünf Fehler gefunden**, die im Modell-gegen-Modell-Roundtrip unsichtbar
+waren — allen voran: das Absatz-Zeichenformat kam in Word gar nicht am Text an. **`Rtf` führt
+weiter**; PDF und PNG hängen noch am WPF-Paginator.
+
 **Erledigt in Phase 0:**
 
 - **Geklont statt kopiert.** `git clone` aus V1 → die 122 Commits sind mitgekommen, `origin`
@@ -386,6 +393,8 @@ gonk-note-V2/
 │  │  │                          TdDocx (DOCX in beide Richtungen), TdLayout (Zeilen- und
 │  │  │                          Seitenumbruch) hinter der Naht ITdTextMeasure/
 │  │  │                          TdSkiaMeasure                        ← neu in Phase 4
+│  │  │                          TdMarkdown (Markdown-Export gegen das Modell — der
+│  │  │                          erste Exporter ohne WPF)             ← neu in §4.23
 │  │  └─ Localization/           Loc + LocGerman + LocEnglish        ← neu in Phase 0
 │  │
 │  ├─ GonkNote.ViewModels/       net10.0 · EIGENE Assembly seit Phase 2 (§4.7)
@@ -425,8 +434,11 @@ gonk-note-V2/
 │     ├─ Views/                  Whiteboard (Partials), TextEditor (Partials), Dialoge
 │     ├─ Themes/                 Light/Dark/Styles
 │     └─ Services/               alles mit WPF-Bezug (§4.1):
-│                                Docx/Markdown-Im-/Export, MarkdownFlow, PdfExporter,
+│                                DocxImporter (nur noch für den Whiteboard-Import) und
+│                                MarkdownImporter, MarkdownFlow, PdfExporter,
 │                                FlowZuTd (die Übernahme ins eigene Modell, §4.22),
+│                                TdZuFlow (der Rückweg, damit der Editor ein
+│                                importiertes Modell anzeigen kann)  ← neu in §4.23
 │                                TextStyles, DocumentImages, EmbeddedDocs, OcrService,
 │                                SpellCheckSupport, TitleBarTheme,
 │                                WindowBounds, Localization/TExtension.cs
@@ -495,6 +507,12 @@ Sie können deshalb erst umziehen, **nachdem** die eigene Dokument-Engine steht:
 
 Der OpenXml-Code selbst (~1.237 Zeilen) bleibt dabei größtenteils erhalten, wie geplant —
 er tauscht nur seine Gegenseite.
+
+> **Zur Hälfte eingelöst seit §4.23 (2026-08-09).** `DocxExporter` und `MarkdownExporter` sind
+> **weg**; DOCX und Markdown laufen über `TdDocx`/`TdMarkdown` in Core und brauchen kein WPF
+> mehr. Offen bleiben `PdfExporter` (hängt am WPF-Paginator, wartet auf den Zeichner),
+> `DocumentImages`, `TextStyles` sowie `DocxImporter`/`MarkdownImporter` — Letztere, weil der
+> Whiteboard- und der Markdown-Import weiter über ein `FlowDocument` gehen.
 
 ### 4.2 `GonkNote.ViewModels` ist eine eigene Assembly — erledigt in Phase 2
 
@@ -2432,6 +2450,117 @@ beides nebeneinandersteht, ist ein Fehler in der Übernahme harmlos: Es sieht si
 
 ---
 
+### 4.23 Das Umverdrahten — DOCX und Markdown laufen gegen das Modell
+
+Umgesetzt am 2026-08-09. **Damit ist die Schuld aus §4.1 zur Hälfte eingelöst:** Zwei der vier
+Exportwege stehen nicht mehr auf einem `FlowDocument`, sondern auf `TdDocument`. Die anderen
+zwei (PDF und PNG) hängen weiter am WPF-Paginator und warten auf den Zeichner.
+
+Drei Schritte, in dieser Reihenfolge, weil jeder auf dem vorigen steht:
+
+1. **Das Modell wird mitgeschrieben.** `TextTabViewModel.Mitschreiben` lässt bei **jedem**
+   Speichern `FlowZuTd` laufen und aktualisiert `TextDoc.Model` — neben `Rtf`, das weiter führt.
+2. **Markdown** läuft über `TdMarkdown` (Core, kein WPF).
+3. **DOCX** läuft über `TdDocx` — Export **und** Import. Beim Import macht `TdZuFlow` aus dem
+   gelesenen Modell wieder ein `XamlPackage`, damit der heutige Editor es anzeigen kann.
+
+`DocxExporter` und `MarkdownExporter` sind **gelöscht** (941 Zeilen). `DocxImporter` bleibt —
+der Whiteboard-Import benutzt ihn noch; `MarkdownImporter` bleibt für den `.md`-Import.
+
+#### Warum das Mitschreiben zuerst kommen musste
+
+Solange der Editor nur `Rtf` schreibt, stünde in `Model` der Stand der **einmaligen** Übernahme.
+Ein Export daraus lieferte das Dokument von damals statt dessen, was auf dem Schirm steht — kein
+Absturz, sondern eine Datei, in der die letzte Stunde Arbeit fehlt.
+
+**Die Nebenwirkung ist erwünscht:** Der Umwandler läuft ab jetzt bei jedem Speichern. Ein Fehler
+darin fällt damit auf, **solange `Rtf` noch führt** — also solange er niemandem schaden kann.
+
+#### Fünf Fehler, die erst das Umverdrahten sichtbar gemacht hat
+
+Sie standen alle schon im Code. Kein Test hat sie gesehen, weil nichts durch diesen Weg lief —
+der Roundtrip prüfte Modell gegen Modell, und darin waren sie unsichtbar.
+
+1. **Das Absatz-Zeichenformat kam nicht am Text an.** `TdDocx` schrieb `p.CharFormat` nur ins
+   `w:pPr/w:rPr`. Das gilt in Word **nur für die Absatzmarke** — Läufe erben ihr Format aus der
+   *Formatvorlage*, nicht aus dem `pPr`. Jede Überschrift wäre in Word als Fließtext angekommen.
+   Jetzt legt der Export es als `unterlage` unter jeden Lauf, und `TdCharFormat.Ohne` nimmt es
+   beim Lesen wieder heraus — sonst trüge jeder Lauf aus jeder Word-Datei eine vollständige
+   Formatkopie, und die Regel aus §4.14 wäre an der Tür wieder abgegeben.
+2. **Keine Überschriftvorlagen.** `TdDocx` schrieb nur `w:outlineLvl`. Ein Verzeichnisfeld
+   findet seine Einträge damit zwar, aber Words Navigationsbereich und der Katalog beim
+   Aktualisieren gehen über die **Vorlage**. Jetzt gibt es `Heading1…9` — ohne Aussehen, denn
+   das steht am Absatz (zwei Quellen für dieselbe Aussage wären §4.10).
+3. **Die Ausrichtung ging verloren.** `FlowZuTd` las sie mit `ReadLocalValue`. Ein
+   `FlowDocument` steht aber von Haus aus auf **Blocksatz** — als einzige Eigenschaft ist ihr
+   Vorgabewert nicht der, den das Modell annimmt. Jedes Dokument wäre still linksbündig
+   exportiert worden. Sie wird jetzt **wirksam** gelesen und nicht örtlich.
+4. **Grundschrift und Tabellenlinien fehlten.** `FlowZuTd` übernahm weder die Schrift am
+   `FlowDocument` selbst (die Tinte `#1B2B4B` wurde zu Schwarz) noch die Zellrahmen
+   (Gainsboro wurde zur schwarzen Standardlinie).
+5. **Das Inhaltsverzeichnis wurde zu totem Text.** Der Editor erzeugt es als gewöhnliche
+   Absätze; `FlowZuTd` kannte sie nicht und übernahm sie wörtlich. Das echte `TOC`-Feld ging
+   verloren, und im Dokument stand ein Verzeichnis, das beim nächsten Öffnen veraltet ist —
+   genau die Falle aus §4.20. Jetzt wird der Titelabsatz erkannt, das Feld gesetzt und die
+   generierten Einträge übersprungen.
+
+#### `ExcludeFromToc` — Überschrift ja, Verzeichniseintrag nein
+
+Der **Titel** eines Dokuments und die Zeile **„Inhaltsverzeichnis"** sehen aus wie Überschriften
+und sollen es auch sein: Im Markdown brauchen sie ein `#`, sonst hat eine exportierte Datei
+keine oberste Überschrift. Im Verzeichnis stehen dürfen sie nicht — sonst führte es den
+Dokumenttitel als ersten Eintrag und sich selbst als zweiten.
+
+`TextStyles.HeadingLevel` gibt für beide bewusst `0` zurück; es beantwortet die Frage „gehört das
+ins Verzeichnis?". Für den Export sind das **zwei** Fragen, und deshalb hat `TdParaFormat` jetzt
+ein neues Feld. **Word trennt genauso** — die eingebauten Vorlagen `Title` und `TOC Heading`
+bauen auf `Heading 1` auf und setzen `w:outlineLvl` auf Fließtext. Genau diese Form schreibt
+`TdDocx`, und daraus liest sie den Wert zurück: **die Vorlage sagt den Rang, die
+Gliederungsebene das Verzeichnis.**
+
+> **Der alte Markdown-Export machte den Titel zur `#`-Überschrift, weil er die Ebene aus der
+> Schriftgröße riet** (`HeadingPrefix`: ≥25 → `# `). Der alte DOCX-Export gab ihm dagegen nie
+> eine Überschriftvorlage. Dieselbe Datei, zwei Antworten — das Modell beantwortet die Frage
+> jetzt einmal für beide.
+
+#### Was sich in den Golden-Files geändert hat — und warum (§4.6)
+
+| Änderung | Warum sie richtig ist |
+|---|---|
+| Kopf-/Fußzeile sind **echte Felder** (`{TITLE}`, `{PAGE}`, `{NUMPAGES}`) statt eingebackenem Text | §4.20. Der alte Export schrieb den Titel wörtlich hinein — nach dem Umbenennen stand der alte darin |
+| Seitenmaß **11906×16838** statt 11910×16845 Twips | Das ist A4 exakt (21,0 × 29,7 cm). Der alte Wert war um vier Twips daneben |
+| Tabellenlinien an der **Tabelle** statt an jeder Zelle | §4.18 — das Modell und DOCX führen sie dort. Gleiches Aussehen, weniger XML |
+| Farbe und Größe des Fließtexts stehen in `docDefaults` statt an jedem Lauf | Die Kaskade bleibt erhalten, statt in jeden Absatz hineinkopiert zu werden |
+| Das Inhaltsverzeichnis im Markdown ist eine **verschachtelte Liste** statt loser Absätze | Es kommt jetzt aus dem Feld und wird gerechnet, nicht abgeschrieben |
+| Leerzeile zwischen zwei aufeinanderfolgenden Listen | Ohne sie verschmelzen sie in den meisten Betrachtern zu einer |
+
+**Zwei Wächter mussten mit**, und das ist kein Beiwerk: `DocxAufriss` las eine An/Aus-Angabe als
+„vorhanden" statt als „an" — seit der Export `w:b w:val="0"` ausschreibt (§4.14: `false` heißt
+*ausdrücklich nicht*), stand im Aufriss jede nicht-fette Zelle als fett. Und er kannte nur die
+kurze Feldform `fldSimple`; das dreiteilige `fldChar`/`instrText`, das `TdDocx` schreibt, war für
+ihn ein leerer Absatz. **Ein Wächter, der das Falsche liest, ist schlimmer als keiner.**
+
+#### Was der Lauf am laufenden Programm gefunden hat
+
+Geprüft mit einer **Kopie** der echten Datenbank (Dauerregel 4): Dokument mit Überschrift und
+Fließtext angelegt, gespeichert, nach DOCX und Markdown exportiert. Ergebnis:
+
+- `# Umverdrahtung Phase 4` im Markdown — die Ebene kommt aus dem Modell, nicht aus der Größe.
+- Im DOCX trägt der **Lauf** der Überschrift `w:b`, `w:color 2563EB`, `w:sz 42`, der Absatz
+  `w:pStyle Heading1` und `w:outlineLvl 0`. Genau das war vorher kaputt (Fehler 1 oben) — und
+  es ließ sich **nur so** zeigen, denn im Modell war es die ganze Zeit richtig.
+
+#### Stand
+
+**409 Tests** (385 Core + 24 WPF) grün, alle drei Projekte 0 Warnungen (der Avalonia-Kopf ebenfalls geprüft). Das neue Feld
+`ExcludeFromToc` steht in **beiden** Beispieldokumenten und in beiden Vergleichsmethoden.
+
+**Ausdrücklich noch nicht:** `Rtf` führt weiter. Umgeschaltet wird erst, wenn Export **und**
+Anzeige aus dem Modell laufen (§5) — der Zeichner (`TdLayout` → SkiaSharp), der `PdfExporter`
+und die Anzeige im Linux-Kopf sind die nächsten drei Runden.
+
+---
+
 ## 5. Entscheidungen
 
 **Getroffen, alle umgesetzt:**
@@ -2482,6 +2611,9 @@ beides nebeneinandersteht, ist ein Fehler in der Übernahme harmlos: Es sieht si
 | Ob Bild und Diagramm Blöcke sind | **Nein, Stücke** (`TdInline`, §4.21). In DOCX steht eine Zeichnung immer in einem Lauf; ein bildbreites Foto ist ein Absatz, der nichts als dieses Bild enthält. Die reservierten Blocknamen „image" und „chart" bleiben frei — wie „list" in §4.17. Entschieden 2026-08-05 |
 | Wie die Übernahme abläuft | **Still — aber ein Fehler wird gespiegelt** (§4.22). Was gelingt, gelingt wortlos: ein Hinweis, den man bei jedem Dokument wegklickt, wird nach dem dritten Mal nicht mehr gelesen. Was misslingt, wird benannt und **im Dokument vermerkt** (`MigrationIssue`) — anders als bei der Datenbank (§4.8) kann hier etwas verlorengehen. `Rtf` bleibt unangetastet, der Versuch wird beim nächsten Öffnen wiederholt. Entschieden 2026-08-05 (Nutzer) |
 | Aufräumen vor der Veröffentlichung | **Ja, als eigener Schritt in Phase 6** (§6). Erst aufräumen, **dann** noch einmal vollständig prüfen, dann veröffentlichen — wer nach dem Aufräumen nicht mehr prüft, veröffentlicht einen Stand, den nie jemand gesehen hat. Entschieden 2026-08-05 (Nutzer) |
+| Wann `TextDoc.Model` geschrieben wird | **Bei jedem Speichern, neben `Rtf`** (§4.23). Sonst exportierte ein Export aus dem Modell den Stand der einmaligen Übernahme statt dessen, was auf dem Schirm steht. Die Nebenwirkung ist erwünscht: Der Umwandler läuft ab jetzt ständig, und ein Fehler darin fällt auf, **solange `Rtf` noch führt** — also solange er niemandem schaden kann. Entschieden 2026-08-09 |
+| Ob der Dokumenttitel eine Überschrift ist | **Ja im Markdown (`#`), nein im Inhaltsverzeichnis** — dafür gibt es `TdParaFormat.ExcludeFromToc` (§4.23). Eine exportierte `.md` ohne oberste Überschrift wäre ärmer, ein Verzeichnis mit dem Dokumenttitel als erstem Eintrag falsch. **Word trennt genauso** (`Title`, `TOC Heading`: Rang aus der Vorlage, Verzeichnis aus `w:outlineLvl`). Entschieden 2026-08-09 (Nutzer) |
+| Wo das Absatz-Zeichenformat in DOCX steht | **Im `pPr/rPr` *und* unter jedem Lauf** (§4.23). Das `pPr/rPr` allein gilt in Word nur für die Absatzmarke — Läufe erben aus der Formatvorlage. Beim Lesen nimmt `TdCharFormat.Ohne` die Dopplung wieder heraus, sonst trüge jeder Lauf eine vollständige Formatkopie (§4.14). Entschieden 2026-08-09 |
 | Namen der WPF-Hilfsmethoden | **Bleiben stehen** — `HitElement`, `HitTestElement`, `SelectByLasso`, `ComputeSelectionBounds` sind Einzeiler, die an `WbHit` weiterreichen. Elf Aufrufstellen in fünf Partials umzubenennen hätte den Diff verdreifacht, ohne am Ergebnis etwas zu ändern; wegkommen sollte die zweite **Rechnung**, nicht die zweite Bezeichnung (§4.13). Entschieden 2026-08-04 |
 
 **Noch offen:**
@@ -3022,9 +3154,18 @@ Boden", das einzige Risiko, das die Roadmap mit **hoch** einstuft.
       trägt einen Verweis auf den Blob-Speicher hinter der Naht `ITdImages`. Das
       **Wasserzeichen** aus §4.15 ist mitgekommen. 41 neue Wächter. **Die reservierten
       Blocknamen `"image"`/`"chart"` blieben frei** — beide sind Stücke, wie in DOCX
-- [ ] Danach umverdrahten: `Docx`-/`Markdown`-Im-/Export und `PdfExporter` gegen das eigene
-      Modell (§4.1 löst sich damit auf), Ribbon in Avalonia neu. **Dazu gehört das Zeichnen
-      eines `TdChart`** — der Umbruch reserviert nur den Kasten (§4.21)
+- [x] **Umverdrahten, erster Teil** (§4.23, 2026-08-09): Das Modell wird bei jedem Speichern
+      mitgeschrieben, **DOCX und Markdown laufen gegen das Modell** (`TdDocx`, `TdMarkdown`),
+      der DOCX-Import kommt über `TdZuFlow` zurück in den Editor. `DocxExporter` und
+      `MarkdownExporter` sind gelöscht. **Fünf Fehler dabei gefunden**, die der
+      Modell-gegen-Modell-Roundtrip nicht sehen konnte
+- [ ] **Umverdrahten, zweiter Teil** — die drei, die noch fehlen, jede eine eigene Runde:
+      1. **Der Zeichner**: `TdLayout` → SkiaSharp. **Dazu gehört das Zeichnen eines
+         `TdChart`** — der Umbruch reserviert nur den Kasten (§4.21)
+      2. **`PdfExporter`** gegen das Modell statt gegen den WPF-Paginator. Erst danach ist
+         §4.1 ganz aufgelöst
+      3. **Die Anzeige im Linux-Kopf** aus dem Modell, dazu das Ribbon in Avalonia neu.
+         Erst wenn Export **und** Anzeige laufen, wird `Rtf` als führendes Feld abgelöst (§5)
 
 #### Wie die Bestandsdokumente herüberkommen — **vor Schritt 2 zu entscheiden**
 
@@ -3720,6 +3861,32 @@ und keine davon sieht wie ein Fehler aus.
   eine geklärte Lizenz (§6); ein mit Skia gemaltes Rechteck braucht keine. Dabei nie
   achsensymmetrisch malen, sonst fällt eine vertauschte Achse nicht auf.
 
+**Neu aus Phase 4 — das Umverdrahten (§4.23)**
+
+- **In Word erben Läufe ihr Format aus der Formatvorlage, nicht aus dem `w:pPr/w:rPr`.** Das
+  `pPr/rPr` gilt **nur für die Absatzmarke**. Wer das Absatz-Zeichenformat allein dorthin
+  schreibt, bekommt eine Datei, die im eigenen Roundtrip einwandfrei aussieht und in Word jede
+  Überschrift als Fließtext zeigt. **Ein Modell-gegen-Modell-Roundtrip kann das nicht finden**
+  — er liest denselben falschen Ort wieder aus, den er beschrieben hat.
+- **Ein `FlowDocument` steht von Haus aus auf `TextAlignment.Justify`.** Als einzige
+  Eigenschaft ist ihr WPF-Vorgabewert nicht der, den das Modell annimmt (`Left`). Sie ist
+  deshalb die einzige, die **wirksam** und nicht mit `ReadLocalValue` gelesen wird — sonst
+  wandert jedes Dokument still von Blocksatz nach linksbündig.
+- **Ein Wächter, der das Falsche liest, ist schlimmer als keiner.** `DocxAufriss` prüfte
+  `rPr.Bold != null` statt den Wert: Seit der Export `w:b w:val="0"` ausschreibt (§4.14:
+  `false` heißt *ausdrücklich nicht*), stand im Aufriss jede nicht-fette Zelle als fett. Bei
+  An/Aus-Angaben in OOXML gilt: **fehlendes `w:val` heißt „an", `w:val="0"` heißt „aus".**
+- **Es gibt zwei Fragen, nicht eine: „ist das eine Überschrift?" und „gehört das ins
+  Verzeichnis?"** Titel und die Zeile „Inhaltsverzeichnis" beantworten sie verschieden. Word
+  trennt sie über Vorlage (`Title`, `TOC Heading`) gegen `w:outlineLvl`; das Modell über
+  `OutlineLevel` gegen `ExcludeFromToc`.
+- **Ein generierter Verzeichnistext ist kein Inhalt.** Der Editor legt sein Verzeichnis als
+  gewöhnliche Absätze ab. Wer sie beim Übernehmen mitnimmt, bekommt das Verzeichnis zweimal —
+  einmal als Feld, einmal als Text, der beim nächsten Öffnen veraltet ist (§4.20).
+- **Der Export erst, das Umschalten später.** Solange `Rtf` führt, ist jeder Fehler im
+  Umwandler folgenlos. Genau deshalb läuft er ab jetzt bei **jedem** Speichern mit: damit er
+  auffällt, bevor er etwas kostet.
+
 **Neu aus Phase 4 — die Übernahme (§4.22)**
 
 - **Ein Roundtrip prüft, was zurückkommt — nicht, was dasteht.** Fünf Schritte lang schrieb
@@ -4067,6 +4234,7 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 
 | Runde | Datum | Was |
 |---|---|---|
+| V2-28 | 2026-08-09 | **Das Umverdrahten, erster Teil: DOCX und Markdown laufen gegen das Modell** (§4.23) — der letzte offene Punkt aus Phase 4, und **§4.1 ist damit zur Hälfte eingelöst**. Drei Schritte in dieser Reihenfolge, weil jeder auf dem vorigen steht: `TextDoc.Model` wird bei **jedem** Speichern mitgeschrieben (sonst exportierte ein Export aus dem Modell den Stand der einmaligen Übernahme statt dessen, was auf dem Schirm steht), dann Markdown über `TdMarkdown`, dann DOCX über `TdDocx` in **beide** Richtungen — beim Import macht `TdZuFlow` daraus wieder ein `XamlPackage`, sonst käme eine importierte Datei mit gefülltem Modell und leerem Editor an. `DocxExporter` und `MarkdownExporter` sind **gelöscht** (941 Zeilen); `DocxImporter` bleibt für den Whiteboard-Import. **Der eigentliche Ertrag sind fünf Fehler, die vorher niemand sehen konnte** — sie standen alle im Code, aber nichts lief durch diesen Weg, und ein Roundtrip Modell-gegen-Modell liest denselben falschen Ort wieder aus, den er beschrieben hat: (1) Das Absatz-Zeichenformat stand nur im `w:pPr/w:rPr`, das in Word **nur für die Absatzmarke** gilt — jede Überschrift wäre als Fließtext angekommen; (2) es gab keine `Heading`-Vorlagen, also blieben Navigationsbereich und Verzeichnis-Katalog leer; (3) die Ausrichtung wurde örtlich gelesen, aber ein `FlowDocument` steht von Haus aus auf **Blocksatz** — jedes Dokument wäre still linksbündig exportiert worden; (4) Grundschrift und Tabellenlinien kamen gar nicht mit (Tinte → Schwarz, Gainsboro → Schwarz); (5) das generierte Inhaltsverzeichnis wurde als toter Text übernommen und das echte `TOC`-Feld ging verloren. **Neu im Modell: `TdParaFormat.ExcludeFromToc`** — „ist das eine Überschrift?" und „gehört das ins Verzeichnis?" sind **zwei** Fragen, und Titel wie die Zeile „Inhaltsverzeichnis" beantworten sie verschieden; Word trennt es genauso (`Title`/`TOC Heading` gegen `w:outlineLvl`). **Nutzer-Entscheidung: der Titel bekommt im Markdown seine `#`-Überschrift.** Zwei Wächter mussten mit, und das ist keine Nebensache: `DocxAufriss` las `w:b w:val="0"` als „fett" und kannte die dreiteilige Feldform nicht — **ein Wächter, der das Falsche liest, ist schlimmer als keiner.** Die Golden-Files haben sich geändert und jede Zeile ist begründet (§4.6, Tabelle in §4.23): echte Felder statt eingebackenem Text, A4 exakt statt vier Twips daneben, Linien an der Tabelle statt an jeder Zelle. Am laufenden Programm mit einer **Kopie** der echten Datenbank geprüft (Dauerregel 4): Der Überschriften-**Lauf** im DOCX trägt jetzt `w:b`/`w:color`/`w:sz` — genau das war kaputt, und nur so ließ es sich zeigen. **409 Tests grün** (385 Core + 24 WPF), drei Projekte 0 Warnungen. **`Rtf` führt weiter**; Zeichner, `PdfExporter` und die Anzeige im Linux-Kopf sind die nächsten drei Runden |
 | V2-27 | 2026-08-05 | **Die Übernahme der Bestandsdokumente läuft** (§4.22) — seit §4.15 vorgemerkt, durch das unfertige Modell blockiert, mit §4.21 freigeworden. **Nutzer-Entscheidung: still, aber ein Fehler wird gespiegelt.** Die Teilung ist der Punkt: Was gelingt, gelingt wortlos (ein Hinweis, den man bei jedem Dokument wegklickt, wird nach dem dritten Mal nicht mehr gelesen); was misslingt, wird benannt **und im Dokument vermerkt** (`MigrationIssue`) — anders als bei der Datenbank (§4.8) kann hier etwas verlorengehen, denn RTF und XamlPackage tragen Dinge, die kein Modell kennt. `TextDoc` bekommt zwei Felder **neben** `Rtf` (`Model`, `MigrationIssue`), und **`Rtf` wird nie überschrieben** — daraus folgt das Wichtigste: eine misslungene Übernahme ist kein Datenverlust, sondern ein Versuch, der beim nächsten Öffnen wiederholt wird. **Sie läuft nur auf dem Windows-Rechner** (`IDocumentIo.CanMigrate`), und das ist eine Schranke und keine Lücke: RTF liest ausschließlich `TextRange`, ein Versuch unter Linux ergäbe ein **leeres** Dokument — schlimmer als gar keine Übernahme, weil der Inhalt gelöscht aussähe. `Migrate` **wirft nicht**: sie läuft beim Öffnen, und eine Ausnahme dort ist für den Nutzer ein Absturz. **`FlowZuTd` ist die eine Stelle, an der Raten richtig ist:** Die Gliederungsebene kommt aus der Schriftgröße, weil das `FlowDocument` keinen Platz dafür hat — **geraten wird einmal, danach steht sie als eigener Wert im Modell**, und genau das ist der Unterschied zwischen einer Übernahme und einem Format. Übernommen werden **nur örtlich gesetzte Werte** (`ReadLocalValue` unterscheidet „nicht gesetzt" von „Vorgabewert", §4.14) — **aber `Bold`/`Italic`/`Underline` tragen ihre Bedeutung im Typ**, dort gibt `ReadLocalValue` nichts zurück, und wer das übersieht, verliert die drei häufigsten Auszeichnungen (vom Wächter gefunden). Dazu zwei Umrechnungen: WPFs `RowSpan` → `Restart`+`Continue` **je Zeile** (§4.18, sonst rutscht alles dahinter eine Spalte nach links) und eine verschachtelte Liste als **dieselbe** Liste eine Ebene tiefer (§4.17). **Die Umwandlung fasst die Vorlage nicht an** — der erste Entwurf nahm einen Block kurz aus seinem Elternteil, was ihn im offenen Editor hätte verschwinden lassen; eigener Wächter. **Am laufenden Programm mit einer Kopie der echten Daten geprüft:** kein Hinweisfenster, `Model` mit gültiger `GNTD`-Kennung, `Rtf` unangetastet, `"OutlineLevel":1` an der Überschrift. **Dabei ein Fehler, den fünf Schritte lang kein Test sehen konnte:** In jedem Format stand ein `"IstLeer":false`, in jeder Seiteneinrichtung vier gerechnete Werte — **ein Roundtrip prüft, was zurückkommt, nicht was dasteht** (die Felder haben keinen Setter). Behoben mit `[JsonIgnore]`, neuer Wächter sieht auf die Datei. **Nebenbefund:** die echte Datenbank enthält **kein einziges** Textdokument mit Inhalt — die Übernahme ließ sich an ihr gar nicht messen, und wer sie für den Beweis gehalten hätte, hätte einen Haken hinter etwas gesetzt, das nie lief. **12 neue Wächter, jetzt 409** (385 Core + 24 WPF), alle drei Projekte 0 Warnungen. **Ebenfalls entschieden (Nutzer): Phase 6 bekommt einen Aufräum-Schritt** — erst putzen, **dann** noch einmal vollständig prüfen, dann veröffentlichen (§6) |
 | V2-26 | 2026-08-05 | **Phase 4, Schritt 6: Bilder und Diagramme — das Dokumentmodell ist vollständig** (§4.21). **Der Befund wiegt schwer und steht in der Kopfzeile des heutigen Werkzeugs:** `ChartDialog` rendert ein Diagramm beim Einfügen zu einer **Bitmap** („keine Live-Datenbindung") — **die Zahlen sind im selben Augenblick weg**. Ein Diagramm lässt sich nie wieder ändern, nur löschen und neu bauen; beim Export geht ein Pixelbild hinaus, wo Word ein Diagramm erwartet. Derselbe Befund wie §4.14, eine Ebene tiefer. **`TdChart` speichert deshalb die Zahlen**, und Legende, Farbvergabe und fehlende Beschriftungen werden **gerechnet** — zum dritten Mal nach der Listennummer (§4.17) und dem Feld (§4.20). Dazu: **die Palette steht am Diagramm**, nicht in einem statischen Feld des Dialogs, das beim nächsten Start weg ist — ein Dokument muss sich selbst erklären. **In DOCX ein echtes `c:chart` mit literalen Daten und ohne eingebettete Arbeitsmappe:** die Mappe wären dieselben Zahlen ein zweites Mal (§4.10); der Preis ist benannt (Words „Daten bearbeiten" findet keine Mappe). **Punkt und Punkt+Linie sind in DrawingML ein Liniendiagramm** — `c:scatterChart` verlangt Zahlen auf beiden Achsen, unsere Kategorien sind Text; die Linie wird ausdrücklich **unsichtbar gemacht**, denn ohne `a:ln` zeichnet Word eine. **`TdImage` trägt einen Verweis und keine Bytes**, hinter der **dritten Naht** `ITdImages` (nach Schriftmessung und Feldwerten) — gemessen in V1: drei Fotos (2 MB) wurden im XamlPackage zu **16,8 MB** und rissen die 16-MB-Grenze von LiteDB. Fehlt die Naht, **wirft** der Export; fehlt ein einzelner Blob, fällt nur dieses Bild weg (unvollständige Sicherung, Dauerregel 4). **Die Kennung eines Bildes ist keine Aussage über das Dokument** — der Wächter vergleicht die Bytes. **Bild und Diagramm sind Stücke und keine Blöcke**, weil eine Zeichnung in DOCX immer in einem Lauf steht; die reservierten Blocknamen `"image"`/`"chart"` bleiben frei wie `"list"` in §4.17. **Zwei Dinge im Umbruch waren nicht offensichtlich:** eine Grafik steht **auf** der Grundlinie (ihre Höhe zählt nach oben, sonst läuft ein Bild über den Seitenrand), und **die Absatzmarke ist immer dabei** — sonst wäre ein Absatz mit einem winzigen Bild schmaler als ein leerer. **Das Wasserzeichen aus §4.15 ist eingelöst:** VML in der Kopfzeile, Bildteil am **Kopfzeilenteil** (nicht am Hauptteil), und Deckkraft über `gain` — eine benannte Näherung, denn DOCX kennt keine. **Zwei benannte Zugeständnisse:** eine ungenutzte Palettenfarbe überlebt DOCX nicht, und eine Zeichnung, die weder Bild noch Diagramm ist (Form, SmartArt), verschwindet beim Lesen. **41 neue Wächter, jetzt 397** (384 Core + 13 WPF), Bild, Diagramm und Wasserzeichen in **beiden** Beispieldokumenten, alle drei Projekte 0 Warnungen. **Damit ist die Reihenfolge aus Roadmap §5 abgearbeitet.** **Als Nächstes: umverdrahten** (Exporter, PdfExporter, Ribbon in Avalonia, das Zeichnen eines `TdChart`) — und **die Übernahme der Bestandsdokumente ist nicht mehr durch fehlende Fähigkeiten blockiert**; die Frage „still oder sichtbar" (§6) ist jetzt fällig |
 | V2-25 | 2026-08-05 | **Phase 4, Schritt 5: Felder, Verweise und Inhaltsverzeichnis** (§4.20). **Die tragende Entscheidung: ein Feld speichert seine Art und nicht seinen Wert** — Seitenzahl, Seitenanzahl, Datum, Titel, Verzeichnis; gerechnet wird beim Umbruch, **dasselbe Muster wie bei der Listennummer** (§4.17) und aus demselben Grund: der Wert hängt von der Umgebung ab, und gespeichert wäre er nach der nächsten Änderung falsch — **still**, denn eine veraltete Seitenzahl sieht aus wie eine Seitenzahl. `TdField.PlainText()` gibt deshalb „" zurück. **Datum und Titel kommen von außen** (`TdFieldContext`): das ist die zweite Naht nach `ITdTextMeasure` und dieselbe Begründung — **Core fragt die Uhr nicht selbst**, sonst hinge jeder Wächter davon ab, wann er läuft; das Datumsmuster steht aus demselben Grund fest im Code statt in der Kultur des Rechners. **Der Umbruch fällt sich selbst ins Wort und läuft deshalb mehrfach:** die Seitenanzahl steht erst fest, wenn alles gesetzt ist, und ein Verzeichnis verschiebt durch seine eigene Länge die Überschriften, deren Seiten es nennt (Word rechnet ebenso mehrfach). Gelaufen wird bis zum Stillstand, **höchstens fünfmal** — eine Schleife auf einen Fixpunkt, den es nicht gibt, meldet keinen Fehler, sondern gar nichts (§4.16). **Die Seitenzahl wird nachträglich gesetzt**, wenn die Zeile ihre Seite bekommt: eine zusammengehaltene Gruppe kann noch rutschen, und eine vorher eingetragene Zahl läge um eins daneben. **`TdHyperlink` ist eine Klammer um Stücke** (wie die Tabellenzelle Blöcke enthält, §4.18), und **das Ziel ist eine Zeichenkette und kein `Uri`** — genau der Fehler aus §7, bei dem aus `kapitel-2.md` ein `file:///`-Pfad wird; ein `#`-Ziel wird in DOCX ein **Anker** und keine Beziehung. Daraus folgt `TdParagraph.FlacheStuecke()`: wer über `Inlines` läuft, sieht die Klammer und nicht ihren Text. **`TdToc` liest `TdParaFormat.OutlineLevel`** — der Punkt des ganzen Schritts, denn der heutige Markdown-Exporter **rät** die Ebene aus der Schriftgröße zurück und verliert sie, sobald jemand eine Überschrift kleiner stellt. **Die teuerste DOCX-Entscheidung: kein zwischengespeichertes Feldergebnis.** Ein mitgeschriebenes Verzeichnis käme beim Lesen als Absätze zurück, und das Dokument wüchse **mit jedem Speichern um ein ganzes Inhaltsverzeichnis** — dieselbe Falle wie beim Trennabsatz (§4.18), nur mit dreißig Zeilen statt einer; Wächter ist ein Roundtrip, der zweimal läuft. Beim **Lesen** fremder Dateien umgekehrt: das Ergebnis eines bekannten Feldes wird verworfen, das eines unbekannten **behalten** — eine Rechenvorschrift zu verlieren ist verschmerzbar, Text nicht. Felder stehen im Körper in der **dreiteiligen** Form (`begin`/`instrText`/`end`), weil ein Verzeichnis in ein Attribut nicht hineinpasst und zwei Formen nebeneinander die Doppelung aus §4.10 wären. **Textmarken werden erzeugt statt gespeichert** und nur, wenn es ein Verzeichnis gibt. **Zwei Stellen im Leser waren zu eng** und hätten still Text verloren: der Absatz-Leser lief nur über `w:r` (ein Verweis ist ein **Geschwister** des Laufs), und `IstLeererAbsatz` ebenso — ein Absatz mit nur einem Verweis galt als leer und wäre hinter einer Tabelle weggeworfen worden. **Kopf- und Fußzeile haben ihre letzten zwei Platzhalter bekommen:** `{DATUM}` und `{TITEL}` sind jetzt echte Felder, wie §4.15 es angekündigt hatte; die Zuordnung steht **einmal** in `TdField.Platzhalter`. **Ein benanntes Zugeständnis:** ein Feld ohne eigene Zusatzangabe bekommt auf dem Weg durch DOCX die Vorgabe eingetragen (`\@ "dd.MM.yyyy"`, `\o "1-3"`) — das Format kennt kein „nicht gesetzt" für einen Schalter; verlustfrei, aber nicht wörtlich, mit eigenem Wächter. **57 neue Wächter, jetzt 356** (343 Core + 13 WPF), Felder, Verweise und ein Verzeichnis in **beiden** Beispieldokumenten, alle drei Projekte 0 Warnungen. **Als Nächstes: Schritt 6, Diagramme** — der letzte der sechs |

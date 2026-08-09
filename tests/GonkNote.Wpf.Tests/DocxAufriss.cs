@@ -86,6 +86,13 @@ internal static class DocxAufriss
                 var zeilen = t.Elements<W.TableRow>().ToList();
                 sb.Append(pad).AppendLine($"TABELLE {zeilen.Count} Zeilen, Raster [{string.Join(", ", spalten)}]");
 
+                // **Die Linien stehen an der Tabelle und nicht an jeder Zelle** (§4.18). Der
+                // alte Exporter schrieb sie je Zelle; ohne diese Zeile stünde im Aufriss gar
+                // keine Linie mehr, und ein rahmenloser Export sähe aus wie ein gewollter.
+                if (t.GetFirstChild<W.TableProperties>()?.TableBorders?.TopBorder is { } tblRahmen)
+                    sb.Append(pad).AppendLine(
+                        $"  RAHMEN {Enumwert(tblRahmen.Val, "-")}:{tblRahmen.Color?.Value} Stärke={tblRahmen.Size?.Value}");
+
                 for (int z = 0; z < zeilen.Count; z++)
                 {
                     var zellen = zeilen[z].Elements<W.TableCell>().ToList();
@@ -182,16 +189,25 @@ internal static class DocxAufriss
         return sb.ToString();
     }
 
+    /// <summary>
+    /// Ist eine An/Aus-Angabe wirklich an? <b>Ein fehlendes <c>w:val</c> heißt „an"</b>, ein
+    /// <c>w:val="0"</c> dagegen ausdrücklich „aus" — und das ist kein Haarspalten: Seit der
+    /// Export gegen das eigene Modell läuft, schreibt er beide Fälle aus (§4.14, <c>null</c>
+    /// heißt „nicht gesetzt", <c>false</c> heißt „ausdrücklich nicht"). Wer hier nur auf
+    /// Vorhandensein prüft, liest jede nicht-fette Zelle als fett.
+    /// </summary>
+    private static bool An(W.OnOffType? angabe) => angabe is not null && angabe.Val?.Value != false;
+
     private static string RunText(W.Run run, MainDocumentPart main)
     {
         var sb = new StringBuilder();
         var rp = run.RunProperties;
 
         var marken = new List<string>();
-        if (rp?.Bold != null) marken.Add("fett");
-        if (rp?.Italic != null) marken.Add("kursiv");
-        if (rp?.Underline != null) marken.Add("unterstrichen");
-        if (rp?.Strike != null) marken.Add("durchgestrichen");
+        if (An(rp?.Bold)) marken.Add("fett");
+        if (An(rp?.Italic)) marken.Add("kursiv");
+        if (rp?.Underline is { } u && u.Val?.Value != W.UnderlineValues.None) marken.Add("unterstrichen");
+        if (An(rp?.Strike)) marken.Add("durchgestrichen");
         if (rp?.Highlight?.Val is { } hl) marken.Add($"hervor:{hl}");
         if (rp?.VerticalTextAlignment?.Val is { } vert) marken.Add($"stellung:{vert}");
         if (rp?.Color?.Val?.Value is { } farbe) marken.Add($"farbe:{farbe}");
@@ -203,6 +219,13 @@ internal static class DocxAufriss
             sb.Append('"').Append(text).Append('"');
             if (marken.Count > 0) sb.Append('<').Append(string.Join(',', marken)).Append('>');
         }
+
+        // Die **dreiteilige** Feldform: `fldChar begin`, `instrText`, `fldChar end`. Sie steht
+        // in einem Lauf und nicht daneben — anders als das kurze `fldSimple`, das der alte
+        // Exporter benutzt hat. Ohne diesen Zweig wäre der Absatz mit dem Inhaltsverzeichnis
+        // hier „(leer)": das Feld ist da, nur ungelesen.
+        foreach (var anweisung in run.Elements<W.FieldCode>())
+            sb.Append("{FELD ").Append(anweisung.Text.Trim()).Append('}');
 
         foreach (var _ in run.Elements<W.Break>()) sb.Append("<umbruch>");
         foreach (var zeichnung in run.Elements<W.Drawing>()) sb.Append(BildText(zeichnung, main));

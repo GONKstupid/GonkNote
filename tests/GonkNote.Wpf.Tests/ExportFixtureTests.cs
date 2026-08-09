@@ -1,8 +1,10 @@
 using System.IO;
 using System.Text;
 using System.Windows.Documents;
+using GonkNote.Core.Text;
 using GonkNote.Services;
 using SkiaSharp;
+using TextDoc = GonkNote.Core.Models.TextDoc;
 
 namespace GonkNote.Wpf.Tests;
 
@@ -25,15 +27,23 @@ public sealed class ExportFixtureTests
     /// <summary>
     /// Markdown ist der einzige Weg, dessen Ausgabe man direkt einchecken kann: reiner Text.
     /// Das Golden-File <c>referenz.md</c> ist damit gleichzeitig das lesbarste der drei.
+    ///
+    /// <para>
+    /// <b>Läuft seit dem Umverdrahten (HANDOFF §4.23) über <see cref="TdMarkdown"/> und das
+    /// eigene Modell</b> — nicht mehr über den alten, FlowDocument-basierten
+    /// <c>MarkdownExporter</c>. Genau das ist die Gegenprobe aus dem Auftrag: dasselbe
+    /// Referenzdokument, einmal durch <see cref="FlowZuTd"/> übernommen, muss denselben
+    /// Aufriss ergeben.
+    /// </para>
     /// </summary>
     [Fact]
     public void Markdown_Export_bleibt_gleich() => Sta.Run(() =>
     {
         using var werkbank = new Referenzdokument.Werkbank("md-export");
-        var doc = Referenzdokument.Bauen(werkbank.Blobs);
+        var modell = Referenzdokument.Modell(werkbank.Blobs);
         string pfad = werkbank.Datei("referenz.md");
 
-        MarkdownExporter.Export(doc, pfad);
+        TdMarkdown.Export(modell, pfad);
 
         Golden.Assert("referenz.md", File.ReadAllText(pfad, Encoding.UTF8));
     });
@@ -47,10 +57,10 @@ public sealed class ExportFixtureTests
     public void Markdown_maskiert_Rohrzeichen_in_Zellen() => Sta.Run(() =>
     {
         using var werkbank = new Referenzdokument.Werkbank("md-pipe");
-        var doc = Referenzdokument.Bauen(werkbank.Blobs);
+        var modell = Referenzdokument.Modell(werkbank.Blobs);
         string pfad = werkbank.Datei("referenz.md");
 
-        MarkdownExporter.Export(doc, pfad);
+        TdMarkdown.Export(modell, pfad);
         string md = File.ReadAllText(pfad, Encoding.UTF8);
 
         Assert.Contains(@"Physik \| Chemie", md);
@@ -84,8 +94,8 @@ public sealed class ExportFixtureTests
         using var werkbank = new Referenzdokument.Werkbank("md-link");
 
         // Grundschriftgröße wie im Editor. Ohne sie steht ein FlowDocument auf der
-        // System-Schriftgröße, und der Exporter hält jeden Absatz für eine Überschrift
-        // (HeadingPrefix rechnet gegen die Größen aus TextStyles).
+        // System-Schriftgröße, und die Übernahme hält jeden Absatz für eine Überschrift
+        // (TextStyles.HeadingLevel rechnet gegen die Größen aus TextStyles).
         var doc = new FlowDocument { FontSize = TextStyles.BodySize };
 
         doc.Blocks.Add(Absatz(new Hyperlink(new Run("Gonk Note"))
@@ -112,7 +122,8 @@ public sealed class ExportFixtureTests
         doc.Blocks.Add(Absatz(new Hyperlink(new Run("Erste Schritte"))));
 
         string pfad = werkbank.Datei("links.md");
-        MarkdownExporter.Export(doc, pfad);
+        var modell = FlowZuTd.Umwandeln(new TextDoc(), doc, werkbank.Blobs);
+        TdMarkdown.Export(modell, pfad);
         var zeilen = File.ReadAllLines(pfad, Encoding.UTF8)
             .Where(z => z.Trim().Length > 0)
             .ToList();
@@ -131,32 +142,39 @@ public sealed class ExportFixtureTests
 
     // ==================== DOCX ====================
 
+    /// <summary>
+    /// <b>Läuft seit dem Umverdrahten (HANDOFF §4.23) über <see cref="TdDocx"/> und das eigene
+    /// Modell</b> — nicht mehr über den alten, FlowDocument-basierten <c>DocxExporter</c>.
+    /// <see cref="DocxAufriss"/> ist genau dafür gebaut: derselbe Aufriss nach dem Wechsel der
+    /// Dokument-Engine ist der Beweis, dass nichts verloren gegangen ist.
+    /// </summary>
     [Fact]
     public void Docx_Export_bleibt_gleich() => Sta.Run(() =>
     {
         using var werkbank = new Referenzdokument.Werkbank("docx-export");
-        var doc = Referenzdokument.Bauen(werkbank.Blobs);
-        var einstellungen = Referenzdokument.Einstellungen();
+        var modell = Referenzdokument.Modell(werkbank.Blobs);
         string pfad = werkbank.Datei("referenz.docx");
 
-        int fehler = DocxExporter.Export(doc, einstellungen, Referenzdokument.Titel, pfad);
+        TdDocx.Schreiben(modell, pfad, new TdBlobImages(werkbank.Blobs), Referenzdokument.Titel);
 
-        // Der Exporter validiert selbst gegen das Office-2019-Schema. Ein Dokument, das Word
-        // nicht öffnet, ist kein Export.
-        Assert.Equal(0, fehler);
+        // TdDocx validiert selbst gegen das Office-2019-Schema. Ein Dokument, das Word nicht
+        // öffnet, ist kein Export.
+        Assert.Equal(0, TdDocx.Pruefen(pfad));
         Golden.Assert("referenz-docx.txt", DocxAufriss.Von(pfad));
     });
 
     /// <summary>
     /// Das Original geht unverändert hinaus — nicht die Anzeige-Ableitung und nicht ein von
     /// WPF neu kodiertes PNG. Gemessen war der Unterschied 2 MB Vorlage → 16,8 MB Export
-    /// (<see cref="DocumentImages"/>); das ist der Grund für den ganzen Blob-Umweg.
+    /// (<see cref="DocumentImages"/>); das ist der Grund für den ganzen Blob-Umweg, den
+    /// <see cref="TdBlobImages"/> jetzt genauso geht (§4.21).
     /// </summary>
     [Fact]
     public void Docx_Export_schickt_die_Originalbytes_hinaus() => Sta.Run(() =>
     {
         using var werkbank = new Referenzdokument.Werkbank("docx-original");
         var doc = Referenzdokument.Bauen(werkbank.Blobs);
+        var modell = FlowZuTd.Umwandeln(Referenzdokument.Einstellungen(), doc, werkbank.Blobs);
         string pfad = werkbank.Datei("referenz.docx");
 
         // Die Originale, wie sie beim Bauen im Blob-Speicher gelandet sind.
@@ -165,7 +183,7 @@ public sealed class ExportFixtureTests
             .ToList();
         Assert.Equal(2, originale.Count);
 
-        DocxExporter.Export(doc, Referenzdokument.Einstellungen(), Referenzdokument.Titel, pfad);
+        TdDocx.Schreiben(modell, pfad, new TdBlobImages(werkbank.Blobs), Referenzdokument.Titel);
 
         var eingebettet = DocxBildteile(pfad);
         Assert.Equal(originale.Count, eingebettet.Count);
@@ -174,7 +192,6 @@ public sealed class ExportFixtureTests
 
         // Und weil „byteweise gleich" auch für zwei leere Felder gilt: die Bilder müssen
         // dekodierbar sein und ihre Maße behalten.
-        Assert.Equal(0, DocumentImages.LastExportMissingOriginals);
         foreach (var bytes in eingebettet)
         {
             using var bmp = GonkNote.Core.Rendering.WbImages.Decode(bytes);

@@ -670,7 +670,7 @@ public sealed class MainViewModel : ObservableObject
         if (existing != null) { SelectedTab = existing; return; }
 
         DocumentTabViewModel tab = vm.Kind == ItemKind.TextDocument
-            ? new TextTabViewModel(vm.Item, _db)
+            ? new TextTabViewModel(vm.Item, _db, _platform.Documents)
             : new WhiteboardTabViewModel(vm.Item, _db);
 
         if (tab is TextTabViewModel text) Uebernehmen(text);

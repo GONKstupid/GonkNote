@@ -461,6 +461,14 @@ public sealed class DokumentmodellTests
 
     private static TdBlock[] Inhalt() =>
         [
+            // Der Titel: Überschrift ja, Verzeichniseintrag nein (§4.23). Er steht hier, damit
+            // der Roundtrip `ExcludeFromToc` bewacht — ohne ihn käme das Feld nie vor.
+            new TdParagraph([new TdRun("Das Beispieldokument")])
+            {
+                Format = { OutlineLevel = 1, ExcludeFromToc = true, Alignment = TdAlign.Center },
+                CharFormat = { FontSize = 26, Bold = true },
+            },
+
             // Das Inhaltsverzeichnis steht vor den Überschriften, die es aufzählt — es ist ein
             // Feld und trägt seinen Text nicht bei sich (§4.20).
             new TdParagraph([new TdField(TdFieldKind.TableOfContents, "1-2")]),
@@ -801,6 +809,7 @@ public sealed class DokumentmodellTests
         Assert.Equal(a.SpaceAfterPt, b.SpaceAfterPt);
         Assert.Equal(a.LineSpacing, b.LineSpacing);
         Assert.Equal(a.OutlineLevel, b.OutlineLevel);
+        Assert.Equal(a.ExcludeFromToc, b.ExcludeFromToc);
         Assert.Equal(a.KeepWithNext, b.KeepWithNext);
         Assert.Equal(a.PageBreakBefore, b.PageBreakBefore);
     }

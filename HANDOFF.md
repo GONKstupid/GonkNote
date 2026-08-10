@@ -45,6 +45,10 @@
 >
 >    **Faustregel:** „rechnet es richtig?" → Windows. „sieht oder fühlt es sich auf Linux
 >    richtig an?" → Laptop.
+>
+>    **Lautet die Antwort „ja", gehört vor dem Wechsel der Auftrag in §5d nachgezogen** —
+>    dort steht, was der Laptop tun soll, damit der Nutzer dort nur „lies das HANDOFF" sagen
+>    muss.
 > 4. **Kopie der echten Daten anlegen ist erlaubt, ohne zu fragen** (Nutzer-Entscheidung
 >    2026-07-30). Wenn echte Daten zum Prüfen gebraucht werden — Migration, Export, ein
 >    Fehlerbild, das nur mit Bestandsdokumenten auftritt —, darf der Inhalt von
@@ -86,10 +90,16 @@ und iPadOS** — Greenfield-Solution, in die der wiederverwendbare Code aus V1 w
 | | |
 |---|---|
 | **V2 (hier gearbeitet)** | `C:\Dev\Zed\gonk-note-V2`, Branch `main` → <https://github.com/GONKstupid/GonkNote> (**privat**), Remote über **SSH** (§5c) |
-| **V2 auf dem Linux-Laptop** | `~/Zed/gonk-note-V2/GonkNote` (CachyOS) — nur für den Stylus-Prototyp und den Core-Build, siehe §5a/§5b |
+| **V2 auf dem Linux-Laptop** | `~/Zed/gonk-note-V2/GonkNote` (CachyOS) — **Messgerät, kein Arbeitsplatz.** Arbeitsanweisung: **§5d**, Begründung: §5b, Stift: §5a |
 | **V1 (Referenz, nicht anfassen)** | `C:\Dev\Zed\gonk-note`, Branch `main`, <https://github.com/GONKstupid/gonk-note> |
 | **Roadmap (die Vorgabe)** | `C:\Users\manue\Desktop\GonkNote-TM\gonk-note-port-RM.MD` — **umgezogen**, hier stand bis 2026-08-04 der Pfad direkt auf dem Desktop |
 | **V1-Handoff (alle Alt-Erfahrungen)** | `C:\Dev\Zed\gonk-note\HANDOFF.md` — **weiterhin gültig**, §4 Fallen und §7 Testen dort lesen |
+
+> ### 🐧 Läufst du auf dem CachyOS-Laptop?
+> **Dann steht deine Arbeitsanweisung in §5d** — dort und nirgends sonst. Der Nutzer muss dir
+> nichts weiter sagen als „lies das HANDOFF". Lies §5b (warum der Laptop Messgerät und kein
+> Arbeitsplatz ist) und arbeite dann den „Aktuellen Auftrag" aus §5d ab. Die Punkte 1–4 unten
+> gelten auf dem Windows-Rechner.
 
 **In dieser Reihenfolge vorgehen:**
 
@@ -97,6 +107,8 @@ und iPadOS** — Greenfield-Solution, in die der wiederverwendbare Code aus V1 w
 2. Sonst: **§5 Entscheidungen** — was dort offen steht, nachfragen statt raten.
 3. Sonst: den nächsten Punkt aus **§6 Arbeitsplan** nehmen.
 4. Vor jeder Code-Änderung **§7 Fallen** überfliegen.
+5. **Am Ende der Antwort** eine Zeile, ob der nächste Schritt an den Laptop gehört
+   (Dauerregel 3a). Wenn ja, gehört **§5d nachgezogen**, bevor der Nutzer wechselt.
 
 **Bauen und prüfen:**
 
@@ -2978,7 +2990,8 @@ was vorher nicht der Fall war.
   betroffen** — die gehen alle über `WbFonts`. Fällig mit der Ribbon-Runde, die `Styles.axaml`
   ohnehin anfasst.
 - **Gesehen hat das alles bisher nur Windows.** Ob die mitgelieferte Schrift unter Linux wirklich
-  gewinnt, beantwortet nur der Laptop (Dauerregel 3a).
+  gewinnt, beantwortet nur der Laptop (Dauerregel 3a). **Der Auftrag dafür steht ausformuliert
+  in §5d** — inklusive der vier Fragen und dessen, was dort offen bleiben muss.
 
 #### Stand
 
@@ -3330,6 +3343,9 @@ dieses Laptops. MPP und EMR bleiben ungetestet, siehe „Offen" unten.
 > **Dieser Abschnitt ist die Begründung zu Dauerregel 3a** (Kopfzeile): Am Ende **jeder**
 > Antwort steht eine Zeile dazu, ob der nächste Schritt hierher gehört — auch wenn sie „nein"
 > lautet. Wer die Regel liest und wissen will, *warum*, liest hier weiter.
+>
+> **Was auf dem Laptop zu tun ist, steht nicht hier, sondern in §5d.** Dieser Abschnitt sagt
+> *ob und warum* gewechselt wird, §5d sagt *was dann zu tun ist*.
 
 **Kurz: noch nicht umziehen — auch nicht in Phase 3.** Entwickelt wird unter Windows; der
 Laptop ist Pflicht für alles, was am **Stift** und an **Linux-Pfaden** hängt.
@@ -3493,6 +3509,119 @@ ein Push in einem Skript an der Rückfrage „Are you sure you want to continue 
 einzutragen, und ist danach zu widerrufen — der Key übernimmt seine Aufgabe. **Ein Token
 gehört nie in eine Datei im Repo und nie in einen Chatverlauf.** Wird eines doch einmal
 weitergegeben, ist es verbrannt und muss widerrufen werden, auch wenn es „nur kurz" war.
+
+---
+
+## 5d. 🐧 Auftrag für den Linux-Laptop — hier anfangen
+
+> **Wenn du auf dem CachyOS-Laptop läufst, ist dieser Abschnitt deine Arbeitsanweisung.**
+> Der Nutzer muss dir nichts weiter sagen als „lies das HANDOFF". Lies §5b (warum der Laptop
+> Messgerät und kein Arbeitsplatz ist), dann arbeite den **aktuellen Auftrag** unten ab.
+>
+> **Nach jeder Runde auf dem Windows-Rechner wird dieser Auftrag hier neu geschrieben.** Steht
+> unten ein Datum, das älter ist als der letzte Eintrag in der Chronik (§9), dann ist er
+> veraltet — **dann nachfragen statt raten.**
+
+### Was hier grundsätzlich gilt — für jeden Auftrag
+
+| Regel | Warum |
+|---|---|
+| **Nur prüfen und melden, nicht entwickeln** | Entwickelt wird unter Windows (§5b): dort laufen beide Köpfe nebeneinander an derselben Datenbank und die Fernsteuer-Werkzeuge funktionieren. Hier wird beantwortet, was **nur** hier zu beantworten ist |
+| **Beheben nur, was linuxspezifisch ist** | Ein Fehler, der auf beiden Systemen auftritt, gehört nach Windows — dort ist er schneller zu finden. Ein Fehler, den es nur hier gibt, wird hier behoben |
+| **Niemals die Solution bauen** | Sie enthält den WPF-Kopf, der unter Linux nicht baut. **Das ist Absicht** und kein Fehler. Projektbezogen bauen: `dotnet build src/GonkNote.Core` |
+| **Keine Kopie der echten Datenbank** | Nutzer-Entscheidung 2026-08-03: Die Schulunterlagen bleiben auf dem Windows-Rechner. Selbst angelegte Notizbücher sind für den Eingabepfad ohnehin die bessere Prüfung. Dauerregel 4 erlaubt die Kopie — hier wird sie nicht gebraucht |
+| **Alles auf Deutsch** | Dauerregel 3 — Code, Kommentare, Commits, dieser Text |
+| **`sudo` über den Skill `sudopasswot`** | Nicht den Nutzer nach dem Passwort fragen. **Der Skill-Inhalt gehört nie ins Repo** |
+| **Vollbildaufnahmen sind unter Wayland unbrauchbar** | Für Bildschirmfotos `tools/linux/schau.sh` und `klick.sh` benutzen (§4.10) |
+
+**Das Repo liegt in `~/Zed/gonk-note-V2/GonkNote`**, Remote über SSH, Key ohne Passphrase —
+Git-Befehle laufen ohne Vorbereitung (§5c). Der SDK-Stand und die Werkzeuge stehen in §5b
+(„Stand des Laptops"); **das ist alles schon eingerichtet, nicht wiederholen.**
+
+### Der Auftrag zum Ablaufen — immer diese Reihenfolge
+
+```bash
+cd ~/Zed/gonk-note-V2/GonkNote
+git pull                                   # der Windows-Rechner hat vorgelegt
+dotnet build src/GonkNote.Core             # Meilenstein M0 -- 0 Fehler, 0 Warnungen
+dotnet build src/GonkNote.Avalonia         # der Linux-Kopf
+dotnet test tests/GonkNote.Core.Tests      # muss vollstaendig gruen sein
+```
+
+**Wenn hier schon etwas rot ist, ist das der Befund** — nicht weiterarbeiten, sondern
+festhalten, was rot ist und warum. Ein Test, der unter Windows grün und hier rot ist, ist genau
+die Sorte Fund, für die es diesen Laptop gibt.
+
+Danach den Kopf ansehen:
+
+```bash
+dotnet run --project src/GonkNote.Avalonia -- --db /tmp/gonk-test/gonknote.sqlite
+```
+
+### Wie der Befund zurückkommt
+
+**Nicht im Chat stehen lassen** — der nächste Thread liest ihn dort nicht. Sondern:
+
+1. In den betroffenen §4-Abschnitt einen Block **„Was der Laptop gefunden hat"** schreiben,
+   mit Datum. Auch wenn alles in Ordnung war: **„geprüft, nichts gefunden" ist ein Ergebnis**
+   und verhindert, dass es jemand noch einmal prüft.
+2. Eine Zeile in die **Chronik** (§9).
+3. Was offen bleibt, nach **§5 „Noch offen"** oder §5a „Offen".
+4. Committen und pushen — der Windows-Rechner holt es mit `git pull`.
+
+---
+
+### ▶ Aktueller Auftrag (Stand 2026-08-10, nach Runde V2-31)
+
+**Das Schriftkonzept aus §4.26 gegenprüfen. Es ist bisher nur unter Windows gesehen worden.**
+
+Die App liefert seit dieser Runde **fünf Schriften mit** (`Assets/Fonts/`) und lädt sie selbst,
+statt das System zu fragen. **Das ist die Behauptung, die nur dieser Laptop widerlegen kann** —
+und sie behebt einen Fehler, den vorher niemand sehen konnte: Der Linux-Kopf zeichnete sein
+Chrome in Inter (aus Avalonia eingebettet) und seine **Zeichenfläche** in dem, was fontconfig
+gerade lieferte. Zwei Schriften in einem Fenster, still.
+
+**Vier Fragen, in dieser Reihenfolge:**
+
+1. **Werden die mitgelieferten Schriften geladen — oder greift doch fontconfig?**
+   Das beantwortet ein Test allein:
+   ```bash
+   dotnet test tests/GonkNote.Core.Tests --filter SchriftkonzeptTests
+   ```
+   `Alle_Familien_werden_geladen` und
+   `Eine_mitgelieferte_Familie_kommt_aus_der_Datei_und_nicht_vom_System` sind die beiden, auf
+   die es ankommt. **Sind sie hier grün, ist die Kernfrage beantwortet.**
+
+2. **Sehen Chrome und Zeichenfläche gleich aus?** Den Kopf starten, ein **Whiteboard** anlegen
+   und darauf ein **Textfeld** und einen **Notizzettel** setzen. Die Beschriftung der
+   Oberfläche (Inter) und der Text auf der Fläche (Geist) sind *verschiedene* Schriften — das
+   ist richtig so. **Falsch wäre**, wenn der Text auf der Fläche wie eine beliebige
+   Systemschrift aussieht (DejaVu Sans, Liberation Sans) statt wie eine gestaltete.
+
+3. **Ist die Beschriftung der Diagramme lesbar?** Textdokumente sind unter Linux noch
+   ausgegraut, also gibt es dafür keine Ansicht — **das ist der Punkt, der offen bleiben
+   muss.** Notieren, dass er offen ist; er wird mit der Anzeige im Linux-Kopf fällig.
+
+4. **Die Markdown-Ansicht:** Hilfe → Über Gonk Note und Hilfe → Erste Schritte. Dort steht
+   Fließtext **und** Code (`README.md` hat Code-Blöcke). Der Code soll in **JetBrains Mono**
+   stehen. **Hier ist eine Lücke bekannt und benannt** (§4.26, „Was ausdrücklich offen
+   bleibt"): Das Avalonia-Chrome spricht Schriften über Namen an, nicht über die
+   mitgelieferten Dateien. Steht dort eine andere Festbreitenschrift, ist das **kein neuer
+   Fehler**, sondern die bekannte Lücke — trotzdem festhalten, wie es aussieht.
+
+**Nebenbei, falls es sich ohne Aufwand ergibt** (alles drei steht seit Wochen offen und
+blockiert nichts):
+
+- **§5 „Noch offen" 1 — ein zweites Stiftgerät** (MPP/EMR). **Nur wenn eines greifbar ist.**
+  Mit **F9** in der Zeichenfläche in einer Minute geklärt: Kommt es als `Pen` an, liefert es
+  Druck? Das ist der einzige Punkt im Projekt mit echtem Restrisiko.
+- **§5a „Offen" 2 — eine Xorg-Sitzung** statt XWayland als Vergleich. Absicherung, keine
+  Risikofrage.
+- **§5a „Offen" 3 — die Druckschwelle unten:** evdev meldete nie unter 1500 von 4095. Hohe
+  Einsatzschwelle des Digitizers oder nie leicht genug aufgesetzt?
+
+**Was auf dem Laptop ausdrücklich NICHT gemacht wird:** der `PdfExporter` und die Anzeige im
+Linux-Kopf. Beide sind die nächsten Windows-Runden (§6).
 
 ---
 
@@ -4833,7 +4962,7 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 
 | Runde | Datum | Was |
 |---|---|---|
-| V2-31 | 2026-08-10 | **Ein Schriftkonzept für alle drei Plattformen** (§4.26) — ausgelöst von einer Frage des Nutzers („Segoe UI gibt es unter Linux nicht — können wir ein UI-Konzept für alle Plattformen nutzen?"). Die Antwort ist ja, **und die Frage traf einen Fehler, von dem niemand wusste:** Der Avalonia-Kopf zeichnete sein Chrome in Inter (aus `WithInterFont()`, in **Avalonia** eingebettet) und fragte für seine Zeichenfläche Skia nach „Inter" — das geht über **fontconfig**. Ohne systemweit installiertes Inter standen im selben Fenster zwei verschiedene Schriften, still. Mit dem Zeichner (§4.24) und den Diagrammen (§4.25) lief seit zwei Runden jeder gesetzte Text durch diesen Weg. **Die Farben waren längst plattformneutral** (§4.9) — die Schrift war das letzte Stück, das die Plattform beantwortete, und sie beantwortete es an **drei** Stellen unabhängig voneinander. **Jetzt liefert die App fünf Familien mit** (Inter, Source Sans 3, JetBrains Mono, Space Grotesk, Geist; alle SIL OFL 1.1, Nutzer-Vorgabe) für fünf Rollen — **ein Schriftschema ist eine Datentabelle**, dasselbe Muster wie bei den Farben. **`WbFonts` ist der einzige Auflösungspunkt** (mitgeliefert → System → Rückfallkette); `TdSkiaMeasure` und `TdRenderer` haben ihre eigenen Zwischenspeicher verloren, dasselbe Muster wie §4.13. **Datenformat:** `TdCharFormat.Standard` und drei Whiteboard-Vorgaben haben gewechselt — nur für **neue** Dokumente, der gespeicherte Wert gewinnt (§4.14), kein Migrationsschritt. **Die Pixelhashes liefen unverändert durch** (§4.6 hält), **die Golden-Files sind nicht angefasst worden** — sie verzeichnen gar keine Schriftnamen, und ein Golden-File soll sich nur bewegen, wenn sich das Verhalten bewegt. **Lizenz am Release geprüft, nicht aus dem Gedächtnis:** je Familie die unveränderte `OFL.txt` in der Ausgabe, nichts verändert und nichts subgesetzt — damit greifen Reserved Font Names nicht, und das ist nicht theoretisch (**Source Sans führt „Source" als RFN**). Vermerke in `THIRD-PARTY-NOTICES.md` und **beiden** README-Fassungen; **Inter war vorher schon ausgeliefert, ohne jeden Vermerk** — Lücke geschlossen. Preis: rund 6 MB in der Exe, benannt. **Der Augenschein hat den zweiten Fehler gefunden:** Schriftnamen, Dateien und grüne Tests beweisen nicht, dass der laufende Kopf sie benutzt — Inter und Segoe UI sehen sich zu ähnlich. Also die Oberflächenschrift kurz auf **Space Grotesk** gestellt und die Bilder zonenweise verglichen: alles änderte sich, **die Menüleiste um genau 0 Pixel**. WPF nimmt für `Menu`/`MenuItem` die Systemschrift und erbt nicht vom Fenster; ohne den Versuch wäre ausgerechnet die Menüleiste bei der Systemschrift geblieben — der Fehler, den die Runde beheben sollte. **Dazu Dauerregel 3a** (Nutzer-Wunsch): Am Ende **jeder** Antwort steht eine Zeile, ob der nächste Schritt an den Linux-Laptop gehört — auch wenn sie „nein" lautet. **485 Tests** (461 Core + 24 WPF), sieben Projekte 0 Warnungen |
+| V2-31 | 2026-08-10 | **Ein Schriftkonzept für alle drei Plattformen** (§4.26) — ausgelöst von einer Frage des Nutzers („Segoe UI gibt es unter Linux nicht — können wir ein UI-Konzept für alle Plattformen nutzen?"). Die Antwort ist ja, **und die Frage traf einen Fehler, von dem niemand wusste:** Der Avalonia-Kopf zeichnete sein Chrome in Inter (aus `WithInterFont()`, in **Avalonia** eingebettet) und fragte für seine Zeichenfläche Skia nach „Inter" — das geht über **fontconfig**. Ohne systemweit installiertes Inter standen im selben Fenster zwei verschiedene Schriften, still. Mit dem Zeichner (§4.24) und den Diagrammen (§4.25) lief seit zwei Runden jeder gesetzte Text durch diesen Weg. **Die Farben waren längst plattformneutral** (§4.9) — die Schrift war das letzte Stück, das die Plattform beantwortete, und sie beantwortete es an **drei** Stellen unabhängig voneinander. **Jetzt liefert die App fünf Familien mit** (Inter, Source Sans 3, JetBrains Mono, Space Grotesk, Geist; alle SIL OFL 1.1, Nutzer-Vorgabe) für fünf Rollen — **ein Schriftschema ist eine Datentabelle**, dasselbe Muster wie bei den Farben. **`WbFonts` ist der einzige Auflösungspunkt** (mitgeliefert → System → Rückfallkette); `TdSkiaMeasure` und `TdRenderer` haben ihre eigenen Zwischenspeicher verloren, dasselbe Muster wie §4.13. **Datenformat:** `TdCharFormat.Standard` und drei Whiteboard-Vorgaben haben gewechselt — nur für **neue** Dokumente, der gespeicherte Wert gewinnt (§4.14), kein Migrationsschritt. **Die Pixelhashes liefen unverändert durch** (§4.6 hält), **die Golden-Files sind nicht angefasst worden** — sie verzeichnen gar keine Schriftnamen, und ein Golden-File soll sich nur bewegen, wenn sich das Verhalten bewegt. **Lizenz am Release geprüft, nicht aus dem Gedächtnis:** je Familie die unveränderte `OFL.txt` in der Ausgabe, nichts verändert und nichts subgesetzt — damit greifen Reserved Font Names nicht, und das ist nicht theoretisch (**Source Sans führt „Source" als RFN**). Vermerke in `THIRD-PARTY-NOTICES.md` und **beiden** README-Fassungen; **Inter war vorher schon ausgeliefert, ohne jeden Vermerk** — Lücke geschlossen. Preis: rund 6 MB in der Exe, benannt. **Der Augenschein hat den zweiten Fehler gefunden:** Schriftnamen, Dateien und grüne Tests beweisen nicht, dass der laufende Kopf sie benutzt — Inter und Segoe UI sehen sich zu ähnlich. Also die Oberflächenschrift kurz auf **Space Grotesk** gestellt und die Bilder zonenweise verglichen: alles änderte sich, **die Menüleiste um genau 0 Pixel**. WPF nimmt für `Menu`/`MenuItem` die Systemschrift und erbt nicht vom Fenster; ohne den Versuch wäre ausgerechnet die Menüleiste bei der Systemschrift geblieben — der Fehler, den die Runde beheben sollte. **Dazu zwei Dinge für den Laptop** (Nutzer-Wunsch): **Dauerregel 3a** — am Ende **jeder** Antwort steht eine Zeile, ob der nächste Schritt an den Linux-Laptop gehört, auch wenn sie „nein" lautet. Und **§5d, ein ausformulierter Auftrag für den Laptop**: Der Nutzer soll dort nur „lies das HANDOFF" sagen müssen. Der Abschnitt hat zwei Teile — was **grundsätzlich** gilt (nur prüfen statt entwickeln, nie die Solution bauen, keine Kopie der echten Daten, wie der Befund zurückkommt) und einen **datierten aktuellen Auftrag**, der nach jeder Windows-Runde neu geschrieben wird. Ist sein Datum älter als der oberste Chronik-Eintrag, ist er veraltet und es wird nachgefragt statt geraten. **485 Tests** (461 Core + 24 WPF), sieben Projekte 0 Warnungen |
 | V2-30 | 2026-08-10 | **Die sieben Diagrammarten werden gezeichnet** (§4.25) — Säule, Balken, Linie, Punkte, Punkt+Linie, Kuchen und Netz, samt Achsen, Gitter, Legende und Beschriftung. Wo bisher ein gestrichelter Kasten mit einem Titel stand, steht jetzt ein Diagramm. **Gerechnet wird in `Core/Text/TdChartLayout.cs`, gemalt im Zeichner** — zum vierten Mal dasselbe Muster nach der Listennummer (§4.17), dem Feld (§4.20) und dem Diagramm selbst (§4.21): Achsenteilung, Farbvergabe, Legende und jeder Ort stehen als Zahl in Zentimetern, `TdRenderer` ruft nur noch Skia auf. **Der Grund ist Prüfbarkeit, nicht Ordnungsliebe:** An jeder Achse steht Schrift, und Schrift darf nicht gehasht werden (§4.6) — als Rechnung sind es **43 Wächter ohne ein einziges Pixel**, dazu 6 im Zeichner, die an gerechneten Orten auf Farbe sehen. **Am Modell ist nichts geändert worden** — kein Feld, kein Diskriminator, kein Json-Name, also auch keine Änderung an den Beispieldokumenten und am DOCX-Weg; das ist die Probe auf §4.21. **Vier Entscheidungen dahinter:** (1) Die Werteachse fängt **immer bei null** an, nie beim kleinsten Wert — 98 bis 100 lässt eine Säule doppelt so hoch aussehen wie die daneben, die bekannteste Art, mit richtigen Zahlen etwas Falsches zu behaupten. (2) **Negative Werte hängen unter der Nulllinie**, statt am Boden abgeschnitten zu werden; Grenzen sind Vielfache der Teilung, damit die Null auf einer Stufe liegt. (3) Eine Reihe ohne Namen bekommt in der Legende **ihre Nummer und kein „Reihe 2"** — ein deutsches Wort hinge an `Loc.Current`. (4) Die Achsenzahl steht **invariant** im Code, wie das Datumsmuster (§4.20). **Die Rechnung misst nicht, sie schätzt** — `TdChartLayout` kennt `ITdTextMeasure` nicht, sonst hinge die Lage der Zeichenfläche an der Schriftausstattung des Rechners und dasselbe Dokument bekäme unter Linux ein anderes Diagramm (§4.16). Ob der Text hineinpasst, entscheidet der Zeichner, der messen kann: erst verkleinern, dann kürzen. **Der Platzhalterkasten bleibt**, bedeutet aber jetzt „aus diesen Zahlen gibt es kein Bild": keine Reihen, ein Kuchen aus lauter Nullen, ein Netz mit zwei Ecken. **Dabei aufgefallen:** §4.24 und §6 zählten eine Art „Fläche" mit, die es nirgends gibt — weder in `TdChartKind` noch im `ChartDialog` noch in `TdDocx`; sie war an die Stelle von „Punkt+Linie" gerutscht. Als Frage vermerkt (§5 „Noch offen", Punkt 6), nicht still gebaut und nicht still weggelassen. **Augenschein:** eine A4-Seite mit allen sieben Arten plus negativen Säulen nach `%TEMP%` gerendert und angesehen — ein Diagramm, das nur nicht abstürzt, ist kein Diagramm. **473 Tests** (449 Core + 24 WPF), alle sieben Projekte 0 Warnungen. **Im selben Zug beantwortet:** §5 „Noch offen" 2a — der Über-Dialog sagt jetzt **Phase 4** (§4.5), in beiden Sprachtabellen, gegengeprüft in allen vier Kombinationen aus Kopf und Sprache. **Die Gegenprobe hat dabei etwas gefunden:** Der Avalonia-Kopf zeigte weiter „phase 3", weil **jeder Kopf seine eigene Kopie von `GonkNote.Core.dll`** trägt und er vor der Änderung gebaut worden war — als Falle festgehalten (§7). Und Punkt 6: **kein achtes Diagramm** (Fläche) |
 | V2-29 | 2026-08-09 | **Der Zeichner steht** (§4.24) — `TdRenderer` in Core nimmt eine gesetzte Seite und eine `SKCanvas` und malt: Papier, Zeilen mit allen Zeichenformaten (fett, kursiv, unterstrichen, durchgestrichen, Hervorhebung, Hoch-/Tiefstellung, Farbe), Aufzählungsmarken, Absatzlinien, Tabellen mit Hintergrund und Rahmen, Bilder, Kopf-/Fußzeile mit aufgelösten Platzhaltern und das Wasserzeichen. **Er rechnet nichts** — jede Zahl steht schon im Umbruch, in Zentimetern und mit aufgelöstem Format (§4.16); hier wird nur in Pixel umgerechnet. Genau dafür rechnet der Umbruch in Zentimetern: eine Zoomstufe darf ihn nicht ändern, sonst bricht ein Dokument bei 150 % anders um als beim Drucken. **Drei Stellen, an denen es schiefgeht, und alle drei haben einen Wächter bekommen:** (1) **Punkt ist nicht Pixel** — die Größe steht im Modell in Punkt, die Leinwand rechnet in Pixeln, der Maßstab kommt obendrauf; wer das vergisst, bekommt bei jeder Zoomstufe dieselbe winzige Schrift auf einer immer größeren Seite. (2) **Der Zellinhalt zählt ab der Innenkante der Zelle**, nicht ab dem Textbereich (§4.19) — ohne den Versatz steht der Text links neben der Tabelle, bei jeder Spalte weiter daneben. (3) **Die Absatzlinie steht unter dem Absatz, nicht unter jeder Zeile** — sonst wird aus einem dreizeiligen Absatz liniertes Papier, und weil das nach Gestaltung aussieht, fällt es niemandem als Fehler auf. **Benannte Lücke:** Ein `TdChart` bekommt einen Kasten mit gestricheltem Rand und seinem Titel und noch kein Diagramm; die sieben Arten sind eine eigene Runde. Ein Kasten sagt „hier fehlt etwas", eine Leerstelle sagt „hier war nie etwas" (§7) — derselbe Platzhalter erscheint, wenn zu einem Bild der Blob fehlt. **Geprüft wird zweigeteilt, und das ist nötig:** Text darf nicht gehasht werden (§4.6, „Segoe UI" fehlt unter Linux), also wird das Geometrische an bekannten Stellen auf Farbe geprüft und alles mit Schrift über die Rechnung — mit der festen Messung aus `UmbruchTests` steht vorher fest, wo etwas landen muss. **Zwei der elf Wächter waren zuerst falsch, und beide Male lag es am Wächter:** Der Zelltest zählte die Rahmenlinie der Nachbarzelle als „Text in der falschen Spalte", der Linientest zählte eine 1 px starke Linie doppelt, weil die Kantenglättung sie auf zwei Pixelzeilen verteilt — gezählt werden jetzt zusammenhängende Bänder. Am Augenschein geprüft: eine A4-Seite mit Überschrift, gemischten Formaten, Trennlinie, Aufzählung, Tabelle, Bild und Platzhalter kommt vollständig und an der richtigen Stelle heraus. **420 Tests grün** (396 Core + 24 WPF), alle Projekte 0 Warnungen. **Angeschlossen ist er noch nirgends** — dieselbe Absicht wie bei Schritt 1; `PdfExporter` und die Anzeige im Linux-Kopf sind die nächsten zwei Runden |
 | V2-28 | 2026-08-09 | **Das Umverdrahten, erster Teil: DOCX und Markdown laufen gegen das Modell** (§4.23) — der letzte offene Punkt aus Phase 4, und **§4.1 ist damit zur Hälfte eingelöst**. Drei Schritte in dieser Reihenfolge, weil jeder auf dem vorigen steht: `TextDoc.Model` wird bei **jedem** Speichern mitgeschrieben (sonst exportierte ein Export aus dem Modell den Stand der einmaligen Übernahme statt dessen, was auf dem Schirm steht), dann Markdown über `TdMarkdown`, dann DOCX über `TdDocx` in **beide** Richtungen — beim Import macht `TdZuFlow` daraus wieder ein `XamlPackage`, sonst käme eine importierte Datei mit gefülltem Modell und leerem Editor an. `DocxExporter` und `MarkdownExporter` sind **gelöscht** (941 Zeilen); `DocxImporter` bleibt für den Whiteboard-Import. **Der eigentliche Ertrag sind fünf Fehler, die vorher niemand sehen konnte** — sie standen alle im Code, aber nichts lief durch diesen Weg, und ein Roundtrip Modell-gegen-Modell liest denselben falschen Ort wieder aus, den er beschrieben hat: (1) Das Absatz-Zeichenformat stand nur im `w:pPr/w:rPr`, das in Word **nur für die Absatzmarke** gilt — jede Überschrift wäre als Fließtext angekommen; (2) es gab keine `Heading`-Vorlagen, also blieben Navigationsbereich und Verzeichnis-Katalog leer; (3) die Ausrichtung wurde örtlich gelesen, aber ein `FlowDocument` steht von Haus aus auf **Blocksatz** — jedes Dokument wäre still linksbündig exportiert worden; (4) Grundschrift und Tabellenlinien kamen gar nicht mit (Tinte → Schwarz, Gainsboro → Schwarz); (5) das generierte Inhaltsverzeichnis wurde als toter Text übernommen und das echte `TOC`-Feld ging verloren. **Neu im Modell: `TdParaFormat.ExcludeFromToc`** — „ist das eine Überschrift?" und „gehört das ins Verzeichnis?" sind **zwei** Fragen, und Titel wie die Zeile „Inhaltsverzeichnis" beantworten sie verschieden; Word trennt es genauso (`Title`/`TOC Heading` gegen `w:outlineLvl`). **Nutzer-Entscheidung: der Titel bekommt im Markdown seine `#`-Überschrift.** Zwei Wächter mussten mit, und das ist keine Nebensache: `DocxAufriss` las `w:b w:val="0"` als „fett" und kannte die dreiteilige Feldform nicht — **ein Wächter, der das Falsche liest, ist schlimmer als keiner.** Die Golden-Files haben sich geändert und jede Zeile ist begründet (§4.6, Tabelle in §4.23): echte Felder statt eingebackenem Text, A4 exakt statt vier Twips daneben, Linien an der Tabelle statt an jeder Zelle. Am laufenden Programm mit einer **Kopie** der echten Datenbank geprüft (Dauerregel 4): Der Überschriften-**Lauf** im DOCX trägt jetzt `w:b`/`w:color`/`w:sz` — genau das war kaputt, und nur so ließ es sich zeigen. **409 Tests grün** (385 Core + 24 WPF), drei Projekte 0 Warnungen. **`Rtf` führt weiter**; Zeichner, `PdfExporter` und die Anzeige im Linux-Kopf sind die nächsten drei Runden |

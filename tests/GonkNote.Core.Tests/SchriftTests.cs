@@ -56,8 +56,31 @@ public sealed class SchriftTests
         // Inter, und „Segoe UI" ist ein **fremder** Name: Er darf nicht mehr auf die
         // Oberflächenschrift zeigen, sondern muss unter Windows die echte Segoe UI liefern —
         // sonst verlöre ein Bestandsdokument seine gespeicherte Schrift (§4.14).
-        Assert.NotSame(WbFonts.Regular, WbFonts.Family("Segoe UI"));
+        //
+        // **Gefragt, nicht behauptet — und das ist der Punkt (Laptop-Befund 2026-08-10).**
+        // „Segoe UI" ist nur *unter Windows* eine fremde Schrift, die es gibt. Unter Linux gibt
+        // es sie nicht; dann greift die Rückfallkette und landet bei „Inter", also bei genau der
+        // Oberflächenschrift. Beides ist richtiges Verhalten, und welches gilt, entscheidet der
+        // Rechner — nicht das Programm. Ein festes `NotSame` prüfte hier also nicht die App,
+        // sondern ob Segoe UI installiert ist, und war auf jedem Nicht-Windows-System rot
+        // (auch in der CI, die auf `ubuntu-latest` läuft).
+        if (SystemHat("Segoe UI"))
+            Assert.NotSame(WbFonts.Regular, WbFonts.Family("Segoe UI"));
+        else
+            Assert.Same(WbFonts.Regular, WbFonts.Family("Segoe UI"));
     }
+
+    /// <summary>
+    /// Hat der Rechner diese Familie wirklich — oder liefert Skia nur seinen Ersatz?
+    /// <para>
+    /// <b>Dieselbe Prüfung wie in <c>WbFonts.Aufloesen</c>:</b> <c>FromFamilyName</c> gibt bei
+    /// einem unbekannten Namen nicht <c>null</c> zurück, sondern die Standardschrift. Ohne den
+    /// Namensvergleich hielte man jede Schrift für installiert.
+    /// </para>
+    /// </summary>
+    private static bool SystemHat(string familie) =>
+        SKTypeface.FromFamilyName(familie) is { } tf &&
+        string.Equals(tf.FamilyName, familie, StringComparison.OrdinalIgnoreCase);
 
     [Fact]
     public void Text_landet_innerhalb_der_gemeldeten_Umschliessung()

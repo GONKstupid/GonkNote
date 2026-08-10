@@ -1,6 +1,6 @@
 # Gonk Note V2 — Projektübergabe
 
-**Stand: 2026-08-10 · Version 0.3.0 · net10.0 · SkiaSharp 3 · SQLite · Avalonia 12 · ✅ M1 erreicht · ✅ Dokumentmodell vollständig (Phase 4, Schritte 1–6 von 6) · ✅ Übernahme der Bestandsdokumente läuft · ✅ DOCX und Markdown laufen gegen das Modell (§4.23) · ✅ Zeichner steht (§4.24) · ✅ die sieben Diagrammarten werden gezeichnet (§4.25)**
+**Stand: 2026-08-11 · Version 0.3.0 · net10.0 · SkiaSharp 3 · SQLite · Avalonia 12 · ✅ M1 erreicht · ✅ Dokumentmodell vollständig (Phase 4, Schritte 1–6 von 6) · ✅ Übernahme der Bestandsdokumente läuft · ✅ DOCX und Markdown laufen gegen das Modell (§4.23) · ✅ Zeichner steht (§4.24) · ✅ die sieben Diagrammarten werden gezeichnet (§4.25)**
 
 > **📌 Dauerregeln des Nutzers — gelten immer, ohne Nachfragen:**
 >
@@ -2993,10 +2993,53 @@ was vorher nicht der Fall war.
   gewinnt, beantwortet nur der Laptop (Dauerregel 3a). **Der Auftrag dafür steht ausformuliert
   in §5d** — inklusive der vier Fragen und dessen, was dort offen bleiben muss.
 
+#### Was der Laptop gefunden hat (2026-08-10, Nacht auf den 11.)
+
+**Die Kernfrage ist beantwortet: die mitgelieferten Schriften gewinnen auch unter Linux.**
+`SchriftkonzeptTests` läuft auf dem CachyOS-Laptop **vollständig grün, alle 12** — darunter die
+beiden, auf die es laut §5d ankommt (`Alle_Familien_werden_geladen` und
+`Eine_mitgelieferte_Familie_kommt_aus_der_Datei_und_nicht_vom_System`). Fontconfig kommt nicht
+mehr zum Zug. Bauen: `src/GonkNote.Core` und `src/GonkNote.Avalonia` je 0 Fehler, 0 Warnungen.
+
+**Ein Test war rot — und zwar auf jedem System ohne Segoe UI**, also auch in der CI:
+
+```
+SchriftTests.Unbekannte_Schrift_faellt_zurueck_und_wird_gecacht
+  Assert.NotSame() Failure: Values are the same instance      (SchriftTests.cs:59)
+```
+
+Die Zeile stammt aus dieser Runde und lautete `Assert.NotSame(WbFonts.Regular,
+WbFonts.Family("Segoe UI"))`. **Das Programm ist richtig, der Wächter war es nicht.** „Segoe UI"
+ist nur *unter Windows* eine fremde Schrift, **die es gibt**. Unter Linux gibt es sie nicht, also
+greift `Aufloesen` Stufe 3 — die Rückfallkette —, und deren erster Eintrag ist „Inter", mitgeliefert
+und damit genau die Oberflächenschrift. `Family("Segoe UI")` und `Regular` sind dort
+**zwangsläufig dieselbe Instanz**, und das ist das gewünschte Verhalten und kein Fehler.
+
+Der Wächter prüfte damit nicht die App, sondern **ob Segoe UI installiert ist** — genau das, was
+`SchriftTests` laut seiner eigenen Kopfzeile ausdrücklich nicht tun darf („schriftunabhängig
+geprüft … damit laufen diese Tests unter Windows und Linux gleich — was für die CI die Bedingung
+ist"). **Hier behoben** (§5d: linuxspezifisch, also hier): gefragt statt behauptet. `SystemHat`
+vergleicht wie `WbFonts.Aufloesen` den zurückgegebenen `FamilyName` — `FromFamilyName` liefert bei
+einem unbekannten Namen nämlich nicht `null`, sondern die Standardschrift. **Beide Ausgänge werden
+jetzt geprüft**, statt einen zu überspringen: mit Segoe UI muss sie gewinnen, ohne sie muss die
+Rückfallkette auf der Oberflächenschrift landen. Danach **461/461 Core-Tests grün**.
+
+> **Die CI hätte das gefunden, bevor der Laptop drankam.** Sie baut und testet Core auf
+> `ubuntu-latest` (§5b), und dort gibt es kein Segoe UI. Der Lauf zu `2c6752a` muss rot sein.
+> **Für die nächste Windows-Runde:** vor dem Weiterschreiben den CI-Lauf ansehen, nicht nur die
+> lokalen Tests — dieser Laptop ist für das gedacht, was die CI *nicht* sehen kann (Stift,
+> Aussehen, Linux-Pfade), und war hier für zehn Minuten ihr Ersatz.
+
+**Die Fragen 2 bis 4 aus §5d sind noch offen** — der Kopf startet und zeichnet (Startbild geprüft,
+Chrome in Inter), aber der Augenschein auf der Zeichenfläche ist nicht zu Ende geführt worden:
+Whiteboard mit Textfeld und Notizzettel, die Markdown-Ansicht in Hilfe → Über/Erste Schritte. **Sie
+bleiben als Auftrag für den Laptop stehen** (§5d, aktueller Auftrag).
+
 #### Stand
 
 **485 Tests** (461 Core + 24 WPF) grün, alle sieben Projekte 0 Warnungen. **12 neue Wächter** in
-`SchriftkonzeptTests`.
+`SchriftkonzeptTests`. Auf dem Laptop nachgezogen: **461/461 Core-Tests grün**, nachdem ein
+Windows-gebundener Wächter in `SchriftTests` plattformneutral gemacht wurde (siehe oben).
 
 ---
 
@@ -3572,6 +3615,12 @@ dotnet run --project src/GonkNote.Avalonia -- --db /tmp/gonk-test/gonknote.sqlit
 ---
 
 ### ▶ Aktueller Auftrag (Stand 2026-08-10, nach Runde V2-31)
+
+> **Teilweise abgearbeitet (Laptop, Nacht 10./11.08.2026) — Befund in §4.26 „Was der Laptop
+> gefunden hat".** Erledigt: **Frage 1** (grün, die Kernfrage ist beantwortet) und ein **roter
+> Test**, der hier behoben wurde. **Offen geblieben: Fragen 2, 3 und 4** — der Augenschein an der
+> Zeichenfläche und in der Markdown-Ansicht. Wer als Nächstes an diesem Laptop sitzt, fängt
+> **bei Frage 2** an; Bauen und Testen davor trotzdem ablaufen lassen.
 
 **Das Schriftkonzept aus §4.26 gegenprüfen. Es ist bisher nur unter Windows gesehen worden.**
 
@@ -4962,6 +5011,7 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 
 | Runde | Datum | Was |
 |---|---|---|
+| V2-32 | 2026-08-11 | **Der Laptop prüft das Schriftkonzept gegen** (§4.26, „Was der Laptop gefunden hat") — der Auftrag aus §5d, erste Hälfte. **Die Kernfrage ist beantwortet: die mitgelieferten Schriften gewinnen auch unter Linux**, `SchriftkonzeptTests` 12/12 grün, fontconfig kommt nicht mehr zum Zug; beide Projekte bauen mit 0 Warnungen. **Dabei ein roter Wächter:** `SchriftTests.Unbekannte_Schrift_faellt_zurueck_und_wird_gecacht` behauptete `NotSame(Regular, Family("Segoe UI"))` — richtig unter Windows, **falsch überall sonst**, denn ohne Segoe UI landet die Rückfallkette auf Inter und damit auf genau der Oberflächenschrift. **Das Programm war richtig, der Test hat die Plattform geprüft statt die App** — genau das, was `SchriftTests` laut eigener Kopfzeile nicht tun darf. Hier behoben (linuxspezifisch, §5d): `SystemHat` fragt wie `WbFonts.Aufloesen` über den `FamilyName` nach, **beide Ausgänge werden geprüft** statt einer übersprungen; danach 461/461 grün. **Die CI auf `ubuntu-latest` hätte das vor dem Laptop gefunden — der Lauf zu `2c6752a` muss rot sein.** **Fragen 2–4 des Auftrags (Augenschein an Zeichenfläche und Markdown-Ansicht) bleiben offen** und stehen in §5d weiter. |
 | V2-31 | 2026-08-10 | **Ein Schriftkonzept für alle drei Plattformen** (§4.26) — ausgelöst von einer Frage des Nutzers („Segoe UI gibt es unter Linux nicht — können wir ein UI-Konzept für alle Plattformen nutzen?"). Die Antwort ist ja, **und die Frage traf einen Fehler, von dem niemand wusste:** Der Avalonia-Kopf zeichnete sein Chrome in Inter (aus `WithInterFont()`, in **Avalonia** eingebettet) und fragte für seine Zeichenfläche Skia nach „Inter" — das geht über **fontconfig**. Ohne systemweit installiertes Inter standen im selben Fenster zwei verschiedene Schriften, still. Mit dem Zeichner (§4.24) und den Diagrammen (§4.25) lief seit zwei Runden jeder gesetzte Text durch diesen Weg. **Die Farben waren längst plattformneutral** (§4.9) — die Schrift war das letzte Stück, das die Plattform beantwortete, und sie beantwortete es an **drei** Stellen unabhängig voneinander. **Jetzt liefert die App fünf Familien mit** (Inter, Source Sans 3, JetBrains Mono, Space Grotesk, Geist; alle SIL OFL 1.1, Nutzer-Vorgabe) für fünf Rollen — **ein Schriftschema ist eine Datentabelle**, dasselbe Muster wie bei den Farben. **`WbFonts` ist der einzige Auflösungspunkt** (mitgeliefert → System → Rückfallkette); `TdSkiaMeasure` und `TdRenderer` haben ihre eigenen Zwischenspeicher verloren, dasselbe Muster wie §4.13. **Datenformat:** `TdCharFormat.Standard` und drei Whiteboard-Vorgaben haben gewechselt — nur für **neue** Dokumente, der gespeicherte Wert gewinnt (§4.14), kein Migrationsschritt. **Die Pixelhashes liefen unverändert durch** (§4.6 hält), **die Golden-Files sind nicht angefasst worden** — sie verzeichnen gar keine Schriftnamen, und ein Golden-File soll sich nur bewegen, wenn sich das Verhalten bewegt. **Lizenz am Release geprüft, nicht aus dem Gedächtnis:** je Familie die unveränderte `OFL.txt` in der Ausgabe, nichts verändert und nichts subgesetzt — damit greifen Reserved Font Names nicht, und das ist nicht theoretisch (**Source Sans führt „Source" als RFN**). Vermerke in `THIRD-PARTY-NOTICES.md` und **beiden** README-Fassungen; **Inter war vorher schon ausgeliefert, ohne jeden Vermerk** — Lücke geschlossen. Preis: rund 6 MB in der Exe, benannt. **Der Augenschein hat den zweiten Fehler gefunden:** Schriftnamen, Dateien und grüne Tests beweisen nicht, dass der laufende Kopf sie benutzt — Inter und Segoe UI sehen sich zu ähnlich. Also die Oberflächenschrift kurz auf **Space Grotesk** gestellt und die Bilder zonenweise verglichen: alles änderte sich, **die Menüleiste um genau 0 Pixel**. WPF nimmt für `Menu`/`MenuItem` die Systemschrift und erbt nicht vom Fenster; ohne den Versuch wäre ausgerechnet die Menüleiste bei der Systemschrift geblieben — der Fehler, den die Runde beheben sollte. **Dazu zwei Dinge für den Laptop** (Nutzer-Wunsch): **Dauerregel 3a** — am Ende **jeder** Antwort steht eine Zeile, ob der nächste Schritt an den Linux-Laptop gehört, auch wenn sie „nein" lautet. Und **§5d, ein ausformulierter Auftrag für den Laptop**: Der Nutzer soll dort nur „lies das HANDOFF" sagen müssen. Der Abschnitt hat zwei Teile — was **grundsätzlich** gilt (nur prüfen statt entwickeln, nie die Solution bauen, keine Kopie der echten Daten, wie der Befund zurückkommt) und einen **datierten aktuellen Auftrag**, der nach jeder Windows-Runde neu geschrieben wird. Ist sein Datum älter als der oberste Chronik-Eintrag, ist er veraltet und es wird nachgefragt statt geraten. **485 Tests** (461 Core + 24 WPF), sieben Projekte 0 Warnungen |
 | V2-30 | 2026-08-10 | **Die sieben Diagrammarten werden gezeichnet** (§4.25) — Säule, Balken, Linie, Punkte, Punkt+Linie, Kuchen und Netz, samt Achsen, Gitter, Legende und Beschriftung. Wo bisher ein gestrichelter Kasten mit einem Titel stand, steht jetzt ein Diagramm. **Gerechnet wird in `Core/Text/TdChartLayout.cs`, gemalt im Zeichner** — zum vierten Mal dasselbe Muster nach der Listennummer (§4.17), dem Feld (§4.20) und dem Diagramm selbst (§4.21): Achsenteilung, Farbvergabe, Legende und jeder Ort stehen als Zahl in Zentimetern, `TdRenderer` ruft nur noch Skia auf. **Der Grund ist Prüfbarkeit, nicht Ordnungsliebe:** An jeder Achse steht Schrift, und Schrift darf nicht gehasht werden (§4.6) — als Rechnung sind es **43 Wächter ohne ein einziges Pixel**, dazu 6 im Zeichner, die an gerechneten Orten auf Farbe sehen. **Am Modell ist nichts geändert worden** — kein Feld, kein Diskriminator, kein Json-Name, also auch keine Änderung an den Beispieldokumenten und am DOCX-Weg; das ist die Probe auf §4.21. **Vier Entscheidungen dahinter:** (1) Die Werteachse fängt **immer bei null** an, nie beim kleinsten Wert — 98 bis 100 lässt eine Säule doppelt so hoch aussehen wie die daneben, die bekannteste Art, mit richtigen Zahlen etwas Falsches zu behaupten. (2) **Negative Werte hängen unter der Nulllinie**, statt am Boden abgeschnitten zu werden; Grenzen sind Vielfache der Teilung, damit die Null auf einer Stufe liegt. (3) Eine Reihe ohne Namen bekommt in der Legende **ihre Nummer und kein „Reihe 2"** — ein deutsches Wort hinge an `Loc.Current`. (4) Die Achsenzahl steht **invariant** im Code, wie das Datumsmuster (§4.20). **Die Rechnung misst nicht, sie schätzt** — `TdChartLayout` kennt `ITdTextMeasure` nicht, sonst hinge die Lage der Zeichenfläche an der Schriftausstattung des Rechners und dasselbe Dokument bekäme unter Linux ein anderes Diagramm (§4.16). Ob der Text hineinpasst, entscheidet der Zeichner, der messen kann: erst verkleinern, dann kürzen. **Der Platzhalterkasten bleibt**, bedeutet aber jetzt „aus diesen Zahlen gibt es kein Bild": keine Reihen, ein Kuchen aus lauter Nullen, ein Netz mit zwei Ecken. **Dabei aufgefallen:** §4.24 und §6 zählten eine Art „Fläche" mit, die es nirgends gibt — weder in `TdChartKind` noch im `ChartDialog` noch in `TdDocx`; sie war an die Stelle von „Punkt+Linie" gerutscht. Als Frage vermerkt (§5 „Noch offen", Punkt 6), nicht still gebaut und nicht still weggelassen. **Augenschein:** eine A4-Seite mit allen sieben Arten plus negativen Säulen nach `%TEMP%` gerendert und angesehen — ein Diagramm, das nur nicht abstürzt, ist kein Diagramm. **473 Tests** (449 Core + 24 WPF), alle sieben Projekte 0 Warnungen. **Im selben Zug beantwortet:** §5 „Noch offen" 2a — der Über-Dialog sagt jetzt **Phase 4** (§4.5), in beiden Sprachtabellen, gegengeprüft in allen vier Kombinationen aus Kopf und Sprache. **Die Gegenprobe hat dabei etwas gefunden:** Der Avalonia-Kopf zeigte weiter „phase 3", weil **jeder Kopf seine eigene Kopie von `GonkNote.Core.dll`** trägt und er vor der Änderung gebaut worden war — als Falle festgehalten (§7). Und Punkt 6: **kein achtes Diagramm** (Fläche) |
 | V2-29 | 2026-08-09 | **Der Zeichner steht** (§4.24) — `TdRenderer` in Core nimmt eine gesetzte Seite und eine `SKCanvas` und malt: Papier, Zeilen mit allen Zeichenformaten (fett, kursiv, unterstrichen, durchgestrichen, Hervorhebung, Hoch-/Tiefstellung, Farbe), Aufzählungsmarken, Absatzlinien, Tabellen mit Hintergrund und Rahmen, Bilder, Kopf-/Fußzeile mit aufgelösten Platzhaltern und das Wasserzeichen. **Er rechnet nichts** — jede Zahl steht schon im Umbruch, in Zentimetern und mit aufgelöstem Format (§4.16); hier wird nur in Pixel umgerechnet. Genau dafür rechnet der Umbruch in Zentimetern: eine Zoomstufe darf ihn nicht ändern, sonst bricht ein Dokument bei 150 % anders um als beim Drucken. **Drei Stellen, an denen es schiefgeht, und alle drei haben einen Wächter bekommen:** (1) **Punkt ist nicht Pixel** — die Größe steht im Modell in Punkt, die Leinwand rechnet in Pixeln, der Maßstab kommt obendrauf; wer das vergisst, bekommt bei jeder Zoomstufe dieselbe winzige Schrift auf einer immer größeren Seite. (2) **Der Zellinhalt zählt ab der Innenkante der Zelle**, nicht ab dem Textbereich (§4.19) — ohne den Versatz steht der Text links neben der Tabelle, bei jeder Spalte weiter daneben. (3) **Die Absatzlinie steht unter dem Absatz, nicht unter jeder Zeile** — sonst wird aus einem dreizeiligen Absatz liniertes Papier, und weil das nach Gestaltung aussieht, fällt es niemandem als Fehler auf. **Benannte Lücke:** Ein `TdChart` bekommt einen Kasten mit gestricheltem Rand und seinem Titel und noch kein Diagramm; die sieben Arten sind eine eigene Runde. Ein Kasten sagt „hier fehlt etwas", eine Leerstelle sagt „hier war nie etwas" (§7) — derselbe Platzhalter erscheint, wenn zu einem Bild der Blob fehlt. **Geprüft wird zweigeteilt, und das ist nötig:** Text darf nicht gehasht werden (§4.6, „Segoe UI" fehlt unter Linux), also wird das Geometrische an bekannten Stellen auf Farbe geprüft und alles mit Schrift über die Rechnung — mit der festen Messung aus `UmbruchTests` steht vorher fest, wo etwas landen muss. **Zwei der elf Wächter waren zuerst falsch, und beide Male lag es am Wächter:** Der Zelltest zählte die Rahmenlinie der Nachbarzelle als „Text in der falschen Spalte", der Linientest zählte eine 1 px starke Linie doppelt, weil die Kantenglättung sie auf zwei Pixelzeilen verteilt — gezählt werden jetzt zusammenhängende Bänder. Am Augenschein geprüft: eine A4-Seite mit Überschrift, gemischten Formaten, Trennlinie, Aufzählung, Tabelle, Bild und Platzhalter kommt vollständig und an der richtigen Stelle heraus. **420 Tests grün** (396 Core + 24 WPF), alle Projekte 0 Warnungen. **Angeschlossen ist er noch nirgends** — dieselbe Absicht wie bei Schritt 1; `PdfExporter` und die Anzeige im Linux-Kopf sind die nächsten zwei Runden |

@@ -27,8 +27,8 @@ namespace GonkNote.Services;
 /// <para>
 /// <b>Sie ist die eine Stelle, an der Raten richtig ist.</b> Das <c>FlowDocument</c> hat
 /// keinen Platz für eine Gliederungsebene (§4.20) — sie wird aus der Schriftgröße
-/// zurückerkannt (<see cref="TextStyles.HeadingLevel"/>), genau wie der heutige
-/// Markdown-Export es tut. **Danach steht sie als eigener Wert im Modell und muss nie wieder
+/// zurückerkannt (<see cref="TextStyles.HeadingLevel"/>), genau wie der frühere
+/// Markdown-Export es tat. **Danach steht sie als eigener Wert im Modell und muss nie wieder
 /// geraten werden.** Das ist der Unterschied zwischen einer Übernahme und einem Format.
 /// </para>
 /// </summary>

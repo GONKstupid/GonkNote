@@ -34,11 +34,15 @@ namespace GonkNote.Core.Text;
 /// </para>
 ///
 /// <para>
-/// <b>Das ist nicht der Ersatz für <c>DocxExporter</c>/<c>DocxImporter</c></b> im WPF-Kopf.
-/// Die laufen weiter und bedienen die App; sie werden abgelöst, wenn dieses Modell alles
-/// kann, was sie können — „danach umverdrahten" in Roadmap §5. Bis dahin wäre es die Falle
-/// aus HANDOFF §4.10, sie parallel zu pflegen, und genau deshalb steht hier nur, was das
-/// Modell heute wirklich trägt.
+/// <b>Seit dem Umverdrahten (HANDOFF §4.23) ist das der Weg, den die App nimmt</b> — für den
+/// Export **und** für den Import. Der alte <c>DocxExporter</c> ist gelöscht;
+/// <c>DocxImporter</c> bedient nur noch den Whiteboard-Import, der weiter über ein
+/// <c>FlowDocument</c> geht.
+/// <para>
+/// Bis dahin standen beide nebeneinander, und das war Absicht: Sie **parallel zu pflegen**
+/// wäre die Falle aus §4.10 gewesen — deshalb stand hier von Anfang an nur, was das Modell
+/// wirklich trägt, und alles andere wirft, statt still zu verschwinden.
+/// </para>
 /// </para>
 /// </summary>
 public static class TdDocx
@@ -827,7 +831,7 @@ public static class TdDocx
 
     /// <summary>
     /// Bildtyp aus der Endung des Originals. Unbekanntes geht als PNG hinaus — dieselbe
-    /// Zuordnung, die der heutige <c>DocxExporter</c> benutzt.
+    /// Zuordnung, die schon der frühere <c>DocxExporter</c> benutzt hat.
     /// </summary>
     private static PartTypeInfo BildTeilTyp(string endung) => endung switch
     {
@@ -861,7 +865,7 @@ public static class TdDocx
 
         // **Ein fehlender Blob ist kein Programmierfehler**, sondern eine unvollständige
         // Sicherung (Dauerregel 4: der Blob-Ordner wird gern vergessen). Das eine Bild fällt
-        // weg, der Export läuft weiter — so hält es der heutige DocxExporter auch.
+        // weg, der Export läuft weiter — so hielt es der frühere DocxExporter auch.
         if (k.Bilder.Lesen(bild.BlobId) is not { } daten) return null;
 
         var teil = k.Main.AddImagePart(BildTeilTyp(bild.Extension));
@@ -2432,8 +2436,8 @@ public static class TdDocx
 
     /// <summary>
     /// Zählt die Verstöße gegen das Office-2019-Schema. **Ein Dokument, das Word nicht
-    /// öffnet, ist kein Export** — dieselbe Messlatte, die der heutige <c>DocxExporter</c>
-    /// anlegt.
+    /// öffnet, ist kein Export** — dieselbe Messlatte, die schon der frühere <c>DocxExporter</c>
+    /// angelegt hat.
     /// </summary>
     public static int Pruefen(string pfad)
     {

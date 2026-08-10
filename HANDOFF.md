@@ -201,7 +201,7 @@ Diagramm** nach DOCX statt als Pixelbild. Bilder tragen einen Verweis auf den Bl
 statt ihrer Bytes — die dritte Naht (`ITdImages`) nach Schriftmessung und Feldwerten. Das
 **Wasserzeichen** ist damit auch eingelöst, wie §4.15 es versprochen hatte.
 
-Zuletzt **die Übernahme der Bestandsdokumente** (§4.22) — sie war seit §4.15 vorgemerkt und
+Dann **die Übernahme der Bestandsdokumente** (§4.22) — sie war seit §4.15 vorgemerkt und
 durch das unfertige Modell blockiert. **Nutzer-Entscheidung: still, aber ein Fehler wird
 gespiegelt.** `TextDoc` hat zwei neue Felder neben `Rtf` (`Model`, `MigrationIssue`), `Rtf`
 selbst wird **nie** überschrieben, und `FlowZuTd` im WPF-Kopf wandelt um — nur dort, denn RTF
@@ -209,11 +209,22 @@ und XamlPackage liest ausschließlich Windows. **Am laufenden Programm mit einer
 echten Daten geprüft**, und dabei einen Fehler gefunden, den fünf Schritte lang kein Test sehen
 konnte: gerechnete Werte standen mit in der Datei (§4.22).
 
-**Als Nächstes:** die Reihenfolge aus Roadmap §5 ist abgearbeitet — es folgt **„danach
-umverdrahten"**: `Docx`-/`Markdown`-Im-/Export und `PdfExporter` gegen das eigene Modell, das
-Zeichnen eines `TdChart`, das Ribbon in Avalonia. **Erst damit wird das übernommene Modell
-sichtbar** — heute liest der Editor weiter aus `Rtf` (§6). **M1 bleibt ein gültiger
-Ausstiegspunkt.**
+Danach **das Umverdrahten** (§4.23): Das Modell wird bei jedem Speichern mitgeschrieben, **DOCX
+und Markdown laufen gegen das Modell** statt gegen ein `FlowDocument`, und `DocxExporter` wie
+`MarkdownExporter` sind gelöscht. Dabei **fünf Fehler gefunden**, die im
+Modell-gegen-Modell-Roundtrip unsichtbar waren — allen voran: das Absatz-Zeichenformat kam in
+Word gar nicht am Text an.
+
+Zuletzt **der Zeichner** (§4.24): `TdRenderer` in Core malt eine gesetzte Seite mit SkiaSharp —
+Text mit allen Zeichenformaten, Aufzählungsmarken, Absatzlinien, Tabellen, Bilder,
+Kopf-/Fußzeile und Wasserzeichen. **Ein Diagramm bekommt vorerst einen benannten
+Platzhalterkasten**, und **angeschlossen ist der Zeichner noch nirgends** — dieselbe Absicht
+wie bei Schritt 1.
+
+**Als Nächstes:** die sieben **Diagrammarten** zeichnen, dann der **`PdfExporter`** gegen das
+Modell (erst danach ist §4.1 ganz aufgelöst), dann die **Anzeige im Linux-Kopf** samt Ribbon in
+Avalonia. **Erst damit wird das übernommene Modell sichtbar** — heute liest der Editor weiter
+aus `Rtf` (§6). **M1 bleibt ein gültiger Ausstiegspunkt.**
 
 **Tests laufen lassen:**
 
@@ -222,7 +233,7 @@ dotnet test -c Release        # Windows: beide Projekte, 420 Tests
 ```
 
 ```bash
-dotnet test tests/GonkNote.Core.Tests   # Linux: 385 Tests, laufen in ~11 s
+dotnet test tests/GonkNote.Core.Tests   # Linux: 396 Tests, laufen in ~11 s
 ```
 
 ---
@@ -1589,7 +1600,7 @@ von selbst decken; alle vier stehen jetzt als eigener Wächter da:
 | **Hervorhebung „aus"** | `null` = nicht gesetzt, `""` = ausdrücklich keine. In DOCX ist Letzteres die Füllung `auto` und **nicht** das Fehlen des Elements |
 
 Dazu prüft `TdDocx.Pruefen` gegen das **Office-2019-Schema**, dieselbe Messlatte wie beim
-heutigen `DocxExporter`: ein Dokument, das Word nicht öffnet, ist kein Export. Deshalb ist
+früheren `DocxExporter`: ein Dokument, das Word nicht öffnet, ist kein Export. Deshalb ist
 die Reihenfolge der Kindelemente in `TdDocx` Schema und keine Geschmacksfrage (`CT_RPr`:
 rFonts, b, i, strike, color, sz, u, shd, vertAlign — `CT_PPr`: keepNext, pageBreakBefore,
 spacing, ind, jc, outlineLvl).
@@ -1599,6 +1610,10 @@ spacing, ind, jc, outlineLvl).
 > („danach umverdrahten", Roadmap §5). Sie **parallel** zu pflegen wäre die Falle aus §4.10 —
 > deshalb steht in `TdDocx` nur, was das Modell heute wirklich trägt, und alles andere wirft
 > statt still zu verschwinden (`Was_noch_nicht_geht_verschwindet_nicht_still`).
+>
+> **Eingetreten am 2026-08-09 (§4.23):** `TdDocx` **ist** jetzt der Ersatz — `DocxExporter` ist
+> gelöscht, `DocxImporter` bedient nur noch den Whiteboard-Import. Der Absatz bleibt als
+> Begründung stehen, warum beide eine Zeit lang nebeneinanderstanden.
 
 #### Eine Sicherheitslücke, die erst hier auftauchen konnte
 
@@ -2254,7 +2269,7 @@ Zwei Fälle, die dabei auseinandergehalten werden müssen:
   Fehler, die man erst am fertigen Ausdruck bemerkt.
 - **Blob fehlt → das eine Bild fällt weg, der Export läuft weiter.** Das ist **kein**
   Programmierfehler, sondern eine unvollständige Sicherung: Der Blob-Ordner wird beim Kopieren
-  gern vergessen (Dauerregel 4). So hält es der heutige `DocxExporter` auch.
+  gern vergessen (Dauerregel 4). So hielt es der frühere `DocxExporter` auch.
 
 **Die Kennung eines Bildes ist keine Aussage über das Dokument**, sondern über den Ort seiner
 Daten — beim Lesen bekommt es eine neue, weil die Bytes neu abgelegt werden. Der Wächter
@@ -2690,6 +2705,7 @@ Runden; erst danach wird `Rtf` als führendes Feld abgelöst (§5).
 | Wann `TextDoc.Model` geschrieben wird | **Bei jedem Speichern, neben `Rtf`** (§4.23). Sonst exportierte ein Export aus dem Modell den Stand der einmaligen Übernahme statt dessen, was auf dem Schirm steht. Die Nebenwirkung ist erwünscht: Der Umwandler läuft ab jetzt ständig, und ein Fehler darin fällt auf, **solange `Rtf` noch führt** — also solange er niemandem schaden kann. Entschieden 2026-08-09 |
 | Ob der Dokumenttitel eine Überschrift ist | **Ja im Markdown (`#`), nein im Inhaltsverzeichnis** — dafür gibt es `TdParaFormat.ExcludeFromToc` (§4.23). Eine exportierte `.md` ohne oberste Überschrift wäre ärmer, ein Verzeichnis mit dem Dokumenttitel als erstem Eintrag falsch. **Word trennt genauso** (`Title`, `TOC Heading`: Rang aus der Vorlage, Verzeichnis aus `w:outlineLvl`). Entschieden 2026-08-09 (Nutzer) |
 | Wo das Absatz-Zeichenformat in DOCX steht | **Im `pPr/rPr` *und* unter jedem Lauf** (§4.23). Das `pPr/rPr` allein gilt in Word nur für die Absatzmarke — Läufe erben aus der Formatvorlage. Beim Lesen nimmt `TdCharFormat.Ohne` die Dopplung wieder heraus, sonst trüge jeder Lauf eine vollständige Formatkopie (§4.14). Entschieden 2026-08-09 |
+| Wie groß die Zeichner-Runde wird | **Text, Tabellen und Bilder zuerst — Diagramme danach** (§4.24). Die sieben Diagrammarten samt Legende, Achsen und Beschriftung hätten die Runde und den Diff verdoppelt. Ein `TdChart` bekommt bis dahin einen **benannten Platzhalterkasten** und keine Leerstelle: „hier fehlt etwas" statt „hier war nie etwas" (§7). Entschieden 2026-08-09 (Nutzer) |
 | Namen der WPF-Hilfsmethoden | **Bleiben stehen** — `HitElement`, `HitTestElement`, `SelectByLasso`, `ComputeSelectionBounds` sind Einzeiler, die an `WbHit` weiterreichen. Elf Aufrufstellen in fünf Partials umzubenennen hätte den Diff verdreifacht, ohne am Ergebnis etwas zu ändern; wegkommen sollte die zweite **Rechnung**, nicht die zweite Bezeichnung (§4.13). Entschieden 2026-08-04 |
 
 **Noch offen:**
@@ -2703,6 +2719,12 @@ Runden; erst danach wird `Rtf` als führendes Feld abgelöst (§5).
 2. **Eigene Farbschemata** (Nutzerwunsch 2026-08-02) — vorgemerkt in §6. Die wichtigste der
    drei Fragen ist mit §4.9 beantwortet (die Tabelle umfasst auch das Papier); offen bleiben
    die beiden kleineren: Verhalten bei einer unvollständigen Datei und der Menüaufbau.
+2a. **Sagt der Über-Dialog noch die richtige Phase?** `About.Version` steht in beiden Sprachen
+   auf **„Portierung, Phase 3" / „Port, phase 3"** (§4.5), gearbeitet wird seit §4.14 an
+   Phase 4. Die Zeile ist **von Hand zu pflegen** (Dauerregel 1), beide Sprachen gehören
+   zusammen geändert, und danach ist der Dialog im laufenden Programm gegenzuprüfen — deshalb
+   wurde sie nicht nebenbei mitgezogen. **Frage an den Nutzer:** auf Phase 4 setzen, oder erst,
+   wenn Phase 4 wirklich abgeschlossen ist? Vermerkt 2026-08-09.
 3. ~~**Beschreiben die vier mitgelieferten Dokumente V1 oder V2?**~~ **Entschieden am
    2026-08-03** (Nutzer): **V2.** `git clone …/GonkNote.git` in beiden Erste-Schritte-
    Fassungen, ebenso der Issues-Verweis am Ende. Zweimal zurückgestellt, mit §4.12 fällig
@@ -4211,7 +4233,7 @@ und keine davon sieht wie ein Fehler aus.
 - **Die Reihenfolge der Kindelemente in `w:rPr` und `w:pPr` ist Schema.** Vertauscht ergibt
   sie kein schiefes Bild, sondern eine Datei, die Word nicht öffnet. Deshalb prüft
   `TdDocx.Pruefen` mit dem `OpenXmlValidator` gegen Office 2019 — dieselbe Messlatte, die
-  `DocxExporter` seit jeher anlegt.
+  der frühere `DocxExporter` seit jeher anlegte.
 - **Eine Toleranz gehört an die Auflösung des Formats, nicht an die der Fließkommazahl.**
   Ein Twip ist 1/1440 Zoll = **0,0018 cm**; aus 1,5 cm werden 850 Twips und daraus wieder
   1,4993 cm. Ein Roundtrip-Test, der drei Nachkommastellen verlangt, prüft nicht den eigenen

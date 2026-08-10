@@ -6,52 +6,171 @@ using SkiaSharp;
 
 namespace GonkNote.Core.Rendering;
 
-/// <summary>Gemeinsame Schriften für Canvas-Text (SkiaSharp, plattformneutral).</summary>
+/// <summary>
+/// Der <b>einzige</b> Ort, an dem aus einem Schriftnamen ein <see cref="SKTypeface"/> wird —
+/// für das Whiteboard, den Umbruch (<c>TdSkiaMeasure</c>) und den Dokumentzeichner
+/// (<c>TdRenderer</c>) gleichermaßen (§4.26).
+///
+/// <para>
+/// <b>Warum das einer sein muss.</b> Bis §4.26 fragten drei Stellen unabhängig voneinander
+/// <c>SKTypeface.FromFamilyName</c> — und das sieht **nur Systemschriften**. Eine mitgelieferte
+/// Schrift hätte den Dokumentzeichner damit nie erreicht, und die Zeile, die der Umbruch misst,
+/// wäre nicht die Zeile, die der Zeichner malt. Dasselbe Muster wie in §4.13: **wegkommen soll
+/// die zweite Rechnung, nicht die zweite Bezeichnung.**
+/// </para>
+/// <para>
+/// <b>Mitgeliefert schlägt System.</b> Erst die Registratur aus <c>Assets/Fonts/</c>, dann die
+/// Schriften des Rechners, dann die Rückfallkette des Schemas. Nur so sieht dasselbe Dokument
+/// unter Windows, Linux und iPadOS gleich aus — und nur so zeichnet der Avalonia-Kopf sein
+/// Chrome in derselben Schrift wie seine Zeichenfläche.
+/// </para>
+/// </summary>
 public static class WbFonts
 {
     /// <summary>
-    /// Die Oberflächenschrift der Plattform. Der Kopf setzt sie beim Start über
-    /// <see cref="GonkNote.Core.Platform.IFontProvider"/>; ohne Zutun bleibt es bei
-    /// „Segoe UI", also beim Verhalten vor Phase 2.
+    /// Das Schriftschema. Der Kopf setzt es beim Start über
+    /// <see cref="GonkNote.Core.Platform.IFontProvider"/>; ohne Zutun gilt
+    /// <see cref="Theming.Fonts.Standard"/>.
     /// <para>
-    /// <b>Nur vor dem ersten Zeichnen setzen.</b> <see cref="Regular"/> und
-    /// <see cref="Bold"/> werden beim ersten Zugriff aufgelöst und danach behalten —
-    /// ein späterer Wechsel bliebe wirkungslos, statt sichtbar zu scheitern.
+    /// <b>Ein Wechsel wirft den Zwischenspeicher weg</b> — anders als bis §4.26, wo ein
+    /// später gesetzter Wert wirkungslos blieb, statt sichtbar zu scheitern.
     /// </para>
     /// </summary>
-    public static string UiFamily
+    public static Theming.FontScheme Schema
     {
-        get => _uiFamily;
+        get => _schema;
         set
         {
-            if (_uiFamily == value) return;
-            _uiFamily = value;
-            _regular = _bold = null;
-            _families.Clear();
+            if (ReferenceEquals(_schema, value)) return;
+            _schema = value;
+            _aufgeloest.Clear();
         }
     }
 
-    private static string _uiFamily = new Platform.DefaultFontProvider().UiFamily;
-    private static SKTypeface? _regular, _bold;
+    private static Theming.FontScheme _schema = Theming.Fonts.Standard;
 
-    public static SKTypeface Regular =>
-        _regular ??= SKTypeface.FromFamilyName(_uiFamily) ?? SKTypeface.Default;
+    /// <summary>Die Oberflächenschrift — die Familie der Rolle <see cref="Theming.FontRole.Ui"/>.</summary>
+    public static string UiFamily => _schema.Family(Theming.FontRole.Ui);
 
-    public static SKTypeface Bold =>
-        _bold ??= SKTypeface.FromFamilyName(_uiFamily, SKFontStyle.Bold) ?? SKTypeface.Default;
+    /// <summary>Die Familie einer Rolle.</summary>
+    public static string FamilyOf(Theming.FontRole rolle) => _schema.Family(rolle);
 
-    private static readonly Dictionary<string, SKTypeface> _families = new();
+    public static SKTypeface Regular => Family(UiFamily);
 
-    /// <summary>Typeface je Familienname, gecacht.</summary>
-    public static SKTypeface Family(string? name)
+    public static SKTypeface Bold => Family(UiFamily, bold: true);
+
+    // ==================== Die Registratur der mitgelieferten Schriften ====================
+
+    private static readonly Lock _tor = new();
+    private static Dictionary<(string Fam, bool Bold, bool Italic), SKTypeface>? _mitgeliefert;
+    private static readonly Dictionary<(string Fam, bool Bold, bool Italic), SKTypeface> _aufgeloest = new();
+
+    /// <summary>
+    /// Wo die mitgelieferten Schriften liegen: <c>Fonts/</c> neben dem Programm. Über
+    /// <see cref="AppContext.BaseDirectory"/> und nicht über das Arbeitsverzeichnis — das
+    /// steht beim Start über eine Verknüpfung woanders.
+    /// </summary>
+    public static string FontOrdner { get; set; } =
+        Path.Combine(AppContext.BaseDirectory, Theming.Fonts.Ordner);
+
+    /// <summary>
+    /// Welche mitgelieferten Familien tatsächlich geladen werden konnten. <b>Für den Wächter</b>
+    /// — und für die Frage, warum ein Kopf anders aussieht als der andere.
+    /// </summary>
+    public static IReadOnlyCollection<string> GeladeneFamilien =>
+        [.. Registratur().Keys.Select(k => k.Fam).Distinct()];
+
+    private static Dictionary<(string Fam, bool Bold, bool Italic), SKTypeface> Registratur()
     {
-        if (string.IsNullOrEmpty(name) || name == _uiFamily) return Regular;
-        if (!_families.TryGetValue(name, out var tf))
+        if (_mitgeliefert is { } fertig) return fertig;
+
+        lock (_tor)
         {
-            tf = SKTypeface.FromFamilyName(name) ?? Regular;
-            _families[name] = tf;
+            if (_mitgeliefert is { } zweiterBlick) return zweiterBlick;
+
+            var tabelle = new Dictionary<(string Fam, bool Bold, bool Italic), SKTypeface>();
+            foreach (var familie in Theming.Fonts.Mitgeliefert)
+                foreach (var schnitt in familie.Cuts)
+                {
+                    // **Fehlt eine Datei, fehlt ein Schnitt — nicht die App.** Ein
+                    // unvollständiger Ausgabeordner ist dasselbe Bild wie ein fehlender Blob
+                    // (§4.21): ärgerlich, aber kein Programmierfehler.
+                    string pfad = Path.Combine(FontOrdner, familie.Ordner, schnitt.Datei);
+                    if (!File.Exists(pfad)) continue;
+
+                    var tf = SKTypeface.FromFile(pfad);
+                    if (tf is null) continue;
+
+                    // Der erste gewinnt: „Regular" steht in der Liste vor „SemiBold", und für
+                    // (nicht fett, nicht kursiv) ist Regular der richtige Schnitt.
+                    var schluessel = (familie.Family, schnitt.Bold, schnitt.Italic);
+                    if (!tabelle.ContainsKey(schluessel)) tabelle[schluessel] = tf;
+                }
+
+            _mitgeliefert = tabelle;
+            return tabelle;
         }
-        return tf;
+    }
+
+    /// <summary>
+    /// Typeface zu Familie, Stärke und Neigung. <b>Gecacht</b> — ein <c>SKTypeface</c> zu
+    /// öffnen kostet einen Dateizugriff, und der Umbruch fragt je Wort danach.
+    /// </summary>
+    public static SKTypeface Family(string? name, bool bold = false, bool italic = false)
+    {
+        string familie = string.IsNullOrWhiteSpace(name) ? UiFamily : name!;
+        var schluessel = (familie, bold, italic);
+
+        lock (_tor)
+        {
+            if (_aufgeloest.TryGetValue(schluessel, out var da)) return da;
+            var tf = Aufloesen(familie, bold, italic);
+            _aufgeloest[schluessel] = tf;
+            return tf;
+        }
+    }
+
+    /// <summary>
+    /// Die Reihenfolge, in der gesucht wird — und sie ist die ganze Entscheidung:
+    /// <b>mitgeliefert, dann System, dann Rückfallkette, dann Skias Vorgabe.</b>
+    /// <para>
+    /// <b>Kein Wurf, wenn nichts passt.</b> Ein Dokument soll in einer Ersatzschrift stehen und
+    /// nicht gar nicht — dieselbe Regel wie bisher in <c>TdSkiaMeasure</c>.
+    /// </para>
+    /// </summary>
+    private static SKTypeface Aufloesen(string familie, bool bold, bool italic)
+    {
+        var tabelle = Registratur();
+
+        // 1. Mitgeliefert, mit Rückfall innerhalb der Familie: genau der Schnitt, sonst der
+        //    fette, sonst der kursive, sonst der gewöhnliche. Eine Familie ohne Kursiv (Space
+        //    Grotesk) liefert damit den aufrechten Schnitt statt gar nichts.
+        foreach (var (b, i) in new[] { (bold, italic), (bold, false), (false, italic), (false, false) })
+            if (tabelle.TryGetValue((familie, b, i), out var eigen)) return eigen;
+
+        var stil = new SKFontStyle(
+            bold ? SKFontStyleWeight.Bold : SKFontStyleWeight.Normal,
+            SKFontStyleWidth.Normal,
+            italic ? SKFontStyleSlant.Italic : SKFontStyleSlant.Upright);
+
+        // 2. Die Schriften des Rechners — ein Bestandsdokument mit „Segoe UI" bekommt sie
+        //    unter Windows weiterhin (§4.14: der gespeicherte Wert gewinnt).
+        if (SKTypeface.FromFamilyName(familie, stil) is { } system &&
+            string.Equals(system.FamilyName, familie, StringComparison.OrdinalIgnoreCase))
+            return system;
+
+        // 3. Die Rückfallkette des Schemas, wieder mitgeliefert vor System.
+        foreach (var ersatz in _schema.Rueckfall)
+        {
+            foreach (var (b, i) in new[] { (bold, italic), (false, false) })
+                if (tabelle.TryGetValue((ersatz, b, i), out var eigen)) return eigen;
+
+            if (SKTypeface.FromFamilyName(ersatz, stil) is { } kette &&
+                string.Equals(kette.FamilyName, ersatz, StringComparison.OrdinalIgnoreCase))
+                return kette;
+        }
+
+        return SKTypeface.FromFamilyName(null, stil) ?? SKTypeface.Default;
     }
 
     /// <summary>
@@ -60,6 +179,10 @@ public static class WbFonts
     /// Farbe, Kantenglättung und Effekte. Der Aufrufer gibt das Ergebnis frei.
     /// </summary>
     public static SKFont Font(string? name, float size) => new(Family(name), size);
+
+    /// <summary>Dasselbe mit Stärke und Neigung — für Umbruch und Dokumentzeichner.</summary>
+    public static SKFont Font(string? name, float size, bool bold, bool italic) =>
+        new(Family(name, bold, italic), size);
 }
 
 /// <summary>

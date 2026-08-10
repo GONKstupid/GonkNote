@@ -98,7 +98,7 @@ public sealed class DokumentmodellTests
         Assert.True(f.Bold);                              // vom Stück
         Assert.Equal(20, f.FontSize);                     // vom Absatz
         Assert.Equal("#112233", f.Color);                 // vom Dokument
-        Assert.Equal("Segoe UI", f.FontFamily);           // vom Standard
+        Assert.Equal("Source Sans 3", f.FontFamily);      // vom Standard (§4.26)
     }
 
     /// <summary>

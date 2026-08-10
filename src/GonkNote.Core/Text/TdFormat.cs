@@ -41,7 +41,7 @@ public enum TdVerticalAlign
 /// </summary>
 public sealed class TdCharFormat
 {
-    /// <summary>Schriftfamilie, z. B. „Segoe UI". <c>null</c> = nicht gesetzt.</summary>
+    /// <summary>Schriftfamilie, z. B. „Source Sans 3". <c>null</c> = nicht gesetzt.</summary>
     public string? FontFamily { get; set; }
 
     /// <summary>Schriftgrad in **Punkt** (nicht Pixel) — die Einheit, die DOCX benutzt.</summary>
@@ -64,15 +64,27 @@ public sealed class TdCharFormat
     /// Das Format, an dem die Kaskade endet. **Als einziges überall belegt** — es ist die
     /// Unterlage aller anderen, nicht selbst eine Schicht darüber.
     /// <para>
-    /// Die Werte entsprechen dem, was der WPF-Editor heute als Grundschrift benutzt
-    /// (<c>TextStyles</c>). Die Farbe steht bewusst als <c>null</c>-freies Schwarz da und
-    /// nicht als Theme-Farbe: **ein Dokument ist Papier** (HANDOFF §1, „Dark/Light bei hellem
-    /// Papier"), und was hier steht, geht später so in den Export.
+    /// Die Farbe steht bewusst als <c>null</c>-freies Schwarz da und nicht als Theme-Farbe:
+    /// **ein Dokument ist Papier** (HANDOFF §1, „Dark/Light bei hellem Papier"), und was hier
+    /// steht, geht später so in den Export.
+    /// </para>
+    /// <para>
+    /// <b>Die Grundschrift ist seit §4.26 „Source Sans 3" und wird mitgeliefert</b> — vorher
+    /// stand hier „Segoe UI", das es nur unter Windows gibt. **Das ist Datenformat:** Der Wert
+    /// steht in jedem neuen Dokument und geht so nach DOCX. Bestandsdokumente behalten ihren
+    /// gespeicherten Wert, denn der gewinnt in der Kaskade (§4.14) — es gibt keinen
+    /// Migrationsschritt.
+    /// </para>
+    /// <para>
+    /// <b>Der Preis ist benannt:</b> Word auf einem fremden Rechner hat Source Sans 3 nicht und
+    /// blendet auf seine Ersatzschrift um — DOCX speichert den **Namen**, nicht die Schrift. Ein
+    /// Dokument, das auf allen drei Plattformen gleich aussieht, geht vor einem, das nur unter
+    /// Windows gleich aussieht.
     /// </para>
     /// </summary>
     public static TdCharFormat Standard => new()
     {
-        FontFamily = "Segoe UI",
+        FontFamily = Theming.Fonts.Standard.Family(Theming.FontRole.Body),
         FontSize = 11,
         Bold = false,
         Italic = false,

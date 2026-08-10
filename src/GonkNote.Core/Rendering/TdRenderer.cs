@@ -755,18 +755,14 @@ public static class TdRenderer
     private static SKFont SchriftFuer(TdCharFormat format, double massstab)
     {
         var f = format.Aufgeloest();
-        var stil = new SKFontStyle(
-            f.Bold == true ? SKFontStyleWeight.Bold : SKFontStyleWeight.Normal,
-            SKFontStyleWidth.Normal,
-            f.Italic == true ? SKFontStyleSlant.Italic : SKFontStyleSlant.Upright);
 
-        // Wie bei der Messung: **kein Wurf, wenn die Schrift fehlt.** „Segoe UI" gibt es unter
-        // Linux nicht — das Dokument soll dann in einer Ersatzschrift stehen und nicht gar nicht.
-        var schrift = SKTypeface.FromFamilyName(f.FontFamily, stil)
-                      ?? SKTypeface.FromFamilyName(null, stil)
-                      ?? SKTypeface.Default;
-
-        return new SKFont(schrift, Px(f.FontSize!.Value * CmProPunkt, massstab));
+        // **Dieselbe Quelle wie die Messung** (§4.26): `WbFonts` ist der einzige Ort, der aus
+        // einem Namen ein Typeface macht — mitgeliefert vor System vor Rückfallkette. Zwei
+        // eigene Aufrufe von `SKTypeface.FromFamilyName` sahen nur zufällig gleich aus und
+        // hätten eine mitgelieferte Schrift beide nicht gefunden.
+        return WbFonts.Font(
+            f.FontFamily, Px(f.FontSize!.Value * CmProPunkt, massstab),
+            f.Bold == true, f.Italic == true);
     }
 
     /// <summary>„#RRGGBB" als Farbe — oder <c>null</c>, wenn dort nichts Brauchbares steht.</summary>

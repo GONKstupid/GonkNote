@@ -49,7 +49,14 @@ public sealed class SchriftTests
         Assert.Same(erste, zweite);
         Assert.Same(WbFonts.Regular, WbFonts.Family(null));
         Assert.Same(WbFonts.Regular, WbFonts.Family(""));
-        Assert.Same(WbFonts.Regular, WbFonts.Family("Segoe UI"));
+
+        // **Bis §4.26 stand hier auch „Segoe UI".** Das war richtig, solange die
+        // Oberflächenschrift Segoe UI *war* — jeder Name, der ihr entsprach, kam als
+        // `Regular` zurück. Seit die App ihre Schriften mitliefert, ist die Oberflächenschrift
+        // Inter, und „Segoe UI" ist ein **fremder** Name: Er darf nicht mehr auf die
+        // Oberflächenschrift zeigen, sondern muss unter Windows die echte Segoe UI liefern —
+        // sonst verlöre ein Bestandsdokument seine gespeicherte Schrift (§4.14).
+        Assert.NotSame(WbFonts.Regular, WbFonts.Family("Segoe UI"));
     }
 
     [Fact]

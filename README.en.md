@@ -310,3 +310,14 @@ Apache-2.0 and BSD-3 require on redistribution (particularly for the single-file
 | [DocumentFormat.OpenXml](https://github.com/dotnet/Open-XML-SDK) | DOCX import/export | MIT |
 | [Docnet.Core](https://github.com/GowenGit/docnet) / PDFium | PDF import | MIT / BSD-3-Clause |
 | [Tesseract](https://github.com/charlesw/tesseract) + `tessdata` (deu, eng) | OCR | Apache-2.0 |
+| [Inter](https://github.com/rsms/inter) | Interface typeface | SIL OFL 1.1 |
+| [Source Sans 3](https://github.com/adobe-fonts/source-sans) | Body typeface of text documents | SIL OFL 1.1 |
+| [JetBrains Mono](https://github.com/JetBrains/JetBrainsMono) | Code and fixed-width text | SIL OFL 1.1 |
+| [Space Grotesk](https://github.com/floriankarsten/space-grotesk) | Cover titles and large headings | SIL OFL 1.1 |
+| [Geist](https://github.com/vercel/geist-font) | Text boxes and sticky notes on the whiteboard | SIL OFL 1.1 |
+
+**The five typefaces ship with the app** and live in a `Fonts\` folder next to the programme.
+That is deliberate: “Segoe UI” does not exist on Linux, and no particular typeface is guaranteed
+on any Linux system — without bundled fonts the same document would look different on the two
+editions. Each family's licence text sits beside it as `OFL.txt` and belongs with any
+redistribution.

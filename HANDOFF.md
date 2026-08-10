@@ -32,6 +32,19 @@
 >    bei offenen Fragen und Entscheidungen**, die der Nutzer treffen muss — die dafür klar
 >    begründen.
 > 3. **Sprache:** durchgehend Deutsch — UI, Kommentare, Commits, diese Datei.
+> 3a. **Am Ende jeder Antwort sagen, ob der Laptop dran ist** (Nutzer-Wunsch 2026-08-10).
+>    **Immer eine Zeile — auch wenn die Antwort „nein" lautet.** Sie beantwortet:
+>    (a) braucht der **nächste** Schritt den CachyOS-Laptop? (b) wenn ja: wofür genau?
+>    (c) wenn nein: was ihn später fällig macht.
+>
+>    Die Begründung steht in **§5b**: Entwickelt wird unter Windows — `Avalonia.Desktop` läuft
+>    dort auch, die Fernsteuer-Werkzeuge in `tools\` funktionieren nur dort, und beide Köpfe
+>    lassen sich nur dort an derselben Datenbank-Kopie vergleichen. **Der Laptop ist Messgerät
+>    und kein Arbeitsplatz.** Er beantwortet Stift (Druck, Neigung, Handballen),
+>    `~/.config/GonkNote`, fontconfig und die Rückfallschrift — und nur er.
+>
+>    **Faustregel:** „rechnet es richtig?" → Windows. „sieht oder fühlt es sich auf Linux
+>    richtig an?" → Laptop.
 > 4. **Kopie der echten Daten anlegen ist erlaubt, ohne zu fragen** (Nutzer-Entscheidung
 >    2026-07-30). Wenn echte Daten zum Prüfen gebraucht werden — Migration, Export, ein
 >    Fehlerbild, das nur mit Bestandsdokumenten auftritt —, darf der Inhalt von
@@ -340,7 +353,15 @@ SkiaSharp: Text mit allen Zeichenformaten, Aufzählungsmarken, Absatzlinien, Tab
 Kopf-/Fußzeile und Wasserzeichen. Testzahl damals **420** (396 Core + 24 WPF). **Angeschlossen
 ist der Zeichner noch nirgends** (§6).
 
-**Erledigt danach:** §4.25 — **die sieben Diagrammarten**. Aus den Zahlen eines `TdChart` wird
+**Erledigt danach:** §4.26 — **ein Schriftkonzept für alle drei Plattformen**. Fünf mitgelieferte
+Familien (Inter, Source Sans 3, JetBrains Mono, Space Grotesk, Geist; alle SIL OFL 1.1) für fünf
+Rollen, als Datentabelle in `Core/Theming/Fonts.cs`. **`WbFonts` ist der einzige Auflösungspunkt**
+— vorher fragten drei Stellen unabhängig `SKTypeface.FromFamilyName` und sahen damit nur
+Systemschriften. Dabei einen Fehler gefunden, den niemand sehen konnte: der Avalonia-Kopf konnte
+Chrome und Zeichenfläche in **zwei verschiedenen Schriften** zeichnen. Testzahl jetzt **485**
+(461 Core + 24 WPF).
+
+**Erledigt davor:** §4.25 — **die sieben Diagrammarten**. Aus den Zahlen eines `TdChart` wird
 ein Diagramm: Säule, Balken, Linie, Punkte, Punkte+Linie, Kuchen und Netz, samt Achsen, Gitter,
 Legende und Beschriftung. **Die Rechnung steht in `Core/Text/TdChartLayout.cs`** — Achsenteilung,
 Farbvergabe, Legende und jeder Ort in Zentimetern; der Zeichner malt nur noch. **Das Modell ist
@@ -407,6 +428,9 @@ gonk-note-V2/
 │  │  ├─ Theming/                die Farbtabelle (§4.9)              ← neu in Phase 3
 │  │  │                          ThemeColor (20 Farben), HexColor, ThemeDefinition,
 │  │  │                          Themes.Light/.Dark — ein Theme ist eine Datentabelle
+│  │  │                          Fonts.cs — dasselbe für Schriften: FontRole (5 Rollen),
+│  │  │                          FontScheme, Fonts.Standard, die mitgelieferten
+│  │  │                          Schnitte                             ← neu in §4.26
 │  │  ├─ Text/                   Markdown — der Zerleger hinter den vier mitgelieferten
 │  │  │                          Dokumenten (§4.12)                  ← neu in Phase 3
 │  │  │                          seit §4.13 von BEIDEN Köpfen benutzt
@@ -477,7 +501,7 @@ gonk-note-V2/
 │                                Legacy, **Avalonia**) — §4.6, seit Phase 3 §4.9
 │
 ├─ tests/
-│  ├─ GonkNote.Core.Tests/       net10.0 · läuft auch unter Linux · 449 Tests
+│  ├─ GonkNote.Core.Tests/       net10.0 · läuft auch unter Linux · 461 Tests
 │  │  └─ Snapshots/*.sha256      Pixelhashes des Renderers (Golden-Files)
 │  └─ GonkNote.Wpf.Tests/        net10.0-windows · nur Windows · 24 Tests
 │     ├─ Fixtures/               referenz.md, referenz-docx.txt (Golden-Files)
@@ -500,6 +524,10 @@ gonk-note-V2/
 │     └─ zeiger/                 klickt und tippt über X11/XTEST, ohne Fremdpaket
 │
 ├─ Assets/  tessdata/  Docs/     1:1 aus V1, in der Wurzel
+│  └─ Fonts/<Familie>/           die fünf mitgelieferten Schriften samt OFL.txt (§4.26).
+│                                GonkNote.Core.csproj kopiert sie als `Content` — damit
+│                                landen sie in der Ausgabe JEDES Kopfes und beider
+│                                Testprojekte, ohne dass vier .csproj dieselbe Liste führen
 └─ LICENSE, README(.en).md, ERSTE-SCHRITTE.md, GETTING-STARTED.md, THIRD-PARTY-NOTICES.md
 ```
 
@@ -2818,6 +2846,147 @@ anderen den alten Stand — und sieht dort den alten Text, ohne dass etwas kaput
 
 ---
 
+### 4.26 Ein Schriftkonzept für alle drei Plattformen
+
+Umgesetzt am 2026-08-10, nach einer Frage des Nutzers: *„Können wir das UI-Konzept unter Linux
+für alle Plattformen nutzen — Segoe UI gibt es dort ja nicht?"* **Ja. Und die Frage traf einen
+Fehler, von dem noch niemand wusste.**
+
+#### Der Befund — zwei Schriften in einem Fenster
+
+**Die Farben waren längst plattformneutral** (§4.9: alle zwanzig in `Core/Theming`). Die Schrift
+war das letzte Stück, das die Plattform beantwortete — und sie beantwortete es **an drei Stellen
+unabhängig voneinander**: `WbFonts.Family`, `TdSkiaMeasure.Schrift` und `TdRenderer.SchriftFuer`
+riefen jeder für sich `SKTypeface.FromFamilyName`. Das sieht **nur Systemschriften**.
+
+Daraus folgte etwas, das man dem Bildschirm nicht ansieht:
+
+> Der Avalonia-Kopf zeichnete sein **Chrome in Inter** — das kommt aus `WithInterFont()` und ist
+> damit *in Avalonia* eingebettet. Seine **Zeichenfläche** fragte daneben Skia nach „Inter", und
+> Skia geht über **fontconfig**. Auf einem Linux-Rechner ohne systemweit installiertes Inter
+> standen im selben Fenster zwei verschiedene Schriften — **still**. Mit dem Zeichner (§4.24) und
+> den Diagrammen (§4.25) läuft seit zwei Runden gesetzter Text und jede Achsenbeschriftung durch
+> genau diesen Weg.
+
+#### Die Entscheidung: die App liefert ihre Schriften mit
+
+Fünf Familien, fünf Rollen, alle **SIL OFL 1.1** — Nutzer-Vorgabe:
+
+| Rolle | Familie | Version |
+|---|---|---|
+| App-UI: Menüs, Ordnerbaum, Galerie, Dialoge | **Inter** | 4.1 |
+| Grundschrift der Textdokumente | **Source Sans 3** | 3.052R |
+| Code und Festbreitentext | **JetBrains Mono** | 2.304 |
+| Cover-Titel und große Überschriften | **Space Grotesk** | 2.0.0 |
+| Textfelder, Notizzettel und Sticker | **Geist** | 1.7.2 |
+
+**Ein Schriftschema ist eine Datentabelle** — dasselbe Muster wie bei den Farben (§4.9), eine
+Ebene weiter. `Core/Theming/Fonts.cs` trägt Rollen, Familien, Rückfallkette und die Liste der
+mitgelieferten Schnitte; es ist der einzige Ort, an dem die fünf Namen stehen.
+
+#### Ein Auflösungspunkt statt drei — der eigentliche Umbau
+
+`WbFonts` ist ab jetzt der **einzige** Ort, der aus einem Namen ein `SKTypeface` macht.
+`TdSkiaMeasure` und `TdRenderer` haben ihre eigenen Zwischenspeicher verloren und rufen ihn.
+Dasselbe Muster wie §4.13: **wegkommen soll die zweite Rechnung, nicht die zweite Bezeichnung.**
+
+Die Reihenfolge ist die ganze Entscheidung: **mitgeliefert → System → Rückfallkette → Skias
+Vorgabe.** Ohne den ersten Schritt hätte eine mitgelieferte Schrift den Dokumentzeichner nie
+erreicht; ohne den zweiten verlöre ein Bestandsdokument seine gespeicherte Schrift (§4.14 — der
+gespeicherte Wert gewinnt, deshalb steht „Segoe UI" weiterhin in der Rückfallkette).
+
+**Nebenwirkung, die zählt:** Umbruch und Zeichner teilen sich die Schrift jetzt **nachweislich**
+und nicht nur durch gleichlautenden Code — eigener Wächter
+(`Umbruch_und_Zeichner_benutzen_dieselbe_Schrift`).
+
+#### Was Datenformat ist — und was nicht
+
+Vier Vorgabewerte haben gewechselt: `TdCharFormat.Standard` (→ Source Sans 3), die Textelemente
+und Notizzettel in `Whiteboard.cs` (→ Geist) und die Cover-Vorlage (→ Space Grotesk).
+
+- **Bestandsdateien bleiben unberührt.** Der gespeicherte Wert gewinnt; betroffen sind nur
+  **neue** Dokumente und **neue** Elemente. Kein Migrationsschritt.
+- **Die zwanzig Pixelhashes liefen unverändert durch** — `RendererSnapshotTests` überspringt
+  `TextElement` und zeichnet Zettel ohne Text, genau weil Schrift nicht gehasht werden darf
+  (§4.6). Das war die Vorhersage und ist jetzt der Beleg.
+- **Die Golden-Files sind nicht angefasst worden — und das war eine Überraschung.** Der Plan
+  hatte vorgesehen, sie neu zu setzen. Sie verzeichnen aber **gar keine Schriftnamen**, und die
+  Referenzdokumente setzen ihre Schrift ausdrücklich. Ein Golden-File soll sich bewegen, wenn
+  sich das *Verhalten* bewegt (§4.6) — hier hat es das nicht. Die Fixtures bleiben deshalb auf
+  ihrer ausdrücklichen Schrift: so prüfen sie weiterhin, dass eine **gesetzte** Schrift den
+  Roundtrip übersteht, und die neue Vorgabe hat ihren eigenen Wächter.
+
+> **Benanntes Zugeständnis:** Eine exportierte DOCX nennt „Source Sans 3". Word auf einem fremden
+> Rechner hat sie nicht und blendet auf seine Ersatzschrift um — **DOCX speichert den Namen, nicht
+> die Schrift.** Vorher stand dort „Segoe UI", das auf jedem Windows existiert. Der Preis ist
+> bewusst: ein Dokument, das auf allen drei Plattformen gleich aussieht, geht vor einem, das nur
+> unter Windows gleich aussieht.
+
+#### Die Lizenz — was die OFL wirklich verlangt
+
+Alle fünf Lizenztexte sind **am heruntergeladenen Release geprüft**, nicht aus dem Gedächtnis
+zitiert. Drei Pflichten, und alle drei sind eingehalten:
+
+1. **Lizenztext und Copyright müssen mitgehen.** Je Familie liegt die unveränderte `OFL.txt` im
+   Ordner und wird **in die Ausgabe kopiert** — weitergegeben wird die Exe samt Ordner, nicht das
+   Repo. Eigener Wächter (`Zu_jeder_Familie_liegt_ihre_Lizenz`).
+2. **Nicht verändern, nicht subsetten.** Damit kommen **Reserved Font Names** gar nicht ins
+   Spiel — und das ist nicht theoretisch: **Source Sans führt „Source" als RFN**, wie die
+   heruntergeladene `LICENSE.md` ausdrücklich sagt. *Auszuwählen*, welche Schnitte mitgehen, ist
+   keine Veränderung.
+3. **Nicht einzeln verkaufen.** Trifft nicht zu, steht aber im Vermerk.
+
+`THIRD-PARTY-NOTICES.md` hat einen eigenen Abschnitt bekommen, beide README-Fassungen die fünf
+Zeilen in ihrer Abhängigkeitstabelle. **Inter war schon vorher dabei** — über
+`Avalonia.Fonts.Inter` im Linux-Kopf, **ohne jeden Vermerk.** Das war eine Lücke und ist jetzt
+geschlossen.
+
+**Der Preis in Bytes:** rund **6 MB** für 27 Dateien. In einer Single-File-Exe ist das spürbar
+und hier bewusst in Kauf genommen.
+
+#### Was der Augenschein gefunden hat — und warum er nötig war
+
+Die Schriftnamen stimmen, die Dateien liegen richtig, die Tests sind grün — **das beweist noch
+nicht, dass der laufende Kopf sie benutzt.** Inter und Segoe UI sehen sich zu ähnlich, um es am
+Bildschirmfoto zu entscheiden.
+
+**Deshalb ein A/B-Versuch:** die Oberflächenschrift kurz auf **Space Grotesk** gestellt, neu
+gebaut, fotografiert und die Bilder zonenweise verglichen. Ergebnis:
+
+| Zone | abweichende Pixel |
+|---|---|
+| Überschrift „Dokumente" | 1300 |
+| „Noch nichts hier" | 1083 |
+| Seitenleiste | 452 |
+| „Design wechseln" | 410 |
+| **Menüleiste** | **0** |
+
+**Die Menüleiste war die einzige Zone, die sich nicht rührte.** `Menu` und `MenuItem` erben ihre
+Schrift in WPF **nicht** vom Fenster — sie kommt aus `SystemFonts.MenuFontFamily`. Ohne diesen
+Versuch wäre die Menüleiste als einzige bei der Systemschrift geblieben: unter Windows
+unauffällig, unter Linux eine zweite Schrift im selben Fenster — **also genau der Fehler, den
+diese Runde beheben sollte.** Behoben mit zwei Settern; danach 518 abweichende Pixel.
+
+Zum Schluss beide Köpfe an derselben Datenbank-Kopie nebeneinander: **dasselbe Schriftbild**,
+was vorher nicht der Fall war.
+
+#### Was ausdrücklich offen bleibt
+
+- **Das Chrome des Avalonia-Kopfs benutzt für Code weiterhin eine Namensliste**, keine
+  mitgelieferte Datei: Avalonia lädt Schriften über `avares://`, unsere liegen lose. Inter kommt
+  dort weiterhin aus `WithInterFont()`. **Zeichenfläche und Dokumente sind davon nicht
+  betroffen** — die gehen alle über `WbFonts`. Fällig mit der Ribbon-Runde, die `Styles.axaml`
+  ohnehin anfasst.
+- **Gesehen hat das alles bisher nur Windows.** Ob die mitgelieferte Schrift unter Linux wirklich
+  gewinnt, beantwortet nur der Laptop (Dauerregel 3a).
+
+#### Stand
+
+**485 Tests** (461 Core + 24 WPF) grün, alle sieben Projekte 0 Warnungen. **12 neue Wächter** in
+`SchriftkonzeptTests`.
+
+---
+
 ## 5. Entscheidungen
 
 **Getroffen, alle umgesetzt:**
@@ -2878,6 +3047,9 @@ anderen den alten Stand — und sieht dort den alten Text, ohne dass etwas kaput
 | Ob die Diagramm-Rechnung misst | **Nein, sie schätzt** (§4.25). `TdChartLayout` kennt `ITdTextMeasure` nicht; die Breite einer Achsenbeschriftung wird über Zeichenzahl × Grad × 0,55 geschätzt. Gemessen hinge die Lage der Zeichenfläche an der Schriftausstattung des Rechners, und dasselbe Dokument bekäme unter Linux ein anders geteiltes Diagramm — dieselbe Falle wie in §4.16. Ob der Text hineinpasst, entscheidet der Zeichner, der messen kann. Entschieden 2026-08-10 |
 | Wo die Werteachse anfängt | **Immer bei null oder darunter, nie beim kleinsten Wert** (§4.25). Eine Säule, die bei 98 anfängt und bei 100 endet, sieht doppelt so hoch aus wie eine bis 99 — die bekannteste Art, mit einem richtigen Diagramm etwas Falsches zu behaupten. Negative Werte hängen unter der Nulllinie, statt am Boden abgeschnitten zu werden; Ober- und Untergrenze sind Vielfache der Teilung, damit die Null auf einer Stufe liegt. Entschieden 2026-08-10 |
 | Wie eine Reihe ohne Namen in der Legende heißt | **Mit ihrer laufenden Nummer, nicht mit „Reihe 2"** (§4.25). Dieselbe Antwort wie bei `TdChart.Kategorie` (§4.21): Ein deutsches Wort hinge an `Loc.Current` und stünde beim nächsten Öffnen auf Englisch — dasselbe Dokument, zwei Bilder. Aus demselben Grund steht die Achsenzahl invariant („1.5"), wie das Datumsmuster in §4.20. Entschieden 2026-08-10 |
+| Ob die App ihre Schriften mitliefert | **Ja, fünf Familien für fünf Rollen** (§4.26). „Segoe UI" gibt es unter Linux nicht und unter iPadOS auch nicht; ohne mitgelieferte Schriften sähe dasselbe Dokument auf drei Plattformen verschieden aus. **Die Plattform-Weiche in `AvaloniaFontProvider` ist damit weg** — es gibt keine Windows- und keine Linux-Antwort mehr, sondern eine. Preis: rund 6 MB in der Exe, benannt. Entschieden 2026-08-10 (Nutzer) |
+| Wo Schriften aufgelöst werden | **Nur in `WbFonts`** (§4.26). Vorher fragten drei Stellen unabhängig `SKTypeface.FromFamilyName` — das sieht nur Systemschriften, eine mitgelieferte Schrift hätte den Dokumentzeichner nie erreicht. Reihenfolge: mitgeliefert → System → Rückfallkette. „Segoe UI" bleibt in der Kette, damit ein Bestandsdokument seine gespeicherte Schrift behält (§4.14). Dasselbe Muster wie §4.13. Entschieden 2026-08-10 |
+| Ob die Dokument-Grundschrift mitwechselt | **Ja** (§4.26) — `TdCharFormat.Standard` steht auf „Source Sans 3", die Whiteboard-Vorgaben auf Geist und Space Grotesk. **Das ist Datenformat**, betrifft aber nur *neue* Dokumente: der gespeicherte Wert gewinnt, es gibt keinen Migrationsschritt. Benannter Preis: Word ohne die Schrift blendet um — DOCX speichert den Namen, nicht die Schrift. Entschieden 2026-08-10 (Nutzer) |
 | Namen der WPF-Hilfsmethoden | **Bleiben stehen** — `HitElement`, `HitTestElement`, `SelectByLasso`, `ComputeSelectionBounds` sind Einzeiler, die an `WbHit` weiterreichen. Elf Aufrufstellen in fünf Partials umzubenennen hätte den Diff verdreifacht, ohne am Ergebnis etwas zu ändern; wegkommen sollte die zweite **Rechnung**, nicht die zweite Bezeichnung (§4.13). Entschieden 2026-08-04 |
 
 **Noch offen:**
@@ -3154,6 +3326,10 @@ dieses Laptops. MPP und EMR bleiben ungetestet, siehe „Offen" unten.
 ---
 
 ## 5b. Wann und wie auf den CachyOS-Laptop wechseln
+
+> **Dieser Abschnitt ist die Begründung zu Dauerregel 3a** (Kopfzeile): Am Ende **jeder**
+> Antwort steht eine Zeile dazu, ob der nächste Schritt hierher gehört — auch wenn sie „nein"
+> lautet. Wer die Regel liest und wissen will, *warum*, liest hier weiter.
 
 **Kurz: noch nicht umziehen — auch nicht in Phase 3.** Entwickelt wird unter Windows; der
 Laptop ist Pflicht für alles, was am **Stift** und an **Linux-Pfaden** hängt.
@@ -3483,6 +3659,11 @@ Boden", das einzige Risiko, das die Roadmap mit **hoch** einstuft.
       dasselbe Muster nach §4.17, §4.20 und §4.21. 53 neue Wächter, **kein einziges neues Feld
       am Modell**. Dabei ist aufgefallen, dass die hier bisher genannte „Fläche" gar keine
       Diagrammart ist (§5 „Noch offen", Punkt 6)
+- [x] **Ein Schriftkonzept für alle drei Plattformen** (§4.26, 2026-08-10): Fünf mitgelieferte
+      Familien für fünf Rollen, als Datentabelle in `Core/Theming/Fonts.cs`; `WbFonts` ist der
+      einzige Auflösungspunkt. **Vorgezogen vor den `PdfExporter`**, damit dessen Golden-Files
+      nicht zweimal gesetzt werden. 12 neue Wächter. Dabei kam ein Fehler heraus, den nur ein
+      A/B-Bildvergleich zeigen konnte
 - [ ] **Umverdrahten, was noch fehlt** — jede eigene Runde:
       1. **`PdfExporter`** gegen das Modell statt gegen den WPF-Paginator. Erst danach ist
          §4.1 ganz aufgelöst
@@ -4183,6 +4364,37 @@ und keine davon sieht wie ein Fehler aus.
   eine geklärte Lizenz (§6); ein mit Skia gemaltes Rechteck braucht keine. Dabei nie
   achsensymmetrisch malen, sonst fällt eine vertauschte Achse nicht auf.
 
+**Neu aus §4.26 — Schriften**
+
+- **Eine eingebettete Schrift des UI-Rahmens ist für Skia nicht da.** Avalonias
+  `WithInterFont()` registriert Inter bei **Avalonia**; `SKTypeface.FromFamilyName("Inter")`
+  geht über **fontconfig**. Beides „Inter" zu nennen heißt nicht, dass es dieselbe Datei ist —
+  im Avalonia-Kopf standen dadurch Chrome und Zeichenfläche in zwei Schriften, ohne dass etwas
+  danach aussah.
+- **`SKTypeface.FromFamilyName` findet keine mitgelieferte Datei.** Wer Schriften ausliefert,
+  muss sie über `FromFile`/`FromStream` selbst laden und **einen** Ort haben, an dem das
+  passiert — sonst hat jede Aufrufstelle ihre eigene Wahrheit.
+- **`SKTypeface.FromFamilyName` liefert *immer* etwas.** Es gibt keinen Fehlschlag, nur eine
+  Ersatzschrift. Wer prüfen will, ob der Name wirklich gefunden wurde, muss den
+  zurückgegebenen `FamilyName` mit dem gefragten vergleichen.
+- **Menüs erben ihre Schrift nicht vom Fenster.** WPF setzt `Menu`/`MenuItem` aus
+  `SystemFonts.MenuFontFamily`. Ein `FontFamily` am `Window` erreicht alles — außer der
+  Menüleiste. Gefunden nur, weil der A/B-Vergleich sie mit **0 abweichenden Pixeln** auswies,
+  während sich jede andere Zone änderte.
+- **Zwei ähnliche Schriften unterscheidet man nicht am Bildschirmfoto.** Um zu belegen, dass
+  eine mitgelieferte Schrift wirklich greift, kurz auf eine **auffällige** umstellen (hier
+  Space Grotesk), fotografieren, zonenweise vergleichen — und danach zurück. Ein „sieht richtig
+  aus" ist bei Inter gegen Segoe UI keine Aussage.
+- **Der Familienname einer Schriftdatei ist nicht der Dateiname.** `Inter-SemiBold.ttf` trägt in
+  vielen Familien „Inter SemiBold" als eigene Familie. Deshalb steht die Zuordnung
+  Datei → (Familie, fett, kursiv) **deklariert** in `Fonts.cs` und wird nicht aus der Datei
+  gelesen. Womit WPF eine Schrift anspricht, verrät
+  `System.Windows.Media.Fonts.GetFontFamilies(<Ordner-Uri>)`.
+- **Die OFL verlangt den Lizenztext neben der Schrift, nicht im Repo.** Weitergegeben wird die
+  Exe samt Ordner — die `OFL.txt` muss also in die **Ausgabe** kopiert werden. Und: **nicht
+  verändern, nicht subsetten**, dann greift die Regel zu den Reserved Font Names nicht. Source
+  Sans führt „Source" als RFN.
+
 **Neu aus §4.25 — Gegenprüfen am laufenden Programm**
 
 - **Der Kopf trägt seine eigene Kopie von Core.** Beide Köpfe kopieren `GonkNote.Core.dll` in
@@ -4621,6 +4833,7 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 
 | Runde | Datum | Was |
 |---|---|---|
+| V2-31 | 2026-08-10 | **Ein Schriftkonzept für alle drei Plattformen** (§4.26) — ausgelöst von einer Frage des Nutzers („Segoe UI gibt es unter Linux nicht — können wir ein UI-Konzept für alle Plattformen nutzen?"). Die Antwort ist ja, **und die Frage traf einen Fehler, von dem niemand wusste:** Der Avalonia-Kopf zeichnete sein Chrome in Inter (aus `WithInterFont()`, in **Avalonia** eingebettet) und fragte für seine Zeichenfläche Skia nach „Inter" — das geht über **fontconfig**. Ohne systemweit installiertes Inter standen im selben Fenster zwei verschiedene Schriften, still. Mit dem Zeichner (§4.24) und den Diagrammen (§4.25) lief seit zwei Runden jeder gesetzte Text durch diesen Weg. **Die Farben waren längst plattformneutral** (§4.9) — die Schrift war das letzte Stück, das die Plattform beantwortete, und sie beantwortete es an **drei** Stellen unabhängig voneinander. **Jetzt liefert die App fünf Familien mit** (Inter, Source Sans 3, JetBrains Mono, Space Grotesk, Geist; alle SIL OFL 1.1, Nutzer-Vorgabe) für fünf Rollen — **ein Schriftschema ist eine Datentabelle**, dasselbe Muster wie bei den Farben. **`WbFonts` ist der einzige Auflösungspunkt** (mitgeliefert → System → Rückfallkette); `TdSkiaMeasure` und `TdRenderer` haben ihre eigenen Zwischenspeicher verloren, dasselbe Muster wie §4.13. **Datenformat:** `TdCharFormat.Standard` und drei Whiteboard-Vorgaben haben gewechselt — nur für **neue** Dokumente, der gespeicherte Wert gewinnt (§4.14), kein Migrationsschritt. **Die Pixelhashes liefen unverändert durch** (§4.6 hält), **die Golden-Files sind nicht angefasst worden** — sie verzeichnen gar keine Schriftnamen, und ein Golden-File soll sich nur bewegen, wenn sich das Verhalten bewegt. **Lizenz am Release geprüft, nicht aus dem Gedächtnis:** je Familie die unveränderte `OFL.txt` in der Ausgabe, nichts verändert und nichts subgesetzt — damit greifen Reserved Font Names nicht, und das ist nicht theoretisch (**Source Sans führt „Source" als RFN**). Vermerke in `THIRD-PARTY-NOTICES.md` und **beiden** README-Fassungen; **Inter war vorher schon ausgeliefert, ohne jeden Vermerk** — Lücke geschlossen. Preis: rund 6 MB in der Exe, benannt. **Der Augenschein hat den zweiten Fehler gefunden:** Schriftnamen, Dateien und grüne Tests beweisen nicht, dass der laufende Kopf sie benutzt — Inter und Segoe UI sehen sich zu ähnlich. Also die Oberflächenschrift kurz auf **Space Grotesk** gestellt und die Bilder zonenweise verglichen: alles änderte sich, **die Menüleiste um genau 0 Pixel**. WPF nimmt für `Menu`/`MenuItem` die Systemschrift und erbt nicht vom Fenster; ohne den Versuch wäre ausgerechnet die Menüleiste bei der Systemschrift geblieben — der Fehler, den die Runde beheben sollte. **Dazu Dauerregel 3a** (Nutzer-Wunsch): Am Ende **jeder** Antwort steht eine Zeile, ob der nächste Schritt an den Linux-Laptop gehört — auch wenn sie „nein" lautet. **485 Tests** (461 Core + 24 WPF), sieben Projekte 0 Warnungen |
 | V2-30 | 2026-08-10 | **Die sieben Diagrammarten werden gezeichnet** (§4.25) — Säule, Balken, Linie, Punkte, Punkt+Linie, Kuchen und Netz, samt Achsen, Gitter, Legende und Beschriftung. Wo bisher ein gestrichelter Kasten mit einem Titel stand, steht jetzt ein Diagramm. **Gerechnet wird in `Core/Text/TdChartLayout.cs`, gemalt im Zeichner** — zum vierten Mal dasselbe Muster nach der Listennummer (§4.17), dem Feld (§4.20) und dem Diagramm selbst (§4.21): Achsenteilung, Farbvergabe, Legende und jeder Ort stehen als Zahl in Zentimetern, `TdRenderer` ruft nur noch Skia auf. **Der Grund ist Prüfbarkeit, nicht Ordnungsliebe:** An jeder Achse steht Schrift, und Schrift darf nicht gehasht werden (§4.6) — als Rechnung sind es **43 Wächter ohne ein einziges Pixel**, dazu 6 im Zeichner, die an gerechneten Orten auf Farbe sehen. **Am Modell ist nichts geändert worden** — kein Feld, kein Diskriminator, kein Json-Name, also auch keine Änderung an den Beispieldokumenten und am DOCX-Weg; das ist die Probe auf §4.21. **Vier Entscheidungen dahinter:** (1) Die Werteachse fängt **immer bei null** an, nie beim kleinsten Wert — 98 bis 100 lässt eine Säule doppelt so hoch aussehen wie die daneben, die bekannteste Art, mit richtigen Zahlen etwas Falsches zu behaupten. (2) **Negative Werte hängen unter der Nulllinie**, statt am Boden abgeschnitten zu werden; Grenzen sind Vielfache der Teilung, damit die Null auf einer Stufe liegt. (3) Eine Reihe ohne Namen bekommt in der Legende **ihre Nummer und kein „Reihe 2"** — ein deutsches Wort hinge an `Loc.Current`. (4) Die Achsenzahl steht **invariant** im Code, wie das Datumsmuster (§4.20). **Die Rechnung misst nicht, sie schätzt** — `TdChartLayout` kennt `ITdTextMeasure` nicht, sonst hinge die Lage der Zeichenfläche an der Schriftausstattung des Rechners und dasselbe Dokument bekäme unter Linux ein anderes Diagramm (§4.16). Ob der Text hineinpasst, entscheidet der Zeichner, der messen kann: erst verkleinern, dann kürzen. **Der Platzhalterkasten bleibt**, bedeutet aber jetzt „aus diesen Zahlen gibt es kein Bild": keine Reihen, ein Kuchen aus lauter Nullen, ein Netz mit zwei Ecken. **Dabei aufgefallen:** §4.24 und §6 zählten eine Art „Fläche" mit, die es nirgends gibt — weder in `TdChartKind` noch im `ChartDialog` noch in `TdDocx`; sie war an die Stelle von „Punkt+Linie" gerutscht. Als Frage vermerkt (§5 „Noch offen", Punkt 6), nicht still gebaut und nicht still weggelassen. **Augenschein:** eine A4-Seite mit allen sieben Arten plus negativen Säulen nach `%TEMP%` gerendert und angesehen — ein Diagramm, das nur nicht abstürzt, ist kein Diagramm. **473 Tests** (449 Core + 24 WPF), alle sieben Projekte 0 Warnungen. **Im selben Zug beantwortet:** §5 „Noch offen" 2a — der Über-Dialog sagt jetzt **Phase 4** (§4.5), in beiden Sprachtabellen, gegengeprüft in allen vier Kombinationen aus Kopf und Sprache. **Die Gegenprobe hat dabei etwas gefunden:** Der Avalonia-Kopf zeigte weiter „phase 3", weil **jeder Kopf seine eigene Kopie von `GonkNote.Core.dll`** trägt und er vor der Änderung gebaut worden war — als Falle festgehalten (§7). Und Punkt 6: **kein achtes Diagramm** (Fläche) |
 | V2-29 | 2026-08-09 | **Der Zeichner steht** (§4.24) — `TdRenderer` in Core nimmt eine gesetzte Seite und eine `SKCanvas` und malt: Papier, Zeilen mit allen Zeichenformaten (fett, kursiv, unterstrichen, durchgestrichen, Hervorhebung, Hoch-/Tiefstellung, Farbe), Aufzählungsmarken, Absatzlinien, Tabellen mit Hintergrund und Rahmen, Bilder, Kopf-/Fußzeile mit aufgelösten Platzhaltern und das Wasserzeichen. **Er rechnet nichts** — jede Zahl steht schon im Umbruch, in Zentimetern und mit aufgelöstem Format (§4.16); hier wird nur in Pixel umgerechnet. Genau dafür rechnet der Umbruch in Zentimetern: eine Zoomstufe darf ihn nicht ändern, sonst bricht ein Dokument bei 150 % anders um als beim Drucken. **Drei Stellen, an denen es schiefgeht, und alle drei haben einen Wächter bekommen:** (1) **Punkt ist nicht Pixel** — die Größe steht im Modell in Punkt, die Leinwand rechnet in Pixeln, der Maßstab kommt obendrauf; wer das vergisst, bekommt bei jeder Zoomstufe dieselbe winzige Schrift auf einer immer größeren Seite. (2) **Der Zellinhalt zählt ab der Innenkante der Zelle**, nicht ab dem Textbereich (§4.19) — ohne den Versatz steht der Text links neben der Tabelle, bei jeder Spalte weiter daneben. (3) **Die Absatzlinie steht unter dem Absatz, nicht unter jeder Zeile** — sonst wird aus einem dreizeiligen Absatz liniertes Papier, und weil das nach Gestaltung aussieht, fällt es niemandem als Fehler auf. **Benannte Lücke:** Ein `TdChart` bekommt einen Kasten mit gestricheltem Rand und seinem Titel und noch kein Diagramm; die sieben Arten sind eine eigene Runde. Ein Kasten sagt „hier fehlt etwas", eine Leerstelle sagt „hier war nie etwas" (§7) — derselbe Platzhalter erscheint, wenn zu einem Bild der Blob fehlt. **Geprüft wird zweigeteilt, und das ist nötig:** Text darf nicht gehasht werden (§4.6, „Segoe UI" fehlt unter Linux), also wird das Geometrische an bekannten Stellen auf Farbe geprüft und alles mit Schrift über die Rechnung — mit der festen Messung aus `UmbruchTests` steht vorher fest, wo etwas landen muss. **Zwei der elf Wächter waren zuerst falsch, und beide Male lag es am Wächter:** Der Zelltest zählte die Rahmenlinie der Nachbarzelle als „Text in der falschen Spalte", der Linientest zählte eine 1 px starke Linie doppelt, weil die Kantenglättung sie auf zwei Pixelzeilen verteilt — gezählt werden jetzt zusammenhängende Bänder. Am Augenschein geprüft: eine A4-Seite mit Überschrift, gemischten Formaten, Trennlinie, Aufzählung, Tabelle, Bild und Platzhalter kommt vollständig und an der richtigen Stelle heraus. **420 Tests grün** (396 Core + 24 WPF), alle Projekte 0 Warnungen. **Angeschlossen ist er noch nirgends** — dieselbe Absicht wie bei Schritt 1; `PdfExporter` und die Anzeige im Linux-Kopf sind die nächsten zwei Runden |
 | V2-28 | 2026-08-09 | **Das Umverdrahten, erster Teil: DOCX und Markdown laufen gegen das Modell** (§4.23) — der letzte offene Punkt aus Phase 4, und **§4.1 ist damit zur Hälfte eingelöst**. Drei Schritte in dieser Reihenfolge, weil jeder auf dem vorigen steht: `TextDoc.Model` wird bei **jedem** Speichern mitgeschrieben (sonst exportierte ein Export aus dem Modell den Stand der einmaligen Übernahme statt dessen, was auf dem Schirm steht), dann Markdown über `TdMarkdown`, dann DOCX über `TdDocx` in **beide** Richtungen — beim Import macht `TdZuFlow` daraus wieder ein `XamlPackage`, sonst käme eine importierte Datei mit gefülltem Modell und leerem Editor an. `DocxExporter` und `MarkdownExporter` sind **gelöscht** (941 Zeilen); `DocxImporter` bleibt für den Whiteboard-Import. **Der eigentliche Ertrag sind fünf Fehler, die vorher niemand sehen konnte** — sie standen alle im Code, aber nichts lief durch diesen Weg, und ein Roundtrip Modell-gegen-Modell liest denselben falschen Ort wieder aus, den er beschrieben hat: (1) Das Absatz-Zeichenformat stand nur im `w:pPr/w:rPr`, das in Word **nur für die Absatzmarke** gilt — jede Überschrift wäre als Fließtext angekommen; (2) es gab keine `Heading`-Vorlagen, also blieben Navigationsbereich und Verzeichnis-Katalog leer; (3) die Ausrichtung wurde örtlich gelesen, aber ein `FlowDocument` steht von Haus aus auf **Blocksatz** — jedes Dokument wäre still linksbündig exportiert worden; (4) Grundschrift und Tabellenlinien kamen gar nicht mit (Tinte → Schwarz, Gainsboro → Schwarz); (5) das generierte Inhaltsverzeichnis wurde als toter Text übernommen und das echte `TOC`-Feld ging verloren. **Neu im Modell: `TdParaFormat.ExcludeFromToc`** — „ist das eine Überschrift?" und „gehört das ins Verzeichnis?" sind **zwei** Fragen, und Titel wie die Zeile „Inhaltsverzeichnis" beantworten sie verschieden; Word trennt es genauso (`Title`/`TOC Heading` gegen `w:outlineLvl`). **Nutzer-Entscheidung: der Titel bekommt im Markdown seine `#`-Überschrift.** Zwei Wächter mussten mit, und das ist keine Nebensache: `DocxAufriss` las `w:b w:val="0"` als „fett" und kannte die dreiteilige Feldform nicht — **ein Wächter, der das Falsche liest, ist schlimmer als keiner.** Die Golden-Files haben sich geändert und jede Zeile ist begründet (§4.6, Tabelle in §4.23): echte Felder statt eingebackenem Text, A4 exakt statt vier Twips daneben, Linien an der Tabelle statt an jeder Zelle. Am laufenden Programm mit einer **Kopie** der echten Datenbank geprüft (Dauerregel 4): Der Überschriften-**Lauf** im DOCX trägt jetzt `w:b`/`w:color`/`w:sz` — genau das war kaputt, und nur so ließ es sich zeigen. **409 Tests grün** (385 Core + 24 WPF), drei Projekte 0 Warnungen. **`Rtf` führt weiter**; Zeichner, `PdfExporter` und die Anzeige im Linux-Kopf sind die nächsten drei Runden |

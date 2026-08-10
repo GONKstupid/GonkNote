@@ -32,8 +32,13 @@ namespace GonkNote.Services;
 /// </summary>
 public static class MarkdownFlow
 {
-    private const string FontUi = "Segoe UI";
-    private const string FontMono = "Consolas";
+    // Die Namen stehen im Schriftschema in Core und nicht hier (HANDOFF §4.26) — sonst gäbe
+    // es eine zweite Liste, und eine davon veraltet.
+    private static readonly string FontUi =
+        GonkNote.Core.Theming.Fonts.Standard.Family(GonkNote.Core.Theming.FontRole.Ui);
+
+    private static readonly string FontMono =
+        GonkNote.Core.Theming.Fonts.Standard.Family(GonkNote.Core.Theming.FontRole.Mono);
 
     /// <param name="onDocumentLink">
     /// Wird mit dem Linkziel aufgerufen, wenn im Text ein Verweis auf eine andere

@@ -316,3 +316,14 @@ Single-File-Exe), stehen in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md):
 | [DocumentFormat.OpenXml](https://github.com/dotnet/Open-XML-SDK) | DOCX-Import/-Export | MIT |
 | [Docnet.Core](https://github.com/GowenGit/docnet) / PDFium | PDF-Import | MIT / BSD-3-Clause |
 | [Tesseract](https://github.com/charlesw/tesseract) + `tessdata` (deu, eng) | OCR | Apache-2.0 |
+| [Inter](https://github.com/rsms/inter) | Schrift der Oberfläche | SIL OFL 1.1 |
+| [Source Sans 3](https://github.com/adobe-fonts/source-sans) | Grundschrift der Textdokumente | SIL OFL 1.1 |
+| [JetBrains Mono](https://github.com/JetBrains/JetBrainsMono) | Code und Festbreitentext | SIL OFL 1.1 |
+| [Space Grotesk](https://github.com/floriankarsten/space-grotesk) | Cover-Titel und große Überschriften | SIL OFL 1.1 |
+| [Geist](https://github.com/vercel/geist-font) | Textfelder und Notizzettel im Whiteboard | SIL OFL 1.1 |
+
+**Die fünf Schriften werden mitgeliefert** und liegen als `Fonts\`-Ordner neben dem Programm.
+Das ist Absicht: „Segoe UI" gibt es unter Linux nicht, und auf keinem Linux-System ist eine
+bestimmte Schrift garantiert — ohne mitgelieferte Schriften sähe dasselbe Dokument auf beiden
+Ausgaben verschieden aus. Die Lizenztexte liegen je Familie als `OFL.txt` daneben und gehören
+bei einer Weitergabe dazu.

@@ -107,6 +107,40 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ---
 
+## SIL Open Font License 1.1
+
+Gonk Note **liefert seine Schriften mit** (`Assets/Fonts/`, HANDOFF §4.26). Der Grund ist kein
+gestalterischer: „Segoe UI" gibt es unter Linux nicht und unter iPadOS auch nicht, und auf
+keinem Linux-System ist eine bestimmte Schrift garantiert. Ohne mitgelieferte Schriften sähe
+dasselbe Dokument auf drei Plattformen verschieden aus.
+
+**Was die OFL bei einer Weitergabe verlangt** — und wie es hier eingehalten wird:
+
+| Bedingung | Umsetzung |
+|---|---|
+| Lizenztext und Copyright-Vermerk müssen mitgehen | Je Familie liegt die unveränderte `OFL.txt` im Ordner der Schrift und wird in die Ausgabe **neben die Exe** kopiert |
+| Die Schrift darf nicht einzeln verkauft werden | Trifft nicht zu — sie wird als Teil des Programms weitergegeben |
+| Eine **veränderte** Fassung darf einen Reserved Font Name nicht weiterführen | **Nichts wird verändert und nichts beschnitten.** Damit greift die Regel nicht. Sie wäre sonst nicht theoretisch: **Source Sans führt „Source" als Reserved Font Name** |
+
+**Nur auszuwählen, welche Schnitte mitgehen, ist keine Veränderung** — mitgeliefert wird je
+Familie das, was die App benutzt, und nicht der ganze Satz.
+
+| Familie | Version | Rolle in der App | Copyright | Projekt |
+|---|---|---|---|---|
+| Inter | 4.1 | Oberfläche: Menüs, Ordnerbaum, Galerie, Dialoge | Copyright (c) 2016 The Inter Project Authors | https://github.com/rsms/inter |
+| Source Sans 3 | 3.052R | Grundschrift der Textdokumente | Copyright 2010–2022 Adobe (http://www.adobe.com/), with Reserved Font Name 'Source' | https://github.com/adobe-fonts/source-sans |
+| JetBrains Mono | 2.304 | Code und Festbreitentext | Copyright 2020 The JetBrains Mono Project Authors | https://github.com/JetBrains/JetBrainsMono |
+| Space Grotesk | 2.0.0 | Cover-Titel und große Überschriften | Copyright 2020 The Space Grotesk Project Authors | https://github.com/floriankarsten/space-grotesk |
+| Geist | 1.7.2 | Textfelder, Notizzettel und Sticker auf dem Whiteboard | Copyright 2024 The Geist Project Authors | https://github.com/vercel/geist-font |
+
+Den vollständigen Lizenztext samt Copyright-Zeile findest du je Familie in
+`Assets/Fonts/<Familie>/OFL.txt` — im Repo und neben der ausgelieferten Exe.
+
+> **Inter war schon vorher dabei**, über das NuGet-Paket `Avalonia.Fonts.Inter` im Linux-Kopf —
+> **ohne Vermerk in dieser Datei.** Das war eine Lücke und ist mit §4.26 geschlossen.
+
+---
+
 ## Gemeinfrei
 
 ### SQLite

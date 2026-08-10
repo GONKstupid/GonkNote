@@ -3,9 +3,24 @@
 
     <!-- ===================== Basistypografie ===================== -->
 
+    <!-- Die mitgelieferten Schriften (HANDOFF §4.26). Die Namen stehen in Core
+         (Theming/Fonts.cs) und hier ein zweites Mal, weil XAML keine Konstante aus C#
+         lesen kann — der Wächter `SchriftkonzeptTests` haelt beide Fassungen zusammen,
+         genau wie `FarbtabelleTests` es fuer die Farben tut (§4.9).
+
+         Schreibweise: `./Fonts/<Ordner>/#<Familienname>` zeigt auf die losen Dateien neben
+         der Exe; Core kopiert sie dorthin. Der Name hinter `#` ist der Familienname IM
+         Namensverzeichnis der Schrift, nicht der Dateiname.
+
+         Die Systemschrift dahinter ist Absicht: faellt das Laden aus, sieht die App unter
+         Windows weiterhin richtig aus statt in Times New Roman. -->
+    <FontFamily x:Key="Font.Ui">./Fonts/Inter/#Inter, Segoe UI</FontFamily>
+    <FontFamily x:Key="Font.Mono">./Fonts/JetBrainsMono/#JetBrains Mono, Consolas</FontFamily>
+    <FontFamily x:Key="Font.Display">./Fonts/SpaceGrotesk/#Space Grotesk, Segoe UI</FontFamily>
+
     <Style TargetType="TextBlock" x:Key="Text.Base">
         <Setter Property="Foreground" Value="{DynamicResource Brush.Text}"/>
-        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontFamily" Value="{StaticResource Font.Ui}"/>
     </Style>
 
     <Style TargetType="TextBlock" x:Key="Text.Muted" BasedOn="{StaticResource Text.Base}">
@@ -276,13 +291,23 @@
         </Setter>
     </Style>
 
+    <!-- **Die Schrift muss hier ausdrücklich stehen** (HANDOFF §4.26, §7). `Menu` und
+         `MenuItem` erben ihre Schrift NICHT vom Fenster: WPF setzt sie aus den
+         Systemeinstellungen (`SystemFonts.MenuFontFamily`). Ohne diese zwei Zeilen bliebe die
+         Menueleiste als einzige Zone bei der Systemschrift — auf Windows unauffaellig, unter
+         Linux eine zweite Schrift im selben Fenster. Gefunden mit einem A/B-Bildvergleich:
+         alle anderen Zonen aenderten sich, die Menueleiste um genau 0 Pixel. -->
     <Style TargetType="Menu">
         <Setter Property="Background" Value="Transparent"/>
         <Setter Property="Foreground" Value="{DynamicResource Brush.Text}"/>
+        <Setter Property="FontFamily" Value="{StaticResource Font.Ui}"/>
+        <Setter Property="FontSize" Value="13"/>
     </Style>
 
     <Style TargetType="MenuItem">
         <Setter Property="Foreground" Value="{DynamicResource Brush.Text}"/>
+        <Setter Property="FontFamily" Value="{StaticResource Font.Ui}"/>
+        <Setter Property="FontSize" Value="13"/>
         <Setter Property="Padding" Value="10,6"/>
         <Setter Property="Template">
             <Setter.Value>

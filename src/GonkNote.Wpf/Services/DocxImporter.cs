@@ -53,7 +53,9 @@ public static class DocxImporter
     {
         var flow = new FlowDocument
         {
-            FontFamily = new FontFamily("Segoe UI"),
+            // Die Grundschrift eines Dokuments, nicht die der Oberfläche (§4.26).
+            FontFamily = new FontFamily(
+                GonkNote.Core.Theming.Fonts.Standard.Family(GonkNote.Core.Theming.FontRole.Body)),
             FontSize = 15,
         };
 

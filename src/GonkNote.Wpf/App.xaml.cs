@@ -33,7 +33,7 @@ public partial class App : Application
 
         Platform = new WpfPlatformServices();
         AppPaths.Current = Platform.Paths;
-        Core.Rendering.WbFonts.UiFamily = Platform.Fonts.UiFamily;   // vor dem ersten Zeichnen
+        Core.Rendering.WbFonts.Schema = Platform.Fonts.Scheme;       // vor dem ersten Zeichnen
 
         // "--db <pfad>" erlaubt eine alternative Datenbank (z. B. für UI-Tests)
         string? dbPath = null;

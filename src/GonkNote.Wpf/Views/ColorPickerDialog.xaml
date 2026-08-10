@@ -5,7 +5,7 @@
         Title="{loc:T ColorPicker.Title}" Width="420" SizeToContent="Height"
         WindowStartupLocation="CenterOwner" ResizeMode="NoResize"
         Background="{DynamicResource Brush.WindowBg}"
-        FontFamily="Segoe UI" FontSize="13"
+        FontFamily="{DynamicResource Font.Ui}" FontSize="13"
         Foreground="{DynamicResource Brush.Text}"
         ShowInTaskbar="False">
     <StackPanel Margin="16">

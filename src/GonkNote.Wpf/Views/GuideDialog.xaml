@@ -5,7 +5,7 @@
         Title="{loc:T Guide.Title}" Width="760" Height="720"
         WindowStartupLocation="CenterOwner"
         Background="{DynamicResource Brush.WindowBg}"
-        FontFamily="Segoe UI" FontSize="13"
+        FontFamily="{DynamicResource Font.Ui}" FontSize="13"
         Foreground="{DynamicResource Brush.Text}"
         ShowInTaskbar="False">
     <DockPanel Margin="18">

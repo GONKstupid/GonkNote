@@ -192,7 +192,8 @@ public class TextElement : WbElement
     /// <summary>Hintergrundfarbe hinter dem Text; null = transparent.</summary>
     public string? Background { get; set; }
 
-    public string FontFamily { get; set; } = "Segoe UI";
+    /// <inheritdoc cref="StickyNoteElement.FontFamily"/>
+    public string FontFamily { get; set; } = Theming.Fonts.Standard.Family(Theming.FontRole.Handwriting);
 
     public override void Translate(float dx, float dy)
     {
@@ -247,7 +248,13 @@ public class StickyNoteElement : WbElement, IBoxElement
     /// <summary>Textfarbe.</summary>
     public string TextColor { get; set; } = "#FF1F2937";
     public float FontSize { get; set; } = 16f;
-    public string FontFamily { get; set; } = "Segoe UI";
+
+    /// <summary>
+    /// Die Schrift dieses Elements. <b>Nur die Vorgabe hat sich mit §4.26 geändert</b> —
+    /// bestehende Elemente tragen ihren gespeicherten Wert und behalten ihn, es gibt keinen
+    /// Migrationsschritt. Wer „Segoe UI" gespeichert hat, bekommt „Segoe UI".
+    /// </summary>
+    public string FontFamily { get; set; } = Theming.Fonts.Standard.Family(Theming.FontRole.Handwriting);
 
     public override void Translate(float dx, float dy)
     {
@@ -308,7 +315,12 @@ public class CoverStyle
 {
     public string GradientStart { get; set; } = "#1E3A8A";
     public string GradientEnd { get; set; } = "#7C3AED";
-    public string FontFamily { get; set; } = "Segoe UI";
+
+    /// <summary>
+    /// Die Schrift des Cover-Titels — die Rolle „Display" (§4.26). <inheritdoc
+    /// cref="StickyNoteElement.FontFamily" path="/summary/b"/>
+    /// </summary>
+    public string FontFamily { get; set; } = Theming.Fonts.Standard.Family(Theming.FontRole.Display);
 
     /// <summary>Optionales Bild als Cover (PNG/JPEG-Bytes); ersetzt den Farbverlauf.</summary>
     public byte[]? Image { get; set; }
@@ -341,7 +353,7 @@ public class WhiteboardDoc
     /// <summary>Vorlage für neue Seiten; null = A4 liniert.</summary>
     public PageTemplate? NewPageTemplate { get; set; }
 
-    /// <summary>Gestaltung des Covers; null = Standard (Blau-Lila-Verlauf, Segoe UI).</summary>
+    /// <summary>Gestaltung des Covers; null = Standard (Blau-Lila-Verlauf, Space Grotesk).</summary>
     public CoverStyle? Cover { get; set; }
 
     public static WhiteboardDoc NewWhiteboard(Guid id) => new()

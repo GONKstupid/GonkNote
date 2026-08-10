@@ -1,4 +1,5 @@
 using GonkNote.Core.Platform;
+using GonkNote.Core.Theming;
 using GonkNote.Services;
 
 namespace GonkNote.Platform;
@@ -18,8 +19,12 @@ public sealed class WpfSpellChecker : ISpellChecker
     public bool IsSupported(string bcp47) => SpellCheckSupport.IsSupported(bcp47);
 }
 
-/// <summary>Die Oberflächenschrift von Windows 11.</summary>
+/// <summary>
+/// Das Schriftschema. <b>Dasselbe wie im Linux-Kopf</b> — seit §4.26 liefert die App ihre
+/// Schriften mit, und damit gibt es keine Windows-Antwort und keine Linux-Antwort mehr,
+/// sondern eine. Früher stand hier fest „Segoe UI".
+/// </summary>
 public sealed class WpfFontProvider : IFontProvider
 {
-    public string UiFamily => "Segoe UI";
+    public FontScheme Scheme => Fonts.Standard;
 }

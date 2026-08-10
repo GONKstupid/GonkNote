@@ -49,36 +49,18 @@ public sealed class TdSkiaMeasure : ITdTextMeasure, IDisposable
     private const double CmProPunkt = 2.54 / 72.0;
 
     /// <summary>
-    /// Zwischenspeicher je Schrift-Kennung. Ein <c>SKTypeface</c> zu öffnen kostet einen
-    /// Dateizugriff, und der Umbruch fragt je Wort danach.
+    /// <b>Gemessen wird mit derselben Schrift, mit der gezeichnet wird</b> — beide fragen seit
+    /// §4.26 <see cref="Rendering.WbFonts"/>. Bis dahin hatte diese Klasse ihren eigenen
+    /// Zwischenspeicher und ihren eigenen Aufruf von <c>SKTypeface.FromFamilyName</c>; das sah
+    /// nur zufällig gleich aus wie der Zeichner und **hätte eine mitgelieferte Schrift nie
+    /// gefunden**. Eine Zeile, die anders gemessen als gezeichnet wird, bricht an einer Stelle
+    /// um und steht an einer anderen.
     /// </summary>
-    private readonly Dictionary<(string Familie, bool Fett, bool Kursiv), SKTypeface> _schriften = new();
-
-    private SKTypeface Schrift(TdCharFormat f)
+    private static SKFont Font(TdCharFormat f)
     {
-        (string Familie, bool Fett, bool Kursiv) schluessel =
-            (f.FontFamily ?? "", f.Bold == true, f.Italic == true);
-        if (_schriften.TryGetValue(schluessel, out var vorhanden)) return vorhanden;
-
-        var stil = new SKFontStyle(
-            schluessel.Fett ? SKFontStyleWeight.Bold : SKFontStyleWeight.Normal,
-            SKFontStyleWidth.Normal,
-            schluessel.Kursiv ? SKFontStyleSlant.Italic : SKFontStyleSlant.Upright);
-
-        // **Kein Wurf, wenn die Schrift fehlt.** Unter Linux gibt es „Segoe UI" nicht; das
-        // Dokument soll dann in einer Ersatzschrift umbrechen und nicht gar nicht.
-        var schrift = SKTypeface.FromFamilyName(schluessel.Familie, stil)
-                      ?? SKTypeface.FromFamilyName(null, stil)
-                      ?? SKTypeface.Default;
-
-        _schriften[schluessel] = schrift;
-        return schrift;
-    }
-
-    private SKFont Font(TdCharFormat f)
-    {
-        var aufgeloest = f.Aufgeloest();
-        return new SKFont(Schrift(aufgeloest), (float)(aufgeloest.FontSize!.Value));
+        var a = f.Aufgeloest();
+        return Rendering.WbFonts.Font(
+            a.FontFamily, (float)a.FontSize!.Value, a.Bold == true, a.Italic == true);
     }
 
     public double WidthCm(string text, TdCharFormat format)
@@ -102,9 +84,12 @@ public sealed class TdSkiaMeasure : ITdTextMeasure, IDisposable
         return new TdFontMetrics(auf, ab, auf + ab + durchschuss);
     }
 
-    public void Dispose()
-    {
-        foreach (var s in _schriften.Values) s.Dispose();
-        _schriften.Clear();
-    }
+    /// <summary>
+    /// <b>Nichts freizugeben — und das mit Absicht.</b> Die Schriften gehören seit §4.26
+    /// <see cref="Rendering.WbFonts"/> und werden dort über die ganze Laufzeit gehalten; wer
+    /// sie hier freigäbe, zöge sie dem Zeichner unter den Füßen weg. <see cref="IDisposable"/>
+    /// bleibt trotzdem stehen: alle Aufrufstellen schreiben <c>using</c>, und die Naht darf
+    /// eine Umsetzung tragen, die etwas freizugeben hat.
+    /// </summary>
+    public void Dispose() { }
 }

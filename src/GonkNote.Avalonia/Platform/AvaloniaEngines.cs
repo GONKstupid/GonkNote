@@ -4,6 +4,7 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
 using GonkNote.Core.Platform;
+using GonkNote.Core.Theming;
 
 namespace GonkNote.Platform;
 
@@ -61,21 +62,22 @@ public sealed class AvaloniaUiScheduler : IUiScheduler
 }
 
 /// <summary>
-/// Die Oberflächenschrift.
+/// Das Schriftschema — <b>dasselbe wie im WPF-Kopf</b> (§4.26).
+///
 /// <para>
-/// Unter Windows gibt es „Segoe UI" wie beim WPF-Kopf. Unter Linux ist keine Schrift
-/// garantiert — <c>Inter</c> liegt aber als Paket im Kopf und wird von Avalonia geladen
-/// (<c>WithInterFont</c>), steht also immer zur Verfügung.
+/// <b>Hier stand die Plattform-Weiche</b>: „Segoe UI" unter Windows, „Inter" unter Linux. Sie
+/// ist weg, und das war der Sinn der Übung. Der Fehler dahinter war nicht die Weiche selbst,
+/// sondern dass sie **nur für Avalonia stimmte**: Inter kam aus <c>WithInterFont()</c> und ist
+/// damit in Avalonia eingebettet — <c>SKTypeface.FromFamilyName("Inter")</c> geht dagegen über
+/// fontconfig. Auf einem Linux-Rechner ohne systemweit installiertes Inter zeichnete das Chrome
+/// in Inter und die Zeichenfläche daneben in irgendeiner Ersatzschrift, still.
 /// </para>
 /// <para>
-/// <b>Das gilt nur für Avalonia selbst.</b> Was der <c>WbRenderer</c> zeichnet, geht über
-/// <c>SKTypeface</c> und damit über fontconfig; findet Skia den Namen nicht, nimmt es seine
-/// eigene Rückfallschrift. Genau deshalb prüft kein Pixelhash gezeichneten Text
-/// (HANDOFF §4.6).
+/// Seit §4.26 liegen die Schriften bei der App, und <see cref="Rendering.WbFonts"/> lädt sie
+/// selbst — Chrome und Leinwand bekommen dieselbe Datei.
 /// </para>
 /// </summary>
 public sealed class AvaloniaFontProvider : IFontProvider
 {
-    public string UiFamily { get; } =
-        RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "Segoe UI" : "Inter";
+    public FontScheme Scheme => Fonts.Standard;
 }

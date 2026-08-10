@@ -418,7 +418,7 @@ public partial class ChartDialog : Window
     private static FormattedText Text(string s, double size, Brush brush, bool bold, double maxW,
         TextAlignment align = TextAlignment.Center) =>
         new(s, CultureInfo.CurrentCulture, FlowDirection.LeftToRight,
-            new Typeface(new FontFamily("Segoe UI"), FontStyles.Normal,
+            new Typeface(new FontFamily(GonkNote.Core.Theming.Fonts.Standard.Family(GonkNote.Core.Theming.FontRole.Ui)), FontStyles.Normal,
                 bold ? FontWeights.SemiBold : FontWeights.Normal, FontStretches.Normal),
             size, brush, 1.0)
         {

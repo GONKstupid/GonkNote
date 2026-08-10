@@ -36,8 +36,9 @@ public static class MarkdownView
     /// Schrift für Code. Avalonia löst die Liste von links nach rechts auf; <c>monospace</c>
     /// am Ende ist der fontconfig-Sammelname und trägt auf jedem Linux-System.
     /// </summary>
-    private static readonly FontFamily Feste =
-        new("Consolas, DejaVu Sans Mono, Liberation Mono, monospace");
+    private static readonly FontFamily Feste = new(
+        GonkNote.Core.Theming.Fonts.Standard.Family(GonkNote.Core.Theming.FontRole.Mono)
+        + ", Consolas, DejaVu Sans Mono, Liberation Mono, monospace");
 
     /// <param name="onDocumentLink">
     /// Wird mit dem Ziel aufgerufen, wenn ein Verweis auf eine andere <c>.md</c>-Datei

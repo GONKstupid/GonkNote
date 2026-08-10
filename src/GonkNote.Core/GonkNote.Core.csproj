@@ -38,4 +38,24 @@
        Laufzeit geladen — so lässt sich eine Zeichnung austauschen, ohne neu zu bauen.
        Vorrang hat immer die eigene Datei des Nutzers aus %APPDATA%\GonkNote. -->
 
+  <!-- Die mitgelieferten Schriften (§4.26). Sie stehen **hier** und nicht in den Köpfen, und
+       das ist der Punkt: Core löst Schriften auf (WbFonts), also muss Core sie auch neben
+       sich liegen haben. Über die Projektverweise wandern sie von selbst in die Ausgabe
+       **jedes** Kopfes UND beider Testprojekte — ohne diesen Weg müsste jede der vier
+       .csproj dieselbe Liste noch einmal führen, und die erste vergessene wäre ein Kopf,
+       der still auf eine Systemschrift zurückfällt.
+
+       `Link` bestimmt den Ausgabepfad, genau wie bei den Wurzel-Dateien der Köpfe
+       (HANDOFF §7 „Wurzel-Dateien brauchen Link").
+
+       **Die OFL.txt geht mit.** Die SIL Open Font License verlangt, dass Lizenztext und
+       Copyright-Zeile bei einer Weitergabe dabei sind — weitergegeben wird die Exe samt
+       ihrem Ordner, nicht das Repo. -->
+  <ItemGroup>
+    <Content Include="..\..\Assets\Fonts\**\*.ttf" Link="Fonts\%(RecursiveDir)%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\Assets\Fonts\**\OFL.txt" Link="Fonts\%(RecursiveDir)%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

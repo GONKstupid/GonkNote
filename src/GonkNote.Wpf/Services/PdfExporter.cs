@@ -240,7 +240,10 @@ public static class PdfExporter
             canvas.DrawRect(rect, grad);
         }
 
-        var typeface = SKTypeface.FromFamilyName(cover?.FontFamily ?? "Segoe UI", SKFontStyle.Bold) ?? WbFonts.Bold;
+        // **Über WbFonts und nicht über SKTypeface.FromFamilyName** (§4.26): nur so findet der
+        // Cover-Titel die mitgelieferte Schrift. Ohne eigene Angabe die Rolle „Display".
+        var typeface = WbFonts.Family(
+            cover?.FontFamily ?? WbFonts.FamilyOf(GonkNote.Core.Theming.FontRole.Display), bold: true);
         using var titlePaint = new SKPaint { Color = SKColors.White, IsAntialias = true };
         using var titleFont = new SKFont(typeface, 46);
         while (titleFont.Size > 18 && titleFont.MeasureText(title) > page.Width * 0.8f)
@@ -439,7 +442,7 @@ public static class PdfExporter
         var ft = new FormattedText(text,
             System.Globalization.CultureInfo.CurrentCulture,
             FlowDirection.LeftToRight,
-            new Typeface("Segoe UI"),
+            new Typeface(GonkNote.Core.Theming.Fonts.Standard.Family(GonkNote.Core.Theming.FontRole.Ui)),
             12,
             new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x6B, 0x7A, 0x99)),
             1.0)

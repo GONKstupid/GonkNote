@@ -44,7 +44,7 @@ public partial class App : Application
 
         Platform = new AvaloniaPlatformServices();
         AppPaths.Current = Platform.Paths;
-        Core.Rendering.WbFonts.UiFamily = Platform.Fonts.UiFamily;   // vor dem ersten Zeichnen
+        Core.Rendering.WbFonts.Schema = Platform.Fonts.Scheme;       // vor dem ersten Zeichnen
 
         // "--db <pfad>" erlaubt eine alternative Datenbank. Unter Windows zeigt dieser Kopf
         // auf **denselben** Datenordner wie der WPF-Kopf (AvaloniaAppPaths) — zum Prüfen

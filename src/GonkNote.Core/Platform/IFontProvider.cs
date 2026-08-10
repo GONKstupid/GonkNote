@@ -1,22 +1,38 @@
+using GonkNote.Core.Theming;
+
 namespace GonkNote.Core.Platform;
 
 /// <summary>
-/// Welche Schrift die Oberfläche der Plattform benutzt. <c>WbRenderer</c> zeichnet Text
-/// ohne Familienangabe damit — unter Windows „Segoe UI", unter Linux und iOS etwas anderes.
+/// Welches Schriftschema die App benutzt.
+///
 /// <para>
-/// Das ist kein Schönheitsthema: bis Phase 2 stand „Segoe UI" fest im Renderer, und was
-/// dann herauskam, war die stille Rückfallschrift von Skia. Genau deshalb prüft kein
-/// Pixelhash gezeichneten Text (HANDOFF §4.6).
+/// <b>Bis §4.26 stand hier ein einziger Name</b> (<c>UiFamily</c>), und die Köpfe beantworteten
+/// ihn je Plattform verschieden — Windows „Segoe UI", Linux „Inter". Das Ergebnis war
+/// **dasselbe Dokument in drei Schriftbildern**, und im Avalonia-Kopf zeichnete das Chrome in
+/// einer anderen Schrift als die Zeichenfläche: Avalonias eingebettetes Inter kennt Skia nicht.
+/// </para>
+/// <para>
+/// <b>Jetzt liefert die Naht das ganze Schema</b> (fünf Rollen, <see cref="FontScheme"/>), und
+/// alle drei Köpfe liefern dasselbe — die mitgelieferten Schriften machen die Frage
+/// plattformunabhängig. <b>Die Naht bleibt trotzdem stehen:</b> Ein Kopf, der eines Tages der
+/// Systemeinstellung folgen soll (Barrierefreiheit, iPadOS-Dynamic-Type), setzt hier an, ohne
+/// dass Core davon weiß.
 /// </para>
 /// </summary>
 public interface IFontProvider
 {
-    /// <summary>Familienname der Standard-Oberflächenschrift, z. B. „Segoe UI".</summary>
-    string UiFamily { get; }
+    /// <summary>Das Schriftschema — Rolle → Familie, samt Rückfallkette.</summary>
+    FontScheme Scheme { get; }
+
+    /// <summary>
+    /// Familienname der Oberflächenschrift. Bleibt als Abkürzung stehen, weil die Köpfe ihn für
+    /// ihr eigenes Chrome brauchen und dort keine Rolle kennen.
+    /// </summary>
+    string UiFamily => Scheme.Family(FontRole.Ui);
 }
 
-/// <summary>Die Vorgabe: „Segoe UI", also das Verhalten vor Phase 2.</summary>
+/// <summary>Die Vorgabe: das mitgelieferte Schema (§4.26).</summary>
 public sealed class DefaultFontProvider : IFontProvider
 {
-    public string UiFamily => "Segoe UI";
+    public FontScheme Scheme => Fonts.Standard;
 }

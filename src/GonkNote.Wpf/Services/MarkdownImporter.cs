@@ -54,7 +54,9 @@ public static class MarkdownImporter
 
         var flow = new FlowDocument
         {
-            FontFamily = new FontFamily("Segoe UI"),
+            // Die Grundschrift eines Dokuments, nicht die der Oberfläche (§4.26).
+            FontFamily = new FontFamily(
+                GonkNote.Core.Theming.Fonts.Standard.Family(GonkNote.Core.Theming.FontRole.Body)),
             FontSize = TextStyles.BodySize,
             Foreground = Ink,
             PagePadding = new Thickness(0),
@@ -103,7 +105,7 @@ public static class MarkdownImporter
 
         return new Paragraph(new Run(sb.ToString().TrimEnd('\r', '\n')))
         {
-            FontFamily = new FontFamily("Consolas"),
+            FontFamily = new FontFamily(GonkNote.Core.Theming.Fonts.Standard.Family(GonkNote.Core.Theming.FontRole.Mono)),
             FontSize = 13,
             Background = CodeBg,
             Padding = new Thickness(8),
@@ -340,7 +342,7 @@ public static class MarkdownImporter
             {
                 target.Add(new Run(m.Groups["code"].Value)
                 {
-                    FontFamily = new FontFamily("Consolas"),
+                    FontFamily = new FontFamily(GonkNote.Core.Theming.Fonts.Standard.Family(GonkNote.Core.Theming.FontRole.Mono)),
                     Background = CodeBg,
                 });
             }

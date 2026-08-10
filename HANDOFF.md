@@ -20,8 +20,11 @@
 >      Textänderungen erscheinen also ohne Code-Änderung — genau deshalb merkt man einen
 >      kaputten Umbruch, einen toten Verweis oder eine fehlende Übersetzung **nur im
 >      laufenden Programm**.
->    - Von Hand zu pflegen ist nur die Versions-/Phasenzeile in `AboutDialog.xaml.cs`
->      (`VersionText`).
+>    - Von Hand zu pflegen ist nur die Versions-/Phasenzeile — sie steht seit §4.5 als
+>      Schlüssel **`About.Version` in `LocGerman` und `LocEnglish`** und nicht mehr im Code
+>      der Dialoge. **Beide Tabellen zusammen ändern**, danach beide Dialoge in beiden
+>      Sprachen gegenprüfen — und zwar in **beiden Köpfen** (§7, „Der Kopf trägt seine eigene
+>      Kopie von Core").
 >    - Verweise zwischen den Dokumenten laufen über `EmbeddedDocs.GuideLinkDe/-En`
 >      (`ERSTE-SCHRITTE.md` / `GETTING-STARTED.md`) — wer eine Datei umbenennt, muss dort
 >      nachziehen.
@@ -634,6 +637,13 @@ Behoben am 2026-07-30 (Nutzer-Entscheidung): neuer Schlüssel **`About.Version`*
 **Von Hand nachzuziehen, wenn eine Portierungsphase beginnt** — und zwar in **beiden**
 Tabellen (Dauerregel 1). Der Dialog wird bei jedem Öffnen neu erzeugt, `Loc.LanguageChanged`
 braucht er deshalb nicht.
+
+> **Nachgezogen am 2026-08-10 (Nutzer-Entscheidung):** `Version 0.3.0 · Portierung, Phase 4`
+> / `Version 0.3.0 · Port, phase 4`. Damit ist §5 „Noch offen" 2a beantwortet. **Die Zeile
+> beschreibt, woran gearbeitet wird, nicht, was fertig ist** — so stand sie in Phase 2 und 3
+> auch schon da, während die Phase noch lief. Gegengeprüft in **allen vier** Kombinationen:
+> WPF-Kopf und Avalonia-Kopf, je Deutsch und Englisch. Dabei ist eine Falle aufgefallen
+> (§7, „Der Kopf trägt seine eigene Kopie von Core").
 
 Am laufenden Programm in beiden Sprachen gegengeprüft (Dauerregel 1), mit einer
 Wegwerf-Datenbank: Zeile passt in eine Zeile, kein Umbruch, und der ganze Dialog wechselt mit
@@ -2794,6 +2804,18 @@ Modell hat sich nichts geändert.
 `PdfExporter` gegen das Modell und die Anzeige im Linux-Kopf sind die nächsten zwei Runden; erst
 danach wird `Rtf` als führendes Feld abgelöst (§5).
 
+#### Im selben Zug: der Über-Dialog sagt jetzt Phase 4
+
+Nutzer-Entscheidung zu §5 „Noch offen" 2a, umgesetzt am 2026-08-10: `About.Version` steht in
+**beiden** Tabellen auf „Portierung, Phase 4" / „Port, phase 4" (§4.5). Gegengeprüft in **allen
+vier** Kombinationen — WPF-Kopf und Avalonia-Kopf, je Deutsch und Englisch.
+
+**Und genau die Gegenprobe hat etwas gefunden:** Der Avalonia-Kopf zeigte weiterhin „phase 3",
+weil er vor der Änderung gebaut worden war — **jeder Kopf trägt seine eigene Kopie von
+`GonkNote.Core.dll`** in seinem Ausgabeordner. Nach dem Neubau stimmte es. Als Falle
+festgehalten (§7): **Wer eine Core-Zeichenkette ändert und nur einen Kopf neu baut, prüft im
+anderen den alten Stand — und sieht dort den alten Text, ohne dass etwas kaputt aussieht.**
+
 ---
 
 ## 5. Entscheidungen
@@ -2808,6 +2830,8 @@ danach wird `Rtf` als führendes Feld abgelöst (§5).
 | Stift | Die App soll mit **jedem** Stylus laufen — nicht nur mit einem Modell (§1) |
 | Linux-Rechner | Zweiter Laptop mit **CachyOS** steht bereit; Stift ist ein Lenovo Precision Pen 2 (§5a) |
 | Über-Dialog-Text | **`About.Version` über `Loc`**, deutsch „Portierung, Phase 2" / englisch „Port, phase 2" (§4.5). Erledigt 2026-07-30 |
+| Welche Phase der Über-Dialog nennt | **Die, an der gearbeitet wird — nicht die, die fertig ist** (§4.5). Am 2026-08-10 auf „Portierung, Phase 4" / „Port, phase 4" gesetzt; „Phase 3" war seit dem 2026-08-03 falsch, und der Dialog zeigte einen Stand von vor sieben Runden. So stand die Zeile in Phase 2 und 3 auch schon da, während die Phase noch lief. Gegengeprüft in allen vier Kombinationen — dabei fiel auf, dass jeder Kopf seine eigene Kopie von Core trägt (§7). Entschieden 2026-08-10 (Nutzer) |
+| Ob ein achtes Diagramm (Fläche) dazukommt | **Vorerst nein** (§4.25). Die sieben aus `TdChartKind` decken den heutigen Editor und den DOCX-Weg vollständig ab; ein Flächendiagramm hat noch nie jemand anlegen können. Die im HANDOFF genannte „Fläche" war ein Schreibfehler an der Stelle von „Punkt+Linie" und ist korrigiert. Entschieden 2026-08-10 (Nutzer) |
 | Markdown-Export und Hyperlinks | **Ziel bleibt erhalten** (`[Text](URL)`), §7 „Markdown-Export". Erledigt 2026-07-30 |
 | Kopie der echten Daten | **Ohne Nachfragen erlaubt**, die echte DB bleibt unangetastet — Dauerregel 4 in der Kopfzeile, Befehle in §8. Entschieden 2026-07-30 |
 | Wie die ViewModels an den Kopf kommen | **Ein Bündel `IPlatformServices` im Konstruktor**, kein Service-Locator und keine zwölf Argumente (§4.7). Entschieden 2026-07-31 |
@@ -2867,14 +2891,19 @@ danach wird `Rtf` als führendes Feld abgelöst (§5).
 2. **Eigene Farbschemata** (Nutzerwunsch 2026-08-02) — vorgemerkt in §6. Die wichtigste der
    drei Fragen ist mit §4.9 beantwortet (die Tabelle umfasst auch das Papier); offen bleiben
    die beiden kleineren: Verhalten bei einer unvollständigen Datei und der Menüaufbau.
-2a. **Sagt der Über-Dialog noch die richtige Phase?** `About.Version` steht in beiden Sprachen
+2a. ~~**Sagt der Über-Dialog noch die richtige Phase?**~~ **Entschieden und umgesetzt am
+   2026-08-10** (Nutzer): **jetzt auf Phase 4.** `About.Version` steht in beiden Tabellen auf
+   „Portierung, Phase 4" / „Port, phase 4"; gegengeprüft in allen vier Kombinationen
+   (WPF ↔ Avalonia × Deutsch ↔ Englisch). Der Wortlaut der Frage bleibt stehen:
+
+   `About.Version` stand in beiden Sprachen
    auf **„Portierung, Phase 3" / „Port, phase 3"** (§4.5), gearbeitet wird seit §4.14 an
    Phase 4. Die Zeile ist **von Hand zu pflegen** (Dauerregel 1), beide Sprachen gehören
    zusammen geändert, und danach ist der Dialog im laufenden Programm gegenzuprüfen — deshalb
    wurde sie nicht nebenbei mitgezogen. **Frage an den Nutzer:** auf Phase 4 setzen, oder erst,
    wenn Phase 4 wirklich abgeschlossen ist? Vermerkt 2026-08-09.
 
-   > **Am 2026-08-10 erneut vorgelegt, mit einer Empfehlung: jetzt auf Phase 4 setzen.**
+   > **Am 2026-08-10 vorgelegt, mit dieser Empfehlung — und so entschieden.**
    > Begründung: Die Zeile beschreibt, **woran gearbeitet wird**, nicht, was fertig ist — so
    > stand sie in Phase 2 und Phase 3 auch schon da, während die Phase noch lief (§4.5). „Phase
    > 3" ist heute schlicht falsch: Phase 3 ist seit dem 2026-08-03 abgeschlossen und M1
@@ -2886,9 +2915,10 @@ danach wird `Rtf` als führendes Feld abgelöst (§5).
    > **Das spricht dafür, die Zeile erst mit dem Umschalten von `Rtf` zu ändern** — dann sagt
    > sie zugleich etwas Sichtbares aus.
    >
-   > **Nicht vergessen, wenn sie geändert wird:** `LocGerman` **und** `LocEnglish`, dazu die
-   > Versions-/Phasenzeile in `AboutDialog.xaml.cs` (`VersionText`), und danach beide Dialoge
-   > im laufenden Programm gegenprüfen — Dauerregel 1.
+   > **Nicht vergessen, wenn sie geändert wird:** `LocGerman` **und** `LocEnglish` — im Code
+   > der Dialoge steht seit §4.5 nichts mehr —, und danach beide Dialoge im laufenden Programm
+   > gegenprüfen, in beiden Sprachen und in **beiden Köpfen** (Dauerregel 1). Genau daran hing
+   > in dieser Runde ein Fehler: siehe §7, „Der Kopf trägt seine eigene Kopie von Core".
 3. ~~**Beschreiben die vier mitgelieferten Dokumente V1 oder V2?**~~ **Entschieden am
    2026-08-03** (Nutzer): **V2.** `git clone …/GonkNote.git` in beiden Erste-Schritte-
    Fassungen, ebenso der Issues-Verweis am Ende. Zweimal zurückgestellt, mit §4.12 fällig
@@ -2915,15 +2945,21 @@ danach wird `Rtf` als führendes Feld abgelöst (§5).
    wertet sie aus. **Offen bleibt daran nur die Gegenprobe am echten Stift** — sie gehört
    zum Punkt 1 oben und läuft im selben Handgriff mit.
 
-6. **Soll es ein achtes Diagramm geben — das Flächendiagramm?** Aufgefallen beim Zeichnen
+6. ~~**Soll es ein achtes Diagramm geben — das Flächendiagramm?**~~ **Entschieden am
+   2026-08-10** (Nutzer): **vorerst nein.** Die sieben decken den heutigen Editor und den
+   DOCX-Weg vollständig ab; ein Flächendiagramm hat noch nie jemand anlegen können. Der
+   HANDOFF-Text ist korrigiert. Die Bestandsaufnahme bleibt stehen, falls die Frage
+   wiederkommt:
+
+   Aufgefallen beim Zeichnen
    (§4.25): §4.24 und §6 zählen die sieben Arten als „Säule, Balken, Linie, **Fläche**, Punkte,
    Kuchen, Netz" auf. **Ein Flächendiagramm gibt es aber nirgends** — nicht in `TdChartKind`,
    nicht im heutigen `ChartDialog`, nicht in `TdDocx`. Die sieben, die es wirklich gibt, sind
    Säule, Balken, Linie, Punkte, **Punkt+Linie**, Kuchen und Netz; „Fläche" ist beim
    Aufschreiben an die Stelle von „Punkt+Linie" gerutscht. **Gebaut sind die sieben aus dem
-   Modell** — das ist die Bestandsaufnahme, nicht die Antwort.
+   Modell**.
 
-   **Die Frage ist, ob ein `Area` dazukommen soll.** Es wäre kein Zeichenschritt, sondern ein
+   **Die Frage war, ob ein `Area` dazukommen soll.** Es wäre kein Zeichenschritt, sondern ein
    Modellschritt und damit eine eigene Runde: neuer Enum-Wert (additiv unbedenklich, §4.14),
    `c:areaChart` in beide Richtungen, beide Beispieldokumente, beide Vergleichsmethoden, dazu
    der Eintrag im `ChartDialog` und in beiden Sprachtabellen. **Der Zeichner selbst wäre der
@@ -4147,6 +4183,25 @@ und keine davon sieht wie ein Fehler aus.
   eine geklärte Lizenz (§6); ein mit Skia gemaltes Rechteck braucht keine. Dabei nie
   achsensymmetrisch malen, sonst fällt eine vertauschte Achse nicht auf.
 
+**Neu aus §4.25 — Gegenprüfen am laufenden Programm**
+
+- **Der Kopf trägt seine eigene Kopie von Core.** Beide Köpfe kopieren `GonkNote.Core.dll` in
+  ihren eigenen Ausgabeordner. Wer eine Zeichenkette in `LocGerman`/`LocEnglish` ändert und
+  **nur einen** Kopf neu baut, prüft im anderen den alten Stand — und sieht dort den *alten*
+  Text, ohne dass etwas kaputt aussieht. **Genau so passiert am 2026-08-10:** Der WPF-Kopf
+  zeigte „Phase 4", der Avalonia-Kopf daneben weiter „phase 3", weil er vor der Änderung
+  gebaut worden war. **Bei jeder Core-Änderung beide Köpfe neu bauen, bevor man
+  gegenprüft** — sonst ist die Gegenprobe eine Aussage über einen Ordner und nicht über den
+  Code.
+- **Ein Skript, das das Fenster nach vorn holt, schließt jedes offene Menü** (§7,
+  „Fernsteuern"). Der Umkehrschluss stand noch nicht da: **Ein zweiter Aufruf von
+  `kette.ps1` fängt deshalb immer beim geschlossenen Menü an.** Der erste Schritt einer Kette
+  sollte ein Klick auf eine leere Stelle sein, nicht `#{ESC}` — sonst landet der zweite Klick
+  auf dem, was unter dem geschlossenen Menü liegt. In dieser Runde waren das zwei
+  versehentlich angelegte Ordner (in einer Wegwerf-Datenbank, also folgenlos).
+- **Ein modaler Dialog schluckt die Kette.** Solange er offen ist, laufen Klicks auf das
+  Hauptfenster ins Leere. Erst schließen, dann weiterklicken.
+
 **Neu aus Phase 4 — die Diagramme (§4.25)**
 
 - **Eine Werteachse, die nicht bei null anfängt, lügt mit richtigen Zahlen.** 98 bis 100 lässt
@@ -4566,7 +4621,7 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 
 | Runde | Datum | Was |
 |---|---|---|
-| V2-30 | 2026-08-10 | **Die sieben Diagrammarten werden gezeichnet** (§4.25) — Säule, Balken, Linie, Punkte, Punkt+Linie, Kuchen und Netz, samt Achsen, Gitter, Legende und Beschriftung. Wo bisher ein gestrichelter Kasten mit einem Titel stand, steht jetzt ein Diagramm. **Gerechnet wird in `Core/Text/TdChartLayout.cs`, gemalt im Zeichner** — zum vierten Mal dasselbe Muster nach der Listennummer (§4.17), dem Feld (§4.20) und dem Diagramm selbst (§4.21): Achsenteilung, Farbvergabe, Legende und jeder Ort stehen als Zahl in Zentimetern, `TdRenderer` ruft nur noch Skia auf. **Der Grund ist Prüfbarkeit, nicht Ordnungsliebe:** An jeder Achse steht Schrift, und Schrift darf nicht gehasht werden (§4.6) — als Rechnung sind es **43 Wächter ohne ein einziges Pixel**, dazu 6 im Zeichner, die an gerechneten Orten auf Farbe sehen. **Am Modell ist nichts geändert worden** — kein Feld, kein Diskriminator, kein Json-Name, also auch keine Änderung an den Beispieldokumenten und am DOCX-Weg; das ist die Probe auf §4.21. **Vier Entscheidungen dahinter:** (1) Die Werteachse fängt **immer bei null** an, nie beim kleinsten Wert — 98 bis 100 lässt eine Säule doppelt so hoch aussehen wie die daneben, die bekannteste Art, mit richtigen Zahlen etwas Falsches zu behaupten. (2) **Negative Werte hängen unter der Nulllinie**, statt am Boden abgeschnitten zu werden; Grenzen sind Vielfache der Teilung, damit die Null auf einer Stufe liegt. (3) Eine Reihe ohne Namen bekommt in der Legende **ihre Nummer und kein „Reihe 2"** — ein deutsches Wort hinge an `Loc.Current`. (4) Die Achsenzahl steht **invariant** im Code, wie das Datumsmuster (§4.20). **Die Rechnung misst nicht, sie schätzt** — `TdChartLayout` kennt `ITdTextMeasure` nicht, sonst hinge die Lage der Zeichenfläche an der Schriftausstattung des Rechners und dasselbe Dokument bekäme unter Linux ein anderes Diagramm (§4.16). Ob der Text hineinpasst, entscheidet der Zeichner, der messen kann: erst verkleinern, dann kürzen. **Der Platzhalterkasten bleibt**, bedeutet aber jetzt „aus diesen Zahlen gibt es kein Bild": keine Reihen, ein Kuchen aus lauter Nullen, ein Netz mit zwei Ecken. **Dabei aufgefallen:** §4.24 und §6 zählten eine Art „Fläche" mit, die es nirgends gibt — weder in `TdChartKind` noch im `ChartDialog` noch in `TdDocx`; sie war an die Stelle von „Punkt+Linie" gerutscht. Als Frage vermerkt (§5 „Noch offen", Punkt 6), nicht still gebaut und nicht still weggelassen. **Augenschein:** eine A4-Seite mit allen sieben Arten plus negativen Säulen nach `%TEMP%` gerendert und angesehen — ein Diagramm, das nur nicht abstürzt, ist kein Diagramm. **473 Tests** (449 Core + 24 WPF), alle sieben Projekte 0 Warnungen |
+| V2-30 | 2026-08-10 | **Die sieben Diagrammarten werden gezeichnet** (§4.25) — Säule, Balken, Linie, Punkte, Punkt+Linie, Kuchen und Netz, samt Achsen, Gitter, Legende und Beschriftung. Wo bisher ein gestrichelter Kasten mit einem Titel stand, steht jetzt ein Diagramm. **Gerechnet wird in `Core/Text/TdChartLayout.cs`, gemalt im Zeichner** — zum vierten Mal dasselbe Muster nach der Listennummer (§4.17), dem Feld (§4.20) und dem Diagramm selbst (§4.21): Achsenteilung, Farbvergabe, Legende und jeder Ort stehen als Zahl in Zentimetern, `TdRenderer` ruft nur noch Skia auf. **Der Grund ist Prüfbarkeit, nicht Ordnungsliebe:** An jeder Achse steht Schrift, und Schrift darf nicht gehasht werden (§4.6) — als Rechnung sind es **43 Wächter ohne ein einziges Pixel**, dazu 6 im Zeichner, die an gerechneten Orten auf Farbe sehen. **Am Modell ist nichts geändert worden** — kein Feld, kein Diskriminator, kein Json-Name, also auch keine Änderung an den Beispieldokumenten und am DOCX-Weg; das ist die Probe auf §4.21. **Vier Entscheidungen dahinter:** (1) Die Werteachse fängt **immer bei null** an, nie beim kleinsten Wert — 98 bis 100 lässt eine Säule doppelt so hoch aussehen wie die daneben, die bekannteste Art, mit richtigen Zahlen etwas Falsches zu behaupten. (2) **Negative Werte hängen unter der Nulllinie**, statt am Boden abgeschnitten zu werden; Grenzen sind Vielfache der Teilung, damit die Null auf einer Stufe liegt. (3) Eine Reihe ohne Namen bekommt in der Legende **ihre Nummer und kein „Reihe 2"** — ein deutsches Wort hinge an `Loc.Current`. (4) Die Achsenzahl steht **invariant** im Code, wie das Datumsmuster (§4.20). **Die Rechnung misst nicht, sie schätzt** — `TdChartLayout` kennt `ITdTextMeasure` nicht, sonst hinge die Lage der Zeichenfläche an der Schriftausstattung des Rechners und dasselbe Dokument bekäme unter Linux ein anderes Diagramm (§4.16). Ob der Text hineinpasst, entscheidet der Zeichner, der messen kann: erst verkleinern, dann kürzen. **Der Platzhalterkasten bleibt**, bedeutet aber jetzt „aus diesen Zahlen gibt es kein Bild": keine Reihen, ein Kuchen aus lauter Nullen, ein Netz mit zwei Ecken. **Dabei aufgefallen:** §4.24 und §6 zählten eine Art „Fläche" mit, die es nirgends gibt — weder in `TdChartKind` noch im `ChartDialog` noch in `TdDocx`; sie war an die Stelle von „Punkt+Linie" gerutscht. Als Frage vermerkt (§5 „Noch offen", Punkt 6), nicht still gebaut und nicht still weggelassen. **Augenschein:** eine A4-Seite mit allen sieben Arten plus negativen Säulen nach `%TEMP%` gerendert und angesehen — ein Diagramm, das nur nicht abstürzt, ist kein Diagramm. **473 Tests** (449 Core + 24 WPF), alle sieben Projekte 0 Warnungen. **Im selben Zug beantwortet:** §5 „Noch offen" 2a — der Über-Dialog sagt jetzt **Phase 4** (§4.5), in beiden Sprachtabellen, gegengeprüft in allen vier Kombinationen aus Kopf und Sprache. **Die Gegenprobe hat dabei etwas gefunden:** Der Avalonia-Kopf zeigte weiter „phase 3", weil **jeder Kopf seine eigene Kopie von `GonkNote.Core.dll`** trägt und er vor der Änderung gebaut worden war — als Falle festgehalten (§7). Und Punkt 6: **kein achtes Diagramm** (Fläche) |
 | V2-29 | 2026-08-09 | **Der Zeichner steht** (§4.24) — `TdRenderer` in Core nimmt eine gesetzte Seite und eine `SKCanvas` und malt: Papier, Zeilen mit allen Zeichenformaten (fett, kursiv, unterstrichen, durchgestrichen, Hervorhebung, Hoch-/Tiefstellung, Farbe), Aufzählungsmarken, Absatzlinien, Tabellen mit Hintergrund und Rahmen, Bilder, Kopf-/Fußzeile mit aufgelösten Platzhaltern und das Wasserzeichen. **Er rechnet nichts** — jede Zahl steht schon im Umbruch, in Zentimetern und mit aufgelöstem Format (§4.16); hier wird nur in Pixel umgerechnet. Genau dafür rechnet der Umbruch in Zentimetern: eine Zoomstufe darf ihn nicht ändern, sonst bricht ein Dokument bei 150 % anders um als beim Drucken. **Drei Stellen, an denen es schiefgeht, und alle drei haben einen Wächter bekommen:** (1) **Punkt ist nicht Pixel** — die Größe steht im Modell in Punkt, die Leinwand rechnet in Pixeln, der Maßstab kommt obendrauf; wer das vergisst, bekommt bei jeder Zoomstufe dieselbe winzige Schrift auf einer immer größeren Seite. (2) **Der Zellinhalt zählt ab der Innenkante der Zelle**, nicht ab dem Textbereich (§4.19) — ohne den Versatz steht der Text links neben der Tabelle, bei jeder Spalte weiter daneben. (3) **Die Absatzlinie steht unter dem Absatz, nicht unter jeder Zeile** — sonst wird aus einem dreizeiligen Absatz liniertes Papier, und weil das nach Gestaltung aussieht, fällt es niemandem als Fehler auf. **Benannte Lücke:** Ein `TdChart` bekommt einen Kasten mit gestricheltem Rand und seinem Titel und noch kein Diagramm; die sieben Arten sind eine eigene Runde. Ein Kasten sagt „hier fehlt etwas", eine Leerstelle sagt „hier war nie etwas" (§7) — derselbe Platzhalter erscheint, wenn zu einem Bild der Blob fehlt. **Geprüft wird zweigeteilt, und das ist nötig:** Text darf nicht gehasht werden (§4.6, „Segoe UI" fehlt unter Linux), also wird das Geometrische an bekannten Stellen auf Farbe geprüft und alles mit Schrift über die Rechnung — mit der festen Messung aus `UmbruchTests` steht vorher fest, wo etwas landen muss. **Zwei der elf Wächter waren zuerst falsch, und beide Male lag es am Wächter:** Der Zelltest zählte die Rahmenlinie der Nachbarzelle als „Text in der falschen Spalte", der Linientest zählte eine 1 px starke Linie doppelt, weil die Kantenglättung sie auf zwei Pixelzeilen verteilt — gezählt werden jetzt zusammenhängende Bänder. Am Augenschein geprüft: eine A4-Seite mit Überschrift, gemischten Formaten, Trennlinie, Aufzählung, Tabelle, Bild und Platzhalter kommt vollständig und an der richtigen Stelle heraus. **420 Tests grün** (396 Core + 24 WPF), alle Projekte 0 Warnungen. **Angeschlossen ist er noch nirgends** — dieselbe Absicht wie bei Schritt 1; `PdfExporter` und die Anzeige im Linux-Kopf sind die nächsten zwei Runden |
 | V2-28 | 2026-08-09 | **Das Umverdrahten, erster Teil: DOCX und Markdown laufen gegen das Modell** (§4.23) — der letzte offene Punkt aus Phase 4, und **§4.1 ist damit zur Hälfte eingelöst**. Drei Schritte in dieser Reihenfolge, weil jeder auf dem vorigen steht: `TextDoc.Model` wird bei **jedem** Speichern mitgeschrieben (sonst exportierte ein Export aus dem Modell den Stand der einmaligen Übernahme statt dessen, was auf dem Schirm steht), dann Markdown über `TdMarkdown`, dann DOCX über `TdDocx` in **beide** Richtungen — beim Import macht `TdZuFlow` daraus wieder ein `XamlPackage`, sonst käme eine importierte Datei mit gefülltem Modell und leerem Editor an. `DocxExporter` und `MarkdownExporter` sind **gelöscht** (941 Zeilen); `DocxImporter` bleibt für den Whiteboard-Import. **Der eigentliche Ertrag sind fünf Fehler, die vorher niemand sehen konnte** — sie standen alle im Code, aber nichts lief durch diesen Weg, und ein Roundtrip Modell-gegen-Modell liest denselben falschen Ort wieder aus, den er beschrieben hat: (1) Das Absatz-Zeichenformat stand nur im `w:pPr/w:rPr`, das in Word **nur für die Absatzmarke** gilt — jede Überschrift wäre als Fließtext angekommen; (2) es gab keine `Heading`-Vorlagen, also blieben Navigationsbereich und Verzeichnis-Katalog leer; (3) die Ausrichtung wurde örtlich gelesen, aber ein `FlowDocument` steht von Haus aus auf **Blocksatz** — jedes Dokument wäre still linksbündig exportiert worden; (4) Grundschrift und Tabellenlinien kamen gar nicht mit (Tinte → Schwarz, Gainsboro → Schwarz); (5) das generierte Inhaltsverzeichnis wurde als toter Text übernommen und das echte `TOC`-Feld ging verloren. **Neu im Modell: `TdParaFormat.ExcludeFromToc`** — „ist das eine Überschrift?" und „gehört das ins Verzeichnis?" sind **zwei** Fragen, und Titel wie die Zeile „Inhaltsverzeichnis" beantworten sie verschieden; Word trennt es genauso (`Title`/`TOC Heading` gegen `w:outlineLvl`). **Nutzer-Entscheidung: der Titel bekommt im Markdown seine `#`-Überschrift.** Zwei Wächter mussten mit, und das ist keine Nebensache: `DocxAufriss` las `w:b w:val="0"` als „fett" und kannte die dreiteilige Feldform nicht — **ein Wächter, der das Falsche liest, ist schlimmer als keiner.** Die Golden-Files haben sich geändert und jede Zeile ist begründet (§4.6, Tabelle in §4.23): echte Felder statt eingebackenem Text, A4 exakt statt vier Twips daneben, Linien an der Tabelle statt an jeder Zelle. Am laufenden Programm mit einer **Kopie** der echten Datenbank geprüft (Dauerregel 4): Der Überschriften-**Lauf** im DOCX trägt jetzt `w:b`/`w:color`/`w:sz` — genau das war kaputt, und nur so ließ es sich zeigen. **409 Tests grün** (385 Core + 24 WPF), drei Projekte 0 Warnungen. **`Rtf` führt weiter**; Zeichner, `PdfExporter` und die Anzeige im Linux-Kopf sind die nächsten drei Runden |
 | V2-27 | 2026-08-05 | **Die Übernahme der Bestandsdokumente läuft** (§4.22) — seit §4.15 vorgemerkt, durch das unfertige Modell blockiert, mit §4.21 freigeworden. **Nutzer-Entscheidung: still, aber ein Fehler wird gespiegelt.** Die Teilung ist der Punkt: Was gelingt, gelingt wortlos (ein Hinweis, den man bei jedem Dokument wegklickt, wird nach dem dritten Mal nicht mehr gelesen); was misslingt, wird benannt **und im Dokument vermerkt** (`MigrationIssue`) — anders als bei der Datenbank (§4.8) kann hier etwas verlorengehen, denn RTF und XamlPackage tragen Dinge, die kein Modell kennt. `TextDoc` bekommt zwei Felder **neben** `Rtf` (`Model`, `MigrationIssue`), und **`Rtf` wird nie überschrieben** — daraus folgt das Wichtigste: eine misslungene Übernahme ist kein Datenverlust, sondern ein Versuch, der beim nächsten Öffnen wiederholt wird. **Sie läuft nur auf dem Windows-Rechner** (`IDocumentIo.CanMigrate`), und das ist eine Schranke und keine Lücke: RTF liest ausschließlich `TextRange`, ein Versuch unter Linux ergäbe ein **leeres** Dokument — schlimmer als gar keine Übernahme, weil der Inhalt gelöscht aussähe. `Migrate` **wirft nicht**: sie läuft beim Öffnen, und eine Ausnahme dort ist für den Nutzer ein Absturz. **`FlowZuTd` ist die eine Stelle, an der Raten richtig ist:** Die Gliederungsebene kommt aus der Schriftgröße, weil das `FlowDocument` keinen Platz dafür hat — **geraten wird einmal, danach steht sie als eigener Wert im Modell**, und genau das ist der Unterschied zwischen einer Übernahme und einem Format. Übernommen werden **nur örtlich gesetzte Werte** (`ReadLocalValue` unterscheidet „nicht gesetzt" von „Vorgabewert", §4.14) — **aber `Bold`/`Italic`/`Underline` tragen ihre Bedeutung im Typ**, dort gibt `ReadLocalValue` nichts zurück, und wer das übersieht, verliert die drei häufigsten Auszeichnungen (vom Wächter gefunden). Dazu zwei Umrechnungen: WPFs `RowSpan` → `Restart`+`Continue` **je Zeile** (§4.18, sonst rutscht alles dahinter eine Spalte nach links) und eine verschachtelte Liste als **dieselbe** Liste eine Ebene tiefer (§4.17). **Die Umwandlung fasst die Vorlage nicht an** — der erste Entwurf nahm einen Block kurz aus seinem Elternteil, was ihn im offenen Editor hätte verschwinden lassen; eigener Wächter. **Am laufenden Programm mit einer Kopie der echten Daten geprüft:** kein Hinweisfenster, `Model` mit gültiger `GNTD`-Kennung, `Rtf` unangetastet, `"OutlineLevel":1` an der Überschrift. **Dabei ein Fehler, den fünf Schritte lang kein Test sehen konnte:** In jedem Format stand ein `"IstLeer":false`, in jeder Seiteneinrichtung vier gerechnete Werte — **ein Roundtrip prüft, was zurückkommt, nicht was dasteht** (die Felder haben keinen Setter). Behoben mit `[JsonIgnore]`, neuer Wächter sieht auf die Datei. **Nebenbefund:** die echte Datenbank enthält **kein einziges** Textdokument mit Inhalt — die Übernahme ließ sich an ihr gar nicht messen, und wer sie für den Beweis gehalten hätte, hätte einen Haken hinter etwas gesetzt, das nie lief. **12 neue Wächter, jetzt 409** (385 Core + 24 WPF), alle drei Projekte 0 Warnungen. **Ebenfalls entschieden (Nutzer): Phase 6 bekommt einen Aufräum-Schritt** — erst putzen, **dann** noch einmal vollständig prüfen, dann veröffentlichen (§6) |

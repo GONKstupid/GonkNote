@@ -445,7 +445,7 @@ internal static class LocEnglish
         ["About.Subtitle"] = "Offline notes, whiteboards and text documents. Your data lives on this machine only, inside your user folder.",
         // {0} = Versionsnummer. Gegenstueck zu About.Version in LocGerman — die Zeile stand
         // bisher fest verdrahtet im Code und erschien deshalb auch im englischen Dialog deutsch.
-        ["About.Version"] = "Version {0} · Port, phase 3",
+        ["About.Version"] = "Version {0} · Port, phase 4",
         // Gegenstueck zu Db.OpenFailed in LocGerman. {0} = Fehlermeldung, {1} = Protokollpfad.
         ["Db.OpenFailed"] =
             "The database could not be opened:\n\n{0}\n\n" +

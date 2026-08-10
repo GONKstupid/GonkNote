@@ -1,6 +1,6 @@
 # Gonk Note V2 — Projektübergabe
 
-**Stand: 2026-08-09 · Version 0.3.0 · net10.0 · SkiaSharp 3 · SQLite · Avalonia 12 · ✅ M1 erreicht · ✅ Dokumentmodell vollständig (Phase 4, Schritte 1–6 von 6) · ✅ Übernahme der Bestandsdokumente läuft · ✅ DOCX und Markdown laufen gegen das Modell (§4.23) · ✅ Zeichner steht (§4.24)**
+**Stand: 2026-08-10 · Version 0.3.0 · net10.0 · SkiaSharp 3 · SQLite · Avalonia 12 · ✅ M1 erreicht · ✅ Dokumentmodell vollständig (Phase 4, Schritte 1–6 von 6) · ✅ Übernahme der Bestandsdokumente läuft · ✅ DOCX und Markdown laufen gegen das Modell (§4.23) · ✅ Zeichner steht (§4.24) · ✅ die sieben Diagrammarten werden gezeichnet (§4.25)**
 
 > **📌 Dauerregeln des Nutzers — gelten immer, ohne Nachfragen:**
 >
@@ -334,9 +334,15 @@ weiter**; PDF und PNG hängen noch am WPF-Paginator.
 
 **Erledigt danach:** §4.24 — **der Zeichner**. `TdRenderer` in Core malt eine gesetzte Seite mit
 SkiaSharp: Text mit allen Zeichenformaten, Aufzählungsmarken, Absatzlinien, Tabellen, Bilder,
-Kopf-/Fußzeile und Wasserzeichen. Testzahl jetzt **420** (396 Core + 24 WPF). **Ein Diagramm
-wird noch nicht gezeichnet** — es bekommt einen benannten Platzhalterkasten, die sieben Arten
-sind eine eigene Runde. **Angeschlossen ist der Zeichner noch nirgends** (§6).
+Kopf-/Fußzeile und Wasserzeichen. Testzahl damals **420** (396 Core + 24 WPF). **Angeschlossen
+ist der Zeichner noch nirgends** (§6).
+
+**Erledigt danach:** §4.25 — **die sieben Diagrammarten**. Aus den Zahlen eines `TdChart` wird
+ein Diagramm: Säule, Balken, Linie, Punkte, Punkte+Linie, Kuchen und Netz, samt Achsen, Gitter,
+Legende und Beschriftung. **Die Rechnung steht in `Core/Text/TdChartLayout.cs`** — Achsenteilung,
+Farbvergabe, Legende und jeder Ort in Zentimetern; der Zeichner malt nur noch. **Das Modell ist
+dafür nicht angefasst worden**, es hatte schon alles (§4.21). Testzahl jetzt **473**
+(449 Core + 24 WPF).
 
 **Erledigt in Phase 0:**
 
@@ -387,7 +393,8 @@ gonk-note-V2/
 │  │  │                          IDocumentIo — gebündelt in IPlatformServices
 │  │  ├─ Rendering/              WbRenderer (Skia), WbAidRenderer (Geodreieck), WbImages (§7),
 │  │  │                          WbImagePrep (Bildimport + OCR-Vorbereitung, §4.7),
-│  │  │                          TdRenderer (die gesetzte Seite → Pixel) ← neu in §4.24
+│  │  │                          TdRenderer (die gesetzte Seite → Pixel, seit §4.25 auch
+│  │  │                          die sieben Diagrammarten)             ← neu in §4.24
 │  │  ├─ Services/               DatabaseService (SQLite, §4.8), GonkJson (Source-Generator),
 │  │  │                          ILegacyDatabaseReader, BlobStore, ImageCache, UndoStack,
 │  │  │                          PdfImporter, DocumentHealth
@@ -413,6 +420,8 @@ gonk-note-V2/
 │  │  │                          TdSkiaMeasure                        ← neu in Phase 4
 │  │  │                          TdMarkdown (Markdown-Export gegen das Modell — der
 │  │  │                          erste Exporter ohne WPF)             ← neu in §4.23
+│  │  │                          TdChartLayout (aus den Zahlen eines Diagramms wird ein
+│  │  │                          Bild — in Zentimetern, ohne eine Zeile Skia) ← neu in §4.25
 │  │  └─ Localization/           Loc + LocGerman + LocEnglish        ← neu in Phase 0
 │  │
 │  ├─ GonkNote.ViewModels/       net10.0 · EIGENE Assembly seit Phase 2 (§4.7)
@@ -465,7 +474,7 @@ gonk-note-V2/
 │                                Legacy, **Avalonia**) — §4.6, seit Phase 3 §4.9
 │
 ├─ tests/
-│  ├─ GonkNote.Core.Tests/       net10.0 · läuft auch unter Linux · 385 Tests
+│  ├─ GonkNote.Core.Tests/       net10.0 · läuft auch unter Linux · 449 Tests
 │  │  └─ Snapshots/*.sha256      Pixelhashes des Renderers (Golden-Files)
 │  └─ GonkNote.Wpf.Tests/        net10.0-windows · nur Windows · 24 Tests
 │     ├─ Fixtures/               referenz.md, referenz-docx.txt (Golden-Files)
@@ -2616,12 +2625,14 @@ anderen.
 
 #### Benannte Lücke: ein Diagramm wird noch nicht gezeichnet
 
+> **✅ Eingelöst am 2026-08-10 (§4.25).** Der Absatz bleibt als Begründung stehen; der
+> Platzhalterkasten gibt es weiterhin, nur bedeutet er jetzt etwas anderes (siehe unten).
+
 `TdChart` bekommt einen **Kasten mit gestricheltem Rand und seinem Titel**, kein Diagramm. Die
-sieben Arten (Säule, Balken, Linie, Fläche, Punkte, Kuchen, Netz) samt Legende, Achsen und
-Beschriftung sind eine eigene Runde (§6). **Ein Kasten sagt „hier fehlt etwas", eine Leerstelle
-sagt „hier war nie etwas"** (§7) — derselbe Platzhalter erscheint, wenn zu einem Bild der Blob
-fehlt, und dort bedeutet er eine unvollständige Sicherung und keinen Programmierfehler
-(Dauerregel 4).
+sieben Arten samt Legende, Achsen und Beschriftung sind eine eigene Runde (§6). **Ein Kasten
+sagt „hier fehlt etwas", eine Leerstelle sagt „hier war nie etwas"** (§7) — derselbe Platzhalter
+erscheint, wenn zu einem Bild der Blob fehlt, und dort bedeutet er eine unvollständige Sicherung
+und keinen Programmierfehler (Dauerregel 4).
 
 #### Wie das geprüft wird — zweigeteilt, und das ist nötig
 
@@ -2649,6 +2660,139 @@ heraus, samt aufgelöster Kopf- und Fußzeile.
 **Ausdrücklich noch nicht:** Der Zeichner ist **noch nirgends angeschlossen** — dieselbe
 Absicht wie bei §4.14. Der `PdfExporter` und die Anzeige im Linux-Kopf sind die nächsten zwei
 Runden; erst danach wird `Rtf` als führendes Feld abgelöst (§5).
+
+---
+
+### 4.25 Die sieben Diagrammarten — aus Zahlen wird ein Bild
+
+Umgesetzt am 2026-08-10. **Damit ist die benannte Lücke aus §4.24 geschlossen:** Wo bisher ein
+gestrichelter Kasten mit einem Titel stand, steht jetzt ein Diagramm — Säule, Balken, Linie,
+Punkte, Punkte+Linie, Kuchen und Netz, samt Achsen, Gitter, Legende und Beschriftung.
+
+#### Der Zeichner rechnet auch hier nichts — `TdChartLayout` tut es
+
+Neu ist **`Core/Text/TdChartLayout.cs`**: Aus einem `TdChart` wird ein `TdChartPlan` — Flächen,
+Striche, Züge, Kuchenstücke und Beschriftungen, **alle in Zentimetern**, alle gezählt ab der
+linken oberen Ecke des Diagrammkastens. `TdRenderer` nimmt diesen Plan und ruft Skia auf, und
+sonst nichts. Das ist dieselbe Trennung wie zwischen `TdLayout` und dem Zeichner (§4.16/§4.24),
+und **zum vierten Mal dasselbe Muster** nach der Listennummer (§4.17), dem Feld (§4.20) und dem
+Diagramm selbst (§4.21).
+
+**Der Grund ist nicht Ordnungsliebe, sondern Prüfbarkeit.** Achsenteilung, Farbvergabe und die
+Frage, ob eine Legende nötig ist, sind Zahlen. Im Zeichner stünden sie zwischen `DrawRect` und
+`DrawPath` und ließen sich nur noch über Pixel prüfen — und Pixel darf man hier nicht hashen,
+weil an jeder Achse Schrift steht (§4.6). **Der heutige Editor macht genau das** (`ChartDialog`
+rechnet mitten in seiner Zeichenroutine), und deshalb sieht dort niemand, wie er rundet.
+
+Die Aufteilung in Zahlen: **53 neue Wächter**, davon **43 in `DiagrammTests`** (kein einziges
+Pixel) und **6 in `ZeichnerTests`** (Farbe an gerechneten Orten), dazu vier neue Fälle in
+bestehenden Wächtern.
+
+#### Das Modell ist nicht angefasst worden — und das ist das Ergebnis
+
+`TdChart` hatte schon alles: Art, Titel, Kategorien, Reihen, Palette, dazu `ShowLegend`,
+`FarbeJeElement`, `FarbenGebraucht`, `Farbe(i)` und `Kategorie(i)` als **gerechnete** Werte
+(§4.21). **Kein neues Feld, kein neuer Diskriminator, kein neuer Json-Name** — also auch keine
+Änderung an den beiden Beispieldokumenten, an den Vergleichsmethoden und am DOCX-Weg. Der
+DOCX-Roundtrip lief unverändert durch.
+
+> **Das ist die Probe auf §4.21.** Ein Modell, das die richtigen Dinge speichert und die
+> ableitbaren rechnet, braucht zum Zeichnen nichts dazu. Hätte hier ein Feld gefehlt, wäre es
+> ein Feld gewesen, das der Export längst hätte schreiben müssen.
+
+#### Vier Entscheidungen, die klein aussehen
+
+| Frage | Antwort | Warum |
+|---|---|---|
+| Fängt die Werteachse beim kleinsten Wert an? | **Nein, immer bei null** (oder darunter) | Eine Säule, die bei 98 anfängt und bei 100 endet, sieht doppelt so hoch aus wie eine bis 99. Das ist die bekannteste Art, mit einem *richtigen* Diagramm etwas Falsches zu behaupten |
+| Was passiert mit negativen Werten? | **Die Achse reicht darunter, die Säule hängt unter der Nulllinie** | Am Boden abgeschnitten sähe −2 aus wie 0 — eine Zahl, die niemand eingegeben hat. Ober- und Untergrenze sind Vielfache der Teilung, **damit die Null auf einer Stufe liegt**: aus ihr wachsen alle Säulen |
+| Wie heißt eine Reihe ohne Namen in der Legende? | **Ihre laufende Nummer**, nicht „Reihe 2" | Dieselbe Antwort wie bei `Kategorie(i)` (§4.21). Ein deutsches Wort hinge zusätzlich an `Loc.Current` und stünde beim nächsten Öffnen auf Englisch — dasselbe Dokument, zwei Bilder |
+| Wie wird eine Achsenzahl geschrieben? | **Fest, invariant** — „1.5" und nicht „1,5" | Dieselbe Entscheidung wie beim Datumsmuster (§4.20). **Benanntes Zugeständnis:** Im deutschen UI steht damit ein Dezimalpunkt. Ein Dokument, dessen Diagramm auf zwei Rechnern verschieden aussieht, wäre der teurere Fehler |
+
+#### Die Rechnung misst nicht — und das ist Absicht
+
+`TdChartLayout` kennt **`ITdTextMeasure` nicht**. Wie breit eine Achsenbeschriftung wird, wird
+**geschätzt** (`TextBreiteCm`: Zeichenzahl × Grad × 0,55) und nicht gemessen.
+
+**Gemessen hinge die Lage der Zeichenfläche an der Schriftausstattung des Rechners** — dasselbe
+Dokument bekäme unter Linux ein anders geteiltes Diagramm als unter Windows, und jede exakte
+Zahl in `DiagrammTests` wäre im Ubuntu-Lauf der CI ein Fehlalarm. Genau die Falle, wegen der der
+Umbruch seine Naht hat (§4.16).
+
+Geschätzt wird nur der **Platz**. Ob der Text hineinpasst, entscheidet der Zeichner, der messen
+kann: Er verkleinert die Beschriftung bis auf zwei Drittel und kürzt erst dann mit „…" — **eine
+kleinere Zahl ist lesbar, eine abgeschnittene ist eine andere Zahl.**
+
+#### Der Platzhalter bleibt, aber er bedeutet jetzt etwas anderes
+
+`TdChartPlan.IstLeer` sagt: aus diesen Zahlen gibt es kein Bild. Drei Fälle, und alle drei
+bekommen weiterhin den gestrichelten Kasten aus §4.24:
+
+- **Keine Reihen** — ein leeres Achsenkreuz sagte „hier ist alles in Ordnung".
+- **Ein Kuchen aus lauter Nullen** — ohne positive Werte gibt es keine Anteile.
+- **Ein Netz mit weniger als drei Kategorien** — zwei Ecken ergäben eine Strecke, die wie ein
+  Zeichenfehler aussieht. Der heutige Editor schreibt dort einen deutschen Satz ins Bild; der
+  Kasten sagt dasselbe, ohne eine Sprache zu wählen.
+
+#### Was aus dem heutigen Editor übernommen wurde — und was nicht
+
+Übernommen sind **Aussehen und Aufteilung**: dieselben Farben für Gitter (`#D4DEEA`),
+Beschriftung (`#6B7A99`) und Titel (`#1B2B4B`), dieselbe Fachbreite (70 % für die Säulen,
+15 % Luft an jeder Seite), derselbe Kuchen ab 12 Uhr im Uhrzeigersinn, dieselbe halbdurchsichtige
+Füllung im Netz (18 %). Wer die beiden nebeneinanderlegt, sieht dasselbe Diagramm.
+
+**Nicht übernommen sind die festen Pixelmaße.** Im Dialog stehen `left = 42`, `bottom = 34`,
+`legendW = 120` — Zahlen für genau eine Bildgröße (560 × 320). Hier wächst **alles** mit dem
+Diagramm: Schriftgrad, Linienstärke, Markenradius, Ränder. **Punkt ist nicht Pixel** (§7) gilt
+im Diagramm genauso wie im Text; ein in Pixeln gerechnetes Diagramm wäre beim Druck mit 300 dpi
+ein Haar mit einem Punkt darin.
+
+#### Zwei Dinge, die im Zeichner stehen und nicht in der Rechnung
+
+Beide, weil sie **messen oder Skia kennen** müssen:
+
+- **Das Kürzen der Beschriftung** (siehe oben).
+- **Ein volles Rundum wird zum Kreis.** Ein Bogen über 360° ist in Skia je nach Weg entweder
+  nichts oder ein Kreis mit einem Schnitt darin — und **eine einzige Kategorie ist der
+  Normalfall, nicht die Ausnahme.**
+
+Dazu eine Kleinigkeit mit demselben Gedanken wie „ein Kasten sagt, hier fehlt etwas": **Eine
+Säule mit dem Wert null wird als eine Pixelzeile auf der Nulllinie gezeichnet.** Dass dort ein
+Wert steht, ist eine Aussage; eine Leerstelle wäre die Aussage „hier fehlt eine Zahl". Eine
+Reihe, die an dieser Kategorie **gar keinen** Wert hat, bekommt dagegen nichts — sie sagt dort
+nichts (Wächter: `Eine_kuerzere_Reihe_bekommt_dort_keine_Saeule`).
+
+#### Ein Widerspruch, der beim Lesen der Aufgabe auffiel
+
+**§4.24 und §6 zählen die sieben Arten als „Säule, Balken, Linie, **Fläche**, Punkte, Kuchen,
+Netz" auf.** Ein Flächendiagramm gibt es aber weder in `TdChartKind` noch im heutigen Editor
+noch in `TdDocx`. Die sieben, die es wirklich gibt, sind **Säule, Balken, Linie, Punkte,
+**Punkte+Linie**, Kuchen, Netz** — genau die sieben Einträge des `ChartDialog` und genau die
+sieben, die durch DOCX gehen (§4.21). „Fläche" ist beim Aufschreiben an die Stelle von
+„Punkt+Linie" gerutscht.
+
+**Gebaut sind die sieben aus dem Modell.** Ein achtes, `Area`, wäre kein Zeichenschritt, sondern
+ein Modellschritt: neuer Enum-Wert (additiv unbedenklich, §4.14), `c:areaChart` in beide
+Richtungen, beide Beispieldokumente, beide Vergleichsmethoden. **Als Frage in §5 „Noch offen"
+vermerkt**, nicht still gebaut und nicht still weggelassen.
+
+#### Was der Augenschein gezeigt hat
+
+Eine A4-Seite mit allen sieben Arten (zwei Reihen, fünf Kategorien, Titel, Kopf- und Fußzeile)
+plus ein achtes Diagramm mit negativen Werten, gerendert nach `%TEMP%` und angesehen. Alle sieben
+kommen als Diagramm heraus, an der richtigen Stelle, mit Legende und lesbarer Beschriftung; die
+negativen Säulen hängen unter der Nulllinie, und die Achse reicht von −5 bis 10. **Ein Diagramm,
+das nur nicht abstürzt, ist kein Diagramm** — deshalb dieser Schritt und nicht nur die Wächter.
+
+#### Stand
+
+**473 Tests** (449 Core + 24 WPF) grün, alle sieben Projekte 0 Warnungen (Core, ViewModels,
+Legacy, Avalonia, Wpf und beide Testprojekte). Der DOCX-Roundtrip ist unverändert grün, denn am
+Modell hat sich nichts geändert.
+
+**Ausdrücklich noch nicht:** Der Zeichner ist **weiterhin nirgends angeschlossen**. Der
+`PdfExporter` gegen das Modell und die Anzeige im Linux-Kopf sind die nächsten zwei Runden; erst
+danach wird `Rtf` als führendes Feld abgelöst (§5).
 
 ---
 
@@ -2706,6 +2850,10 @@ Runden; erst danach wird `Rtf` als führendes Feld abgelöst (§5).
 | Ob der Dokumenttitel eine Überschrift ist | **Ja im Markdown (`#`), nein im Inhaltsverzeichnis** — dafür gibt es `TdParaFormat.ExcludeFromToc` (§4.23). Eine exportierte `.md` ohne oberste Überschrift wäre ärmer, ein Verzeichnis mit dem Dokumenttitel als erstem Eintrag falsch. **Word trennt genauso** (`Title`, `TOC Heading`: Rang aus der Vorlage, Verzeichnis aus `w:outlineLvl`). Entschieden 2026-08-09 (Nutzer) |
 | Wo das Absatz-Zeichenformat in DOCX steht | **Im `pPr/rPr` *und* unter jedem Lauf** (§4.23). Das `pPr/rPr` allein gilt in Word nur für die Absatzmarke — Läufe erben aus der Formatvorlage. Beim Lesen nimmt `TdCharFormat.Ohne` die Dopplung wieder heraus, sonst trüge jeder Lauf eine vollständige Formatkopie (§4.14). Entschieden 2026-08-09 |
 | Wie groß die Zeichner-Runde wird | **Text, Tabellen und Bilder zuerst — Diagramme danach** (§4.24). Die sieben Diagrammarten samt Legende, Achsen und Beschriftung hätten die Runde und den Diff verdoppelt. Ein `TdChart` bekommt bis dahin einen **benannten Platzhalterkasten** und keine Leerstelle: „hier fehlt etwas" statt „hier war nie etwas" (§7). Entschieden 2026-08-09 (Nutzer) |
+| Wo das Diagramm gerechnet wird | **In `Core/Text/TdChartLayout.cs`, nicht im Zeichner** (§4.25). Achsenteilung, Farbvergabe, Legende und jeder Ort stehen als Zahl in Zentimetern; `TdRenderer` ruft nur noch Skia auf. Der Grund ist Prüfbarkeit und nicht Ordnungsliebe: an jeder Achse steht Schrift, und Schrift darf nicht gehasht werden (§4.6) — als Rechnung sind es 43 Wächter ohne ein einziges Pixel. Zum vierten Mal dasselbe Muster nach §4.17, §4.20 und §4.21. Entschieden 2026-08-10 |
+| Ob die Diagramm-Rechnung misst | **Nein, sie schätzt** (§4.25). `TdChartLayout` kennt `ITdTextMeasure` nicht; die Breite einer Achsenbeschriftung wird über Zeichenzahl × Grad × 0,55 geschätzt. Gemessen hinge die Lage der Zeichenfläche an der Schriftausstattung des Rechners, und dasselbe Dokument bekäme unter Linux ein anders geteiltes Diagramm — dieselbe Falle wie in §4.16. Ob der Text hineinpasst, entscheidet der Zeichner, der messen kann. Entschieden 2026-08-10 |
+| Wo die Werteachse anfängt | **Immer bei null oder darunter, nie beim kleinsten Wert** (§4.25). Eine Säule, die bei 98 anfängt und bei 100 endet, sieht doppelt so hoch aus wie eine bis 99 — die bekannteste Art, mit einem richtigen Diagramm etwas Falsches zu behaupten. Negative Werte hängen unter der Nulllinie, statt am Boden abgeschnitten zu werden; Ober- und Untergrenze sind Vielfache der Teilung, damit die Null auf einer Stufe liegt. Entschieden 2026-08-10 |
+| Wie eine Reihe ohne Namen in der Legende heißt | **Mit ihrer laufenden Nummer, nicht mit „Reihe 2"** (§4.25). Dieselbe Antwort wie bei `TdChart.Kategorie` (§4.21): Ein deutsches Wort hinge an `Loc.Current` und stünde beim nächsten Öffnen auf Englisch — dasselbe Dokument, zwei Bilder. Aus demselben Grund steht die Achsenzahl invariant („1.5"), wie das Datumsmuster in §4.20. Entschieden 2026-08-10 |
 | Namen der WPF-Hilfsmethoden | **Bleiben stehen** — `HitElement`, `HitTestElement`, `SelectByLasso`, `ComputeSelectionBounds` sind Einzeiler, die an `WbHit` weiterreichen. Elf Aufrufstellen in fünf Partials umzubenennen hätte den Diff verdreifacht, ohne am Ergebnis etwas zu ändern; wegkommen sollte die zweite **Rechnung**, nicht die zweite Bezeichnung (§4.13). Entschieden 2026-08-04 |
 
 **Noch offen:**
@@ -2725,6 +2873,22 @@ Runden; erst danach wird `Rtf` als führendes Feld abgelöst (§5).
    zusammen geändert, und danach ist der Dialog im laufenden Programm gegenzuprüfen — deshalb
    wurde sie nicht nebenbei mitgezogen. **Frage an den Nutzer:** auf Phase 4 setzen, oder erst,
    wenn Phase 4 wirklich abgeschlossen ist? Vermerkt 2026-08-09.
+
+   > **Am 2026-08-10 erneut vorgelegt, mit einer Empfehlung: jetzt auf Phase 4 setzen.**
+   > Begründung: Die Zeile beschreibt, **woran gearbeitet wird**, nicht, was fertig ist — so
+   > stand sie in Phase 2 und Phase 3 auch schon da, während die Phase noch lief (§4.5). „Phase
+   > 3" ist heute schlicht falsch: Phase 3 ist seit dem 2026-08-03 abgeschlossen und M1
+   > ausgerufen. Wer den Dialog jetzt öffnet, liest einen Stand von vor sieben Runden.
+   >
+   > **Der Gegengrund, damit er dasteht:** Von Phase 4 sind Modell, Übernahme, DOCX, Markdown
+   > und der Zeichner fertig, angeschlossen ist aber nichts — unter Linux sind Textdokumente
+   > weiterhin ausgegraut. Wer „Phase 4" als Versprechen liest, erwartet mehr, als die App kann.
+   > **Das spricht dafür, die Zeile erst mit dem Umschalten von `Rtf` zu ändern** — dann sagt
+   > sie zugleich etwas Sichtbares aus.
+   >
+   > **Nicht vergessen, wenn sie geändert wird:** `LocGerman` **und** `LocEnglish`, dazu die
+   > Versions-/Phasenzeile in `AboutDialog.xaml.cs` (`VersionText`), und danach beide Dialoge
+   > im laufenden Programm gegenprüfen — Dauerregel 1.
 3. ~~**Beschreiben die vier mitgelieferten Dokumente V1 oder V2?**~~ **Entschieden am
    2026-08-03** (Nutzer): **V2.** `git clone …/GonkNote.git` in beiden Erste-Schritte-
    Fassungen, ebenso der Issues-Verweis am Ende. Zweimal zurückgestellt, mit §4.12 fällig
@@ -2750,6 +2914,22 @@ Runden; erst danach wird `Rtf` als führendes Feld abgelöst (§5).
    (§4.11): ja, mit zwei bedingt geschriebenen Feldern an `WbPoint`; nur der Bleistift
    wertet sie aus. **Offen bleibt daran nur die Gegenprobe am echten Stift** — sie gehört
    zum Punkt 1 oben und läuft im selben Handgriff mit.
+
+6. **Soll es ein achtes Diagramm geben — das Flächendiagramm?** Aufgefallen beim Zeichnen
+   (§4.25): §4.24 und §6 zählen die sieben Arten als „Säule, Balken, Linie, **Fläche**, Punkte,
+   Kuchen, Netz" auf. **Ein Flächendiagramm gibt es aber nirgends** — nicht in `TdChartKind`,
+   nicht im heutigen `ChartDialog`, nicht in `TdDocx`. Die sieben, die es wirklich gibt, sind
+   Säule, Balken, Linie, Punkte, **Punkt+Linie**, Kuchen und Netz; „Fläche" ist beim
+   Aufschreiben an die Stelle von „Punkt+Linie" gerutscht. **Gebaut sind die sieben aus dem
+   Modell** — das ist die Bestandsaufnahme, nicht die Antwort.
+
+   **Die Frage ist, ob ein `Area` dazukommen soll.** Es wäre kein Zeichenschritt, sondern ein
+   Modellschritt und damit eine eigene Runde: neuer Enum-Wert (additiv unbedenklich, §4.14),
+   `c:areaChart` in beide Richtungen, beide Beispieldokumente, beide Vergleichsmethoden, dazu
+   der Eintrag im `ChartDialog` und in beiden Sprachtabellen. **Der Zeichner selbst wäre der
+   kleinste Teil** — eine gefüllte Kurve ist ein `TdChartZug` mit `Fuellung` und einem
+   Rückweg an der Nulllinie entlang; die Bauart dafür steht schon (das Netz füllt genauso).
+   Vermerkt 2026-08-10.
 
 ---
 
@@ -3261,13 +3441,16 @@ Boden", das einzige Risiko, das die Roadmap mit **hoch** einstuft.
       SkiaSharp — Text mit allen Zeichenformaten, Aufzählungsmarken, Absatzlinien, Tabellen,
       Bilder, Kopf-/Fußzeile, Wasserzeichen. 11 neue Wächter. **Noch nirgends angeschlossen** —
       dieselbe Absicht wie bei Schritt 1
+- [x] **Die sieben Diagrammarten zeichnen** (§4.25, 2026-08-10): Säule, Balken, Linie, Punkte,
+      Punkt+Linie, Kuchen und Netz, samt Achsen, Gitter, Legende und Beschriftung. **Die
+      Rechnung steht in `Core/Text/TdChartLayout.cs`**, der Zeichner malt nur — zum vierten Mal
+      dasselbe Muster nach §4.17, §4.20 und §4.21. 53 neue Wächter, **kein einziges neues Feld
+      am Modell**. Dabei ist aufgefallen, dass die hier bisher genannte „Fläche" gar keine
+      Diagrammart ist (§5 „Noch offen", Punkt 6)
 - [ ] **Umverdrahten, was noch fehlt** — jede eigene Runde:
-      1. **Die sieben Diagrammarten zeichnen** (Säule, Balken, Linie, Fläche, Punkte, Kuchen,
-         Netz) samt Legende, Achsen und Beschriftung. Bis dahin steht dort ein benannter
-         Platzhalterkasten (§4.24)
-      2. **`PdfExporter`** gegen das Modell statt gegen den WPF-Paginator. Erst danach ist
+      1. **`PdfExporter`** gegen das Modell statt gegen den WPF-Paginator. Erst danach ist
          §4.1 ganz aufgelöst
-      3. **Die Anzeige im Linux-Kopf** aus dem Modell, dazu das Ribbon in Avalonia neu.
+      2. **Die Anzeige im Linux-Kopf** aus dem Modell, dazu das Ribbon in Avalonia neu.
          Erst wenn Export **und** Anzeige laufen, wird `Rtf` als führendes Feld abgelöst (§5)
 
 #### Wie die Bestandsdokumente herüberkommen — **vor Schritt 2 zu entscheiden**
@@ -3964,6 +4147,34 @@ und keine davon sieht wie ein Fehler aus.
   eine geklärte Lizenz (§6); ein mit Skia gemaltes Rechteck braucht keine. Dabei nie
   achsensymmetrisch malen, sonst fällt eine vertauschte Achse nicht auf.
 
+**Neu aus Phase 4 — die Diagramme (§4.25)**
+
+- **Eine Werteachse, die nicht bei null anfängt, lügt mit richtigen Zahlen.** 98 bis 100 lässt
+  eine Säule doppelt so hoch aussehen wie die daneben. Die Achse fängt deshalb immer bei null
+  an — oder darunter, wenn es negative Werte gibt.
+- **Ober- und Untergrenze der Achse sind Vielfache der Teilung.** Nur dann liegt die Null auf
+  einer Stufe, und nur daraus können alle Säulen wachsen. Ohne das stünde die Grundlinie aller
+  Säulen dort, wo keine Linie ist.
+- **Eine Rechnung, die misst, ist keine plattformneutrale Rechnung.** `TdChartLayout` schätzt
+  die Breite einer Achsenbeschriftung (Zeichenzahl × Grad × 0,55), statt `ITdTextMeasure` zu
+  fragen. Gemessen hinge die Lage der Zeichenfläche an der Schriftausstattung des Rechners —
+  dieselbe Falle wie in §4.16, nur eine Ebene später.
+- **Ein Bogen über 360° ist in Skia entweder nichts oder ein Kreis mit einem Schnitt darin.**
+  Ein Kuchen mit **einer** Kategorie ist der Normalfall und nicht die Ausnahme; er wird als
+  Kreis gezeichnet und nicht als Bogen.
+- **„Kein Wert" ist nicht „der Wert null".** Eine kürzere Reihe bekommt an dieser Kategorie
+  gar keine Säule; eine Reihe mit dem Wert 0 bekommt eine Pixelzeile auf der Nulllinie. Wer
+  beides gleich behandelt, behauptet entweder eine Zahl, die niemand eingegeben hat, oder
+  verschweigt eine, die dasteht.
+- **Auch ein Diagramm rechnet in Zentimetern.** Der heutige Editor hat feste Pixelmaße
+  (`left = 42`, `legendW = 120`) für genau eine Bildgröße. Schriftgrad, Linienstärke,
+  Markenradius und Ränder müssen mit dem Diagramm **und** mit dem Maßstab wachsen — sonst ist
+  die Beschriftung beim Druck mit 300 dpi ein Haar mit einem Punkt darin (§4.24).
+- **Eine Zahl an der Achse gehört nicht in die Kultur des Rechners.** „1.5" fest im Code, wie
+  das Datumsmuster in §4.20. Sonst ist dasselbe Dokument auf zwei Rechnern zwei Bilder.
+- **Ein erfundener Reihenname wäre eine Übersetzung im Dokument.** „Reihe 2" hinge an
+  `Loc.Current`; gezeichnet wird die laufende Nummer, wie bei `TdChart.Kategorie` (§4.21).
+
 **Neu aus Phase 4 — der Zeichner (§4.24)**
 
 - **Punkt ist nicht Pixel.** Die Schriftgröße steht im Modell in Punkt, die Leinwand rechnet in
@@ -4355,6 +4566,7 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 
 | Runde | Datum | Was |
 |---|---|---|
+| V2-30 | 2026-08-10 | **Die sieben Diagrammarten werden gezeichnet** (§4.25) — Säule, Balken, Linie, Punkte, Punkt+Linie, Kuchen und Netz, samt Achsen, Gitter, Legende und Beschriftung. Wo bisher ein gestrichelter Kasten mit einem Titel stand, steht jetzt ein Diagramm. **Gerechnet wird in `Core/Text/TdChartLayout.cs`, gemalt im Zeichner** — zum vierten Mal dasselbe Muster nach der Listennummer (§4.17), dem Feld (§4.20) und dem Diagramm selbst (§4.21): Achsenteilung, Farbvergabe, Legende und jeder Ort stehen als Zahl in Zentimetern, `TdRenderer` ruft nur noch Skia auf. **Der Grund ist Prüfbarkeit, nicht Ordnungsliebe:** An jeder Achse steht Schrift, und Schrift darf nicht gehasht werden (§4.6) — als Rechnung sind es **43 Wächter ohne ein einziges Pixel**, dazu 6 im Zeichner, die an gerechneten Orten auf Farbe sehen. **Am Modell ist nichts geändert worden** — kein Feld, kein Diskriminator, kein Json-Name, also auch keine Änderung an den Beispieldokumenten und am DOCX-Weg; das ist die Probe auf §4.21. **Vier Entscheidungen dahinter:** (1) Die Werteachse fängt **immer bei null** an, nie beim kleinsten Wert — 98 bis 100 lässt eine Säule doppelt so hoch aussehen wie die daneben, die bekannteste Art, mit richtigen Zahlen etwas Falsches zu behaupten. (2) **Negative Werte hängen unter der Nulllinie**, statt am Boden abgeschnitten zu werden; Grenzen sind Vielfache der Teilung, damit die Null auf einer Stufe liegt. (3) Eine Reihe ohne Namen bekommt in der Legende **ihre Nummer und kein „Reihe 2"** — ein deutsches Wort hinge an `Loc.Current`. (4) Die Achsenzahl steht **invariant** im Code, wie das Datumsmuster (§4.20). **Die Rechnung misst nicht, sie schätzt** — `TdChartLayout` kennt `ITdTextMeasure` nicht, sonst hinge die Lage der Zeichenfläche an der Schriftausstattung des Rechners und dasselbe Dokument bekäme unter Linux ein anderes Diagramm (§4.16). Ob der Text hineinpasst, entscheidet der Zeichner, der messen kann: erst verkleinern, dann kürzen. **Der Platzhalterkasten bleibt**, bedeutet aber jetzt „aus diesen Zahlen gibt es kein Bild": keine Reihen, ein Kuchen aus lauter Nullen, ein Netz mit zwei Ecken. **Dabei aufgefallen:** §4.24 und §6 zählten eine Art „Fläche" mit, die es nirgends gibt — weder in `TdChartKind` noch im `ChartDialog` noch in `TdDocx`; sie war an die Stelle von „Punkt+Linie" gerutscht. Als Frage vermerkt (§5 „Noch offen", Punkt 6), nicht still gebaut und nicht still weggelassen. **Augenschein:** eine A4-Seite mit allen sieben Arten plus negativen Säulen nach `%TEMP%` gerendert und angesehen — ein Diagramm, das nur nicht abstürzt, ist kein Diagramm. **473 Tests** (449 Core + 24 WPF), alle sieben Projekte 0 Warnungen |
 | V2-29 | 2026-08-09 | **Der Zeichner steht** (§4.24) — `TdRenderer` in Core nimmt eine gesetzte Seite und eine `SKCanvas` und malt: Papier, Zeilen mit allen Zeichenformaten (fett, kursiv, unterstrichen, durchgestrichen, Hervorhebung, Hoch-/Tiefstellung, Farbe), Aufzählungsmarken, Absatzlinien, Tabellen mit Hintergrund und Rahmen, Bilder, Kopf-/Fußzeile mit aufgelösten Platzhaltern und das Wasserzeichen. **Er rechnet nichts** — jede Zahl steht schon im Umbruch, in Zentimetern und mit aufgelöstem Format (§4.16); hier wird nur in Pixel umgerechnet. Genau dafür rechnet der Umbruch in Zentimetern: eine Zoomstufe darf ihn nicht ändern, sonst bricht ein Dokument bei 150 % anders um als beim Drucken. **Drei Stellen, an denen es schiefgeht, und alle drei haben einen Wächter bekommen:** (1) **Punkt ist nicht Pixel** — die Größe steht im Modell in Punkt, die Leinwand rechnet in Pixeln, der Maßstab kommt obendrauf; wer das vergisst, bekommt bei jeder Zoomstufe dieselbe winzige Schrift auf einer immer größeren Seite. (2) **Der Zellinhalt zählt ab der Innenkante der Zelle**, nicht ab dem Textbereich (§4.19) — ohne den Versatz steht der Text links neben der Tabelle, bei jeder Spalte weiter daneben. (3) **Die Absatzlinie steht unter dem Absatz, nicht unter jeder Zeile** — sonst wird aus einem dreizeiligen Absatz liniertes Papier, und weil das nach Gestaltung aussieht, fällt es niemandem als Fehler auf. **Benannte Lücke:** Ein `TdChart` bekommt einen Kasten mit gestricheltem Rand und seinem Titel und noch kein Diagramm; die sieben Arten sind eine eigene Runde. Ein Kasten sagt „hier fehlt etwas", eine Leerstelle sagt „hier war nie etwas" (§7) — derselbe Platzhalter erscheint, wenn zu einem Bild der Blob fehlt. **Geprüft wird zweigeteilt, und das ist nötig:** Text darf nicht gehasht werden (§4.6, „Segoe UI" fehlt unter Linux), also wird das Geometrische an bekannten Stellen auf Farbe geprüft und alles mit Schrift über die Rechnung — mit der festen Messung aus `UmbruchTests` steht vorher fest, wo etwas landen muss. **Zwei der elf Wächter waren zuerst falsch, und beide Male lag es am Wächter:** Der Zelltest zählte die Rahmenlinie der Nachbarzelle als „Text in der falschen Spalte", der Linientest zählte eine 1 px starke Linie doppelt, weil die Kantenglättung sie auf zwei Pixelzeilen verteilt — gezählt werden jetzt zusammenhängende Bänder. Am Augenschein geprüft: eine A4-Seite mit Überschrift, gemischten Formaten, Trennlinie, Aufzählung, Tabelle, Bild und Platzhalter kommt vollständig und an der richtigen Stelle heraus. **420 Tests grün** (396 Core + 24 WPF), alle Projekte 0 Warnungen. **Angeschlossen ist er noch nirgends** — dieselbe Absicht wie bei Schritt 1; `PdfExporter` und die Anzeige im Linux-Kopf sind die nächsten zwei Runden |
 | V2-28 | 2026-08-09 | **Das Umverdrahten, erster Teil: DOCX und Markdown laufen gegen das Modell** (§4.23) — der letzte offene Punkt aus Phase 4, und **§4.1 ist damit zur Hälfte eingelöst**. Drei Schritte in dieser Reihenfolge, weil jeder auf dem vorigen steht: `TextDoc.Model` wird bei **jedem** Speichern mitgeschrieben (sonst exportierte ein Export aus dem Modell den Stand der einmaligen Übernahme statt dessen, was auf dem Schirm steht), dann Markdown über `TdMarkdown`, dann DOCX über `TdDocx` in **beide** Richtungen — beim Import macht `TdZuFlow` daraus wieder ein `XamlPackage`, sonst käme eine importierte Datei mit gefülltem Modell und leerem Editor an. `DocxExporter` und `MarkdownExporter` sind **gelöscht** (941 Zeilen); `DocxImporter` bleibt für den Whiteboard-Import. **Der eigentliche Ertrag sind fünf Fehler, die vorher niemand sehen konnte** — sie standen alle im Code, aber nichts lief durch diesen Weg, und ein Roundtrip Modell-gegen-Modell liest denselben falschen Ort wieder aus, den er beschrieben hat: (1) Das Absatz-Zeichenformat stand nur im `w:pPr/w:rPr`, das in Word **nur für die Absatzmarke** gilt — jede Überschrift wäre als Fließtext angekommen; (2) es gab keine `Heading`-Vorlagen, also blieben Navigationsbereich und Verzeichnis-Katalog leer; (3) die Ausrichtung wurde örtlich gelesen, aber ein `FlowDocument` steht von Haus aus auf **Blocksatz** — jedes Dokument wäre still linksbündig exportiert worden; (4) Grundschrift und Tabellenlinien kamen gar nicht mit (Tinte → Schwarz, Gainsboro → Schwarz); (5) das generierte Inhaltsverzeichnis wurde als toter Text übernommen und das echte `TOC`-Feld ging verloren. **Neu im Modell: `TdParaFormat.ExcludeFromToc`** — „ist das eine Überschrift?" und „gehört das ins Verzeichnis?" sind **zwei** Fragen, und Titel wie die Zeile „Inhaltsverzeichnis" beantworten sie verschieden; Word trennt es genauso (`Title`/`TOC Heading` gegen `w:outlineLvl`). **Nutzer-Entscheidung: der Titel bekommt im Markdown seine `#`-Überschrift.** Zwei Wächter mussten mit, und das ist keine Nebensache: `DocxAufriss` las `w:b w:val="0"` als „fett" und kannte die dreiteilige Feldform nicht — **ein Wächter, der das Falsche liest, ist schlimmer als keiner.** Die Golden-Files haben sich geändert und jede Zeile ist begründet (§4.6, Tabelle in §4.23): echte Felder statt eingebackenem Text, A4 exakt statt vier Twips daneben, Linien an der Tabelle statt an jeder Zelle. Am laufenden Programm mit einer **Kopie** der echten Datenbank geprüft (Dauerregel 4): Der Überschriften-**Lauf** im DOCX trägt jetzt `w:b`/`w:color`/`w:sz` — genau das war kaputt, und nur so ließ es sich zeigen. **409 Tests grün** (385 Core + 24 WPF), drei Projekte 0 Warnungen. **`Rtf` führt weiter**; Zeichner, `PdfExporter` und die Anzeige im Linux-Kopf sind die nächsten drei Runden |
 | V2-27 | 2026-08-05 | **Die Übernahme der Bestandsdokumente läuft** (§4.22) — seit §4.15 vorgemerkt, durch das unfertige Modell blockiert, mit §4.21 freigeworden. **Nutzer-Entscheidung: still, aber ein Fehler wird gespiegelt.** Die Teilung ist der Punkt: Was gelingt, gelingt wortlos (ein Hinweis, den man bei jedem Dokument wegklickt, wird nach dem dritten Mal nicht mehr gelesen); was misslingt, wird benannt **und im Dokument vermerkt** (`MigrationIssue`) — anders als bei der Datenbank (§4.8) kann hier etwas verlorengehen, denn RTF und XamlPackage tragen Dinge, die kein Modell kennt. `TextDoc` bekommt zwei Felder **neben** `Rtf` (`Model`, `MigrationIssue`), und **`Rtf` wird nie überschrieben** — daraus folgt das Wichtigste: eine misslungene Übernahme ist kein Datenverlust, sondern ein Versuch, der beim nächsten Öffnen wiederholt wird. **Sie läuft nur auf dem Windows-Rechner** (`IDocumentIo.CanMigrate`), und das ist eine Schranke und keine Lücke: RTF liest ausschließlich `TextRange`, ein Versuch unter Linux ergäbe ein **leeres** Dokument — schlimmer als gar keine Übernahme, weil der Inhalt gelöscht aussähe. `Migrate` **wirft nicht**: sie läuft beim Öffnen, und eine Ausnahme dort ist für den Nutzer ein Absturz. **`FlowZuTd` ist die eine Stelle, an der Raten richtig ist:** Die Gliederungsebene kommt aus der Schriftgröße, weil das `FlowDocument` keinen Platz dafür hat — **geraten wird einmal, danach steht sie als eigener Wert im Modell**, und genau das ist der Unterschied zwischen einer Übernahme und einem Format. Übernommen werden **nur örtlich gesetzte Werte** (`ReadLocalValue` unterscheidet „nicht gesetzt" von „Vorgabewert", §4.14) — **aber `Bold`/`Italic`/`Underline` tragen ihre Bedeutung im Typ**, dort gibt `ReadLocalValue` nichts zurück, und wer das übersieht, verliert die drei häufigsten Auszeichnungen (vom Wächter gefunden). Dazu zwei Umrechnungen: WPFs `RowSpan` → `Restart`+`Continue` **je Zeile** (§4.18, sonst rutscht alles dahinter eine Spalte nach links) und eine verschachtelte Liste als **dieselbe** Liste eine Ebene tiefer (§4.17). **Die Umwandlung fasst die Vorlage nicht an** — der erste Entwurf nahm einen Block kurz aus seinem Elternteil, was ihn im offenen Editor hätte verschwinden lassen; eigener Wächter. **Am laufenden Programm mit einer Kopie der echten Daten geprüft:** kein Hinweisfenster, `Model` mit gültiger `GNTD`-Kennung, `Rtf` unangetastet, `"OutlineLevel":1` an der Überschrift. **Dabei ein Fehler, den fünf Schritte lang kein Test sehen konnte:** In jedem Format stand ein `"IstLeer":false`, in jeder Seiteneinrichtung vier gerechnete Werte — **ein Roundtrip prüft, was zurückkommt, nicht was dasteht** (die Felder haben keinen Setter). Behoben mit `[JsonIgnore]`, neuer Wächter sieht auf die Datei. **Nebenbefund:** die echte Datenbank enthält **kein einziges** Textdokument mit Inhalt — die Übernahme ließ sich an ihr gar nicht messen, und wer sie für den Beweis gehalten hätte, hätte einen Haken hinter etwas gesetzt, das nie lief. **12 neue Wächter, jetzt 409** (385 Core + 24 WPF), alle drei Projekte 0 Warnungen. **Ebenfalls entschieden (Nutzer): Phase 6 bekommt einen Aufräum-Schritt** — erst putzen, **dann** noch einmal vollständig prüfen, dann veröffentlichen (§6) |

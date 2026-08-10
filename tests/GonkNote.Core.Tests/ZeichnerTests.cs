@@ -320,20 +320,212 @@ public sealed class ZeichnerTests
     // ==================== Grafiken ====================
 
     /// <summary>
-    /// <b>Ein Diagramm wird als Kasten gezeichnet und verschwindet nicht still</b> (§7). Die
-    /// sieben Diagrammarten sind eine eigene Runde; bis dahin sagt der Kasten „hier fehlt
-    /// etwas", während eine Leerstelle sagte „hier war nie etwas".
+    /// <b>Ein Diagramm ohne Zahlen wird als Kasten gezeichnet und verschwindet nicht still</b>
+    /// (§7). Ein Kasten sagt „hier fehlt etwas", während eine Leerstelle sagte „hier war nie
+    /// etwas" — und aus keiner Reihe gibt es kein Bild (§4.25).
     /// </summary>
     [Fact]
-    public void Ein_Diagramm_wird_als_benannter_Kasten_gezeichnet()
+    public void Ein_Diagramm_ohne_Zahlen_wird_als_benannter_Kasten_gezeichnet()
     {
         var diagramm = new TdChart(TdChartKind.Column, widthCm: 6, heightCm: 4);
+        Assert.True(TdChartLayout.Rechnen(diagramm).IstLeer);
+
         var seite = Setzen(Dok(Blatt(), new TdParagraph([diagramm])));
         using var bmp = Malen(seite, massstab: 20);
 
         // Der Kasten steht im Textbereich und hat einen Rand — irgendwo dort ist Farbe.
         Assert.True(FarbigeIm(bmp, 20, 20, (int)(6 * 20), (int)(4 * 20)) > 0,
             "Für das Diagramm wurde nichts gezeichnet.");
+    }
+
+    // ==================== Diagramme ====================
+
+    /// <summary>
+    /// Ein Diagramm mit Zahlen, allein auf einer Seite. Zurück kommen die Pixel <b>und</b> der
+    /// Ort seines Kastens auf dem Papier — die Wächter rechnen daraus aus, wo etwas sein muss.
+    /// </summary>
+    private static (SKBitmap Bild, double LinksCm, double ObenCm) Diagrammseite(
+        TdChart diagramm, double massstab = 20)
+    {
+        var seite = Setzen(Dok(Blatt(), new TdParagraph([diagramm])));
+        var zeile = seite.Lines[0];
+        var lauf = Assert.Single(zeile.Runs);
+
+        // +1 cm Seitenrand; die Grafik sitzt **auf** der Grundlinie (§4.21).
+        double linksCm = 1 + lauf.XCm;
+        double obenCm = 1 + zeile.YCm + zeile.BaselineCm - diagramm.HeightCm;
+
+        return (Malen(seite, massstab), linksCm, obenCm);
+    }
+
+    /// <summary>Die Farbe an einem Ort, der in Zentimetern des Diagramms angegeben ist.</summary>
+    private static SKColor Am(SKBitmap bmp, double linksCm, double obenCm,
+        double xCm, double yCm, double massstab)
+    {
+        var p = bmp.GetPixel((int)((linksCm + xCm) * massstab), (int)((obenCm + yCm) * massstab));
+        return new SKColor(p.Red, p.Green, p.Blue);
+    }
+
+    private static TdChart MitZahlen(TdChartKind art, params double[] werte)
+    {
+        var d = new TdChart(art, widthCm: 8, heightCm: 6);
+        d.Series.Add(new TdChartSeries("", werte));
+        d.Palette.Add("#FF0000");
+        return d;
+    }
+
+    /// <summary>
+    /// <b>Die Säule steht dort, wo die Rechnung sie hingelegt hat</b> — und in der Farbe, die
+    /// das Diagramm mitbringt. Geprüft wird nicht das Bild, sondern der Ort: mit
+    /// <see cref="TdChartLayout"/> steht vorher fest, wo Farbe sein muss, und daneben, wo keine
+    /// sein darf. <b>Kein Pixel-Hash</b>, denn an den Achsen steht Schrift (§4.6).
+    /// </summary>
+    [Fact]
+    public void Eine_Saeule_steht_an_ihrem_gerechneten_Ort()
+    {
+        var diagramm = MitZahlen(TdChartKind.Column, 1, 2, 3);
+        var plan = TdChartLayout.Rechnen(diagramm);
+        Assert.Equal(3, plan.Flaechen.Count);
+
+        var (bmp, links, oben) = Diagrammseite(diagramm);
+        using var _ = bmp;
+
+        foreach (var saeule in plan.Flaechen)
+        {
+            var farbe = Am(bmp, links, oben, saeule.Kasten.MitteXCm, saeule.Kasten.MitteYCm, 20);
+            Assert.True(farbe.Red > 200 && farbe.Green < 80,
+                $"In der Säule bei {saeule.Kasten.MitteXCm:0.00} cm steht {farbe} statt Rot.");
+        }
+
+        // **Über der höchsten Säule ist Papier.** Ohne diese Gegenprobe bestünde der Wächter
+        // auch dann, wenn der Zeichner die ganze Zeichenfläche rot ausmalte.
+        var hoechste = plan.Flaechen[2].Kasten;
+        Assert.Equal(SKColors.White,
+            Am(bmp, links, oben, hoechste.MitteXCm, hoechste.YCm - 0.3, 20));
+    }
+
+    /// <summary>
+    /// <b>Der Balken wächst nach rechts, nicht nach oben</b> — Säule und Balken sind zwei
+    /// Diagrammarten und nicht dieselbe gedreht. Der Fehler wäre auf einem Bildschirmfoto sofort
+    /// zu sehen und in keinem Zahlentest.
+    /// </summary>
+    [Fact]
+    public void Ein_Balken_faerbt_seine_Laenge_und_nicht_seine_Hoehe()
+    {
+        var diagramm = MitZahlen(TdChartKind.Bar, 1, 3);
+        var plan = TdChartLayout.Rechnen(diagramm);
+
+        var (bmp, links, oben) = Diagrammseite(diagramm);
+        using var _ = bmp;
+
+        var langer = plan.Flaechen[1].Kasten;
+        var kurzer = plan.Flaechen[0].Kasten;
+
+        // Am rechten Ende des langen Balkens ist Farbe …
+        var farbe = Am(bmp, links, oben, langer.RechtsCm - 0.1, langer.MitteYCm, 20);
+        Assert.True(farbe.Red > 200 && farbe.Green < 80, $"Am Balkenende steht {farbe}.");
+
+        // … und auf derselben Höhe beim kurzen Balken ist keine.
+        Assert.Equal(SKColors.White,
+            Am(bmp, links, oben, langer.RechtsCm - 0.1, kurzer.MitteYCm, 20));
+    }
+
+    /// <summary>
+    /// Der Kuchen färbt seine Stücke. Geprüft an zwei Punkten, deren Winkel bekannt ist: Bei
+    /// den Werten 3 und 1 reicht das erste Stück von oben im Uhrzeigersinn über drei Viertel —
+    /// rechts von der Mitte liegt es, links oben liegt das zweite.
+    /// </summary>
+    [Fact]
+    public void Der_Kuchen_faerbt_seine_Stuecke()
+    {
+        var diagramm = new TdChart(TdChartKind.Pie, widthCm: 8, heightCm: 6);
+        diagramm.Series.Add(new TdChartSeries("", 3, 1));
+        diagramm.Palette.AddRange(["#FF0000", "#0000FF"]);
+
+        var plan = TdChartLayout.Rechnen(diagramm);
+        Assert.Equal(2, plan.Stuecke.Count);
+
+        var (bmp, links, oben) = Diagrammseite(diagramm);
+        using var _ = bmp;
+
+        var mitte = plan.Stuecke[0].Mitte;
+        double r = plan.Stuecke[0].RadiusCm * 0.5;
+
+        // 0° zeigt nach rechts — dort liegt das erste (rote) Stück.
+        var erstes = Am(bmp, links, oben, mitte.XCm + r, mitte.YCm, 20);
+        Assert.True(erstes.Red > 200 && erstes.Blue < 80, $"Rechts der Mitte steht {erstes}.");
+
+        // 225° zeigt nach links oben — dort liegt das zweite (blaue) Stück.
+        var zweites = Am(bmp, links, oben,
+            mitte.XCm - r * 0.707, mitte.YCm - r * 0.707, 20);
+        Assert.True(zweites.Blue > 200 && zweites.Red < 80, $"Links oben steht {zweites}.");
+    }
+
+    /// <summary>
+    /// <b>Ein Netz mit zwei Kategorien bleibt ein Platzhalter</b> — zwei Ecken ergäben eine
+    /// Strecke, die wie ein Zeichenfehler aussieht. Der Kasten sagt stattdessen, dass hier
+    /// etwas fehlt (§4.24).
+    /// </summary>
+    [Fact]
+    public void Ein_Netz_mit_zwei_Ecken_bekommt_den_Platzhalter()
+    {
+        var diagramm = MitZahlen(TdChartKind.Radar, 4, 6);
+        Assert.True(TdChartLayout.Rechnen(diagramm).IstLeer);
+
+        var (bmp, links, oben) = Diagrammseite(diagramm);
+        using var _ = bmp;
+
+        // Der Platzhalter ist grau und gestrichelt — im Kasten steht Farbe, aber kein Rot.
+        int rote = 0;
+        for (double y = 0.1; y < diagramm.HeightCm; y += 0.1)
+            for (double x = 0.1; x < diagramm.WidthCm; x += 0.1)
+                if (Am(bmp, links, oben, x, y, 20) is { Red: > 200, Green: < 80 }) rote++;
+
+        Assert.Equal(0, rote);
+        Assert.True(FarbigeIm(bmp, 20, 20, (int)(8 * 20), (int)(6 * 20)) > 0,
+            "Der Platzhalter ist ganz ausgeblieben.");
+    }
+
+    /// <summary>
+    /// <b>Das Diagramm bleibt in seinem Kasten.</b> Der Umbruch hat genau so viel Platz
+    /// reserviert, wie am Modell steht (§4.21); was darüber hinausliefe, stünde im Text daneben —
+    /// und der Umbruch wüsste nichts davon.
+    /// </summary>
+    [Fact]
+    public void Das_Diagramm_bleibt_in_seinem_Kasten()
+    {
+        var diagramm = MitZahlen(TdChartKind.Column, 4, 7, 3, 6);
+        diagramm.Title = "Ein Titel, der über die ganze Breite läuft";
+
+        var (bmp, links, _) = Diagrammseite(diagramm);
+        using var _bmp = bmp;
+
+        // Rechts neben dem Diagramm ist der Textbereich noch 2 cm breit, und dort steht nichts.
+        int rechts = (int)((links + diagramm.WidthCm + 0.05) * 20);
+        Assert.Equal(0, FarbigeIm(bmp, rechts, 0, bmp.Width - rechts, bmp.Height));
+    }
+
+    /// <summary>
+    /// <b>Punkt ist nicht Pixel — auch im Diagramm</b> (§7). Schriftgrad, Linienstärke und
+    /// Markenradius stehen in Zentimetern und müssen mit dem Maßstab wachsen; sonst ist die
+    /// Achsenbeschriftung beim Druck mit 300 dpi ein Haar. Geprüft wird die Umschließung der
+    /// Tinte: sie muss sich verdoppeln, nicht gleich bleiben.
+    /// </summary>
+    [Fact]
+    public void Der_Massstab_skaliert_auch_das_Diagramm()
+    {
+        var diagramm = MitZahlen(TdChartKind.Column, 1, 2, 3);
+        var seite = Setzen(Dok(Blatt(), new TdParagraph([diagramm])));
+
+        using var klein = Malen(seite, massstab: 30);
+        using var gross = Malen(seite, massstab: 60);
+
+        var a = TinteKasten(klein);
+        var b = TinteKasten(gross);
+
+        Assert.False(a.IsEmpty, "Bei kleinem Maßstab wurde nichts gezeichnet.");
+        Assert.InRange((double)b.Height / a.Height, 1.9, 2.1);
+        Assert.InRange((double)b.Width / a.Width, 1.9, 2.1);
     }
 
     /// <summary>

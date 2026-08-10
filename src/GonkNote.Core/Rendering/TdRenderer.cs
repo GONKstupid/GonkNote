@@ -43,9 +43,14 @@ public readonly record struct TdRenderContext(
 /// </para>
 ///
 /// <para>
-/// <b>Was noch nicht geht, verschwindet nicht still</b> (§7): Ein <see cref="TdChart"/> wird
-/// als Kasten mit seinem Titel gezeichnet und nicht als Diagramm — die sieben Diagrammarten
-/// sind eine eigene Runde (§6). Ein Kasten sagt „hier fehlt etwas"; eine Leerstelle sagt
+/// <b>Auch das Diagramm rechnet er nicht</b> (§4.25): Achsenteilung, Farbvergabe, Legende und
+/// jeder Ort kommen aus <see cref="TdChartLayout"/> — in Zentimetern, wie alles andere. Hier
+/// werden daraus Rechtecke, Bögen, Linienzüge und Beschriftungen.
+/// </para>
+/// <para>
+/// <b>Was noch nicht geht, verschwindet nicht still</b> (§7): Gibt es aus den Zahlen kein Bild
+/// (keine Reihen, ein Kuchen aus lauter Nullen, ein Netz mit zwei Kategorien), bleibt der
+/// Platzhalterkasten stehen. Ein Kasten sagt „hier fehlt etwas"; eine Leerstelle sagt
 /// „hier war nie etwas".
 /// </para>
 /// </summary>
@@ -269,12 +274,13 @@ public static class TdRenderer
             Px(grafik.HeightCm, massstab));
 
         if (grafik is TdImage bild && BildZeichnen(leinwand, bild, kasten, kontext)) return;
+        if (grafik is TdChart diagramm && DiagrammZeichnen(leinwand, diagramm, kasten, massstab)) return;
 
-
-        // **Der benannte Platzhalter.** Für ein Diagramm ist er der heutige Stand (die sieben
-        // Arten sind eine eigene Runde); für ein Bild bedeutet er „der Blob fehlt" — eine
-        // unvollständige Sicherung und kein Programmierfehler (Dauerregel 4). Beides sieht man
-        // dem Kasten an, und beides wäre als Leerstelle nicht zu bemerken.
+        // **Der benannte Platzhalter.** Für ein Bild bedeutet er „der Blob fehlt" — eine
+        // unvollständige Sicherung und kein Programmierfehler (Dauerregel 4). Für ein Diagramm
+        // heißt er: aus diesen Zahlen gibt es kein Bild (keine Reihen, ein Kuchen aus lauter
+        // Nullen, ein Netz mit zwei Kategorien — <see cref="TdChartPlan.IstLeer"/>). Beides sieht
+        // man dem Kasten an, und beides wäre als Leerstelle nicht zu bemerken.
         PlatzhalterZeichnen(leinwand, kasten, Platzhaltertext(grafik), massstab);
     }
 
@@ -334,6 +340,224 @@ public static class TdRenderer
         leinwand.DrawText(
             text, kasten.MidX, kasten.MidY + schrift.Size / 3f, SKTextAlign.Center, schrift, tinte);
     }
+
+    // ==================== Diagramme ====================
+
+    /// <summary>
+    /// Zeichnet ein Diagramm in seinen Kasten — oder gibt <c>false</c> zurück, wenn es aus
+    /// diesen Zahlen kein Bild gibt (dann bleibt der Platzhalter).
+    ///
+    /// <para>
+    /// <b>Hier wird nicht gerechnet.</b> Achsenteilung, Farbvergabe, Legende und jeder Ort
+    /// stehen fertig in <see cref="TdChartLayout.Rechnen"/> — in Zentimetern, ab der linken
+    /// oberen Ecke des Kastens. Was hier passiert, ist die Umrechnung in Pixel und der Aufruf
+    /// von Skia, genau wie beim Text (§4.24).
+    /// </para>
+    /// </summary>
+    private static bool DiagrammZeichnen(
+        SKCanvas leinwand, TdChart diagramm, SKRect kasten, double massstab)
+    {
+        var plan = TdChartLayout.Rechnen(diagramm);
+        if (plan.IstLeer) return false;
+
+        leinwand.Save();
+        leinwand.Translate(kasten.Left, kasten.Top);
+
+        // Die Reihenfolge ist die Reihenfolge der Listen im Plan: Gitter unter den Flächen, die
+        // Beschriftung über allem. Andersherum liefen die Gitterlinien quer über die Säulen.
+        foreach (var strich in plan.Striche) StrichZeichnen(leinwand, strich, massstab);
+        foreach (var flaeche in plan.Flaechen) FlaecheZeichnen(leinwand, flaeche, massstab);
+        foreach (var stueck in plan.Stuecke) KuchenstueckZeichnen(leinwand, stueck, massstab);
+        foreach (var zug in plan.Zuege) ZugZeichnen(leinwand, zug, massstab);
+        foreach (var schrift in plan.Schriften) BeschriftungZeichnen(leinwand, schrift, massstab);
+
+        leinwand.Restore();
+        return true;
+    }
+
+    private static void FlaecheZeichnen(SKCanvas leinwand, TdChartFlaeche flaeche, double massstab)
+    {
+        if (Farbe(flaeche.Farbe) is not { } farbe) return;
+
+        var k = Kasten(flaeche.Kasten, massstab);
+
+        // Eine Säule mit dem Wert null ist ein Strich ohne Höhe. **Sie wird trotzdem
+        // gezeichnet** — als eine Pixelzeile auf der Nulllinie: dass dort ein Wert steht, ist
+        // eine Aussage, und eine Leerstelle wäre die Aussage „hier fehlt eine Zahl".
+        if (k.Height < 1) k = SKRect.Create(k.Left, k.Top, k.Width, 1);
+        if (k.Width < 1) k = SKRect.Create(k.Left, k.Top, 1, k.Height);
+
+        using var pinsel = new SKPaint { Color = farbe, IsAntialias = true };
+        leinwand.DrawRect(k, pinsel);
+    }
+
+    private static void StrichZeichnen(SKCanvas leinwand, TdChartStrich strich, double massstab)
+    {
+        if (Farbe(strich.Farbe) is not { } farbe) return;
+
+        using var stift = new SKPaint
+        {
+            Color = farbe,
+            StrokeWidth = Math.Max(1f, Px(strich.StaerkeCm, massstab)),
+            IsAntialias = true,
+        };
+        leinwand.DrawLine(
+            Px(strich.Von.XCm, massstab), Px(strich.Von.YCm, massstab),
+            Px(strich.Bis.XCm, massstab), Px(strich.Bis.YCm, massstab), stift);
+    }
+
+    /// <summary>
+    /// Ein Kuchenstück. <b>Ein volles Rundum wird zum Kreis</b> — ein Bogen über 360° ist in
+    /// Skia je nach Weg entweder nichts oder ein Kreis mit einem Schnitt darin, und eine
+    /// einzige Kategorie ist der Normalfall, nicht die Ausnahme.
+    /// </summary>
+    private static void KuchenstueckZeichnen(SKCanvas leinwand, TdChartStueck stueck, double massstab)
+    {
+        if (Farbe(stueck.Farbe) is not { } farbe) return;
+
+        float mx = Px(stueck.Mitte.XCm, massstab);
+        float my = Px(stueck.Mitte.YCm, massstab);
+        float r = Px(stueck.RadiusCm, massstab);
+        if (r <= 0) return;
+
+        using var pinsel = new SKPaint { Color = farbe, IsAntialias = true };
+
+        if (stueck.SpanGrad >= 359.9)
+        {
+            leinwand.DrawCircle(mx, my, r, pinsel);
+            return;
+        }
+
+        using var pfad = new SKPath();
+        pfad.MoveTo(mx, my);
+        pfad.ArcTo(SKRect.Create(mx - r, my - r, r * 2, r * 2),
+            (float)stueck.StartGrad, (float)stueck.SpanGrad, forceMoveTo: false);
+        pfad.Close();
+        leinwand.DrawPath(pfad, pinsel);
+    }
+
+    private static void ZugZeichnen(SKCanvas leinwand, TdChartZug zug, double massstab)
+    {
+        if (zug.Punkte.Count == 0 || Farbe(zug.Farbe) is not { } farbe) return;
+
+        using var pfad = new SKPath();
+        for (int i = 0; i < zug.Punkte.Count; i++)
+        {
+            float x = Px(zug.Punkte[i].XCm, massstab);
+            float y = Px(zug.Punkte[i].YCm, massstab);
+            if (i == 0) pfad.MoveTo(x, y); else pfad.LineTo(x, y);
+        }
+        if (zug.Geschlossen) pfad.Close();
+
+        if (zug.Fuellung > 0)
+        {
+            using var fuellung = new SKPaint
+            {
+                Color = farbe.WithAlpha((byte)Math.Clamp(zug.Fuellung * 255, 0, 255)),
+                IsAntialias = true,
+            };
+            leinwand.DrawPath(pfad, fuellung);
+        }
+
+        if (zug.Linie)
+        {
+            using var stift = new SKPaint
+            {
+                Color = farbe,
+                Style = SKPaintStyle.Stroke,
+                StrokeWidth = Math.Max(1f, Px(zug.StaerkeCm, massstab)),
+                StrokeJoin = SKStrokeJoin.Round,
+                StrokeCap = SKStrokeCap.Round,
+                IsAntialias = true,
+            };
+            leinwand.DrawPath(pfad, stift);
+        }
+
+        if (!zug.Marken) return;
+
+        float radius = Math.Max(1f, Px(zug.MarkenRadiusCm, massstab));
+        using var marke = new SKPaint { Color = farbe, IsAntialias = true };
+        foreach (var punkt in zug.Punkte)
+            leinwand.DrawCircle(Px(punkt.XCm, massstab), Px(punkt.YCm, massstab), radius, marke);
+    }
+
+    /// <summary>
+    /// Eine Beschriftung des Diagramms.
+    ///
+    /// <para>
+    /// <b>Der Platz steht in der Rechnung, das Hineinpassen entscheidet sich hier</b> — die
+    /// Rechnung kann nicht messen (sie soll es auch nicht, §4.16), und ein Kategoriename, der
+    /// in die Nachbarspalte hineinragt, sähe aus wie ein verrutschtes Diagramm. Erst wird die
+    /// Schrift verkleinert, und erst wenn das nicht reicht, wird gekürzt: eine kleinere Zahl ist
+    /// lesbar, eine abgeschnittene ist eine andere Zahl.
+    /// </para>
+    /// </summary>
+    private static void BeschriftungZeichnen(
+        SKCanvas leinwand, TdChartSchrift beschriftung, double massstab)
+    {
+        if (beschriftung.Text.Length == 0) return;
+
+        float groesse = Px(beschriftung.GroesseCm, massstab);
+        // Unter einem Pixel Höhe gibt es nichts mehr zu lesen — ein grauer Schleier über der
+        // Zeichenfläche sähe aus wie ein Fehler im Bild.
+        if (groesse < 3f) return;
+
+        using var schrift = new SKFont(
+            beschriftung.Fett ? WbFonts.Bold : WbFonts.Regular, groesse);
+
+        string text = beschriftung.Text;
+
+        if (beschriftung.HoechstensCm > 0)
+        {
+            float grenze = Px(beschriftung.HoechstensCm, massstab);
+            float breite = schrift.MeasureText(text);
+
+            if (breite > grenze)
+            {
+                // Bis zu einem Drittel kleiner; darunter wird die Beschriftung unleserlich, und
+                // dann ist Kürzen das ehrlichere Mittel.
+                schrift.Size = groesse * Math.Max(0.66f, grenze / breite);
+                text = Gekuerzt(schrift, text, grenze);
+            }
+        }
+
+        if (text.Length == 0) return;
+
+        using var tinte = new SKPaint
+        {
+            Color = Farbe(beschriftung.Farbe) ?? SKColors.Gray,
+            IsAntialias = true,
+        };
+        leinwand.DrawText(
+            text, Px(beschriftung.XCm, massstab), Px(beschriftung.YCm, massstab),
+            beschriftung.Anker switch
+            {
+                TdChartAnchor.Links => SKTextAlign.Left,
+                TdChartAnchor.Rechts => SKTextAlign.Right,
+                _ => SKTextAlign.Center,
+            },
+            schrift, tinte);
+    }
+
+    /// <summary>
+    /// Der Text, so weit er passt, mit „…" dahinter. <b>Leer, wenn nicht einmal das passt</b> —
+    /// ein einzelnes Auslassungszeichen sagt weniger als nichts.
+    /// </summary>
+    private static string Gekuerzt(SKFont schrift, string text, float grenze)
+    {
+        if (schrift.MeasureText(text) <= grenze) return text;
+
+        for (int laenge = text.Length - 1; laenge > 0; laenge--)
+        {
+            string versuch = text[..laenge] + "…";
+            if (schrift.MeasureText(versuch) <= grenze) return versuch;
+        }
+        return "";
+    }
+
+    private static SKRect Kasten(TdChartBox box, double massstab) => SKRect.Create(
+        Px(box.XCm, massstab), Px(box.YCm, massstab),
+        Px(box.WidthCm, massstab), Px(box.HeightCm, massstab));
 
     // ==================== Tabellen ====================
 

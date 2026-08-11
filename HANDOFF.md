@@ -1,6 +1,6 @@
 # Gonk Note V2 — Projektübergabe
 
-**Stand: 2026-08-11 · Version 0.3.0 · net10.0 · SkiaSharp 3 · SQLite · Avalonia 12 · ✅ M1 erreicht · ✅ Phase 4 abgeschlossen (§4.28): Dokumentmodell, Übernahme, DOCX/Markdown/PDF/PNG gegen das Modell, Zeichner samt Diagrammen, Schriftkonzept — und die Anzeige im Linux-Kopf. Textdokumente sind dort nicht mehr ausgegraut. ⏳ Offen: das Schreiben (Cursor, Auswahl, Eingabe)**
+**Stand: 2026-08-11 · Version 0.3.0 · net10.0 · SkiaSharp 3 · SQLite · Avalonia 12 · ✅ M1 erreicht · ✅ Phase 4 abgeschlossen (§4.28): Dokumentmodell, Übernahme, DOCX/Markdown/PDF/PNG gegen das Modell, Zeichner samt Diagrammen, Schriftkonzept — und die Anzeige im Linux-Kopf. Textdokumente sind dort nicht mehr ausgegraut, und die Anzeige ist **auf dem Laptop gegengeprüft** (§4.28, V2-37). ⏳ Offen: das Schreiben (Cursor, Auswahl, Eingabe) — und zwei kleine Punkte aus dem Augenschein (§5 „Noch offen" 6 und 7)**
 
 > **📌 Dauerregeln des Nutzers — gelten immer, ohne Nachfragen:**
 >
@@ -316,9 +316,17 @@ Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — beh
 > **M1 bleibt ein gültiger Ausstiegspunkt.**
 >
 > **Was dabei nicht untergehen darf:**
-> - **§5d trägt einen neuen Auftrag** (Stand 2026-08-11, nach Runde V2-35): der erste
->   Augenschein des Textdokuments **unter Linux**. Er ist noch nicht abgearbeitet — bevor
->   der Nutzer wechselt, nichts daran ändern.
+> - **Der Laptop-Auftrag ist abgearbeitet** (V2-37, 2026-08-11): der erste Augenschein des
+>   Textdokuments **unter Linux**. Befund in **§4.28, „Was der Laptop gefunden hat"** — die
+>   Anzeige trägt, der Umbruch stimmt mit dem PDF überein, das Rollen und alle Zoomstufen
+>   arbeiten. **§5d trägt jetzt keinen Auftrag mehr**, weil der nächste von dieser
+>   Entscheidung hier abhängt.
+> - **Zwei neue Punkte in §5 „Noch offen":** **6** — der Wortzwischenraum an einer
+>   Stückgrenze sitzt in der **Anzeige** falsch (im PDF nicht); das ist Arbeit für eine
+>   Windows-Runde, keine Entscheidung. **7** — der **Dateidialog** des Linux-Kopfs ist
+>   ungeprüft geblieben: unter GNOME-Wayland ist es der Portal-Dialog, und der lässt sich
+>   nicht fernsteuern. **Zwei Minuten Nutzer am Gerät**, sonst bleibt es der einzige
+>   ungesehene Teil des Linux-Kopfs.
 > - **Vor jedem Laptop-Auftrag die betroffene `.axaml` ansehen** — ob der Linux-Kopf
 >   überhaupt kann, was der Auftrag verlangt. In §4.26 ist genau das schiefgegangen.
 > - **Drei Beobachtungen stehen offen und sind nicht angefasst:** ein Verweis bekommt so
@@ -3539,6 +3547,111 @@ dieser hier.
 **`Rtf` bleibt bis dahin das führende Feld** (§5). Es abzulösen heißt, den WPF-Editor auf das
 Modell umzustellen, und dafür fehlt derselbe Schreibweg.
 
+#### Was der Laptop gefunden hat (2026-08-11, CachyOS, GNOME **Wayland**)
+
+**Die Anzeige steht — und sie stimmt mit dem PDF überein bis auf eine Sache, die ihr allein
+gehört.** Das war die Frage der Runde (§5d), und sie ist beantwortet. Zwei der fünf Fragen
+konnten **nicht** zu Ende beantwortet werden, und der Grund dafür ist der interessantere Teil
+dieses Befunds.
+
+**Der Ablauf lief glatt:** `dotnet build src/GonkNote.Core` und `dotnet build
+src/GonkNote.Avalonia` je 0 Fehler / 0 Warnungen, `dotnet test tests/GonkNote.Core.Tests`
+**489 von 489 grün in 21 s**. Kein Unterschied zu Windows.
+
+**Frage 1 — es steht Schrift auf dem Blatt, und zwar die richtige.** ✅ Die Prüf-DOCX aus §5d
+(um eine Aufzählung und einen unterstrichenen Lauf erweitert, weil die erwartete Liste beides
+nennt und das Programm beides nicht erzeugte) öffnet sich als gesetztes Papier: Überschrift,
+**fett / kursiv / unterstrichen / farbig**, Aufzählung mit Marken, Tabelle mit Rahmen,
+**Säulendiagramm mit Achsen, Gitternetz und fünf Farben**, Kopfzeile `{TITEL}` ab Seite 2 (auf
+Seite 1 unterdrückt), Fußzeile „Seite 3 von 3", Ribbon mit „Wörter: 986 · Zeichen: 6045" und
+„Nur Ansicht". **Keine leeren Zeilen, keine Kästchen** — die Schriftkette greift auf dem
+Bildschirm genauso wie im PDF (§4.27).
+
+> **Der Fund aus §4.28 ist wirklich weg:** die Tabelle steht mit **einer** Kopfzeile da.
+
+**Frage 2 — dieselbe Schrift, derselbe Umbruch, aber ein sichtbarer Unterschied.** Dieselbe
+Datei zusätzlich als PDF: **3 Seiten hier wie dort**, A4, `Title: Anzeigeprobe`, `Producer:
+Gonk Note`, alle fünf Schnitte eingebettet (`emb yes`, CID TrueType, kein Systemname). Zeilen-
+und Seitenumbruch stimmen überein — **§4.16 hält.**
+
+> **Der Fund: in der Anzeige sitzt der Wortzwischenraum an einer Stückgrenze falsch.** Der
+> Satz „…, Unterstrichenes und Farbiges." steht auf dem Schirm als
+> **„Unterstrichenes  undFarbiges ."** — der Zwischenraum vor dem farbigen Stück fehlt und
+> steht dafür dahinter, vor dem Schlusspunkt. **Im PDF derselben Datei ist er richtig.**
+>
+> **Was daran gesichert ist:** Die Stückpositionen kommen aus dem Umbruch und stehen in
+> Zentimetern, sind also für beide Wege gleich; unterschiedlich ist allein der Maßstab
+> (`TdRenderer.PixelProCm` gegen `TdPdf.PunktProCm`, §4.28). Die **gezeichnete** Breite eines
+> Stücks folgt aber der Zeichensatzgröße — passt sie bei Bildschirmmaßstab nicht exakt zur
+> festen Position des nächsten Stücks, wandert die Lücke. **Das ist eine Vermutung zur
+> Ursache, keine Messung**; gemessen ist nur, dass es die Anzeige betrifft und das PDF nicht.
+>
+> **Vermutlich nicht linuxspezifisch** — der Avalonia-Kopf läuft unter Windows auch, und dort
+> ist derselbe Maßstab im Spiel. Nach §5d deshalb **nichts geändert**; der Punkt gehört in die
+> nächste Windows-Runde. Er fällt nur bei Text mit mehreren Zeichenformaten auf, im
+> Fließtext nicht.
+
+**Frage 3 — das Rollen ist vollständig.** ✅ Über alle drei Seiten gerollt: **kein Blatt bleibt
+weiß**, nichts erscheint verzögert, die Kopfzeile kommt beim Hereinrollen mit. Zoom −/+
+(119 % → 100 % → 90 %), **„Seitenbreite" (119 %)** und **„Ganze Seite" (52 %)** arbeiten, der
+gewählte Knopf bleibt markiert, und der Text bleibt in jeder Stufe sauber. **`ScrollChanged`
+tut, was §4.28 verspricht.** — **Strg + Mausrad konnte nicht geprüft werden:** `tools/linux`
+kennt kein Mausrad (nur Klick, Ziehen, Tasten). Das braucht den Nutzer am Gerät.
+
+**Frage 4 — der Dateidialog ist der des Portals, und weiter kam die Prüfung nicht.** ⚠️
+`Datei → Dokument importieren…` **öffnet einen Dialog**, und zwar nachweislich den des
+**Portals**: auf dem Sitzungsbus steht währenddessen das Anfrage-Objekt
+`/org/freedesktop/portal/desktop/request/1_146/Avalonia_…`. Er ist damit ein **natives
+Wayland-Fenster** — nicht Avalonias eigener (der stünde als X-Fenster in `_NET_CLIENT_LIST`,
+dort steht nur das Hauptfenster).
+
+> **Beide Teilfragen aus §5d bleiben offen und brauchen den Nutzer am Gerät:** ob ein **Pfad**
+> zurückkommt (`AvaloniaFileDialog.Pfad`) und ob im Speichern-Dialog das **vorgewählte Format**
+> oben steht. **Der Grund ist das Werkzeug, nicht die App** — siehe unten.
+
+**Frage 5 — der Wayland-Fall ist in Ordnung.** ✅ Der Dialog **erscheint nicht hinter dem
+Fenster**: er bekommt den Tastaturfokus (mutter setzt `_NET_ACTIVE_WINDOW` auf ein Fenster
+außerhalb der Client-Liste, wie es bei einer fokussierten Wayland-Oberfläche üblich ist), und
+**Escape schließt ihn**. Und er **blockiert das Hauptfenster richtig**: ein Klick auf „Design
+wechseln" bei offenem Dialog bleibt wirkungslos — die Aufnahme davor und danach ist **Pixel für
+Pixel identisch** (`compare -metric AE` = 0), der Dialog bleibt offen. **`Modal.Warte` pumpt
+zwar den Nachrichtenlauf, die Eingabe ist trotzdem gesperrt.**
+
+##### Was den Laptop dabei aufgehalten hat — drei Löcher im Werkzeug
+
+**Das ist der eigentliche Ertrag der Runde**, denn ohne das steht die nächste Prüfrunde wieder
+davor. Alle drei sind **linuxspezifisch** und keiner davon ein Fehler der App.
+
+| Was | Befund |
+|---|---|
+| **`zeiger` tippt Sonderzeichen falsch** | **Behoben.** `Tippen` drückte Umschalt genau dann, wenn das Zeichen ein Großbuchstabe war. Auf der **deutschen** Belegung dieses Laptops liegt `/` auf **Umschalt+7** — `zeiger ':/tmp/probe.docx'` tippte also `7…`, **ohne Fehlermeldung**, denn die Taste gibt es ja. Es sah aus wie ein Fehler der App. Jetzt wird die Ebene aus der Belegung selbst gelesen (`XGetKeyboardMapping`), Umschalt **und** AltGr inbegriffen |
+| **Der Portal-Dialog lässt sich nicht fernsteuern** | **Offen, und vermutlich nicht lösbar.** `Escape` kommt an, Buchstaben und `Strg+L` **nicht** — XTEST erreicht die Wayland-Oberfläche also nur teilweise. Fotografierbar ist sie gar nicht: `import` kann nur X-Fenster, und das X-**Wurzel**fenster ist unter Wayland schwarz (nachgemessen, genau wie in `schau.sh` beschrieben). **Damit ist jeder Dateidialog Handarbeit** |
+| **`schau.sh` gibt die Ausgabe nicht frei** | **Offen.** Die gestartete App erbt `stdout`; ein Aufrufer, der auf das Skriptende wartet, hängt, bis die App beendet wird. Dazu sind die voreingestellten **4000 ms zu kurz** für den ersten Start des Debug-Baus — der erste Versuch endete mit „Kein verwaltetes Fenster gefunden" und ohne Bild. Behelf für diese Runde: die App selbst mit `setsid nohup … >/tmp/kopf.log 2>&1 &` starten und mit `import -window <id>` fotografieren |
+
+> **Zwei Eigenheiten des Menüs, die Zeit gekostet haben und der nächste Thread nicht neu
+> herausfinden muss:** Avalonias Menü-Popups sind **eigene Fenster außerhalb der
+> Client-Liste** — sie stehen auf keiner Aufnahme, ein Menüpfad ist also nur über die Tastatur
+> zu belegen. Dabei zählt `Down` die Einträge **ohne** die Trenner (`Datei → Dokument
+> importieren…` = fünfmal `Down`), und **einzelne Tastendrücke gehen verloren**: unter 0,8 s
+> Abstand kam die Kette mehrfach einen Eintrag zu früh an. Wer einen Menüpunkt sicher treffen
+> will, **prüft danach nach, ob er wirklich ausgelöst hat**, statt es anzunehmen.
+
+##### Wie das Dokument dann doch in den Kopf kam
+
+Weil der Dateidialog ausfiel, ist die Prüf-DOCX über ein Wegwerf-Programm (`/tmp/saatgut`) in
+die Test-Datenbank gelegt worden — **über genau dieselbe Kette**, die
+`AvaloniaDocumentIo.Import` und `MainViewModel.ImportDocx` nehmen: `TdDocx.Lesen` →
+`TdFormatIo.Schreiben` → `TextDoc.Model`, `Rtf` leer. Das PDF für Frage 2 entstand ebenso über
+`TdExport.Schreiben` aus dem Modell, das danach **in der Datenbank stand**.
+
+> **Was damit ungeprüft bleibt, bleibt benannt:** der Dateidialog selbst und der Weg vom
+> gewählten Pfad bis ins Modell. **Alles dahinter ist geprüft** — Lesen, Speichern, Laden,
+> Umbrechen, Zeichnen, Exportieren.
+
+**Nicht geprüft, weil es den Nutzer am Gerät braucht** (dieselben wie beim letzten Mal): das
+zweite Stiftgerät (§5 „Noch offen" 1), eine Xorg-Sitzung (§5a „Offen" 2) und die Druckschwelle
+unten (§5a „Offen" 3). Sie bleiben offen.
+
 ---
 
 ## 5. Entscheidungen
@@ -3660,6 +3773,27 @@ Modell umzustellen, und dafür fehlt derselbe Schreibweg.
    zusammen**, danach beide Dialoge im laufenden Programm gegenprüfen, in beiden Sprachen und
    in **beiden Köpfen** (Dauerregel 1) — genau daran hing in §4.25 ein Fehler (§7, „Der Kopf
    trägt seine eigene Kopie von Core"). Vermerkt 2026-08-11.
+
+6. **Der Wortzwischenraum an einer Stückgrenze sitzt in der Anzeige falsch.** Auf dem Laptop
+   gefunden (§4.28, „Was der Laptop gefunden hat"): „…, Unterstrichenes und Farbiges." steht
+   auf dem Schirm als **„Unterstrichenes  undFarbiges ."** — die Lücke fehlt vor dem farbigen
+   Stück und steht dahinter. **Im PDF derselben Datei ist sie richtig**, Zeilen- und
+   Seitenumbruch stimmen zwischen beiden überein.
+
+   **Vermutlich nicht linuxspezifisch** (derselbe Maßstab greift im Avalonia-Kopf unter
+   Windows), deshalb nach §5d dort nicht angefasst. **Es ist keine Entscheidung, sondern
+   Arbeit** — es steht hier, damit es nicht untergeht, bis eine Windows-Runde es aufgreift.
+   Es fällt nur bei Text mit mehreren Zeichenformaten auf. Vermerkt 2026-08-11.
+
+7. **Der Dateidialog des Linux-Kopfs ist ungeprüft geblieben.** Er öffnet sich und blockiert
+   richtig (§4.28), aber die zwei Fragen aus §5d — **kommt ein Pfad zurück**, und **steht das
+   vorgewählte Format oben** — konnten nicht beantwortet werden: unter GNOME-Wayland ist es
+   der **Portal**-Dialog, also ein natives Wayland-Fenster, und das ist mit `tools/linux`
+   weder zu fotografieren noch zu bedienen (nur `Escape` kommt an).
+
+   **Das braucht den Nutzer am Gerät** — zwei Minuten: einmal importieren, einmal
+   exportieren, hinsehen. **Bis dahin ist der Weg vom gewählten Pfad ins Modell der einzige
+   Teil des Linux-Kopfs, den niemand gesehen hat.** Vermerkt 2026-08-11.
 
 **Beantwortet und hier nur noch als Verweis** — der volle Wortlaut stand bis zum 2026-08-11
 darunter und wurde von niemandem mehr gelesen; was gilt, steht in der Tabelle oben:
@@ -4124,155 +4258,35 @@ dotnet run --project src/GonkNote.Avalonia -- --db /tmp/gonk-test/gonknote.sqlit
 
 ---
 
-### ▶ Aktueller Auftrag (Stand 2026-08-11, nach Runde V2-36)
+### ▶ Aktueller Auftrag — **keiner offen** (Stand 2026-08-11, nach Runde V2-37)
 
-> **Er gilt.** Geschrieben nach Runde V2-35 (§4.28), nachgezogen in V2-36 — und V2-36 hat
-> **keine Zeile Code angefasst**, nur das HANDOFF aufgeräumt. Am Auftrag selbst ist deshalb
-> nichts anders als gestern; die Zeile oben trägt nur die neue Rundennummer, damit die
-> Datumsprüfung aus dem Prompt („älter als der oberste Chronik-Eintrag?") nicht falschen
-> Alarm schlägt.
+> **Der Auftrag vom 2026-08-11 („der erste Augenschein des Textdokuments unter Linux") ist
+> abgearbeitet.** Befund: **§4.28, „Was der Laptop gefunden hat"**. Kurzfassung unten in der
+> Tabelle.
+>
+> **Hier steht bewusst kein neuer Auftrag.** Der nächste Schritt ist eine **Entscheidung des
+> Nutzers** und keine Messung (§0, „Hier geht es weiter": Schreiben im Linux-Kopf oder
+> Phase 4.5) — und was der Laptop danach prüfen soll, hängt genau daran. Ein Auftrag, den
+> niemand aus einer Windows-Runde geschrieben hat, wäre geraten.
+>
+> **Zwei Dinge kann der Nutzer hier trotzdem sofort erledigen**, beide brauchen ihn am Gerät
+> und beide sind in Minuten getan:
+>
+> 1. **Den Dateidialog ansehen** (§5 „Noch offen" **7**). Einmal `Datei → Dokument
+>    importieren…`, eine DOCX wählen — kommt das Dokument an? Einmal `Exportieren → PDF` —
+>    steht **PDF** im Speichern-Dialog oben? **Das ist der einzige Teil des Linux-Kopfs, den
+>    noch niemand gesehen hat**, und er lässt sich nicht fernsteuern (siehe §4.28).
+> 2. **Ein zweites Stiftgerät** (§5 „Noch offen" **1**), falls eines greifbar ist — mit **F9**
+>    in der Zeichenfläche in einer Minute geklärt. Der einzige Punkt mit echtem Restrisiko.
+>
+> Dazu weiterhin offen und ebenfalls nur am Gerät zu beantworten: eine **Xorg-Sitzung** als
+> Vergleich (§5a „Offen" 2) und die **Druckschwelle unten** (§5a „Offen" 3).
 
-**Der erste Augenschein des Textdokuments unter Linux. Es ist bisher nur unter Windows
-gesehen worden.**
-
-Seit §4.28 zeigt der Linux-Kopf Textdokumente an, importiert DOCX und exportiert in vier
-Formate. Gebaut und geprüft wurde das **unter Windows** — dort läuft `Avalonia.Desktop`
-auch. **Was dort nicht zu beantworten ist, ist die Schrift und der Stift**, und beides ist
-hier neu: Der Dokumentzeichner malt zum ersten Mal auf einen Bildschirm statt in eine Datei,
-und er nimmt die mitgelieferten Schriften (§4.26) über dieselbe Kette wie das PDF.
-
-> **Vorher lesen:** §4.28 (was gebaut wurde) und §4.27 „Was der Laptop gefunden hat" (was du
-> zum PDF schon herausgefunden hast — die Schriftkette ist dieselbe).
-
-**Der Ablauf: erst die Befehle oben („Der Auftrag zum Ablaufen"), dann der Kopf.** Erwartet
-sind **489** Core-Tests grün.
-
-Damit der Kopf etwas zu zeigen hat, braucht er eine Wegwerf-Datenbank **und** eine DOCX —
-beides in einem Zug:
-
-```bash
-cd ~/Zed/gonk-note-V2/GonkNote
-mkdir -p /tmp/gonk-test /tmp/docxprobe && cd /tmp/docxprobe
-dotnet new console -o . --force
-dotnet add reference ~/Zed/gonk-note-V2/GonkNote/src/GonkNote.Core/GonkNote.Core.csproj
-dotnet add package SkiaSharp.NativeAssets.Linux      # sonst fehlt die native .so
-cat > Program.cs <<'CS'
-using GonkNote.Core.Text;
-
-var seite = new TdPageSetup
-{
-    MarginLeftCm = 2.5, HeaderText = "{TITEL}", FooterText = "Seite {SEITE} von {SEITEN}",
-    SuppressOnFirstPage = true,
-};
-
-var bloecke = new List<TdBlock>
-{
-    new TdParagraph(new TdInline[] { new TdRun("Anzeige im Linux-Kopf",
-        new TdCharFormat { Bold = true, FontSize = 20 }) }),
-    new TdParagraph(new TdInline[]
-    {
-        new TdRun("Dieser Absatz traegt "),
-        new TdRun("Fettes", new TdCharFormat { Bold = true }),
-        new TdRun(", "),
-        new TdRun("Kursives", new TdCharFormat { Italic = true }),
-        new TdRun(" und "),
-        new TdRun("Farbiges", new TdCharFormat { Color = "#B03060" }),
-        new TdRun("."),
-    }),
-};
-
-// Eine Tabelle mit Kopfzeile -- genau hier stand bis §4.28 die Kopfzeile doppelt.
-var tabelle = new TdTable { ColumnWidthsCm = { 5, 5, 5 } };
-for (int z = 0; z < 4; z++)
-{
-    var zeile = new TdTableRow { IsHeader = z == 0 };
-    for (int s = 0; s < 3; s++)
-        zeile.Cells.Add(new TdTableCell(new TdParagraph(
-            z == 0 ? $"Spalte {s + 1}" : $"Zelle {z}/{s + 1}")));
-    tabelle.Rows.Add(zeile);
-}
-bloecke.Add(tabelle);
-
-// Ein Diagramm -- es prueft die Zeichenkette aus §4.25 mit.
-bloecke.Add(new TdParagraph(new TdInline[] { new TdChart
-{
-    Kind = TdChartKind.Column, Title = "Wochenstunden", WidthCm = 12, HeightCm = 7,
-    Categories = { "Mo", "Di", "Mi", "Do", "Fr" },
-    Series = { new TdChartSeries { Name = "Klasse A", Values = { 6, 8, 5, 7, 4 } } },
-} }));
-
-// Genug Text fuer mehrere Seiten -- sonst laesst sich das Rollen nicht pruefen.
-for (int i = 1; i <= 45; i++)
-    bloecke.Add(new TdParagraph($"Absatz {i}: Dieser Text ist lang genug, dass er umbricht, " +
-        "und er wiederholt sich, damit aus wenigen Zeilen mehrere Seiten werden."));
-
-var doc = new TdDocument { Sections = { new TdSection([.. bloecke]) { Page = seite } } };
-TdDocx.Schreiben(doc, "/tmp/probe.docx", null, "Anzeigeprobe");
-Console.WriteLine("/tmp/probe.docx geschrieben");
-CS
-dotnet run
-
-cd ~/Zed/gonk-note-V2/GonkNote
-dotnet run --project src/GonkNote.Avalonia -- --db /tmp/gonk-test/gonknote.sqlite
-```
-
-Im Kopf dann: **`Datei → Dokument importieren…` → `/tmp/probe.docx`**. Danach die fünf Fragen.
-
-**Fünf Fragen, in dieser Reihenfolge:**
-
-1. **Steht überhaupt Schrift auf dem Blatt?** Der Kopf braucht ein Dokument mit Inhalt, und
-   ein frisch angelegtes hat keines — es zeigt den Hinweis „noch nicht übernommen", **und das
-   ist richtig** (§4.22). Also über **`Datei → Dokument importieren…`** eine DOCX
-   hereinholen. Wenn keine greifbar ist, erzeugt ein Wegwerf-Programm eine, genau wie
-   `/tmp/pdfprobe` in §4.27 — `TdDocx.Schreiben(doc, "/tmp/probe.docx")` genügt.
-
-   **Erwartet:** Überschriften, fett/kursiv/unterstrichen, eine Aufzählung mit Marken, eine
-   Tabelle mit Rahmen, ein Diagramm mit Achsen und Farben, ab Seite 2 die Kopfzeile.
-   **Falsch wäre:** leere Zeilen, wo Text stehen müsste (dann greift die Schriftkette nicht),
-   oder Kästchen statt Buchstaben.
-
-2. **Ist die Schrift dieselbe wie im PDF?** Dieselbe Datei zusätzlich als **PDF exportieren**
-   (Ribbon → Exportieren → PDF) und beides nebeneinander ansehen. **Es muss gleich aussehen** —
-   Anzeige und PDF nehmen denselben Umbruch und denselben Zeichner, sie unterscheiden sich in
-   **einer Zahl**, dem Maßstab (§4.28). Bricht eine Zeile an verschiedenen Stellen um, ist das
-   ein echter Fund.
-
-3. **Bleibt die Anzeige beim Rollen vollständig?** Ein Dokument über mehrere Seiten nehmen
-   und **durchscrollen**. Gezeichnet werden nur die Seiten im Sichtfenster; nachgeführt wird
-   über `ScrollChanged` (§4.28). **Falsch wäre** ein Blatt, das beim Rollen weiß bleibt oder
-   erst nach einer Verzögerung erscheint. Dazu **Zoom, „Seitenbreite" und „Ganze Seite"**
-   ausprobieren — und mit **Strg + Mausrad**.
-
-4. **Trägt der Dateidialog?** Import **und** Export laufen über Avalonias `StorageProvider`,
-   und der ist unter Linux je nach Sitzung der GTK-Dialog des **Portals** oder Avalonias
-   eigener (`AvaloniaFileDialog`). **Genau das ist unter Windows nicht prüfbar.** Zwei Dinge:
-   Kommt ein **Pfad** zurück (ein Portal kann eine URI ohne Dateisystempfad liefern — dann
-   wird die Auswahl verworfen, siehe die Anmerkung in `AvaloniaFileDialog.Pfad`)? Und steht
-   im Speichern-Dialog das **vorgewählte Format** oben?
-
-5. **Was sagt der Wayland-Fall?** Falls die Sitzung auf Wayland läuft: Öffnet sich der
-   Dateidialog überhaupt, und blockiert er das Hauptfenster richtig (`Modal.Warte`)? Ein
-   Dialog, der hinter dem Fenster erscheint, sieht aus wie ein Absturz.
-
-**Was hier NICHT gemacht wird:** das Schreiben nachrüsten (Cursor, Auswahl, Eingabe). Das ist
-Kopfarbeit und gehört auf den Windows-Rechner (§5b) — und es ist noch nicht entschieden, ob es
-vor oder nach Phase 4.5 kommt (§0, „Hier geht es weiter").
-
-**Wo der Befund hingehört:** ein Block **„Was der Laptop gefunden hat (Datum, CachyOS)"** in
-**§4.28**, dazu eine Zeile in §9 und — falls etwas offenbleibt — ein Punkt in §5 „Noch offen".
-Die fünf Fragen der Reihe nach beantworten, **auch die, bei denen nichts war**: „geprüft,
-nichts gefunden" ist ein Ergebnis und verhindert, dass es jemand ein zweites Mal prüft.
-
-**Nebenbei, falls es sich ohne Aufwand ergibt** — dieselben drei wie beim letzten Mal, alle
-drei brauchen dich am Gerät:
-
-- **§5 „Noch offen" 1 — ein zweites Stiftgerät** (MPP/EMR). **Nur wenn eines greifbar ist.**
-  Mit **F9** in der Zeichenfläche in einer Minute geklärt. Der einzige Punkt mit echtem
-  Restrisiko.
-- **§5a „Offen" 2 — eine Xorg-Sitzung** statt XWayland als Vergleich.
-- **§5a „Offen" 3 — die Druckschwelle unten:** evdev meldete nie unter 1500 von 4095.
-
----
+**Was der nächste Thread auf diesem Laptop wissen muss, bevor er etwas fernsteuert:** die drei
+Löcher im Werkzeug stehen in **§4.28, „Was den Laptop dabei aufgehalten hat"**. Eines ist
+behoben (`zeiger` tippte Sonderzeichen auf der deutschen Belegung falsch), zwei nicht — der
+Portal-Dateidialog ist weder zu fotografieren noch zu bedienen, und `schau.sh` gibt die Ausgabe
+nicht frei. **Das dort zuerst lesen spart eine Stunde.**
 
 ### Abgearbeitete Aufträge — nur die Kurzfassung
 
@@ -4284,6 +4298,7 @@ drei brauchen dich am Gerät:
 
 | Auftrag | Datum | Ergebnis |
 |---|---|---|
+| **Der erste Augenschein des Textdokuments unter Linux** — steht Schrift auf dem Blatt, stimmt sie mit dem PDF überein, trägt das Rollen, trägt der Dateidialog? | 2026-08-11 (V2-37) | ✅ **Fragen 1, 3 und 5 sauber; 489/489 grün.** Anzeige vollständig (Formate, Aufzählung, Tabelle mit **einer** Kopfzeile, Diagramm, Kopf-/Fußzeile), Rollen und alle Zoomstufen tragen, der Portal-Dialog erscheint nicht hinter dem Fenster und **blockiert richtig**. **Ein Fund:** der Wortzwischenraum an einer Stückgrenze sitzt in der Anzeige falsch, im PDF nicht (§5 „Noch offen" 6). **Frage 4 blieb offen** — der Portal-Dialog ist nicht fernsteuerbar (§5 „Noch offen" 7). Befund: **§4.28 „Was der Laptop gefunden hat"** |
 | **Den PDF-Export gegenprüfen** — läuft er unter Linux, und bettet Skia die mitgelieferten Schriften wirklich ein? | 2026-08-11 (V2-34) | ✅ **Ja.** 18/18 und 479/479 grün, `emb yes` und CID TrueType bei allen fünf Schnitten, kein Systemname, kein `Type3`. **Ein Fund:** Skia bettet die ganze TTF ein statt eines Auszugs — rund 200 KB je Familie, aber **einmalig und nicht je Seite**. Befund: **§4.27 „Was der Laptop gefunden hat"**, offene Frage: §5 „Noch offen" 3 |
 | **Das Schriftkonzept gegenprüfen** — greift die Rückfallkette, und sieht Linux dieselben Schriften? | 2026-08-10/11 (V2-32) | ✅ Befund: **§4.26 „Was der Laptop gefunden hat"** |
 
@@ -5708,6 +5723,7 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 
 | Runde | Datum | Was |
 |---|---|---|
+| V2-37 | 2026-08-11 | **Der erste Augenschein des Textdokuments unter Linux** (auf dem CachyOS-Laptop, GNOME-Wayland). **489/489 grün**, beide Bauten 0/0. **Frage 1 ✅:** die Anzeige steht vollständig — Überschrift, fett/kursiv/unterstrichen/farbig, Aufzählung mit Marken, Tabelle mit **einer** Kopfzeile (der Fund aus §4.28 ist wirklich weg), Säulendiagramm mit Achsen und Farben, Kopfzeile ab Seite 2, „Seite 3 von 3". **Frage 2 ✅ mit Fund:** PDF und Anzeige haben denselben Zeilen- und Seitenumbruch (3 Seiten, A4, Schriften eingebettet) — **aber der Wortzwischenraum an einer Stückgrenze sitzt in der Anzeige falsch** („undFarbiges ."), im PDF nicht. Vermutlich nicht linuxspezifisch, deshalb nach §5d nicht angefasst: §5 „Noch offen" **6**. **Frage 3 ✅:** Rollen über alle Seiten ohne weißes Blatt, Zoom, Seitenbreite (119 %), Ganze Seite (52 %). **Frage 5 ✅:** der Dateidialog erscheint nicht hinter dem Fenster und **blockiert das Hauptfenster richtig** — ein Klick daneben lässt die Aufnahme Pixel für Pixel gleich. **Frage 4 ⚠️ offen:** unter GNOME-Wayland ist es der **Portal**-Dialog (Anfrage-Objekt auf dem Sitzungsbus belegt es), also ein natives Wayland-Fenster — mit `tools/linux` weder zu fotografieren noch zu bedienen. Ob ein **Pfad** zurückkommt und ob das **vorgewählte Format** oben steht, braucht den Nutzer am Gerät: §5 „Noch offen" **7**. **Der eigentliche Ertrag sind drei Löcher im Werkzeug** (§4.28): `zeiger` drückte Umschalt nur bei Großbuchstaben und tippte deshalb auf der **deutschen** Belegung `/` als `7` — **ohne Fehlermeldung**, es sah wie ein Fehler der App aus; **behoben**, die Ebene wird jetzt aus der Belegung gelesen (`XGetKeyboardMapping`, Umschalt und AltGr). Nicht behoben: der Portal-Dialog bleibt Handarbeit, und `schau.sh` gibt die Ausgabe des Aufrufers nicht frei (die App erbt `stdout`) bei zu kurzer Startwartezeit. Weil der Dateidialog ausfiel, kam die Prüf-DOCX über ein Wegwerf-Programm in die Test-Datenbank — **über dieselbe Kette** wie `AvaloniaDocumentIo.Import` |
 | V2-36 | 2026-08-11 | **Das HANDOFF aufgeräumt und der Laptop-Auftrag ausgebaut** (kein Code angefasst). Vier Dinge. **(1) §2 „Stand" neu geschrieben:** dort stand jede Runde noch einmal in eigenen Worten — dieselbe Chronologie wie in §4 (das Warum), §6 (die Häkchen) und §9 (die Chronik), also **viermal**. Was viermal dasteht, wird dreimal nicht gepflegt: die Testzahlen dort hinkten um zwei Runden hinterher, und der Abschnitt begann mit „Vier Commits auf `main`" — wahr in Phase 0, absurd nach fünfunddreißig Runden. Jetzt: Version, Testzahl, Meilensteine, eine Zeile je Phase mit Verweis, und ein Satz je Kopf, was er kann. **(2) §5 „Noch offen" entrümpelt:** fünf der sieben Punkte waren längst entschieden und standen als durchgestrichene Überschrift mit dem vollen alten Wortlaut darunter — rund neunzig Zeilen, die man beim Lesen jedes Mal überspringen musste. Sie stehen jetzt als Tabelle mit Antwort und Verweis; **offen sind noch fünf Punkte, und zwei davon sind neu** (wie es nach Phase 4 weitergeht, und dass `About.Version` fällig wird). Dabei fiel eine **falsche Behauptung** auf: Punkt 4 sagte, in beiden Erste-Schritte-Fassungen stehe noch der V1-Klon-Befehl — er zeigt längst auf `GonkNote.git`. **(3) §5d:** der abgearbeitete Auftrag stand in voller Länge da (achtzig Zeilen, deren Befund in §4.27 steht) — jetzt eine Tabellenzeile mit Verweis. **(4) Ein Inhaltsverzeichnis** ganz oben: dreizehn Zeilen, die sagen, was in welchem Abschnitt steht **und wann man ihn braucht** — bei viertausendsiebenhundert Zeilen fehlte jede Navigation. **Der Laptop-Auftrag in §5d ist ausgebaut worden:** er enthält jetzt das vollständige Wegwerf-Programm, das die Prüf-DOCX erzeugt (Tabelle mit Kopfzeile, Diagramm, fünfundvierzig Absätze), die Befehlsfolge bis zum laufenden Kopf und die Angabe, wohin der Befund gehört. **Nichts Inhaltliches gelöscht:** was weggekürzt wurde, war entweder anderswo vollständig vorhanden oder steht in der Git-Historie; die Begründungen in §4 und §7 sind unangetastet |
 | V2-35 | 2026-08-11 | **Die Anzeige im Linux-Kopf — Phase 4 ist zu** (§4.28). Der zweite und letzte Punkt des Umverdrahtens (§4.23): **Textdokumente sind unter Linux nicht mehr ausgegraut.** Drei Teile. **(1) Die Anzeige** (`TextDocView`, ~400 Zeilen): sie rechnet nichts und zeichnet nichts — umbrochen wird von `TdLayout` (§4.16), gezeichnet von `TdRenderer` (§4.24/§4.25), beide seit Wochen fertig und **nirgends angeschlossen**. Neu ist der Anschluss. **Es ist derselbe Weg, den das PDF nimmt** (§4.27), bis auf **eine Zahl** — den Maßstab; weil der Umbruch in Zentimetern rechnet, ändert keine Zoomstufe eine Umbruchstelle, **auf dem Schirm steht, was ins PDF ginge**. Umbrochen wird **einmal je Dokument** und nicht je Bild (ein Inhaltsverzeichnis läßt `TdLayout` mehrfach laufen, §4.20), gezeichnet werden **nur die Seiten im Sichtfenster** — dazu gehört ein `InvalidateVisual` am `ScrollChanged`, sonst bliebe der hereingerollte Rand leer. Schatten und Rand des Blattes gehören dem Kopf: `TdRenderer` malt Papier, und Papier hat keinen Schatten. **(2) Das Ribbon**, neu in Avalonia — Reiterleiste nach dem Vorbild des WPF-Ribbons, aber **nur die zwei Reiter, die Inhalt haben**: „Start" (Export mit Formatauswahl, Zoom, Seitenbreite, Ganze Seite, Wörter/Zeichen) und „Layout" (Papierformat, Ausrichtung, Ränder, Kopf-/Fußzeile — **abgelesen, nicht gestellt**). „Einfügen", „Verweise" und „Tabelle" fehlen mit Absicht: es wären drei leere Flächen, und **ein halbes Feature ist schlechter als ein fehlendes** (§4.12). Was fehlt, steht als Satz da — rechts im Ribbon **„Nur Ansicht"** — und nicht als ausgegrauter Knopf. **(3) `AvaloniaDocumentIo` verdrahtet:** Export in alle vier Formate (**dieselbe Liste wie unter Windows**), Import **nur DOCX** (`TdDocx.Lesen` steht in Core; der Markdown-*Import* geht drüben weiter über ein `FlowDocument` — ein Format anzubieten, das man nicht lesen kann, ist schlimmer, als es nicht anzubieten). Tafel-Export und Übernahme bleiben mit Begründung leer. **Neu in Core: `TdExport`** — die Weiche über die Dateiendung, die bis dahin im WPF-Kopf stand; sie ein zweites Mal zu schreiben wäre die Falle aus §4.13 gewesen. **Eine Frage, die es vorher nicht gab:** ein unter Linux importiertes Dokument hat **nur `Model` und ein leeres `Rtf`** — ein `XamlPackage` gibt es nur unter Windows. Ohne Gegenmaßnahme hätte der WPF-Editor dafür **ein leeres Blatt** gezeigt, und das sieht nicht nach einer fehlenden Funktion aus, sondern nach **gelöschtem Inhalt** — auf dem *anderen* Rechner, wo niemand mehr an den Import denkt. `TextEditorView` fällt deshalb über `TdZuFlow` auf `Model` zurück, **ohne die Reihenfolge umzukehren**: `Rtf` führt weiter, solange dort etwas steht (§5). Vier Wächter dafür. **Der Fund der Runde stand vier Runden lang da: jede Tabelle hatte eine doppelte Kopfzeile.** Der Merker in `TdLayout.TabelleSetzen` zählte nur die *wiederholten* Kopfzeilen und nicht die echten, also löste die erste Inhaltszeile eine Wiederholung aus, obwohl die Kopfzeile eine Zeile darüber stand — **bei jeder Tabelle, schon auf Seite 1**, seit §4.19. **Kein Wächter konnte es sehen:** der Umbruch-Wächter prüfte den Fall *mit* Seitenwechsel und sah nur auf `TableRows[0]` (die Doppelung stand an Index 1), die Ausgabe-Wächter lesen **Text** zurück und zweimal „Spalte 1" fällt in einem Textvergleich nicht auf, und der Zeichner-Wächter prüft Farbe an gerechneten Orten statt Zeilen zu zählen. **Im Bild fiel es in derselben Sekunde auf, in der die Anzeige zum ersten Mal lief** — das ist der Grund, warum eine Anzeige ein **Prüfmittel** ist und nicht nur ein Feature (dieselbe Rolle wie der A/B-Bildvergleich in §4.13). Behoben, zwei neue Wächter. **Nebenbei ehrlicher geworden:** die Menüpunkte nennen keine Formatliste mehr — dort stand „(DOCX / Markdown)" und „(PDF / DOCX / Markdown)", zweimal ungenau; welche Formate wirklich gehen, sagt der Dateidialog, und der sagt es je Kopf richtig. **Am laufenden Programm geprüft**, mit einer Kopie der echten Datenbank (Dauerregel 4, danach gelöscht) und einer eigens erzeugten DOCX: Import, Anzeige (Überschriften, Zeichenformate, Aufzählung mit Marken, Tabelle, **Diagramm mit Achsen und Farben**, Kopfzeile ab Seite 2), Ribbon, Zoom, Seitennavigation, PDF-Export über den Ribbon-Knopf (vier Seiten, 993 KB) — **in beiden Sprachen** (Dauerregel 1) — und derselbe Import danach im **WPF**-Editor, wo ohne den Rückfall ein leeres Blatt gestanden hätte. **Zwei Beobachtungen benannt:** ein Diagramm kommt im WPF-Editor nicht an (`TdZuFlow` sagt es selbst — ein `FlowDocument` kann nur Bilder, und ein gerastertes Diagramm wäre wieder das, was §4.21 abgeschafft hat), und ein über den Rückfall geladenes Dokument steht sofort als „geändert" da (der Editor setzt beim Laden die Prüfsprache; nach dem ersten Speichern tritt es nicht mehr auf — nachgemessen). **517 Tests** (489 Core + 28 WPF) grün, beide Bauten 0/0. **Was Phase 4 ausdrücklich nicht enthielt: das Schreiben** (Cursor, Auswahl, Eingabe) — eigene Runde, und ob sie vor oder nach Phase 4.5 kommt, ist eine Nutzer-Entscheidung (§0) |
 | V2-34 | 2026-08-11 | **Laptop-Befund: der PDF-Export kommt unter Linux an — und die Schrift steckt wirklich in der Datei** (§4.27, „Was der Laptop gefunden hat"). Der Auftrag aus §5d abgearbeitet. Der Ablauf lief glatt: beide Builds 0/0, `--filter PdfTests` **18 von 18**, voller Lauf **479 von 479** in 18 s — kein Unterschied zu Windows. **Die eigentliche Frage war die Schrift**, denn ein PDF trägt sie in sich und **kein Wächter hätte gemerkt**, wenn Skia sie unter Linux nicht einbettet: die Tests lesen Text zurück und zählen keine Pixel. `pdffonts` auf eine selbst erzeugte Probeseite: **fünf Schnitte, alle `emb yes`, alle CID TrueType** — **kein Systemname** (kein DejaVu, kein Noto), **kein `Type3`**, also keine zu Kurven gemalten Buchstaben. Fett und kursiv holen sich **eigene Schnittdateien** statt eine Regular schräg zu stellen; die Auflösung aus §4.26 greift bis in die Datei durch. Dazu `pdfinfo`: **420 × 595 pt = A5 hochkant**, Titel und Producer angekommen; `pdftotext` gibt alle sechs Absätze in der richtigen Reihenfolge zurück; die Verweis-Vermerke stehen vollständig in der Datei. **Der Fund der Runde ist eine Zahl:** Skia bettet die **ganze** TTF ein und keinen Auszug — die fünf `/Length1` sind **byteweise** die Dateigrößen unter `Assets/Fonts/`, das `AAAAAA+`-Präfix behauptet einen Auszug, den es nicht gibt. Das kostet **rund 200 KB je benutzter Familie**; die Probeseite mit sechs Absätzen wiegt 762 KB. **Entscheidend ist aber, dass es einmalig ist und nicht je Seite:** dieselbe Datei in drei Längen ergab 207 KB (1 Seite), 213 KB (5) und 260 KB (35) — **rund 1,5 KB je Seite** gegen ein volles Rasterbild je Seite beim alten Weg. Damit steht der Gewinn aus §4.27 **in Zahlen**, und er wächst mit jeder Seite. Als Frage vermerkt (§5 „Noch offen" 7, Empfehlung: so lassen) statt still geändert — **es ist nicht linuxspezifisch** (§5d: hier wird nur behoben, was es nur hier gibt), sondern unter Windows nur nie gemessen worden. **Zwei Beobachtungen für die Windows-Runde:** ein Verweis bekommt **so viele `/Link`-Kästen, wie er Wörter hat** (fünf für „Hier geht es zum Repo") — sie stoßen lückenlos aneinander, er ist also vollständig anklickbar, es ist Sparsamkeit und kein Fehler; und **`TdRenderer` kennt `TdHyperlink` gar nicht** — ein Verweis wird wie gewöhnlicher Text gemalt, **kein Blau, keine Unterstreichung**, im PDF also anklickbar, aber unsichtbar. Bei einem übernommenen Dokument fällt das nicht auf (dort trägt das gespeicherte Zeichenformat die Farbe); fällig wird es, sobald der Editor selbst Verweise setzen kann. **Nichts am Code geändert.** **Als Werkzeug-Falle festgehalten** (§7): ein fremdes GTK4-Fenster ist auf `import -window` **schwarz** — es braucht `GDK_BACKEND=x11` **und** `GSK_RENDERER=cairo`, sonst hält man die leere Fläche für einen Absturz des fremden Programms; Eingaben kamen dort auch mit `hervor` nicht an, `zeiger` kann fremde Fenster fotografieren, aber nicht bedienen. Die drei „Nebenbei"-Punkte aus §5d bleiben offen — alle drei brauchen den Nutzer am Gerät |

@@ -34,6 +34,10 @@ internal static class Programm
     [DllImport(X11)] private static extern uint XStringToKeysym(string name);
     [DllImport(X11)] private static extern byte XKeysymToKeycode(IntPtr d, uint keysym);
 
+    [DllImport(X11)]
+    private static extern IntPtr XGetKeyboardMapping(
+        IntPtr d, byte firstKeycode, int keycodeCount, out int keysymsProKeycode);
+
     [DllImport(X11)] private static extern IntPtr XDefaultRootWindow(IntPtr d);
     [DllImport(X11)] private static extern uint XInternAtom(IntPtr d, string name, bool onlyIfExists);
     [DllImport(X11)] private static extern int XFree(IntPtr data);
@@ -460,8 +464,45 @@ internal static class Programm
         return true;
     }
 
+    /// <summary>
+    /// Auf welcher <b>Ebene</b> der Taste <paramref name="code"/> liegt der Keysym
+    /// <paramref name="sym"/>? 0 = ohne Umschalter, 1 = Umschalt, 2 = AltGr, 3 = AltGr+Umschalt;
+    /// −1 = gar nicht.
+    ///
+    /// <para>
+    /// <b>Warum das gebraucht wird (Laptop, 11.08.2026).</b> Bis hierher hat <c>Tippen</c>
+    /// Umschalt genau dann gedrückt, wenn das Zeichen ein <b>Großbuchstabe</b> war. Auf einer
+    /// US-Belegung fällt das nicht auf; auf der <b>deutschen</b> Belegung dieses Laptops liegt
+    /// <c>/</c> auf <b>Umschalt+7</b> — <c>zeiger ':/tmp/probe.docx'</c> tippte deshalb
+    /// <c>7</c> statt <c>/</c>, und zwar <b>ohne Fehlermeldung</b>: die Taste gibt es ja, nur
+    /// die Ebene stimmte nicht. Gekostet hat das eine ganze Prüfrunde am Dateidialog, weil das
+    /// Ergebnis wie ein Fehler der App aussah und keiner des Werkzeugs.
+    /// </para>
+    /// <para>
+    /// Gefragt wird deshalb die Belegung selbst (<c>XGetKeyboardMapping</c>) statt zu raten.
+    /// </para>
+    /// </summary>
+    private static int Ebene(byte code, uint sym)
+    {
+        IntPtr karte = XGetKeyboardMapping(_anzeige, code, 1, out int proTaste);
+        if (karte == IntPtr.Zero) return -1;
+
+        try
+        {
+            // KeySym ist auf 64 Bit acht Byte breit, auch wenn die Werte in 32 Bit passen.
+            for (int i = 0; i < proTaste && i < 4; i++)
+                if ((uint)Marshal.ReadInt64(karte, i * 8) == sym)
+                    return i;
+            return -1;
+        }
+        finally { XFree(karte); }
+    }
+
     private static bool Tippen(string text)
     {
+        byte umschalt = XKeysymToKeycode(_anzeige, XStringToKeysym("Shift_L"));
+        byte altgr = XKeysymToKeycode(_anzeige, XStringToKeysym("ISO_Level3_Shift"));
+
         foreach (char z in text)
         {
             // Über den Unicode-Punkt: X kennt für jedes Zeichen einen Keysym der Form
@@ -477,7 +518,10 @@ internal static class Programm
 
             byte code = XKeysymToKeycode(_anzeige, sym);
             if (code == 0 && z is >= ' ' and <= '~')
-                code = XKeysymToKeycode(_anzeige, z);   // ASCII-Keysyms sind der Codepunkt selbst
+            {
+                sym = z;                                // ASCII-Keysyms sind der Codepunkt selbst
+                code = XKeysymToKeycode(_anzeige, sym);
+            }
 
             if (code == 0)
             {
@@ -485,13 +529,18 @@ internal static class Programm
                 return false;
             }
 
-            bool gross = char.IsUpper(z);
-            byte umschalt = XKeysymToKeycode(_anzeige, XStringToKeysym("Shift_L"));
+            // Die Ebene sagt, welche Umschalter dazugehören. Findet sie sich nicht, bleibt es
+            // beim alten Verhalten — besser ein Zeichen ungenau als gar keines.
+            int ebene = Ebene(code, sym);
+            bool mitUmschalt = ebene switch { 1 or 3 => true, -1 => char.IsUpper(z), _ => false };
+            bool mitAltGr = ebene is 2 or 3 && altgr != 0;
 
-            if (gross) XTestFakeKeyEvent(_anzeige, umschalt, true, 0);
+            if (mitUmschalt) XTestFakeKeyEvent(_anzeige, umschalt, true, 0);
+            if (mitAltGr) XTestFakeKeyEvent(_anzeige, altgr, true, 0);
             XTestFakeKeyEvent(_anzeige, code, true, 0);
             XTestFakeKeyEvent(_anzeige, code, false, 0);
-            if (gross) XTestFakeKeyEvent(_anzeige, umschalt, false, 0);
+            if (mitAltGr) XTestFakeKeyEvent(_anzeige, altgr, false, 0);
+            if (mitUmschalt) XTestFakeKeyEvent(_anzeige, umschalt, false, 0);
             XFlush(_anzeige);
             Thread.Sleep(12);
         }

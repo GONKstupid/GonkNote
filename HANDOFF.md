@@ -255,6 +255,11 @@ kein Rasterbild mehr, Verweise sind anklickbar, und der Weg läuft auf jedem Kop
 damit aufgelöst:** kein Exportweg steht mehr auf einem `FlowDocument`. 18 neue Wächter, rund 530
 Zeilen Produktivcode weniger.
 
+Zuletzt **auf dem CachyOS-Laptop gegengeprüft** (§4.27, „Was der Laptop gefunden hat"): alle
+479 Wächter grün, und die eigentliche Frage — bettet Skia die **mitgelieferte** Schrift unter
+Linux wirklich ein, was kein Test sehen könnte — ist mit **Ja** beantwortet. Dabei gemessen,
+was der Gewinn in Zahlen ist: **rund 1,5 KB je Seite** statt eines vollen Rasterbilds.
+
 **Als Nächstes:** die **Anzeige im Linux-Kopf** aus dem Modell, samt Ribbon in Avalonia — der
 letzte offene Punkt des Umverdrahtens. **Erst damit wird das übernommene Modell sichtbar** —
 heute liest der Editor weiter aus `Rtf` (§6). Dazu neu erreichbar geworden: **der Textexport im
@@ -3285,6 +3290,84 @@ stehen in Core.
 überflüssig wurde — der letzte Aufrufer des alten DOCX-Lesers war der Whiteboard-Einfüge-Weg,
 und der geht jetzt über `TdDocx`.
 
+#### Was der Laptop gefunden hat (2026-08-11, CachyOS)
+
+**Der PDF-Export läuft unter Linux, und die Schrift kommt an.** Das war die Frage der Runde
+(§5d) — sie ist mit Ja beantwortet. Ein Fund gibt es trotzdem, und er steht unten.
+
+**Der Ablauf lief glatt:** `dotnet build src/GonkNote.Core` und `dotnet build
+src/GonkNote.Avalonia` je 0 Fehler / 0 Warnungen, `--filter PdfTests` **18 von 18 grün**, der
+volle Lauf **479 von 479 grün in 18 s**. Kein Unterschied zu Windows.
+
+**Frage 2 — die Schrift wird eingebettet.** Ein Wegwerf-Programm (`/tmp/pdfprobe`, Verweis auf
+`GonkNote.Core` + `SkiaSharp.NativeAssets.Linux` **3.119.4**) schreibt eine A5-Seite mit fünf
+Rollen. `pdffonts` sagt:
+
+| Name | Typ | emb | uni |
+|---|---|---|---|
+| `AAAAAA+SpaceGrotesk-Regular` | CID TrueType | yes | yes |
+| `BAAAAA+SourceSans3-Regular` | CID TrueType | yes | yes |
+| `CAAAAA+SourceSans3-Bold` | CID TrueType | yes | yes |
+| `DAAAAA+SourceSans3-It` | CID TrueType | yes | yes |
+| `EAAAAA+JetBrainsMono-Regular` | CID TrueType | yes | yes |
+
+**Alle drei Fehlerbilder aus dem Auftrag sind ausgeschlossen:** kein `emb no`, **kein einziger
+Systemname** (kein DejaVu, kein Noto), **kein `Type3`** — also keine zu Kurven gemalten
+Buchstaben. `uni yes` heißt außerdem, dass eine ToUnicode-Tabelle dabei ist; genau die macht
+Kopieren und Durchsuchen möglich. Fett und kursiv holen sich **eigene Schnittdateien**
+(`-Bold`, `-It`) statt eine Regular schräg zu stellen — die Auflösung aus §4.26 greift bis in
+die PDF-Datei durch.
+
+> **Der Fund: Skia bettet die *ganze* Schriftdatei ein, nicht einen Auszug.** Die fünf
+> `/Length1`-Werte im PDF sind **byteweise** die Dateigrößen der TTFs unter `Assets/Fonts/`
+> (431196 / 428176 / 315812 / 273900 / 114428). Das `AAAAAA+`-Präfix und `sub yes` bei
+> `pdffonts` behaupten einen Auszug, den es nicht gibt — beides wird aus dem Namen abgeleitet.
+>
+> **Was das kostet:** rund **200 KB je benutzter Familie**, unabhängig davon, ob ein Wort oder
+> hundert Seiten in ihr stehen. Die Probeseite mit fünf Schnitten wiegt 762 KB; sechs Absätze
+> Inhalt.
+>
+> **Was es *nicht* kostet — und das ist der Punkt:** die Kosten sind **einmalig, nicht je
+> Seite.** Gemessen mit demselben Dokument in drei Längen, eine Familie:
+>
+> | Seiten | Datei |
+> |---|---|
+> | 1 | 207 272 Bytes |
+> | 5 | 212 948 Bytes |
+> | 35 | 260 154 Bytes |
+>
+> **Etwa 1,5 KB je Seite.** Der alte Weg legte je Seite ein volles Rasterbild ab. Der Gewinn
+> aus §4.27 steht damit auch in Zahlen — und er wächst mit jeder Seite.
+>
+> **Vermutlich nicht linuxspezifisch** (Skia macht das überall so), aber hier zum ersten Mal
+> gemessen. **Nichts geändert** — ob eine kleine Datei mit einer Familie 200 KB wiegen darf,
+> ist eine Entscheidung und keine Reparatur (nach §5d wird hier nur behoben, was es nur hier
+> gibt). Steht als Frage in §5 „Noch offen".
+
+**Frage 3 — die Datei stimmt.** `pdfinfo`: **420 × 595 pt = A5 hochkant**, 1 Seite, `Title:
+Probe`, `Producer: Gonk Note` — die Metadaten kommen an. `pdftotext` gibt **alle sechs Absätze
+in der richtigen Reihenfolge** zurück; der Text ist Text. In der Datei stehen die
+Verweis-Vermerke vollständig (`/Subtype /Link` + `/A <</S /URI /URI (…)>>`). Mit `evince`
+geöffnet und fotografiert: Überschrift in Space Grotesk, Grundtext in Source Sans 3, Fett,
+Kursiv und JetBrains Mono jeweils richtig.
+
+**Zwei Beobachtungen am Rand, beide für die Windows-Runde und keine davon linuxspezifisch:**
+
+1. **Ein Verweis bekommt so viele Vermerke, wie er Wörter hat.** „Hier geht es zum Repo" ergibt
+   **fünf** `/Link`-Kästen statt einem — `ZeileVermerken` läuft über die Stücke der Zeile, und
+   der Umbruch zerlegt einen Verweis in Wörter. Die Kästen stoßen lückenlos aneinander
+   (56,69 → 75,69 → 98,69 → 110,69 → 132,69 → 157,69 pt), **der Verweis ist also vollständig
+   anklickbar** — es ist eine Frage der Sparsamkeit, kein Fehler.
+2. **Ein Verweis sieht nicht wie einer aus.** `TdRenderer` kennt `TdHyperlink` gar nicht (kein
+   Treffer im Zeichner) — er malt ihn wie gewöhnlichen Text: **kein Blau, keine Unterstreichung.**
+   Im PDF ist er anklickbar, aber unsichtbar. Für ein **übernommenes** Dokument fällt das nicht
+   auf: dort trägt das gespeicherte Zeichenformat die Farbe. Fällig wird es, sobald der Editor
+   selbst Verweise setzen kann.
+
+**Was nicht geprüft werden konnte:** die drei „Nebenbei"-Punkte aus §5d. Alle drei brauchen den
+Nutzer am Gerät — ein zweiter Stift muss greifbar sein, eine Xorg-Sitzung braucht eine
+Abmeldung, und die Druckschwelle unten misst nur eine Hand am Stift. Sie bleiben offen.
+
 ---
 
 ## 5. Entscheidungen
@@ -3438,6 +3521,28 @@ und der geht jetzt über `TdDocx`.
    kleinste Teil** — eine gefüllte Kurve ist ein `TdChartZug` mit `Fuellung` und einem
    Rückweg an der Nulllinie entlang; die Bauart dafür steht schon (das Netz füllt genauso).
    Vermerkt 2026-08-10.
+7. **Darf ein PDF rund 200 KB je benutzter Schriftfamilie wiegen?** Auf dem Laptop gemessen
+   (§4.27, „Was der Laptop gefunden hat"): **Skia bettet die ganze TTF-Datei ein, nicht einen
+   Auszug** — die `/Length1`-Werte im PDF sind byteweise die Dateigrößen unter `Assets/Fonts/`.
+   Eine A5-Seite mit sechs Absätzen in fünf Schnitten wiegt **762 KB**.
+
+   **Warum das trotzdem kein Rückschritt ist:** die Kosten fallen **einmal** an und nicht je
+   Seite. Dasselbe Dokument in einer Familie: 1 Seite 207 KB, 35 Seiten 260 KB — **rund 1,5 KB
+   je Seite**. Der alte Weg legte je Seite ein volles Rasterbild ab; ab wenigen Seiten gewinnt
+   der neue Weg deutlich, und der Abstand wächst.
+
+   **Die Frage ist die kurze Datei.** Ein einseitiger Aushang wiegt heute mehr als ein
+   dreißigseitiges Skript wiegen müsste. Drei Antworten sind denkbar:
+   (a) **so lassen** — Papier ist billig, und ein PDF, dessen Schrift überall gleich aussieht,
+   ist der Grund für §4.26;
+   (b) einen **Auszug** selbst bilden, bevor die Schrift an Skia geht — das ist echte Arbeit
+   (Glyphen sammeln, Tabellen neu schreiben) und eine eigene Runde;
+   (c) an der Naht **umschalten**: die mitgelieferte Schrift nur einbetten, wenn sie auch
+   benutzt wird — das tut Skia bereits, es sind hier wirklich fünf benutzte Schnitte.
+
+   **Empfehlung: (a), vorerst.** Es ist kein Fehler, nichts hängt daran, und (b) lohnt erst,
+   wenn jemand über die Dateigröße stolpert. **Nicht linuxspezifisch** — Skia macht das unter
+   Windows genauso, dort ist es nur nie gemessen worden. Vermerkt 2026-08-11.
 
 ---
 
@@ -3893,10 +3998,21 @@ dotnet run --project src/GonkNote.Avalonia -- --db /tmp/gonk-test/gonknote.sqlit
 
 ### ▶ Aktueller Auftrag (Stand 2026-08-11, nach Runde V2-33)
 
-> **Der vorige Auftrag (Stand 2026-08-10, Schriftkonzept) ist abgearbeitet.** Sein Befund steht
-> in §4.26 „Was der Laptop gefunden hat" — kurz: die mitgelieferten Schriften gewinnen auch
-> unter Linux, ein roter Wächter wurde dabei gefunden und behoben, und der Linux-Kopf hat kein
-> Textfeld-Werkzeug (Phase 4.5).
+> ## ✅ ABGEARBEITET am 2026-08-11 (Runde V2-34) — **nicht noch einmal laufen lassen.**
+>
+> **Alle drei Fragen sind beantwortet, der Befund steht in §4.27 „Was der Laptop gefunden hat".**
+> Kurz: 18/18 und 479/479 grün, die mitgelieferten Schriften werden eingebettet (`emb yes`, CID
+> TrueType, kein Systemname, kein `Type3`), A5 hochkant, Text ist Text, Verweise stehen in der
+> Datei. **Ein Fund:** Skia bettet die ganze TTF ein statt eines Auszugs — rund 200 KB je
+> Familie, aber **einmalig und nicht je Seite** (§5 „Noch offen" 7). **Nichts am Code geändert.**
+>
+> **Für den nächsten Thread auf dem Laptop:** Hier steht **kein neuer Auftrag**. Der schreibt
+> sich erst nach der nächsten Windows-Runde (Anzeige im Linux-Kopf, §6) — **dann** wird der
+> Laptop wieder gebraucht, und zwar für den ersten Augenschein des Textdokuments unter Linux.
+> Bis dahin gilt §5d oben: **nachfragen statt raten.** Wer trotzdem etwas tun will, findet in
+> den drei „Nebenbei"-Punkten unten Arbeit, die seit Wochen offensteht.
+
+**Der ursprüngliche Auftrag, zum Nachlesen — was geprüft wurde und warum:**
 
 **Den PDF-Export aus §4.27 gegenprüfen. Er ist bisher nur unter Windows gesehen worden.**
 
@@ -4832,6 +4948,20 @@ und keine davon sieht wie ein Fehler aus.
   unter Windows (sie sind eigene Fenster). Unter Windows hilft `-Voll`; hier hilft das
   nicht, weil die Vollbildaufnahme unbrauchbar ist. Wer einen Menüpfad belegen will, holt
   sich die Kennung des Popups über die Fensterliste und fotografiert **die**.
+- **Ein fremdes GTK4-Fenster ist schwarz auf der Aufnahme — `GSK_RENDERER=cairo` hilft**
+  (2026-08-11, beim Ansehen des PDF in Evince). Die Werkzeuge sind für den Avalonia-Kopf
+  gebaut; wer damit ein **fremdes** Programm fotografieren will, braucht zwei Zutaten.
+  `GDK_BACKEND=x11` bringt es überhaupt erst nach XWayland, sonst findet `zeiger fenster` es
+  gar nicht. Und selbst dann liefert `import -window` nur den **Fensterrahmen mit schwarzer
+  Fläche**: GTK4 zeichnet über GL in eine eigene Oberfläche, aus dem X-Fenster ist nichts zu
+  lesen. **`GSK_RENDERER=cairo` zwingt es in die Software-Ausgabe**, und dieselbe Aufnahme
+  wird sauber. Der Rahmen sieht in beiden Fällen normal aus — man hält das schwarze Bild
+  leicht für einen Absturz des fremden Programms.
+  **Was auch damit nicht ging: Eingaben.** Weder Klick noch Tastatur kamen bei Evince an,
+  auch mit `hervor` als erstem Schritt nicht — der Weg über `_NET_ACTIVE_WINDOW` wirkt hier
+  offenbar nicht wie beim eigenen Kopf. **Nicht weiter verfolgt**, weil die Frage der Runde
+  aus der Datei zu beantworten war (§4.27, „Was der Laptop gefunden hat"). Wer ein fremdes
+  Fenster wirklich **bedienen** muss, sollte damit rechnen, dass `zeiger` das nicht kann.
 
 **Markdown-Export — `Hyperlink` erbt von `Span`**
 
@@ -5336,6 +5466,7 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 
 | Runde | Datum | Was |
 |---|---|---|
+| V2-34 | 2026-08-11 | **Laptop-Befund: der PDF-Export kommt unter Linux an — und die Schrift steckt wirklich in der Datei** (§4.27, „Was der Laptop gefunden hat"). Der Auftrag aus §5d abgearbeitet. Der Ablauf lief glatt: beide Builds 0/0, `--filter PdfTests` **18 von 18**, voller Lauf **479 von 479** in 18 s — kein Unterschied zu Windows. **Die eigentliche Frage war die Schrift**, denn ein PDF trägt sie in sich und **kein Wächter hätte gemerkt**, wenn Skia sie unter Linux nicht einbettet: die Tests lesen Text zurück und zählen keine Pixel. `pdffonts` auf eine selbst erzeugte Probeseite: **fünf Schnitte, alle `emb yes`, alle CID TrueType** — **kein Systemname** (kein DejaVu, kein Noto), **kein `Type3`**, also keine zu Kurven gemalten Buchstaben. Fett und kursiv holen sich **eigene Schnittdateien** statt eine Regular schräg zu stellen; die Auflösung aus §4.26 greift bis in die Datei durch. Dazu `pdfinfo`: **420 × 595 pt = A5 hochkant**, Titel und Producer angekommen; `pdftotext` gibt alle sechs Absätze in der richtigen Reihenfolge zurück; die Verweis-Vermerke stehen vollständig in der Datei. **Der Fund der Runde ist eine Zahl:** Skia bettet die **ganze** TTF ein und keinen Auszug — die fünf `/Length1` sind **byteweise** die Dateigrößen unter `Assets/Fonts/`, das `AAAAAA+`-Präfix behauptet einen Auszug, den es nicht gibt. Das kostet **rund 200 KB je benutzter Familie**; die Probeseite mit sechs Absätzen wiegt 762 KB. **Entscheidend ist aber, dass es einmalig ist und nicht je Seite:** dieselbe Datei in drei Längen ergab 207 KB (1 Seite), 213 KB (5) und 260 KB (35) — **rund 1,5 KB je Seite** gegen ein volles Rasterbild je Seite beim alten Weg. Damit steht der Gewinn aus §4.27 **in Zahlen**, und er wächst mit jeder Seite. Als Frage vermerkt (§5 „Noch offen" 7, Empfehlung: so lassen) statt still geändert — **es ist nicht linuxspezifisch** (§5d: hier wird nur behoben, was es nur hier gibt), sondern unter Windows nur nie gemessen worden. **Zwei Beobachtungen für die Windows-Runde:** ein Verweis bekommt **so viele `/Link`-Kästen, wie er Wörter hat** (fünf für „Hier geht es zum Repo") — sie stoßen lückenlos aneinander, er ist also vollständig anklickbar, es ist Sparsamkeit und kein Fehler; und **`TdRenderer` kennt `TdHyperlink` gar nicht** — ein Verweis wird wie gewöhnlicher Text gemalt, **kein Blau, keine Unterstreichung**, im PDF also anklickbar, aber unsichtbar. Bei einem übernommenen Dokument fällt das nicht auf (dort trägt das gespeicherte Zeichenformat die Farbe); fällig wird es, sobald der Editor selbst Verweise setzen kann. **Nichts am Code geändert.** **Als Werkzeug-Falle festgehalten** (§7): ein fremdes GTK4-Fenster ist auf `import -window` **schwarz** — es braucht `GDK_BACKEND=x11` **und** `GSK_RENDERER=cairo`, sonst hält man die leere Fläche für einen Absturz des fremden Programms; Eingaben kamen dort auch mit `hervor` nicht an, `zeiger` kann fremde Fenster fotografieren, aber nicht bedienen. Die drei „Nebenbei"-Punkte aus §5d bleiben offen — alle drei brauchen den Nutzer am Gerät |
 | V2-33 | 2026-08-11 | **Der PDF-Export läuft gegen das Modell — §4.1 ist aufgelöst** (§4.27). Der erste der zwei offenen Punkte des Umverdrahtens (§4.23): PDF und PNG eines Textdokuments gehen über `TdPdf` in Core statt über den WPF-Paginator. **Der Umzug nach Core war der Anlass; der Ertrag ist ein anderer.** Der alte Weg rasterte jede Seite über `RenderTargetBitmap` und legte ein **Bild** ins PDF — scharf, aber kein Text: nicht durchsuchbar, nicht markierbar, nicht vorlesbar, kein anklickbarer Verweis, und eine Datei, die mit jeder Seite um ein volles Bild wuchs. `TdPdf` zeichnet **direkt auf die PDF-Leinwand** (`SKDocument.CreatePdf` → `TdRenderer.Seite`); Skia schreibt Textbefehle und bettet die Schriften ein. **Der Wächter dazu ist der wichtigste der Runde** (`Der_Text_im_PDF_ist_Text_und_kein_Bild`) und liest die fertige Datei mit PDFium zurück — **am alten Weg wäre er rot.** **Umbruch und Zeichner mussten nicht angefasst werden**, und das ist der Beleg für §4.16: weil der Umbruch in Zentimetern rechnet, ist der Unterschied zwischen Schirm und Papier **eine einzige Zahl** (96/2,54 gegen 72/2,54). Ein eigener Wächter hält das fest (`Der_Massstab_verschiebt_keine_Umbruchstelle`) — Seite für Seite dasselbe erste Wort. **Zum fünften Mal dasselbe Muster** nach §4.17, §4.20, §4.21 und §4.25: die Rechnung stand schon da, das Neue malt nur; `TdPdf` sind 247 Zeilen. **Die eine Ausnahme ist der Verweis:** eine Sprungmarke ist kein Pixel, sondern ein Vermerk, den nur ein PDF kennt (`DrawUrlAnnotation` ist auf einer Bildschirm-Leinwand wirkungslos) — er gehört deshalb in `TdPdf` und nicht in den Zeichner, gebildet aus **denselben** Zahlen des Umbruchs (§4.13). **Gelöscht statt danebengestellt**, wie in §4.23: der Paginator-Weg (~210 Zeilen), zwei tote Stücke aus `DocumentImages` — und **`DocxImporter` ganz, 556 Zeilen**, denn sein letzter Aufrufer war der Whiteboard-Einfüge-Weg, und der geht jetzt über `TdDocx`. **Netto rund 530 Zeilen Produktivcode weniger bei mehr Funktion.** **Nebenwirkung, die zählt:** der DOCX-Einfüge-Weg brauchte den UI-Thread (der Paginator verlangt das) und ist in ein `Task.Run` gewandert — das Busy-Overlay läuft jetzt wirklich, statt eingefroren dazustehen. **Der Zähler fehlender Bilder ist ehrlicher geworden:** er entstand vorher als Nebenwirkung eines `using` beim Rastern; jetzt fragt `DocumentHealth.MissingImages(TdDocument, ITdImages)` das Modell, das Wasserzeichen zählt mit, ein Diagramm nicht (seine Zahlen stehen im Dokument und können gar nicht fehlen). **18 neue Wächter**, alle über den Rückweg mit PDFium — möglich, weil Docnet nicht nur rendern, sondern auch **Text zurücklesen** kann (`IPageReader.GetText`); beim alten Rasterweg wäre das unmöglich gewesen. **Eine Falle beim Messen dabei gelernt** (§7): `GetPageWidth()` gibt die Maße der *gerenderten* Seite zurück — mit `PageDimensions(1080, 1080)` liest ein Seitenmaß-Test seine eigene Vorgabe zurück und ist immer grün; fürs Papier `PageDimensions(1.0)`. **Augenschein:** ein A5-Dokument mit Überschrift, gemischten Formaten, Verweis und 40 Absätzen nach `%TEMP%` geschrieben und angesehen — vier Seiten, 420×595 pt, Kopfzeile auf Seite 1 unterdrückt und ab Seite 2 da, `Seite 2 von 4` aufgelöst, Text markierbar. **Dabei eine Zahl, die anders ausfiel als gedacht:** rund **490 KB Grundlast plus ~68 KB je Seite** — SkiaSharp bettet die Schriften **ganz** ein und setzt sie nicht teil, also drei vollständige Dateien für Normal, Fett und Kursiv. **Der neue Weg erzeugt bei kurzen Dokumenten die *größere* Datei**, Gleichstand bei etwa fünf Seiten. Bewusst in Kauf genommen (der alte Weg war klein, weil er ein Foto war); der Hebel wäre ein Bauschalter von SkiaSharp und nicht unser Code — **nicht ohne Not verfolgen.** **Was das für Linux bedeutet:** der Textexport ist ab jetzt **vollständig plattformneutral** — DOCX, Markdown, PDF und PNG stehen alle in Core. `AvaloniaDocumentIo` wirft weiter, aber **die Schranke ist keine technische mehr, sondern eine unverdrahtete**; das Verdrahten ist Kopfarbeit und gehört zur Anzeige im Linux-Kopf. **503 Tests** (479 Core + 24 WPF) grün, 0 Warnungen |
 | V2-32 | 2026-08-11 | **Der Laptop prüft das Schriftkonzept gegen** (§4.26, „Was der Laptop gefunden hat") — der Auftrag aus §5d, erste Hälfte. **Die Kernfrage ist beantwortet: die mitgelieferten Schriften gewinnen auch unter Linux**, `SchriftkonzeptTests` 12/12 grün, fontconfig kommt nicht mehr zum Zug; beide Projekte bauen mit 0 Warnungen. **Dabei ein roter Wächter:** `SchriftTests.Unbekannte_Schrift_faellt_zurueck_und_wird_gecacht` behauptete `NotSame(Regular, Family("Segoe UI"))` — richtig unter Windows, **falsch überall sonst**, denn ohne Segoe UI landet die Rückfallkette auf Inter und damit auf genau der Oberflächenschrift. **Das Programm war richtig, der Test hat die Plattform geprüft statt die App** — genau das, was `SchriftTests` laut eigener Kopfzeile nicht tun darf. Hier behoben (linuxspezifisch, §5d): `SystemHat` fragt wie `WbFonts.Aufloesen` über den `FamilyName` nach, **beide Ausgänge werden geprüft** statt einer übersprungen; danach 461/461 grün. **Die CI auf `ubuntu-latest` hätte das vor dem Laptop gefunden — der Lauf zu `2c6752a` muss rot sein.** **Danach der Augenschein, Fragen 2 bis 4.** **Frage 2 ließ sich nicht ausführen, wie sie dastand** — der Linux-Kopf hat **kein Textfeld- und kein Notizzettel-Werkzeug** (`WhiteboardView.axaml` kennt nur Stift, Bleistift, Textmarker, Radierer, Lasso, Verschieben, Hand). Das ist die für **Phase 4.5** vorgemerkte Lücke; der Auftrag war unter Windows geschrieben, wo es die Werkzeuge gibt. **Die Frage dahinter ist trotzdem beantwortet:** sechs Elemente direkt in die Wegwerf-Datenbank geschrieben und zeichnen lassen — Geist, DejaVu Sans, JetBrains Mono und Space Grotesk kommen als **vier sichtbar verschiedene Schriften** heraus, „Segoe UI" fällt auf Inter. **Die mitgelieferte Schrift gewinnt also auch am laufenden Programm, nicht nur im Test.** **Frage 3** bleibt offen wie vorhergesagt (keine Textdokument-Ansicht unter Linux). **Frage 4** bestätigt die benannte Lücke: der Code der Markdown-Ansicht steht in einer **Systemfestbreitenschrift**, denn `MarkdownView.Feste` spricht Schriften über Namen an und `fc-match "JetBrains Mono"` liefert hier Noto Sans Mono — die mitgelieferte Datei ist über den Namen nicht erreichbar. **Zwei Fallen fürs Fernsteuern dazugelernt** (§7): ohne `zeiger hervor` kommt unter Wayland **kein Klick an** (der Fokus liegt auf einer nativen Oberfläche, das Foto bleibt identisch), und das Fenster kann **halb außerhalb des Bildschirms** stehen, ohne dass die Aufnahme es zeigt — `zeiger` hat dafür die Schritte **`hervor`** und **`lage:x,y`** bekommen. |
 | V2-31 | 2026-08-10 | **Ein Schriftkonzept für alle drei Plattformen** (§4.26) — ausgelöst von einer Frage des Nutzers („Segoe UI gibt es unter Linux nicht — können wir ein UI-Konzept für alle Plattformen nutzen?"). Die Antwort ist ja, **und die Frage traf einen Fehler, von dem niemand wusste:** Der Avalonia-Kopf zeichnete sein Chrome in Inter (aus `WithInterFont()`, in **Avalonia** eingebettet) und fragte für seine Zeichenfläche Skia nach „Inter" — das geht über **fontconfig**. Ohne systemweit installiertes Inter standen im selben Fenster zwei verschiedene Schriften, still. Mit dem Zeichner (§4.24) und den Diagrammen (§4.25) lief seit zwei Runden jeder gesetzte Text durch diesen Weg. **Die Farben waren längst plattformneutral** (§4.9) — die Schrift war das letzte Stück, das die Plattform beantwortete, und sie beantwortete es an **drei** Stellen unabhängig voneinander. **Jetzt liefert die App fünf Familien mit** (Inter, Source Sans 3, JetBrains Mono, Space Grotesk, Geist; alle SIL OFL 1.1, Nutzer-Vorgabe) für fünf Rollen — **ein Schriftschema ist eine Datentabelle**, dasselbe Muster wie bei den Farben. **`WbFonts` ist der einzige Auflösungspunkt** (mitgeliefert → System → Rückfallkette); `TdSkiaMeasure` und `TdRenderer` haben ihre eigenen Zwischenspeicher verloren, dasselbe Muster wie §4.13. **Datenformat:** `TdCharFormat.Standard` und drei Whiteboard-Vorgaben haben gewechselt — nur für **neue** Dokumente, der gespeicherte Wert gewinnt (§4.14), kein Migrationsschritt. **Die Pixelhashes liefen unverändert durch** (§4.6 hält), **die Golden-Files sind nicht angefasst worden** — sie verzeichnen gar keine Schriftnamen, und ein Golden-File soll sich nur bewegen, wenn sich das Verhalten bewegt. **Lizenz am Release geprüft, nicht aus dem Gedächtnis:** je Familie die unveränderte `OFL.txt` in der Ausgabe, nichts verändert und nichts subgesetzt — damit greifen Reserved Font Names nicht, und das ist nicht theoretisch (**Source Sans führt „Source" als RFN**). Vermerke in `THIRD-PARTY-NOTICES.md` und **beiden** README-Fassungen; **Inter war vorher schon ausgeliefert, ohne jeden Vermerk** — Lücke geschlossen. Preis: rund 6 MB in der Exe, benannt. **Der Augenschein hat den zweiten Fehler gefunden:** Schriftnamen, Dateien und grüne Tests beweisen nicht, dass der laufende Kopf sie benutzt — Inter und Segoe UI sehen sich zu ähnlich. Also die Oberflächenschrift kurz auf **Space Grotesk** gestellt und die Bilder zonenweise verglichen: alles änderte sich, **die Menüleiste um genau 0 Pixel**. WPF nimmt für `Menu`/`MenuItem` die Systemschrift und erbt nicht vom Fenster; ohne den Versuch wäre ausgerechnet die Menüleiste bei der Systemschrift geblieben — der Fehler, den die Runde beheben sollte. **Dazu zwei Dinge für den Laptop** (Nutzer-Wunsch): **Dauerregel 3a** — am Ende **jeder** Antwort steht eine Zeile, ob der nächste Schritt an den Linux-Laptop gehört, auch wenn sie „nein" lautet. Und **§5d, ein ausformulierter Auftrag für den Laptop**: Der Nutzer soll dort nur „lies das HANDOFF" sagen müssen. Der Abschnitt hat zwei Teile — was **grundsätzlich** gilt (nur prüfen statt entwickeln, nie die Solution bauen, keine Kopie der echten Daten, wie der Befund zurückkommt) und einen **datierten aktuellen Auftrag**, der nach jeder Windows-Runde neu geschrieben wird. Ist sein Datum älter als der oberste Chronik-Eintrag, ist er veraltet und es wird nachgefragt statt geraten. **485 Tests** (461 Core + 24 WPF), sieben Projekte 0 Warnungen |

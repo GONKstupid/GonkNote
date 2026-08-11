@@ -490,7 +490,11 @@ internal static class LocGerman
         // {0} = Versionsnummer. Die Phase meint die **Portierung** (Linux/iPadOS), nicht mehr
         // die Entwicklungsphase von V1 — bis 0.2.0 stand hier fest „Phase 3" und war damit
         // zweideutig. Von Hand nachzuziehen, wenn eine Portierungsphase beginnt (HANDOFF §6).
-        ["About.Version"] = "Version {0} · Portierung, Phase 4",
+        //
+        // Die Zeile sagt, **woran gearbeitet wird**, nicht was fertig ist (HANDOFF §5). Der
+        // Zusatz steht dabei, weil die Phasennummer allein zu grob wurde: die Dokument-Engine
+        // ist seit dem 2026-08-11 fertig (§4.28), das Schreiben ist der Rest derselben Phase.
+        ["About.Version"] = "Version {0} · Portierung, Phase 4 — das Schreiben",
         // {0} = Fehlermeldung, {1} = Pfad des Protokolls. Erscheint, wenn sich die Datenbank
         // nicht öffnen lässt — meist beim einmaligen Übertragen einer Altdatenbank nach
         // SQLite. Zwangsläufig in der Standardsprache: die Sprachwahl steht in eben der

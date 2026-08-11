@@ -291,55 +291,48 @@ angezeigt, importiert (DOCX) und in alle vier Formate exportiert. **Damit ist Ph
 abgeschlossen.** Der Anschluss hat sofort einen Fehler gezeigt, den vier Runden lang kein
 Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — behoben.
 
-### ▶ Hier geht es weiter (Stand 2026-08-11, nach Runde V2-35)
+### ▶ Hier geht es weiter (Stand 2026-08-11, nach Runde V2-38)
 
-> **✅ Phase 4 ist abgeschlossen** (§4.28). Textdokumente sind im Linux-Kopf nicht mehr
-> ausgegraut: sie werden angezeigt, importiert und exportiert.
+> **✅ Phase 4 ist abgeschlossen** (§4.28) und **auf dem Laptop gegengeprüft** (§4.28, „Was der
+> Laptop gefunden hat"): die Anzeige trägt, ihr Umbruch stimmt mit dem PDF überein, Rollen und
+> Zoom arbeiten.
 >
-> **Als Nächstes steht eine Entscheidung an, nicht ein Auftrag** — deshalb zuerst §5
-> „Noch offen" lesen und **nachfragen statt raten** (§0, Punkt 2). Es gibt zwei Wege:
+> **✅ Die Entscheidung ist gefallen — Nutzer, 2026-08-11: (a) das Schreiben im Linux-Kopf**,
+> vor Phase 4.5. Damit ist §5 „Noch offen" 2 beantwortet, und **es ist nicht mehr
+> nachzufragen.** Phase 4.5 rückt dahinter, bleibt vollständig vorgemerkt und trägt weiterhin
+> M2.
 >
-> **(a) Schreiben im Linux-Kopf** — Cursor, Auswahl, Eingabe, Undo gegen `TdDocument`. Das
-> ist der Rest dessen, was die Roadmap unter Phase 4 „Editing" nennt, und der Weg, an dessen
-> Ende `Rtf` als führendes Feld abgelöst wird (§5). **Der größte Brocken des ganzen
-> Projekts nach der Engine selbst** — die Anzeige steht, die Eingabe ist neu.
+> **Der Arbeitsplan steht in §6, „Als Nächstes: das Schreiben"** — sieben Schritte und drei
+> Fallen, die schon feststehen. **Dort anfangen.** Die Reihenfolge ist dieselbe wie in
+> Phase 4: erst das Modell (Schritte 1–3, reine Core-Arbeit), dann die Oberfläche.
 >
-> **(b) Phase 4.5** — die fehlenden Werkzeuge des Linux-Kopfs (Formen, Textfelder,
-> Notizzettel, Drehen/Skalieren, Bild- und PDF-Import, Tafel-Export). **Sie trägt M2**, und
-> sie ist der Grund, warum M2 heute nicht erreichbar ist.
->
-> **Empfehlung: (b) vor (a).** Drei Gründe: M2 hängt daran; die Werkzeuge sind viele kleine,
-> abgeschlossene Stücke statt eines langen; und der iPad-Kopf (Phase 5) bekommt sie fast
-> geschenkt, wenn sie vorher stehen (§6, „Vorgemerkt: Phase 4.5"). **Die Entscheidung gehört
-> dem Nutzer.**
+> **Wo:** auf dem **Windows-Rechner**. Nicht wegen der Werkzeuge, sondern wegen der
+> Gegenprobe — jede Änderung am Modell muss der WPF-Editor überleben, und beide Köpfe
+> nebeneinander an derselben Datenbank gibt es nur dort (§5b).
 >
 > **M1 bleibt ein gültiger Ausstiegspunkt.**
 >
 > **Was dabei nicht untergehen darf:**
-> - **Der Laptop-Auftrag ist abgearbeitet** (V2-37, 2026-08-11): der erste Augenschein des
->   Textdokuments **unter Linux**. Befund in **§4.28, „Was der Laptop gefunden hat"** — die
->   Anzeige trägt, der Umbruch stimmt mit dem PDF überein, das Rollen und alle Zoomstufen
->   arbeiten. **§5d trägt jetzt keinen Auftrag mehr**, weil der nächste von dieser
->   Entscheidung hier abhängt.
-> - **Zwei neue Punkte in §5 „Noch offen":** **6** — der Wortzwischenraum an einer
->   Stückgrenze sitzt in der **Anzeige** falsch (im PDF nicht); das ist Arbeit für eine
->   Windows-Runde, keine Entscheidung. **7** — der **Dateidialog** des Linux-Kopfs ist
->   ungeprüft geblieben: unter GNOME-Wayland ist es der Portal-Dialog, und der lässt sich
->   nicht fernsteuern. **Zwei Minuten Nutzer am Gerät**, sonst bleibt es der einzige
->   ungesehene Teil des Linux-Kopfs.
+> - **Erster Handgriff, eine Minute:** `About.Version` steht seit V2-38 auf „Portierung,
+>   Phase 4 — das Schreiben" / „Port, phase 4 — editing" und ist **im Linux-Kopf** in beiden
+>   Sprachen gegengeprüft. **Der WPF-Kopf fehlt** — er baut auf dem Laptop nicht, und
+>   Dauerregel 1 verlangt beide (§5 „Noch offen" 5).
+> - **Zwei Funde des Laptops, beide Arbeit und keine Entscheidung:** §5 „Noch offen" **6** —
+>   der Wortzwischenraum an einer Stückgrenze sitzt in der **Anzeige** falsch, im PDF nicht.
+>   Und **7** — der **Dateidialog** des Linux-Kopfs ist ungeprüft geblieben: unter
+>   GNOME-Wayland ist es der Portal-Dialog, und der lässt sich nicht fernsteuern. **Zwei
+>   Minuten Nutzer am Gerät**, sonst bleibt er der einzige ungesehene Teil des Linux-Kopfs.
+> - **§5d trägt keinen Auftrag** — der nächste entsteht aus dieser Arbeit heraus. Ein
+>   Vorschlag, wann er fällig wird, steht dort.
 > - **Vor jedem Laptop-Auftrag die betroffene `.axaml` ansehen** — ob der Linux-Kopf
 >   überhaupt kann, was der Auftrag verlangt. In §4.26 ist genau das schiefgegangen.
-> - **Drei Beobachtungen stehen offen und sind nicht angefasst:** ein Verweis bekommt so
->   viele `/Link`-Kästen wie Wörter, und `TdRenderer` malt einen Verweis ohne jede
->   Kennzeichnung (beide §4.27) — dazu: ein Diagramm kommt im **WPF**-Editor nicht an, mit
->   Absicht (§4.28).
-> - **Offen zur Entscheidung:** §5 „Noch offen" **7** (darf ein PDF ~200 KB je Schriftfamilie
->   wiegen — Empfehlung: ja, so lassen) und **1** (zweites Stiftgerät, der einzige Punkt mit
->   echtem Restrisiko).
-> - **`About.Version` sagt „Portierung, Phase 4"** — und Phase 4 ist jetzt fertig. Die Zeile
->   beschreibt, **woran gearbeitet wird** (§5, Entscheidung von 2026-08-10); sie ist also
->   fällig, sobald feststeht, was als Nächstes läuft. **Beide Sprachtabellen zusammen**, danach
->   beide Dialoge in beiden Köpfen gegenprüfen (Dauerregel 1).
+> - **Drei Beobachtungen am Zeichner, alle offen und alle am selben Ort fällig** (§6, letzter
+>   Absatz des Arbeitsplans): ein Verweis bekommt so viele `/Link`-Kästen wie Wörter, und
+>   `TdRenderer` malt einen Verweis ohne jede Kennzeichnung (beide §4.27) — dazu: ein Diagramm
+>   kommt im **WPF**-Editor nicht an, mit Absicht (§4.28).
+> - **Offen zur Entscheidung, beide unverändert:** §5 „Noch offen" **3** (darf ein PDF ~200 KB
+>   je Schriftfamilie wiegen — Empfehlung: ja, so lassen) und **1** (zweites Stiftgerät, der
+>   einzige Punkt mit echtem Restrisiko).
 > - **Nur auf dem Windows-Rechner erreichbar:** `gonk-note-port-RM.MD` kennt **Phase 4.5
 >   immer noch nicht**, und M2 hängt dort weiter am Ende von Phase 4 (seit 2026-08-04
 >   vermerkt, §6). Phase 4.5 hat außerdem **keine Aufwandsschätzung** — als einzige Phase.
@@ -351,7 +344,7 @@ dotnet test -c Release        # Windows: beide Projekte, 517 Tests
 ```
 
 ```bash
-dotnet test tests/GonkNote.Core.Tests   # Linux: 489 Tests, laufen in ~11 s
+dotnet test tests/GonkNote.Core.Tests   # Linux: 489 Tests, laufen in ~21 s
 ```
 
 ---
@@ -3732,12 +3725,14 @@ unten (§5a „Offen" 3). Sie bleiben offen.
    Rückfall ohne Druck ist jetzt gebaut und nachweislich wirksam (die Stift-Anzeige liest
    ihn ab), und mit **F9** gibt es ein Messgerät, das die Frage an einem fremden Gerät in
    einer Minute beantwortet. **Der Punkt ist damit kleiner geworden, aber nicht erledigt.**
-2. **Wie geht es nach Phase 4 weiter — Schreiben im Linux-Kopf oder Phase 4.5?**
-   Die eine Frage, an der der nächste Arbeitsblock hängt. Beide Wege und die Empfehlung
-   stehen in **§0 „Hier geht es weiter"**; ausführlich zu Phase 4.5 in §6.
-   **Empfehlung: Phase 4.5 zuerst** — sie trägt M2, sie zerfällt in viele kleine
-   abgeschlossene Stücke, und der iPad-Kopf bekommt sie dann fast geschenkt.
-   Vermerkt 2026-08-11.
+2. ✅ **Beantwortet am 2026-08-11: das Schreiben im Linux-Kopf zuerst — Weg (a).**
+   **Nutzer-Entscheidung**, gegen die Empfehlung dieses Dokuments (die auf Phase 4.5 lautete,
+   Begründung steht weiter unten in §6). **Sie gilt.**
+
+   Was das heißt: Cursor, Auswahl, Eingabe und Undo gegen `TdDocument` — der Rest dessen, was
+   die Roadmap unter Phase 4 „Editing" nennt, und der Weg, an dessen Ende `Rtf` als führendes
+   Feld abgelöst wird. **Phase 4.5 rückt dahinter**, bleibt aber vollständig vorgemerkt und
+   trägt weiterhin M2. Der Arbeitsplan steht in **§6, „Als Nächstes: das Schreiben"**.
 
 3. **Darf ein PDF rund 200 KB je benutzter Schriftfamilie wiegen?** Auf dem Laptop gemessen
    (§4.27, „Was der Laptop gefunden hat"): **Skia bettet die ganze TTF-Datei ein, nicht einen
@@ -3766,13 +3761,15 @@ unten (§5a „Offen" 3). Sie bleiben offen.
    drei Fragen ist mit §4.9 beantwortet (die Tabelle umfasst auch das Papier); offen bleiben
    die beiden kleineren: Verhalten bei einer unvollständigen Datei und der Menüaufbau.
 
-5. **Sagt `About.Version` noch die richtige Phase?** Sie steht seit dem 2026-08-10 auf
-   „Portierung, Phase 4" / „Port, phase 4", und **Phase 4 ist seit dem 2026-08-11 fertig**.
-   Die Zeile beschreibt, *woran gearbeitet wird* (Entscheidung oben) — sie ist also fällig,
-   sobald Punkt 2 beantwortet ist. **Von Hand zu pflegen: `LocGerman` und `LocEnglish`
-   zusammen**, danach beide Dialoge im laufenden Programm gegenprüfen, in beiden Sprachen und
-   in **beiden Köpfen** (Dauerregel 1) — genau daran hing in §4.25 ein Fehler (§7, „Der Kopf
-   trägt seine eigene Kopie von Core"). Vermerkt 2026-08-11.
+5. ⏳ **`About.Version` ist nachgezogen — die Gegenprobe im WPF-Kopf fehlt noch.**
+   Mit Punkt 2 wurde sie fällig und steht seit dem 2026-08-11 auf **„Portierung, Phase 4 —
+   das Schreiben"** / **„Port, phase 4 — editing"**, beide Tabellen zusammen geändert.
+
+   **Im Linux-Kopf gegengeprüft**, in beiden Sprachen, am laufenden Programm (Hilfe → Über
+   Gonk Note). **Was fehlt, ist der WPF-Kopf** — er baut auf dem Laptop nicht (§5d), und
+   Dauerregel 1 verlangt *beide*. Genau daran hing in §4.25 ein Fehler (§7, „Der Kopf trägt
+   seine eigene Kopie von Core"): **es ist eine eigene Assembly, kein geteilter Text.**
+   **Erster Handgriff der nächsten Windows-Runde**, dauert eine Minute.
 
 6. **Der Wortzwischenraum an einer Stückgrenze sitzt in der Anzeige falsch.** Auf dem Laptop
    gefunden (§4.28, „Was der Laptop gefunden hat"): „…, Unterstrichenes und Farbiges." steht
@@ -4264,10 +4261,17 @@ dotnet run --project src/GonkNote.Avalonia -- --db /tmp/gonk-test/gonknote.sqlit
 > abgearbeitet.** Befund: **§4.28, „Was der Laptop gefunden hat"**. Kurzfassung unten in der
 > Tabelle.
 >
-> **Hier steht bewusst kein neuer Auftrag.** Der nächste Schritt ist eine **Entscheidung des
-> Nutzers** und keine Messung (§0, „Hier geht es weiter": Schreiben im Linux-Kopf oder
-> Phase 4.5) — und was der Laptop danach prüfen soll, hängt genau daran. Ein Auftrag, den
-> niemand aus einer Windows-Runde geschrieben hat, wäre geraten.
+> **Hier steht bewusst kein neuer Auftrag.** Die Entscheidung ist gefallen — **(a), das
+> Schreiben im Linux-Kopf** (§5 „Noch offen" 2) —, und die ersten Schritte davon liegen in
+> **Core** und sind auf jedem Rechner prüfbar; der Laptop hätte daran nichts zu messen, was
+> Windows nicht selbst sieht.
+>
+> **Fällig wird der Laptop wieder mit Schritt 5** des Arbeitsplans (§6, „Als Nächstes: das
+> Schreiben"): sobald `TextDocView` Tastatur und Maus annimmt. **Dann und erst dann** gibt es
+> hier etwas zu beantworten, das Windows nicht kann — **Umlaute, tote Tasten und die
+> Compose-Taste** über `TextInput` auf XWayland, das Zusammenspiel mit der **Bildschirmtastatur**,
+> und die Frage, ob sich der Cursor **mit dem Stift** setzen lässt. Der Auftrag dafür wird aus
+> der Windows-Runde heraus hier hineingeschrieben.
 >
 > **Zwei Dinge kann der Nutzer hier trotzdem sofort erledigen**, beide brauchen ihn am Gerät
 > und beide sind in Minuten getan:
@@ -4526,6 +4530,67 @@ konnte.
 > XamlPackage können Dinge tragen, die *kein* Modell kennt (eingebettete Objekte, Formen,
 > Kommentare). Eine Übernahme sollte deshalb prüfen, was sie nicht versteht, statt es
 > stillschweigend fallen zu lassen — dieselbe Regel wie bei `Was_noch_nicht_geht_verschwindet_nicht_still`.
+
+### ▶ Als Nächstes: das Schreiben — der Rest von Phase 4
+
+**Nutzer-Entscheidung 2026-08-11 (§5 „Noch offen" 2): Weg (a) vor Phase 4.5.** Damit ist
+Phase 4.5 nicht abgesagt, nur nachgereiht — sie trägt weiterhin M2, und ihre Begründung unten
+gilt unverändert.
+
+> **Der Auftrag in einem Satz:** Ein Textdokument, das der Linux-Kopf heute *anzeigt*, soll
+> sich darin **bearbeiten** lassen — Cursor setzen, auswählen, tippen, löschen, rückgängig
+> machen —, und zwar gegen `TdDocument` und nicht gegen ein `FlowDocument`.
+
+**Wo gearbeitet wird: auf dem Windows-Rechner** (§5b). Der Grund ist diesmal nicht die
+Werkzeugkette, sondern die Gegenprobe: **jede Änderung am Modell muss der WPF-Editor
+überleben**, und beide Köpfe nebeneinander an derselben Datenbank gibt es nur dort.
+
+#### Die Reihenfolge — und warum sie so herum ist
+
+Dieselbe Regel wie in Phase 4: **erst das Modell, dann die Oberfläche.** Die Schritte 1–3
+liegen vollständig in Core und sind damit **auf jedem Rechner prüfbar**, auch auf dem Laptop;
+erst ab Schritt 4 wird es Kopfarbeit.
+
+- [ ] **1. Wo steht der Cursor?** Eine Stelle im Dokument (`TdPosition`: Block, Stück,
+      Zeichen) und eine Auswahl als **zwei** Stellen. **Das ist die Entscheidung, die alles
+      Weitere prägt** — steht die Stelle im *Modell* oder im *Umbruch*? Vorschlag: im Modell,
+      denn der Umbruch ist ein Ergebnis und ändert sich bei jeder Eingabe. Umgerechnet wird
+      erst zum Zeichnen, über `TdLayoutResult`.
+- [ ] **2. Was ändert sich, wenn man tippt?** Einfügen, Löschen, Zeilenumbruch, Absatz
+      teilen und verbinden — als **Änderungen am Modell** mit ihrer Gegenbewegung. Hier hängt
+      die zweite große Frage: **erbt ein eingefügtes Zeichen das Format links davon?** (In
+      Word ja; das ist die Erwartung.)
+- [ ] **3. Rückgängig.** `UndoStack` steht seit V1 in Core und wird von der Zeichenfläche
+      benutzt (`IEditAction`) — **er wird hier nicht neu erfunden**, sondern bekommt
+      Textaktionen. `TextChangeAction` gibt es dort schon; ob sie passt, ist zu prüfen, nicht
+      anzunehmen.
+- [ ] **4. Der Cursor auf dem Schirm.** Blinkende Schreibmarke und blaue Auswahl in
+      `TdRenderer` — **er kennt heute weder das eine noch das andere.** Dazu die Umkehrung des
+      Umbruchs: **welche Stelle im Modell gehört zu diesem Mausklick?**
+- [ ] **5. Tastatur und Maus im Linux-Kopf.** `TextDocView` nimmt Eingaben entgegen: Tippen,
+      Pfeiltasten, Pos1/Ende, Umschalt-Auswahl, Ziehen mit der Maus, Doppelklick auf ein Wort.
+      **`TextInput` statt `KeyDown`**, sonst gibt es keine Umlaute und keine tote Taste.
+- [ ] **6. Das Ribbon wird ehrlich.** „Nur Ansicht" verschwindet, die Reiter **Einfügen**,
+      **Verweise** und **Tabelle** kommen dazu — **erst jetzt**, denn erst jetzt stünden sie
+      nicht als drei leere Flächen da (§4.28, „ein halbes Feature ist schlechter als ein
+      fehlendes").
+- [ ] **7. `Rtf` verliert die Führung.** Der WPF-Editor liest aus dem Modell statt aus dem
+      `XamlPackage`. **Das ist der eigentliche Zweck des ganzen Wegs** (§5) — und der Schritt,
+      bei dem am meisten schiefgehen kann: `Rtf` wird trotzdem **nie überschrieben** (§4.22).
+
+#### Drei Fallen, die schon feststehen
+
+| | |
+|---|---|
+| **Der Umbruch läuft mehrfach** | `TdLayout` rechnet bei einem Inhaltsverzeichnis so lange, bis sich nichts mehr ändert (§4.20). **Bei jedem Tastendruck ist das zu teuer.** Es braucht einen Weg, nur den betroffenen Absatz neu zu setzen — oder eine Verzögerung. Das ist zu messen, nicht zu raten |
+| **Die Anzeige rechnet einmal je Dokument** | §4.28 hat das ausdrücklich so entschieden („nicht je Bild"). **Mit dem Schreiben wird diese Entscheidung fällig**, denn jetzt ändert sich das Dokument |
+| **Zwei Editoren auf einem Modell** | Solange der WPF-Editor auf `Rtf` steht und der Linux-Editor auf `Model`, kann dasselbe Dokument **zwei Wahrheiten** haben. Der Rückfall aus §4.28 deckt nur den einen Weg ab. **Schritt 7 löst das auf; bis dahin ist es eine benannte Lücke** |
+
+> **Was dabei mitgenommen gehört, weil es ohnehin am Text hängt:** ein Verweis wird von
+> `TdRenderer` **ohne jede Kennzeichnung** gemalt (kein Blau, keine Unterstreichung) und
+> bekommt im PDF so viele Kästen, wie er Wörter hat (beide §4.27). Und der Wortzwischenraum
+> an einer Stückgrenze sitzt in der **Anzeige** falsch (§5 „Noch offen" 6, auf dem Laptop
+> gefunden). Alle drei sind Arbeit am selben Zeichner.
 
 ### Vorgemerkt: Phase 4.5 — die fehlenden Werkzeuge des Linux-Kopfs
 
@@ -5723,6 +5788,7 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 
 | Runde | Datum | Was |
 |---|---|---|
+| V2-38 | 2026-08-11 | **Die Entscheidung nach Phase 4 ist gefallen: (a) das Schreiben im Linux-Kopf**, vor Phase 4.5 — **Nutzer-Entscheidung, gegen die Empfehlung dieses Dokuments**, und sie gilt. Damit ist §5 „Noch offen" 2 beantwortet. **Was diese Runde daraus gemacht hat, ist ein Arbeitsplan und kein Code:** §6 trägt jetzt „Als Nächstes: das Schreiben" mit **sieben Schritten** — Cursor-Stelle im Modell (nicht im Umbruch), Änderungen samt Gegenbewegung, Rückgängig über den vorhandenen `UndoStack`, Schreibmarke und Auswahl im Zeichner, Tastatur und Maus in `TextDocView`, das ehrlich gewordene Ribbon, und zuletzt der Schritt, um den es eigentlich geht: **`Rtf` verliert die Führung**. Dazu **drei Fallen, die schon feststehen**: der Umbruch läuft bei einem Inhaltsverzeichnis mehrfach und ist je Tastendruck zu teuer; §4.28 hat „einmal je Dokument umbrechen" entschieden, und genau diese Entscheidung wird mit dem Schreiben fällig; und solange der WPF-Editor auf `Rtf` steht und der Linux-Editor auf `Model`, kann dasselbe Dokument **zwei Wahrheiten** haben. **Der Code gehört auf den Windows-Rechner** (§5b) — diesmal nicht wegen der Werkzeuge, sondern wegen der Gegenprobe: jede Modelländerung muss der WPF-Editor überleben. **Eine Code-Änderung ist trotzdem hier gefallen**, weil §5 „Noch offen" 5 sie mit der Entscheidung fällig machte: `About.Version` steht in **beiden** Sprachtabellen auf „Portierung, Phase 4 — das Schreiben" / „Port, phase 4 — editing" und ist **im Linux-Kopf in beiden Sprachen am laufenden Programm gegengeprüft**; die Gegenprobe im WPF-Kopf fehlt und ist der erste Handgriff der nächsten Windows-Runde. **§5d bleibt ohne Auftrag** — der Laptop wird erst mit Schritt 5 wieder fällig (Umlaute, tote Tasten, Bildschirmtastatur, Cursor mit dem Stift) |
 | V2-37 | 2026-08-11 | **Der erste Augenschein des Textdokuments unter Linux** (auf dem CachyOS-Laptop, GNOME-Wayland). **489/489 grün**, beide Bauten 0/0. **Frage 1 ✅:** die Anzeige steht vollständig — Überschrift, fett/kursiv/unterstrichen/farbig, Aufzählung mit Marken, Tabelle mit **einer** Kopfzeile (der Fund aus §4.28 ist wirklich weg), Säulendiagramm mit Achsen und Farben, Kopfzeile ab Seite 2, „Seite 3 von 3". **Frage 2 ✅ mit Fund:** PDF und Anzeige haben denselben Zeilen- und Seitenumbruch (3 Seiten, A4, Schriften eingebettet) — **aber der Wortzwischenraum an einer Stückgrenze sitzt in der Anzeige falsch** („undFarbiges ."), im PDF nicht. Vermutlich nicht linuxspezifisch, deshalb nach §5d nicht angefasst: §5 „Noch offen" **6**. **Frage 3 ✅:** Rollen über alle Seiten ohne weißes Blatt, Zoom, Seitenbreite (119 %), Ganze Seite (52 %). **Frage 5 ✅:** der Dateidialog erscheint nicht hinter dem Fenster und **blockiert das Hauptfenster richtig** — ein Klick daneben lässt die Aufnahme Pixel für Pixel gleich. **Frage 4 ⚠️ offen:** unter GNOME-Wayland ist es der **Portal**-Dialog (Anfrage-Objekt auf dem Sitzungsbus belegt es), also ein natives Wayland-Fenster — mit `tools/linux` weder zu fotografieren noch zu bedienen. Ob ein **Pfad** zurückkommt und ob das **vorgewählte Format** oben steht, braucht den Nutzer am Gerät: §5 „Noch offen" **7**. **Der eigentliche Ertrag sind drei Löcher im Werkzeug** (§4.28): `zeiger` drückte Umschalt nur bei Großbuchstaben und tippte deshalb auf der **deutschen** Belegung `/` als `7` — **ohne Fehlermeldung**, es sah wie ein Fehler der App aus; **behoben**, die Ebene wird jetzt aus der Belegung gelesen (`XGetKeyboardMapping`, Umschalt und AltGr). Nicht behoben: der Portal-Dialog bleibt Handarbeit, und `schau.sh` gibt die Ausgabe des Aufrufers nicht frei (die App erbt `stdout`) bei zu kurzer Startwartezeit. Weil der Dateidialog ausfiel, kam die Prüf-DOCX über ein Wegwerf-Programm in die Test-Datenbank — **über dieselbe Kette** wie `AvaloniaDocumentIo.Import` |
 | V2-36 | 2026-08-11 | **Das HANDOFF aufgeräumt und der Laptop-Auftrag ausgebaut** (kein Code angefasst). Vier Dinge. **(1) §2 „Stand" neu geschrieben:** dort stand jede Runde noch einmal in eigenen Worten — dieselbe Chronologie wie in §4 (das Warum), §6 (die Häkchen) und §9 (die Chronik), also **viermal**. Was viermal dasteht, wird dreimal nicht gepflegt: die Testzahlen dort hinkten um zwei Runden hinterher, und der Abschnitt begann mit „Vier Commits auf `main`" — wahr in Phase 0, absurd nach fünfunddreißig Runden. Jetzt: Version, Testzahl, Meilensteine, eine Zeile je Phase mit Verweis, und ein Satz je Kopf, was er kann. **(2) §5 „Noch offen" entrümpelt:** fünf der sieben Punkte waren längst entschieden und standen als durchgestrichene Überschrift mit dem vollen alten Wortlaut darunter — rund neunzig Zeilen, die man beim Lesen jedes Mal überspringen musste. Sie stehen jetzt als Tabelle mit Antwort und Verweis; **offen sind noch fünf Punkte, und zwei davon sind neu** (wie es nach Phase 4 weitergeht, und dass `About.Version` fällig wird). Dabei fiel eine **falsche Behauptung** auf: Punkt 4 sagte, in beiden Erste-Schritte-Fassungen stehe noch der V1-Klon-Befehl — er zeigt längst auf `GonkNote.git`. **(3) §5d:** der abgearbeitete Auftrag stand in voller Länge da (achtzig Zeilen, deren Befund in §4.27 steht) — jetzt eine Tabellenzeile mit Verweis. **(4) Ein Inhaltsverzeichnis** ganz oben: dreizehn Zeilen, die sagen, was in welchem Abschnitt steht **und wann man ihn braucht** — bei viertausendsiebenhundert Zeilen fehlte jede Navigation. **Der Laptop-Auftrag in §5d ist ausgebaut worden:** er enthält jetzt das vollständige Wegwerf-Programm, das die Prüf-DOCX erzeugt (Tabelle mit Kopfzeile, Diagramm, fünfundvierzig Absätze), die Befehlsfolge bis zum laufenden Kopf und die Angabe, wohin der Befund gehört. **Nichts Inhaltliches gelöscht:** was weggekürzt wurde, war entweder anderswo vollständig vorhanden oder steht in der Git-Historie; die Begründungen in §4 und §7 sind unangetastet |
 | V2-35 | 2026-08-11 | **Die Anzeige im Linux-Kopf — Phase 4 ist zu** (§4.28). Der zweite und letzte Punkt des Umverdrahtens (§4.23): **Textdokumente sind unter Linux nicht mehr ausgegraut.** Drei Teile. **(1) Die Anzeige** (`TextDocView`, ~400 Zeilen): sie rechnet nichts und zeichnet nichts — umbrochen wird von `TdLayout` (§4.16), gezeichnet von `TdRenderer` (§4.24/§4.25), beide seit Wochen fertig und **nirgends angeschlossen**. Neu ist der Anschluss. **Es ist derselbe Weg, den das PDF nimmt** (§4.27), bis auf **eine Zahl** — den Maßstab; weil der Umbruch in Zentimetern rechnet, ändert keine Zoomstufe eine Umbruchstelle, **auf dem Schirm steht, was ins PDF ginge**. Umbrochen wird **einmal je Dokument** und nicht je Bild (ein Inhaltsverzeichnis läßt `TdLayout` mehrfach laufen, §4.20), gezeichnet werden **nur die Seiten im Sichtfenster** — dazu gehört ein `InvalidateVisual` am `ScrollChanged`, sonst bliebe der hereingerollte Rand leer. Schatten und Rand des Blattes gehören dem Kopf: `TdRenderer` malt Papier, und Papier hat keinen Schatten. **(2) Das Ribbon**, neu in Avalonia — Reiterleiste nach dem Vorbild des WPF-Ribbons, aber **nur die zwei Reiter, die Inhalt haben**: „Start" (Export mit Formatauswahl, Zoom, Seitenbreite, Ganze Seite, Wörter/Zeichen) und „Layout" (Papierformat, Ausrichtung, Ränder, Kopf-/Fußzeile — **abgelesen, nicht gestellt**). „Einfügen", „Verweise" und „Tabelle" fehlen mit Absicht: es wären drei leere Flächen, und **ein halbes Feature ist schlechter als ein fehlendes** (§4.12). Was fehlt, steht als Satz da — rechts im Ribbon **„Nur Ansicht"** — und nicht als ausgegrauter Knopf. **(3) `AvaloniaDocumentIo` verdrahtet:** Export in alle vier Formate (**dieselbe Liste wie unter Windows**), Import **nur DOCX** (`TdDocx.Lesen` steht in Core; der Markdown-*Import* geht drüben weiter über ein `FlowDocument` — ein Format anzubieten, das man nicht lesen kann, ist schlimmer, als es nicht anzubieten). Tafel-Export und Übernahme bleiben mit Begründung leer. **Neu in Core: `TdExport`** — die Weiche über die Dateiendung, die bis dahin im WPF-Kopf stand; sie ein zweites Mal zu schreiben wäre die Falle aus §4.13 gewesen. **Eine Frage, die es vorher nicht gab:** ein unter Linux importiertes Dokument hat **nur `Model` und ein leeres `Rtf`** — ein `XamlPackage` gibt es nur unter Windows. Ohne Gegenmaßnahme hätte der WPF-Editor dafür **ein leeres Blatt** gezeigt, und das sieht nicht nach einer fehlenden Funktion aus, sondern nach **gelöschtem Inhalt** — auf dem *anderen* Rechner, wo niemand mehr an den Import denkt. `TextEditorView` fällt deshalb über `TdZuFlow` auf `Model` zurück, **ohne die Reihenfolge umzukehren**: `Rtf` führt weiter, solange dort etwas steht (§5). Vier Wächter dafür. **Der Fund der Runde stand vier Runden lang da: jede Tabelle hatte eine doppelte Kopfzeile.** Der Merker in `TdLayout.TabelleSetzen` zählte nur die *wiederholten* Kopfzeilen und nicht die echten, also löste die erste Inhaltszeile eine Wiederholung aus, obwohl die Kopfzeile eine Zeile darüber stand — **bei jeder Tabelle, schon auf Seite 1**, seit §4.19. **Kein Wächter konnte es sehen:** der Umbruch-Wächter prüfte den Fall *mit* Seitenwechsel und sah nur auf `TableRows[0]` (die Doppelung stand an Index 1), die Ausgabe-Wächter lesen **Text** zurück und zweimal „Spalte 1" fällt in einem Textvergleich nicht auf, und der Zeichner-Wächter prüft Farbe an gerechneten Orten statt Zeilen zu zählen. **Im Bild fiel es in derselben Sekunde auf, in der die Anzeige zum ersten Mal lief** — das ist der Grund, warum eine Anzeige ein **Prüfmittel** ist und nicht nur ein Feature (dieselbe Rolle wie der A/B-Bildvergleich in §4.13). Behoben, zwei neue Wächter. **Nebenbei ehrlicher geworden:** die Menüpunkte nennen keine Formatliste mehr — dort stand „(DOCX / Markdown)" und „(PDF / DOCX / Markdown)", zweimal ungenau; welche Formate wirklich gehen, sagt der Dateidialog, und der sagt es je Kopf richtig. **Am laufenden Programm geprüft**, mit einer Kopie der echten Datenbank (Dauerregel 4, danach gelöscht) und einer eigens erzeugten DOCX: Import, Anzeige (Überschriften, Zeichenformate, Aufzählung mit Marken, Tabelle, **Diagramm mit Achsen und Farben**, Kopfzeile ab Seite 2), Ribbon, Zoom, Seitennavigation, PDF-Export über den Ribbon-Knopf (vier Seiten, 993 KB) — **in beiden Sprachen** (Dauerregel 1) — und derselbe Import danach im **WPF**-Editor, wo ohne den Rückfall ein leeres Blatt gestanden hätte. **Zwei Beobachtungen benannt:** ein Diagramm kommt im WPF-Editor nicht an (`TdZuFlow` sagt es selbst — ein `FlowDocument` kann nur Bilder, und ein gerastertes Diagramm wäre wieder das, was §4.21 abgeschafft hat), und ein über den Rückfall geladenes Dokument steht sofort als „geändert" da (der Editor setzt beim Laden die Prüfsprache; nach dem ersten Speichern tritt es nicht mehr auf — nachgemessen). **517 Tests** (489 Core + 28 WPF) grün, beide Bauten 0/0. **Was Phase 4 ausdrücklich nicht enthielt: das Schreiben** (Cursor, Auswahl, Eingabe) — eigene Runde, und ob sie vor oder nach Phase 4.5 kommt, ist eine Nutzer-Entscheidung (§0) |

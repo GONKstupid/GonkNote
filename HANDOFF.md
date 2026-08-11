@@ -3030,10 +3030,66 @@ Rückfallkette auf der Oberflächenschrift landen. Danach **461/461 Core-Tests g
 > lokalen Tests — dieser Laptop ist für das gedacht, was die CI *nicht* sehen kann (Stift,
 > Aussehen, Linux-Pfade), und war hier für zehn Minuten ihr Ersatz.
 
-**Die Fragen 2 bis 4 aus §5d sind noch offen** — der Kopf startet und zeichnet (Startbild geprüft,
-Chrome in Inter), aber der Augenschein auf der Zeichenfläche ist nicht zu Ende geführt worden:
-Whiteboard mit Textfeld und Notizzettel, die Markdown-Ansicht in Hilfe → Über/Erste Schritte. **Sie
-bleiben als Auftrag für den Laptop stehen** (§5d, aktueller Auftrag).
+##### Frage 2 — die Zeichenfläche: **die mitgelieferte Schrift gewinnt, sichtbar**
+
+**Frage 2 ließ sich nicht so ausführen, wie sie dasteht, und das ist der erste Befund:** Der
+Linux-Kopf hat **kein Textfeld- und kein Notizzettel-Werkzeug**. Seine Werkzeugleiste kennt
+`Pen`, `Pencil`, `Highlighter`, `Eraser`, `Lasso`, `Move`, `Pan` — mehr nicht (`WhiteboardView.axaml`).
+`ToolType` in Core kennt daneben `Text`, `Shape`, `Sticky` und `Sticker`; der Avalonia-Kopf hat für
+sie **keine Knöpfe**. Das ist keine Überraschung, sondern **genau die Lücke, für die Phase 4.5
+vorgemerkt ist** — der Auftrag in §5d hat sie nur übersehen, weil er unter Windows geschrieben
+wurde, wo es die Werkzeuge gibt. **Wer den nächsten Laptop-Auftrag schreibt, prüfe vorher an
+`WhiteboardView.axaml`, ob der Linux-Kopf kann, was er tun soll.**
+
+**Die Frage dahinter ist trotzdem beantwortet** — die Elemente mussten nur auf einem anderen Weg
+auf die Fläche kommen: sechs davon **direkt in die Wegwerf-Datenbank geschrieben** (Tabelle
+`boards`, dasselbe Json wie beim Speichern) und den Kopf sie zeichnen lassen. Das prüft genau den
+Pfad, um den es geht — `WbRenderer` → `WbFonts` —, denn am Zeichnen ändert die Herkunft nichts.
+
+Auf der Fläche standen fünfmal derselbe Text in verschiedenen Familien und ein Notizzettel:
+
+| Angeforderte Familie | Was zu sehen war |
+|---|---|
+| **Geist** (mitgeliefert, Rolle `Handwriting`) | Geist — geometrisch, deutlich **nicht** DejaVu |
+| **DejaVu Sans** (System) | DejaVu Sans, sichtbar breiter |
+| **Segoe UI** (fremd, gibt es hier nicht) | fällt auf **Inter** — die Oberflächenschrift, wie es die Rückfallkette vorsieht |
+| **JetBrains Mono** | echte Festbreite |
+| **Space Grotesk** | Space Grotesk, an der Ziffer 1 sofort erkennbar |
+| Notizzettel (Geist) | Geist |
+
+**Damit ist die Behauptung aus §4.26 am laufenden Programm belegt und nicht nur am Test:** Die
+mitgelieferten Dateien gewinnen, und die Zeichenfläche zeigt **keine beliebige Systemschrift**.
+Chrome (Inter) und Fläche (Geist) sind verschiedene Schriften — so ist es gewollt. Der Fall
+„Segoe UI" ist dabei nebenbei der **Augenschein zu dem Wächter, der oben repariert wurde**: man
+sieht dieselbe Schrift wie beim Chrome, und genau das behauptet der Test jetzt.
+
+##### Frage 3 — bleibt offen, wie vorhergesagt
+
+Textdokumente sind unter Linux ausgegraut, es gibt keine Ansicht für eine Diagramm-Beschriftung.
+**Fällig mit der Anzeige im Linux-Kopf** (§6).
+
+##### Frage 4 — die Markdown-Ansicht: die benannte Lücke ist bestätigt
+
+„Hilfe → Erste Schritte" und „Hilfe → Über Gonk Note" öffnen und setzen beide sauber: Überschriften,
+Fett, Kursiv, Zitatblock, Verweise, Aufzählung mit Nummern. Der Über-Dialog zeigt
+**„Version 0.3.0 · Portierung, Phase 4"** und den Datenordner `/home/gonk/.config/GonkNote`.
+
+**Der Code steht nicht in JetBrains Mono** — er steht in einer Systemfestbreitenschrift. Das ist
+**die bekannte Lücke** aus „Was ausdrücklich offen bleibt", jetzt belegt statt vermutet:
+`MarkdownView.Feste` spricht die Schrift über eine **Namensliste** an
+(`JetBrains Mono, Consolas, DejaVu Sans Mono, Liberation Mono, monospace`), und
+`fc-match "JetBrains Mono"` antwortet auf diesem Rechner mit **Noto Sans Mono** — die mitgelieferte
+Datei ist über den Namen also **gar nicht erreichbar**, weil sie nur in `WbFonts` registriert ist
+und nicht bei Avalonia. Lesbar und richtig monospaced ist es; es ist nur nicht die eigene Schrift.
+
+> **Ehrlich zur Genauigkeit:** *welche* Systemschrift es genau ist, ist offen. Ein Pixelvergleich
+> der Aufnahme gegen JetBrains Mono, DejaVu Sans Mono und Noto Sans Mono trennte die drei bei
+> dieser Schriftgröße nicht (RMSE 0,50–0,52 für alle drei — der Wert sagt hier nichts). Für den
+> Befund reicht es: **erreichbar ist die mitgelieferte Datei nachweislich nicht.**
+
+**Was nebenbei nicht erledigt wurde:** die drei Zusatzpunkte aus §5d (zweites Stiftgerät,
+Xorg-Sitzung, Druckschwelle). Alle drei brauchen entweder Hardware oder einen Sitzungswechsel;
+sie stehen unverändert offen.
 
 #### Stand
 
@@ -3616,11 +3672,15 @@ dotnet run --project src/GonkNote.Avalonia -- --db /tmp/gonk-test/gonknote.sqlit
 
 ### ▶ Aktueller Auftrag (Stand 2026-08-10, nach Runde V2-31)
 
-> **Teilweise abgearbeitet (Laptop, Nacht 10./11.08.2026) — Befund in §4.26 „Was der Laptop
-> gefunden hat".** Erledigt: **Frage 1** (grün, die Kernfrage ist beantwortet) und ein **roter
-> Test**, der hier behoben wurde. **Offen geblieben: Fragen 2, 3 und 4** — der Augenschein an der
-> Zeichenfläche und in der Markdown-Ansicht. Wer als Nächstes an diesem Laptop sitzt, fängt
-> **bei Frage 2** an; Bauen und Testen davor trotzdem ablaufen lassen.
+> **✅ Abgearbeitet (Laptop, 10./11.08.2026) — der Befund steht in §4.26 „Was der Laptop gefunden
+> hat".** Kurz: **Frage 1** grün (die mitgelieferten Schriften gewinnen), dabei **ein roter
+> Wächter** gefunden und hier behoben. **Frage 2** beantwortet, aber **nicht auf dem
+> vorgesehenen Weg** — der Linux-Kopf hat gar kein Textfeld- und Notizzettel-Werkzeug
+> (Phase 4.5); die Elemente kamen über die Datenbank auf die Fläche. **Frage 3** bleibt offen
+> wie vorhergesagt. **Frage 4** bestätigt die benannte Lücke: der Code steht in einer
+> Systemfestbreitenschrift, nicht in JetBrains Mono.
+>
+> **Dieser Auftrag ist damit erledigt. Der Windows-Rechner schreibt hier den nächsten hinein.**
 
 **Das Schriftkonzept aus §4.26 gegenprüfen. Es ist bisher nur unter Windows gesehen worden.**
 
@@ -4498,6 +4558,25 @@ und keine davon sieht wie ein Fehler aus.
   hashen (`magick <datei> -format "%#" info:`); ändert sich der Hash nicht, ist entweder
   nichts passiert **oder das Bild ist alt** — dann eine Aktion mit unübersehbarer Wirkung
   auslösen (Theme wechseln) und erneut sehen.
+- **Ohne `hervor` kommt kein Klick an — und niemand sagt es dir** (2026-08-11). Der Kopf läuft
+  über XWayland und ist auf diesem Laptop oft das **einzige** X-Fenster; der Fokus liegt aber
+  in der Regel auf einer **nativen Wayland-Oberfläche** (Terminal, Shell). Liegt die obenauf,
+  nimmt sie den Klick entgegen. XTEST meldet trotzdem Erfolg, und die Aufnahme davor und danach
+  ist **Pixel für Pixel identisch** — dasselbe Bild wie „nichts getroffen", nur dass Koordinaten
+  korrigieren hier nichts hilft. **Erkennen:** `xprop -root _NET_ACTIVE_WINDOW` gegen
+  `_NET_CLIENT_LIST` halten; steht dort eine Kennung, die in der Liste gar nicht vorkommt, ist
+  es das. **Gegenmittel:** `zeiger hervor` als **erster Schritt jeder Kette** — es schickt
+  `_NET_ACTIVE_WINDOW` an die Wurzel, statt sich den Fokus mit `XSetInputFocus` selbst zu
+  nehmen (das ignoriert mutter und stapelt gleich wieder um).
+- **Das Fenster kann halb außerhalb des Bildschirms stehen, ohne dass man es sieht**
+  (2026-08-11). Nach dem Hervorholen stand es hier bei **x=-430** auf einem 3072 px breiten
+  Bildschirm — die ganze Seitenleiste lag links draußen. **Auf der Aufnahme fällt das nicht
+  auf:** `import` liefert nur den sichtbaren Teil, das Bild ist schmaler (2130 statt 2560) und
+  sieht trotzdem vollständig aus. Wer darauf misst, misst auf einem beschnittenen Bild.
+  **Gegenmittel:** `zeiger lage:256,-8` setzt es an eine feste Stelle; danach `zeiger fenster`
+  und die Breite der Aufnahme mit `w=` vergleichen — **stimmen sie nicht überein, ist das Bild
+  beschnitten.** Die y-Angabe von `lage:` ist um die Rahmenhöhe versetzt (hier 72 px), weil sie
+  auf das Client-Fenster wirkt und nicht auf den Rahmen: `lage:…,-8` ergibt y=136.
 - **Was sich so nicht prüfen lässt: der Stift.** XTEST erzeugt Maus- und Tastaturereignisse.
   Druck, Neigung und die Unterscheidung Stift/Finger entstehen im Digitizer und lassen sich
   nicht nachbilden — ein Zug mit `zeiger` prüft deshalb immer den **Rückfallpfad**, nie den
@@ -5011,7 +5090,7 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 
 | Runde | Datum | Was |
 |---|---|---|
-| V2-32 | 2026-08-11 | **Der Laptop prüft das Schriftkonzept gegen** (§4.26, „Was der Laptop gefunden hat") — der Auftrag aus §5d, erste Hälfte. **Die Kernfrage ist beantwortet: die mitgelieferten Schriften gewinnen auch unter Linux**, `SchriftkonzeptTests` 12/12 grün, fontconfig kommt nicht mehr zum Zug; beide Projekte bauen mit 0 Warnungen. **Dabei ein roter Wächter:** `SchriftTests.Unbekannte_Schrift_faellt_zurueck_und_wird_gecacht` behauptete `NotSame(Regular, Family("Segoe UI"))` — richtig unter Windows, **falsch überall sonst**, denn ohne Segoe UI landet die Rückfallkette auf Inter und damit auf genau der Oberflächenschrift. **Das Programm war richtig, der Test hat die Plattform geprüft statt die App** — genau das, was `SchriftTests` laut eigener Kopfzeile nicht tun darf. Hier behoben (linuxspezifisch, §5d): `SystemHat` fragt wie `WbFonts.Aufloesen` über den `FamilyName` nach, **beide Ausgänge werden geprüft** statt einer übersprungen; danach 461/461 grün. **Die CI auf `ubuntu-latest` hätte das vor dem Laptop gefunden — der Lauf zu `2c6752a` muss rot sein.** **Fragen 2–4 des Auftrags (Augenschein an Zeichenfläche und Markdown-Ansicht) bleiben offen** und stehen in §5d weiter. |
+| V2-32 | 2026-08-11 | **Der Laptop prüft das Schriftkonzept gegen** (§4.26, „Was der Laptop gefunden hat") — der Auftrag aus §5d, erste Hälfte. **Die Kernfrage ist beantwortet: die mitgelieferten Schriften gewinnen auch unter Linux**, `SchriftkonzeptTests` 12/12 grün, fontconfig kommt nicht mehr zum Zug; beide Projekte bauen mit 0 Warnungen. **Dabei ein roter Wächter:** `SchriftTests.Unbekannte_Schrift_faellt_zurueck_und_wird_gecacht` behauptete `NotSame(Regular, Family("Segoe UI"))` — richtig unter Windows, **falsch überall sonst**, denn ohne Segoe UI landet die Rückfallkette auf Inter und damit auf genau der Oberflächenschrift. **Das Programm war richtig, der Test hat die Plattform geprüft statt die App** — genau das, was `SchriftTests` laut eigener Kopfzeile nicht tun darf. Hier behoben (linuxspezifisch, §5d): `SystemHat` fragt wie `WbFonts.Aufloesen` über den `FamilyName` nach, **beide Ausgänge werden geprüft** statt einer übersprungen; danach 461/461 grün. **Die CI auf `ubuntu-latest` hätte das vor dem Laptop gefunden — der Lauf zu `2c6752a` muss rot sein.** **Danach der Augenschein, Fragen 2 bis 4.** **Frage 2 ließ sich nicht ausführen, wie sie dastand** — der Linux-Kopf hat **kein Textfeld- und kein Notizzettel-Werkzeug** (`WhiteboardView.axaml` kennt nur Stift, Bleistift, Textmarker, Radierer, Lasso, Verschieben, Hand). Das ist die für **Phase 4.5** vorgemerkte Lücke; der Auftrag war unter Windows geschrieben, wo es die Werkzeuge gibt. **Die Frage dahinter ist trotzdem beantwortet:** sechs Elemente direkt in die Wegwerf-Datenbank geschrieben und zeichnen lassen — Geist, DejaVu Sans, JetBrains Mono und Space Grotesk kommen als **vier sichtbar verschiedene Schriften** heraus, „Segoe UI" fällt auf Inter. **Die mitgelieferte Schrift gewinnt also auch am laufenden Programm, nicht nur im Test.** **Frage 3** bleibt offen wie vorhergesagt (keine Textdokument-Ansicht unter Linux). **Frage 4** bestätigt die benannte Lücke: der Code der Markdown-Ansicht steht in einer **Systemfestbreitenschrift**, denn `MarkdownView.Feste` spricht Schriften über Namen an und `fc-match "JetBrains Mono"` liefert hier Noto Sans Mono — die mitgelieferte Datei ist über den Namen nicht erreichbar. **Zwei Fallen fürs Fernsteuern dazugelernt** (§7): ohne `zeiger hervor` kommt unter Wayland **kein Klick an** (der Fokus liegt auf einer nativen Oberfläche, das Foto bleibt identisch), und das Fenster kann **halb außerhalb des Bildschirms** stehen, ohne dass die Aufnahme es zeigt — `zeiger` hat dafür die Schritte **`hervor`** und **`lage:x,y`** bekommen. |
 | V2-31 | 2026-08-10 | **Ein Schriftkonzept für alle drei Plattformen** (§4.26) — ausgelöst von einer Frage des Nutzers („Segoe UI gibt es unter Linux nicht — können wir ein UI-Konzept für alle Plattformen nutzen?"). Die Antwort ist ja, **und die Frage traf einen Fehler, von dem niemand wusste:** Der Avalonia-Kopf zeichnete sein Chrome in Inter (aus `WithInterFont()`, in **Avalonia** eingebettet) und fragte für seine Zeichenfläche Skia nach „Inter" — das geht über **fontconfig**. Ohne systemweit installiertes Inter standen im selben Fenster zwei verschiedene Schriften, still. Mit dem Zeichner (§4.24) und den Diagrammen (§4.25) lief seit zwei Runden jeder gesetzte Text durch diesen Weg. **Die Farben waren längst plattformneutral** (§4.9) — die Schrift war das letzte Stück, das die Plattform beantwortete, und sie beantwortete es an **drei** Stellen unabhängig voneinander. **Jetzt liefert die App fünf Familien mit** (Inter, Source Sans 3, JetBrains Mono, Space Grotesk, Geist; alle SIL OFL 1.1, Nutzer-Vorgabe) für fünf Rollen — **ein Schriftschema ist eine Datentabelle**, dasselbe Muster wie bei den Farben. **`WbFonts` ist der einzige Auflösungspunkt** (mitgeliefert → System → Rückfallkette); `TdSkiaMeasure` und `TdRenderer` haben ihre eigenen Zwischenspeicher verloren, dasselbe Muster wie §4.13. **Datenformat:** `TdCharFormat.Standard` und drei Whiteboard-Vorgaben haben gewechselt — nur für **neue** Dokumente, der gespeicherte Wert gewinnt (§4.14), kein Migrationsschritt. **Die Pixelhashes liefen unverändert durch** (§4.6 hält), **die Golden-Files sind nicht angefasst worden** — sie verzeichnen gar keine Schriftnamen, und ein Golden-File soll sich nur bewegen, wenn sich das Verhalten bewegt. **Lizenz am Release geprüft, nicht aus dem Gedächtnis:** je Familie die unveränderte `OFL.txt` in der Ausgabe, nichts verändert und nichts subgesetzt — damit greifen Reserved Font Names nicht, und das ist nicht theoretisch (**Source Sans führt „Source" als RFN**). Vermerke in `THIRD-PARTY-NOTICES.md` und **beiden** README-Fassungen; **Inter war vorher schon ausgeliefert, ohne jeden Vermerk** — Lücke geschlossen. Preis: rund 6 MB in der Exe, benannt. **Der Augenschein hat den zweiten Fehler gefunden:** Schriftnamen, Dateien und grüne Tests beweisen nicht, dass der laufende Kopf sie benutzt — Inter und Segoe UI sehen sich zu ähnlich. Also die Oberflächenschrift kurz auf **Space Grotesk** gestellt und die Bilder zonenweise verglichen: alles änderte sich, **die Menüleiste um genau 0 Pixel**. WPF nimmt für `Menu`/`MenuItem` die Systemschrift und erbt nicht vom Fenster; ohne den Versuch wäre ausgerechnet die Menüleiste bei der Systemschrift geblieben — der Fehler, den die Runde beheben sollte. **Dazu zwei Dinge für den Laptop** (Nutzer-Wunsch): **Dauerregel 3a** — am Ende **jeder** Antwort steht eine Zeile, ob der nächste Schritt an den Linux-Laptop gehört, auch wenn sie „nein" lautet. Und **§5d, ein ausformulierter Auftrag für den Laptop**: Der Nutzer soll dort nur „lies das HANDOFF" sagen müssen. Der Abschnitt hat zwei Teile — was **grundsätzlich** gilt (nur prüfen statt entwickeln, nie die Solution bauen, keine Kopie der echten Daten, wie der Befund zurückkommt) und einen **datierten aktuellen Auftrag**, der nach jeder Windows-Runde neu geschrieben wird. Ist sein Datum älter als der oberste Chronik-Eintrag, ist er veraltet und es wird nachgefragt statt geraten. **485 Tests** (461 Core + 24 WPF), sieben Projekte 0 Warnungen |
 | V2-30 | 2026-08-10 | **Die sieben Diagrammarten werden gezeichnet** (§4.25) — Säule, Balken, Linie, Punkte, Punkt+Linie, Kuchen und Netz, samt Achsen, Gitter, Legende und Beschriftung. Wo bisher ein gestrichelter Kasten mit einem Titel stand, steht jetzt ein Diagramm. **Gerechnet wird in `Core/Text/TdChartLayout.cs`, gemalt im Zeichner** — zum vierten Mal dasselbe Muster nach der Listennummer (§4.17), dem Feld (§4.20) und dem Diagramm selbst (§4.21): Achsenteilung, Farbvergabe, Legende und jeder Ort stehen als Zahl in Zentimetern, `TdRenderer` ruft nur noch Skia auf. **Der Grund ist Prüfbarkeit, nicht Ordnungsliebe:** An jeder Achse steht Schrift, und Schrift darf nicht gehasht werden (§4.6) — als Rechnung sind es **43 Wächter ohne ein einziges Pixel**, dazu 6 im Zeichner, die an gerechneten Orten auf Farbe sehen. **Am Modell ist nichts geändert worden** — kein Feld, kein Diskriminator, kein Json-Name, also auch keine Änderung an den Beispieldokumenten und am DOCX-Weg; das ist die Probe auf §4.21. **Vier Entscheidungen dahinter:** (1) Die Werteachse fängt **immer bei null** an, nie beim kleinsten Wert — 98 bis 100 lässt eine Säule doppelt so hoch aussehen wie die daneben, die bekannteste Art, mit richtigen Zahlen etwas Falsches zu behaupten. (2) **Negative Werte hängen unter der Nulllinie**, statt am Boden abgeschnitten zu werden; Grenzen sind Vielfache der Teilung, damit die Null auf einer Stufe liegt. (3) Eine Reihe ohne Namen bekommt in der Legende **ihre Nummer und kein „Reihe 2"** — ein deutsches Wort hinge an `Loc.Current`. (4) Die Achsenzahl steht **invariant** im Code, wie das Datumsmuster (§4.20). **Die Rechnung misst nicht, sie schätzt** — `TdChartLayout` kennt `ITdTextMeasure` nicht, sonst hinge die Lage der Zeichenfläche an der Schriftausstattung des Rechners und dasselbe Dokument bekäme unter Linux ein anderes Diagramm (§4.16). Ob der Text hineinpasst, entscheidet der Zeichner, der messen kann: erst verkleinern, dann kürzen. **Der Platzhalterkasten bleibt**, bedeutet aber jetzt „aus diesen Zahlen gibt es kein Bild": keine Reihen, ein Kuchen aus lauter Nullen, ein Netz mit zwei Ecken. **Dabei aufgefallen:** §4.24 und §6 zählten eine Art „Fläche" mit, die es nirgends gibt — weder in `TdChartKind` noch im `ChartDialog` noch in `TdDocx`; sie war an die Stelle von „Punkt+Linie" gerutscht. Als Frage vermerkt (§5 „Noch offen", Punkt 6), nicht still gebaut und nicht still weggelassen. **Augenschein:** eine A4-Seite mit allen sieben Arten plus negativen Säulen nach `%TEMP%` gerendert und angesehen — ein Diagramm, das nur nicht abstürzt, ist kein Diagramm. **473 Tests** (449 Core + 24 WPF), alle sieben Projekte 0 Warnungen. **Im selben Zug beantwortet:** §5 „Noch offen" 2a — der Über-Dialog sagt jetzt **Phase 4** (§4.5), in beiden Sprachtabellen, gegengeprüft in allen vier Kombinationen aus Kopf und Sprache. **Die Gegenprobe hat dabei etwas gefunden:** Der Avalonia-Kopf zeigte weiter „phase 3", weil **jeder Kopf seine eigene Kopie von `GonkNote.Core.dll`** trägt und er vor der Änderung gebaut worden war — als Falle festgehalten (§7). Und Punkt 6: **kein achtes Diagramm** (Fläche) |
 | V2-29 | 2026-08-09 | **Der Zeichner steht** (§4.24) — `TdRenderer` in Core nimmt eine gesetzte Seite und eine `SKCanvas` und malt: Papier, Zeilen mit allen Zeichenformaten (fett, kursiv, unterstrichen, durchgestrichen, Hervorhebung, Hoch-/Tiefstellung, Farbe), Aufzählungsmarken, Absatzlinien, Tabellen mit Hintergrund und Rahmen, Bilder, Kopf-/Fußzeile mit aufgelösten Platzhaltern und das Wasserzeichen. **Er rechnet nichts** — jede Zahl steht schon im Umbruch, in Zentimetern und mit aufgelöstem Format (§4.16); hier wird nur in Pixel umgerechnet. Genau dafür rechnet der Umbruch in Zentimetern: eine Zoomstufe darf ihn nicht ändern, sonst bricht ein Dokument bei 150 % anders um als beim Drucken. **Drei Stellen, an denen es schiefgeht, und alle drei haben einen Wächter bekommen:** (1) **Punkt ist nicht Pixel** — die Größe steht im Modell in Punkt, die Leinwand rechnet in Pixeln, der Maßstab kommt obendrauf; wer das vergisst, bekommt bei jeder Zoomstufe dieselbe winzige Schrift auf einer immer größeren Seite. (2) **Der Zellinhalt zählt ab der Innenkante der Zelle**, nicht ab dem Textbereich (§4.19) — ohne den Versatz steht der Text links neben der Tabelle, bei jeder Spalte weiter daneben. (3) **Die Absatzlinie steht unter dem Absatz, nicht unter jeder Zeile** — sonst wird aus einem dreizeiligen Absatz liniertes Papier, und weil das nach Gestaltung aussieht, fällt es niemandem als Fehler auf. **Benannte Lücke:** Ein `TdChart` bekommt einen Kasten mit gestricheltem Rand und seinem Titel und noch kein Diagramm; die sieben Arten sind eine eigene Runde. Ein Kasten sagt „hier fehlt etwas", eine Leerstelle sagt „hier war nie etwas" (§7) — derselbe Platzhalter erscheint, wenn zu einem Bild der Blob fehlt. **Geprüft wird zweigeteilt, und das ist nötig:** Text darf nicht gehasht werden (§4.6, „Segoe UI" fehlt unter Linux), also wird das Geometrische an bekannten Stellen auf Farbe geprüft und alles mit Schrift über die Rechnung — mit der festen Messung aus `UmbruchTests` steht vorher fest, wo etwas landen muss. **Zwei der elf Wächter waren zuerst falsch, und beide Male lag es am Wächter:** Der Zelltest zählte die Rahmenlinie der Nachbarzelle als „Text in der falschen Spalte", der Linientest zählte eine 1 px starke Linie doppelt, weil die Kantenglättung sie auf zwei Pixelzeilen verteilt — gezählt werden jetzt zusammenhängende Bänder. Am Augenschein geprüft: eine A4-Seite mit Überschrift, gemischten Formaten, Trennlinie, Aufzählung, Tabelle, Bild und Platzhalter kommt vollständig und an der richtigen Stelle heraus. **420 Tests grün** (396 Core + 24 WPF), alle Projekte 0 Warnungen. **Angeschlossen ist er noch nirgends** — dieselbe Absicht wie bei Schritt 1; `PdfExporter` und die Anzeige im Linux-Kopf sind die nächsten zwei Runden |

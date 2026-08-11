@@ -58,6 +58,12 @@ internal static class Programm
         IntPtr d, IntPtr w, out IntPtr root, out IntPtr child,
         out int rootX, out int rootY, out int winX, out int winY, out uint mask);
 
+    [DllImport(X11)] private static extern int XRaiseWindow(IntPtr d, IntPtr w);
+    [DllImport(X11)] private static extern int XMoveWindow(IntPtr d, IntPtr w, int x, int y);
+
+    [DllImport(X11)]
+    private static extern int XSendEvent(IntPtr d, IntPtr w, bool propagate, long eventMask, byte[] ereignis);
+
     [DllImport(XTst)] private static extern int XTestFakeMotionEvent(IntPtr d, int screen, int x, int y, ulong delay);
     [DllImport(XTst)] private static extern int XTestFakeButtonEvent(IntPtr d, uint button, bool press, ulong delay);
     [DllImport(XTst)] private static extern int XTestFakeKeyEvent(IntPtr d, uint keycode, bool press, ulong delay);
@@ -155,6 +161,64 @@ internal static class Programm
         XFlush(_anzeige);
     }
 
+    /// <summary>
+    /// Das Fenster nach vorn holen und ihm die Eingabe geben — der Schritt <c>hervor</c>.
+    ///
+    /// <para>
+    /// <b>Warum das nötig wurde (Laptop, 11.08.2026).</b> Ein Klick kam nicht an: das Foto vor
+    /// und nach dem Klick war <b>Pixel für Pixel identisch</b>. Der Grund steht in
+    /// <c>_NET_ACTIVE_WINDOW</c> — dort stand eine Kennung, die in <c>_NET_CLIENT_LIST</c> gar
+    /// nicht vorkommt. Unter GNOME-Wayland ist die aktive Oberfläche in der Regel eine
+    /// <b>native Wayland-Oberfläche</b> (Terminal, Shell); der Kopf läuft über XWayland und ist
+    /// oft das einzige X-Fenster überhaupt. Liegt eine native Oberfläche darüber, nimmt sie den
+    /// Klick entgegen, und XTEST hat trotzdem sauber gearbeitet — <b>es passiert einfach
+    /// nichts</b>, ohne Fehlermeldung.
+    /// </para>
+    /// <para>
+    /// <b>Nicht mit <c>XSetInputFocus</c>, sondern über EWMH.</b> Ein Fenster, das der
+    /// Fenstermanager verwaltet, holt man sich nicht selbst — man bittet ihn darum. mutter
+    /// ignoriert das direkte Setzen und stapelt gleich wieder um; die Nachricht
+    /// <c>_NET_ACTIVE_WINDOW</c> an die Wurzel ist der Weg, den es vorsieht.
+    /// </para>
+    /// </summary>
+    private static bool Hervorholen()
+    {
+        var f = ErstesFenster();
+        if (f == null) { Console.Error.WriteLine("Kein verwaltetes Fenster gefunden."); return false; }
+
+        uint aktiv = XInternAtom(_anzeige, "_NET_ACTIVE_WINDOW", false);
+        var wurzel = XDefaultRootWindow(_anzeige);
+
+        // XEvent ist eine Union über 24 Maschinenwörter. Hier wird nur der ClientMessage-Teil
+        // gefüllt; der Rest bleibt null, und die Größe ist bewusst großzügig, damit Xlib nicht
+        // über das Ende hinausliest.
+        var ereignis = new byte[192];
+        var schreiber = new BinaryWriter(new MemoryStream(ereignis));
+        schreiber.Write(33);                        // type = ClientMessage
+        schreiber.Write(0);                         // Auffüllung auf acht Byte
+        schreiber.Write(0L);                        // serial
+        schreiber.Write(1);                         // send_event = true
+        schreiber.Write(0);                         // Auffüllung
+        schreiber.Write(_anzeige.ToInt64());        // display
+        schreiber.Write(f.Value.Id.ToInt64());      // window
+        schreiber.Write((long)aktiv);               // message_type
+        schreiber.Write(32);                        // format
+        schreiber.Write(0);                         // Auffüllung
+        schreiber.Write(2L);                        // data.l[0] = Quelle: ein Werkzeug, kein Nutzer
+        schreiber.Write(0L);                        // data.l[1] = Zeitstempel: CurrentTime
+        schreiber.Write(0L);                        // data.l[2] = bisher aktives Fenster: unbekannt
+
+        const long SubstructureRedirect = 1L << 20;
+        const long SubstructureNotify = 1L << 19;
+        XSendEvent(_anzeige, wurzel, false, SubstructureRedirect | SubstructureNotify, ereignis);
+        XRaiseWindow(_anzeige, f.Value.Id);
+        XFlush(_anzeige);
+
+        // Dem Fenstermanager Zeit lassen: die Umstapelung ist eine Antwort, keine Zuweisung.
+        Thread.Sleep(400);
+        return true;
+    }
+
     private readonly record struct Fenster(IntPtr Id, int X, int Y, uint Breite, uint Hoehe);
 
     /// <summary>
@@ -196,6 +260,35 @@ internal static class Programm
 
     private static bool Ausfuehren(string schritt)
     {
+        // "hervor" — das Fenster nach vorn holen. Gehört an den Anfang jeder Kette; ohne das
+        // landen die Klicks auf der Oberfläche, die gerade obenauf liegt (siehe Hervorholen).
+        if (schritt == "hervor") return Hervorholen();
+
+        // "lage:x,y" — das Fenster an eine feste Stelle setzen.
+        //
+        // **Warum das dazugehört (Laptop, 11.08.2026):** Das Fenster stand nach dem
+        // Hervorholen bei x=-430 auf einem 3072 Pixel breiten Bildschirm — die Seitenleiste
+        // lag damit links außerhalb. Auf der Aufnahme fällt das nicht auf, denn `import`
+        // liefert nur den sichtbaren Teil: das Bild ist schmaler, sieht aber vollständig aus.
+        // Wer darauf misst, misst auf einem beschnittenen Bild und trifft nichts.
+        if (schritt.StartsWith("lage:", StringComparison.Ordinal))
+        {
+            var f = ErstesFenster();
+            if (f == null) { Console.Error.WriteLine("Kein verwaltetes Fenster gefunden."); return false; }
+
+            var p = schritt[5..].Split(',');
+            if (p.Length != 2 || !int.TryParse(p[0], out int lx) || !int.TryParse(p[1], out int ly))
+            {
+                Console.Error.WriteLine($"Unbekannter Schritt: {schritt}");
+                return false;
+            }
+
+            XMoveWindow(_anzeige, f.Value.Id, lx, ly);
+            XFlush(_anzeige);
+            Thread.Sleep(300);
+            return true;
+        }
+
         // "#Tasten" — eine Tastenkombination, xdotool-Schreibweise: #Escape #ctrl+z #F9
         if (schritt.StartsWith('#')) return Tasten(schritt[1..]);
 
@@ -410,6 +503,8 @@ internal static class Programm
 
         Aufruf: zeiger <Schritt> [<Schritt> ...]
 
+          hervor      das Fenster nach vorn holen -- AN DEN ANFANG JEDER KETTE
+          lage:x,y    das Fenster an eine feste Stelle setzen
           x,y         Klick (linke Taste), echte Bildschirmpixel
           x,y,2       Doppelklick
           x,y,r       Rechtsklick
@@ -424,5 +519,10 @@ internal static class Programm
 
         AUF EINER FENSTERAUFNAHME GEMESSENE PUNKTE MIT w: ANGEBEN. Sie sind relativ zum
         Fenster, Klicks gehen aber auf den Bildschirm -- w: rechnet den Ursprung dazu.
+
+        JEDE KETTE MIT 'hervor' BEGINNEN. Unter GNOME-Wayland liegt der Fokus meist auf einer
+        nativen Wayland-Oberflaeche; der Kopf laeuft ueber XWayland. Liegt etwas darueber,
+        nimmt das den Klick entgegen, XTEST meldet trotzdem Erfolg -- es passiert schlicht
+        nichts, und das Foto davor und danach ist identisch.
         """);
 }

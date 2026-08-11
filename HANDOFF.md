@@ -260,11 +260,44 @@ Zuletzt **auf dem CachyOS-Laptop gegengeprüft** (§4.27, „Was der Laptop gefu
 Linux wirklich ein, was kein Test sehen könnte — ist mit **Ja** beantwortet. Dabei gemessen,
 was der Gewinn in Zahlen ist: **rund 1,5 KB je Seite** statt eines vollen Rasterbilds.
 
-**Als Nächstes:** die **Anzeige im Linux-Kopf** aus dem Modell, samt Ribbon in Avalonia — der
-letzte offene Punkt des Umverdrahtens. **Erst damit wird das übernommene Modell sichtbar** —
-heute liest der Editor weiter aus `Rtf` (§6). Dazu neu erreichbar geworden: **der Textexport im
-Linux-Kopf** — er steht vollständig in Core, `AvaloniaDocumentIo` ist nur noch nicht verdrahtet
-(§4.27). **M1 bleibt ein gültiger Ausstiegspunkt.**
+### ▶ Hier geht es weiter (Stand 2026-08-11, nach Runde V2-34)
+
+> **Auf dem Windows-Rechner, und zwar mit genau einer Sache:**
+> **die Anzeige im Linux-Kopf aus dem Modell, samt Ribbon in Avalonia.**
+>
+> Das ist der **letzte offene Haken in Phase 4** (§6, „Läuft: Phase 4") — alle anderen sind
+> gesetzt. Drei Teile gehören dazu:
+>
+> 1. **Die Anzeige.** Der Zeichner steht seit §4.24 und ist **nirgends angeschlossen**; der
+>    Linux-Kopf graut Textdokumente weiter aus. `TdRenderer.Seite` auf die Avalonia-Leinwand,
+>    denselben Weg wie die Zeichenfläche (`ISkiaSharpApiLeaseFeature`, §4.10).
+> 2. **Das Ribbon in Avalonia**, neu — es gibt dort keines.
+> 3. **`AvaloniaDocumentIo` verdrahten.** *Der kleinste Posten:* Der Textexport steht seit
+>    §4.27 **vollständig in Core** und läuft nachweislich unter Linux (§4.27, „Was der Laptop
+>    gefunden hat"). **Es fehlt nur der Knopf** — die drei Formatlisten dort sind leer.
+>    Bewusst nicht auf dem Laptop gemacht: Dateidialoge und Ribbon sind Kopfarbeit (§5d).
+>
+> **Erst damit wird das übernommene Modell sichtbar** — heute liest der Editor weiter aus
+> `Rtf`, und `Rtf` bleibt bis dahin das führende Feld (§5). **Danach ist Phase 4 zu und
+> Phase 4.5 dran** (die fehlenden Werkzeuge des Linux-Kopfs, sie trägt M2).
+>
+> **M1 bleibt ein gültiger Ausstiegspunkt.**
+>
+> **Was dabei nicht untergehen darf:**
+> - **Vor dem nächsten Laptop-Auftrag `WhiteboardView.axaml` ansehen** — ob der Linux-Kopf
+>   überhaupt kann, was der Auftrag verlangt. In §4.26 ist genau das schiefgegangen.
+> - **§5d hat keinen neuen Auftrag** und muss vor dem nächsten Wechsel geschrieben werden
+>   (Dauerregel 3a). Der alte ist als abgearbeitet markiert.
+> - **Zwei Kleinigkeiten aus dieser Runde** stehen als Beobachtung in §4.27 und sind noch
+>   nicht angefasst: ein Verweis bekommt so viele `/Link`-Kästen wie Wörter, und
+>   `TdRenderer` malt einen Verweis ohne jede Kennzeichnung (kein Blau, keine
+>   Unterstreichung).
+> - **Offen zur Entscheidung:** §5 „Noch offen" **7** (darf ein PDF ~200 KB je Schriftfamilie
+>   wiegen — Empfehlung: ja, so lassen) und **1** (zweites Stiftgerät, der einzige Punkt mit
+>   echtem Restrisiko).
+> - **Nur auf dem Windows-Rechner erreichbar:** `gonk-note-port-RM.MD` kennt **Phase 4.5
+>   immer noch nicht**, und M2 hängt dort weiter am Ende von Phase 4 (seit 2026-08-04
+>   vermerkt, §6). Phase 4.5 hat außerdem **keine Aufwandsschätzung** — als einzige Phase.
 
 **Tests laufen lassen:**
 

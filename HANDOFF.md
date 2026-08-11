@@ -1,6 +1,6 @@
 # Gonk Note V2 — Projektübergabe
 
-**Stand: 2026-08-11 · Version 0.3.0 · net10.0 · SkiaSharp 3 · SQLite · Avalonia 12 · ✅ M1 erreicht · ✅ Phase 4 abgeschlossen (§4.28): Dokumentmodell, Übernahme, DOCX/Markdown/PDF/PNG gegen das Modell, Zeichner samt Diagrammen, Schriftkonzept — und die Anzeige im Linux-Kopf. Textdokumente sind dort nicht mehr ausgegraut, und die Anzeige ist **auf dem Laptop gegengeprüft** (§4.28, V2-37). ⏳ Offen: das Schreiben (Cursor, Auswahl, Eingabe) — und zwei kleine Punkte aus dem Augenschein (§5 „Noch offen" 6 und 7)**
+**Stand: 2026-08-11 · Version 0.3.0 · net10.0 · SkiaSharp 3 · SQLite · Avalonia 12 · ✅ M1 erreicht · ✅ Phase 4 abgeschlossen (§4.28): Dokumentmodell, Übernahme, DOCX/Markdown/PDF/PNG gegen das Modell, Zeichner samt Diagrammen, Schriftkonzept — und die Anzeige im Linux-Kopf. Textdokumente sind dort nicht mehr ausgegraut, und die Anzeige ist **auf dem Laptop gegengeprüft** (§4.28, V2-37). ✅ **Aufgeräumt vor dem Schreiben** (§4.29, V2-40): Versionszeile in beiden Köpfen, Dateidialog unter Windows durchgespielt, Roadmap kennt Phase 4.5 samt M2. ⏳ Offen: **das Schreiben** (Cursor, Auswahl, Eingabe, §6) — und drei kleine Punkte (§5 „Noch offen" 6, 7 und 8)**
 
 > **📌 Dauerregeln des Nutzers — gelten immer, ohne Nachfragen:**
 >
@@ -90,7 +90,7 @@ Die Datei ist lang, und das bleibt sie: sie trägt die Begründungen, nicht nur 
 | **1** | Auftrag und die Entscheidungen dahinter | einmal, zum Verstehen des Ganzen |
 | **2** | Stand: Version, Testzahl, Meilensteine, welche Phase wo steht | „wo stehen wir?" |
 | **3** | Struktur der Solution, Faustregel Core ↔ Kopf | vor jeder neuen Datei |
-| **4** | **Warum es so ist, wie es ist** — eine Nummer je Runde (§4.1 – §4.28) | wenn eine Entscheidung fremd wirkt |
+| **4** | **Warum es so ist, wie es ist** — eine Nummer je Runde (§4.1 – §4.29) | wenn eine Entscheidung fremd wirkt |
 | **5** | **Entscheidungen** — getroffene als Tabelle, offene als Liste | **vor jeder Rückfrage an den Nutzer** |
 | **5a** | Stylus unter Linux: was gemessen wurde und was offen ist | bei allem, was am Stift hängt |
 | **5b** | Wann und wie auf den CachyOS-Laptop gewechselt wird | bevor man ihn anfasst |
@@ -296,7 +296,7 @@ angezeigt, importiert (DOCX) und in alle vier Formate exportiert. **Damit ist Ph
 abgeschlossen.** Der Anschluss hat sofort einen Fehler gezeigt, den vier Runden lang kein
 Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — behoben.
 
-### ▶ Hier geht es weiter (Stand 2026-08-11, nach Runde V2-38)
+### ▶ Hier geht es weiter (Stand 2026-08-11, nach Runde V2-40)
 
 > **✅ Phase 4 ist abgeschlossen** (§4.28) und **auf dem Laptop gegengeprüft** (§4.28, „Was der
 > Laptop gefunden hat"): die Anzeige trägt, ihr Umbruch stimmt mit dem PDF überein, Rollen und
@@ -307,9 +307,12 @@ Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — beh
 > nachzufragen.** Phase 4.5 rückt dahinter, bleibt vollständig vorgemerkt und trägt weiterhin
 > M2.
 >
-> **Wo und womit angefangen wird, steht in §5e** — der Arbeitsanweisung für den
-> Windows-Rechner: **drei Handgriffe zum Aufräumen** (die Versionszeile im WPF-Dialog, der
-> Dateidialog, die Roadmap-Datei), dann der Arbeitsplan. **Was gebaut wird, steht in §6, „Als
+> **✅ Die drei Handgriffe aus §5e sind erledigt** (2026-08-11, §4.29): die Versionszeile ist
+> **in beiden Köpfen** geprüft, der Dateidialog ist **unter Windows durchgespielt** (Format
+> und Pfad kommen beide richtig, PDF und DOCX geschrieben, das DOCX wieder eingelesen), und
+> die Roadmap-Datei kennt **Phase 4.5 samt M2**. Der Bau war dabei 0/0 und die Tests 517/517.
+>
+> **Damit fängt die nächste Runde direkt mit Schritt 1 an. Was gebaut wird, steht in §6, „Als
 > Nächstes: das Schreiben"** — sieben Schritte und drei Fallen, die schon feststehen. Die
 > Reihenfolge ist dieselbe wie in Phase 4: erst das Modell (Schritte 1–3, reine Core-Arbeit),
 > dann die Oberfläche.
@@ -321,15 +324,17 @@ Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — beh
 > **M1 bleibt ein gültiger Ausstiegspunkt.**
 >
 > **Was dabei nicht untergehen darf:**
-> - **Erster Handgriff, eine Minute:** `About.Version` steht seit V2-38 auf „Portierung,
->   Phase 4 — das Schreiben" / „Port, phase 4 — editing" und ist **im Linux-Kopf** in beiden
->   Sprachen gegengeprüft. **Der WPF-Kopf fehlt** — er baut auf dem Laptop nicht, und
->   Dauerregel 1 verlangt beide (§5 „Noch offen" 5).
-> - **Zwei Funde des Laptops, beide Arbeit und keine Entscheidung:** §5 „Noch offen" **6** —
->   der Wortzwischenraum an einer Stückgrenze sitzt in der **Anzeige** falsch, im PDF nicht.
->   Und **7** — der **Dateidialog** des Linux-Kopfs ist ungeprüft geblieben: unter
->   GNOME-Wayland ist es der Portal-Dialog, und der lässt sich nicht fernsteuern. **Zwei
->   Minuten Nutzer am Gerät**, sonst bleibt er der einzige ungesehene Teil des Linux-Kopfs.
+> - **Neu und schon eingeplant:** ein **neu angelegtes** Textdokument zeigt im Linux-Kopf
+>   „stammt aus der Windows-Fassung" und lässt sich nicht exportieren — `TextDocView`
+>   unterscheidet *leer angelegt* nicht von *nicht übernommen* (§4.29, §5 „Noch offen" **8**).
+>   **Schritt 2 des Arbeitsplans löst es auf**, dort steht es auch.
+> - **Ein Fund des Laptops, Arbeit und keine Entscheidung:** §5 „Noch offen" **6** — der
+>   Wortzwischenraum an einer Stückgrenze sitzt in der **Anzeige** falsch, im PDF nicht.
+> - **Halb beantwortet:** §5 „Noch offen" **7** — der Dateidialog trägt unter **Windows**
+>   (§4.29), der **Portal**-Dialog unter GNOME-Wayland ist weiter ungesehen. **Zwei Minuten
+>   Nutzer am Gerät**, wenn er ohnehin am Laptop sitzt.
+> - **Wartet auf ein Ja:** die Aufwandsschätzung für **Phase 4.5 — 5–8 Wochen**, in
+>   `gonk-note-port-RM.MD` eingetragen, hergeleitet und **nicht gemessen** (§4.29).
 > - **§5d trägt keinen Auftrag** — der nächste entsteht aus dieser Arbeit heraus. Ein
 >   Vorschlag, wann er fällig wird, steht dort.
 > - **Vor jedem Laptop-Auftrag die betroffene `.axaml` ansehen** — ob der Linux-Kopf
@@ -341,9 +346,6 @@ Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — beh
 > - **Offen zur Entscheidung, beide unverändert:** §5 „Noch offen" **3** (darf ein PDF ~200 KB
 >   je Schriftfamilie wiegen — Empfehlung: ja, so lassen) und **1** (zweites Stiftgerät, der
 >   einzige Punkt mit echtem Restrisiko).
-> - **Nur auf dem Windows-Rechner erreichbar:** `gonk-note-port-RM.MD` kennt **Phase 4.5
->   immer noch nicht**, und M2 hängt dort weiter am Ende von Phase 4 (seit 2026-08-04
->   vermerkt, §6). Phase 4.5 hat außerdem **keine Aufwandsschätzung** — als einzige Phase.
 
 **Tests laufen lassen:**
 
@@ -3653,6 +3655,92 @@ die Test-Datenbank gelegt worden — **über genau dieselbe Kette**, die
 zweite Stiftgerät (§5 „Noch offen" 1), eine Xorg-Sitzung (§5a „Offen" 2) und die Druckschwelle
 unten (§5a „Offen" 3). Sie bleiben offen.
 
+### 4.29 Aufgeräumt vor dem Schreiben — und was dabei aufgefallen ist
+
+**2026-08-11 unter Windows (V2-40).** Die drei Handgriffe aus §5e, alle drei standen offen,
+**weil sie auf dem Laptop nicht zu erledigen waren**. Kein Produktivcode geändert — die Runde
+war eine Bestandsaufnahme, und sie hat mehr gefunden, als sie sollte.
+
+**Ausgangslage:** `dotnet build -c Release` 0 Fehler / 0 Warnungen, `dotnet test -c Release`
+**517/517 grün** (489 + 28). Gearbeitet wurde an einer **Kopie** der echten Datenbank
+(Dauerregel 4), die am Ende samt der beiden Probedateien wieder gelöscht wurde.
+
+#### Handgriff 1 — `About.Version` im WPF-Dialog
+
+**Stimmt, in beiden Sprachen.** „Version 0.3.0 · Portierung, Phase 4 — das Schreiben" und
+„Version 0.3.0 · Port, phase 4 — editing", jeweils am laufenden Programm unter
+**Hilfe → Über Gonk Note**, umgeschaltet über **Ansicht → Sprache**. Damit ist Dauerregel 1
+für diese Zeile erfüllt und §5 „Noch offen" 5 erledigt.
+
+> **Eine Falle beim Fernsteuern, die eine Runde gekostet hat:** Das **Untermenü „Sprache"**
+> im WPF-Kopf öffnet auf **Hover** und **schließt beim Klick** darauf. `tools\kette.ps1`
+> klickt jeden Schritt, also war das Untermenü im Moment des nächsten Klicks wieder zu — der
+> Klick landete stattdessen in der Galerie dahinter und öffnete einen Ordner. **Tastatur half
+> nicht:** `SendKeys` erreicht das WPF-Menü-Popup nicht, die Pfeiltasten liefen ins Leere.
+> Was funktioniert: über den Eintrag **nur fahren** (`SetCursorPos` ohne Klick), warten, dann
+> den Zieleintrag klicken. Das kann `kette.ps1` heute nicht — es ist ein Fall für einen
+> Schweb-Schritt, falls noch einmal ein Untermenü fernzusteuern ist.
+
+#### Handgriff 2 — der Dateidialog des Linux-Kopfs
+
+**Beide Fragen aus §5d sind mit „ja" beantwortet** — unter Windows, wo `Avalonia.Desktop`
+gegen den Win32-Dialog läuft und nicht gegen das Portal:
+
+| Frage | Antwort |
+|---|---|
+| Steht das **vorgewählte Format** oben? | **Ja.** Import: `Word-Dokument (*.docx)`. Export: der im Ausklappmenü gewählte Typ steht als `Dateityp` da — und der **Dateiname ist mit dem Dokumenttitel vorbelegt** |
+| Kommt ein **Pfad** zurück? | **Ja.** Nach dem Speichern meldet die App „Exportiert nach: …" mit genau dem Pfad und fragt, ob sie die Datei öffnen soll. Die Datei lag danach dort |
+
+**Durchgespielt wurde die ganze Kette**, nicht nur der Dialog: PDF geschrieben (550 KB — die
+Größenordnung aus §5 „Noch offen" 3 bestätigt sich unter Windows), DOCX geschrieben (2,9 KB),
+**das DOCX wieder importiert**. Es kam als eigenes Dokument mit eigenem Reiter an, Text und
+Umlaute unverändert. Damit ist der Weg **vom gewählten Pfad ins Modell** gesehen — genau der
+Teil, den §4.28 als einzigen ungesehenen benannt hatte.
+
+**Was das nicht beantwortet:** den Portal-Dialog unter GNOME-Wayland. Das ist eine andere
+Implementierung derselben Avalonia-Schnittstelle. §5 „Noch offen" 7 bleibt deshalb offen,
+aber nur noch zur Hälfte.
+
+#### Die Gegenprobe nebenbei — und sie ist gut ausgegangen
+
+Um überhaupt ein exportierbares Dokument zu haben, ist der Weg gegangen worden, den der
+Hinweis im Linux-Kopf vorschlägt: **einmal im WPF-Kopf öffnen und speichern.** Zwei Absätze
+getippt, `Strg + S`, Kopf gewechselt. Der Linux-Kopf zeigte danach **denselben Text mit
+denselben Umlauten**, Wort- und Zeichenzähler stimmten (13 / 81), und `Exportieren` war
+nicht mehr ausgegraut. **Das ist die Gegenprobe, wegen der §5e auf Windows besteht** — sie
+hat diesmal nichts gefunden, und genau dafür ist sie da.
+
+#### Der Fund: ein neues Textdokument lügt im Linux-Kopf
+
+**„Datei → Neues Textdokument" im Avalonia-Kopf erzeugt ein Dokument, das der Avalonia-Kopf
+selbst nicht anzeigen kann** — und der Hinweis, den er stattdessen zeigt, ist falsch:
+„Dieses Dokument stammt aus der Windows-Fassung und ist noch nicht ins eigene Format
+übernommen." Es stammt aus *dieser* Fassung, und es ist einfach leer.
+
+**Warum:** `DatabaseService.GetText` legt ein Dokument faul an (`new TextDoc { Id = id }`),
+also mit leerem `Model` **und** leerem `Rtf`. `TextDocView.Laden()` kennt nur eine Frage —
+`modell == null` — und hängt daran den Hinweis, die Sichtbarkeit der Blätter und
+`KnopfExport.IsEnabled`. **Leer angelegt und nicht übernommen sehen von dort aus gleich aus.**
+
+**Warum es trotzdem stehen bleibt:** Mit **Schritt 2 des Arbeitsplans** bekommt ein neues
+Dokument ein leeres `TdDocument` — dann ist der Fall von selbst weg, und ein heute
+eingebauter dritter Zustand wäre morgen toter Code. Der Fund steht als §5 „Noch offen" **8**
+und im Arbeitsplan, damit er beim Schreiben mitgenommen wird und nicht danach noch einmal
+gesucht werden muss.
+
+#### Handgriff 3 — die Roadmap-Datei
+
+`C:\Users\manue\Desktop\GonkNote-TM\gonk-note-port-RM.MD` **kennt jetzt Phase 4.5**, und
+**M2 ist ans Ende von Phase 4.5 gewandert**; Phase 4 trägt stattdessen das Ziel
+„Textdokumente laufen unter Linux". Der Zeitrahmen hat eine eigene Zeile bekommen.
+
+> **Die Aufwandsschätzung ist ein Vorschlag und keine Messung: 5–8 Wochen.** Phase 4.5 war
+> als einzige Phase ohne Zahl, und ohne Zahl bleibt der Zeitrahmen unten falsch. Hergeleitet
+> ist sie aus Phase 3 (6–8 Wochen für den ganzen Avalonia-Kopf): der Inhalt ist breit, aber
+> überwiegend **vorhandene WPF-Logik**, die umzieht — mit zwei echten Ausnahmen (OCR und
+> Rechtschreibprüfung brauchen Linux-Gegenstücke). **Wenn der Nutzer sie anders sieht, gilt
+> seine Zahl** — sie steht an genau einer Stelle und ist in einer Minute geändert.
+
 ---
 
 ## 5. Entscheidungen
@@ -3769,15 +3857,16 @@ unten (§5a „Offen" 3). Sie bleiben offen.
    drei Fragen ist mit §4.9 beantwortet (die Tabelle umfasst auch das Papier); offen bleiben
    die beiden kleineren: Verhalten bei einer unvollständigen Datei und der Menüaufbau.
 
-5. ⏳ **`About.Version` ist nachgezogen — die Gegenprobe im WPF-Kopf fehlt noch.**
+5. ✅ **Erledigt am 2026-08-11 (V2-40): `About.Version` ist in beiden Köpfen gegengeprüft.**
    Mit Punkt 2 wurde sie fällig und steht seit dem 2026-08-11 auf **„Portierung, Phase 4 —
    das Schreiben"** / **„Port, phase 4 — editing"**, beide Tabellen zusammen geändert.
 
-   **Im Linux-Kopf gegengeprüft**, in beiden Sprachen, am laufenden Programm (Hilfe → Über
-   Gonk Note). **Was fehlt, ist der WPF-Kopf** — er baut auf dem Laptop nicht (§5d), und
-   Dauerregel 1 verlangt *beide*. Genau daran hing in §4.25 ein Fehler (§7, „Der Kopf trägt
-   seine eigene Kopie von Core"): **es ist eine eigene Assembly, kein geteilter Text.**
-   **Erster Handgriff der nächsten Windows-Runde**, dauert eine Minute.
+   Im Linux-Kopf am 2026-08-11 geprüft, **im WPF-Kopf am selben Tag nachgezogen** — beide
+   Sprachen, am laufenden Programm (Hilfe → Über Gonk Note), mit einer Kopie der echten
+   Datenbank. Der Dialog liest die Zeile über `Loc.T("About.Version", …)`, in beiden Köpfen
+   dieselbe Stelle; **die Sorge aus §4.25 hat sich hier nicht bestätigt**, aber sie bleibt
+   berechtigt (§7, „Der Kopf trägt seine eigene Kopie von Core") — geprüft wurde, nicht
+   angenommen.
 
 6. **Der Wortzwischenraum an einer Stückgrenze sitzt in der Anzeige falsch.** Auf dem Laptop
    gefunden (§4.28, „Was der Laptop gefunden hat"): „…, Unterstrichenes und Farbiges." steht
@@ -3790,15 +3879,35 @@ unten (§5a „Offen" 3). Sie bleiben offen.
    Arbeit** — es steht hier, damit es nicht untergeht, bis eine Windows-Runde es aufgreift.
    Es fällt nur bei Text mit mehreren Zeichenformaten auf. Vermerkt 2026-08-11.
 
-7. **Der Dateidialog des Linux-Kopfs ist ungeprüft geblieben.** Er öffnet sich und blockiert
-   richtig (§4.28), aber die zwei Fragen aus §5d — **kommt ein Pfad zurück**, und **steht das
-   vorgewählte Format oben** — konnten nicht beantwortet werden: unter GNOME-Wayland ist es
-   der **Portal**-Dialog, also ein natives Wayland-Fenster, und das ist mit `tools/linux`
-   weder zu fotografieren noch zu bedienen (nur `Escape` kommt an).
+7. ⏳ **Der Dateidialog des Linux-Kopfs — unter Windows beantwortet, unter Wayland weiter
+   offen.** Er öffnet sich und blockiert richtig (§4.28), aber die zwei Fragen aus §5d —
+   **kommt ein Pfad zurück**, und **steht das vorgewählte Format oben** — konnten auf dem
+   Laptop nicht beantwortet werden: unter GNOME-Wayland ist es der **Portal**-Dialog, also
+   ein natives Wayland-Fenster, und das ist mit `tools/linux` weder zu fotografieren noch zu
+   bedienen (nur `Escape` kommt an).
 
-   **Das braucht den Nutzer am Gerät** — zwei Minuten: einmal importieren, einmal
-   exportieren, hinsehen. **Bis dahin ist der Weg vom gewählten Pfad ins Modell der einzige
-   Teil des Linux-Kopfs, den niemand gesehen hat.** Vermerkt 2026-08-11.
+   **Am 2026-08-11 unter Windows durchgespielt** (V2-40, §4.29) — dort läuft
+   `Avalonia.Desktop` gegen den Win32-Dialog, nicht gegen das Portal. Beide Antworten sind
+   **ja**: Der Export-Dialog kommt mit vorgewähltem Dateityp **und** vorbelegtem Dateinamen
+   (dem Dokumenttitel), der Import-Dialog mit vorgewähltem `Word-Dokument (*.docx)`. Ein
+   PDF und ein DOCX wurden geschrieben, das DOCX wieder eingelesen — Text und Umlaute kamen
+   unverändert an. Damit ist der Weg **vom gewählten Pfad ins Modell** gesehen.
+
+   **Was offen bleibt, ist genau die Wayland-Hälfte:** ob der Portal-Dialog dieselben Werte
+   liefert. Das ist eine andere Implementierung derselben Avalonia-Schnittstelle, also keine
+   Formsache. **Zwei Minuten Nutzer am Gerät**, wenn er ohnehin am Laptop sitzt.
+
+8. **Ein neu angelegtes Textdokument zeigt im Linux-Kopf den falschen Hinweis.** Gefunden am
+   2026-08-11 (V2-40, §4.29): „Datei → Neues Textdokument" im **Avalonia**-Kopf erzeugt ein
+   Dokument ohne `Model` und ohne `Rtf`. `TextDocView.Laden()` prüft nur `Model == null` und
+   zeigt darum `Td.NotMigrated` — **„Dieses Dokument stammt aus der Windows-Fassung"**, was
+   für ein Dokument, das gerade *hier* entstanden ist, schlicht nicht stimmt. Export bleibt
+   ausgegraut; das Dokument ist im Linux-Kopf nicht benutzbar.
+
+   **Keine Entscheidung, sondern Arbeit — und sie gehört in den Arbeitsplan** (§6, „Als
+   Nächstes: das Schreiben"): mit Schritt 2 bekommt ein neues Dokument ein leeres
+   `TdDocument`, und damit verschwindet der Fall von selbst. **Bis dahin ist der Hinweis zu
+   trennen:** leer angelegt ist nicht dasselbe wie nicht übernommen. Vermerkt 2026-08-11.
 
 **Beantwortet und hier nur noch als Verweis** — der volle Wortlaut stand bis zum 2026-08-11
 darunter und wurde von niemandem mehr gelesen; was gilt, steht in der Tabelle oben:
@@ -4342,18 +4451,24 @@ dran ist.
 Fang an.
 ```
 
-### Erst aufräumen — drei Handgriffe, zusammen unter einer Stunde
+### ✅ Aufgeräumt ist — die drei Handgriffe sind erledigt (2026-08-11, V2-40)
 
-Alle drei stehen offen, **weil sie auf dem Laptop nicht zu erledigen waren.** Sie gehören vor
-den ersten Schritt des Arbeitsplans, nicht dazwischen.
+Sie standen offen, **weil sie auf dem Laptop nicht zu erledigen waren**. Der Befund steht in
+**§4.29**; hier nur, was davon bleibt:
 
-| # | Was | Warum zuerst |
+| # | Was | Ergebnis |
 |---|---|---|
-| **1** | **`About.Version` im WPF-Dialog gegenprüfen.** Die Zeile steht seit V2-38 in beiden Sprachtabellen auf „Portierung, Phase 4 — das Schreiben" / „Port, phase 4 — editing" und ist **im Linux-Kopf** in beiden Sprachen geprüft | **Eine Minute.** Dauerregel 1 verlangt *beide* Köpfe, und der WPF-Kopf trägt seine eigene Kopie von Core (§7) — genau daran hing in §4.25 ein Fehler. §5 „Noch offen" 5 |
-| **2** | **Den Dateidialog des Linux-Kopfs ansehen** — einmal `Datei → Dokument importieren…`, einmal `Exportieren → PDF`. Kommt ein **Pfad** zurück? Steht das **vorgewählte Format** oben? | `Avalonia.Desktop` läuft unter Windows auch, und dort ist es **nicht** der Portal-Dialog — deshalb geht es hier überhaupt. **Es bleibt eine halbe Antwort** (der Portal-Fall ist damit nicht geprüft), aber eine halbe ist mehr als keine. §5 „Noch offen" 7 |
-| **3** | **`gonk-note-port-RM.MD` nachziehen:** Phase 4.5 eintragen, M2 ans Ende von Phase 4.5 verschieben | Die Datei liegt **nur hier** (`C:\Users\manue\Desktop\GonkNote-TM\`). Seit dem 2026-08-04 vermerkt und seitdem jede Runde vertagt — sie ist die *Vorgabe*, und sie sagt bis heute etwas anderes als dieses Dokument |
+| **1** | `About.Version` im WPF-Dialog | ✅ **Stimmt, beide Sprachen**, am laufenden Programm geprüft. §5 „Noch offen" 5 erledigt |
+| **2** | Der Dateidialog des Linux-Kopfs | ✅ **Beide Fragen: ja.** Vorgewähltes Format *und* vorbelegter Dateiname, und der Pfad kommt zurück. PDF und DOCX geschrieben, das DOCX wieder eingelesen. **Offen bleibt nur der Portal-Fall** unter Wayland — §5 „Noch offen" 7 |
+| **3** | `gonk-note-port-RM.MD` nachziehen | ✅ **Phase 4.5 eingetragen, M2 dorthin verschoben**, Zeitrahmen ergänzt. Die Aufwandszahl (5–8 Wochen) ist ein **Vorschlag** und wartet auf das Ja des Nutzers |
 
-### Dann der Arbeitsplan — §6, „Als Nächstes: das Schreiben"
+> **Dabei gefunden, und es gehört in den Arbeitsplan:** Ein **neu angelegtes** Textdokument
+> zeigt im Linux-Kopf „stammt aus der Windows-Fassung" und lässt sich nicht exportieren —
+> `TextDocView` unterscheidet *leer angelegt* nicht von *nicht übernommen* (§4.29, §5 „Noch
+> offen" 8). **Mit Schritt 2 löst sich das von selbst auf**, deshalb bleibt es bis dahin
+> stehen.
+
+### Damit gilt jetzt: der Arbeitsplan — §6, „Als Nächstes: das Schreiben"
 
 **Nutzer-Entscheidung 2026-08-11: Weg (a)**, das Schreiben im Linux-Kopf, vor Phase 4.5
 (§5 „Noch offen" 2). **Nicht mehr nachfragen** — die Entscheidung ist gefallen.
@@ -4651,6 +4766,11 @@ erst ab Schritt 4 wird es Kopfarbeit.
       teilen und verbinden — als **Änderungen am Modell** mit ihrer Gegenbewegung. Hier hängt
       die zweite große Frage: **erbt ein eingefügtes Zeichen das Format links davon?** (In
       Word ja; das ist die Erwartung.)
+      **Hier fällt §5 „Noch offen" 8 mit ab:** ein neu angelegtes Textdokument hat heute
+      weder `Model` noch `Rtf` und bekommt deshalb im Linux-Kopf den Hinweis „stammt aus der
+      Windows-Fassung" zu sehen (§4.29). Bekommt es ein **leeres `TdDocument`**, ist der Fall
+      weg — **darauf achten, dass `DatabaseService.GetText` und `TextDocView.Laden()`
+      zusammenpassen**, sonst bleibt der falsche Hinweis stehen.
 - [ ] **3. Rückgängig.** `UndoStack` steht seit V1 in Core und wird von der Zeichenfläche
       benutzt (`IEditAction`) — **er wird hier nicht neu erfunden**, sondern bekommt
       Textaktionen. `TextChangeAction` gibt es dort schon; ob sie passt, ist zu prüfen, nicht
@@ -5268,9 +5388,21 @@ weil sie bei der Portierung direkt zuschlagen:
   Notizbuch. **Das Foto zeigt dabei die Ursache nicht**, weil das Untermenü zum
   Aufnahmezeitpunkt durch Hover wieder offen ist. **Gegenmittel: `-WaitMs` hochsetzen** (1400
   statt 700 hat gereicht) und danach am Ergebnis prüfen, nicht am Zwischenfoto.
+
+  > **Nachtrag §4.29 (2026-08-11): dasselbe noch einmal, mit dem sichereren Gegenmittel.**
+  > „Ansicht → Sprache → Deutsch" scheiterte wieder — der Klick landete diesmal auf einem
+  > Ordner der Galerie und navigierte hinein. **Was zuverlässig geht: über den Untermenü-Kopf
+  > nur *fahren* statt zu klicken** (`SetCursorPos`, ~900 ms warten), dann den Zieleintrag
+  > klicken. Das öffnet das Untermenü per Hover und schließt es nicht wieder.
+  > **`kette.ps1` kann das nicht** — jeder Schritt klickt. Bis es einen Schweb-Schritt gibt,
+  > ist ein Untermenü ein Fall für ein paar Zeilen `SetCursorPos`/`mouse_event` von Hand.
 - **Tastatur statt Maus hilft hier *nicht*.** Der naheliegende Ausweg
   (`{DOWN}{DOWN}{DOWN}{RIGHT}…`) ging ins Leere, weil ein Baumeintrag im Umbenennen-Modus
   stand und alle Tasten abfing. **Erst den Fokus klären, dann tippen.**
+  **§4.29 hat denselben Ausweg ohne Umbenennen-Modus versucht — er ging auch dort ins Leere:**
+  `SendKeys` schickt an das Fenster, das WPF-Menü lebt aber in einem eigenen Popup mit eigenem
+  Fokus. **Der Weg über die Tastatur ist für WPF-Menüs damit zweimal gescheitert; er ist keine
+  Reserve mehr.**
 - **`{PGDN}` im `FlowDocumentScrollViewer` greift nur, solange der Fokus im Dokument liegt**
   — er geht schon beim nächsten `SetForegroundWindow` verloren, und dann rollt nichts mehr,
   ohne dass es wie ein Fehler aussieht (V1-Handoff §7 kennt das). **Zuverlässig ist der
@@ -5879,6 +6011,7 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 
 | Runde | Datum | Was |
 |---|---|---|
+| V2-40 | 2026-08-11 | **Die drei Handgriffe aus §5e abgearbeitet — und ein Fund dabei** (§4.29). **Kein Produktivcode angefasst**, die Runde war eine Bestandsaufnahme vor dem Schreiben: Bau 0/0, **517/517** Tests, gearbeitet an einer Kopie der echten Datenbank (Dauerregel 4, danach gelöscht). **(1) `About.Version` stimmt im WPF-Dialog**, in beiden Sprachen am laufenden Programm geprüft — §5 „Noch offen" 5 erledigt. **(2) Der Dateidialog des Linux-Kopfs trägt** — beide Fragen aus §5d mit **ja** beantwortet: der Export-Dialog kommt mit vorgewähltem Dateityp **und** vorbelegtem Dateinamen, der Import-Dialog mit vorgewähltem `Word-Dokument (*.docx)`, und nach dem Speichern meldet die App den **Pfad** samt „Datei jetzt öffnen?". **Durchgespielt wurde die ganze Kette**, nicht nur der Dialog: PDF (550 KB — die Größenordnung aus §5 „Noch offen" 3 bestätigt sich unter Windows) und DOCX geschrieben, **das DOCX wieder eingelesen**, Text und Umlaute unverändert. Damit ist der Weg **vom gewählten Pfad ins Modell** gesehen — der einzige Teil, den §4.28 als ungesehen benannt hatte. **Offen bleibt nur die Wayland-Hälfte**, der Portal-Dialog; das ist eine andere Implementierung derselben Schnittstelle und keine Formsache. **(3) `gonk-note-port-RM.MD` kennt Phase 4.5**, M2 ist ans Ende von Phase 4.5 gewandert, Phase 4 trägt stattdessen „Textdokumente laufen unter Linux", und der Zeitrahmen hat eine eigene Zeile — **die Aufwandszahl (5–8 Wochen) ist hergeleitet und nicht gemessen**, sie wartet auf das Ja des Nutzers. **Die Gegenprobe nebenbei ist gut ausgegangen:** um ein exportierbares Dokument zu haben, ist der Weg gegangen worden, den der Hinweis vorschlägt — im WPF-Kopf öffnen, zwei Absätze tippen, speichern; der Linux-Kopf zeigte danach denselben Text mit denselben Umlauten, gleiche Wort- und Zeichenzahl. **Genau dafür besteht §5e auf Windows**, und diesmal hat sie nichts gefunden. **Der Fund der Runde ist ein falscher Satz:** „Datei → Neues Textdokument" **im Avalonia-Kopf** erzeugt ein Dokument ohne `Model` und ohne `Rtf`, und `TextDocView.Laden()` kennt nur die Frage `modell == null` — also zeigt der Kopf „Dieses Dokument stammt aus der Windows-Fassung", für ein Dokument, das gerade *hier* entstanden ist, und lässt es nicht exportieren. **Leer angelegt und nicht übernommen sehen von dort aus gleich aus.** Nicht behoben, sondern eingeplant: mit **Schritt 2 des Arbeitsplans** bekommt ein neues Dokument ein leeres `TdDocument` und der Fall löst sich auf — ein heute eingebauter dritter Zustand wäre morgen toter Code (§5 „Noch offen" 8). **Eine Werkzeug-Falle dazugelernt:** das Untermenü „Sprache" im WPF-Kopf öffnet auf **Hover** und **schließt beim Klick** — `kette.ps1` klickt jeden Schritt, der Folgeklick landete deshalb in der Galerie dahinter; `SendKeys` erreicht das WPF-Menü-Popup nicht. Was hilft, ist ein **Schweb-Schritt** (Cursor bewegen ohne Klick), den `kette.ps1` heute nicht kann |
 | V2-39 | 2026-08-11 | **§5e: eine Arbeitsanweisung für den Windows-Rechner** — das Gegenstück zu §5d, das es bisher nicht gab (kein Code angefasst). **Der Befund dahinter:** §5d sagt dem Laptop seit Wochen genau, wo er anfängt, samt Prompt zum Kopieren; für den Rechner, auf dem **entwickelt** wird, stand nur der allgemeine Einstieg in §0 — „nimm den nächsten Punkt aus §6". Nach einer Runde wie dieser, die drei Dinge offen lässt, **weil sie auf dem Laptop nicht zu erledigen waren**, ist das zu wenig: sie stünden verstreut in §5 und gingen unter. **§5e nennt sie jetzt als drei Handgriffe vor dem ersten Schritt** — die Versionszeile im WPF-Dialog gegenprüfen (Dauerregel 1 verlangt beide Köpfe), den Dateidialog ansehen (unter Windows ist es **nicht** der Portal-Dialog, deshalb geht es dort überhaupt — eine halbe Antwort, aber mehr als keine), und `gonk-note-port-RM.MD` um Phase 4.5 ergänzen (seit dem 2026-08-04 vertagt; die Datei ist die *Vorgabe* und sagt bis heute etwas anderes als dieses Dokument). **Was gebaut wird, steht bewusst nicht darin**, sondern nur in §6 — ein Plan an zwei Stellen ist einer, der an einer davon veraltet. Dazu: der Einstieg in §0 fragt jetzt **zuerst nach dem Rechner** und verzweigt nach §5e oder §5d, und §5e sagt am Ende, **wann der Laptop wieder dran ist** (mit Schritt 5, wegen Umlauten, toten Tasten und dem Cursor am Stift) und was beim Fernsteuern drüben zu wissen ist |
 | V2-38 | 2026-08-11 | **Die Entscheidung nach Phase 4 ist gefallen: (a) das Schreiben im Linux-Kopf**, vor Phase 4.5 — **Nutzer-Entscheidung, gegen die Empfehlung dieses Dokuments**, und sie gilt. Damit ist §5 „Noch offen" 2 beantwortet. **Was diese Runde daraus gemacht hat, ist ein Arbeitsplan und kein Code:** §6 trägt jetzt „Als Nächstes: das Schreiben" mit **sieben Schritten** — Cursor-Stelle im Modell (nicht im Umbruch), Änderungen samt Gegenbewegung, Rückgängig über den vorhandenen `UndoStack`, Schreibmarke und Auswahl im Zeichner, Tastatur und Maus in `TextDocView`, das ehrlich gewordene Ribbon, und zuletzt der Schritt, um den es eigentlich geht: **`Rtf` verliert die Führung**. Dazu **drei Fallen, die schon feststehen**: der Umbruch läuft bei einem Inhaltsverzeichnis mehrfach und ist je Tastendruck zu teuer; §4.28 hat „einmal je Dokument umbrechen" entschieden, und genau diese Entscheidung wird mit dem Schreiben fällig; und solange der WPF-Editor auf `Rtf` steht und der Linux-Editor auf `Model`, kann dasselbe Dokument **zwei Wahrheiten** haben. **Der Code gehört auf den Windows-Rechner** (§5b) — diesmal nicht wegen der Werkzeuge, sondern wegen der Gegenprobe: jede Modelländerung muss der WPF-Editor überleben. **Eine Code-Änderung ist trotzdem hier gefallen**, weil §5 „Noch offen" 5 sie mit der Entscheidung fällig machte: `About.Version` steht in **beiden** Sprachtabellen auf „Portierung, Phase 4 — das Schreiben" / „Port, phase 4 — editing" und ist **im Linux-Kopf in beiden Sprachen am laufenden Programm gegengeprüft**; die Gegenprobe im WPF-Kopf fehlt und ist der erste Handgriff der nächsten Windows-Runde. **§5d bleibt ohne Auftrag** — der Laptop wird erst mit Schritt 5 wieder fällig (Umlaute, tote Tasten, Bildschirmtastatur, Cursor mit dem Stift) |
 | V2-37 | 2026-08-11 | **Der erste Augenschein des Textdokuments unter Linux** (auf dem CachyOS-Laptop, GNOME-Wayland). **489/489 grün**, beide Bauten 0/0. **Frage 1 ✅:** die Anzeige steht vollständig — Überschrift, fett/kursiv/unterstrichen/farbig, Aufzählung mit Marken, Tabelle mit **einer** Kopfzeile (der Fund aus §4.28 ist wirklich weg), Säulendiagramm mit Achsen und Farben, Kopfzeile ab Seite 2, „Seite 3 von 3". **Frage 2 ✅ mit Fund:** PDF und Anzeige haben denselben Zeilen- und Seitenumbruch (3 Seiten, A4, Schriften eingebettet) — **aber der Wortzwischenraum an einer Stückgrenze sitzt in der Anzeige falsch** („undFarbiges ."), im PDF nicht. Vermutlich nicht linuxspezifisch, deshalb nach §5d nicht angefasst: §5 „Noch offen" **6**. **Frage 3 ✅:** Rollen über alle Seiten ohne weißes Blatt, Zoom, Seitenbreite (119 %), Ganze Seite (52 %). **Frage 5 ✅:** der Dateidialog erscheint nicht hinter dem Fenster und **blockiert das Hauptfenster richtig** — ein Klick daneben lässt die Aufnahme Pixel für Pixel gleich. **Frage 4 ⚠️ offen:** unter GNOME-Wayland ist es der **Portal**-Dialog (Anfrage-Objekt auf dem Sitzungsbus belegt es), also ein natives Wayland-Fenster — mit `tools/linux` weder zu fotografieren noch zu bedienen. Ob ein **Pfad** zurückkommt und ob das **vorgewählte Format** oben steht, braucht den Nutzer am Gerät: §5 „Noch offen" **7**. **Der eigentliche Ertrag sind drei Löcher im Werkzeug** (§4.28): `zeiger` drückte Umschalt nur bei Großbuchstaben und tippte deshalb auf der **deutschen** Belegung `/` als `7` — **ohne Fehlermeldung**, es sah wie ein Fehler der App aus; **behoben**, die Ebene wird jetzt aus der Belegung gelesen (`XGetKeyboardMapping`, Umschalt und AltGr). Nicht behoben: der Portal-Dialog bleibt Handarbeit, und `schau.sh` gibt die Ausgabe des Aufrufers nicht frei (die App erbt `stdout`) bei zu kurzer Startwartezeit. Weil der Dateidialog ausfiel, kam die Prüf-DOCX über ein Wegwerf-Programm in die Test-Datenbank — **über dieselbe Kette** wie `AvaloniaDocumentIo.Import` |

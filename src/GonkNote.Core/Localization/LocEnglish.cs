@@ -14,8 +14,9 @@ internal static class LocEnglish
         ["Menu.File.NewNotebook"] = "New _notebook",
         ["Menu.File.NewWhiteboard"] = "New _whiteboard",
         ["Menu.File.NewText"] = "New _text document",
-        ["Menu.File.Import"] = "_Import document… (DOCX / Markdown)",
-        ["Menu.File.Export"] = "_Export… (PDF / DOCX / Markdown)",
+        // Gegenstueck zu LocGerman (§4.28): Formatliste raus, der Dateidialog nennt sie.
+        ["Menu.File.Import"] = "_Import document…",
+        ["Menu.File.Export"] = "_Export…",
         ["Menu.File.Save"] = "_Save",
         ["Menu.File.SaveAll"] = "Save _all",
         ["Menu.File.Quit"] = "_Quit",
@@ -428,16 +429,37 @@ internal static class LocEnglish
         // Gegenstuecke zu Dlg.Yes/Dlg.No in LocGerman (neu in Phase 3, siehe dort).
         ["Dlg.Yes"] = "Yes",
         ["Dlg.No"] = "No",
-        // Gegenstueck zu Tab.NoCanvasYet in LocGerman (siehe dort). Seit dem zweiten Brocken
-        // von Phase 3 betrifft der Text nur noch Textdokumente.
-        ["Tab.NoCanvasYet"] =
-            "Text documents cannot be shown here yet — they need the built-in document " +
-            "engine, which is next. Their contents are stored unchanged and appear as usual " +
-            "in the Windows edition.",
-        // Gegenstueck zu Io.NotOnThisPlatform in LocGerman (neu in Phase 3, siehe dort).
+        // ---- Gegenstuecke zum Textdokument im Linux-Kopf in LocGerman (§4.28, siehe dort).
+        // Tab.NoCanvasYet ist mit §4.28 weggefallen, die Registerkarte zeigt jetzt das
+        // gesetzte Dokument.
         ["Io.NotOnThisPlatform"] =
-            "Importing and exporting are not available on this platform yet. They arrive " +
-            "with the built-in document engine; until then, use the Windows edition.",
+            "This export is not available on this platform yet — it draws through the " +
+            "Windows canvas and moves over with the Linux tools. Text documents can already " +
+            "be exported here.",
+        ["Io.NotMigrated"] =
+            "This document comes from the Windows edition and has not been converted to the " +
+            "built-in format yet. Conversion only runs there — opening and saving it once in " +
+            "the Windows edition is enough.",
+        ["Td.NotMigrated"] =
+            "This document comes from the Windows edition and has not been converted to the " +
+            "built-in format yet, so it cannot be shown here. Its contents are stored " +
+            "unchanged. Open and save it once in the Windows edition and it will appear here " +
+            "as well.",
+        ["Ed.ViewOnly"] = "View only",
+        ["Ed.ViewOnly.Tip"] =
+            "The Linux edition shows the document; writing happens in the Windows edition " +
+            "for now. What you see is exactly what would be exported — same layout, same " +
+            "renderer.",
+        ["Ed.Export"] = "Export",
+        ["Ed.Export.Tip"] = "Write this document as PDF, Word, Markdown or PNG",
+        ["Ed.FitWidth"] = "Fit width",
+        ["Ed.FitWidth.Tip"] = "Set the zoom so the page fits the width",
+        ["Ed.FitPage"] = "Whole page",
+        ["Ed.FitPage.Tip"] = "Set the zoom so a whole page is visible",
+        ["Td.HeaderFooter.Both"] = "both",
+        ["Td.HeaderFooter.HeaderOnly"] = "header only",
+        ["Td.HeaderFooter.FooterOnly"] = "footer only",
+        ["Td.HeaderFooter.None"] = "none",
         ["Guide.Title"] = "Getting started",
         ["Guide.Heading"] = "Getting started with Gonk Note",
         ["Guide.Subtitle"] = "From your first note to your first backup — step by step.",

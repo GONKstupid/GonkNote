@@ -17,9 +17,10 @@
          vergleichbar bleiben: Menüleiste oben, Seitenleiste mit Baum links, rechts
          entweder die Galerie (wenn nichts offen ist) oder die Registerkarten.
 
-         **Was hier noch fehlt:** Import und Export (`AvaloniaDocumentIo` wirft — HANDOFF
-         §4.1) sowie alles am Textdokument, das an der eigenen Dokument-Engine hängt
-         (Phase 4). Beides ist so vorgesehen und keine Lücke. -->
+         **Was hier noch fehlt:** der Export einer *Tafel* (er zeichnet über den Kopf und
+         liegt darum bis Phase 4.5 im WPF-Projekt) und das Schreiben in einem Textdokument
+         (Caret, Auswahl, Eingabe — eine eigene Runde). Import, Textexport und die Anzeige
+         eines Textdokuments laufen seit HANDOFF §4.28. -->
 
     <Window.KeyBindings>
         <KeyBinding Gesture="Ctrl+S" Command="{Binding SaveCommand}"/>
@@ -447,8 +448,7 @@
                 </Grid>
 
                 <!-- Registerkarten. Notizbuch und Whiteboard bekommen die Zeichenfläche,
-                     das Textdokument weiterhin den Hinweis — das ist so vorgesehen und
-                     keine Lücke: die eigene Dokument-Engine ist Phase 4 (HANDOFF §6). -->
+                     das Textdokument seit §4.28 die Anzeige aus dem eigenen Modell. -->
                 <TabControl ItemsSource="{Binding OpenTabs}"
                             SelectedItem="{Binding SelectedTab, Mode=TwoWay}"
                             IsVisible="{Binding OpenTabs.Count, Converter={StaticResource IstDa}}">
@@ -470,11 +470,8 @@
                     </TabControl.ItemTemplate>
                     <TabControl.ContentTemplate>
                         <DataTemplate x:DataType="vm:DocumentTabViewModel">
-                            <!-- Nach Dokumentart getrennt. Ein `DataTemplates`-Eintrag je
-                                 ViewModel-Typ wäre der übliche Avalonia-Weg; hier steht ein
-                                 Umschalter, weil der Hinweis für Textdokumente sonst als
-                                 eigene Ansicht mit eigener Datei existieren müsste, nur um
-                                 einen Satz anzuzeigen. -->
+                            <!-- Nach Dokumentart getrennt: jede Art hat ihre eigene Ansicht,
+                                 und die Auswahl trifft der Typ des ViewModels. -->
                             <ContentControl Content="{Binding}">
                                 <ContentControl.DataTemplates>
 
@@ -482,15 +479,11 @@
                                         <views:WhiteboardView/>
                                     </DataTemplate>
 
-                                    <!-- Textdokumente bleiben ausgegraut, bis Phase 4 die
-                                         eigene Dokument-Engine bringt. -->
+                                    <!-- Seit §4.28 keine ausgegraute Fläche mehr, sondern das
+                                         gesetzte Dokument selbst — umbrochen von TdLayout,
+                                         gezeichnet von TdRenderer, beide aus Core. -->
                                     <DataTemplate DataType="vm:TextTabViewModel">
-                                        <Border Background="{DynamicResource Brush.CardBg}">
-                                            <TextBlock Text="{loc:T Tab.NoCanvasYet}" TextWrapping="Wrap"
-                                                       MaxWidth="420" TextAlignment="Center"
-                                                       HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                       Foreground="{DynamicResource Brush.TextMuted}"/>
-                                        </Border>
+                                        <views:TextDocView/>
                                     </DataTemplate>
 
                                 </ContentControl.DataTemplates>

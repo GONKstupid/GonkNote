@@ -511,6 +511,17 @@ public static class TdLayout
             while (kopfzeilen < gesetzt.Count && tabelle.Rows[kopfzeilen].IsHeader) kopfzeilen++;
             double kopfhoehe = gesetzt.Take(kopfzeilen).Sum(z => z.HeightCm);
 
+            // **Steht der Kopf schon auf dieser Seite?** Der Merker zählt die *echten*
+            // Kopfzeilen mit und nicht nur die wiederholten — genau daran hing ein Fehler, der
+            // bis §4.28 unbemerkt blieb: Er stand auf `false`, während die echten Kopfzeilen
+            // gerade gesetzt wurden, und die erste Inhaltszeile löste dann eine Wiederholung
+            // aus. **Jede** Tabelle bekam ihre Kopfzeile damit doppelt, schon auf Seite 1.
+            //
+            // Aufgefallen ist er erst, als der Zeichner angeschlossen wurde (§4.28) — die
+            // Wächter prüften den *Umbruch nach* einem Seitenwechsel und die *Ausgabe* nach
+            // Text; zweimal derselbe Zellinhalt fällt in einem Textvergleich nicht auf, im
+            // Bild sofort. Der Wächter dazu heißt jetzt
+            // `Eine_Tabelle_auf_einer_Seite_hat_keine_wiederholte_Kopfzeile`.
             bool kopfSteht = false;
 
             for (int i = 0; i < gesetzt.Count; i++)
@@ -548,6 +559,11 @@ public static class TdLayout
                 zeile.YCm = y;
                 ZeileAufSeite(zeile, seite);
                 y += zeile.HeightCm;
+
+                // Die letzte **echte** Kopfzeile steht — ab hier braucht es auf dieser Seite
+                // keine Wiederholung mehr. Ohne diese Zeile wiederholt sich der Kopf direkt
+                // unter sich selbst.
+                if (istKopf && i == kopfzeilen - 1) kopfSteht = true;
             }
         }
 

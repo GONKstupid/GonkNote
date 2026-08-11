@@ -6,6 +6,11 @@ using System.Windows.Input;
 using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Threading;
+// **Kein `using GonkNote.Core.Models`** — dort steht ein `TextElement`, und WPF hat auch
+// eines (System.Windows.Documents). Beides zugleich sichtbar zu machen macht jeden der vier
+// Verweise weiter unten mehrdeutig. Der eine Core-Typ, der hier gebraucht wird, steht im
+// Kommentar voll ausgeschrieben.
+using GonkNote.Core.Text;
 using GonkNote.Services;
 using GonkNote.ViewModels;
 
@@ -108,7 +113,7 @@ public partial class TextEditorView : UserControl
                 range.Load(ms, isPackage ? DataFormats.XamlPackage : DataFormats.Rtf);
                 DocumentImages.Attach(Editor.Document, App.Db.Blobs);
             }
-            else
+            else if (!AusModell(range))
             {
                 range.Text = "";
             }
@@ -130,6 +135,43 @@ public partial class TextEditorView : UserControl
         // Geladenes Dokument einheitlich in der gewählten Sprache prüfen (überschreibt
         // beim Import/aus früheren Sitzungen gespeicherte, teils gemischte Sprach-Tags).
         SetSpellLanguage(CurrentSpellLanguage());
+    }
+
+    /// <summary>
+    /// Der Rückfall auf <see cref="Core.Models.TextDoc.Model"/>, wenn das Altfeld leer ist — <b>der Fall,
+    /// den es erst seit dem Linux-Import gibt</b> (§4.28).
+    ///
+    /// <para>
+    /// <b>Warum das sein muss:</b> <c>AvaloniaDocumentIo.Import</c> kann kein <c>XamlPackage</c>
+    /// bauen, das gibt es nur unter Windows. Ein unter Linux importiertes Dokument hat deshalb
+    /// nur <c>Model</c> und ein leeres <c>Rtf</c>. Ohne diesen Zweig zeigte der WPF-Editor dafür
+    /// ein leeres Blatt — und das ist der teuerste Fehler dieser Art, weil er nicht nach einer
+    /// fehlenden Funktion aussieht, sondern nach gelöschtem Inhalt.
+    /// </para>
+    /// <para>
+    /// <b>Es kehrt die Reihenfolge nicht um.</b> <c>Rtf</c> führt weiter, solange dort etwas
+    /// steht (§5); gelesen wird von hier nur, wenn es sonst gar nichts zu lesen gäbe. Genau so
+    /// steht es seit jeher an <see cref="Core.Models.TextDoc.Model"/>: „wer voll ist, führt".
+    /// </para>
+    /// </summary>
+    /// <returns><c>false</c>, wenn auch das Modell leer ist — dann bleibt es beim leeren Blatt.</returns>
+    private bool AusModell(TextRange range)
+    {
+        if (_vm == null || TdFormatIo.Lesen(_vm.Doc.Model) is not { } modell) return false;
+
+        // Der Umweg über das XamlPackage statt eines direkten `Editor.Document = flow`:
+        // derselbe Weg, den auch der Import nimmt (WpfDocumentIo). Ein ausgetauschtes
+        // Document nähme dem RichTextBox seine Stile und alle Ereignisverdrahtungen mit.
+        var flow = TdZuFlow.Umwandeln(modell, App.Db.Blobs, _vm.Doc);   // samt Seiteneinrichtung
+
+        using var ms = new MemoryStream();
+        using (DocumentImages.Detach(flow, App.Db.Blobs))
+            new TextRange(flow.ContentStart, flow.ContentEnd).Save(ms, DataFormats.XamlPackage);
+
+        ms.Position = 0;
+        range.Load(ms, DataFormats.XamlPackage);
+        DocumentImages.Attach(Editor.Document, App.Db.Blobs);
+        return true;
     }
 
     private void FlushToModel()

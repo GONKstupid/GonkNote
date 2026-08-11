@@ -285,6 +285,66 @@ public sealed class TabellenUmbruchTests
     }
 
     /// <summary>
+    /// <b>Eine Tabelle, die auf eine Seite passt, hat ihre Kopfzeile genau einmal.</b>
+    ///
+    /// <para>
+    /// <b>Das war ein echter Fehler, und er stand über vier Runden da</b> (gefunden in §4.28,
+    /// beim Anschließen des Zeichners): Der Merker „der Kopf steht schon" zählte nur die
+    /// <i>wiederholten</i> Kopfzeilen und nicht die echten. Die erste Inhaltszeile löste
+    /// deshalb eine Wiederholung aus, obwohl die Kopfzeile eine Zeile darüber stand — bei
+    /// <b>jeder</b> Tabelle, schon auf Seite 1.
+    /// </para>
+    /// <para>
+    /// <b>Warum ihn kein Wächter sah:</b> <see cref="Die_Kopfzeile_wiederholt_sich_auf_der_naechsten_Seite"/>
+    /// prüfte den Fall <i>mit</i> Seitenwechsel und sah nur auf <c>TableRows[0]</c> — die
+    /// Doppelung stand an Index 1. Die Ausgabe-Wächter (DOCX, Markdown, PDF) lesen Text
+    /// zurück, und zweimal „Spalte 1" fällt in einem Textvergleich nicht auf. Im Bild fiel es
+    /// sofort auf. <b>Das ist der Grund, warum eine Anzeige ein Prüfmittel ist und nicht nur
+    /// ein Feature.</b>
+    /// </para>
+    /// </summary>
+    [Fact]
+    public void Eine_Tabelle_auf_einer_Seite_hat_keine_wiederholte_Kopfzeile()
+    {
+        var zeilen = new List<TdTableRow>
+        {
+            new(TdTableCell.Text("KOPF")) { IsHeader = true },
+        };
+        for (int i = 1; i <= 3; i++) zeilen.Add(new TdTableRow(TdTableCell.Text($"Z{i}")));
+
+        var ergebnis = Umbrechen(Dok(Blatt(), new TdTable([.. zeilen]) { ColumnWidthsCm = { 12 } }));
+
+        var seite = Assert.Single(ergebnis.Pages);
+        Assert.Equal(4, seite.TableRows.Count);
+        Assert.DoesNotContain(seite.TableRows, z => z.IsRepeatedHeader);
+        Assert.Equal(
+            ["KOPF", "Z1", "Z2", "Z3"],
+            seite.TableRows.Select(z => z.Cells[0].Lines[0].PlainText()).ToArray());
+    }
+
+    /// <summary>
+    /// Dasselbe für <b>mehrere</b> führende Kopfzeilen: sie stehen einmal, und keine davon
+    /// wird dahinter wiederholt.
+    /// </summary>
+    [Fact]
+    public void Auch_zwei_Kopfzeilen_stehen_nur_einmal()
+    {
+        var zeilen = new List<TdTableRow>
+        {
+            new(TdTableCell.Text("K1")) { IsHeader = true },
+            new(TdTableCell.Text("K2")) { IsHeader = true },
+            new(TdTableCell.Text("Z1")),
+        };
+
+        var ergebnis = Umbrechen(Dok(Blatt(), new TdTable([.. zeilen]) { ColumnWidthsCm = { 12 } }));
+
+        var seite = Assert.Single(ergebnis.Pages);
+        Assert.Equal(
+            ["K1", "K2", "Z1"],
+            seite.TableRows.Select(z => z.Cells[0].Lines[0].PlainText()).ToArray());
+    }
+
+    /// <summary>
     /// Eine Zeile, die höher ist als die ganze Seite, darf nicht in eine Endlosschleife
     /// führen — sie kommt auf die leere Seite und ragt heraus. Derselbe Ausweg wie beim
     /// überlangen Wort (§4.16).

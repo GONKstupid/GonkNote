@@ -1,6 +1,6 @@
 # Gonk Note V2 — Projektübergabe
 
-**Stand: 2026-08-11 · Version 0.3.0 · net10.0 · SkiaSharp 3 · SQLite · Avalonia 12 · ✅ M1 erreicht · ✅ Dokumentmodell vollständig (Phase 4, Schritte 1–6 von 6) · ✅ Übernahme der Bestandsdokumente läuft · ✅ DOCX und Markdown laufen gegen das Modell (§4.23) · ✅ Zeichner steht (§4.24) · ✅ die sieben Diagrammarten werden gezeichnet (§4.25)**
+**Stand: 2026-08-11 · Version 0.3.0 · net10.0 · SkiaSharp 3 · SQLite · Avalonia 12 · ✅ M1 erreicht · ✅ Phase 4 abgeschlossen (§4.28): Dokumentmodell, Übernahme, DOCX/Markdown/PDF/PNG gegen das Modell, Zeichner samt Diagrammen, Schriftkonzept — und die Anzeige im Linux-Kopf. Textdokumente sind dort nicht mehr ausgegraut. ⏳ Offen: das Schreiben (Cursor, Auswahl, Eingabe)**
 
 > **📌 Dauerregeln des Nutzers — gelten immer, ohne Nachfragen:**
 >
@@ -260,41 +260,54 @@ Zuletzt **auf dem CachyOS-Laptop gegengeprüft** (§4.27, „Was der Laptop gefu
 Linux wirklich ein, was kein Test sehen könnte — ist mit **Ja** beantwortet. Dabei gemessen,
 was der Gewinn in Zahlen ist: **rund 1,5 KB je Seite** statt eines vollen Rasterbilds.
 
-### ▶ Hier geht es weiter (Stand 2026-08-11, nach Runde V2-34)
+Zuletzt, wieder unter Windows: **die Anzeige im Linux-Kopf** (§4.28). `TdLayout` und
+`TdRenderer` sind an die Avalonia-Leinwand angeschlossen, dazu ein Ribbon und
+`AvaloniaDocumentIo` — **Textdokumente sind unter Linux nicht mehr ausgegraut**, sie werden
+angezeigt, importiert (DOCX) und in alle vier Formate exportiert. **Damit ist Phase 4
+abgeschlossen.** Der Anschluss hat sofort einen Fehler gezeigt, den vier Runden lang kein
+Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — behoben.
 
-> **Auf dem Windows-Rechner, und zwar mit genau einer Sache:**
-> **die Anzeige im Linux-Kopf aus dem Modell, samt Ribbon in Avalonia.**
+### ▶ Hier geht es weiter (Stand 2026-08-11, nach Runde V2-35)
+
+> **✅ Phase 4 ist abgeschlossen** (§4.28). Textdokumente sind im Linux-Kopf nicht mehr
+> ausgegraut: sie werden angezeigt, importiert und exportiert.
 >
-> Das ist der **letzte offene Haken in Phase 4** (§6, „Läuft: Phase 4") — alle anderen sind
-> gesetzt. Drei Teile gehören dazu:
+> **Als Nächstes steht eine Entscheidung an, nicht ein Auftrag** — deshalb zuerst §5
+> „Noch offen" lesen und **nachfragen statt raten** (§0, Punkt 2). Es gibt zwei Wege:
 >
-> 1. **Die Anzeige.** Der Zeichner steht seit §4.24 und ist **nirgends angeschlossen**; der
->    Linux-Kopf graut Textdokumente weiter aus. `TdRenderer.Seite` auf die Avalonia-Leinwand,
->    denselben Weg wie die Zeichenfläche (`ISkiaSharpApiLeaseFeature`, §4.10).
-> 2. **Das Ribbon in Avalonia**, neu — es gibt dort keines.
-> 3. **`AvaloniaDocumentIo` verdrahten.** *Der kleinste Posten:* Der Textexport steht seit
->    §4.27 **vollständig in Core** und läuft nachweislich unter Linux (§4.27, „Was der Laptop
->    gefunden hat"). **Es fehlt nur der Knopf** — die drei Formatlisten dort sind leer.
->    Bewusst nicht auf dem Laptop gemacht: Dateidialoge und Ribbon sind Kopfarbeit (§5d).
+> **(a) Schreiben im Linux-Kopf** — Cursor, Auswahl, Eingabe, Undo gegen `TdDocument`. Das
+> ist der Rest dessen, was die Roadmap unter Phase 4 „Editing" nennt, und der Weg, an dessen
+> Ende `Rtf` als führendes Feld abgelöst wird (§5). **Der größte Brocken des ganzen
+> Projekts nach der Engine selbst** — die Anzeige steht, die Eingabe ist neu.
 >
-> **Erst damit wird das übernommene Modell sichtbar** — heute liest der Editor weiter aus
-> `Rtf`, und `Rtf` bleibt bis dahin das führende Feld (§5). **Danach ist Phase 4 zu und
-> Phase 4.5 dran** (die fehlenden Werkzeuge des Linux-Kopfs, sie trägt M2).
+> **(b) Phase 4.5** — die fehlenden Werkzeuge des Linux-Kopfs (Formen, Textfelder,
+> Notizzettel, Drehen/Skalieren, Bild- und PDF-Import, Tafel-Export). **Sie trägt M2**, und
+> sie ist der Grund, warum M2 heute nicht erreichbar ist.
+>
+> **Empfehlung: (b) vor (a).** Drei Gründe: M2 hängt daran; die Werkzeuge sind viele kleine,
+> abgeschlossene Stücke statt eines langen; und der iPad-Kopf (Phase 5) bekommt sie fast
+> geschenkt, wenn sie vorher stehen (§6, „Vorgemerkt: Phase 4.5"). **Die Entscheidung gehört
+> dem Nutzer.**
 >
 > **M1 bleibt ein gültiger Ausstiegspunkt.**
 >
 > **Was dabei nicht untergehen darf:**
-> - **Vor dem nächsten Laptop-Auftrag `WhiteboardView.axaml` ansehen** — ob der Linux-Kopf
+> - **§5d trägt einen neuen Auftrag** (Stand 2026-08-11, nach Runde V2-35): der erste
+>   Augenschein des Textdokuments **unter Linux**. Er ist noch nicht abgearbeitet — bevor
+>   der Nutzer wechselt, nichts daran ändern.
+> - **Vor jedem Laptop-Auftrag die betroffene `.axaml` ansehen** — ob der Linux-Kopf
 >   überhaupt kann, was der Auftrag verlangt. In §4.26 ist genau das schiefgegangen.
-> - **§5d hat keinen neuen Auftrag** und muss vor dem nächsten Wechsel geschrieben werden
->   (Dauerregel 3a). Der alte ist als abgearbeitet markiert.
-> - **Zwei Kleinigkeiten aus dieser Runde** stehen als Beobachtung in §4.27 und sind noch
->   nicht angefasst: ein Verweis bekommt so viele `/Link`-Kästen wie Wörter, und
->   `TdRenderer` malt einen Verweis ohne jede Kennzeichnung (kein Blau, keine
->   Unterstreichung).
+> - **Drei Beobachtungen stehen offen und sind nicht angefasst:** ein Verweis bekommt so
+>   viele `/Link`-Kästen wie Wörter, und `TdRenderer` malt einen Verweis ohne jede
+>   Kennzeichnung (beide §4.27) — dazu: ein Diagramm kommt im **WPF**-Editor nicht an, mit
+>   Absicht (§4.28).
 > - **Offen zur Entscheidung:** §5 „Noch offen" **7** (darf ein PDF ~200 KB je Schriftfamilie
 >   wiegen — Empfehlung: ja, so lassen) und **1** (zweites Stiftgerät, der einzige Punkt mit
 >   echtem Restrisiko).
+> - **`About.Version` sagt „Portierung, Phase 4"** — und Phase 4 ist jetzt fertig. Die Zeile
+>   beschreibt, **woran gearbeitet wird** (§5, Entscheidung von 2026-08-10); sie ist also
+>   fällig, sobald feststeht, was als Nächstes läuft. **Beide Sprachtabellen zusammen**, danach
+>   beide Dialoge in beiden Köpfen gegenprüfen (Dauerregel 1).
 > - **Nur auf dem Windows-Rechner erreichbar:** `gonk-note-port-RM.MD` kennt **Phase 4.5
 >   immer noch nicht**, und M2 hängt dort weiter am Ende von Phase 4 (seit 2026-08-04
 >   vermerkt, §6). Phase 4.5 hat außerdem **keine Aufwandsschätzung** — als einzige Phase.
@@ -302,11 +315,11 @@ was der Gewinn in Zahlen ist: **rund 1,5 KB je Seite** statt eines vollen Raster
 **Tests laufen lassen:**
 
 ```powershell
-dotnet test -c Release        # Windows: beide Projekte, 503 Tests
+dotnet test -c Release        # Windows: beide Projekte, 517 Tests
 ```
 
 ```bash
-dotnet test tests/GonkNote.Core.Tests   # Linux: 479 Tests, laufen in ~11 s
+dotnet test tests/GonkNote.Core.Tests   # Linux: 489 Tests, laufen in ~11 s
 ```
 
 ---
@@ -1127,6 +1140,10 @@ lässt sich unter Windows nicht beurteilen.
 dazu (`Tab.NoCanvasYet`) sagt das jetzt auch: er sprach vorher allgemein von „diesem
 Dokument" und nannte die fehlende Zeichenfläche als Grund. Beide Tabellen nachgezogen
 (Dauerregel 1).
+
+> **✅ Überholt seit §4.28** (2026-08-11): Textdokumente werden im Linux-Kopf angezeigt, und
+> der Schlüssel `Tab.NoCanvasYet` ist mit ihm verschwunden. Der Absatz bleibt als Stand von
+> damals stehen — wer nach dem Schlüssel sucht, findet ihn nur noch hier.
 
 #### Die Entscheidung, die hier fiel: ausleihen statt nachbauen
 
@@ -2773,6 +2790,10 @@ heraus, samt aufgelöster Kopf- und Fußzeile.
 Absicht wie bei §4.14. Der `PdfExporter` und die Anzeige im Linux-Kopf sind die nächsten zwei
 Runden; erst danach wird `Rtf` als führendes Feld abgelöst (§5).
 
+> **✅ Beide eingelöst:** der PDF-Weg mit §4.27, die Anzeige mit §4.28. **`Rtf` führt trotzdem
+> weiter** — dafür fehlt nicht die Anzeige, sondern der *Schreibweg* im Linux-Kopf. Der Satz
+> oben war an dieser Stelle zu optimistisch und ist mit §4.28 richtiggestellt.
+
 ---
 
 ### 4.25 Die sieben Diagrammarten — aus Zahlen wird ein Bild
@@ -3403,6 +3424,156 @@ Abmeldung, und die Druckschwelle unten misst nur eine Hand am Stift. Sie bleiben
 
 ---
 
+### 4.28 Die Anzeige im Linux-Kopf — **Phase 4 ist zu**
+
+Umgesetzt am 2026-08-11 unter Windows. Das ist der zweite und letzte Schritt des
+Umverdrahtens (§4.23): **Textdokumente sind im Linux-Kopf nicht mehr ausgegraut.** Ein
+Textdokument öffnet sich dort als gesetztes Papier — Überschriften, Zeichenformate, Listen,
+Tabellen, Bilder, Diagramme, Kopf- und Fußzeile —, es lässt sich blättern, zoomen, importieren
+und in alle vier Formate exportieren.
+
+Drei Teile, und der kleinste war der wichtigste.
+
+#### 1. Die Anzeige — angeschlossen, nicht neu gebaut
+
+`src/GonkNote.Avalonia/Views/TextDocView.axaml(.cs)`, rund 400 Zeilen. **Sie rechnet nichts und
+sie zeichnet nichts:** umbrochen wird von `TdLayout` (§4.16), gezeichnet von `TdRenderer`
+(§4.24/§4.25) — beide seit Wochen fertig und **nirgends angeschlossen**. Was hier neu ist, ist
+der Anschluss: wo die Seiten liegen, welche gerade zu sehen sind, und wie man an einen
+`SKCanvas` kommt (`SkiaCanvas`, §4.10).
+
+> **Es ist derselbe Weg, den das PDF nimmt** (§4.27) — bis auf **eine Zahl**, den Maßstab
+> (`TdRenderer.PixelProCm` hier, `TdPdf.PunktProCm` dort). Weil der Umbruch in Zentimetern
+> rechnet, ändert keine Zoomstufe eine Umbruchstelle: **auf dem Schirm steht, was ins PDF
+> ginge.** Das ist §4.16, drei Runden später eingelöst.
+
+Zwei Entscheidungen, die klein aussehen:
+
+| Frage | Antwort | Warum |
+|---|---|---|
+| Wann wird umbrochen? | **Einmal je Dokument, nicht je Bild** | `TdLayout` läuft bei einem Inhaltsverzeichnis mehrfach (§4.20). Im Zeichenpfad gerechnet wäre das sechzigmal je Sekunde |
+| Was wird gezeichnet? | **Nur die Seiten im Sichtfenster** | Die Leinwand *ist* der ganze Stapel; der `ScrollViewer` gibt den Ausschnitt. Bei dreißig Seiten spart das neunundzwanzig je Bild. **Dazu gehört ein `InvalidateVisual` am `ScrollChanged`** — sonst bliebe der hereingerollte Rand leer, und das Dokument sähe aus, als höre es auf |
+
+**Schatten und Rand des Blattes gehören dem Kopf**, nicht dem Zeichner: `TdRenderer` malt
+Papier, und Papier hat keinen Schatten — der entsteht erst dadurch, dass es auf einer Fläche
+liegt. Im PDF wäre er sogar falsch, dort *ist* die Seite das Papier.
+
+#### 2. Das Ribbon — mit dem, was heute wirklich geht
+
+Reiterleiste nach dem Vorbild des WPF-Ribbons (derselbe Entwurf, derselbe
+Akzent-Unterstrich, dieselben `Ed.Tab.*`-Schlüssel), aber **nur zwei Reiter**:
+
+- **Start** — Export (mit Formatauswahl im Flyout), Zoom, „Seitenbreite", „Ganze Seite",
+  Wörter und Zeichen.
+- **Layout** — Papierformat, Ausrichtung, Ränder und Kopf-/Fußzeile, **abgelesen und nicht
+  gestellt**. Sie zu ändern hieße das Dokument zu ändern, und dafür fehlt der Schreibweg.
+
+> **„Einfügen", „Verweise" und „Tabelle" fehlen mit Absicht.** Sie gibt es drüben, weil man
+> dort schreiben kann; hier wären es drei leere Flächen. **Ein halbes Feature ist schlechter
+> als ein fehlendes** (§4.12) — und was fehlt, steht als Satz da und nicht als ausgegrauter
+> Knopf: rechts im Ribbon steht **„Nur Ansicht"**, mit einem Tooltip, der sagt, warum.
+
+#### 3. `AvaloniaDocumentIo` — und der gemeinsame Exportweg
+
+Die Klasse war leer, und bis §4.27 war das richtig. Jetzt:
+
+| | Linux-Kopf |
+|---|---|
+| **Textexport** | PDF, DOCX, Markdown, PNG — **dieselbe Liste wie unter Windows**, sie steht in Core |
+| **Import** | **nur DOCX.** `TdDocx.Lesen` steht in Core; der Markdown-*Import* geht drüben weiter über ein `FlowDocument` (`MarkdownImporter`). Ein `.md`-Eintrag hier führte in einen Dialog, hinter dem eine Ausnahme wartet |
+| **Tafel-Export** | **weiterhin leer.** Er zeichnet über `WhiteboardView`, also über den Kopf, und gehört zu Phase 4.5 (§4.27) |
+| **Übernahme** | **weiterhin `false`.** RTF und XamlPackage liest nur WPF (§4.22) |
+
+**Neu in Core: `TdExport.Schreiben`** — die Weiche über die Dateiendung. Sie stand im WPF-Kopf;
+sie dort zu lassen und hier ein zweites Mal zu schreiben, wäre die Falle aus §4.13 gewesen: zwei
+Fassungen derselben Entscheidung, die auseinanderdriften, sobald ein Format dazukommt. **Wer
+ein Format ergänzt, ergänzt es an einer Stelle.**
+
+#### Der Import wirft eine Frage auf, die es vorher nicht gab
+
+`AvaloniaDocumentIo.Import` kann **kein `XamlPackage` bauen** — das gibt es nur unter Windows.
+Ein unter Linux importiertes Dokument hat deshalb nur `Model` und ein **leeres `Rtf`**.
+
+> **Ohne Gegenmaßnahme wäre das der teuerste Fehler dieser Runde gewesen:** Der WPF-Editor las
+> ausschließlich `Rtf` und hätte für so ein Dokument ein **leeres Blatt** gezeigt. Das sieht
+> nicht nach einer fehlenden Funktion aus, sondern nach **gelöschtem Inhalt** — und es fällt
+> erst auf dem *anderen* Rechner auf, wo niemand mehr an den Import denkt.
+
+`TextEditorView` hat deshalb einen Rückfall bekommen: **ist `Rtf` leer und `Model` gefüllt,
+wird über `TdZuFlow` aus dem Modell geladen.** Das kehrt die Reihenfolge **nicht** um — `Rtf`
+führt weiter, solange dort etwas steht (§5); gelesen wird von dort nur, wenn es sonst gar nichts
+zu lesen gäbe. Genau so steht es seit jeher an `TextDoc.Model`: *„wer voll ist, führt"*.
+Vier Wächter in `ModellRueckfallTests` (WPF).
+
+#### Der Fund: **jede Tabelle stand mit doppelter Kopfzeile da**
+
+Das ist das Ergebnis der Runde, das beim Planen nicht vorkam.
+
+> `TdLayout.TabelleSetzen` merkt sich, ob die Kopfzeile auf der aktuellen Seite schon steht —
+> und der Merker zählte **nur die wiederholten** Kopfzeilen, nicht die echten. Die erste
+> Inhaltszeile löste deshalb eine Wiederholung aus, obwohl die Kopfzeile eine Zeile darüber
+> stand. **Bei jeder Tabelle, schon auf Seite 1**, seit §4.19 — vier Runden lang.
+
+**Warum ihn kein Wächter sah, und das ist die eigentliche Lehre:**
+
+| Wächter | Warum er blind war |
+|---|---|
+| `Die_Kopfzeile_wiederholt_sich_auf_der_naechsten_Seite` | prüfte den Fall **mit** Seitenwechsel und sah auf `TableRows[0]` — die Doppelung stand an Index 1 |
+| DOCX-, Markdown- und PDF-Wächter | lesen **Text** zurück. Zweimal „Spalte 1" fällt in einem Textvergleich nicht auf |
+| Der Zeichner-Wächter | prüft **Farbe an gerechneten Orten**, nicht die Anzahl der Zeilen |
+
+**Im Bild fiel es in derselben Sekunde auf, in der die Anzeige zum ersten Mal lief.** Das ist der
+Grund, warum eine Anzeige ein **Prüfmittel** ist und nicht nur ein Feature — dieselbe Rolle, die
+§4.13 dem A/B-Bildvergleich gibt. Behoben, dazu zwei neue Wächter
+(`Eine_Tabelle_auf_einer_Seite_hat_keine_wiederholte_Kopfzeile`,
+`Auch_zwei_Kopfzeilen_stehen_nur_einmal`).
+
+#### Nebenbei ehrlicher geworden
+
+**Die Menüpunkte nennen keine Formatliste mehr.** Dort stand „Dokument importieren… (DOCX /
+Markdown)" und „Exportieren… (PDF / DOCX / Markdown)" — zweimal ungenau: PNG fehlte, und der
+Linux-Kopf liest kein Markdown. **Welche Formate wirklich gehen, sagt der Dateidialog**, und der
+sagt es je Kopf richtig.
+
+#### Prüfung — und was der Augenschein gezeigt hat
+
+**517 Tests** (489 Core + 28 WPF) grün, beide Bauten 0 Fehler / 0 Warnungen.
+
+**Am laufenden Programm geprüft, mit einer Kopie der echten Datenbank** (Dauerregel 4, danach
+gelöscht) und mit einer eigens erzeugten DOCX:
+
+| Was | Ergebnis |
+|---|---|
+| Import einer DOCX im Linux-Kopf | läuft; das Dokument steht danach im Baum und in der Galerie |
+| Anzeige | Überschriften, fett/kursiv/unterstrichen/farbig, Aufzählung mit Marken, Tabelle, **Säulendiagramm mit Achsen und Farben**, Kopfzeile ab Seite 2 (auf Seite 1 unterdrückt), „Seite 2 / 4" |
+| Ribbon | beide Reiter, Zoom, Seitenbreite, Ganze Seite, Wörter/Zeichen, „Nur Ansicht" |
+| Export | PDF über den Ribbon-Knopf, vier Seiten, 993 KB — die Meldung nennt den Pfad und bietet das Öffnen an |
+| **Beide Sprachen** | Deutsch und Englisch gegengeprüft (Dauerregel 1) |
+| **Der Rückfall auf dem Windows-Rechner** | dasselbe Dokument im WPF-Editor geöffnet: vollständig da. **Ohne den Rückfall wäre hier ein leeres Blatt gestanden** |
+
+**Zwei Beobachtungen am Rand, beide benannt und keine davon neu:**
+
+1. **Ein Diagramm kommt im WPF-Editor nicht an.** `TdZuFlow` sagt das selbst: ein
+   `FlowDocument` kann nur Bilder. **Das bleibt mit Absicht so** — ein gerastertes Diagramm im
+   Editor wäre wieder das, was §4.21 abgeschafft hat: ein Bild, dessen Zahlen niemand mehr
+   ändern kann. Im Modell, im PDF, in DOCX und **in der Linux-Anzeige** ist es vollständig da.
+2. **Ein über den Rückfall geladenes Dokument steht sofort als „geändert" da** (der Punkt an
+   der Registerkarte). Ursache: der Editor setzt beim Laden die Prüfsprache, und ein aus dem
+   Modell gebautes Dokument trägt sie noch nicht — nach dem ersten Speichern tritt es nicht
+   mehr auf (nachgemessen). Harmlos: gespeichert wird dabei genau das, was schon dasteht.
+
+#### Stand
+
+**Phase 4 ist abgeschlossen.** Alle Haken in §6 sind gesetzt; Modell, Übernahme, DOCX,
+Markdown, PDF, PNG, Zeichner, Diagramme, Schriftkonzept und Anzeige stehen. **Was bleibt, ist
+das Schreiben** — Cursor, Auswahl, Eingabe —, und das ist eine eigene Runde und nicht der Rest
+dieser hier.
+
+**`Rtf` bleibt bis dahin das führende Feld** (§5). Es abzulösen heißt, den WPF-Editor auf das
+Modell umzustellen, und dafür fehlt derselbe Schreibweg.
+
+---
+
 ## 5. Entscheidungen
 
 **Getroffen, alle umgesetzt:**
@@ -3466,6 +3637,11 @@ Abmeldung, und die Druckschwelle unten misst nur eine Hand am Stift. Sie bleiben
 | Ob die App ihre Schriften mitliefert | **Ja, fünf Familien für fünf Rollen** (§4.26). „Segoe UI" gibt es unter Linux nicht und unter iPadOS auch nicht; ohne mitgelieferte Schriften sähe dasselbe Dokument auf drei Plattformen verschieden aus. **Die Plattform-Weiche in `AvaloniaFontProvider` ist damit weg** — es gibt keine Windows- und keine Linux-Antwort mehr, sondern eine. Preis: rund 6 MB in der Exe, benannt. Entschieden 2026-08-10 (Nutzer) |
 | Wo Schriften aufgelöst werden | **Nur in `WbFonts`** (§4.26). Vorher fragten drei Stellen unabhängig `SKTypeface.FromFamilyName` — das sieht nur Systemschriften, eine mitgelieferte Schrift hätte den Dokumentzeichner nie erreicht. Reihenfolge: mitgeliefert → System → Rückfallkette. „Segoe UI" bleibt in der Kette, damit ein Bestandsdokument seine gespeicherte Schrift behält (§4.14). Dasselbe Muster wie §4.13. Entschieden 2026-08-10 |
 | Ob die Dokument-Grundschrift mitwechselt | **Ja** (§4.26) — `TdCharFormat.Standard` steht auf „Source Sans 3", die Whiteboard-Vorgaben auf Geist und Space Grotesk. **Das ist Datenformat**, betrifft aber nur *neue* Dokumente: der gespeicherte Wert gewinnt, es gibt keinen Migrationsschritt. Benannter Preis: Word ohne die Schrift blendet um — DOCX speichert den Namen, nicht die Schrift. Entschieden 2026-08-10 (Nutzer) |
+| Wie groß das Ribbon im Linux-Kopf wird | **Nur die zwei Reiter, die Inhalt haben** (§4.28). „Einfügen", „Verweise" und „Tabelle" gibt es drüben, weil man dort schreiben kann; hier wären es drei leere Flächen. Ein halbes Feature ist schlechter als ein fehlendes (§4.12) — und **was fehlt, steht als Satz da** („Nur Ansicht") und nicht als ausgegrauter Knopf. Entschieden 2026-08-11 |
+| Ob der Reiter „Layout" die Seiteneinrichtung auch **stellt** | **Nein, er liest sie ab** (§4.28). Sie zu ändern hieße das Dokument zu ändern, und dafür fehlt der Schreibweg. Angezeigt wird sie trotzdem: sie erklärt den Umbruch, den man daneben sieht. Entschieden 2026-08-11 |
+| Wo die Weiche über die Dateiendung steht | **In Core (`TdExport`), nicht in den Köpfen** (§4.28). Seit §4.27 stehen alle vier Exportwege in Core; was blieb, war ein `switch`. Ihn zweimal zu schreiben wäre die Falle aus §4.13 — zwei Fassungen derselben Entscheidung, die auseinanderdriften, sobald ein Format dazukommt. Entschieden 2026-08-11 |
+| Was ein unter Linux importiertes Dokument in `Rtf` bekommt | **Nichts — und der WPF-Editor fällt dafür auf `Model` zurück** (§4.28). Ein `XamlPackage` gibt es nur unter Windows; ohne den Rückfall zeigte der WPF-Editor ein **leeres Blatt**, und das sieht nach gelöschtem Inhalt aus. **Die Reihenfolge kehrt sich dabei nicht um:** `Rtf` führt weiter, solange dort etwas steht — gelesen wird aus `Model` nur, wenn es sonst nichts zu lesen gäbe. Entschieden 2026-08-11 |
+| Ob der Linux-Kopf Markdown importiert | **Nein, nur DOCX** (§4.28). `TdDocx.Lesen` steht in Core, der Markdown-*Import* geht drüben weiter über ein `FlowDocument`. Ein `.md`-Eintrag in der Formatliste führte in einen Dateidialog, hinter dem eine Ausnahme wartet — **ein Format anzubieten, das man nicht lesen kann, ist schlimmer, als es nicht anzubieten.** Entschieden 2026-08-11 |
 | Namen der WPF-Hilfsmethoden | **Bleiben stehen** — `HitElement`, `HitTestElement`, `SelectByLasso`, `ComputeSelectionBounds` sind Einzeiler, die an `WbHit` weiterreichen. Elf Aufrufstellen in fünf Partials umzubenennen hätte den Diff verdreifacht, ohne am Ergebnis etwas zu ändern; wegkommen sollte die zweite **Rechnung**, nicht die zweite Bezeichnung (§4.13). Entschieden 2026-08-04 |
 
 **Noch offen:**
@@ -4029,7 +4205,75 @@ dotnet run --project src/GonkNote.Avalonia -- --db /tmp/gonk-test/gonknote.sqlit
 
 ---
 
-### ▶ Aktueller Auftrag (Stand 2026-08-11, nach Runde V2-33)
+### ▶ Aktueller Auftrag (Stand 2026-08-11, nach Runde V2-35)
+
+**Der erste Augenschein des Textdokuments unter Linux. Es ist bisher nur unter Windows
+gesehen worden.**
+
+Seit §4.28 zeigt der Linux-Kopf Textdokumente an, importiert DOCX und exportiert in vier
+Formate. Gebaut und geprüft wurde das **unter Windows** — dort läuft `Avalonia.Desktop`
+auch. **Was dort nicht zu beantworten ist, ist die Schrift und der Stift**, und beides ist
+hier neu: Der Dokumentzeichner malt zum ersten Mal auf einen Bildschirm statt in eine Datei,
+und er nimmt die mitgelieferten Schriften (§4.26) über dieselbe Kette wie das PDF.
+
+> **Vorher lesen:** §4.28 (was gebaut wurde) und §4.27 „Was der Laptop gefunden hat" (was du
+> zum PDF schon herausgefunden hast — die Schriftkette ist dieselbe).
+
+**Der Ablauf: erst die Befehle oben („Der Auftrag zum Ablaufen"), dann der Kopf.** Erwartet
+sind **489** Core-Tests grün.
+
+**Fünf Fragen, in dieser Reihenfolge:**
+
+1. **Steht überhaupt Schrift auf dem Blatt?** Der Kopf braucht ein Dokument mit Inhalt, und
+   ein frisch angelegtes hat keines — es zeigt den Hinweis „noch nicht übernommen", **und das
+   ist richtig** (§4.22). Also über **`Datei → Dokument importieren…`** eine DOCX
+   hereinholen. Wenn keine greifbar ist, erzeugt ein Wegwerf-Programm eine, genau wie
+   `/tmp/pdfprobe` in §4.27 — `TdDocx.Schreiben(doc, "/tmp/probe.docx")` genügt.
+
+   **Erwartet:** Überschriften, fett/kursiv/unterstrichen, eine Aufzählung mit Marken, eine
+   Tabelle mit Rahmen, ein Diagramm mit Achsen und Farben, ab Seite 2 die Kopfzeile.
+   **Falsch wäre:** leere Zeilen, wo Text stehen müsste (dann greift die Schriftkette nicht),
+   oder Kästchen statt Buchstaben.
+
+2. **Ist die Schrift dieselbe wie im PDF?** Dieselbe Datei zusätzlich als **PDF exportieren**
+   (Ribbon → Exportieren → PDF) und beides nebeneinander ansehen. **Es muss gleich aussehen** —
+   Anzeige und PDF nehmen denselben Umbruch und denselben Zeichner, sie unterscheiden sich in
+   **einer Zahl**, dem Maßstab (§4.28). Bricht eine Zeile an verschiedenen Stellen um, ist das
+   ein echter Fund.
+
+3. **Bleibt die Anzeige beim Rollen vollständig?** Ein Dokument über mehrere Seiten nehmen
+   und **durchscrollen**. Gezeichnet werden nur die Seiten im Sichtfenster; nachgeführt wird
+   über `ScrollChanged` (§4.28). **Falsch wäre** ein Blatt, das beim Rollen weiß bleibt oder
+   erst nach einer Verzögerung erscheint. Dazu **Zoom, „Seitenbreite" und „Ganze Seite"**
+   ausprobieren — und mit **Strg + Mausrad**.
+
+4. **Trägt der Dateidialog?** Import **und** Export laufen über Avalonias `StorageProvider`,
+   und der ist unter Linux je nach Sitzung der GTK-Dialog des **Portals** oder Avalonias
+   eigener (`AvaloniaFileDialog`). **Genau das ist unter Windows nicht prüfbar.** Zwei Dinge:
+   Kommt ein **Pfad** zurück (ein Portal kann eine URI ohne Dateisystempfad liefern — dann
+   wird die Auswahl verworfen, siehe die Anmerkung in `AvaloniaFileDialog.Pfad`)? Und steht
+   im Speichern-Dialog das **vorgewählte Format** oben?
+
+5. **Was sagt der Wayland-Fall?** Falls die Sitzung auf Wayland läuft: Öffnet sich der
+   Dateidialog überhaupt, und blockiert er das Hauptfenster richtig (`Modal.Warte`)? Ein
+   Dialog, der hinter dem Fenster erscheint, sieht aus wie ein Absturz.
+
+**Was hier NICHT gemacht wird:** das Schreiben nachrüsten (Cursor, Auswahl, Eingabe). Das ist
+Kopfarbeit und gehört auf den Windows-Rechner (§5b) — und es ist noch nicht entschieden, ob es
+vor oder nach Phase 4.5 kommt (§0, „Hier geht es weiter").
+
+**Nebenbei, falls es sich ohne Aufwand ergibt** — dieselben drei wie beim letzten Mal, alle
+drei brauchen dich am Gerät:
+
+- **§5 „Noch offen" 1 — ein zweites Stiftgerät** (MPP/EMR). **Nur wenn eines greifbar ist.**
+  Mit **F9** in der Zeichenfläche in einer Minute geklärt. Der einzige Punkt mit echtem
+  Restrisiko.
+- **§5a „Offen" 2 — eine Xorg-Sitzung** statt XWayland als Vergleich.
+- **§5a „Offen" 3 — die Druckschwelle unten:** evdev meldete nie unter 1500 von 4095.
+
+---
+
+### Der vorige Auftrag, abgearbeitet (Stand 2026-08-11, nach Runde V2-33)
 
 > ## ✅ ABGEARBEITET am 2026-08-11 (Runde V2-34) — **nicht noch einmal laufen lassen.**
 >
@@ -4039,11 +4283,8 @@ dotnet run --project src/GonkNote.Avalonia -- --db /tmp/gonk-test/gonknote.sqlit
 > Datei. **Ein Fund:** Skia bettet die ganze TTF ein statt eines Auszugs — rund 200 KB je
 > Familie, aber **einmalig und nicht je Seite** (§5 „Noch offen" 7). **Nichts am Code geändert.**
 >
-> **Für den nächsten Thread auf dem Laptop:** Hier steht **kein neuer Auftrag**. Der schreibt
-> sich erst nach der nächsten Windows-Runde (Anzeige im Linux-Kopf, §6) — **dann** wird der
-> Laptop wieder gebraucht, und zwar für den ersten Augenschein des Textdokuments unter Linux.
-> Bis dahin gilt §5d oben: **nachfragen statt raten.** Wer trotzdem etwas tun will, findet in
-> den drei „Nebenbei"-Punkten unten Arbeit, die seit Wochen offensteht.
+> **Der neue Auftrag steht oben** (Stand 2026-08-11, nach Runde V2-35): der erste Augenschein
+> des Textdokuments unter Linux. Das hier bleibt nur zum Nachlesen stehen.
 
 **Der ursprüngliche Auftrag, zum Nachlesen — was geprüft wurde und warum:**
 
@@ -4289,11 +4530,19 @@ Boden", das einzige Risiko, das die Roadmap mit **hoch** einstuft.
       aufgelöst.** 18 neue Wächter, **kein einziges neues Feld am Modell** — zum fünften Mal
       dasselbe Muster nach §4.17, §4.20, §4.21 und §4.25. Nebenbei gelöscht: `DocxImporter`
       (556 Zeilen) und zwei tote Stücke aus `DocumentImages`
-- [ ] **Umverdrahten, was noch fehlt** — eine eigene Runde:
-      **Die Anzeige im Linux-Kopf** aus dem Modell, dazu das Ribbon in Avalonia neu.
-      Erst wenn Export **und** Anzeige laufen, wird `Rtf` als führendes Feld abgelöst (§5).
-      **Der Export ist seit §4.27 fertig und wartet nur auf die Verdrahtung** in
-      `AvaloniaDocumentIo` — die drei Formatlisten dort sind noch leer
+- [x] **Die Anzeige im Linux-Kopf** (§4.28, 2026-08-11): `TdLayout` + `TdRenderer` auf die
+      Avalonia-Leinwand, dazu das **Ribbon** (zwei Reiter: Ansicht/Ausgabe und die abgelesene
+      Seiteneinrichtung) und `AvaloniaDocumentIo` verdrahtet — DOCX-Import, Export in alle
+      vier Formate. Die Weiche über die Endung ist als `TdExport` nach Core gewandert, damit
+      sie nicht zweimal dasteht. **Dabei gefunden und behoben: jede Tabelle stand mit
+      doppelter Kopfzeile da** — vier Runden lang, und kein Wächter konnte es sehen, weil alle
+      Text vergleichen und keiner ein Bild ansieht
+
+> **✅ Damit ist Phase 4 abgeschlossen.** **Was ausdrücklich nicht dazugehörte: das
+> Schreiben** im Linux-Kopf (Cursor, Auswahl, Eingabe, Undo). Die Roadmap nennt es unter
+> „Editing" in Phase 4; es ist eine eigene Runde und steht in §6 „Als Nächstes". **`Rtf`
+> bleibt bis dahin das führende Feld** (§5) — es abzulösen heißt, den WPF-Editor auf das
+> Modell umzustellen, und dafür fehlt derselbe Schreibweg.
 
 #### Wie die Bestandsdokumente herüberkommen — **vor Schritt 2 zu entscheiden**
 
@@ -4822,6 +5071,30 @@ weil sie bei der Portierung direkt zuschlagen:
   fokussierbar sein und den Fokus bekommen.** Das Fehlerbild ist unauffällig und deshalb
   teuer: gezeichnet wird einwandfrei — der Zeiger braucht keinen Fokus —, nur die
   Tastenkürzel tun nichts, und das hält man erst einmal für einen Fehler in der Tastenlogik.
+- **Ein Bildlauf lässt den Inhalt nicht neu zeichnen** (§4.28). Der `ScrollViewer`
+  verschiebt sein Kind, ohne dessen `Render` erneut zu rufen. Solange die Fläche alles
+  aufzeichnet, fällt das nicht auf; **wer nur den sichtbaren Ausschnitt aufzeichnet** — und
+  das muss man bei einem dreißigseitigen Dokument —, bekommt beim Rollen einen leeren Rand,
+  und das sieht aus, als höre das Dokument auf. **Gegenmittel: `ScrollChanged` →
+  `InvalidateVisual()`.** Kostet eine Aufzeichnung je Bildlaufschritt, und eine Aufzeichnung
+  ist billig (es werden Befehle notiert, nichts gerastert).
+- **Der sichtbare Ausschnitt steht im `ScrollViewer`, nicht in `Bounds`** (§4.28). Die
+  Leinwand *ist* der ganze Seitenstapel — ihre Grenzen sagen über den Ausschnitt nichts. Wer
+  gegen `Bounds` prüft, zeichnet immer alles und hat nichts gespart.
+
+**Neu aus Phase 4 — die Anzeige als Prüfmittel**
+
+- **Eine Anzeige findet, was ein Textvergleich nicht sehen kann** (§4.28). Der Fehler mit der
+  doppelten Tabellen-Kopfzeile stand vier Runden lang da und war von **jedem** Wächter
+  gedeckt: die Ausgabe-Wächter lesen Text zurück (zweimal „Spalte 1" fällt nicht auf), der
+  Umbruch-Wächter sah auf `TableRows[0]` (die Doppelung stand an Index 1), und der
+  Zeichner-Wächter prüft Farbe an gerechneten Orten statt Zeilen zu zählen. **Merksatz: wenn
+  eine Rechnung zum ersten Mal ein Bild ergibt, ist der erste Augenschein ein Prüfschritt und
+  keine Vorführung** — dieselbe Rolle, die §4.13 dem A/B-Bildvergleich gibt.
+- **Ein Wächter, der nur das erste Element prüft, deckt die zweite Stelle nicht.**
+  `Assert.False(TableRows[0].IsRepeatedHeader)` war richtig und trotzdem blind. Wo eine
+  Anzahl zur Aussage gehört, gehört sie in den Wächter — hier: `Assert.Equal(4,
+  seite.TableRows.Count)`.
 
 **Neu aus Phase 3 — die Farbtabelle**
 
@@ -5412,7 +5685,7 @@ cd C:\Dev\Zed\gonk-note-V2
 dotnet build -c Release      # 0 Fehler / 0 Warnungen
 dotnet build -c Debug        # schneller, ohne Self-Contained/win-x64
 
-dotnet test -c Release       # beide Testprojekte, 420 Tests
+dotnet test -c Release       # beide Testprojekte, 517 Tests
 
 # Golden-Files bewusst neu setzen (danach den Diff lesen, siehe §4.6)
 $env:GONK_SNAPSHOT_UPDATE=1; dotnet test tests\GonkNote.Core.Tests; $env:GONK_SNAPSHOT_UPDATE=$null
@@ -5499,6 +5772,7 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 
 | Runde | Datum | Was |
 |---|---|---|
+| V2-35 | 2026-08-11 | **Die Anzeige im Linux-Kopf — Phase 4 ist zu** (§4.28). Der zweite und letzte Punkt des Umverdrahtens (§4.23): **Textdokumente sind unter Linux nicht mehr ausgegraut.** Drei Teile. **(1) Die Anzeige** (`TextDocView`, ~400 Zeilen): sie rechnet nichts und zeichnet nichts — umbrochen wird von `TdLayout` (§4.16), gezeichnet von `TdRenderer` (§4.24/§4.25), beide seit Wochen fertig und **nirgends angeschlossen**. Neu ist der Anschluss. **Es ist derselbe Weg, den das PDF nimmt** (§4.27), bis auf **eine Zahl** — den Maßstab; weil der Umbruch in Zentimetern rechnet, ändert keine Zoomstufe eine Umbruchstelle, **auf dem Schirm steht, was ins PDF ginge**. Umbrochen wird **einmal je Dokument** und nicht je Bild (ein Inhaltsverzeichnis läßt `TdLayout` mehrfach laufen, §4.20), gezeichnet werden **nur die Seiten im Sichtfenster** — dazu gehört ein `InvalidateVisual` am `ScrollChanged`, sonst bliebe der hereingerollte Rand leer. Schatten und Rand des Blattes gehören dem Kopf: `TdRenderer` malt Papier, und Papier hat keinen Schatten. **(2) Das Ribbon**, neu in Avalonia — Reiterleiste nach dem Vorbild des WPF-Ribbons, aber **nur die zwei Reiter, die Inhalt haben**: „Start" (Export mit Formatauswahl, Zoom, Seitenbreite, Ganze Seite, Wörter/Zeichen) und „Layout" (Papierformat, Ausrichtung, Ränder, Kopf-/Fußzeile — **abgelesen, nicht gestellt**). „Einfügen", „Verweise" und „Tabelle" fehlen mit Absicht: es wären drei leere Flächen, und **ein halbes Feature ist schlechter als ein fehlendes** (§4.12). Was fehlt, steht als Satz da — rechts im Ribbon **„Nur Ansicht"** — und nicht als ausgegrauter Knopf. **(3) `AvaloniaDocumentIo` verdrahtet:** Export in alle vier Formate (**dieselbe Liste wie unter Windows**), Import **nur DOCX** (`TdDocx.Lesen` steht in Core; der Markdown-*Import* geht drüben weiter über ein `FlowDocument` — ein Format anzubieten, das man nicht lesen kann, ist schlimmer, als es nicht anzubieten). Tafel-Export und Übernahme bleiben mit Begründung leer. **Neu in Core: `TdExport`** — die Weiche über die Dateiendung, die bis dahin im WPF-Kopf stand; sie ein zweites Mal zu schreiben wäre die Falle aus §4.13 gewesen. **Eine Frage, die es vorher nicht gab:** ein unter Linux importiertes Dokument hat **nur `Model` und ein leeres `Rtf`** — ein `XamlPackage` gibt es nur unter Windows. Ohne Gegenmaßnahme hätte der WPF-Editor dafür **ein leeres Blatt** gezeigt, und das sieht nicht nach einer fehlenden Funktion aus, sondern nach **gelöschtem Inhalt** — auf dem *anderen* Rechner, wo niemand mehr an den Import denkt. `TextEditorView` fällt deshalb über `TdZuFlow` auf `Model` zurück, **ohne die Reihenfolge umzukehren**: `Rtf` führt weiter, solange dort etwas steht (§5). Vier Wächter dafür. **Der Fund der Runde stand vier Runden lang da: jede Tabelle hatte eine doppelte Kopfzeile.** Der Merker in `TdLayout.TabelleSetzen` zählte nur die *wiederholten* Kopfzeilen und nicht die echten, also löste die erste Inhaltszeile eine Wiederholung aus, obwohl die Kopfzeile eine Zeile darüber stand — **bei jeder Tabelle, schon auf Seite 1**, seit §4.19. **Kein Wächter konnte es sehen:** der Umbruch-Wächter prüfte den Fall *mit* Seitenwechsel und sah nur auf `TableRows[0]` (die Doppelung stand an Index 1), die Ausgabe-Wächter lesen **Text** zurück und zweimal „Spalte 1" fällt in einem Textvergleich nicht auf, und der Zeichner-Wächter prüft Farbe an gerechneten Orten statt Zeilen zu zählen. **Im Bild fiel es in derselben Sekunde auf, in der die Anzeige zum ersten Mal lief** — das ist der Grund, warum eine Anzeige ein **Prüfmittel** ist und nicht nur ein Feature (dieselbe Rolle wie der A/B-Bildvergleich in §4.13). Behoben, zwei neue Wächter. **Nebenbei ehrlicher geworden:** die Menüpunkte nennen keine Formatliste mehr — dort stand „(DOCX / Markdown)" und „(PDF / DOCX / Markdown)", zweimal ungenau; welche Formate wirklich gehen, sagt der Dateidialog, und der sagt es je Kopf richtig. **Am laufenden Programm geprüft**, mit einer Kopie der echten Datenbank (Dauerregel 4, danach gelöscht) und einer eigens erzeugten DOCX: Import, Anzeige (Überschriften, Zeichenformate, Aufzählung mit Marken, Tabelle, **Diagramm mit Achsen und Farben**, Kopfzeile ab Seite 2), Ribbon, Zoom, Seitennavigation, PDF-Export über den Ribbon-Knopf (vier Seiten, 993 KB) — **in beiden Sprachen** (Dauerregel 1) — und derselbe Import danach im **WPF**-Editor, wo ohne den Rückfall ein leeres Blatt gestanden hätte. **Zwei Beobachtungen benannt:** ein Diagramm kommt im WPF-Editor nicht an (`TdZuFlow` sagt es selbst — ein `FlowDocument` kann nur Bilder, und ein gerastertes Diagramm wäre wieder das, was §4.21 abgeschafft hat), und ein über den Rückfall geladenes Dokument steht sofort als „geändert" da (der Editor setzt beim Laden die Prüfsprache; nach dem ersten Speichern tritt es nicht mehr auf — nachgemessen). **517 Tests** (489 Core + 28 WPF) grün, beide Bauten 0/0. **Was Phase 4 ausdrücklich nicht enthielt: das Schreiben** (Cursor, Auswahl, Eingabe) — eigene Runde, und ob sie vor oder nach Phase 4.5 kommt, ist eine Nutzer-Entscheidung (§0) |
 | V2-34 | 2026-08-11 | **Laptop-Befund: der PDF-Export kommt unter Linux an — und die Schrift steckt wirklich in der Datei** (§4.27, „Was der Laptop gefunden hat"). Der Auftrag aus §5d abgearbeitet. Der Ablauf lief glatt: beide Builds 0/0, `--filter PdfTests` **18 von 18**, voller Lauf **479 von 479** in 18 s — kein Unterschied zu Windows. **Die eigentliche Frage war die Schrift**, denn ein PDF trägt sie in sich und **kein Wächter hätte gemerkt**, wenn Skia sie unter Linux nicht einbettet: die Tests lesen Text zurück und zählen keine Pixel. `pdffonts` auf eine selbst erzeugte Probeseite: **fünf Schnitte, alle `emb yes`, alle CID TrueType** — **kein Systemname** (kein DejaVu, kein Noto), **kein `Type3`**, also keine zu Kurven gemalten Buchstaben. Fett und kursiv holen sich **eigene Schnittdateien** statt eine Regular schräg zu stellen; die Auflösung aus §4.26 greift bis in die Datei durch. Dazu `pdfinfo`: **420 × 595 pt = A5 hochkant**, Titel und Producer angekommen; `pdftotext` gibt alle sechs Absätze in der richtigen Reihenfolge zurück; die Verweis-Vermerke stehen vollständig in der Datei. **Der Fund der Runde ist eine Zahl:** Skia bettet die **ganze** TTF ein und keinen Auszug — die fünf `/Length1` sind **byteweise** die Dateigrößen unter `Assets/Fonts/`, das `AAAAAA+`-Präfix behauptet einen Auszug, den es nicht gibt. Das kostet **rund 200 KB je benutzter Familie**; die Probeseite mit sechs Absätzen wiegt 762 KB. **Entscheidend ist aber, dass es einmalig ist und nicht je Seite:** dieselbe Datei in drei Längen ergab 207 KB (1 Seite), 213 KB (5) und 260 KB (35) — **rund 1,5 KB je Seite** gegen ein volles Rasterbild je Seite beim alten Weg. Damit steht der Gewinn aus §4.27 **in Zahlen**, und er wächst mit jeder Seite. Als Frage vermerkt (§5 „Noch offen" 7, Empfehlung: so lassen) statt still geändert — **es ist nicht linuxspezifisch** (§5d: hier wird nur behoben, was es nur hier gibt), sondern unter Windows nur nie gemessen worden. **Zwei Beobachtungen für die Windows-Runde:** ein Verweis bekommt **so viele `/Link`-Kästen, wie er Wörter hat** (fünf für „Hier geht es zum Repo") — sie stoßen lückenlos aneinander, er ist also vollständig anklickbar, es ist Sparsamkeit und kein Fehler; und **`TdRenderer` kennt `TdHyperlink` gar nicht** — ein Verweis wird wie gewöhnlicher Text gemalt, **kein Blau, keine Unterstreichung**, im PDF also anklickbar, aber unsichtbar. Bei einem übernommenen Dokument fällt das nicht auf (dort trägt das gespeicherte Zeichenformat die Farbe); fällig wird es, sobald der Editor selbst Verweise setzen kann. **Nichts am Code geändert.** **Als Werkzeug-Falle festgehalten** (§7): ein fremdes GTK4-Fenster ist auf `import -window` **schwarz** — es braucht `GDK_BACKEND=x11` **und** `GSK_RENDERER=cairo`, sonst hält man die leere Fläche für einen Absturz des fremden Programms; Eingaben kamen dort auch mit `hervor` nicht an, `zeiger` kann fremde Fenster fotografieren, aber nicht bedienen. Die drei „Nebenbei"-Punkte aus §5d bleiben offen — alle drei brauchen den Nutzer am Gerät |
 | V2-33 | 2026-08-11 | **Der PDF-Export läuft gegen das Modell — §4.1 ist aufgelöst** (§4.27). Der erste der zwei offenen Punkte des Umverdrahtens (§4.23): PDF und PNG eines Textdokuments gehen über `TdPdf` in Core statt über den WPF-Paginator. **Der Umzug nach Core war der Anlass; der Ertrag ist ein anderer.** Der alte Weg rasterte jede Seite über `RenderTargetBitmap` und legte ein **Bild** ins PDF — scharf, aber kein Text: nicht durchsuchbar, nicht markierbar, nicht vorlesbar, kein anklickbarer Verweis, und eine Datei, die mit jeder Seite um ein volles Bild wuchs. `TdPdf` zeichnet **direkt auf die PDF-Leinwand** (`SKDocument.CreatePdf` → `TdRenderer.Seite`); Skia schreibt Textbefehle und bettet die Schriften ein. **Der Wächter dazu ist der wichtigste der Runde** (`Der_Text_im_PDF_ist_Text_und_kein_Bild`) und liest die fertige Datei mit PDFium zurück — **am alten Weg wäre er rot.** **Umbruch und Zeichner mussten nicht angefasst werden**, und das ist der Beleg für §4.16: weil der Umbruch in Zentimetern rechnet, ist der Unterschied zwischen Schirm und Papier **eine einzige Zahl** (96/2,54 gegen 72/2,54). Ein eigener Wächter hält das fest (`Der_Massstab_verschiebt_keine_Umbruchstelle`) — Seite für Seite dasselbe erste Wort. **Zum fünften Mal dasselbe Muster** nach §4.17, §4.20, §4.21 und §4.25: die Rechnung stand schon da, das Neue malt nur; `TdPdf` sind 247 Zeilen. **Die eine Ausnahme ist der Verweis:** eine Sprungmarke ist kein Pixel, sondern ein Vermerk, den nur ein PDF kennt (`DrawUrlAnnotation` ist auf einer Bildschirm-Leinwand wirkungslos) — er gehört deshalb in `TdPdf` und nicht in den Zeichner, gebildet aus **denselben** Zahlen des Umbruchs (§4.13). **Gelöscht statt danebengestellt**, wie in §4.23: der Paginator-Weg (~210 Zeilen), zwei tote Stücke aus `DocumentImages` — und **`DocxImporter` ganz, 556 Zeilen**, denn sein letzter Aufrufer war der Whiteboard-Einfüge-Weg, und der geht jetzt über `TdDocx`. **Netto rund 530 Zeilen Produktivcode weniger bei mehr Funktion.** **Nebenwirkung, die zählt:** der DOCX-Einfüge-Weg brauchte den UI-Thread (der Paginator verlangt das) und ist in ein `Task.Run` gewandert — das Busy-Overlay läuft jetzt wirklich, statt eingefroren dazustehen. **Der Zähler fehlender Bilder ist ehrlicher geworden:** er entstand vorher als Nebenwirkung eines `using` beim Rastern; jetzt fragt `DocumentHealth.MissingImages(TdDocument, ITdImages)` das Modell, das Wasserzeichen zählt mit, ein Diagramm nicht (seine Zahlen stehen im Dokument und können gar nicht fehlen). **18 neue Wächter**, alle über den Rückweg mit PDFium — möglich, weil Docnet nicht nur rendern, sondern auch **Text zurücklesen** kann (`IPageReader.GetText`); beim alten Rasterweg wäre das unmöglich gewesen. **Eine Falle beim Messen dabei gelernt** (§7): `GetPageWidth()` gibt die Maße der *gerenderten* Seite zurück — mit `PageDimensions(1080, 1080)` liest ein Seitenmaß-Test seine eigene Vorgabe zurück und ist immer grün; fürs Papier `PageDimensions(1.0)`. **Augenschein:** ein A5-Dokument mit Überschrift, gemischten Formaten, Verweis und 40 Absätzen nach `%TEMP%` geschrieben und angesehen — vier Seiten, 420×595 pt, Kopfzeile auf Seite 1 unterdrückt und ab Seite 2 da, `Seite 2 von 4` aufgelöst, Text markierbar. **Dabei eine Zahl, die anders ausfiel als gedacht:** rund **490 KB Grundlast plus ~68 KB je Seite** — SkiaSharp bettet die Schriften **ganz** ein und setzt sie nicht teil, also drei vollständige Dateien für Normal, Fett und Kursiv. **Der neue Weg erzeugt bei kurzen Dokumenten die *größere* Datei**, Gleichstand bei etwa fünf Seiten. Bewusst in Kauf genommen (der alte Weg war klein, weil er ein Foto war); der Hebel wäre ein Bauschalter von SkiaSharp und nicht unser Code — **nicht ohne Not verfolgen.** **Was das für Linux bedeutet:** der Textexport ist ab jetzt **vollständig plattformneutral** — DOCX, Markdown, PDF und PNG stehen alle in Core. `AvaloniaDocumentIo` wirft weiter, aber **die Schranke ist keine technische mehr, sondern eine unverdrahtete**; das Verdrahten ist Kopfarbeit und gehört zur Anzeige im Linux-Kopf. **503 Tests** (479 Core + 24 WPF) grün, 0 Warnungen |
 | V2-32 | 2026-08-11 | **Der Laptop prüft das Schriftkonzept gegen** (§4.26, „Was der Laptop gefunden hat") — der Auftrag aus §5d, erste Hälfte. **Die Kernfrage ist beantwortet: die mitgelieferten Schriften gewinnen auch unter Linux**, `SchriftkonzeptTests` 12/12 grün, fontconfig kommt nicht mehr zum Zug; beide Projekte bauen mit 0 Warnungen. **Dabei ein roter Wächter:** `SchriftTests.Unbekannte_Schrift_faellt_zurueck_und_wird_gecacht` behauptete `NotSame(Regular, Family("Segoe UI"))` — richtig unter Windows, **falsch überall sonst**, denn ohne Segoe UI landet die Rückfallkette auf Inter und damit auf genau der Oberflächenschrift. **Das Programm war richtig, der Test hat die Plattform geprüft statt die App** — genau das, was `SchriftTests` laut eigener Kopfzeile nicht tun darf. Hier behoben (linuxspezifisch, §5d): `SystemHat` fragt wie `WbFonts.Aufloesen` über den `FamilyName` nach, **beide Ausgänge werden geprüft** statt einer übersprungen; danach 461/461 grün. **Die CI auf `ubuntu-latest` hätte das vor dem Laptop gefunden — der Lauf zu `2c6752a` muss rot sein.** **Danach der Augenschein, Fragen 2 bis 4.** **Frage 2 ließ sich nicht ausführen, wie sie dastand** — der Linux-Kopf hat **kein Textfeld- und kein Notizzettel-Werkzeug** (`WhiteboardView.axaml` kennt nur Stift, Bleistift, Textmarker, Radierer, Lasso, Verschieben, Hand). Das ist die für **Phase 4.5** vorgemerkte Lücke; der Auftrag war unter Windows geschrieben, wo es die Werkzeuge gibt. **Die Frage dahinter ist trotzdem beantwortet:** sechs Elemente direkt in die Wegwerf-Datenbank geschrieben und zeichnen lassen — Geist, DejaVu Sans, JetBrains Mono und Space Grotesk kommen als **vier sichtbar verschiedene Schriften** heraus, „Segoe UI" fällt auf Inter. **Die mitgelieferte Schrift gewinnt also auch am laufenden Programm, nicht nur im Test.** **Frage 3** bleibt offen wie vorhergesagt (keine Textdokument-Ansicht unter Linux). **Frage 4** bestätigt die benannte Lücke: der Code der Markdown-Ansicht steht in einer **Systemfestbreitenschrift**, denn `MarkdownView.Feste` spricht Schriften über Namen an und `fc-match "JetBrains Mono"` liefert hier Noto Sans Mono — die mitgelieferte Datei ist über den Namen nicht erreichbar. **Zwei Fallen fürs Fernsteuern dazugelernt** (§7): ohne `zeiger hervor` kommt unter Wayland **kein Klick an** (der Fokus liegt auf einer nativen Oberfläche, das Foto bleibt identisch), und das Fenster kann **halb außerhalb des Bildschirms** stehen, ohne dass die Aufnahme es zeigt — `zeiger` hat dafür die Schritte **`hervor`** und **`lage:x,y`** bekommen. |

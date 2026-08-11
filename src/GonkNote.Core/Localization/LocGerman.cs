@@ -15,8 +15,12 @@ internal static class LocGerman
         ["Menu.File.NewNotebook"] = "Neues _Notizbuch",
         ["Menu.File.NewWhiteboard"] = "Neues _Whiteboard",
         ["Menu.File.NewText"] = "Neues _Textdokument",
-        ["Menu.File.Import"] = "Dokument _importieren… (DOCX / Markdown)",
-        ["Menu.File.Export"] = "_Exportieren… (PDF / DOCX / Markdown)",
+        // **Ohne Formatliste im Menüpunkt** (seit §4.28). Sie stand dort als „(DOCX /
+        // Markdown)" bzw. „(PDF / DOCX / Markdown)" und war zweimal ungenau: PNG fehlte, und
+        // der Linux-Kopf importiert nur DOCX — Markdown liest dort niemand. Welche Formate
+        // wirklich gehen, sagt der Dateidialog, und der sagt es je Kopf richtig.
+        ["Menu.File.Import"] = "Dokument _importieren…",
+        ["Menu.File.Export"] = "_Exportieren…",
         ["Menu.File.Save"] = "_Speichern",
         ["Menu.File.SaveAll"] = "_Alle speichern",
         ["Menu.File.Quit"] = "_Beenden",
@@ -435,22 +439,44 @@ internal static class LocGerman
         // an der der Linux-Kopf die Sprachwahl konsequenter befolgt als der Windows-Kopf.)
         ["Dlg.Yes"] = "Ja",
         ["Dlg.No"] = "Nein",
-        // Ebenfalls neu in Phase 3. Import und Export stehen auf FlowDocument und liegen
-        // deshalb noch im WPF-Kopf (HANDOFF §4.1); der Linux-Kopf hat sie erst, wenn die
-        // eigene Dokument-Engine steht — Phase 4.
-        // Steht in der Registerkarte des Linux-Kopfs. **Seit dem zweiten Brocken von Phase 3
-        // nur noch bei Textdokumenten** — Notizbuch und Whiteboard haben ihre Zeichenfläche
-        // (HANDOFF §4.10); der Schlüsselname ist derselbe geblieben, weil er in beiden
-        // Tabellen und im XAML steht und ein neuer nur Arbeit ohne Gewinn wäre.
-        // Bewusst ein ganzer Satz und kein „Nicht implementiert": wer das liest, soll
-        // wissen, dass die Daten in Ordnung sind und nur die Anzeige fehlt.
-        ["Tab.NoCanvasYet"] =
-            "Textdokumente lassen sich hier noch nicht anzeigen — sie brauchen die eigene " +
-            "Dokument-Engine, die als Nächstes entsteht. Der Inhalt ist unverändert " +
-            "gespeichert und in der Windows-Fassung wie gewohnt zu sehen.",
+        // ---- Textdokument im Linux-Kopf (HANDOFF §4.28) ----
+        // Der Schlüssel Tab.NoCanvasYet ist mit §4.28 verschwunden: die Registerkarte zeigt
+        // seitdem das gesetzte Dokument. Was blieb, sind zwei Sätze — der eine für ein
+        // Dokument, das die Übernahme noch vor sich hat, der andere für die Tafel, deren
+        // Export weiterhin am WPF-Kopf hängt (Phase 4.5).
+        //
+        // Bewusst ganze Sätze und kein „Nicht implementiert": wer das liest, soll wissen,
+        // dass die Daten in Ordnung sind.
         ["Io.NotOnThisPlatform"] =
-            "Import und Export gibt es auf dieser Plattform noch nicht. Sie kommen mit der " +
-            "eigenen Dokument-Engine; bis dahin führt der Weg über die Windows-Fassung.",
+            "Diesen Export gibt es auf dieser Plattform noch nicht — er zeichnet über die " +
+            "Windows-Zeichenfläche und zieht erst mit den Linux-Werkzeugen um. " +
+            "Textdokumente lassen sich hier bereits exportieren.",
+        ["Io.NotMigrated"] =
+            "Dieses Dokument stammt aus der Windows-Fassung und ist noch nicht ins eigene " +
+            "Format übernommen. Die Übernahme läuft nur dort — einmal in der Windows-Fassung " +
+            "öffnen und speichern genügt.",
+        ["Td.NotMigrated"] =
+            "Dieses Dokument stammt aus der Windows-Fassung und ist noch nicht ins eigene " +
+            "Format übernommen — anzeigen lässt es sich hier deshalb noch nicht. " +
+            "Der Inhalt ist unverändert gespeichert. Einmal in der Windows-Fassung öffnen " +
+            "und speichern, danach steht es auch hier.",
+        ["Ed.ViewOnly"] = "Nur Ansicht",
+        ["Ed.ViewOnly.Tip"] =
+            "Der Linux-Kopf zeigt das Dokument, geschrieben wird bis auf Weiteres in der " +
+            "Windows-Fassung. Angezeigt wird genau das, was auch exportiert würde — " +
+            "derselbe Umbruch, derselbe Zeichner.",
+        ["Ed.Export"] = "Exportieren",
+        ["Ed.Export.Tip"] = "Dieses Dokument als PDF, Word, Markdown oder PNG schreiben",
+        ["Ed.FitWidth"] = "Seitenbreite",
+        ["Ed.FitWidth.Tip"] = "Zoom so setzen, dass die Seite in die Breite passt",
+        ["Ed.FitPage"] = "Ganze Seite",
+        ["Ed.FitPage.Tip"] = "Zoom so setzen, dass eine ganze Seite zu sehen ist",
+        // Ablesewerte unter der Beschriftung „Kopf- und Fußzeile" — sie dürfen die
+        // Beschriftung nicht wiederholen, sonst steht dort zweimal dasselbe.
+        ["Td.HeaderFooter.Both"] = "beide",
+        ["Td.HeaderFooter.HeaderOnly"] = "nur Kopfzeile",
+        ["Td.HeaderFooter.FooterOnly"] = "nur Fußzeile",
+        ["Td.HeaderFooter.None"] = "keine",
         ["Guide.Title"] = "Erste Schritte",
         ["Guide.Heading"] = "Erste Schritte mit Gonk Note",
         ["Guide.Subtitle"] = "Von der ersten Notiz bis zur Sicherung — Schritt für Schritt.",

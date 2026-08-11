@@ -32,13 +32,9 @@ public sealed class WpfDocumentIo : IDocumentIo
         new(Loc.T("Filter.AllFiles"), ".*"),
     ];
 
-    public IReadOnlyList<FileFilter> TextExportFormats =>
-    [
-        new(Loc.T("Filter.Pdf"), ".pdf"),
-        new(Loc.T("Filter.Word"), ".docx"),
-        new(Loc.T("Filter.Markdown"), ".md"),
-        new(Loc.T("Filter.Png"), ".png"),
-    ];
+    // Die Liste steht seit §4.28 in Core (TdExport.Formate) — alle vier Wege stehen dort, und
+    // eine zweite Aufzählung im Linux-Kopf wäre die Falle aus §4.13.
+    public IReadOnlyList<FileFilter> TextExportFormats => TdExport.Formate;
 
     public IReadOnlyList<FileFilter> BoardExportFormats =>
     [
@@ -68,47 +64,14 @@ public sealed class WpfDocumentIo : IDocumentIo
         return AlsXamlPackage(flow, target);
     }
 
-    public ExportResult ExportText(TextDoc doc, string title, string path)
-    {
-        string ext = Path.GetExtension(path).ToLowerInvariant();
-
-        List<string> written = [path];
-        int issues = 0;
-
-        // **Alle vier Wege laufen gegen das Modell** (§4.23, seit §4.27 vollständig). PDF und
-        // PNG waren die letzten zwei am WPF-Paginator; sie gehen jetzt über TdLayout und
-        // TdRenderer wie alles andere — und damit auch unter Linux.
-        var modell = Modell(doc);
-        var bilder = new TdBlobImages(BlobStore.Current!);
-
-        switch (ext)
-        {
-            case ".docx":
-                TdDocx.Schreiben(modell, path, bilder, title);
-                issues = TdDocx.Pruefen(path);
-                break;
-
-            case ".md":
-                TdMarkdown.Export(modell, path, Feldwerte(title));
-                break;
-
-            case ".png":
-                written = TdPdf.Png(modell, path, bilder, title, Feldwerte(title));
-                break;
-
-            default:
-                TdPdf.Schreiben(modell, path, bilder, title, Feldwerte(title));
-                break;
-        }
-
-        // Nur PDF und PNG malen die Bilder wirklich; DOCX und Markdown reichen sie durch und
-        // können deshalb gar nichts vermissen.
-        int missing = ext is ".pdf" or ".png" or ""
-            ? DocumentHealth.MissingImages(modell, bilder)
-            : 0;
-
-        return new ExportResult(written, issues, missing);
-    }
+    /// <summary>
+    /// <b>Alle vier Wege laufen gegen das Modell</b> (§4.23, seit §4.27 vollständig) und
+    /// stehen seit §4.28 als <see cref="TdExport.Schreiben"/> in Core. Was hier bleibt, ist
+    /// das, was nur dieser Kopf kann: das Modell notfalls aus dem Altformat holen.
+    /// </summary>
+    public ExportResult ExportText(TextDoc doc, string title, string path) =>
+        TdExport.Schreiben(
+            Modell(doc), path, new TdBlobImages(BlobStore.Current!), title, Feldwerte(title));
 
     /// <summary>
     /// Das Modell, aus dem exportiert wird.

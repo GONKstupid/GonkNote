@@ -22,16 +22,23 @@ looks identical on either.
 
 **The Linux edition can do today:** folder tree including drag & drop, pinning and
 favourites, gallery, two languages, dark/light, the sliding title bar, help and about
-dialog — and the canvas for **notebooks and whiteboards**: pen, pencil and highlighter with
+dialog — the canvas for **notebooks and whiteboards**: pen, pencil and highlighter with
 pressure and tilt, precise erasing, lasso and move, page navigation, adding and deleting
 pages, page settings (pattern, shade, size), zoom, touch gestures, undo and saving.
+
+**New: text documents are displayed.** A text document opens as typeset paper — with
+headings, character formats, lists, tables, images, charts and running heads, page by page,
+with zoom, "Fit width" and "Whole page". **What you see is exactly what would be exported** —
+same layout, same renderer. Plus **import** (DOCX) and **export** (PDF, DOCX, Markdown, PNG).
 
 **What the Linux edition still lacks** — each with a reason, none of it forgotten:
 
 | Missing | Why |
 |---|---|
-| **Text documents** (they open but cannot be edited) | The editor rests on a Windows building block. It is currently being replaced by an in-house document engine that runs everywhere |
-| **Import and export** (DOCX, PDF, Markdown, PNG) | Depends on that same change |
+| **Writing in text documents** (viewing and exporting work, typing does not) | Caret, selection and input are the next step of the in-house document engine |
+| **Importing Markdown** (DOCX works) | The Markdown reader still rests on a Windows building block |
+| **Exporting boards** (PDF/PNG of a whiteboard or notebook) | That path draws through the Windows canvas and moves over with the missing tools |
+| **Existing documents from the Windows edition** appear only after being opened and saved there once | Their old format is readable on Windows only. Their contents stay untouched |
 | Shape pen, text boxes, sticky notes, stickers, numpad, quick-options menu, ruler and set square | Follow after the document engine |
 | Text recognition (OCR) and spell checking | Need counterparts to the Windows services |
 

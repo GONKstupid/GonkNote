@@ -39,8 +39,8 @@ not need admin rights.
 
 > **Gonk Note comes in two editions** — one for Windows and one for Linux. Both read the
 > same files and look almost identical. The **Linux edition is not complete yet**: notebooks
-> and whiteboards work, text documents open but cannot be edited yet, and import/export are
-> missing. Exactly what is missing is listed in the
+> and whiteboards work, text documents can be **viewed and exported but not written in**,
+> and a whiteboard cannot be exported there. Exactly what is missing is listed in the
 > [README](README.en.md#two-editions-one-app).
 
 > There is no ready-made release to download (yet) — you build the program yourself with two
@@ -241,8 +241,14 @@ does not fit on A4.
 **Text document** (`File → New text document`) — a rich-text editor in a ribbon layout
 (`Home`, `Insert`, `Layout`, `References`).
 
-> **Windows edition only.** In the Linux edition a text document can be created and opened,
-> but not yet edited — the tab says so too. Your texts stay untouched meanwhile.
+> **Writing is Windows-only.** The Linux edition **displays** a text document in full — as
+> typeset paper with tables, images, charts and a running head, page by page and with zoom —
+> and exports it. Typing is not possible there yet; the ribbon says "View only". Your texts
+> stay untouched meanwhile.
+>
+> **A document from the Windows edition** shows up under Linux only after being opened and
+> saved there once: its old format is readable on Windows only. Until then the tab tells you
+> what to do — and the contents are stored unchanged.
 
 To get going:
 
@@ -269,9 +275,10 @@ Exports are always "on paper": even in dark mode you get a light sheet with dark
 original data for an image is missing, Gonk Note tells you after the export — instead of quietly
 exporting at lower quality.
 
-> **Windows edition only.** Exporting rests on the same Windows building block as the text
-> editor and moves along with it. The Linux edition says honestly that it cannot do this,
-> rather than writing an empty file.
+> **In the Linux edition: text documents yes, boards not yet.** A text document goes out in
+> all four formats there — the **Export** button sits in the document's ribbon and preselects
+> the format. Exporting a whiteboard or notebook still rests on the Windows building block;
+> the Linux edition says so honestly rather than writing an empty file.
 
 ---
 

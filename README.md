@@ -22,17 +22,25 @@ Renderer — ein Notizbuch sieht auf beiden gleich aus.
 
 **Die Linux-Ausgabe kann heute:** Ordnerbaum samt Drag & Drop, Anpinnen und Favoriten,
 Galerie, zwei Sprachen, Dark/Light, die einblendbare Titelleiste, Hilfe und Über-Dialog —
-und die Zeichenfläche für **Notizbuch und Whiteboard**: Stift, Bleistift und Textmarker mit
+die Zeichenfläche für **Notizbuch und Whiteboard**: Stift, Bleistift und Textmarker mit
 Druck und Neigung, punktgenaues Radieren, Lasso und Verschieben, Seiten blättern, anlegen
 und löschen, Seiteneinstellungen (Muster, Farbton, Format), Zoom, Finger-Gesten,
 Rückgängig und Speichern.
+
+**Neu: Textdokumente werden angezeigt.** Ein Textdokument öffnet sich als gesetztes Papier —
+mit Überschriften, Zeichenformaten, Listen, Tabellen, Bildern, Diagrammen sowie Kopf- und
+Fußzeile, seitenweise zum Blättern, mit Zoom, „Seitenbreite" und „Ganze Seite". **Angezeigt
+wird dabei genau das, was auch exportiert würde** — derselbe Umbruch, derselbe Zeichner.
+Dazu **Import** (DOCX) und **Export** (PDF, DOCX, Markdown, PNG).
 
 **Was der Linux-Ausgabe noch fehlt** — jeweils mit Grund, keines davon ist vergessen:
 
 | Fehlt | Warum |
 |---|---|
-| **Textdokumente** (sie lassen sich öffnen, aber nicht bearbeiten) | Der Editor steht auf einem Windows-Baustein. Er wird gerade durch eine eigene Dokument-Engine ersetzt, die auf allen Systemen läuft |
-| **Import und Export** (DOCX, PDF, Markdown, PNG) | Hängt an derselben Umstellung |
+| **Schreiben in Textdokumenten** (anzeigen und exportieren geht, tippen noch nicht) | Cursor, Auswahl und Eingabe sind der nächste Schritt der eigenen Dokument-Engine |
+| **Markdown importieren** (DOCX geht) | Der Markdown-Leser steht noch auf einem Windows-Baustein |
+| **Tafeln exportieren** (PDF/PNG eines Whiteboards oder Notizbuchs) | Der Weg zeichnet über die Windows-Zeichenfläche und zieht mit den fehlenden Werkzeugen um |
+| **Bestandsdokumente aus der Windows-Ausgabe** erscheinen erst, nachdem sie dort einmal geöffnet und gespeichert wurden | Ihr altes Format liest nur Windows. Der Inhalt bleibt dabei unangetastet |
 | Formen-Stift, Textfelder, Notizzettel, Sticker, Zahlenblock, Quick-Options-Menü, Lineal und Geodreieck | Kommen nach der Dokument-Engine |
 | Texterkennung (OCR) und Rechtschreibprüfung | Brauchen Gegenstücke zu den Windows-Diensten |
 

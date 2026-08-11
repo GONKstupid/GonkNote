@@ -41,8 +41,9 @@ Adminrechte brauchst du nicht.
 > **Gonk Note gibt es in zwei Ausgaben** — eine für Windows und eine für Linux.
 > Beide lesen dieselben Dateien und sehen fast gleich aus. Die **Linux-Ausgabe ist
 > noch nicht vollständig**: Notizbuch und Whiteboard laufen, Textdokumente lassen
-> sich öffnen, aber noch nicht bearbeiten, und Import/Export fehlen. Was genau
-> fehlt, steht im [README](README.md#zwei-ausgaben-eine-app).
+> sich **anzeigen und exportieren, aber noch nicht beschreiben**, und ein
+> Whiteboard lässt sich dort nicht exportieren. Was genau fehlt, steht im
+> [README](README.md#zwei-ausgaben-eine-app).
 
 > Es gibt (noch) kein fertiges Release zum Herunterladen — du baust dir das
 > Programm in zwei Befehlen selbst.
@@ -257,9 +258,16 @@ Mindmaps, Skizzen und alles, was nicht in A4 passt.
 **Textdokument** (`Datei → Neues Textdokument`) — ein Rich-Text-Editor im
 Ribbon-Layout (`Start`, `Einfügen`, `Layout`, `Verweise`).
 
-> **Nur in der Windows-Ausgabe.** In der Linux-Ausgabe lässt sich ein Textdokument
-> anlegen und öffnen, aber noch nicht bearbeiten — die Registerkarte sagt das auch.
-> Deine Texte bleiben dabei unangetastet.
+> **Schreiben geht nur in der Windows-Ausgabe.** Die Linux-Ausgabe **zeigt** ein
+> Textdokument vollständig an — als gesetztes Papier mit Tabellen, Bildern,
+> Diagrammen und Kopfzeile, zum Blättern und Zoomen — und exportiert es. Tippen
+> geht dort noch nicht; das Ribbon sagt „Nur Ansicht". Deine Texte bleiben dabei
+> unangetastet.
+>
+> **Ein Dokument aus der Windows-Ausgabe** erscheint unter Linux erst, nachdem es
+> dort einmal geöffnet und gespeichert wurde: sein altes Format liest nur Windows.
+> Bis dahin steht in der Registerkarte, was zu tun ist — und der Inhalt ist
+> unverändert gespeichert.
 
 Zum Einstieg:
 
@@ -288,9 +296,11 @@ dunkler Schrift heraus. Fehlen zu einem Bild die Originaldaten, sagt Gonk Note
 das nach dem Export — statt stillschweigend in schlechterer Qualität zu
 exportieren.
 
-> **Nur in der Windows-Ausgabe.** Der Export hängt am selben Windows-Baustein wie
-> der Texteditor und zieht mit ihm um. Die Linux-Ausgabe meldet ehrlich, dass sie
-> es nicht kann, statt eine leere Datei zu schreiben.
+> **In der Linux-Ausgabe: Textdokumente ja, Tafeln noch nicht.** Ein Textdokument
+> geht dort in alle vier Formate — der Knopf **Exportieren** sitzt im Ribbon des
+> Dokuments und wählt das Format gleich vor. Der Export eines Whiteboards oder
+> Notizbuchs hängt noch am Windows-Baustein; die Linux-Ausgabe sagt das ehrlich,
+> statt eine leere Datei zu schreiben.
 
 ---
 

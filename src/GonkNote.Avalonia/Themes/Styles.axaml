@@ -99,6 +99,12 @@
         <StreamGeometry x:Key="Icon.Vor">M6,3 L11,8 L6,13</StreamGeometry>
         <StreamGeometry x:Key="Icon.Papierkorb">M3,4.5 H13 M6.5,4.5 V2.8 H9.5 V4.5 M4.3,4.5 L5,13.5 H11 L11.7,4.5 M6.7,6.8 V11.4 M9.3,6.8 V11.4</StreamGeometry>
 
+        <!-- Ribbon des Textdokuments (§4.28). Export = Blatt mit Pfeil heraus, Seitenbreite
+             und Ganze Seite = ein Blatt mit Pfeilen in die Richtung, die eingepasst wird. -->
+        <StreamGeometry x:Key="Icon.Export">M8,10 V2 M5,5 L8,2 L11,5 M3,9.5 V13 A1,1 0 0 0 4,14 H12 A1,1 0 0 0 13,13 V9.5</StreamGeometry>
+        <StreamGeometry x:Key="Icon.Seitenbreite">M4.5,2.5 H11.5 V13.5 H4.5 Z M1.5,8 H4 M12,8 H14.5 M1.5,8 L3,6.5 M1.5,8 L3,9.5 M14.5,8 L13,6.5 M14.5,8 L13,9.5</StreamGeometry>
+        <StreamGeometry x:Key="Icon.GanzeSeite">M4.5,3.5 H11.5 V12.5 H4.5 Z M8,0.8 V3 M8,13 V15.2 M8,0.8 L6.6,2.2 M8,0.8 L9.4,2.2 M8,15.2 L6.6,13.8 M8,15.2 L9.4,13.8</StreamGeometry>
+
     </Styles.Resources>
 
     <!-- ==== Knöpfe ==================================================================== -->
@@ -289,6 +295,70 @@
     </Style>
     <Style Selector="RadioButton.farbe:pointerover /template/ Border#Ring">
         <Setter Property="Background" Value="{DynamicResource Brush.Hover}"/>
+    </Style>
+
+    <!-- ==== Ribbon des Textdokuments (§4.28) ========================================== -->
+
+    <!-- Ribbon-Reiter: aktiv über einen 2-px-Unterstrich in der Akzentfarbe. **Derselbe
+         Entwurf wie im WPF-Kopf** (RibbonTab in TextEditorView.xaml, Design-Konzept 7.2) —
+         nur als Avalonia-Stil geschrieben, wo WPF Trigger braucht. Wer die Köpfe
+         nebeneinanderstellt, soll dieselbe Leiste sehen. -->
+    <Style Selector="RadioButton.ribbonreiter">
+        <Setter Property="Foreground" Value="{DynamicResource Brush.TextMuted}"/>
+        <Setter Property="FontSize" Value="12.5"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Panel Background="Transparent">
+                    <ContentPresenter Content="{TemplateBinding Content}"
+                                      Foreground="{TemplateBinding Foreground}"
+                                      FontWeight="{TemplateBinding FontWeight}"
+                                      Margin="12,5,12,7"
+                                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <Rectangle Name="Unterstrich" Height="2" VerticalAlignment="Bottom"
+                               Margin="10,0" IsVisible="False"
+                               Fill="{DynamicResource Brush.Accent}"/>
+                </Panel>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <Style Selector="RadioButton.ribbonreiter:pointerover">
+        <Setter Property="Foreground" Value="{DynamicResource Brush.Text}"/>
+    </Style>
+    <Style Selector="RadioButton.ribbonreiter:checked">
+        <Setter Property="Foreground" Value="{DynamicResource Brush.Text}"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+    </Style>
+    <Style Selector="RadioButton.ribbonreiter:checked /template/ Rectangle#Unterstrich">
+        <Setter Property="IsVisible" Value="True"/>
+    </Style>
+
+    <!-- Knopf mit Symbol **und** Beschriftung — im Ribbon ist Platz dafür, und ein Wort
+         erspart das Raten, das ein reines Symbol verlangt. -->
+    <Style Selector="Button.ribbonknopf">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="CornerRadius" Value="6"/>
+        <Setter Property="Height" Value="32"/>
+        <Setter Property="Padding" Value="8,0"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Foreground" Value="{DynamicResource Brush.Text}"/>
+    </Style>
+    <Style Selector="Button.ribbonknopf:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource Brush.Hover}"/>
+    </Style>
+    <Style Selector="Button.ribbonknopf:disabled">
+        <Setter Property="Opacity" Value="0.45"/>
+    </Style>
+
+    <!-- Beschriftung eines Ablesefeldes im Ribbon (Format, Ränder, Kopfzeile …). -->
+    <Style Selector="TextBlock.feldname">
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="Foreground" Value="{DynamicResource Brush.TextMuted}"/>
+    </Style>
+    <Style Selector="TextBlock.feldwert">
+        <Setter Property="FontSize" Value="12.5"/>
+        <Setter Property="Foreground" Value="{DynamicResource Brush.Text}"/>
     </Style>
 
     <!-- Trennstrich zwischen den Gruppen der Werkzeugleiste. -->

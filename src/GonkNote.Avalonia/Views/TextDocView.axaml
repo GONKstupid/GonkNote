@@ -1,0 +1,181 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:views="clr-namespace:GonkNote.Views"
+             xmlns:loc="clr-namespace:GonkNote.Services"
+             xmlns:vm="clr-namespace:GonkNote.ViewModels;assembly=GonkNote.ViewModels"
+             x:Class="GonkNote.Views.TextDocView"
+             x:DataType="vm:TextTabViewModel">
+
+    <!-- Die Anzeige eines Textdokuments im Linux-Kopf (HANDOFF §4.28).
+
+         **Sie zeigt und sie schreibt nicht.** Gezeichnet wird von `TdRenderer` aus Core,
+         umbrochen von `TdLayout` — derselbe Weg, den der PDF-Export nimmt (§4.27), und
+         deshalb steht auf dem Schirm buchstäblich das, was ins PDF ginge. Was fehlt, ist
+         Caret, Auswahl und Eingabe; das ist eine eigene Runde und steht als solche im
+         Ribbon **dran** statt als halber Knopf darin (§7).
+
+         Der Aufbau folgt dem WPF-Gegenstück (src/GonkNote.Wpf/Views/TextEditorView.xaml):
+         Ribbon oben mit Reiterleiste, Blätterbereich in der Mitte, Seitenleiste unten. -->
+
+    <DockPanel>
+
+        <!-- ==================== Ribbon ==================== -->
+        <Border DockPanel.Dock="Top" Background="{DynamicResource Brush.ToolbarBg}"
+                BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,0,0,1">
+            <StackPanel>
+
+                <!-- Reiterleiste. **Nur die zwei Reiter, die Inhalt haben.** „Einfügen",
+                     „Verweise" und „Tabelle" gibt es drüben, weil man dort schreiben kann;
+                     hier wären es drei leere Flächen — ein halbes Feature ist schlechter als
+                     ein fehlendes, weil niemand ihm ansieht, dass es halb ist (§4.12). -->
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Right" VerticalAlignment="Center"
+                               Margin="0,0,14,0" FontSize="11.5"
+                               Text="{loc:T Ed.ViewOnly}"
+                               ToolTip.Tip="{loc:T Ed.ViewOnly.Tip}"
+                               Foreground="{DynamicResource Brush.TextMuted}"/>
+
+                    <StackPanel Orientation="Horizontal" Margin="6,0,0,0">
+                        <RadioButton x:Name="ReiterStart" Classes="ribbonreiter" GroupName="ribbon"
+                                     Content="{loc:T Ed.Tab.Home}" IsChecked="True"
+                                     IsCheckedChanged="Reiter_Gewechselt" Tag="Start"/>
+                        <RadioButton x:Name="ReiterLayout" Classes="ribbonreiter" GroupName="ribbon"
+                                     Content="{loc:T Ed.Tab.Layout}"
+                                     IsCheckedChanged="Reiter_Gewechselt" Tag="Layout"/>
+                    </StackPanel>
+                </DockPanel>
+
+                <!-- ============ Reiter „Start": Ansicht und Ausgabe ============ -->
+                <WrapPanel x:Name="LeisteStart" Margin="8,2,8,6">
+
+                    <Button x:Name="KnopfExport" Classes="ribbonknopf"
+                            ToolTip.Tip="{loc:T Ed.Export.Tip}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <Path Classes="symbol" Data="{StaticResource Icon.Export}"
+                                  Stroke="{DynamicResource Brush.Text}"/>
+                            <TextBlock Text="{loc:T Ed.Export}" VerticalAlignment="Center"/>
+                            <Path Classes="symbol" Data="{StaticResource Icon.ChevronUnten}"
+                                  Width="10" Height="10"
+                                  Stroke="{DynamicResource Brush.TextMuted}"/>
+                        </StackPanel>
+                        <Button.Flyout>
+                            <MenuFlyout>
+                                <MenuItem Header="{loc:T Filter.Pdf}" Tag=".pdf" Click="Export_Click"/>
+                                <MenuItem Header="{loc:T Filter.Word}" Tag=".docx" Click="Export_Click"/>
+                                <MenuItem Header="{loc:T Filter.Markdown}" Tag=".md" Click="Export_Click"/>
+                                <MenuItem Header="{loc:T Filter.Png}" Tag=".png" Click="Export_Click"/>
+                            </MenuFlyout>
+                        </Button.Flyout>
+                    </Button>
+
+                    <Border Classes="trenner"/>
+
+                    <Button Classes="flach symbol" Click="ZoomRaus_Click" ToolTip.Tip="{loc:T Zoom.Out}">
+                        <Path Classes="symbol" Data="{StaticResource Icon.ZoomMinus}"
+                              Stroke="{DynamicResource Brush.Text}"/>
+                    </Button>
+                    <Button x:Name="ZoomAnzeige" Classes="flach" MinWidth="52" Content="100 %"
+                            FontSize="12" Click="ZoomZurueck_Click" ToolTip.Tip="{loc:T Zoom.Reset}"
+                            Foreground="{DynamicResource Brush.TextMuted}"/>
+                    <Button Classes="flach symbol" Click="ZoomRein_Click" ToolTip.Tip="{loc:T Zoom.In}">
+                        <Path Classes="symbol" Data="{StaticResource Icon.ZoomPlus}"
+                              Stroke="{DynamicResource Brush.Text}"/>
+                    </Button>
+
+                    <Border Classes="trenner"/>
+
+                    <Button Classes="ribbonknopf" Click="Seitenbreite_Click"
+                            ToolTip.Tip="{loc:T Ed.FitWidth.Tip}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <Path Classes="symbol" Data="{StaticResource Icon.Seitenbreite}"
+                                  Stroke="{DynamicResource Brush.Text}"/>
+                            <TextBlock Text="{loc:T Ed.FitWidth}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Classes="ribbonknopf" Click="GanzeSeite_Click"
+                            ToolTip.Tip="{loc:T Ed.FitPage.Tip}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <Path Classes="symbol" Data="{StaticResource Icon.GanzeSeite}"
+                                  Stroke="{DynamicResource Brush.Text}"/>
+                            <TextBlock Text="{loc:T Ed.FitPage}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Border Classes="trenner"/>
+
+                    <!-- Wörter und Zeichen: dieselbe Angabe wie in der Statusleiste des
+                         WPF-Editors, hier aus dem Modell gezählt statt aus dem FlowDocument. -->
+                    <TextBlock x:Name="Zaehlung" VerticalAlignment="Center" FontSize="12"
+                               Foreground="{DynamicResource Brush.TextMuted}"/>
+                </WrapPanel>
+
+                <!-- ============ Reiter „Layout": die Seiteneinrichtung, abgelesen ============ -->
+                <!-- **Nur ablesen, nicht stellen.** Die Werte stehen im Abschnitt
+                     (`TdSection.Page`, §4.15); sie zu ändern hieße das Dokument zu ändern,
+                     und dafür fehlt der Schreibweg. Angezeigt werden sie trotzdem: sie
+                     erklären den Umbruch, den man daneben sieht. -->
+                <WrapPanel x:Name="LeisteLayout" Margin="8,2,8,6" IsVisible="False">
+                    <StackPanel Margin="0,0,18,0">
+                        <TextBlock Classes="feldname" Text="{loc:T Ed.Layout.PaperSize}"/>
+                        <TextBlock x:Name="FeldFormat" Classes="feldwert"/>
+                    </StackPanel>
+                    <StackPanel Margin="0,0,18,0">
+                        <TextBlock Classes="feldname" Text="{loc:T Settings.Page.Orientation}"/>
+                        <TextBlock x:Name="FeldLage" Classes="feldwert"/>
+                    </StackPanel>
+                    <StackPanel Margin="0,0,18,0">
+                        <TextBlock Classes="feldname" Text="{loc:T Ed.Layout.Margins}"/>
+                        <TextBlock x:Name="FeldRaender" Classes="feldwert"/>
+                    </StackPanel>
+                    <StackPanel Margin="0,0,18,0">
+                        <TextBlock Classes="feldname" Text="{loc:T Ed.HeaderFooter}"/>
+                        <TextBlock x:Name="FeldKopfFuss" Classes="feldwert"/>
+                    </StackPanel>
+                </WrapPanel>
+            </StackPanel>
+        </Border>
+
+        <!-- ==================== Seitenleiste unten ==================== -->
+        <!-- Sie verschwindet mit den Seiten: „Zurück / Vor" über einem Dokument, das gar
+             nicht angezeigt wird, sind zwei Knöpfe, die nichts tun können. -->
+        <Border x:Name="Seitenleiste" DockPanel.Dock="Bottom" IsVisible="False"
+                Background="{DynamicResource Brush.ToolbarBg}"
+                BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,1,0,0">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="8,4" Spacing="2">
+                <Button Classes="flach symbol" Click="SeiteZurueck_Click" ToolTip.Tip="{loc:T Page.Previous}">
+                    <Path Classes="symbol" Data="{StaticResource Icon.Zurueck}"
+                          Stroke="{DynamicResource Brush.Text}"/>
+                </Button>
+                <TextBlock x:Name="SeitenAnzeige" VerticalAlignment="Center" MinWidth="110"
+                           TextAlignment="Center" FontSize="12"
+                           Foreground="{DynamicResource Brush.TextMuted}"/>
+                <Button Classes="flach symbol" Click="SeiteVor_Click" ToolTip.Tip="{loc:T Page.Next}">
+                    <Path Classes="symbol" Data="{StaticResource Icon.Vor}"
+                          Stroke="{DynamicResource Brush.Text}"/>
+                </Button>
+            </StackPanel>
+        </Border>
+
+        <!-- ==================== Die Blätter ==================== -->
+        <Panel>
+            <!-- Der Bildlauf gehört dem ScrollViewer und nicht der Leinwand: die Leinwand
+                 bekommt die volle Höhe aller Seiten und zeichnet nur, was gerade im
+                 Sichtfenster steht (siehe TextDocView.axaml.cs, `Sichtbar`). -->
+            <ScrollViewer x:Name="Blaetter" Background="{DynamicResource Brush.CanvasBg}"
+                          HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                <views:SkiaCanvas x:Name="Skia"/>
+            </ScrollViewer>
+
+            <!-- Ein Dokument, das die Übernahme noch vor sich hat. **Kein leeres Blatt** —
+                 das sähe aus wie gelöschter Inhalt, und der Inhalt ist unversehrt da
+                 (§4.22). -->
+            <Border x:Name="HinweisUebernahme" IsVisible="False"
+                    Background="{DynamicResource Brush.CardBg}">
+                <TextBlock Text="{loc:T Td.NotMigrated}" TextWrapping="Wrap"
+                           MaxWidth="460" TextAlignment="Center"
+                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                           Foreground="{DynamicResource Brush.TextMuted}"/>
+            </Border>
+        </Panel>
+    </DockPanel>
+</UserControl>

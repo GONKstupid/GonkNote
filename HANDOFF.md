@@ -96,6 +96,7 @@ Die Datei ist lang, und das bleibt sie: sie trägt die Begründungen, nicht nur 
 | **5b** | Wann und wie auf den CachyOS-Laptop gewechselt wird | bevor man ihn anfasst |
 | **5c** | GitHub-Zugang beider Rechner | wenn `git push` klemmt |
 | **5d** | 🐧 **Arbeitsanweisung für den Laptop** samt Prompt zum Kopieren | wenn du *auf* dem Laptop läufst |
+| **5e** | 🪟 **Arbeitsanweisung für den Windows-Rechner** samt Prompt zum Kopieren | wenn du *auf* Windows läufst — **das ist der Normalfall** |
 | **6** | Arbeitsplan: Häkchen je Phase, Vorgemerktes, Veröffentlichung | „was kommt als Nächstes?" |
 | **7** | **Fallen** — was schon einmal weh getan hat | **vor jeder Code-Änderung überfliegen** |
 | **8** | Schnellstart-Befehle (Bauen, Testen, Fernsteuern, DB-Kopie) | zum Kopieren |
@@ -119,17 +120,21 @@ und iPadOS** — Greenfield-Solution, in die der wiederverwendbare Code aus V1 w
 | **Roadmap (die Vorgabe)** | `C:\Users\manue\Desktop\GonkNote-TM\gonk-note-port-RM.MD` — **umgezogen**, hier stand bis 2026-08-04 der Pfad direkt auf dem Desktop |
 | **V1-Handoff (alle Alt-Erfahrungen)** | `C:\Dev\Zed\gonk-note\HANDOFF.md` — **weiterhin gültig**, §4 Fallen und §7 Testen dort lesen |
 
-> ### 🐧 Läufst du auf dem CachyOS-Laptop?
-> **Dann steht deine Arbeitsanweisung in §5d** — dort und nirgends sonst. Der Nutzer muss dir
-> nichts weiter sagen als „lies das HANDOFF". Lies §5b (warum der Laptop Messgerät und kein
-> Arbeitsplatz ist) und arbeite dann den „Aktuellen Auftrag" aus §5d ab. Die Punkte 1–4 unten
-> gelten auf dem Windows-Rechner.
+> ### Auf welchem Rechner läufst du?
+>
+> | | |
+> |---|---|
+> | 🪟 **Windows** — der Normalfall, hier wird entwickelt | **§5e** sagt, womit die nächste Runde anfängt: drei Handgriffe zum Aufräumen, dann der Arbeitsplan aus §6 |
+> | 🐧 **CachyOS-Laptop** — Messgerät, kein Arbeitsplatz | **§5d**, dort und nirgends sonst. Vorher §5b lesen (warum das so ist) |
+>
+> Der Nutzer muss dir in beiden Fällen nichts weiter sagen als „lies das HANDOFF".
 
 **In dieser Reihenfolge vorgehen:**
 
 1. **Wünsche und Fehlermeldungen des Nutzers zuerst.** Vorrang vor allem anderen.
 2. Sonst: **§5 Entscheidungen** — was dort offen steht, nachfragen statt raten.
-3. Sonst: den nächsten Punkt aus **§6 Arbeitsplan** nehmen.
+3. Sonst: **§5e** (auf Windows) bzw. **§5d** (auf dem Laptop) — dort steht, womit anzufangen
+   ist. Was gebaut wird, steht dahinter in **§6 Arbeitsplan**.
 4. Vor jeder Code-Änderung **§7 Fallen** überfliegen.
 5. **Am Ende der Antwort** eine Zeile, ob der nächste Schritt an den Laptop gehört
    (Dauerregel 3a). Wenn ja, gehört **§5d nachgezogen**, bevor der Nutzer wechselt.
@@ -302,11 +307,14 @@ Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — beh
 > nachzufragen.** Phase 4.5 rückt dahinter, bleibt vollständig vorgemerkt und trägt weiterhin
 > M2.
 >
-> **Der Arbeitsplan steht in §6, „Als Nächstes: das Schreiben"** — sieben Schritte und drei
-> Fallen, die schon feststehen. **Dort anfangen.** Die Reihenfolge ist dieselbe wie in
-> Phase 4: erst das Modell (Schritte 1–3, reine Core-Arbeit), dann die Oberfläche.
+> **Wo und womit angefangen wird, steht in §5e** — der Arbeitsanweisung für den
+> Windows-Rechner: **drei Handgriffe zum Aufräumen** (die Versionszeile im WPF-Dialog, der
+> Dateidialog, die Roadmap-Datei), dann der Arbeitsplan. **Was gebaut wird, steht in §6, „Als
+> Nächstes: das Schreiben"** — sieben Schritte und drei Fallen, die schon feststehen. Die
+> Reihenfolge ist dieselbe wie in Phase 4: erst das Modell (Schritte 1–3, reine Core-Arbeit),
+> dann die Oberfläche.
 >
-> **Wo:** auf dem **Windows-Rechner**. Nicht wegen der Werkzeuge, sondern wegen der
+> **Gearbeitet wird auf dem Windows-Rechner.** Nicht wegen der Werkzeuge, sondern wegen der
 > Gegenprobe — jede Änderung am Modell muss der WPF-Editor überleben, und beide Köpfe
 > nebeneinander an derselben Datenbank gibt es nur dort (§5b).
 >
@@ -4308,6 +4316,89 @@ nicht frei. **Das dort zuerst lesen spart eine Stunde.**
 
 ---
 
+## 5e. 🪟 Auftrag für den Windows-Rechner — hier weitermachen
+
+> **Das ist der Normalfall.** Entwickelt wird unter Windows (§5b); der Laptop ist Messgerät.
+> Dieser Abschnitt sagt, **womit die nächste Runde anfängt** — nicht, was zu bauen ist. Was
+> gebaut wird, steht in **§6, „Als Nächstes: das Schreiben"**, und zwar nur dort. Ein Plan an
+> zwei Stellen ist einer, der an einer davon veraltet.
+
+### 📋 Der Prompt zum Kopieren
+
+```text
+Du laeufst auf dem Windows-Rechner. Das Repo liegt in C:\Dev\Zed\gonk-note-V2.
+
+Lies dort HANDOFF.md, Abschnitt 5e ("Auftrag fuer den Windows-Rechner"). Von dort
+weiter: erst die drei Handgriffe zum Aufraeumen, dann der Arbeitsplan in §6
+("Als Naechstes: das Schreiben"). §7 (Fallen) vor der ersten Code-Aenderung
+ueberfliegen.
+
+Zieh zuerst den Stand: git pull. Dann bauen und testen, bevor du etwas anfasst --
+0 Fehler, 0 Warnungen, 517 Tests.
+
+Arbeite auf Deutsch, halte das HANDOFF nach, und sag mir am Ende, ob der Laptop
+dran ist.
+
+Fang an.
+```
+
+### Erst aufräumen — drei Handgriffe, zusammen unter einer Stunde
+
+Alle drei stehen offen, **weil sie auf dem Laptop nicht zu erledigen waren.** Sie gehören vor
+den ersten Schritt des Arbeitsplans, nicht dazwischen.
+
+| # | Was | Warum zuerst |
+|---|---|---|
+| **1** | **`About.Version` im WPF-Dialog gegenprüfen.** Die Zeile steht seit V2-38 in beiden Sprachtabellen auf „Portierung, Phase 4 — das Schreiben" / „Port, phase 4 — editing" und ist **im Linux-Kopf** in beiden Sprachen geprüft | **Eine Minute.** Dauerregel 1 verlangt *beide* Köpfe, und der WPF-Kopf trägt seine eigene Kopie von Core (§7) — genau daran hing in §4.25 ein Fehler. §5 „Noch offen" 5 |
+| **2** | **Den Dateidialog des Linux-Kopfs ansehen** — einmal `Datei → Dokument importieren…`, einmal `Exportieren → PDF`. Kommt ein **Pfad** zurück? Steht das **vorgewählte Format** oben? | `Avalonia.Desktop` läuft unter Windows auch, und dort ist es **nicht** der Portal-Dialog — deshalb geht es hier überhaupt. **Es bleibt eine halbe Antwort** (der Portal-Fall ist damit nicht geprüft), aber eine halbe ist mehr als keine. §5 „Noch offen" 7 |
+| **3** | **`gonk-note-port-RM.MD` nachziehen:** Phase 4.5 eintragen, M2 ans Ende von Phase 4.5 verschieben | Die Datei liegt **nur hier** (`C:\Users\manue\Desktop\GonkNote-TM\`). Seit dem 2026-08-04 vermerkt und seitdem jede Runde vertagt — sie ist die *Vorgabe*, und sie sagt bis heute etwas anderes als dieses Dokument |
+
+### Dann der Arbeitsplan — §6, „Als Nächstes: das Schreiben"
+
+**Nutzer-Entscheidung 2026-08-11: Weg (a)**, das Schreiben im Linux-Kopf, vor Phase 4.5
+(§5 „Noch offen" 2). **Nicht mehr nachfragen** — die Entscheidung ist gefallen.
+
+**Der erste Schritt ist reine Core-Arbeit:** wo steht der Cursor, und was ist eine Auswahl. Er
+berührt keinen Kopf, und er ist die Entscheidung, die alles Weitere prägt — **Stelle im Modell
+oder im Umbruch?** Der Vorschlag samt Begründung steht in §6.
+
+> **Warum das Schreiben trotz seiner Core-Anteile hierher gehört und nicht auf den Laptop:**
+> nicht wegen der Werkzeuge, sondern wegen der **Gegenprobe**. Jede Änderung am Modell muss der
+> **WPF-Editor überleben** — und beide Köpfe nebeneinander an derselben Datenbank-Kopie gibt es
+> nur hier (§5b). Ein Modell, das der Linux-Kopf sauber schreibt und der WPF-Kopf leer anzeigt,
+> ist der teuerste Fehler dieser Art; §4.28 hat ihn einmal knapp verhindert.
+
+### Wie geprüft wird — dieselbe Regel wie in Phase 4
+
+```powershell
+cd C:\Dev\Zed\gonk-note-V2
+dotnet build -c Release       # 0 Fehler, 0 Warnungen
+dotnet test -c Release        # beide Projekte, derzeit 517 Tests
+```
+
+**Und danach am laufenden Programm**, mit einer **Kopie** der echten Datenbank (Dauerregel 4,
+Befehle in §8) — **in beiden Köpfen**. Beim Schreiben heißt das immer dieselbe Frage: *Was
+sieht der andere Kopf, nachdem dieser gespeichert hat?*
+
+### Wann der Laptop wieder dran ist
+
+**Mit Schritt 5** des Arbeitsplans, sobald `TextDocView` Tastatur und Maus annimmt — Umlaute,
+tote Tasten und Compose über `TextInput` auf XWayland, die Bildschirmtastatur, und ob sich der
+Cursor **mit dem Stift** setzen lässt. **Vorher nicht.** Wenn es so weit ist, gehört der
+Auftrag nach **§5d**, bevor der Nutzer wechselt (Dauerregel 3a).
+
+**Vor jedem Laptop-Auftrag die betroffene `.axaml` ansehen** — ob der Linux-Kopf überhaupt
+kann, was der Auftrag verlangt. In §4.26 ist genau das schiefgegangen.
+
+> **Was der Laptop zuletzt gefunden hat, ist beim Fernsteuern zu wissen** (§4.28, „Was den
+> Laptop dabei aufgehalten hat"): Avalonias Menü-Popups stehen auf **keiner** Fensteraufnahme,
+> `Down` zählt die Einträge **ohne** Trenner, einzelne Tastendrücke gehen unter 0,8 s Abstand
+> verloren, und der **Portal-Dateidialog** ist unter GNOME-Wayland weder zu fotografieren noch
+> zu bedienen. **Das gilt drüben, nicht hier** — unter Windows tun es die Skripte in `tools\`
+> wie gewohnt.
+
+---
+
 ## 6. Arbeitsplan
 
 ### Erledigt: Phase 1 — Netz einziehen
@@ -5788,6 +5879,7 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 
 | Runde | Datum | Was |
 |---|---|---|
+| V2-39 | 2026-08-11 | **§5e: eine Arbeitsanweisung für den Windows-Rechner** — das Gegenstück zu §5d, das es bisher nicht gab (kein Code angefasst). **Der Befund dahinter:** §5d sagt dem Laptop seit Wochen genau, wo er anfängt, samt Prompt zum Kopieren; für den Rechner, auf dem **entwickelt** wird, stand nur der allgemeine Einstieg in §0 — „nimm den nächsten Punkt aus §6". Nach einer Runde wie dieser, die drei Dinge offen lässt, **weil sie auf dem Laptop nicht zu erledigen waren**, ist das zu wenig: sie stünden verstreut in §5 und gingen unter. **§5e nennt sie jetzt als drei Handgriffe vor dem ersten Schritt** — die Versionszeile im WPF-Dialog gegenprüfen (Dauerregel 1 verlangt beide Köpfe), den Dateidialog ansehen (unter Windows ist es **nicht** der Portal-Dialog, deshalb geht es dort überhaupt — eine halbe Antwort, aber mehr als keine), und `gonk-note-port-RM.MD` um Phase 4.5 ergänzen (seit dem 2026-08-04 vertagt; die Datei ist die *Vorgabe* und sagt bis heute etwas anderes als dieses Dokument). **Was gebaut wird, steht bewusst nicht darin**, sondern nur in §6 — ein Plan an zwei Stellen ist einer, der an einer davon veraltet. Dazu: der Einstieg in §0 fragt jetzt **zuerst nach dem Rechner** und verzweigt nach §5e oder §5d, und §5e sagt am Ende, **wann der Laptop wieder dran ist** (mit Schritt 5, wegen Umlauten, toten Tasten und dem Cursor am Stift) und was beim Fernsteuern drüben zu wissen ist |
 | V2-38 | 2026-08-11 | **Die Entscheidung nach Phase 4 ist gefallen: (a) das Schreiben im Linux-Kopf**, vor Phase 4.5 — **Nutzer-Entscheidung, gegen die Empfehlung dieses Dokuments**, und sie gilt. Damit ist §5 „Noch offen" 2 beantwortet. **Was diese Runde daraus gemacht hat, ist ein Arbeitsplan und kein Code:** §6 trägt jetzt „Als Nächstes: das Schreiben" mit **sieben Schritten** — Cursor-Stelle im Modell (nicht im Umbruch), Änderungen samt Gegenbewegung, Rückgängig über den vorhandenen `UndoStack`, Schreibmarke und Auswahl im Zeichner, Tastatur und Maus in `TextDocView`, das ehrlich gewordene Ribbon, und zuletzt der Schritt, um den es eigentlich geht: **`Rtf` verliert die Führung**. Dazu **drei Fallen, die schon feststehen**: der Umbruch läuft bei einem Inhaltsverzeichnis mehrfach und ist je Tastendruck zu teuer; §4.28 hat „einmal je Dokument umbrechen" entschieden, und genau diese Entscheidung wird mit dem Schreiben fällig; und solange der WPF-Editor auf `Rtf` steht und der Linux-Editor auf `Model`, kann dasselbe Dokument **zwei Wahrheiten** haben. **Der Code gehört auf den Windows-Rechner** (§5b) — diesmal nicht wegen der Werkzeuge, sondern wegen der Gegenprobe: jede Modelländerung muss der WPF-Editor überleben. **Eine Code-Änderung ist trotzdem hier gefallen**, weil §5 „Noch offen" 5 sie mit der Entscheidung fällig machte: `About.Version` steht in **beiden** Sprachtabellen auf „Portierung, Phase 4 — das Schreiben" / „Port, phase 4 — editing" und ist **im Linux-Kopf in beiden Sprachen am laufenden Programm gegengeprüft**; die Gegenprobe im WPF-Kopf fehlt und ist der erste Handgriff der nächsten Windows-Runde. **§5d bleibt ohne Auftrag** — der Laptop wird erst mit Schritt 5 wieder fällig (Umlaute, tote Tasten, Bildschirmtastatur, Cursor mit dem Stift) |
 | V2-37 | 2026-08-11 | **Der erste Augenschein des Textdokuments unter Linux** (auf dem CachyOS-Laptop, GNOME-Wayland). **489/489 grün**, beide Bauten 0/0. **Frage 1 ✅:** die Anzeige steht vollständig — Überschrift, fett/kursiv/unterstrichen/farbig, Aufzählung mit Marken, Tabelle mit **einer** Kopfzeile (der Fund aus §4.28 ist wirklich weg), Säulendiagramm mit Achsen und Farben, Kopfzeile ab Seite 2, „Seite 3 von 3". **Frage 2 ✅ mit Fund:** PDF und Anzeige haben denselben Zeilen- und Seitenumbruch (3 Seiten, A4, Schriften eingebettet) — **aber der Wortzwischenraum an einer Stückgrenze sitzt in der Anzeige falsch** („undFarbiges ."), im PDF nicht. Vermutlich nicht linuxspezifisch, deshalb nach §5d nicht angefasst: §5 „Noch offen" **6**. **Frage 3 ✅:** Rollen über alle Seiten ohne weißes Blatt, Zoom, Seitenbreite (119 %), Ganze Seite (52 %). **Frage 5 ✅:** der Dateidialog erscheint nicht hinter dem Fenster und **blockiert das Hauptfenster richtig** — ein Klick daneben lässt die Aufnahme Pixel für Pixel gleich. **Frage 4 ⚠️ offen:** unter GNOME-Wayland ist es der **Portal**-Dialog (Anfrage-Objekt auf dem Sitzungsbus belegt es), also ein natives Wayland-Fenster — mit `tools/linux` weder zu fotografieren noch zu bedienen. Ob ein **Pfad** zurückkommt und ob das **vorgewählte Format** oben steht, braucht den Nutzer am Gerät: §5 „Noch offen" **7**. **Der eigentliche Ertrag sind drei Löcher im Werkzeug** (§4.28): `zeiger` drückte Umschalt nur bei Großbuchstaben und tippte deshalb auf der **deutschen** Belegung `/` als `7` — **ohne Fehlermeldung**, es sah wie ein Fehler der App aus; **behoben**, die Ebene wird jetzt aus der Belegung gelesen (`XGetKeyboardMapping`, Umschalt und AltGr). Nicht behoben: der Portal-Dialog bleibt Handarbeit, und `schau.sh` gibt die Ausgabe des Aufrufers nicht frei (die App erbt `stdout`) bei zu kurzer Startwartezeit. Weil der Dateidialog ausfiel, kam die Prüf-DOCX über ein Wegwerf-Programm in die Test-Datenbank — **über dieselbe Kette** wie `AvaloniaDocumentIo.Import` |
 | V2-36 | 2026-08-11 | **Das HANDOFF aufgeräumt und der Laptop-Auftrag ausgebaut** (kein Code angefasst). Vier Dinge. **(1) §2 „Stand" neu geschrieben:** dort stand jede Runde noch einmal in eigenen Worten — dieselbe Chronologie wie in §4 (das Warum), §6 (die Häkchen) und §9 (die Chronik), also **viermal**. Was viermal dasteht, wird dreimal nicht gepflegt: die Testzahlen dort hinkten um zwei Runden hinterher, und der Abschnitt begann mit „Vier Commits auf `main`" — wahr in Phase 0, absurd nach fünfunddreißig Runden. Jetzt: Version, Testzahl, Meilensteine, eine Zeile je Phase mit Verweis, und ein Satz je Kopf, was er kann. **(2) §5 „Noch offen" entrümpelt:** fünf der sieben Punkte waren längst entschieden und standen als durchgestrichene Überschrift mit dem vollen alten Wortlaut darunter — rund neunzig Zeilen, die man beim Lesen jedes Mal überspringen musste. Sie stehen jetzt als Tabelle mit Antwort und Verweis; **offen sind noch fünf Punkte, und zwei davon sind neu** (wie es nach Phase 4 weitergeht, und dass `About.Version` fällig wird). Dabei fiel eine **falsche Behauptung** auf: Punkt 4 sagte, in beiden Erste-Schritte-Fassungen stehe noch der V1-Klon-Befehl — er zeigt längst auf `GonkNote.git`. **(3) §5d:** der abgearbeitete Auftrag stand in voller Länge da (achtzig Zeilen, deren Befund in §4.27 steht) — jetzt eine Tabellenzeile mit Verweis. **(4) Ein Inhaltsverzeichnis** ganz oben: dreizehn Zeilen, die sagen, was in welchem Abschnitt steht **und wann man ihn braucht** — bei viertausendsiebenhundert Zeilen fehlte jede Navigation. **Der Laptop-Auftrag in §5d ist ausgebaut worden:** er enthält jetzt das vollständige Wegwerf-Programm, das die Prüf-DOCX erzeugt (Tabelle mit Kopfzeile, Diagramm, fünfundvierzig Absätze), die Befehlsfolge bis zum laufenden Kopf und die Angabe, wohin der Befund gehört. **Nichts Inhaltliches gelöscht:** was weggekürzt wurde, war entweder anderswo vollständig vorhanden oder steht in der Git-Historie; die Begründungen in §4 und §7 sind unangetastet |

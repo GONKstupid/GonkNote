@@ -204,25 +204,31 @@ public sealed class ExportFixtureTests
 
     /// <summary>
     /// Beim PDF eines Textdokuments wird **nicht** die Pixelfläche gehasht: die Seiten
-    /// entstehen aus dem WPF-Paginator mit den Schriften des Systems, und schon ein
-    /// Schriftartenupdate verschiebt jeden Pixel. Ein Hash wäre nach dem ersten falschen
-    /// Alarm abgeschaltet.
+    /// enthalten Schrift, und schon ein Schriftartenupdate verschiebt jeden Pixel. Ein Hash
+    /// wäre nach dem ersten falschen Alarm abgeschaltet.
     /// <para>
     /// Geprüft wird stattdessen, was bei einem Umbau wirklich kaputtgeht und was sich mit
     /// jeder Schrift gleich verhält: Seitenzahl, Seitenmaß und dass **keine** Seite leer ist.
     /// „Alles auf einer Seite" und „Seite 2 ist weiß" sind die beiden Fehlerbilder, die ein
     /// Layout-Umbau produziert.
     /// </para>
+    /// <para>
+    /// <b>Läuft seit §4.27 über <see cref="TdPdf"/> und das Modell</b> — wie DOCX und Markdown
+    /// davor. Was der neue Weg über den alten hinaus kann (Text bleibt Text, Verweise werden
+    /// anklickbar), steht in <c>PdfTests</c> in Core: es hängt an keinem WPF-Stück. **Hier
+    /// bleibt der Teil, den nur dieses Testprojekt kann** — dass das echte
+    /// <c>FlowDocument</c>-Referenzdokument die Übernahme heil übersteht und danach ein
+    /// vollständiges PDF ergibt.
+    /// </para>
     /// </summary>
     [Fact]
     public void Pdf_Export_eines_Textdokuments_hat_gefuellte_Seiten() => Sta.Run(() =>
     {
         using var werkbank = new Referenzdokument.Werkbank("pdf-text");
-        var doc = Referenzdokument.Bauen(werkbank.Blobs);
-        var einstellungen = Referenzdokument.Einstellungen();
+        var modell = Referenzdokument.Modell(werkbank.Blobs);
         string pfad = werkbank.Datei("referenz.pdf");
 
-        PdfExporter.ExportFlowDocument(doc, einstellungen, Referenzdokument.Titel, pfad);
+        TdPdf.Schreiben(modell, pfad, new TdBlobImages(werkbank.Blobs), Referenzdokument.Titel);
 
         Assert.True(File.Exists(pfad));
         int seiten = GonkNote.Core.Services.PdfImporter.PageCount(pfad);
@@ -252,22 +258,30 @@ public sealed class ExportFixtureTests
     /// Kopf- und Fußzeile: die Kopfzeile ist auf der ersten Seite unterdrückt, auf der zweiten
     /// nicht. Das ist am Farbanteil im oberen Rand ablesbar — schriftunabhängig, weil nur
     /// „irgendetwas steht da" geprüft wird.
+    /// <para>
+    /// <b>Was hier geprüft wird, ist die Übernahme und nicht der Exporter:</b> Dass ein
+    /// unterdrückter Kopf unterdrückt bleibt, steht mit dem schärferen Wächter in
+    /// <c>PdfTests</c> in Core — dort wird der Text zurückgelesen statt Farbe gezählt. Hier
+    /// zählt, dass <see cref="FlowZuTd"/> die Einstellung aus dem <c>TextDoc</c> überhaupt
+    /// bis ins Modell trägt; ohne diesen Weg stünde die Kopfzeile auf Seite 1.
+    /// </para>
     /// </summary>
     [Fact]
     public void Kopfzeile_fehlt_auf_der_ersten_Seite_und_steht_auf_der_zweiten() => Sta.Run(() =>
     {
         using var werkbank = new Referenzdokument.Werkbank("pdf-kopfzeile");
-        var doc = Referenzdokument.Bauen(werkbank.Blobs);
+        var modell = Referenzdokument.Modell(werkbank.Blobs);
 
         // Ohne Wasserzeichen, sonst ist im Randbereich immer Farbe.
-        var einstellungen = Referenzdokument.Einstellungen();
-        einstellungen.WatermarkImage = null;
+        var einrichtung = modell.Sections[0].Page;
+        einrichtung.Watermark = null;
 
-        var seiten = PdfExporter.RenderFlowDocumentPages(doc, einstellungen, Referenzdokument.Titel, scale: 2f);
+        var seiten = TdPdf.Seitenbilder(
+            modell, new TdBlobImages(werkbank.Blobs), Referenzdokument.Titel, vielfaches: 2f);
         Assert.True(seiten.Count >= 2);
 
         // Oberer Rand = MarginTopCm; dort steht die Kopfzeile.
-        double randAnteil = einstellungen.MarginTopCm * TextStyles.PxPerCm / TextStyles.PageSize(einstellungen).H;
+        double randAnteil = einrichtung.MarginTopCm / einrichtung.HeightCm;
 
         double erste = FarbanteilOben(seiten[0].Data, randAnteil);
         double zweite = FarbanteilOben(seiten[1].Data, randAnteil);

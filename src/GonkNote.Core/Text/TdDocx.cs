@@ -35,9 +35,10 @@ namespace GonkNote.Core.Text;
 ///
 /// <para>
 /// <b>Seit dem Umverdrahten (HANDOFF §4.23) ist das der Weg, den die App nimmt</b> — für den
-/// Export **und** für den Import. Der alte <c>DocxExporter</c> ist gelöscht;
-/// <c>DocxImporter</c> bedient nur noch den Whiteboard-Import, der weiter über ein
-/// <c>FlowDocument</c> geht.
+/// Export **und** für den Import, und seit §4.27 der **einzige**: <c>DocxExporter</c> und
+/// <c>DocxImporter</c> sind beide gelöscht. Der letzte Aufrufer des alten Lesers war der
+/// Whiteboard-Einfüge-Weg; er geht jetzt über <see cref="TdPdf.Seitenbilder"/> und braucht
+/// dafür kein <c>FlowDocument</c> mehr.
 /// <para>
 /// Bis dahin standen beide nebeneinander, und das war Absicht: Sie **parallel zu pflegen**
 /// wäre die Falle aus §4.10 gewesen — deshalb stand hier von Anfang an nur, was das Modell

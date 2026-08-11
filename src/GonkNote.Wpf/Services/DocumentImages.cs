@@ -174,64 +174,11 @@ public static class DocumentImages
         }
     }
 
-    /// <summary>
-    /// Setzt für die Dauer des Rückgabewerts die **Originale** als Bildquelle ein. Für den
-    /// Export: gerastert wird aus dem Original, nicht aus der Anzeige-Ableitung – sonst wäre
-    /// ein seitenbreites Foto im PDF weicher als in der Vorlage.
-    /// </summary>
-    public static IDisposable WithFullResolution(FlowDocument doc, BlobStore blobs) =>
-        new FullResolution(doc, blobs);
-
-    /// <summary>
-    /// Wie viele Bilder beim letzten Export **nicht** in Originalauflösung eingesetzt werden
-    /// konnten, weil ihre Daten fehlten. Ohne diesen Zähler exportierte die App stillschweigend
-    /// die kleinere Anzeige-Ableitung – auf Seitenbreite hochgezogen sieht das verpixelt aus,
-    /// und niemand erfuhr, warum.
-    /// </summary>
-    public static int LastExportMissingOriginals { get; private set; }
-
-    private sealed class FullResolution : IDisposable
-    {
-        private readonly List<(Image Image, ImageSource? Source)> _saved = new();
-
-        public FullResolution(FlowDocument doc, BlobStore blobs)
-        {
-            int missing = 0;
-            foreach (var image in All(doc))
-            {
-                if (image.Tag is not BlobRef reference) continue;
-                if (blobs.Read(reference.Id) is not { } bytes) { missing++; continue; }
-                if (Decode(bytes) is not { } full) { missing++; continue; }
-
-                _saved.Add((image, image.Source));
-                image.Source = full;
-            }
-            LastExportMissingOriginals = missing;
-        }
-
-        private static BitmapImage? Decode(byte[] bytes)
-        {
-            try
-            {
-                var bmp = new BitmapImage();
-                bmp.BeginInit();
-                bmp.CacheOption = BitmapCacheOption.OnLoad;
-                bmp.StreamSource = new MemoryStream(bytes);
-                bmp.EndInit();
-                bmp.Freeze();
-                return bmp;
-            }
-            catch
-            {
-                return null;
-            }
-        }
-
-        public void Dispose()
-        {
-            foreach (var (image, source) in _saved) image.Source = source;
-        }
-    }
+    // `WithFullResolution` und `LastExportMissingOriginals` standen hier bis §4.27. Sie
+    // waren die Bildquelle des PDF-Wegs über den WPF-Paginator; der ist gelöscht, und mit ihm
+    // die Frage, aus welcher Auflösung gerastert wird — `TdPdf` zeichnet aus dem Modell und
+    // holt jedes Bild über `ITdImages` ohnehin im Original. Wie viele davon fehlen, sagt jetzt
+    // `DocumentHealth.MissingImages(TdDocument, ITdImages)`, und zwar für jeden Kopf gleich.
 
     private sealed class Detached : IDisposable
     {

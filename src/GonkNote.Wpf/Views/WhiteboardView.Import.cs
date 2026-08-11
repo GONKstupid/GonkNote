@@ -5,6 +5,7 @@ using GonkNote.Core.Models;
 using GonkNote.Services;
 using GonkNote.Core.Rendering;
 using GonkNote.Core.Services;
+using GonkNote.Core.Text;
 using GonkNote.ViewModels;
 using SkiaSharp;
 
@@ -328,9 +329,14 @@ public partial class WhiteboardView
     // ==================== DOCX einfügen ====================
 
     /// <summary>
-    /// Rendert ein DOCX über denselben Paginator wie der Text-Export zu Bildseiten
-    /// und fügt die gewählten Seiten wie ein PDF ein. Das Rendern (Paginator) muss
-    /// auf dem UI-Thread laufen; der Import bleibt daher kurz sichtbar „busy“.
+    /// Rendert ein DOCX auf demselben Weg wie der Text-Export zu Bildseiten und fügt die
+    /// gewählten Seiten wie ein PDF ein.
+    /// <para>
+    /// <b>Seit §4.27 läuft das über das Modell</b> (<see cref="TdDocx"/> → <see cref="TdPdf"/>)
+    /// und nicht mehr über <c>FlowDocument</c> und den WPF-Paginator. Damit fällt der Zwang
+    /// weg, auf dem UI-Thread zu rendern: das Setzen und Malen geht in einen Hintergrund-Thread,
+    /// und das Busy-Overlay läuft währenddessen wirklich weiter, statt eingefroren dazustehen.
+    /// </para>
     /// </summary>
     private async Task InsertDocxFileAsync(string path)
     {
@@ -342,12 +348,12 @@ public partial class WhiteboardView
         ShowBusy(Loc.T("Busy.Docx"));
         try
         {
-            // Kurz Zeit geben, damit das Busy-Overlay sichtbar wird
-            await Task.Yield();
+            string titel = Path.GetFileNameWithoutExtension(path);
+            var bilder = new TdBlobImages(BlobStore.Current!);
 
-            var settings = new TextDoc();
-            var flow = DocxImporter.ToFlowDocument(path, settings);
-            var pages = PdfExporter.RenderFlowDocumentPages(flow, settings, Path.GetFileNameWithoutExtension(path));
+            var pages = await Task.Run(() =>
+                TdPdf.Seitenbilder(TdDocx.Lesen(path, bilder), bilder, titel));
+
             if (pages.Count == 0)
             {
                 MessageBox.Show(Loc.T("Msg.DocxNoPages"),

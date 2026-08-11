@@ -1,4 +1,5 @@
 using GonkNote.Core.Models;
+using GonkNote.Core.Text;
 
 namespace GonkNote.Core.Services;
 
@@ -31,5 +32,45 @@ public static class DocumentHealth
                     missing++;
         }
         return missing;
+    }
+
+    /// <summary>
+    /// Dasselbe für ein Textdokument: Bilder, deren Blob nicht (mehr) zu lesen ist.
+    ///
+    /// <para>
+    /// <b>Sie steht seit dem Umverdrahten des PDF-Wegs hier</b> (§4.27). Vorher zählte der
+    /// WPF-Kopf beim Rastern mit (<c>DocumentImages.LastExportMissingOriginals</c>) — das ging
+    /// nur, solange der Export durch ein <c>FlowDocument</c> lief, und war ein Zähler, der als
+    /// Nebenwirkung eines <c>using</c> entstand. Gefragt wird jetzt das Modell, und die Antwort
+    /// ist für jeden Kopf dieselbe.
+    /// </para>
+    /// <para>
+    /// <b>Das Wasserzeichen zählt mit.</b> Es ist ein Bild wie jedes andere, und es fehlt am
+    /// auffälligsten: eine Seite, die es tragen sollte, sieht ohne es einfach leer aus.
+    /// </para>
+    /// <para>
+    /// <b>Ein Diagramm zählt nicht mit</b>, auch wenn es ein <c>TdGraphic</c> ist: seine Zahlen
+    /// stehen im Dokument, nicht im Blob-Speicher — es kann gar nicht fehlen.
+    /// </para>
+    /// </summary>
+    public static int MissingImages(TdDocument doc, ITdImages? images)
+    {
+        int missing = 0;
+
+        foreach (var section in doc.Sections)
+            if (section.Page.Watermark is { } watermark && !Vorhanden(watermark))
+                missing++;
+
+        foreach (var paragraph in doc.Paragraphs())
+            foreach (var image in paragraph.Inlines.OfType<TdImage>())
+                if (!Vorhanden(image))
+                    missing++;
+
+        return missing;
+
+        // Ohne Bildquelle fehlt nicht *ein* Bild, sondern es gibt gar keine – das ist die
+        // Entscheidung des Aufrufers und keine Beschädigung des Dokuments.
+        bool Vorhanden(TdImage image) =>
+            images is null || images.Lesen(image.BlobId) is { Length: > 0 };
     }
 }

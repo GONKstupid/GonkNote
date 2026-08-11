@@ -75,32 +75,36 @@ public sealed class WpfDocumentIo : IDocumentIo
         List<string> written = [path];
         int issues = 0;
 
-        // **Die zwei Wege, die schon umverdrahtet sind, laufen gegen das Modell** (§4.23) —
-        // die zwei, die noch am WPF-Paginator hängen (PDF/PNG), gegen das FlowDocument.
+        // **Alle vier Wege laufen gegen das Modell** (§4.23, seit §4.27 vollständig). PDF und
+        // PNG waren die letzten zwei am WPF-Paginator; sie gehen jetzt über TdLayout und
+        // TdRenderer wie alles andere — und damit auch unter Linux.
+        var modell = Modell(doc);
+        var bilder = new TdBlobImages(BlobStore.Current!);
+
         switch (ext)
         {
             case ".docx":
-                TdDocx.Schreiben(Modell(doc), path, new TdBlobImages(BlobStore.Current!), title);
+                TdDocx.Schreiben(modell, path, bilder, title);
                 issues = TdDocx.Pruefen(path);
                 break;
 
             case ".md":
-                TdMarkdown.Export(Modell(doc), path, Feldwerte(title));
+                TdMarkdown.Export(modell, path, Feldwerte(title));
                 break;
 
             case ".png":
-                written = PdfExporter.ExportFlowDocumentPng(LoadFlowDocument(doc), doc, title, path);
+                written = TdPdf.Png(modell, path, bilder, title, Feldwerte(title));
                 break;
 
             default:
-                PdfExporter.ExportFlowDocument(LoadFlowDocument(doc), doc, title, path);
+                TdPdf.Schreiben(modell, path, bilder, title, Feldwerte(title));
                 break;
         }
 
-        // Nur PDF/PNG rastern aus den Originalen; DOCX und Markdown reichen sie durch und
+        // Nur PDF und PNG malen die Bilder wirklich; DOCX und Markdown reichen sie durch und
         // können deshalb gar nichts vermissen.
         int missing = ext is ".pdf" or ".png" or ""
-            ? DocumentImages.LastExportMissingOriginals
+            ? DocumentHealth.MissingImages(modell, bilder)
             : 0;
 
         return new ExportResult(written, issues, missing);

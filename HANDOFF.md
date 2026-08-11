@@ -3632,7 +3632,8 @@ dieses Laptops. MPP und EMR bleiben ungetestet, siehe „Offen" unten.
 > lautet. Wer die Regel liest und wissen will, *warum*, liest hier weiter.
 >
 > **Was auf dem Laptop zu tun ist, steht nicht hier, sondern in §5d.** Dieser Abschnitt sagt
-> *ob und warum* gewechselt wird, §5d sagt *was dann zu tun ist*.
+> *ob und warum* gewechselt wird, §5d sagt *was dann zu tun ist* — samt dem **Prompt zum
+> Kopieren**, den der Nutzer dort drüben einfügt.
 
 **Kurz: noch nicht umziehen — auch nicht in Phase 3.** Entwickelt wird unter Windows; der
 Laptop ist Pflicht für alles, was am **Stift** und an **Linux-Pfaden** hängt.
@@ -3808,6 +3809,38 @@ weitergegeben, ist es verbrannt und muss widerrufen werden, auch wenn es „nur 
 > **Nach jeder Runde auf dem Windows-Rechner wird dieser Auftrag hier neu geschrieben.** Steht
 > unten ein Datum, das älter ist als der letzte Eintrag in der Chronik (§9), dann ist er
 > veraltet — **dann nachfragen statt raten.**
+
+### 📋 Der Prompt zum Kopieren
+
+**Für den Nutzer:** Das hier in Claude Code auf dem Laptop einfügen — mehr ist nicht zu tippen.
+Er steht als Block da, damit er sich in einem Zug markieren lässt, und er nennt bewusst **nur
+den Weg zum Auftrag** und nicht den Auftrag selbst: Was zu prüfen ist, steht weiter unten und
+wird nach jeder Windows-Runde neu geschrieben. Ein Prompt, der die Aufgabe wiederholt, wäre
+dieselbe Angabe an zwei Stellen — und die zweite ist irgendwann die veraltete.
+
+```text
+Du läufst auf dem CachyOS-Laptop. Das Repo liegt in ~/Zed/gonk-note-V2/GonkNote.
+
+Lies dort HANDOFF.md, Abschnitt 5d ("Auftrag für den Linux-Laptop"). Das ist deine
+Arbeitsanweisung — der Reihe nach: die Grundregeln, dann "Der Auftrag zum Ablaufen",
+dann der datierte "Aktuelle Auftrag" unten.
+
+Prüfe zuerst, ob der aktuelle Auftrag noch gilt: Ist sein Datum älter als der oberste
+Eintrag in der Chronik (§9), ist er veraltet — dann frag mich, statt zu raten.
+
+Vier Dinge, die ich hier nicht wiederhole, weil sie in §5d stehen und dort genauer:
+du prüfst und entwickelst nicht, du baust nie die Solution, du arbeitest auf Deutsch,
+und der Befund kommt als Text ins HANDOFF und wird gepusht — nicht in den Chat.
+
+Fang an.
+```
+
+> **Warum der Prompt so kurz ist.** Alles, was er zusätzlich sagen könnte, steht schon im
+> HANDOFF — und das HANDOFF wird gepflegt, der Prompt in der Zwischenablage nicht. Die vier
+> Punkte, die er trotzdem nennt, sind die vier, bei denen ein Fehlgriff **teuer** ist: unter
+> Windows entwickeln zu wollen, die Solution zu bauen (sie enthält den WPF-Kopf und **kann**
+> hier nicht bauen), auf Englisch zu schreiben, und den Befund im Chat stehen zu lassen, wo ihn
+> der nächste Thread nie wieder findet.
 
 ### Was hier grundsätzlich gilt — für jeden Auftrag
 

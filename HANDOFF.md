@@ -1,6 +1,6 @@
 # Gonk Note V2 — Projektübergabe
 
-**Stand: 2026-08-11 · Version 0.3.0 · net10.0 · SkiaSharp 3 · SQLite · Avalonia 12 · ✅ M1 erreicht · ✅ Phase 4 abgeschlossen (§4.28): Dokumentmodell, Übernahme, DOCX/Markdown/PDF/PNG gegen das Modell, Zeichner samt Diagrammen, Schriftkonzept — und die Anzeige im Linux-Kopf. Textdokumente sind dort nicht mehr ausgegraut, und die Anzeige ist **auf dem Laptop gegengeprüft** (§4.28, V2-37). ✅ **Aufgeräumt vor dem Schreiben** (§4.29, V2-40): Versionszeile in beiden Köpfen, Dateidialog unter Windows durchgespielt, Roadmap kennt Phase 4.5 samt M2. ⏳ Offen: **das Schreiben** (Cursor, Auswahl, Eingabe, §6) — und drei kleine Punkte (§5 „Noch offen" 6, 7 und 8)**
+**Stand: 2026-08-11 · Version 0.3.0 · net10.0 · SkiaSharp 3 · SQLite · Avalonia 12 · ✅ M1 erreicht · ✅ Phase 4 abgeschlossen (§4.28): Dokumentmodell, Übernahme, DOCX/Markdown/PDF/PNG gegen das Modell, Zeichner samt Diagrammen, Schriftkonzept — und die Anzeige im Linux-Kopf. Textdokumente sind dort nicht mehr ausgegraut, und die Anzeige ist **auf dem Laptop gegengeprüft** (§4.28, V2-37). ✅ **Aufgeräumt vor dem Schreiben** (§4.29, V2-40). ⏳ **Das Schreiben läuft** (§6): **Schritt 1 steht** — `TdPosition`, `TdSelection`, `TdCursor` (§4.30, V2-41); als Nächstes Schritt 2, die Änderungen am Modell. Dazu drei kleine Punkte (§5 „Noch offen" 6, 7 und 8)**
 
 > **📌 Dauerregeln des Nutzers — gelten immer, ohne Nachfragen:**
 >
@@ -90,7 +90,7 @@ Die Datei ist lang, und das bleibt sie: sie trägt die Begründungen, nicht nur 
 | **1** | Auftrag und die Entscheidungen dahinter | einmal, zum Verstehen des Ganzen |
 | **2** | Stand: Version, Testzahl, Meilensteine, welche Phase wo steht | „wo stehen wir?" |
 | **3** | Struktur der Solution, Faustregel Core ↔ Kopf | vor jeder neuen Datei |
-| **4** | **Warum es so ist, wie es ist** — eine Nummer je Runde (§4.1 – §4.29) | wenn eine Entscheidung fremd wirkt |
+| **4** | **Warum es so ist, wie es ist** — eine Nummer je Runde (§4.1 – §4.30) | wenn eine Entscheidung fremd wirkt |
 | **5** | **Entscheidungen** — getroffene als Tabelle, offene als Liste | **vor jeder Rückfrage an den Nutzer** |
 | **5a** | Stylus unter Linux: was gemessen wurde und was offen ist | bei allem, was am Stift hängt |
 | **5b** | Wann und wie auf den CachyOS-Laptop gewechselt wird | bevor man ihn anfasst |
@@ -296,7 +296,7 @@ angezeigt, importiert (DOCX) und in alle vier Formate exportiert. **Damit ist Ph
 abgeschlossen.** Der Anschluss hat sofort einen Fehler gezeigt, den vier Runden lang kein
 Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — behoben.
 
-### ▶ Hier geht es weiter (Stand 2026-08-11, nach Runde V2-40)
+### ▶ Hier geht es weiter (Stand 2026-08-12, nach Runde V2-41)
 
 > **✅ Phase 4 ist abgeschlossen** (§4.28) und **auf dem Laptop gegengeprüft** (§4.28, „Was der
 > Laptop gefunden hat"): die Anzeige trägt, ihr Umbruch stimmt mit dem PDF überein, Rollen und
@@ -310,12 +310,16 @@ Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — beh
 > **✅ Die drei Handgriffe aus §5e sind erledigt** (2026-08-11, §4.29): die Versionszeile ist
 > **in beiden Köpfen** geprüft, der Dateidialog ist **unter Windows durchgespielt** (Format
 > und Pfad kommen beide richtig, PDF und DOCX geschrieben, das DOCX wieder eingelesen), und
-> die Roadmap-Datei kennt **Phase 4.5 samt M2**. Der Bau war dabei 0/0 und die Tests 517/517.
+> die Roadmap-Datei kennt **Phase 4.5 samt M2**.
 >
-> **Damit fängt die nächste Runde direkt mit Schritt 1 an. Was gebaut wird, steht in §6, „Als
-> Nächstes: das Schreiben"** — sieben Schritte und drei Fallen, die schon feststehen. Die
-> Reihenfolge ist dieselbe wie in Phase 4: erst das Modell (Schritte 1–3, reine Core-Arbeit),
-> dann die Oberfläche.
+> **✅ Schritt 1 des Arbeitsplans steht** (2026-08-12, §4.30): `TdPosition`, `TdSelection` und
+> `TdCursor` in `Core/Text/`, **28 Wächter**, Bau 0/0 und **545 Tests** grün. Die Stelle steht
+> **im Modell**, wie vorgeschlagen.
+>
+> **▶ Als Nächstes: Schritt 2 — was sich ändert, wenn man tippt.** Einfügen, Löschen,
+> Zeilenumbruch, Absatz teilen und verbinden, jedes mit seiner Gegenbewegung. Der Plan steht
+> in **§6, „Als Nächstes: das Schreiben"**; die Sprache dafür steht seit §4.30 bereit.
+> Weiterhin reine Core-Arbeit — die Oberfläche fängt bei Schritt 4 an.
 >
 > **Gearbeitet wird auf dem Windows-Rechner.** Nicht wegen der Werkzeuge, sondern wegen der
 > Gegenprobe — jede Änderung am Modell muss der WPF-Editor überleben, und beide Köpfe
@@ -350,11 +354,11 @@ Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — beh
 **Tests laufen lassen:**
 
 ```powershell
-dotnet test -c Release        # Windows: beide Projekte, 517 Tests
+dotnet test -c Release        # Windows: beide Projekte, 545 Tests
 ```
 
 ```bash
-dotnet test tests/GonkNote.Core.Tests   # Linux: 489 Tests, laufen in ~21 s
+dotnet test tests/GonkNote.Core.Tests   # Linux: 517 Tests
 ```
 
 ---
@@ -392,7 +396,7 @@ möglich) gelten unverändert weiter — siehe `gonk-note\HANDOFF.md` §1.
 | | |
 |---|---|
 | **Version** | 0.3.0 · `net10.0` · SkiaSharp 3.119.4 · Avalonia 12.1.1 · SQLite |
-| **Tests** | **517** — 489 in `GonkNote.Core.Tests` (Windows **und** Linux), 28 in `GonkNote.Wpf.Tests` (alles, was am `FlowDocument` hängt) |
+| **Tests** | **545** — 517 in `GonkNote.Core.Tests` (Windows **und** Linux), 28 in `GonkNote.Wpf.Tests` (alles, was am `FlowDocument` hängt) |
 | **Bau** | Debug und Release je 0 Fehler / 0 Warnungen; CI mit zwei Läufen (Windows, Ubuntu) |
 | **Meilensteine** | ✅ **M0** (Core baut auf Linux) · ✅ **M1** (Notizbuch und Whiteboard laufen unter Linux) · ⏳ **M2** (Funktionsgleichheit) — er hängt an Phase 4.5, nicht an Phase 4 |
 
@@ -3741,6 +3745,86 @@ gesucht werden muss.
 > Rechtschreibprüfung brauchen Linux-Gegenstücke). **Wenn der Nutzer sie anders sieht, gilt
 > seine Zahl** — sie steht an genau einer Stelle und ist in einer Minute geändert.
 
+### 4.30 Wo der Cursor steht — Schritt 1 des Schreibens
+
+**2026-08-12 unter Windows (V2-41).** Reine Core-Arbeit, kein Kopf angefasst: eine neue Datei
+(`Core/Text/TdPosition.cs`, ~460 Zeilen mit Begründungen) und **28 Wächter**. Bau 0/0,
+**545 Tests** grün.
+
+**Was es gibt:** `TdPosition` (Absatz, Stück, Zeichen), `TdSelection` (zwei Stellen) und
+`TdCursor` — geradeziehen, an die Ränder springen, ein Zeichen nach links oder rechts, den
+ausgewählten Text lesen. **Das Ändern steht ausdrücklich nicht dabei**: es ist Schritt 2 und
+braucht zu jeder Änderung ihre Gegenbewegung (Schritt 3). Was hier steht, ist die Sprache, in
+der Schritt 2 dann redet.
+
+#### Die Stelle steht im Modell — der Vorschlag aus §6 hat gehalten
+
+Der Umbruch ist ein **Ergebnis**: Er ändert sich bei jeder Eingabe, jeder Zoomstufe und jedem
+Wechsel der Seiteneinrichtung. Eine Stelle, die „Zeile 7, Zeichen 3" hieße, wäre nach dem
+nächsten Tastendruck woanders, **ohne dass sich der Text bewegt hat**. Umgerechnet wird erst
+zum Zeichnen (Schritt 4).
+
+**Der Preis dafür steht schon fest und ist bezahlt:** Für Schritt 4 braucht es den Rückweg vom
+gesetzten Ergebnis ins Modell. Den gibt es — `TdLine.Source` zeigt seit §4.16 auf den Absatz,
+und `TdCursor.IndexVon` macht daraus seine Nummer.
+
+#### Vier Entscheidungen, die Schritt 2 erbt
+
+| | |
+|---|---|
+| **Kanonisch ist die *linke* Schreibweise** | Das Ende von Stück 2 und der Anfang von Stück 3 sind dieselbe Lücke auf dem Papier, aber zwei verschiedene Zahlentripel. Es muss eine davon gelten, sonst hält ein Vergleich sie für verschieden und eine leere Auswahl bekommt eine Länge. **Gewählt ist das Ende des früheren Stücks** — und zwar nicht nach Geschmack: In Schritt 2 erbt ein eingefügtes Zeichen das Format **links davon** (wie in Word, so steht es in §6). Mit der rechten Form als kanonischer müsste man diese Erbfolge an jeder Einfügestelle von Hand zurückdrehen |
+| **Absatzende und nächster Absatzanfang bleiben *zwei* Stellen** | Zwischen ihnen steht die Absatzmarke, und der Cursor steht sichtbar in verschiedenen Zeilen. Sie zusammenzuziehen wäre dieselbe Vereinfachung wie oben — hier wäre sie falsch |
+| **Ein Feld und ein Bild sind einen Schritt breit und steuern kein Zeichen bei** | `TdField.PlainText()` und `TdGraphic.PlainText()` geben „" zurück (§4.20, §4.21), und das bleibt richtig: Im Dokument steht ein Feld und keine Zahl. Für den Cursor sind sie trotzdem ein Schritt — davor, dahinter, nicht dazwischen. **Damit fällt „ein Feld ist unteilbar" von selbst heraus**, statt an jeder Bewegung noch einmal abgefragt zu werden. Der Preis ist eine Ungleichheit, die als Wächter festgehalten ist: **die Auswahl ist breiter, als ihr Text lang ist** |
+| **Bewegt wird in ganzen Zeichen, nicht in UTF-16-Einheiten** | Ein Emoji steht als Paar in der Zeichenkette, ein zerlegtes „ä" ebenso. Wer um eine Einheit weiterrückt, setzt den Cursor **hinein**, und die nächste Eingabe zerlegt das Zeichen. Gemessen wird mit `StringInfo` in Textelementen. **Der Offset bleibt trotzdem ein UTF-16-Index**, damit ein Einfügen ohne Umrechnung auskommt — die beiden Zählungen treffen sich nur beim Bewegen |
+
+#### Die eine Idee, die alle Sonderfälle auf einen Ort zusammenzieht
+
+Der Weg über die drei Zahlen direkt ist voller Fallen: leere Stücke, Stückgrenzen, unteilbare
+Felder, ein Verweis, der selbst kein Stück ist. **Jede davon ist eine Stelle, an der ein Cursor
+hängenbleibt oder ein Zeichen überspringt** — und keine davon fällt beim Lesen des Codes auf.
+
+Deshalb rechnet alles über eine Zwischengröße: den **Abstand vom Absatzanfang in
+Cursorschritten**. Hin (`Linear`) und zurück (`AusLinear`), und dazwischen ist Bewegen eine
+Addition. Die Sonderfälle gibt es dann **nur einmal**, nämlich beim Umrechnen — und dort stehen
+sie in zwölf Zeilen nebeneinander, statt sich über jede Methode zu verteilen.
+
+**Dasselbe Muster wie in §4.17, §4.20, §4.21 und §4.25**, nur eine Ebene tiefer: erst die
+Rechnung, dann das, was sie benutzt.
+
+#### Der Verweis: der Cursor sitzt im Linktext, nicht im Verweis
+
+`TdCursor.Stuecke` liefert die **flache** Sicht — dieselbe wie `TdParagraph.FlacheStuecke`
+(§4.20) und dieselbe, die das Layout setzt. Ein Verweis erscheint darin nicht selbst, seine
+Stücke schon. **Das ist die Erbfolge aus §7 zum dritten Mal**, und sie fällt hier von selbst
+richtig aus, weil es nur einen Durchlauf gibt.
+
+> **Eine benannte Lücke:** Ein Verweis **ohne** Text verschwindet in der flachen Sicht ganz,
+> der Cursor kann darin nicht stehen. Hinnehmbar — ein Verweis ohne Text zeigt nichts an, es
+> gibt nichts, worauf man zielen könnte.
+
+#### Was die Wächter gekostet haben — und was sie dabei gefunden haben
+
+**Der Wächter, der am meisten wert ist, läuft das ganze Dokument vorwärts ab und rückwärts
+zurück** und verlangt dieselbe Folge von Stellen. Er fängt Hängenbleiben und Überspringen in
+einem.
+
+**Erprobt wurde er, indem die kanonische Form absichtlich falsch gestellt wurde** (ein `>=` zu
+`>`) — und dabei kam der eigentliche Fund der Runde heraus: **Der Testlauf ist nicht rot
+geworden, er ist gehangen.** Mit der falschen Zeile war das Dokumentende nicht mehr
+erreichbar, und die Schleife lief endlos. **Ein Wächter, der nicht fertig wird, meldet
+nichts** — er blockiert die ganze Suite, und wer ihn abbricht, weiß nicht, welcher von 545
+Tests der schuldige war. Der Durchlauf hat jetzt eine **Schrittgrenze** und sagt, woran es
+lag; dieselbe Mutation ergibt seitdem **12 rote Tests in 99 ms**.
+
+> **Als Regel für alles Weitere:** Ein Wächter, der eine Schleife über das Dokument fährt,
+> braucht eine Obergrenze. Die Schritte 2 bis 5 werden voll davon sein.
+
+**Ein zweites Mal messen statt annehmen:** Der Wächter für das zusammengesetzte „ä" stand
+zuerst mit einem getippten Buchstaben da. Zerlegt und zusammengesetzt sehen im Quelltext
+**gleich aus**, und beim Umschreiben der Datei ist genau das passiert — aus dem zerlegten wurde
+still das zusammengesetzte. Der Test wäre grün geblieben und hätte nichts mehr geprüft. Er
+baut das Zeichen jetzt aus seiner **Nummer** (`(char)0x0308`).
+
 ---
 
 ## 5. Entscheidungen
@@ -4443,7 +4527,7 @@ weiter: erst die drei Handgriffe zum Aufraeumen, dann der Arbeitsplan in §6
 ueberfliegen.
 
 Zieh zuerst den Stand: git pull. Dann bauen und testen, bevor du etwas anfasst --
-0 Fehler, 0 Warnungen, 517 Tests.
+0 Fehler, 0 Warnungen, 545 Tests.
 
 Arbeite auf Deutsch, halte das HANDOFF nach, und sag mir am Ende, ob der Laptop
 dran ist.
@@ -4488,7 +4572,7 @@ oder im Umbruch?** Der Vorschlag samt Begründung steht in §6.
 ```powershell
 cd C:\Dev\Zed\gonk-note-V2
 dotnet build -c Release       # 0 Fehler, 0 Warnungen
-dotnet test -c Release        # beide Projekte, derzeit 517 Tests
+dotnet test -c Release        # beide Projekte, derzeit 545 Tests
 ```
 
 **Und danach am laufenden Programm**, mit einer **Kopie** der echten Datenbank (Dauerregel 4,
@@ -4757,11 +4841,14 @@ Dieselbe Regel wie in Phase 4: **erst das Modell, dann die Oberfläche.** Die Sc
 liegen vollständig in Core und sind damit **auf jedem Rechner prüfbar**, auch auf dem Laptop;
 erst ab Schritt 4 wird es Kopfarbeit.
 
-- [ ] **1. Wo steht der Cursor?** Eine Stelle im Dokument (`TdPosition`: Block, Stück,
-      Zeichen) und eine Auswahl als **zwei** Stellen. **Das ist die Entscheidung, die alles
-      Weitere prägt** — steht die Stelle im *Modell* oder im *Umbruch*? Vorschlag: im Modell,
-      denn der Umbruch ist ein Ergebnis und ändert sich bei jeder Eingabe. Umgerechnet wird
-      erst zum Zeichnen, über `TdLayoutResult`.
+- [x] **1. Wo steht der Cursor?** ✅ **Erledigt 2026-08-12 (§4.30).** `TdPosition` (Absatz,
+      Stück, Zeichen), `TdSelection` (Anker und Spitze) und `TdCursor` (geradeziehen, bewegen,
+      lesen) stehen in `Core/Text/TdPosition.cs`; **28 Wächter**. Die Stelle steht **im
+      Modell**, wie vorgeschlagen. Vier Entscheidungen, die dahinter fielen und die Schritt 2
+      erbt: die **linke** Schreibweise einer Stückgrenze ist die kanonische (daran hängt die
+      Formaterbung), **Absatzende und nächster Absatzanfang bleiben zwei Stellen**, ein Feld
+      und ein Bild sind **ein Schritt breit und kein Zeichen**, und bewegt wird in **ganzen
+      Zeichen** und nicht in UTF-16-Einheiten.
 - [ ] **2. Was ändert sich, wenn man tippt?** Einfügen, Löschen, Zeilenumbruch, Absatz
       teilen und verbinden — als **Änderungen am Modell** mit ihrer Gegenbewegung. Hier hängt
       die zweite große Frage: **erbt ein eingefügtes Zeichen das Format links davon?** (In
@@ -5924,7 +6011,7 @@ cd C:\Dev\Zed\gonk-note-V2
 dotnet build -c Release      # 0 Fehler / 0 Warnungen
 dotnet build -c Debug        # schneller, ohne Self-Contained/win-x64
 
-dotnet test -c Release       # beide Testprojekte, 517 Tests
+dotnet test -c Release       # beide Testprojekte, 545 Tests
 
 # Golden-Files bewusst neu setzen (danach den Diff lesen, siehe §4.6)
 $env:GONK_SNAPSHOT_UPDATE=1; dotnet test tests\GonkNote.Core.Tests; $env:GONK_SNAPSHOT_UPDATE=$null
@@ -6011,6 +6098,7 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 
 | Runde | Datum | Was |
 |---|---|---|
+| V2-41 | 2026-08-12 | **Wo der Cursor steht — Schritt 1 des Schreibens** (§4.30). Reine Core-Arbeit, kein Kopf angefasst: `TdPosition` (Absatz, Stück, Zeichen), `TdSelection` (Anker und Spitze) und `TdCursor` (geradeziehen, an die Ränder springen, ein Zeichen nach links oder rechts, den ausgewählten Text lesen) in einer neuen Datei, dazu **28 Wächter**. **545 Tests** grün, Bau 0/0. **Die Stelle steht im Modell**, wie §6 vorgeschlagen hatte — der Umbruch ist ein Ergebnis und ändert sich bei jeder Eingabe; der Rückweg für Schritt 4 ist da, weil `TdLine.Source` seit §4.16 auf den Absatz zeigt. **Vier Entscheidungen, die Schritt 2 erbt:** (1) **Kanonisch ist die linke Schreibweise** einer Stückgrenze — nicht nach Geschmack, sondern weil ein eingefügtes Zeichen das Format links davon erbt; mit der rechten Form müsste man diese Erbfolge an jeder Einfügestelle zurückdrehen. (2) **Absatzende und nächster Absatzanfang bleiben zwei Stellen** — dazwischen steht die Absatzmarke. (3) **Ein Feld und ein Bild sind einen Schritt breit und steuern kein Zeichen bei**; damit fällt „ein Feld ist unteilbar" von selbst heraus, und der Preis — die Auswahl ist breiter, als ihr Text lang ist — steht als eigener Wächter da. (4) **Bewegt wird in ganzen Zeichen**, nicht in UTF-16-Einheiten, sonst zerlegt der nächste Tastendruck ein Emoji; der Offset bleibt trotzdem ein UTF-16-Index, damit Einfügen ohne Umrechnung auskommt. **Die tragende Idee ist eine Zwischengröße:** alles rechnet über den Abstand vom Absatzanfang in Cursorschritten, hin und zurück — so gibt es die Sonderfälle (leere Stücke, Stückgrenzen, unteilbare Felder, der Verweis, der selbst kein Stück ist) **nur einmal**, beim Umrechnen, statt verteilt über jede Methode. **Der Fund der Runde kam aus dem Erproben der Wächter:** die kanonische Form wurde absichtlich falsch gestellt — und der Testlauf wurde **nicht rot, sondern hing**, weil das Dokumentende unerreichbar wurde. Ein Wächter, der nicht fertig wird, meldet nichts und blockiert die ganze Suite. Der Durchlauf hat jetzt eine **Schrittgrenze**; dieselbe Mutation ergibt seitdem 12 rote Tests in 99 ms. **Als Regel festgehalten** für die Schritte 2 bis 5, die voll von solchen Schleifen sein werden. **Zum zweiten Mal gemessen statt angenommen:** der Wächter für das zusammengesetzte „ä" stand zuerst mit einem getippten Buchstaben da — zerlegt und zusammengesetzt sehen im Quelltext gleich aus, und beim Umschreiben der Datei wurde aus dem zerlegten still das zusammengesetzte; der Test wäre grün geblieben und hätte nichts mehr geprüft. Er baut das Zeichen jetzt aus seiner Nummer |
 | V2-40 | 2026-08-11 | **Die drei Handgriffe aus §5e abgearbeitet — und ein Fund dabei** (§4.29). **Kein Produktivcode angefasst**, die Runde war eine Bestandsaufnahme vor dem Schreiben: Bau 0/0, **517/517** Tests, gearbeitet an einer Kopie der echten Datenbank (Dauerregel 4, danach gelöscht). **(1) `About.Version` stimmt im WPF-Dialog**, in beiden Sprachen am laufenden Programm geprüft — §5 „Noch offen" 5 erledigt. **(2) Der Dateidialog des Linux-Kopfs trägt** — beide Fragen aus §5d mit **ja** beantwortet: der Export-Dialog kommt mit vorgewähltem Dateityp **und** vorbelegtem Dateinamen, der Import-Dialog mit vorgewähltem `Word-Dokument (*.docx)`, und nach dem Speichern meldet die App den **Pfad** samt „Datei jetzt öffnen?". **Durchgespielt wurde die ganze Kette**, nicht nur der Dialog: PDF (550 KB — die Größenordnung aus §5 „Noch offen" 3 bestätigt sich unter Windows) und DOCX geschrieben, **das DOCX wieder eingelesen**, Text und Umlaute unverändert. Damit ist der Weg **vom gewählten Pfad ins Modell** gesehen — der einzige Teil, den §4.28 als ungesehen benannt hatte. **Offen bleibt nur die Wayland-Hälfte**, der Portal-Dialog; das ist eine andere Implementierung derselben Schnittstelle und keine Formsache. **(3) `gonk-note-port-RM.MD` kennt Phase 4.5**, M2 ist ans Ende von Phase 4.5 gewandert, Phase 4 trägt stattdessen „Textdokumente laufen unter Linux", und der Zeitrahmen hat eine eigene Zeile — **die Aufwandszahl (5–8 Wochen) ist hergeleitet und nicht gemessen**, sie wartet auf das Ja des Nutzers. **Die Gegenprobe nebenbei ist gut ausgegangen:** um ein exportierbares Dokument zu haben, ist der Weg gegangen worden, den der Hinweis vorschlägt — im WPF-Kopf öffnen, zwei Absätze tippen, speichern; der Linux-Kopf zeigte danach denselben Text mit denselben Umlauten, gleiche Wort- und Zeichenzahl. **Genau dafür besteht §5e auf Windows**, und diesmal hat sie nichts gefunden. **Der Fund der Runde ist ein falscher Satz:** „Datei → Neues Textdokument" **im Avalonia-Kopf** erzeugt ein Dokument ohne `Model` und ohne `Rtf`, und `TextDocView.Laden()` kennt nur die Frage `modell == null` — also zeigt der Kopf „Dieses Dokument stammt aus der Windows-Fassung", für ein Dokument, das gerade *hier* entstanden ist, und lässt es nicht exportieren. **Leer angelegt und nicht übernommen sehen von dort aus gleich aus.** Nicht behoben, sondern eingeplant: mit **Schritt 2 des Arbeitsplans** bekommt ein neues Dokument ein leeres `TdDocument` und der Fall löst sich auf — ein heute eingebauter dritter Zustand wäre morgen toter Code (§5 „Noch offen" 8). **Eine Werkzeug-Falle dazugelernt:** das Untermenü „Sprache" im WPF-Kopf öffnet auf **Hover** und **schließt beim Klick** — `kette.ps1` klickt jeden Schritt, der Folgeklick landete deshalb in der Galerie dahinter; `SendKeys` erreicht das WPF-Menü-Popup nicht. Was hilft, ist ein **Schweb-Schritt** (Cursor bewegen ohne Klick), den `kette.ps1` heute nicht kann |
 | V2-39 | 2026-08-11 | **§5e: eine Arbeitsanweisung für den Windows-Rechner** — das Gegenstück zu §5d, das es bisher nicht gab (kein Code angefasst). **Der Befund dahinter:** §5d sagt dem Laptop seit Wochen genau, wo er anfängt, samt Prompt zum Kopieren; für den Rechner, auf dem **entwickelt** wird, stand nur der allgemeine Einstieg in §0 — „nimm den nächsten Punkt aus §6". Nach einer Runde wie dieser, die drei Dinge offen lässt, **weil sie auf dem Laptop nicht zu erledigen waren**, ist das zu wenig: sie stünden verstreut in §5 und gingen unter. **§5e nennt sie jetzt als drei Handgriffe vor dem ersten Schritt** — die Versionszeile im WPF-Dialog gegenprüfen (Dauerregel 1 verlangt beide Köpfe), den Dateidialog ansehen (unter Windows ist es **nicht** der Portal-Dialog, deshalb geht es dort überhaupt — eine halbe Antwort, aber mehr als keine), und `gonk-note-port-RM.MD` um Phase 4.5 ergänzen (seit dem 2026-08-04 vertagt; die Datei ist die *Vorgabe* und sagt bis heute etwas anderes als dieses Dokument). **Was gebaut wird, steht bewusst nicht darin**, sondern nur in §6 — ein Plan an zwei Stellen ist einer, der an einer davon veraltet. Dazu: der Einstieg in §0 fragt jetzt **zuerst nach dem Rechner** und verzweigt nach §5e oder §5d, und §5e sagt am Ende, **wann der Laptop wieder dran ist** (mit Schritt 5, wegen Umlauten, toten Tasten und dem Cursor am Stift) und was beim Fernsteuern drüben zu wissen ist |
 | V2-38 | 2026-08-11 | **Die Entscheidung nach Phase 4 ist gefallen: (a) das Schreiben im Linux-Kopf**, vor Phase 4.5 — **Nutzer-Entscheidung, gegen die Empfehlung dieses Dokuments**, und sie gilt. Damit ist §5 „Noch offen" 2 beantwortet. **Was diese Runde daraus gemacht hat, ist ein Arbeitsplan und kein Code:** §6 trägt jetzt „Als Nächstes: das Schreiben" mit **sieben Schritten** — Cursor-Stelle im Modell (nicht im Umbruch), Änderungen samt Gegenbewegung, Rückgängig über den vorhandenen `UndoStack`, Schreibmarke und Auswahl im Zeichner, Tastatur und Maus in `TextDocView`, das ehrlich gewordene Ribbon, und zuletzt der Schritt, um den es eigentlich geht: **`Rtf` verliert die Führung**. Dazu **drei Fallen, die schon feststehen**: der Umbruch läuft bei einem Inhaltsverzeichnis mehrfach und ist je Tastendruck zu teuer; §4.28 hat „einmal je Dokument umbrechen" entschieden, und genau diese Entscheidung wird mit dem Schreiben fällig; und solange der WPF-Editor auf `Rtf` steht und der Linux-Editor auf `Model`, kann dasselbe Dokument **zwei Wahrheiten** haben. **Der Code gehört auf den Windows-Rechner** (§5b) — diesmal nicht wegen der Werkzeuge, sondern wegen der Gegenprobe: jede Modelländerung muss der WPF-Editor überleben. **Eine Code-Änderung ist trotzdem hier gefallen**, weil §5 „Noch offen" 5 sie mit der Entscheidung fällig machte: `About.Version` steht in **beiden** Sprachtabellen auf „Portierung, Phase 4 — das Schreiben" / „Port, phase 4 — editing" und ist **im Linux-Kopf in beiden Sprachen am laufenden Programm gegengeprüft**; die Gegenprobe im WPF-Kopf fehlt und ist der erste Handgriff der nächsten Windows-Runde. **§5d bleibt ohne Auftrag** — der Laptop wird erst mit Schritt 5 wieder fällig (Umlaute, tote Tasten, Bildschirmtastatur, Cursor mit dem Stift) |

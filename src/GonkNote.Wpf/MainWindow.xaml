@@ -17,6 +17,7 @@
         <views:ZeroToVisibilityConverter x:Key="ZeroToVis"/>
         <!-- Seit Phase 2 liefern die ViewModels Farben und Bytes statt Pinsel und Bitmaps -->
         <views:HexToBrushConverter x:Key="HexToBrush"/>
+        <views:KindToIconConverter x:Key="KindToIcon"/>
         <views:GradientBrushConverter x:Key="GradientBrush"/>
         <views:BytesToImageConverter x:Key="BytesToImage" DecodeWidth="240"/>
 
@@ -32,7 +33,6 @@
             <Setter Property="Width" Value="46"/>
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Foreground" Value="{DynamicResource Brush.TextMuted}"/>
-            <Setter Property="FontFamily" Value="{StaticResource IconFont}"/>
             <Setter Property="FontSize" Value="10"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -53,7 +53,6 @@
             <Setter Property="Width" Value="46"/>
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Foreground" Value="{DynamicResource Brush.TextMuted}"/>
-            <Setter Property="FontFamily" Value="{StaticResource IconFont}"/>
             <Setter Property="FontSize" Value="10"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -91,7 +90,7 @@
                 BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,0,0,1"
                 MouseLeftButtonDown="TopBar_MouseLeftButtonDown">
             <DockPanel>
-            <Button DockPanel.Dock="Left" Style="{StaticResource IconButton}" Content="&#xE700;"
+            <Button DockPanel.Dock="Left" Style="{StaticResource IconButton}" Content="{views:Icon Menu}"
                     ToolTip="{loc:T Sidebar.Toggle}" Margin="4,2"
                     Click="ToggleSidebar_Click"/>
             <Menu Padding="0,2">
@@ -149,18 +148,16 @@
 
                     <!-- Schnellzugriff: Neu -->
                     <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="2,0,0,8">
-                        <Button Style="{StaticResource IconButton}" Content="&#xE8F4;" ToolTip="{loc:T New.Folder}"
+                        <Button Style="{StaticResource IconButton}" Content="{views:Icon FolderNew}" ToolTip="{loc:T New.Folder}"
                                 Command="{Binding NewFolderCommand}"/>
-                        <Button Style="{StaticResource IconButton}" Content="&#xE82D;" ToolTip="{loc:T New.Notebook}"
+                        <Button Style="{StaticResource IconButton}" Content="{views:Icon Notebook}" ToolTip="{loc:T New.Notebook}"
                                 Command="{Binding NewNotebookCommand}"/>
                         <Button Style="{StaticResource IconButton}" ToolTip="{loc:T New.Whiteboard}"
                                 Command="{Binding NewWhiteboardCommand}">
-                            <Path Data="{StaticResource Icon.Whiteboard}" StrokeThickness="1.3"
-                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
-                                  Width="16" Height="16"
+                            <views:Symbol Icon="Whiteboard" Size="16"
                                   Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
                         </Button>
-                        <Button Style="{StaticResource IconButton}" Content="&#xE8A5;" ToolTip="{loc:T New.Text}"
+                        <Button Style="{StaticResource IconButton}" Content="{views:Icon TextDocument}" ToolTip="{loc:T New.Text}"
                                 Command="{Binding NewTextDocCommand}"/>
                     </StackPanel>
 
@@ -199,11 +196,11 @@
                                                         Background="{DynamicResource Brush.CardBg}"
                                                         BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1">
                                                     <Grid>
-                                                        <TextBlock Text="{Binding IconGlyph}" FontFamily="{StaticResource IconFont}"
-                                                                   FontSize="21" Foreground="{Binding IconColorHex, Converter={StaticResource HexToBrush}}"
-                                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                        <TextBlock Text="&#xE840;" FontFamily="{StaticResource IconFont}" FontSize="9"
-                                                                   Foreground="{DynamicResource Brush.TextMuted}"
+                                                        <views:Symbol Icon="{Binding Kind, Converter={StaticResource KindToIcon}}" Size="21"
+                                                                      Stroke="{Binding IconColorHex, Converter={StaticResource HexToBrush}}"
+                                                                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        <views:Symbol Icon="Pin" Size="9"
+                                                                   Stroke="{DynamicResource Brush.TextMuted}"
                                                                    HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,3,4,0"/>
                                                     </Grid>
                                                 </Border>
@@ -228,8 +225,8 @@
                             HorizontalAlignment="Left" Margin="2,8,0,0"
                             Command="{Binding ToggleThemeCommand}" ToolTip="{loc:T Sidebar.ThemeTooltip}">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="&#xE793;" FontFamily="{StaticResource IconFont}" FontSize="14"
-                                       Foreground="{DynamicResource Brush.TextMuted}" VerticalAlignment="Center"/>
+                            <views:Symbol Icon="Theme" Size="14"
+                                       Stroke="{DynamicResource Brush.TextMuted}" VerticalAlignment="Center"/>
                             <TextBlock Text="{loc:T Sidebar.SwitchTheme}" Margin="8,0,0,0"
                                        Foreground="{DynamicResource Brush.TextMuted}"/>
                         </StackPanel>
@@ -269,8 +266,8 @@
                                           Visibility="{Binding SelectedTreeItem.IsFolder,
                                                        Converter={StaticResource BoolToVis}, FallbackValue=Collapsed}">
                                     <MenuItem.Icon>
-                                        <TextBlock Text="&#xE840;" FontFamily="{StaticResource IconFont}" FontSize="12"
-                                                   Foreground="{DynamicResource Brush.TextMuted}"/>
+                                        <views:Symbol Icon="Pin" Size="12"
+                                                   Stroke="{DynamicResource Brush.TextMuted}"/>
                                     </MenuItem.Icon>
                                 </MenuItem>
                                 <MenuItem Header="{Binding SelectedTreeItem.FavoriteMenuHeader}"
@@ -279,8 +276,8 @@
                                           Visibility="{Binding SelectedTreeItem.IsFolder,
                                                        Converter={StaticResource BoolToVis}, FallbackValue=Collapsed}">
                                     <MenuItem.Icon>
-                                        <TextBlock Text="&#xE735;" FontFamily="{StaticResource IconFont}" FontSize="12"
-                                                   Foreground="#EAB308"/>
+                                        <views:Symbol Icon="Star" Size="12"
+                                                   Stroke="#EAB308"/>
                                     </MenuItem.Icon>
                                 </MenuItem>
                                 <MenuItem Header="{loc:T Tree.IconColor}">
@@ -330,21 +327,14 @@
                             <HierarchicalDataTemplate DataType="{x:Type vm:TreeItemViewModel}"
                                                       ItemsSource="{Binding Children}">
                                 <StackPanel Orientation="Horizontal" Margin="0,4">
-                                    <Grid VerticalAlignment="Center" Width="16" Height="16">
-                                        <TextBlock x:Name="glyphIcon" Text="{Binding IconGlyph}"
-                                                   FontFamily="{StaticResource IconFont}"
-                                                   FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Center"
-                                                   Foreground="{Binding IconColorHex, Converter={StaticResource HexToBrush}}"/>
-                                        <Path x:Name="boardIcon" Data="{StaticResource Icon.Whiteboard}"
-                                              Stroke="{Binding IconColorHex, Converter={StaticResource HexToBrush}}" StrokeThickness="1.3"
-                                              StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                                              StrokeLineJoin="Round" Visibility="Collapsed"/>
-                                    </Grid>
+                                    <views:Symbol Icon="{Binding Kind, Converter={StaticResource KindToIcon}}" Size="16"
+                                                  VerticalAlignment="Center"
+                                                  Stroke="{Binding IconColorHex, Converter={StaticResource HexToBrush}}"/>
                                     <TextBlock Text="{Binding Name}" Margin="8,0,4,0" VerticalAlignment="Center"
                                                Foreground="{DynamicResource Brush.Text}"
                                                Visibility="{Binding IsRenaming, Converter={StaticResource InverseBoolToVis}}"/>
-                                    <TextBlock Text="&#xE735;" FontFamily="{StaticResource IconFont}" FontSize="10"
-                                               Margin="2,0,0,0" VerticalAlignment="Center" Foreground="#EAB308"
+                                    <views:Symbol Icon="Star" Size="10"
+                                               Margin="2,0,0,0" VerticalAlignment="Center" Stroke="#EAB308"
                                                ToolTip="{loc:T Tree.Favorite}" Visibility="{Binding IsFavorite, Converter={StaticResource BoolToVis}}"/>
                                     <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
                                              Margin="6,0,4,0" MinWidth="110" Padding="2,1"
@@ -354,10 +344,6 @@
                                              KeyDown="RenameBox_KeyDown"/>
                                 </StackPanel>
                                 <HierarchicalDataTemplate.Triggers>
-                                    <DataTrigger Binding="{Binding Kind}" Value="Whiteboard">
-                                        <Setter TargetName="glyphIcon" Property="Visibility" Value="Collapsed"/>
-                                        <Setter TargetName="boardIcon" Property="Visibility" Value="Visible"/>
-                                    </DataTrigger>
                                 </HierarchicalDataTemplate.Triggers>
                             </HierarchicalDataTemplate>
                         </TreeView.ItemTemplate>
@@ -398,7 +384,7 @@
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
                                 <StackPanel Orientation="Horizontal">
-                                    <Button Style="{StaticResource IconButton}" Content="&#xE72B;" FontSize="18"
+                                    <Button Style="{StaticResource IconButton}" Content="{views:Icon ChevronLeft, Size=18}" FontSize="18"
                                             ToolTip="{loc:T Gallery.Back}" Margin="0,0,6,0" VerticalAlignment="Center"
                                             Visibility="{Binding CanGoBack, Converter={StaticResource BoolToVis}}"
                                             Command="{Binding GalleryBackCommand}"/>
@@ -411,11 +397,11 @@
                                     Style="{StaticResource FlatButton}" Padding="14,7"
                                     Background="{DynamicResource Brush.Accent}">
                                 <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="&#xE710;" FontFamily="{StaticResource IconFont}" FontSize="12"
-                                               Foreground="White" VerticalAlignment="Center"/>
+                                    <views:Symbol Icon="Plus" Size="12"
+                                               Stroke="White" VerticalAlignment="Center"/>
                                     <TextBlock Text="{loc:T Gallery.New}" Margin="7,0,2,0" Foreground="White" VerticalAlignment="Center"/>
-                                    <TextBlock Text="&#xE70D;" FontFamily="{StaticResource IconFont}" FontSize="9"
-                                               Foreground="White" VerticalAlignment="Center" Margin="4,1,0,0"/>
+                                    <views:Symbol Icon="ChevronDown" Size="9"
+                                               Stroke="White" VerticalAlignment="Center" Margin="4,1,0,0"/>
                                 </StackPanel>
                                 <Button.ContextMenu>
                                     <ContextMenu>
@@ -469,12 +455,12 @@
                                                 <Grid Height="152" Margin="0,4,0,10">
                                                     <!-- Ordner: großes farbiges Symbol -->
                                                     <Viewbox Width="118" Visibility="{Binding IsFolder, Converter={StaticResource BoolToVis}}">
-                                                        <TextBlock Text="{Binding IconGlyph}" FontFamily="{StaticResource IconFont}"
-                                                                   Foreground="{Binding IconColorHex, Converter={StaticResource HexToBrush}}">
-                                                            <TextBlock.Effect>
-                                                                <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.3" Color="Black"/>
-                                                            </TextBlock.Effect>
-                                                        </TextBlock>
+                                                        <views:Symbol Icon="{Binding Kind, Converter={StaticResource KindToIcon}}" Size="106" Weight="0.51"
+                                                          Stroke="{Binding IconColorHex, Converter={StaticResource HexToBrush}}">
+                                                <views:Symbol.Effect>
+                                                    <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.3" Color="Black"/>
+                                                </views:Symbol.Effect>
+                                            </views:Symbol>
                                                     </Viewbox>
                                                     <!-- Notizbuch: Cover-Vorschau -->
                                                     <Border Visibility="{Binding IsNotebook, Converter={StaticResource BoolToVis}}"
@@ -540,20 +526,20 @@
                                                         </StackPanel>
                                                     </Border>
                                                     <!-- Favoritenstern -->
-                                                    <TextBlock Text="&#xE735;" FontFamily="{StaticResource IconFont}" FontSize="15"
-                                                               Foreground="#EAB308" HorizontalAlignment="Right" VerticalAlignment="Top"
+                                                    <views:Symbol Icon="Star" Size="15"
+                                                               Fill="#EAB308" Stroke="#EAB308" HorizontalAlignment="Right" VerticalAlignment="Top"
                                                                Margin="0,2,6,0" Visibility="{Binding IsFavorite, Converter={StaticResource BoolToVis}}">
-                                                        <TextBlock.Effect>
+                                                        <views:Symbol.Effect>
                                                             <DropShadowEffect BlurRadius="3" ShadowDepth="0" Opacity="0.6" Color="Black"/>
-                                                        </TextBlock.Effect>
-                                                    </TextBlock>
+                                                        </views:Symbol.Effect>
+                                                    </views:Symbol>
                                                 </Grid>
                                                 <!-- Name + Chevron -->
                                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                                     <TextBlock Text="{Binding Name}" Foreground="{DynamicResource Brush.Text}"
                                                                FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
                                                                MaxWidth="128" TextAlignment="Center" VerticalAlignment="Center"/>
-                                                    <Button Style="{StaticResource IconButton}" Content="&#xE70D;" FontSize="9"
+                                                    <Button Style="{StaticResource IconButton}" Content="{views:Icon ChevronDown, Size=9}" FontSize="9"
                                                             Width="18" Height="18" Margin="3,0,0,0" ToolTip="{loc:T Gallery.Options}"
                                                             Click="GalleryChevron_Click"/>
                                                 </StackPanel>
@@ -583,7 +569,7 @@
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="{Binding TabHeader}" VerticalAlignment="Center" MaxWidth="180"
                                            TextTrimming="CharacterEllipsis"/>
-                                <Button Style="{StaticResource IconButton}" Content="&#xE711;" FontSize="9"
+                                <Button Style="{StaticResource IconButton}" Content="{views:Icon Close, Size=9}" FontSize="9"
                                         Width="20" Height="20" Margin="8,0,0,0" ToolTip="{loc:T Window.CloseTab}"
                                         Command="{Binding DataContext.CloseTabCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                         CommandParameter="{Binding}"/>
@@ -606,11 +592,11 @@
         </Border.RenderTransform>
         <DockPanel>
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                <Button Style="{StaticResource CaptionButton}" Content="&#xE921;"
+                <Button Style="{StaticResource CaptionButton}" Content="{views:Icon WindowMinimize}"
                         ToolTip="{loc:T Window.Minimize}" Click="Caption_Minimize"/>
-                <Button Style="{StaticResource CaptionButton}" Content="&#xE923;"
+                <Button Style="{StaticResource CaptionButton}" Content="{views:Icon WindowMaximize}"
                         ToolTip="{loc:T Window.Restore}" Click="Caption_Restore"/>
-                <Button Style="{StaticResource CaptionCloseButton}" Content="&#xE8BB;"
+                <Button Style="{StaticResource CaptionCloseButton}" Content="{views:Icon Close}"
                         ToolTip="{loc:T Window.Close}" Click="Caption_Close"/>
             </StackPanel>
             <StackPanel Orientation="Horizontal" Margin="12,0,0,0" VerticalAlignment="Center">

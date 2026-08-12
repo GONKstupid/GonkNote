@@ -1,3 +1,4 @@
+using GonkNote.Core.Theming;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -289,14 +290,15 @@ public partial class TextEditorView
     /// <summary>Zeigt die aktuelle Ausrichtung als Icon auf dem Sammel-Button.</summary>
     private void SyncAlignButton(TextAlignment? align)
     {
-        string iconKey = align switch
+        // Seit §4.31 steht die Form nicht mehr als Ressource im Kopf, sondern als Wert in der
+        // Tabelle — der Knopf sagt jetzt, *was* er zeigt, statt eine Geometrie nachzuschlagen.
+        AlignGlyph.Icon = align switch
         {
-            TextAlignment.Center => "Icon.AlignC",
-            TextAlignment.Right => "Icon.AlignR",
-            TextAlignment.Justify => "Icon.Justify",
-            _ => "Icon.AlignL",
+            TextAlignment.Center => AppIcon.AlignCenter,
+            TextAlignment.Right => AppIcon.AlignRight,
+            TextAlignment.Justify => AppIcon.AlignJustify,
+            _ => AppIcon.AlignLeft,
         };
-        AlignGlyph.Data = (Geometry)FindResource(iconKey);
         string name = align switch
         {
             TextAlignment.Center => "Zentriert",

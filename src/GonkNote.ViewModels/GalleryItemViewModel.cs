@@ -32,7 +32,6 @@ public sealed class GalleryItemViewModel : ObservableObject
 
     public bool IsFavorite => Tree.IsFavorite;
     public string? IconColorHex => Tree.IconColorHex;
-    public string IconGlyph => Tree.IconGlyph;
 
     /// <summary>Zuletzt geändert, wie in GoodNotes unter der Kachel.</summary>
     public string DateText => Tree.Item.ModifiedUtc.ToLocalTime().ToString(Loc.T("Gallery.DateFormat"), Loc.Culture);

@@ -39,7 +39,7 @@
             <DockPanel>
                 <Button DockPanel.Dock="Left" Classes="flach symbol" Margin="4,2"
                         ToolTip.Tip="{loc:T Sidebar.Toggle}" Click="Seitenleiste_Click">
-                    <Path Classes="symbol" Data="{StaticResource Icon.Seitenleiste}"
+                    <views:Symbol Icon="Sidebar"
                           Stroke="{DynamicResource Brush.Text}"/>
                 </Button>
 
@@ -100,22 +100,22 @@
                     <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="2,0,0,8">
                         <Button Classes="flach symbol" ToolTip.Tip="{loc:T New.Folder}"
                                 Command="{Binding NewFolderCommand}">
-                            <Path Classes="symbol" Data="{StaticResource Icon.Folder}"
+                            <views:Symbol Icon="Folder"
                                   Stroke="{DynamicResource Brush.Text}"/>
                         </Button>
                         <Button Classes="flach symbol" ToolTip.Tip="{loc:T New.Notebook}"
                                 Command="{Binding NewNotebookCommand}">
-                            <Path Classes="symbol" Data="{StaticResource Icon.Notebook}"
+                            <views:Symbol Icon="Notebook"
                                   Stroke="{DynamicResource Brush.Text}"/>
                         </Button>
                         <Button Classes="flach symbol" ToolTip.Tip="{loc:T New.Whiteboard}"
                                 Command="{Binding NewWhiteboardCommand}">
-                            <Path Classes="symbol" Data="{StaticResource Icon.Whiteboard}"
+                            <views:Symbol Icon="Whiteboard"
                                   Stroke="{DynamicResource Brush.Text}"/>
                         </Button>
                         <Button Classes="flach symbol" ToolTip.Tip="{loc:T New.Text}"
                                 Command="{Binding NewTextDocCommand}">
-                            <Path Classes="symbol" Data="{StaticResource Icon.Text}"
+                            <views:Symbol Icon="TextDocument"
                                   Stroke="{DynamicResource Brush.Text}"/>
                         </Button>
                     </StackPanel>
@@ -135,14 +135,11 @@
                                             Command="{Binding $parent[ItemsControl].((vm:MainViewModel)DataContext).OpenPinnedCommand}"
                                             CommandParameter="{Binding}">
                                         <Panel>
-                                            <Path Data="{Binding Kind, Converter={StaticResource KindToIcon}}"
+                                            <views:Symbol Icon="{Binding Kind, Converter={StaticResource KindToIcon}}"
                                                   Stroke="{Binding IconColorHex, Converter={StaticResource HexToBrush}}"
-                                                  StrokeThickness="1.3" StrokeLineCap="Round" StrokeJoin="Round"
-                                                  Width="21" Height="21" Stretch="Uniform"
-                                                  HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                            <Path Data="{StaticResource Icon.Pin}"
-                                                  Stroke="{DynamicResource Brush.TextMuted}" StrokeThickness="1.2"
-                                                  Width="9" Height="9" Stretch="Uniform"
+                                                  HorizontalAlignment="Center" VerticalAlignment="Center" Size="21" Weight="0.74"/>
+                                            <views:Symbol Icon="Pin"
+                                                  Stroke="{DynamicResource Brush.TextMuted}" Size="9"
                                                   HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,4,5,0"/>
                                         </Panel>
                                     </Button>
@@ -157,7 +154,7 @@
                             Margin="2,8,0,0" Command="{Binding ToggleThemeCommand}"
                             ToolTip.Tip="{loc:T Sidebar.ThemeTooltip}">
                         <StackPanel Orientation="Horizontal" Spacing="8">
-                            <Path Classes="symbol" Data="{StaticResource Icon.Design}"
+                            <views:Symbol Icon="Theme"
                                   Stroke="{DynamicResource Brush.TextMuted}" VerticalAlignment="Center"/>
                             <TextBlock Text="{loc:T Sidebar.SwitchTheme}"
                                        Foreground="{DynamicResource Brush.TextMuted}" VerticalAlignment="Center"/>
@@ -213,15 +210,12 @@
                         <TreeView.ItemTemplate>
                             <TreeDataTemplate x:DataType="vm:TreeItemViewModel" ItemsSource="{Binding Children}">
                                 <StackPanel Orientation="Horizontal" Margin="0,4" Spacing="0">
-                                    <Path Data="{Binding Kind, Converter={StaticResource KindToIcon}}"
-                                          Stroke="{Binding IconColorHex, Converter={StaticResource HexToBrush}}"
-                                          StrokeThickness="1.3" StrokeLineCap="Round" StrokeJoin="Round"
-                                          Width="16" Height="16" Stretch="Uniform" VerticalAlignment="Center"/>
+                                    <views:Symbol Icon="{Binding Kind, Converter={StaticResource KindToIcon}}"
+                                          Stroke="{Binding IconColorHex, Converter={StaticResource HexToBrush}}" VerticalAlignment="Center" Size="16"/>
                                     <TextBlock Text="{Binding Name}" Margin="8,0,4,0" VerticalAlignment="Center"
                                                Foreground="{DynamicResource Brush.Text}"
                                                IsVisible="{Binding !IsRenaming}"/>
-                                    <Path Data="{StaticResource Icon.Stern}" Fill="#EAB308"
-                                          Width="10" Height="10" Stretch="Uniform" Margin="2,0,0,0"
+                                    <views:Symbol Icon="Star" Fill="#EAB308" Size="10" Margin="2,0,0,0"
                                           VerticalAlignment="Center" ToolTip.Tip="{loc:T Tree.Favorite}"
                                           IsVisible="{Binding IsFavorite}"/>
                                     <TextBox Text="{Binding Name, Mode=TwoWay}" Margin="6,0,4,0"
@@ -272,8 +266,8 @@
                                     <Button Classes="flach symbol" ToolTip.Tip="{loc:T Gallery.Back}"
                                             VerticalAlignment="Center" IsVisible="{Binding CanGoBack}"
                                             Command="{Binding GalleryBackCommand}">
-                                        <Path Classes="symbol" Data="{StaticResource Icon.Zurueck}"
-                                              Stroke="{DynamicResource Brush.Text}" StrokeThickness="1.6"/>
+                                        <views:Symbol Icon="ChevronLeft"
+                                              Stroke="{DynamicResource Brush.Text}"/>
                                     </Button>
                                     <TextBlock Text="{Binding GalleryTitle}" FontSize="26" FontWeight="SemiBold"
                                                Foreground="{DynamicResource Brush.Text}" VerticalAlignment="Center"/>
@@ -282,12 +276,10 @@
 
                             <Button Classes="akzent" HorizontalAlignment="Right" VerticalAlignment="Bottom">
                                 <StackPanel Orientation="Horizontal" Spacing="7">
-                                    <Path Data="{StaticResource Icon.Plus}" Stroke="White" StrokeThickness="1.6"
-                                          StrokeLineCap="Round" Width="12" Height="12" Stretch="Uniform"
+                                    <views:Symbol Icon="Plus" Stroke="White" Size="12"
                                           VerticalAlignment="Center"/>
                                     <TextBlock Text="{loc:T Gallery.New}" Foreground="White" VerticalAlignment="Center"/>
-                                    <Path Data="{StaticResource Icon.ChevronUnten}" Stroke="White" StrokeThickness="1.6"
-                                          StrokeLineCap="Round" Width="9" Height="9" Stretch="Uniform"
+                                    <views:Symbol Icon="ChevronDown" Stroke="White" Size="9"
                                           VerticalAlignment="Center"/>
                                 </StackPanel>
                                 <Button.Flyout>
@@ -335,12 +327,10 @@
                                                          0,7, die im Baum bei 16 px kräftig aussehen, sind hier bei
                                                          118 px ein Haarstrich. Deshalb der eigene Wert — die Kachel
                                                          soll so satt gezeichnet sein wie im WPF-Kopf. -->
-                                                    <Path Data="{Binding Kind, Converter={StaticResource KindToIcon}}"
+                                                    <views:Symbol Icon="{Binding Kind, Converter={StaticResource KindToIcon}}"
                                                           Stroke="{Binding IconColorHex, Converter={StaticResource HexToBrush}}"
-                                                          StrokeThickness="4.5" StrokeLineCap="Round" StrokeJoin="Round"
-                                                          Width="118" Height="106" Stretch="Uniform"
                                                           HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                          IsVisible="{Binding IsFolder}"/>
+                                                          IsVisible="{Binding IsFolder}" Size="106" Weight="0.51"/>
 
                                                     <!-- Notizbuch: Cover-Vorschau -->
                                                     <Border IsVisible="{Binding IsNotebook}"
@@ -408,8 +398,7 @@
                                                     </Border>
 
                                                     <!-- Favoritenstern -->
-                                                    <Path Data="{StaticResource Icon.Stern}" Fill="#EAB308"
-                                                          Width="15" Height="15" Stretch="Uniform"
+                                                    <views:Symbol Icon="Star" Fill="#EAB308" Size="15"
                                                           HorizontalAlignment="Right" VerticalAlignment="Top"
                                                           Margin="0,2,6,0" IsVisible="{Binding IsFavorite}"/>
                                                 </Panel>
@@ -422,9 +411,8 @@
                                                     <Button Classes="flach" Width="20" Height="20" Padding="0"
                                                             ToolTip.Tip="{loc:T Gallery.Options}"
                                                             Click="GalerieMenue_Click">
-                                                        <Path Data="{StaticResource Icon.ChevronUnten}"
-                                                              Stroke="{DynamicResource Brush.TextMuted}" StrokeThickness="1.5"
-                                                              StrokeLineCap="Round" Width="9" Height="9" Stretch="Uniform"/>
+                                                        <views:Symbol Icon="ChevronDown"
+                                                              Stroke="{DynamicResource Brush.TextMuted}" Size="9"/>
                                                         <Button.Flyout>
                                                             <MenuFlyout>
                                                                 <MenuItem Header="{loc:T Tree.Open}" Tag="öffnen" Click="GalerieEintrag_Click"/>
@@ -461,9 +449,8 @@
                                         ToolTip.Tip="{loc:T Window.CloseTab}"
                                         Command="{Binding $parent[Window].((vm:MainViewModel)DataContext).CloseTabCommand}"
                                         CommandParameter="{Binding}">
-                                    <Path Data="{StaticResource Icon.Schliessen}"
-                                          Stroke="{DynamicResource Brush.TextMuted}" StrokeThickness="1.4"
-                                          StrokeLineCap="Round" Width="9" Height="9" Stretch="Uniform"/>
+                                    <views:Symbol Icon="Close"
+                                          Stroke="{DynamicResource Brush.TextMuted}" Size="9"/>
                                 </Button>
                             </StackPanel>
                         </DataTemplate>
@@ -521,17 +508,17 @@
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
                 <Button Classes="fensterknopf" ToolTip.Tip="{loc:T Window.Minimize}"
                         Click="Fenster_Minimieren">
-                    <Path Classes="symbol" Data="{StaticResource Icon.Minimieren}"
+                    <views:Symbol Icon="WindowMinimize"
                           Stroke="{DynamicResource Brush.Text}"/>
                 </Button>
                 <Button Classes="fensterknopf" ToolTip.Tip="{loc:T Window.Restore}"
                         Click="Fenster_Wiederherstellen">
-                    <Path Classes="symbol" Data="{StaticResource Icon.Wiederherstellen}"
+                    <views:Symbol Icon="WindowRestore"
                           Stroke="{DynamicResource Brush.Text}"/>
                 </Button>
                 <Button Classes="fensterknopf schliessen" ToolTip.Tip="{loc:T Window.Close}"
                         Click="Fenster_Schliessen">
-                    <Path Classes="symbol" Data="{StaticResource Icon.Schliessen}"
+                    <views:Symbol Icon="Close"
                           Stroke="{DynamicResource Brush.Text}"/>
                 </Button>
             </StackPanel>

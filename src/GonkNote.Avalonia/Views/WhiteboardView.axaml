@@ -1,4 +1,4 @@
-<UserControl xmlns="https://github.com/avaloniaui"
+﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:views="clr-namespace:GonkNote.Views"
              xmlns:loc="clr-namespace:GonkNote.Services"
@@ -25,12 +25,12 @@
 
                     <Button x:Name="BtnUndo" Classes="flach symbol" Click="Undo_Click"
                             ToolTip.Tip="{loc:T Action.Undo}">
-                        <Path Classes="symbol" Data="{StaticResource Icon.Rueckgaengig}"
+                        <views:Symbol Icon="Undo"
                               Stroke="{DynamicResource Brush.Text}"/>
                     </Button>
                     <Button x:Name="BtnRedo" Classes="flach symbol" Click="Redo_Click"
                             ToolTip.Tip="{loc:T Action.Redo}">
-                        <Path Classes="symbol" Data="{StaticResource Icon.Wiederholen}"
+                        <views:Symbol Icon="Redo"
                               Stroke="{DynamicResource Brush.Text}"/>
                     </Button>
 
@@ -40,22 +40,22 @@
                          Knopf ein eigenes Ereignis zu haben (wie im WPF-Kopf). -->
                     <ToggleButton x:Name="BtnPen" Classes="werkzeug" Tag="Pen"
                                   IsCheckedChanged="Tool_Changed" ToolTip.Tip="{loc:T Tool.Pen}">
-                        <Path Classes="symbol" Data="{StaticResource Icon.Stift}"
+                        <views:Symbol Icon="Pen"
                               Stroke="{DynamicResource Brush.Text}"/>
                     </ToggleButton>
                     <ToggleButton x:Name="BtnPencil" Classes="werkzeug" Tag="Pencil"
                                   IsCheckedChanged="Tool_Changed" ToolTip.Tip="{loc:T Tool.Pencil}">
-                        <Path Classes="symbol" Data="{StaticResource Icon.Bleistift}"
+                        <views:Symbol Icon="Pencil"
                               Stroke="{DynamicResource Brush.Text}"/>
                     </ToggleButton>
                     <ToggleButton x:Name="BtnHighlighter" Classes="werkzeug" Tag="Highlighter"
                                   IsCheckedChanged="Tool_Changed" ToolTip.Tip="{loc:T Tool.Highlighter}">
-                        <Path Classes="symbol" Data="{StaticResource Icon.Textmarker}"
+                        <views:Symbol Icon="Highlighter"
                               Stroke="{DynamicResource Brush.Text}"/>
                     </ToggleButton>
                     <ToggleButton x:Name="BtnEraser" Classes="werkzeug" Tag="Eraser"
                                   IsCheckedChanged="Tool_Changed" ToolTip.Tip="{loc:T Tool.Eraser}">
-                        <Path Classes="symbol" Data="{StaticResource Icon.Radierer}"
+                        <views:Symbol Icon="Eraser"
                               Stroke="{DynamicResource Brush.Text}"/>
                     </ToggleButton>
 
@@ -63,17 +63,17 @@
 
                     <ToggleButton x:Name="BtnLasso" Classes="werkzeug" Tag="Lasso"
                                   IsCheckedChanged="Tool_Changed" ToolTip.Tip="{loc:T Tool.Lasso}">
-                        <Path Classes="symbol" Data="{StaticResource Icon.Lasso}"
+                        <views:Symbol Icon="Lasso"
                               Stroke="{DynamicResource Brush.Text}"/>
                     </ToggleButton>
                     <ToggleButton x:Name="BtnMove" Classes="werkzeug" Tag="Move"
                                   IsCheckedChanged="Tool_Changed" ToolTip.Tip="{loc:T Tool.Move.Tip}">
-                        <Path Classes="symbol" Data="{StaticResource Icon.Verschieben}"
+                        <views:Symbol Icon="Move"
                               Stroke="{DynamicResource Brush.Text}"/>
                     </ToggleButton>
                     <ToggleButton x:Name="BtnPan" Classes="werkzeug" Tag="Pan"
                                   IsCheckedChanged="Tool_Changed" ToolTip.Tip="{loc:T Tool.Hand.Tip}">
-                        <Path Classes="symbol" Data="{StaticResource Icon.Hand}"
+                        <views:Symbol Icon="Hand"
                               Stroke="{DynamicResource Brush.Text}"/>
                     </ToggleButton>
 
@@ -109,14 +109,14 @@
                     <Border Classes="trenner"/>
 
                     <Button Classes="flach symbol" Click="ZoomOut_Click" ToolTip.Tip="{loc:T Zoom.Out}">
-                        <Path Classes="symbol" Data="{StaticResource Icon.ZoomMinus}"
+                        <views:Symbol Icon="ZoomOut"
                               Stroke="{DynamicResource Brush.Text}"/>
                     </Button>
                     <Button x:Name="ZoomLabel" Classes="flach" Click="ZoomReset_Click"
                             ToolTip.Tip="{loc:T Zoom.Reset}" MinWidth="52" Content="100 %"
                             FontSize="12" Foreground="{DynamicResource Brush.TextMuted}"/>
                     <Button Classes="flach symbol" Click="ZoomIn_Click" ToolTip.Tip="{loc:T Zoom.In}">
-                        <Path Classes="symbol" Data="{StaticResource Icon.ZoomPlus}"
+                        <views:Symbol Icon="ZoomIn"
                               Stroke="{DynamicResource Brush.Text}"/>
                     </Button>
 
@@ -124,7 +124,7 @@
 
                     <Button x:Name="BtnEinstellungen" Classes="flach symbol"
                             Click="Einstellungen_Click" ToolTip.Tip="{loc:T Wb.Settings.PageTip}">
-                        <Path Classes="symbol" Data="{StaticResource Icon.Einstellungen}"
+                        <views:Symbol Icon="Settings"
                               Stroke="{DynamicResource Brush.Text}"/>
                     </Button>
 
@@ -138,23 +138,23 @@
                 BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,1,0,0">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="8,4" Spacing="2">
                 <Button Classes="flach symbol" Click="PrevPage_Click">
-                    <Path Classes="symbol" Data="{StaticResource Icon.Zurueck}"
+                    <views:Symbol Icon="ChevronLeft"
                           Stroke="{DynamicResource Brush.Text}"/>
                 </Button>
                 <TextBlock x:Name="PageLabel" VerticalAlignment="Center" MinWidth="110"
                            TextAlignment="Center" FontSize="12"
                            Foreground="{DynamicResource Brush.TextMuted}"/>
                 <Button Classes="flach symbol" Click="NextPage_Click">
-                    <Path Classes="symbol" Data="{StaticResource Icon.Vor}"
+                    <views:Symbol Icon="ChevronRight"
                           Stroke="{DynamicResource Brush.Text}"/>
                 </Button>
                 <Border Classes="trenner"/>
                 <Button Classes="flach symbol" Click="AddPage_Click" ToolTip.Tip="{loc:T Page.Add}">
-                    <Path Classes="symbol" Data="{StaticResource Icon.Plus}"
+                    <views:Symbol Icon="Plus"
                           Stroke="{DynamicResource Brush.Text}"/>
                 </Button>
                 <Button Classes="flach symbol" Click="DeletePage_Click" ToolTip.Tip="{loc:T Page.Delete}">
-                    <Path Classes="symbol" Data="{StaticResource Icon.Papierkorb}"
+                    <views:Symbol Icon="Trash"
                           Stroke="{DynamicResource Brush.Text}"/>
                 </Button>
             </StackPanel>
@@ -178,7 +178,7 @@
                     <DockPanel>
                         <Button DockPanel.Dock="Right" Classes="flach symbol"
                                 ToolTip.Tip="{loc:T Wb.Settings.Close}" Click="Einstellungen_Click">
-                            <Path Classes="symbol" Data="{StaticResource Icon.Schliessen}"
+                            <views:Symbol Icon="Close"
                                   Stroke="{DynamicResource Brush.Text}"/>
                         </Button>
                         <TextBlock Text="{loc:T Settings.Page}" FontWeight="SemiBold" FontSize="14"

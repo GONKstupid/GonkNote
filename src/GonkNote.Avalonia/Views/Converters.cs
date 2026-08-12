@@ -132,34 +132,25 @@ public sealed class IsZeroConverter : IValueConverter
 
 /// <summary>
 /// Die Art eines Eintrags zu seinem Symbol.
+///
 /// <para>
-/// <b>Warum der Kopf hier etwas anderes tut als der WPF-Kopf:</b> dort liefert
-/// <c>TreeItemViewModel.IconGlyph</c> ein Zeichen aus „Segoe Fluent Icons" — eine Schrift,
-/// die es unter Linux nicht gibt und die sich auch nicht mitliefern lässt (keine Lizenz
-/// dafür). Der Eintrag wäre dort ein leeres Kästchen.
+/// <b>Seit dem 2026-08-12 tun beide Köpfe hier dasselbe</b> (§4.31). Vorher lieferte der
+/// WPF-Kopf über <c>TreeItemViewModel.IconGlyph</c> ein Zeichen aus „Segoe Fluent Icons" —
+/// eine Windows-Schrift, die es unter Linux nicht gibt und die sich nicht mitliefern lässt —,
+/// und dieser Konverter suchte stattdessen eine Vektorform in den Themes des Kopfes. Zwei
+/// Antworten auf dieselbe Frage, eine davon nur auf einem Rechner richtig.
 /// </para>
 /// <para>
-/// Also Vektorformen, so wie der WPF-Kopf es an den Stellen schon macht, an denen die
-/// Icon-Schrift nichts Passendes hat (<c>Icon.Whiteboard</c> und Nachbarn in
-/// <c>Themes/Styles.xaml</c>). <c>IconGlyph</c> bleibt unberührt im ViewModel stehen — es
-/// ist die Antwort des Windows-Kopfs auf dieselbe Frage.
+/// <b>Jetzt steht die Zuordnung in Core</b> (<see cref="AppIcon"/>), und dieser Konverter
+/// reicht sie nur noch durch. Er bleibt trotzdem stehen, weil eine Bindung im XAML keinen
+/// <c>switch</c> kann — und weil er die eine Stelle ist, an der „ein Ordner sieht so aus"
+/// für beide Köpfe steht.
 /// </para>
 /// </summary>
 public sealed class KindToIconConverter : IValueConverter
 {
-    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
-    {
-        string name = value is ItemKind kind ? kind switch
-        {
-            ItemKind.Folder => "Icon.Folder",
-            ItemKind.Notebook => "Icon.Notebook",
-            ItemKind.Whiteboard => "Icon.Whiteboard",
-            ItemKind.TextDocument => "Icon.Text",
-            _ => "Icon.Folder",
-        } : "Icon.Folder";
-
-        return Application.Current?.TryFindResource(name, out var form) == true ? form : null;
-    }
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+        value is ItemKind kind ? AppIcons.ForKind(kind) : AppIcon.Folder;
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
         throw new NotSupportedException();

@@ -39,31 +39,17 @@
 
              Zwei Teilpfade: die Umrisslinie mit dem Reiter oben links, und darunter die
              waagerechte Linie, die den Reiter erst als Reiter lesbar macht. -->
-        <StreamGeometry x:Key="Icon.Folder">M1.7,12.2 V3.6 A1.4,1.4 0 0 1 3.1,2.2 H5.5 A1.4,1.4 0 0 1 6.6,2.75 L7.5,3.95 A1.4,1.4 0 0 0 8.6,4.7 H12.9 A1.4,1.4 0 0 1 14.3,6.1 V12.2 A1.4,1.4 0 0 1 12.9,13.6 H3.1 A1.4,1.4 0 0 1 1.7,12.2 Z M1.7,4.7 H8.6</StreamGeometry>
-        <StreamGeometry x:Key="Icon.Notebook">M3.5,2.5 H13 A1,1 0 0 1 14,3.5 V12.5 A1,1 0 0 1 13,13.5 H3.5 Z M6,2.5 V13.5 M8,5.5 H12 M8,8 H12 M8,10.5 H11</StreamGeometry>
         <!-- 1:1 aus src/GonkNote.Wpf/Themes/Styles.xaml — dort hatte die Icon-Schrift für
              das Whiteboard schon nichts Passendes. -->
-        <StreamGeometry x:Key="Icon.Whiteboard">M1.5,2.5 H14.5 V11 H1.5 Z M4,7.5 Q6,5 8,7 Q10,9 12,6 M5,11 L3.5,14.5 M11,11 L12.5,14.5</StreamGeometry>
-        <StreamGeometry x:Key="Icon.Text">M3.5,1.5 H10 L12.5,4 V14.5 H3.5 Z M10,1.5 V4 H12.5 M5.5,7 H10.5 M5.5,9.5 H10.5 M5.5,12 H8.5</StreamGeometry>
 
         <!-- Gefüllt: ein gestrichener Stern ist bei 10 px nicht mehr als Stern zu erkennen. -->
-        <StreamGeometry x:Key="Icon.Stern">M8,1.8 L9.9,5.9 L14.3,6.4 L11,9.4 L11.9,13.8 L8,11.6 L4.1,13.8 L5,9.4 L1.7,6.4 L6.1,5.9 Z</StreamGeometry>
 
-        <StreamGeometry x:Key="Icon.Pin">M6,1.5 H10 L9.5,6 L12,8.5 H4 L6.5,6 Z M8,8.5 V14.5</StreamGeometry>
-        <StreamGeometry x:Key="Icon.Plus">M8,3 V13 M3,8 H13</StreamGeometry>
-        <StreamGeometry x:Key="Icon.Schliessen">M4.5,4.5 L11.5,11.5 M11.5,4.5 L4.5,11.5</StreamGeometry>
-        <StreamGeometry x:Key="Icon.ChevronUnten">M4,6 L8,10 L12,6</StreamGeometry>
-        <StreamGeometry x:Key="Icon.Zurueck">M10,3 L5,8 L10,13</StreamGeometry>
-        <StreamGeometry x:Key="Icon.Seitenleiste">M2,3 H14 V13 H2 Z M6.5,3 V13</StreamGeometry>
-        <StreamGeometry x:Key="Icon.Design">M13,10.5 A6,6 0 1 1 6,2.2 A5,5 0 0 0 13,10.5 Z</StreamGeometry>
 
         <!-- Werkzeuge der Zeichenfläche (Phase 3, zweiter Brocken).
              Dieselbe Machart: 16×16, gestrichen, keine Flächen. Die Werkzeugleiste des
              WPF-Kopfs holt diese Symbole aus „Segoe Fluent Icons"; hier ist jedes eine
              eigene Form (HANDOFF §7 „Die Icon-Schrift gibt es unter Linux nicht"). -->
 
-        <StreamGeometry x:Key="Icon.Stift">M2.5,13.5 L3.4,10.6 L10.6,3.4 A1.4,1.4 0 0 1 12.6,5.4 L5.4,12.6 Z M9.6,4.4 L11.6,6.4</StreamGeometry>
-        <StreamGeometry x:Key="Icon.Bleistift">M2.5,13.5 L3.4,10.6 L10.6,3.4 A1.4,1.4 0 0 1 12.6,5.4 L5.4,12.6 Z M3.4,10.6 L5.4,12.6</StreamGeometry>
         <!-- Textmarker: **aufrecht und von vorn**, nachgezeichnet nach dem Zeichen des
              WPF-Kopfs (Segoe Fluent `E7E6`) — Nutzerwunsch 2026-08-03. Der erste Anlauf war
              ein schräg liegender Marker; V1 zeigt ihn stehend, und daneben sah der Bleistift
@@ -76,34 +62,17 @@
 
              **Die Breite ist das Erkennungsmerkmal**, nicht die Neigung: ein schmaler Umriss
              liest sich neben Stift und Bleistift wie ein dritter Stift. -->
-        <StreamGeometry x:Key="Icon.Textmarker">M4.2,1.9 V9.6 L6.7,13.6 H9.3 L11.8,9.6 V1.9 M4.2,5.4 H11.8</StreamGeometry>
-        <StreamGeometry x:Key="Icon.Radierer">M5.5,13.5 L2.4,10.4 A1.2,1.2 0 0 1 2.4,8.7 L8.7,2.4 A1.2,1.2 0 0 1 10.4,2.4 L13.6,5.6 A1.2,1.2 0 0 1 13.6,7.3 L7.3,13.5 Z M5.5,5.5 L10.5,10.5 M5.5,13.5 H13.5</StreamGeometry>
-        <StreamGeometry x:Key="Icon.Lasso">M8,3 C11.9,3 14.5,4.9 14.5,7.2 C14.5,9.6 11.9,11.5 8,11.5 C4.1,11.5 1.5,9.6 1.5,7.2 C1.5,4.9 4.1,3 8,3 Z M5,11 C5,12.6 5.6,13.6 6.4,14.2</StreamGeometry>
-        <StreamGeometry x:Key="Icon.Verschieben">M3,2.5 L3,11.5 L5.4,9.4 L7.1,13.4 L8.9,12.6 L7.2,8.7 L10.4,8.3 Z</StreamGeometry>
-        <StreamGeometry x:Key="Icon.Hand">M5,8.5 V4.2 A1,1 0 0 1 7,4.2 V7.5 M7,7.5 V3.2 A1,1 0 0 1 9,3.2 V7.5 M9,7.5 V4.2 A1,1 0 0 1 11,4.2 V9 M11,7 A1,1 0 0 1 13,7 V10 A4.5,4.5 0 0 1 8.5,14.5 H8 A4.5,4.5 0 0 1 3.5,10 V8.5 A1,1 0 0 1 5,8.5</StreamGeometry>
 
         <!-- Zahnrad — die Einstellungen-Seitenleiste (Phase 3, sechster Brocken). -->
-        <StreamGeometry x:Key="Icon.Einstellungen">M8,5.6 A2.4,2.4 0 1 0 8,10.4 A2.4,2.4 0 1 0 8,5.6 M7,1.5 H9 L9.25,3.35 A5,5 0 0 1 10.55,4.1 L12.3,3.4 L13.3,5.1 L11.85,6.3 A5,5 0 0 1 11.85,9.7 L13.3,10.9 L12.3,12.6 L10.55,11.9 A5,5 0 0 1 9.25,12.65 L9,14.5 H7 L6.75,12.65 A5,5 0 0 1 5.45,11.9 L3.7,12.6 L2.7,10.9 L4.15,9.7 A5,5 0 0 1 4.15,6.3 L2.7,5.1 L3.7,3.4 L5.45,4.1 A5,5 0 0 1 6.75,3.35 Z</StreamGeometry>
 
-        <StreamGeometry x:Key="Icon.Rueckgaengig">M6,4 L2.5,7 L6,10 M2.5,7 H10 A3.5,3.5 0 0 1 10,14 H6</StreamGeometry>
-        <StreamGeometry x:Key="Icon.Wiederholen">M10,4 L13.5,7 L10,10 M13.5,7 H6 A3.5,3.5 0 0 0 6,14 H10</StreamGeometry>
 
-        <StreamGeometry x:Key="Icon.ZoomPlus">M7,2 A5,5 0 1 1 7,12 A5,5 0 1 1 7,2 M10.6,10.6 L14.5,14.5 M7,4.5 V9.5 M4.5,7 H9.5</StreamGeometry>
-        <StreamGeometry x:Key="Icon.ZoomMinus">M7,2 A5,5 0 1 1 7,12 A5,5 0 1 1 7,2 M10.6,10.6 L14.5,14.5 M4.5,7 H9.5</StreamGeometry>
 
         <!-- Fensterknöpfe der einblendbaren Titelleiste (Phase 3, sechster Brocken).
              Icon.Schliessen steht schon oben. -->
-        <StreamGeometry x:Key="Icon.Minimieren">M3.5,8 H12.5</StreamGeometry>
-        <StreamGeometry x:Key="Icon.Wiederherstellen">M5.5,5.5 H12.5 V12.5 H5.5 Z M3.5,10.5 V3.5 H10.5</StreamGeometry>
 
-        <StreamGeometry x:Key="Icon.Vor">M6,3 L11,8 L6,13</StreamGeometry>
-        <StreamGeometry x:Key="Icon.Papierkorb">M3,4.5 H13 M6.5,4.5 V2.8 H9.5 V4.5 M4.3,4.5 L5,13.5 H11 L11.7,4.5 M6.7,6.8 V11.4 M9.3,6.8 V11.4</StreamGeometry>
 
         <!-- Ribbon des Textdokuments (§4.28). Export = Blatt mit Pfeil heraus, Seitenbreite
              und Ganze Seite = ein Blatt mit Pfeilen in die Richtung, die eingepasst wird. -->
-        <StreamGeometry x:Key="Icon.Export">M8,10 V2 M5,5 L8,2 L11,5 M3,9.5 V13 A1,1 0 0 0 4,14 H12 A1,1 0 0 0 13,13 V9.5</StreamGeometry>
-        <StreamGeometry x:Key="Icon.Seitenbreite">M4.5,2.5 H11.5 V13.5 H4.5 Z M1.5,8 H4 M12,8 H14.5 M1.5,8 L3,6.5 M1.5,8 L3,9.5 M14.5,8 L13,6.5 M14.5,8 L13,9.5</StreamGeometry>
-        <StreamGeometry x:Key="Icon.GanzeSeite">M4.5,3.5 H11.5 V12.5 H4.5 Z M8,0.8 V3 M8,13 V15.2 M8,0.8 L6.6,2.2 M8,0.8 L9.4,2.2 M8,15.2 L6.6,13.8 M8,15.2 L9.4,13.8</StreamGeometry>
 
     </Styles.Resources>
 
@@ -196,14 +165,6 @@
 
     <!-- Gestrichene Symbole. Die Farbe setzt jede Fundstelle selbst (Ordnerfarbe,
          zurückgenommener Text, Weiß auf dem Akzentknopf) — hier steht nur die Machart. -->
-    <Style Selector="Path.symbol">
-        <Setter Property="Width" Value="16"/>
-        <Setter Property="Height" Value="16"/>
-        <Setter Property="StrokeThickness" Value="1.3"/>
-        <Setter Property="StrokeLineCap" Value="Round"/>
-        <Setter Property="StrokeJoin" Value="Round"/>
-        <Setter Property="Stretch" Value="None"/>
-    </Style>
 
     <!-- ==== Baum ===================================================================== -->
 

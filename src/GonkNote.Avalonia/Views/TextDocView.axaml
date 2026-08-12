@@ -1,4 +1,4 @@
-<UserControl xmlns="https://github.com/avaloniaui"
+﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:views="clr-namespace:GonkNote.Views"
              xmlns:loc="clr-namespace:GonkNote.Services"
@@ -51,11 +51,10 @@
                     <Button x:Name="KnopfExport" Classes="ribbonknopf"
                             ToolTip.Tip="{loc:T Ed.Export.Tip}">
                         <StackPanel Orientation="Horizontal" Spacing="6">
-                            <Path Classes="symbol" Data="{StaticResource Icon.Export}"
+                            <views:Symbol Icon="Export"
                                   Stroke="{DynamicResource Brush.Text}"/>
                             <TextBlock Text="{loc:T Ed.Export}" VerticalAlignment="Center"/>
-                            <Path Classes="symbol" Data="{StaticResource Icon.ChevronUnten}"
-                                  Width="10" Height="10"
+                            <views:Symbol Icon="ChevronDown" Size="10"
                                   Stroke="{DynamicResource Brush.TextMuted}"/>
                         </StackPanel>
                         <Button.Flyout>
@@ -71,14 +70,14 @@
                     <Border Classes="trenner"/>
 
                     <Button Classes="flach symbol" Click="ZoomRaus_Click" ToolTip.Tip="{loc:T Zoom.Out}">
-                        <Path Classes="symbol" Data="{StaticResource Icon.ZoomMinus}"
+                        <views:Symbol Icon="ZoomOut"
                               Stroke="{DynamicResource Brush.Text}"/>
                     </Button>
                     <Button x:Name="ZoomAnzeige" Classes="flach" MinWidth="52" Content="100 %"
                             FontSize="12" Click="ZoomZurueck_Click" ToolTip.Tip="{loc:T Zoom.Reset}"
                             Foreground="{DynamicResource Brush.TextMuted}"/>
                     <Button Classes="flach symbol" Click="ZoomRein_Click" ToolTip.Tip="{loc:T Zoom.In}">
-                        <Path Classes="symbol" Data="{StaticResource Icon.ZoomPlus}"
+                        <views:Symbol Icon="ZoomIn"
                               Stroke="{DynamicResource Brush.Text}"/>
                     </Button>
 
@@ -87,7 +86,7 @@
                     <Button Classes="ribbonknopf" Click="Seitenbreite_Click"
                             ToolTip.Tip="{loc:T Ed.FitWidth.Tip}">
                         <StackPanel Orientation="Horizontal" Spacing="6">
-                            <Path Classes="symbol" Data="{StaticResource Icon.Seitenbreite}"
+                            <views:Symbol Icon="FitWidth"
                                   Stroke="{DynamicResource Brush.Text}"/>
                             <TextBlock Text="{loc:T Ed.FitWidth}" VerticalAlignment="Center"/>
                         </StackPanel>
@@ -95,7 +94,7 @@
                     <Button Classes="ribbonknopf" Click="GanzeSeite_Click"
                             ToolTip.Tip="{loc:T Ed.FitPage.Tip}">
                         <StackPanel Orientation="Horizontal" Spacing="6">
-                            <Path Classes="symbol" Data="{StaticResource Icon.GanzeSeite}"
+                            <views:Symbol Icon="FitPage"
                                   Stroke="{DynamicResource Brush.Text}"/>
                             <TextBlock Text="{loc:T Ed.FitPage}" VerticalAlignment="Center"/>
                         </StackPanel>
@@ -143,14 +142,14 @@
                 BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,1,0,0">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="8,4" Spacing="2">
                 <Button Classes="flach symbol" Click="SeiteZurueck_Click" ToolTip.Tip="{loc:T Page.Previous}">
-                    <Path Classes="symbol" Data="{StaticResource Icon.Zurueck}"
+                    <views:Symbol Icon="ChevronLeft"
                           Stroke="{DynamicResource Brush.Text}"/>
                 </Button>
                 <TextBlock x:Name="SeitenAnzeige" VerticalAlignment="Center" MinWidth="110"
                            TextAlignment="Center" FontSize="12"
                            Foreground="{DynamicResource Brush.TextMuted}"/>
                 <Button Classes="flach symbol" Click="SeiteVor_Click" ToolTip.Tip="{loc:T Page.Next}">
-                    <Path Classes="symbol" Data="{StaticResource Icon.Vor}"
+                    <views:Symbol Icon="ChevronRight"
                           Stroke="{DynamicResource Brush.Text}"/>
                 </Button>
             </StackPanel>

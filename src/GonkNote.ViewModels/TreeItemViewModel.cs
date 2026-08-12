@@ -47,15 +47,13 @@ public sealed class TreeItemViewModel : ObservableObject
     /// <summary>Name vor Beginn der Umbenennung (für Escape = verwerfen).</summary>
     public string? NameBeforeRename { get; private set; }
 
-    /// <summary>Icon-Glyph (Segoe Fluent Icons) je nach Typ.</summary>
-    public string IconGlyph => Kind switch
-    {
-        ItemKind.Folder => "",       // Ordner
-        ItemKind.Notebook => "",     // Buch
-        ItemKind.Whiteboard => "",   // Stift
-        ItemKind.TextDocument => "", // Dokument
-        _ => "",
-    };
+    // Hier stand bis zum 2026-08-12 "IconGlyph" -- vier Zeichencodes aus "Segoe Fluent
+    // Icons" (§4.31). Eine Windows-Systemschrift, mitten in der Assembly, die laut §4.2
+    // gerade **kein** WPF kennen soll. Der Compiler konnte es nicht sehen: Es waren
+    // Zeichenketten und kein Verweis.
+    //
+    // Die Zuordnung steht jetzt als AppIcons.ForKind in Core -- beide Köpfe fragen dieselbe
+    // Stelle, und der Ordnerbaum bindet an "Kind" statt an eine schon fertige Antwort.
 
     /// <summary>
     /// Vom übergeordneten Ordner geerbte Farbe (vom MainViewModel gesetzt), greift nur,

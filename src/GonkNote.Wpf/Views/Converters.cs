@@ -1,4 +1,6 @@
 using System.Globalization;
+using GonkNote.Core.Models;
+using GonkNote.Core.Theming;
 using System.IO;
 using System.Windows;
 using System.Windows.Data;
@@ -119,6 +121,28 @@ public sealed class BytesToImageConverter : IValueConverter
         }
         catch { return null; }
     }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+        throw new NotSupportedException();
+}
+
+/// <summary>
+/// Die Art eines Eintrags zu ihrem Symbol — das Gegenstück zum gleichnamigen Konverter im
+/// Avalonia-Kopf, und seit dem 2026-08-12 mit derselben Antwort (§4.31).
+///
+/// <para>
+/// <b>Vorher stand hier nichts, und das war das Problem.</b> Der Baum band an
+/// <c>TreeItemViewModel.IconGlyph</c> — vier Segoe-Zeichencodes, mitten in einer Assembly,
+/// die WPF-frei sein soll (§4.2). Weil die Icon-Schrift kein Whiteboard kennt, hing daneben
+/// eine zweite Form als <c>Path</c>, unsichtbar geschaltet, plus ein <c>DataTrigger</c>, der
+/// zwischen beiden umschaltete. <b>Drei Bauteile für „welches Symbol gehört zu dieser
+/// Art".</b> Mit einer Tabelle in Core ist es eine Bindung.
+/// </para>
+/// </summary>
+public sealed class KindToIconConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+        value is ItemKind kind ? AppIcons.ForKind(kind) : AppIcon.Folder;
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
         throw new NotSupportedException();

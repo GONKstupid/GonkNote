@@ -90,7 +90,7 @@ Die Datei ist lang, und das bleibt sie: sie trägt die Begründungen, nicht nur 
 | **1** | Auftrag und die Entscheidungen dahinter | einmal, zum Verstehen des Ganzen |
 | **2** | Stand: Version, Testzahl, Meilensteine, welche Phase wo steht | „wo stehen wir?" |
 | **3** | Struktur der Solution, Faustregel Core ↔ Kopf | vor jeder neuen Datei |
-| **4** | **Warum es so ist, wie es ist** — eine Nummer je Runde (§4.1 – §4.30) | wenn eine Entscheidung fremd wirkt |
+| **4** | **Warum es so ist, wie es ist** — eine Nummer je Runde (§4.1 – §4.31) | wenn eine Entscheidung fremd wirkt |
 | **5** | **Entscheidungen** — getroffene als Tabelle, offene als Liste | **vor jeder Rückfrage an den Nutzer** |
 | **5a** | Stylus unter Linux: was gemessen wurde und was offen ist | bei allem, was am Stift hängt |
 | **5b** | Wann und wie auf den CachyOS-Laptop gewechselt wird | bevor man ihn anfasst |
@@ -296,7 +296,7 @@ angezeigt, importiert (DOCX) und in alle vier Formate exportiert. **Damit ist Ph
 abgeschlossen.** Der Anschluss hat sofort einen Fehler gezeigt, den vier Runden lang kein
 Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — behoben.
 
-### ▶ Hier geht es weiter (Stand 2026-08-12, nach Runde V2-41)
+### ▶ Hier geht es weiter (Stand 2026-08-12, nach Runde V2-42)
 
 > **✅ Phase 4 ist abgeschlossen** (§4.28) und **auf dem Laptop gegengeprüft** (§4.28, „Was der
 > Laptop gefunden hat"): die Anzeige trägt, ihr Umbruch stimmt mit dem PDF überein, Rollen und
@@ -315,6 +315,12 @@ Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — beh
 > **✅ Schritt 1 des Arbeitsplans steht** (2026-08-12, §4.30): `TdPosition`, `TdSelection` und
 > `TdCursor` in `Core/Text/`, **28 Wächter**, Bau 0/0 und **545 Tests** grün. Die Stelle steht
 > **im Modell**, wie vorgeschlagen.
+>
+> **✅ Dazwischen kam ein Symbolsatz für alle drei Plattformen** (2026-08-12, §4.31) — auf eine
+> Frage des Nutzers hin, und sie traf einen blinden Fleck: Der WPF-Kopf setzte an **91 Stellen**
+> Zeichen aus `Segoe Fluent Icons`, einer Windows-Schrift, die unter Linux fehlt und nicht
+> mitgeliefert werden darf. Die Symbole stehen jetzt als **Tabelle in `Core/Theming/`** (71
+> Stück, aus Lucide; sieben eigene), beide Köpfe lesen sie, **12 neue Wächter**. **557 Tests.**
 >
 > **▶ Als Nächstes: Schritt 2 — was sich ändert, wenn man tippt.** Einfügen, Löschen,
 > Zeilenumbruch, Absatz teilen und verbinden, jedes mit seiner Gegenbewegung. Der Plan steht
@@ -354,11 +360,11 @@ Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — beh
 **Tests laufen lassen:**
 
 ```powershell
-dotnet test -c Release        # Windows: beide Projekte, 545 Tests
+dotnet test -c Release        # Windows: beide Projekte, 557 Tests
 ```
 
 ```bash
-dotnet test tests/GonkNote.Core.Tests   # Linux: 517 Tests
+dotnet test tests/GonkNote.Core.Tests   # Linux: 526 Tests
 ```
 
 ---
@@ -396,7 +402,7 @@ möglich) gelten unverändert weiter — siehe `gonk-note\HANDOFF.md` §1.
 | | |
 |---|---|
 | **Version** | 0.3.0 · `net10.0` · SkiaSharp 3.119.4 · Avalonia 12.1.1 · SQLite |
-| **Tests** | **545** — 517 in `GonkNote.Core.Tests` (Windows **und** Linux), 28 in `GonkNote.Wpf.Tests` (alles, was am `FlowDocument` hängt) |
+| **Tests** | **557** — 526 in `GonkNote.Core.Tests` (Windows **und** Linux), 31 in `GonkNote.Wpf.Tests` (alles, was am `FlowDocument` hängt) |
 | **Bau** | Debug und Release je 0 Fehler / 0 Warnungen; CI mit zwei Läufen (Windows, Ubuntu) |
 | **Meilensteine** | ✅ **M0** (Core baut auf Linux) · ✅ **M1** (Notizbuch und Whiteboard laufen unter Linux) · ⏳ **M2** (Funktionsgleichheit) — er hängt an Phase 4.5, nicht an Phase 4 |
 
@@ -3825,6 +3831,105 @@ zuerst mit einem getippten Buchstaben da. Zerlegt und zusammengesetzt sehen im Q
 still das zusammengesetzte. Der Test wäre grün geblieben und hätte nichts mehr geprüft. Er
 baut das Zeichen jetzt aus seiner **Nummer** (`(char)0x0308`).
 
+### 4.31 Ein Symbolsatz für alle drei Plattformen
+
+**2026-08-12 unter Windows (V2-42), ausgelöst von einer Frage des Nutzers** („ist es auch
+möglich, alle UI-Elemente wie Icons plattformübergreifend zu vereinheitlichen?"). **Die Antwort
+war ja — und die Frage traf denselben Fehler wie schon einmal bei den Schriften (§4.26): einen,
+von dem niemand wusste.**
+
+#### Der Befund
+
+| | vorher | Folge |
+|---|---|---|
+| **WPF-Kopf** | **91 Fundstellen** mit Zeichen aus `Segoe Fluent Icons` (53 verschiedene), dazu 14 selbstgezeichnete Vektoren | Die Schrift ist eine **Windows-Systemschrift**. Sie fehlt unter Linux und iPadOS und darf **nicht mitgeliefert** werden — sie gehört Microsoft |
+| **Avalonia-Kopf** | 31 eigene Vektorformen | Musste alles zweimal geben, weil die Glyphen drüben nicht ankommen |
+| **Beide** | `Icon.Lasso` und `Icon.Hand` gab es in **beiden** Köpfen — **mit verschiedenen Formen** | Die Doppelung aus §4.13, live |
+| **ViewModels** | `TreeItemViewModel.IconGlyph`: vier **Segoe-Zeichencodes** | In einer Assembly, die laut §4.2 WPF-frei sein soll. **Der Compiler konnte es nicht sehen** — es waren Zeichenketten, kein Verweis |
+
+**Das ist zum dritten Mal dieselbe Lage:** Farben (§4.9), Schriften (§4.26), jetzt Symbole. Eine
+Frage, die die Plattform beantwortet, statt eine Tabelle in Core.
+
+#### Was der Nutzer entschieden hat
+
+**„Alles auf einmal", und die Formen aus einem freien Satz** (2026-08-12). Dabei war ihm eines
+vorher zu sagen und ist gesagt worden: **Die Windows-Symbole lassen sich nicht mitnehmen, nur
+ersetzen.** Sein Wunsch war, die Windows-Formen zu behalten — das geht nicht, und deshalb sieht
+**auch der WPF-Kopf jetzt anders aus**. Was ging: dieselbe Bedeutung, dieselbe dünne Strichart,
+**und die beiden Formen, die ihm am Linux-Kopf besser gefielen** (Notizbuch und Textdokument),
+sind die, die geblieben sind.
+
+**Gewählt wurde Lucide** (ISC, teils MIT über Feather) — 64 Formen; **sieben sind eigene**:
+Notizbuch, Textdokument, Whiteboard, Geodreieck, Seitenbreite, Ganze Seite und
+Fenster-Wiederherstellen. Lizenztexte in `THIRD-PARTY-NOTICES.md`, **beide README-Fassungen**
+nennen sie (Dauerregel 1).
+
+#### Wie die Tabelle gebaut ist
+
+`Core/Theming/AppIcon.cs` (71 Werte, **eine Bedeutung je Wert**) und `Icons.cs` (die Formen).
+Zwei Entscheidungen darin:
+
+- **Jede Form bringt ihren Kasten mit** (16 oder 24), statt alles auf ein Maß zu rechnen.
+  Siebzig Pfadangaben mit 1,5 zu multiplizieren ist genau die Fleißarbeit, bei der ein
+  Zahlendreher unbemerkt bleibt. **Skaliert wird beim Zeichnen** — eine Multiplikation an einer
+  Stelle statt siebzig im Quelltext.
+- **Ein Symbol je Bedeutung, nicht je Knopf.** „Schließen" gab es dreimal (Fenster, Reiter,
+  Dialog), „Vergrößern" zweimal — je nachdem, ob man in der Zeichenfläche oder im Texteditor
+  stand. Umgekehrt stand **eine** Glyphe für zwei Dinge: `E790` für „Format übertragen" *und*
+  „Farbe wählen", `E799` für „Seitenränder" *und* „Zeilenabstand". Beides ist aufgelöst.
+
+Je Kopf ein kleines Steuerelement (`Views/Symbol.cs`, ~120 Zeilen), das die Tabelle liest. Im
+WPF-Kopf zusätzlich eine **Markup-Erweiterung** `{views:Icon Undo}`: Dort standen die Symbole
+als *Attribut* (`Content="&#xE7A7;"`), nicht als Element — ohne sie wären aus 60 Werten 60
+Knopf-Umbauten geworden.
+
+#### Erzeugt statt abgetippt — und drei stille Fehler dabei
+
+Die Pfadangaben sind heruntergeladen und umgerechnet worden, nicht abgeschrieben. **Drei Fehler
+sind dabei entstanden, und keiner davon hätte sich als Fehler gemeldet:**
+
+1. **Ein führendes kleines `m` ist beim Aneinanderhängen nicht mehr dasselbe wie ein großes.**
+   Lucide legt Symbole in mehreren `<path>` ab; hängt man sie zusammen, zählt das zweite
+   relativ zum Ende des ersten. Beim `x` landete der zweite Strich daneben.
+2. **Groß machen reicht nicht.** Nach einem großen `M` sind Folgezahlen **absolute** LineTos —
+   aus `m15 14 5-5-5-5` (Rückgängig-Pfeil) wurde etwas völlig anderes. Richtig ist ein
+   vorangestelltes `M0,0`.
+3. **Ein deutsches Dezimalkomma ist in einer Pfadangabe ein Trennzeichen.** PowerShell schrieb
+   `13,5` statt `13.5`, und aus einem Kreis wurde Unsinn.
+
+**Gefunden hat sie ein Kontaktblatt mit allen 71 Symbolen nebeneinander** — nicht das Lesen des
+Quelltextes, und beim zweiten Fehler auch nicht das Parsen (die falsche Angabe war gültig, nur
+falsch). **Dieselbe Lehre wie in §4.28: eine Anzeige findet, was ein Textvergleich nicht sehen
+kann.** Das Kontaktblatt ist das Werkzeug, mit dem man eine Formänderung prüft; der Quelltext
+ist es nicht.
+
+> **Ein vierter Fehler saß im Wächter selbst.** `SKPath.Bounds` liefert den Kasten um die
+> **Stützpunkte** einer Kurve, nicht um die Kurve: Beim Lasso (ein elliptischer Bogen) ergab das
+> 4,5 Einheiten außerhalb — der Wächter war rot, die Form richtig. `TightBounds` misst die Form.
+> **Ein Wächter, der die falsche Größe misst, ist schlimmer als keiner.**
+
+#### Die Wächter
+
+**Neun in Core** (`IkonentabelleTests`, laufen auch unter Linux): zu jedem Wert eine Form, jede
+Form lesbar, **jede bleibt in ihrem Kasten** *und* **füllt ihn aus** (der Wächter gegen einen
+verlorenen Pfadteil), nur die zwei bekannten Kastengrößen, gleiche Strichstärke bei beiden,
+keine Glyphe aus dem privaten Unicode-Bereich, jede Dokumentart mit eigenem Symbol.
+
+**Drei im WPF-Testprojekt** (`IkonenimKopfTests`), und die sind die eigentliche Absicherung:
+Sie lesen den **Quelltext** der XAML-Dateien und verlangen, dass **kein Zeichen aus dem privaten
+Unicode-Bereich**, **kein `IconFont`** und **keine eigene `Icon.*`-Geometrie** zurückkommt.
+
+> **Warum ein Textvergleich und kein Verhaltenstest:** Eine Glyphe im XAML kompiliert,
+> zeichnet und sieht **unter Windows sogar richtig aus**. Falsch wird sie erst auf dem Laptop.
+> Ein Test, der den Kopf ausführt, läuft auf Windows und sähe nichts.
+
+#### Eine Falle, die eine Runde gekostet hat
+
+**Ein Namensraum, der wie das Framework heißt, verdeckt das Framework.** Die neue Datei stand
+zuerst in `GonkNote.Avalonia.Views` — der Assemblyname. Damit gab es unterhalb von `GonkNote`
+plötzlich ein `Avalonia`, und in **jeder anderen Datei** des Kopfs zeigte `Avalonia.Interactivity`
+ins Leere. Der Kopf heißt im Quelltext `GonkNote.Views`, und zwar aus genau diesem Grund.
+
 ---
 
 ## 5. Entscheidungen
@@ -4527,7 +4632,7 @@ weiter: erst die drei Handgriffe zum Aufraeumen, dann der Arbeitsplan in §6
 ueberfliegen.
 
 Zieh zuerst den Stand: git pull. Dann bauen und testen, bevor du etwas anfasst --
-0 Fehler, 0 Warnungen, 545 Tests.
+0 Fehler, 0 Warnungen, 557 Tests.
 
 Arbeite auf Deutsch, halte das HANDOFF nach, und sag mir am Ende, ob der Laptop
 dran ist.
@@ -4572,7 +4677,7 @@ oder im Umbruch?** Der Vorschlag samt Begründung steht in §6.
 ```powershell
 cd C:\Dev\Zed\gonk-note-V2
 dotnet build -c Release       # 0 Fehler, 0 Warnungen
-dotnet test -c Release        # beide Projekte, derzeit 545 Tests
+dotnet test -c Release        # beide Projekte, derzeit 557 Tests
 ```
 
 **Und danach am laufenden Programm**, mit einer **Kopie** der echten Datenbank (Dauerregel 4,
@@ -5455,6 +5560,27 @@ weil sie bei der Portierung direkt zuschlagen:
   das Dokument schneller aufgeht als der zweite Klick kommt. Über den Baum öffnen ist
   sicherer.
 
+**Neu aus §4.31 — Symbole und Namensräume**
+
+- **Ein Namensraum, der wie das Framework heißt, verdeckt das Framework.** Eine neue Datei im
+  Avalonia-Kopf stand versehentlich in `GonkNote.Avalonia.Views` (dem Assemblynamen). Damit gab
+  es unterhalb von `GonkNote` ein `Avalonia`, und in **jeder anderen Datei** des Kopfs zeigte
+  `Avalonia.Interactivity` plötzlich ins Leere — mit einer Fehlermeldung, die auf die *fremde*
+  Datei zeigt und nicht auf die neue. **Der Kopf heißt im Quelltext `GonkNote.Views`**, und zwar
+  aus genau diesem Grund.
+- **Beim Aneinanderhängen von SVG-Pfaden ist ein kleines `m` nicht dasselbe wie ein großes** —
+  und **groß machen reicht nicht**, denn nach einem großen `M` sind Folgezahlen absolute
+  LineTos. Richtig ist ein vorangestelltes `M0,0`. Beides erzeugt **gültige** Pfadangaben, die
+  etwas anderes zeichnen; kein Parser meldet das.
+- **Ein deutsches Dezimalkomma ist in einer Pfadangabe ein Trennzeichen.** Wer Zahlen aus
+  PowerShell in Geometrie schreibt, stellt vorher `CurrentCulture` auf invariant.
+- **`SKPath.Bounds` misst die Stützpunkte einer Kurve, nicht die Kurve.** Bei einem
+  elliptischen Bogen liegt das um Einheiten daneben. Für die tatsächliche Ausdehnung
+  **`TightBounds`**.
+- **Symbole prüft man am Bild, nicht am Quelltext.** Ein Kontaktblatt mit allen Formen
+  nebeneinander hat in §4.31 drei Fehler gefunden, die Lesen und Parsen beide durchgelassen
+  hatten.
+
 **Neu aus §4.13 — Fernsteuern, Ziehen und Untermenüs**
 
 - **Ohne Ziehen lässt sich die Auswahl gar nicht fernsteuern.** Lasso und Verschieben sind
@@ -6011,7 +6137,7 @@ cd C:\Dev\Zed\gonk-note-V2
 dotnet build -c Release      # 0 Fehler / 0 Warnungen
 dotnet build -c Debug        # schneller, ohne Self-Contained/win-x64
 
-dotnet test -c Release       # beide Testprojekte, 545 Tests
+dotnet test -c Release       # beide Testprojekte, 557 Tests
 
 # Golden-Files bewusst neu setzen (danach den Diff lesen, siehe §4.6)
 $env:GONK_SNAPSHOT_UPDATE=1; dotnet test tests\GonkNote.Core.Tests; $env:GONK_SNAPSHOT_UPDATE=$null
@@ -6098,6 +6224,7 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 
 | Runde | Datum | Was |
 |---|---|---|
+| V2-42 | 2026-08-12 | **Ein Symbolsatz für alle drei Plattformen** (§4.31) — ausgelöst von einer Frage des Nutzers („können wir die Icons plattformübergreifend vereinheitlichen?"), und die Frage traf denselben blinden Fleck wie §4.26 bei den Schriften. **Der Befund:** Der WPF-Kopf setzte an **91 Stellen** Zeichen aus `Segoe Fluent Icons` (53 verschiedene) — eine **Windows-Systemschrift**, die unter Linux und iPadOS fehlt und **nicht mitgeliefert werden darf** —, dazu 14 eigene Vektoren; der Avalonia-Kopf hatte 31 eigene. `Icon.Lasso` und `Icon.Hand` gab es in **beiden Köpfen mit verschiedenen Formen** (§4.13, live), und vier **Segoe-Zeichencodes** saßen als `IconGlyph` in `GonkNote.ViewModels` — der Assembly, die laut §4.2 WPF-frei sein soll; der Compiler konnte es nicht sehen, es waren Zeichenketten. **Zum dritten Mal dieselbe Lage nach Farben (§4.9) und Schriften (§4.26).** **Nutzer-Entscheidung: alles auf einmal, Formen aus einem freien Satz.** Ihm war vorher zu sagen, dass sein Wunsch — die Windows-Formen behalten — nicht geht: Sie lassen sich **nicht mitnehmen, nur ersetzen**, und deshalb sieht auch der WPF-Kopf jetzt anders aus. Geblieben sind die zwei Formen, die ihm am Linux-Kopf besser gefielen (Notizbuch, Textdokument). Gewählt: **Lucide** (ISC, teils MIT über Feather), **71 Symbole**, davon **sieben eigene** (Notizbuch, Textdokument, Whiteboard, Geodreieck, Seitenbreite, Ganze Seite, Wiederherstellen). **Die Tabelle steht in `Core/Theming/`** (`AppIcon` + `AppIcons`), je Kopf liest sie ein kleines `Symbol`-Steuerelement; im WPF-Kopf zusätzlich eine Markup-Erweiterung `{views:Icon Undo}`, weil die Symbole dort als **Attribut** standen und nicht als Element — sonst wären aus 60 Werten 60 Knopf-Umbauten geworden. **Jede Form bringt ihren Kasten mit** (16 oder 24) statt umgerechnet zu werden: siebzig Pfadangaben mit 1,5 zu multiplizieren ist die Fleißarbeit, bei der ein Zahlendreher unbemerkt bleibt. **Ein Symbol je Bedeutung:** „Schließen" gab es dreimal, „Vergrößern" zweimal — und umgekehrt stand **eine** Glyphe für zwei Dinge (`E790` für „Format übertragen" *und* „Farbe wählen"). **Erzeugt statt abgetippt, und drei stille Fehler dabei gefunden:** ein führendes kleines `m` ist beim Aneinanderhängen zweier Pfade nicht mehr dasselbe wie ein großes (der zweite Strich eines „x" landete daneben); groß machen reicht nicht, denn nach einem großen `M` sind Folgezahlen **absolute** LineTos (der Rückgängig-Pfeil wurde zu etwas ganz anderem); und ein deutsches **Dezimalkomma** ist in einer Pfadangabe ein Trennzeichen. **Gefunden hat sie ein Kontaktblatt mit allen 71 Symbolen** — nicht der Quelltext und beim zweiten auch nicht das Parsen, denn die falsche Angabe war gültig. Dieselbe Lehre wie §4.28. **Ein vierter Fehler saß im Wächter:** `SKPath.Bounds` misst die **Stützpunkte** einer Kurve, nicht die Kurve — beim Lasso 4,5 Einheiten daneben; `TightBounds` misst richtig. **12 neue Wächter:** neun in Core (jede Form vorhanden, lesbar, im Kasten *und* den Kasten ausfüllend, gleiche Strichstärke, keine Glyphe aus dem privaten Unicode-Bereich) und **drei im WPF-Testprojekt, die den Quelltext lesen** und den Rückfall verbieten — ein Verhaltenstest könnte das nicht: Eine Glyphe im XAML sieht **unter Windows richtig aus**, falsch wird sie erst auf dem Laptop. **557 Tests** (526 + 31) grün, Bau 0/0, beide Köpfe am laufenden Programm angesehen. **Als Falle festgehalten:** Ein Namensraum, der wie das Framework heißt (`GonkNote.Avalonia.*`), **verdeckt das Framework** — danach zeigte `Avalonia.Interactivity` in jeder anderen Datei ins Leere |
 | V2-41 | 2026-08-12 | **Wo der Cursor steht — Schritt 1 des Schreibens** (§4.30). Reine Core-Arbeit, kein Kopf angefasst: `TdPosition` (Absatz, Stück, Zeichen), `TdSelection` (Anker und Spitze) und `TdCursor` (geradeziehen, an die Ränder springen, ein Zeichen nach links oder rechts, den ausgewählten Text lesen) in einer neuen Datei, dazu **28 Wächter**. **545 Tests** grün, Bau 0/0. **Die Stelle steht im Modell**, wie §6 vorgeschlagen hatte — der Umbruch ist ein Ergebnis und ändert sich bei jeder Eingabe; der Rückweg für Schritt 4 ist da, weil `TdLine.Source` seit §4.16 auf den Absatz zeigt. **Vier Entscheidungen, die Schritt 2 erbt:** (1) **Kanonisch ist die linke Schreibweise** einer Stückgrenze — nicht nach Geschmack, sondern weil ein eingefügtes Zeichen das Format links davon erbt; mit der rechten Form müsste man diese Erbfolge an jeder Einfügestelle zurückdrehen. (2) **Absatzende und nächster Absatzanfang bleiben zwei Stellen** — dazwischen steht die Absatzmarke. (3) **Ein Feld und ein Bild sind einen Schritt breit und steuern kein Zeichen bei**; damit fällt „ein Feld ist unteilbar" von selbst heraus, und der Preis — die Auswahl ist breiter, als ihr Text lang ist — steht als eigener Wächter da. (4) **Bewegt wird in ganzen Zeichen**, nicht in UTF-16-Einheiten, sonst zerlegt der nächste Tastendruck ein Emoji; der Offset bleibt trotzdem ein UTF-16-Index, damit Einfügen ohne Umrechnung auskommt. **Die tragende Idee ist eine Zwischengröße:** alles rechnet über den Abstand vom Absatzanfang in Cursorschritten, hin und zurück — so gibt es die Sonderfälle (leere Stücke, Stückgrenzen, unteilbare Felder, der Verweis, der selbst kein Stück ist) **nur einmal**, beim Umrechnen, statt verteilt über jede Methode. **Der Fund der Runde kam aus dem Erproben der Wächter:** die kanonische Form wurde absichtlich falsch gestellt — und der Testlauf wurde **nicht rot, sondern hing**, weil das Dokumentende unerreichbar wurde. Ein Wächter, der nicht fertig wird, meldet nichts und blockiert die ganze Suite. Der Durchlauf hat jetzt eine **Schrittgrenze**; dieselbe Mutation ergibt seitdem 12 rote Tests in 99 ms. **Als Regel festgehalten** für die Schritte 2 bis 5, die voll von solchen Schleifen sein werden. **Zum zweiten Mal gemessen statt angenommen:** der Wächter für das zusammengesetzte „ä" stand zuerst mit einem getippten Buchstaben da — zerlegt und zusammengesetzt sehen im Quelltext gleich aus, und beim Umschreiben der Datei wurde aus dem zerlegten still das zusammengesetzte; der Test wäre grün geblieben und hätte nichts mehr geprüft. Er baut das Zeichen jetzt aus seiner Nummer |
 | V2-40 | 2026-08-11 | **Die drei Handgriffe aus §5e abgearbeitet — und ein Fund dabei** (§4.29). **Kein Produktivcode angefasst**, die Runde war eine Bestandsaufnahme vor dem Schreiben: Bau 0/0, **517/517** Tests, gearbeitet an einer Kopie der echten Datenbank (Dauerregel 4, danach gelöscht). **(1) `About.Version` stimmt im WPF-Dialog**, in beiden Sprachen am laufenden Programm geprüft — §5 „Noch offen" 5 erledigt. **(2) Der Dateidialog des Linux-Kopfs trägt** — beide Fragen aus §5d mit **ja** beantwortet: der Export-Dialog kommt mit vorgewähltem Dateityp **und** vorbelegtem Dateinamen, der Import-Dialog mit vorgewähltem `Word-Dokument (*.docx)`, und nach dem Speichern meldet die App den **Pfad** samt „Datei jetzt öffnen?". **Durchgespielt wurde die ganze Kette**, nicht nur der Dialog: PDF (550 KB — die Größenordnung aus §5 „Noch offen" 3 bestätigt sich unter Windows) und DOCX geschrieben, **das DOCX wieder eingelesen**, Text und Umlaute unverändert. Damit ist der Weg **vom gewählten Pfad ins Modell** gesehen — der einzige Teil, den §4.28 als ungesehen benannt hatte. **Offen bleibt nur die Wayland-Hälfte**, der Portal-Dialog; das ist eine andere Implementierung derselben Schnittstelle und keine Formsache. **(3) `gonk-note-port-RM.MD` kennt Phase 4.5**, M2 ist ans Ende von Phase 4.5 gewandert, Phase 4 trägt stattdessen „Textdokumente laufen unter Linux", und der Zeitrahmen hat eine eigene Zeile — **die Aufwandszahl (5–8 Wochen) ist hergeleitet und nicht gemessen**, sie wartet auf das Ja des Nutzers. **Die Gegenprobe nebenbei ist gut ausgegangen:** um ein exportierbares Dokument zu haben, ist der Weg gegangen worden, den der Hinweis vorschlägt — im WPF-Kopf öffnen, zwei Absätze tippen, speichern; der Linux-Kopf zeigte danach denselben Text mit denselben Umlauten, gleiche Wort- und Zeichenzahl. **Genau dafür besteht §5e auf Windows**, und diesmal hat sie nichts gefunden. **Der Fund der Runde ist ein falscher Satz:** „Datei → Neues Textdokument" **im Avalonia-Kopf** erzeugt ein Dokument ohne `Model` und ohne `Rtf`, und `TextDocView.Laden()` kennt nur die Frage `modell == null` — also zeigt der Kopf „Dieses Dokument stammt aus der Windows-Fassung", für ein Dokument, das gerade *hier* entstanden ist, und lässt es nicht exportieren. **Leer angelegt und nicht übernommen sehen von dort aus gleich aus.** Nicht behoben, sondern eingeplant: mit **Schritt 2 des Arbeitsplans** bekommt ein neues Dokument ein leeres `TdDocument` und der Fall löst sich auf — ein heute eingebauter dritter Zustand wäre morgen toter Code (§5 „Noch offen" 8). **Eine Werkzeug-Falle dazugelernt:** das Untermenü „Sprache" im WPF-Kopf öffnet auf **Hover** und **schließt beim Klick** — `kette.ps1` klickt jeden Schritt, der Folgeklick landete deshalb in der Galerie dahinter; `SendKeys` erreicht das WPF-Menü-Popup nicht. Was hilft, ist ein **Schweb-Schritt** (Cursor bewegen ohne Klick), den `kette.ps1` heute nicht kann |
 | V2-39 | 2026-08-11 | **§5e: eine Arbeitsanweisung für den Windows-Rechner** — das Gegenstück zu §5d, das es bisher nicht gab (kein Code angefasst). **Der Befund dahinter:** §5d sagt dem Laptop seit Wochen genau, wo er anfängt, samt Prompt zum Kopieren; für den Rechner, auf dem **entwickelt** wird, stand nur der allgemeine Einstieg in §0 — „nimm den nächsten Punkt aus §6". Nach einer Runde wie dieser, die drei Dinge offen lässt, **weil sie auf dem Laptop nicht zu erledigen waren**, ist das zu wenig: sie stünden verstreut in §5 und gingen unter. **§5e nennt sie jetzt als drei Handgriffe vor dem ersten Schritt** — die Versionszeile im WPF-Dialog gegenprüfen (Dauerregel 1 verlangt beide Köpfe), den Dateidialog ansehen (unter Windows ist es **nicht** der Portal-Dialog, deshalb geht es dort überhaupt — eine halbe Antwort, aber mehr als keine), und `gonk-note-port-RM.MD` um Phase 4.5 ergänzen (seit dem 2026-08-04 vertagt; die Datei ist die *Vorgabe* und sagt bis heute etwas anderes als dieses Dokument). **Was gebaut wird, steht bewusst nicht darin**, sondern nur in §6 — ein Plan an zwei Stellen ist einer, der an einer davon veraltet. Dazu: der Einstieg in §0 fragt jetzt **zuerst nach dem Rechner** und verzweigt nach §5e oder §5d, und §5e sagt am Ende, **wann der Laptop wieder dran ist** (mit Schritt 5, wegen Umlauten, toten Tasten und dem Cursor am Stift) und was beim Fernsteuern drüben zu wissen ist |

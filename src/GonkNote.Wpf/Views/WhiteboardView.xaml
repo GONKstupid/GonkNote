@@ -1,6 +1,7 @@
 <UserControl x:Class="GonkNote.Views.WhiteboardView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:views="clr-namespace:GonkNote.Views"
              xmlns:skia="clr-namespace:SkiaSharp.Views.WPF;assembly=SkiaSharp.Views.WPF"
              xmlns:loc="clr-namespace:GonkNote.Services"
              Focusable="True">
@@ -49,31 +50,27 @@
                                   AutomationProperties.Name="{loc:T Tool.Hand}"
                                   ToolTip="{loc:T Tool.Hand.Tip}"
                                   Checked="Tool_Checked" Tag="Pan">
-                        <Path Data="{StaticResource Icon.Hand}" StrokeThickness="1.2"
-                              StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
-                              Width="16" Height="16"
+                        <views:Symbol Icon="Hand" Size="16"
                               Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ToggleButton}}"/>
                     </ToggleButton>
 
                     <Border Width="1" Background="{DynamicResource Brush.Border}" Margin="6,4"/>
 
                     <!-- Stifte (klappbare Gruppe) -->
-                    <ToggleButton x:Name="BtnPen" Style="{StaticResource ToolButton}" Content="&#xE70F;"
+                    <ToggleButton x:Name="BtnPen" Style="{StaticResource ToolButton}" Content="{views:Icon Pen}"
                                   ToolTip="{loc:T Tool.Pen}" Checked="Tool_Checked" Tag="Pen"/>
                     <ToggleButton x:Name="BtnSmoothPen" Style="{StaticResource ToolButton}"
                                   ToolTip="{loc:T Tool.SmoothPen}" Checked="Tool_Checked" Tag="SmoothPen">
-                        <Path Data="{StaticResource Icon.SmoothPen}" StrokeThickness="1.3"
-                              StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
-                              Width="16" Height="16"
+                        <views:Symbol Icon="ShapePen" Size="16"
                               Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ToggleButton}}"/>
                     </ToggleButton>
-                    <ToggleButton x:Name="BtnPencil" Style="{StaticResource ToolButton}" Content="&#xE76D;"
+                    <ToggleButton x:Name="BtnPencil" Style="{StaticResource ToolButton}" Content="{views:Icon Pencil}"
                                   ToolTip="{loc:T Tool.Pencil}" Checked="Tool_Checked" Tag="Pencil"/>
-                    <ToggleButton x:Name="BtnHighlighter" Style="{StaticResource ToolButton}" Content="&#xE7E6;"
+                    <ToggleButton x:Name="BtnHighlighter" Style="{StaticResource ToolButton}" Content="{views:Icon Highlighter}"
                                   ToolTip="{loc:T Tool.Highlighter}" Checked="Tool_Checked" Tag="Highlighter"/>
 
                     <!-- Radierer -->
-                    <ToggleButton x:Name="BtnEraser" Style="{StaticResource ToolButton}" Content="&#xE75C;"
+                    <ToggleButton x:Name="BtnEraser" Style="{StaticResource ToolButton}" Content="{views:Icon Eraser}"
                                   ToolTip="{loc:T Tool.Eraser}" Checked="Tool_Checked" Tag="Eraser"/>
 
                     <Border Width="1" Background="{DynamicResource Brush.Border}" Margin="6,4"/>
@@ -82,24 +79,20 @@
                     <ToggleButton x:Name="BtnLasso" Style="{StaticResource ToolButton}"
                                   ToolTip="{loc:T Tool.Lasso}"
                                   Checked="Tool_Checked" Tag="Lasso">
-                        <Path Data="{StaticResource Icon.Lasso}" StrokeThickness="1.3"
-                              StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
-                              Width="16" Height="16"
+                        <views:Symbol Icon="Lasso" Size="16"
                               Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ToggleButton}}"/>
                     </ToggleButton>
                     <ToggleButton x:Name="BtnMove" Style="{StaticResource ToolButton}"
                                   AutomationProperties.Name="{loc:T Tool.Move}"
                                   ToolTip="{loc:T Tool.Move.Tip}"
                                   Checked="Tool_Checked" Tag="Move">
-                        <Path Data="{StaticResource Icon.MoveSelect}" StrokeThickness="1.3"
-                              StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
-                              Width="16" Height="16"
+                        <views:Symbol Icon="Move" Size="16"
                               Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ToggleButton}}"/>
                     </ToggleButton>
 
                     <Border Width="1" Background="{DynamicResource Brush.Border}" Margin="6,4"/>
 
-                    <ToggleButton x:Name="BtnText" Style="{StaticResource ToolButton}" Content="&#xE8D2;"
+                    <ToggleButton x:Name="BtnText" Style="{StaticResource ToolButton}" Content="{views:Icon TextTool}"
                                   ToolTip="{loc:T Tool.Text}" Checked="Tool_Checked" Tag="Text"/>
 
                     <!-- Formen (F): klappbare Gruppe wie die Stifte; Standard Rechteck sichtbar,
@@ -116,32 +109,28 @@
                     <ToggleButton x:Name="BtnShapeTriangle" Style="{StaticResource ToolButton}" FontFamily="Segoe UI"
                                   Content="△" ToolTip="{loc:T Tool.Shape.Triangle}" Checked="ShapeTool_Checked" Tag="Triangle"/>
 
-                    <ToggleButton x:Name="BtnChart" Style="{StaticResource ToolButton}" Content="&#xE9D2;"
+                    <ToggleButton x:Name="BtnChart" Style="{StaticResource ToolButton}" Content="{views:Icon Chart}"
                                   AutomationProperties.Name="{loc:T Tool.Chart}"
                                   ToolTip="{loc:T Tool.Chart.Tip}"
                                   Click="InsertChart_Click"/>
 
-                    <ToggleButton x:Name="BtnSticky" Style="{StaticResource ToolButton}" Content="&#xE70B;"
+                    <ToggleButton x:Name="BtnSticky" Style="{StaticResource ToolButton}" Content="{views:Icon StickyNote}"
                                   ToolTip="{loc:T Tool.Sticky}" Checked="Tool_Checked" Tag="Sticky"/>
-                    <ToggleButton x:Name="BtnSticker" Style="{StaticResource ToolButton}" Content="&#xE76E;"
+                    <ToggleButton x:Name="BtnSticker" Style="{StaticResource ToolButton}" Content="{views:Icon Sticker}"
                                   AutomationProperties.Name="{loc:T Tool.Sticker}"
                                   ToolTip="{loc:T Tool.Sticker.Tip}" Checked="Tool_Checked" Tag="Sticker"/>
                     <ToggleButton x:Name="BtnRuler" Style="{StaticResource ToolButton}"
                                   AutomationProperties.Name="{loc:T Tool.Ruler}"
                                   ToolTip="{loc:T Tool.Ruler.Tip}"
                                   Click="Ruler_Click">
-                        <Path Data="{StaticResource Icon.Ruler}" StrokeThickness="1.3"
-                              StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
-                              Width="16" Height="16"
+                        <views:Symbol Icon="Ruler" Size="16"
                               Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ToggleButton}}"/>
                     </ToggleButton>
                     <ToggleButton x:Name="BtnSetSquare" Style="{StaticResource ToolButton}"
                                   AutomationProperties.Name="{loc:T Tool.SetSquare}"
                                   ToolTip="{loc:T Tool.SetSquare.Tip}"
                                   Click="SetSquare_Click">
-                        <Path Data="{StaticResource Icon.SetSquare}" StrokeThickness="1.3"
-                              StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
-                              Width="16" Height="16"
+                        <views:Symbol Icon="SetSquare" Size="16"
                               Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ToggleButton}}"/>
                     </ToggleButton>
 
@@ -191,9 +180,8 @@
 
                     <!-- Werkzeuggröße. Alle drei Bedienelemente (Icon, Schieber, Wertanzeige)
                          öffnen per Langdruck denselben Zahlenblock. -->
-                    <TextBlock x:Name="WidthIcon" Text="&#xE76D;" FontFamily="{StaticResource IconFont}" FontSize="12"
-                               Background="Transparent" Cursor="Hand"
-                               Foreground="{DynamicResource Brush.TextMuted}" VerticalAlignment="Center" Margin="2,0"
+                    <views:Symbol x:Name="WidthIcon" Icon="Pencil" Size="12" Cursor="Hand"
+                               Stroke="{DynamicResource Brush.TextMuted}" VerticalAlignment="Center" Margin="2,0"
                                ToolTip="{loc:T Size.Tip}"
                                PreviewMouseLeftButtonDown="SizeInput_Down" PreviewMouseMove="SizeInput_Move"
                                PreviewMouseLeftButtonUp="SizeInput_Up"
@@ -236,8 +224,7 @@
                                     <Button Style="{StaticResource NumpadKey}" Content="3" Click="NumpadKey_Click"/>
                                     <Button Style="{StaticResource NumpadKey}" Content="0" Click="NumpadKey_Click"/>
                                     <Button Style="{StaticResource NumpadKey}" Content="," Click="NumpadKey_Click"/>
-                                    <Button Style="{StaticResource NumpadKey}" Content="&#xE750;"
-                                            FontFamily="{StaticResource IconFont}" FontSize="16"
+                                    <Button Style="{StaticResource NumpadKey}" Content="{views:Icon Backspace}" FontSize="16"
                                             Click="NumpadBack_Click" ToolTip="{loc:T Action.Delete}"/>
                                 </UniformGrid>
                             </StackPanel>
@@ -247,31 +234,31 @@
                     <Border Width="1" Background="{DynamicResource Brush.Border}" Margin="6,4"/>
 
                     <!-- Undo / Redo -->
-                    <Button x:Name="BtnUndo" Style="{StaticResource IconButton}" Content="&#xE7A7;"
+                    <Button x:Name="BtnUndo" Style="{StaticResource IconButton}" Content="{views:Icon Undo}"
                             ToolTip="{loc:T Action.Undo}" Click="Undo_Click" IsEnabled="False"/>
-                    <Button x:Name="BtnRedo" Style="{StaticResource IconButton}" Content="&#xE7A6;"
+                    <Button x:Name="BtnRedo" Style="{StaticResource IconButton}" Content="{views:Icon Redo}"
                             ToolTip="{loc:T Action.Redo}" Click="Redo_Click" IsEnabled="False"/>
 
                     <Border Width="1" Background="{DynamicResource Brush.Border}" Margin="6,4"/>
 
                     <!-- Zoom -->
-                    <Button Style="{StaticResource IconButton}" Content="&#xE71F;" ToolTip="{loc:T Zoom.Out}"
+                    <Button Style="{StaticResource IconButton}" Content="{views:Icon ZoomOut}" ToolTip="{loc:T Zoom.Out}"
                             Click="ZoomOut_Click"/>
                     <Button x:Name="ZoomLabel" Style="{StaticResource FlatButton}" Content="100 %"
                             ToolTip="{loc:T Zoom.Reset}" Click="ZoomReset_Click" MinWidth="52"/>
-                    <Button Style="{StaticResource IconButton}" Content="&#xE8A3;" ToolTip="{loc:T Zoom.In}"
+                    <Button Style="{StaticResource IconButton}" Content="{views:Icon ZoomIn}" ToolTip="{loc:T Zoom.In}"
                             Click="ZoomIn_Click"/>
 
                     <Border Width="1" Background="{DynamicResource Brush.Border}" Margin="6,4"/>
 
-                    <Button Style="{StaticResource IconButton}" Content="&#xE8B9;"
+                    <Button Style="{StaticResource IconButton}" Content="{views:Icon Image}"
                             AutomationProperties.Name="{loc:T Wb.InsertFile}"
                             ToolTip="{loc:T Wb.InsertFile.Tip}"
                             Click="InsertFile_Click"/>
 
                     <Border Width="1" Background="{DynamicResource Brush.Border}" Margin="6,4"/>
 
-                    <Button Style="{StaticResource IconButton}" Content="&#xE713;"
+                    <Button Style="{StaticResource IconButton}" Content="{views:Icon Settings}"
                             AutomationProperties.Name="{loc:T Wb.Settings}"
                             ToolTip="{loc:T Wb.Settings.Tip}" Click="PageSetup_Click"/>
 
@@ -284,16 +271,16 @@
                 BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,1,0,0"
                 Padding="8,3" Visibility="Collapsed">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                <Button Style="{StaticResource IconButton}" Content="&#xE72B;" ToolTip="{loc:T Page.Previous}"
+                <Button Style="{StaticResource IconButton}" Content="{views:Icon ChevronLeft}" ToolTip="{loc:T Page.Previous}"
                         AutomationProperties.Name="{loc:T Page.Previous}" Click="PrevPage_Click"/>
                 <TextBlock x:Name="PageLabel" Text="{loc:T Page.Label}" VerticalAlignment="Center" Margin="10,0"
                            Foreground="{DynamicResource Brush.Text}"/>
-                <Button Style="{StaticResource IconButton}" Content="&#xE72A;" ToolTip="{loc:T Page.Next}"
+                <Button Style="{StaticResource IconButton}" Content="{views:Icon ChevronRight}" ToolTip="{loc:T Page.Next}"
                         AutomationProperties.Name="{loc:T Page.Next}" Click="NextPage_Click"/>
                 <Border Width="1" Background="{DynamicResource Brush.Border}" Margin="8,4"/>
-                <Button Style="{StaticResource IconButton}" Content="&#xE710;" ToolTip="{loc:T Page.Add}"
+                <Button Style="{StaticResource IconButton}" Content="{views:Icon Plus}" ToolTip="{loc:T Page.Add}"
                         AutomationProperties.Name="{loc:T Page.Add}" Click="AddPage_Click"/>
-                <Button Style="{StaticResource IconButton}" Content="&#xE74D;" ToolTip="{loc:T Page.Delete}"
+                <Button Style="{StaticResource IconButton}" Content="{views:Icon Trash}" ToolTip="{loc:T Page.Delete}"
                         AutomationProperties.Name="{loc:T Page.Delete}" Click="DeletePage_Click"/>
             </StackPanel>
         </Border>
@@ -306,7 +293,7 @@
                 <Border DockPanel.Dock="Top" BorderBrush="{DynamicResource Brush.Border}"
                         BorderThickness="0,0,0,1" Padding="14,8">
                     <DockPanel>
-                        <Button DockPanel.Dock="Right" Style="{StaticResource IconButton}" Content="&#xE711;"
+                        <Button DockPanel.Dock="Right" Style="{StaticResource IconButton}" Content="{views:Icon Close}"
                                 ToolTip="{loc:T Wb.Settings.Close}" Click="PageSetup_Click"/>
                         <TextBlock Text="{loc:T Wb.Settings}" FontWeight="SemiBold" FontSize="14"
                                    Foreground="{DynamicResource Brush.Text}" VerticalAlignment="Center"/>
@@ -384,7 +371,7 @@
                                     </Border>
                                 </ToggleButton>
                                 <Button Style="{StaticResource IconButton}" ToolTip="{loc:T Settings.Shapes.FillColor}"
-                                        Click="PickFillColor_Click" Content="&#xE790;"/>
+                                        Click="PickFillColor_Click" Content="{views:Icon Palette}"/>
                                 <TextBlock Text="{loc:T Settings.Shapes.Fill}" VerticalAlignment="Center" Margin="6,0,0,0"
                                            Foreground="{DynamicResource Brush.Text}"/>
                             </StackPanel>
@@ -465,7 +452,7 @@
                                              Tag="#FFFEF08A" ToolTip="{loc:T Color.Custom}" Checked="StickyColor_Checked"
                                              Visibility="Collapsed"/>
                                 <Button Style="{StaticResource IconButton}" ToolTip="{loc:T Settings.Sticky.CustomColor}"
-                                        Click="StickyColorPick_Click" Content="&#xE790;"/>
+                                        Click="StickyColorPick_Click" Content="{views:Icon Palette}"/>
                             </StackPanel>
                             <TextBlock Text="{loc:T Settings.Sticky.Hint}"
                                        Foreground="{DynamicResource Brush.TextMuted}" FontSize="11"
@@ -485,7 +472,7 @@
                             <Button Style="{StaticResource FlatButton}" HorizontalAlignment="Left" Margin="0,8,0,0"
                                     Click="AddSticker_Click" AutomationProperties.Name="{loc:T Settings.Sticker.Add}">
                                 <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="&#xE710;" FontFamily="{StaticResource IconFont}" VerticalAlignment="Center"/>
+                                    <views:Symbol Icon="Plus" VerticalAlignment="Center"/>
                                     <TextBlock Text="{loc:T Settings.Sticker.Add}" Margin="6,0,0,0"/>
                                 </StackPanel>
                             </Button>
@@ -585,27 +572,27 @@
                     <DropShadowEffect BlurRadius="14" ShadowDepth="2" Opacity="0.28"/>
                 </Border.Effect>
                 <StackPanel Orientation="Horizontal">
-                    <Button x:Name="Qm_Cut" Style="{StaticResource IconButton}" Content="&#xE8C6;"
+                    <Button x:Name="Qm_Cut" Style="{StaticResource IconButton}" Content="{views:Icon Cut}"
                             ToolTip="{loc:T Quick.Cut.Tip}" AutomationProperties.Name="{loc:T Quick.Cut}"
                             Click="Cm_Cut_Click"/>
-                    <Button x:Name="Qm_Copy" Style="{StaticResource IconButton}" Content="&#xE8C8;"
+                    <Button x:Name="Qm_Copy" Style="{StaticResource IconButton}" Content="{views:Icon Copy}"
                             ToolTip="{loc:T Quick.Copy.Tip}" AutomationProperties.Name="{loc:T Quick.Copy}"
                             Click="Cm_Copy_Click"/>
-                    <Button x:Name="Qm_Duplicate" Style="{StaticResource IconButton}" Content="&#xE81E;"
+                    <Button x:Name="Qm_Duplicate" Style="{StaticResource IconButton}" Content="{views:Icon Duplicate}"
                             ToolTip="{loc:T Quick.Duplicate.Tip}" AutomationProperties.Name="{loc:T Quick.Duplicate}"
                             Click="Cm_Duplicate_Click"/>
-                    <Button x:Name="Qm_Paste" Style="{StaticResource IconButton}" Content="&#xE77F;"
+                    <Button x:Name="Qm_Paste" Style="{StaticResource IconButton}" Content="{views:Icon Paste}"
                             ToolTip="{loc:T Quick.Paste.Tip}" AutomationProperties.Name="{loc:T Quick.Paste}"
                             Click="Cm_Paste_Click"/>
                     <Border x:Name="Qm_SepOcr" Width="1" Background="{DynamicResource Brush.Border}" Margin="3,5"/>
-                    <Button x:Name="Qm_Ocr" Style="{StaticResource IconButton}" Content="&#xE8FE;"
+                    <Button x:Name="Qm_Ocr" Style="{StaticResource IconButton}" Content="{views:Icon Ocr}"
                             ToolTip="{loc:T Quick.Ocr}" AutomationProperties.Name="{loc:T Quick.Ocr}"
                             Click="Cm_Ocr_Click"/>
                     <Border x:Name="Qm_Sep2" Width="1" Background="{DynamicResource Brush.Border}" Margin="3,5"/>
-                    <Button x:Name="Qm_Delete" Style="{StaticResource IconButton}" Content="&#xE74D;"
+                    <Button x:Name="Qm_Delete" Style="{StaticResource IconButton}" Content="{views:Icon Trash}"
                             ToolTip="{loc:T Quick.Delete.Tip}" AutomationProperties.Name="{loc:T Action.Delete}"
                             Click="Cm_Delete_Click"/>
-                    <Button x:Name="Qm_SelectAll" Style="{StaticResource IconButton}" Content="&#xE8B3;"
+                    <Button x:Name="Qm_SelectAll" Style="{StaticResource IconButton}" Content="{views:Icon SelectAll}"
                             ToolTip="{loc:T Quick.SelectAll.Tip}" AutomationProperties.Name="{loc:T Quick.SelectAll}"
                             Click="Cm_SelectAll_Click"/>
                 </StackPanel>

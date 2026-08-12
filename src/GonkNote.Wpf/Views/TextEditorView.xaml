@@ -1,6 +1,7 @@
 <UserControl x:Class="GonkNote.Views.TextEditorView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:views="clr-namespace:GonkNote.Views"
              xmlns:loc="clr-namespace:GonkNote.Services">
     <UserControl.Resources>
         <!-- Die Dokumentseite bleibt in beiden Themes weiß (Nutzer-Wunsch: Papier ist
@@ -13,9 +14,6 @@
         <SolidColorBrush x:Key="CanvasBgBrush" Color="{DynamicResource Color.CanvasBg}"/>
 
         <!-- Ausrichtungs-Icons (Icon.Justify liegt in Styles.xaml) -->
-        <Geometry x:Key="Icon.AlignL">M2,3.5 H14 M2,6.66 H10 M2,9.83 H14 M2,13 H10</Geometry>
-        <Geometry x:Key="Icon.AlignC">M2,3.5 H14 M4,6.66 H12 M2,9.83 H14 M4,13 H12</Geometry>
-        <Geometry x:Key="Icon.AlignR">M2,3.5 H14 M6,6.66 H14 M2,9.83 H14 M6,13 H14</Geometry>
 
         <Style x:Key="PathIcon" TargetType="Path">
             <Setter Property="StrokeThickness" Value="1.3"/>
@@ -118,7 +116,6 @@
         <!-- Icon-Leisten-Button links (Design-Konzept 7.5) -->
         <Style x:Key="SideIconButton" TargetType="ToggleButton">
             <Setter Property="Foreground" Value="{DynamicResource Brush.TextMuted}"/>
-            <Setter Property="FontFamily" Value="{StaticResource IconFont}"/>
             <Setter Property="FontSize" Value="15"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
@@ -159,10 +156,10 @@
                 <!-- Tab-Leiste mit Schnellzugriff (Undo/Redo) links -->
                 <Grid>
                     <StackPanel Orientation="Horizontal">
-                        <Button Style="{StaticResource IconButton}" Content="&#xE7A7;" Width="28" Height="26"
+                        <Button Style="{StaticResource IconButton}" Content="{views:Icon Undo}" Width="28" Height="26"
                                 ToolTip="{loc:T Action.Undo}" Click="Undo_Click" Margin="6,2,0,0"
                                 AutomationProperties.Name="{loc:T Action.Undo.Short}"/>
-                        <Button Style="{StaticResource IconButton}" Content="&#xE7A6;" Width="28" Height="26"
+                        <Button Style="{StaticResource IconButton}" Content="{views:Icon Redo}" Width="28" Height="26"
                                 ToolTip="{loc:T Action.Redo}" Click="Redo_Click" Margin="0,2,4,0"
                                 AutomationProperties.Name="{loc:T Action.Redo.Short}"/>
                         <Border Style="{StaticResource GroupSep}"/>
@@ -185,7 +182,7 @@
                 <WrapPanel x:Name="PanelStart" Margin="8,2,8,6">
                     <ToggleButton x:Name="BtnFormatPainter" Style="{StaticResource ToolButton}" Width="32" Height="30"
                                   Click="FormatPainter_Click" ToolTip="{loc:T Ed.FormatPainter.Tip}"
-                                  AutomationProperties.Name="{loc:T Ed.FormatPainter}" Content="&#xE790;"/>
+                                  AutomationProperties.Name="{loc:T Ed.FormatPainter}" Content="{views:Icon FormatPainter}"/>
                     <Button Style="{StaticResource IconButton}" Height="30" ToolTip="{loc:T Ed.ClearFormat}" Click="ClearFormat_Click">
                         <TextBlock FontFamily="Segoe UI" FontSize="12">
                             <Run Text="A"/><Run Text="a" FontSize="9"/><Run Text="✕" FontSize="8"/>
@@ -204,9 +201,9 @@
                     </ComboBox>
                     <ComboBox x:Name="SizeCombo" Width="54" Margin="4,0,0,0" SelectionChanged="SizeCombo_Changed"
                               ToolTip="{loc:T Ed.FontSize}"/>
-                    <Button Style="{StaticResource IconButton}" Height="30" Content="&#xE8E8;" ToolTip="{loc:T Ed.FontGrow}"
+                    <Button Style="{StaticResource IconButton}" Height="30" Content="{views:Icon FontGrow}" ToolTip="{loc:T Ed.FontGrow}"
                             Command="EditingCommands.IncreaseFontSize" CommandTarget="{Binding ElementName=Editor}"/>
-                    <Button Style="{StaticResource IconButton}" Height="30" Content="&#xE8E7;" ToolTip="{loc:T Ed.FontShrink}"
+                    <Button Style="{StaticResource IconButton}" Height="30" Content="{views:Icon FontShrink}" ToolTip="{loc:T Ed.FontShrink}"
                             Command="EditingCommands.DecreaseFontSize" CommandTarget="{Binding ElementName=Editor}"/>
 
                     <Border Style="{StaticResource GroupSep}"/>
@@ -241,16 +238,16 @@
                             <Rectangle x:Name="TextColorBar" Height="3" Width="14" Fill="#EC4899" RadiusX="1" RadiusY="1"/>
                         </StackPanel>
                     </Button>
-                    <Button Style="{StaticResource IconButton}" Content="&#xE70D;" FontSize="8" Height="30"
+                    <Button Style="{StaticResource IconButton}" Content="{views:Icon ChevronDown, Size=8}" FontSize="8" Height="30"
                             ToolTip="{loc:T Ed.TextColor.Pick}" Width="16" Click="PickTextColor_Click"/>
                     <Button Style="{StaticResource IconButton}" Height="30" Click="ApplyHighlight_Click" ToolTip="{loc:T Ed.Highlight.Apply}">
                         <StackPanel>
-                            <TextBlock Text="&#xE7E6;" FontFamily="{StaticResource IconFont}" FontSize="11"
+                            <views:Symbol Icon="Highlighter" Size="11"
                                        HorizontalAlignment="Center"/>
                             <Rectangle x:Name="HighlightBar" Height="3" Width="14" Fill="#FDE047" RadiusX="1" RadiusY="1"/>
                         </StackPanel>
                     </Button>
-                    <Button Style="{StaticResource IconButton}" Content="&#xE70D;" FontSize="8" Height="30"
+                    <Button Style="{StaticResource IconButton}" Content="{views:Icon ChevronDown, Size=8}" FontSize="8" Height="30"
                             ToolTip="{loc:T Ed.Highlight.Pick}" Width="16" Click="PickHighlight_Click"/>
 
                     <Border Style="{StaticResource GroupSep}"/>
@@ -259,12 +256,12 @@
                     <Button x:Name="BtnAlign" Style="{StaticResource DropButton}" Click="OpenDropdown_Click"
                             ToolTip="{loc:T Ed.Align}" AutomationProperties.Name="{loc:T Ed.Align}">
                         <StackPanel Orientation="Horizontal">
-                            <Path x:Name="AlignGlyph" Style="{StaticResource PathIcon}"
-                                  Data="{StaticResource Icon.AlignL}" VerticalAlignment="Center"
+                            <views:Symbol x:Name="AlignGlyph" Style="{StaticResource PathIcon}"
+                                  Icon="AlignLeft" VerticalAlignment="Center"
                                   Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
-                            <TextBlock Text="&#xE70D;" FontFamily="{StaticResource IconFont}" FontSize="8"
+                            <views:Symbol Icon="ChevronDown" Size="8"
                                        Margin="5,0,0,0" VerticalAlignment="Center"
-                                       Foreground="{DynamicResource Brush.TextMuted}"/>
+                                       Stroke="{DynamicResource Brush.TextMuted}"/>
                         </StackPanel>
                         <Button.ContextMenu>
                             <ContextMenu>
@@ -277,27 +274,27 @@
                     </Button>
 
                     <!-- Aufzählung: Split-Button (Klick = umschalten, Pfeil = Stil-Bibliothek) -->
-                    <Button x:Name="BtnBullets" Style="{StaticResource IconButton}" Height="30" Content="&#xE8FD;"
+                    <Button x:Name="BtnBullets" Style="{StaticResource IconButton}" Height="30" Content="{views:Icon List}"
                             ToolTip="{loc:T Ed.List.Bullet}" Click="ToggleBullets_Click"
                             AutomationProperties.Name="{loc:T Ed.List.Bullet}"/>
-                    <Button Style="{StaticResource IconButton}" Height="30" Width="16" Content="&#xE70D;" FontSize="8"
+                    <Button Style="{StaticResource IconButton}" Height="30" Width="16" Content="{views:Icon ChevronDown, Size=8}" FontSize="8"
                             ToolTip="{loc:T Ed.List.BulletPick}" Click="OpenBulletLibrary_Click"/>
 
                     <!-- Nummerierung: Split-Button -->
                     <Button x:Name="BtnNumbering" Style="{StaticResource IconButton}" Height="30" FontFamily="Segoe UI"
                             Content="№" ToolTip="{loc:T Ed.List.Number}" Click="ToggleNumbering_Click"
                             AutomationProperties.Name="{loc:T Ed.List.Number}"/>
-                    <Button Style="{StaticResource IconButton}" Height="30" Width="16" Content="&#xE70D;" FontSize="8"
+                    <Button Style="{StaticResource IconButton}" Height="30" Width="16" Content="{views:Icon ChevronDown, Size=8}" FontSize="8"
                             ToolTip="{loc:T Ed.List.NumberPick}" Click="OpenNumberLibrary_Click"/>
 
                     <Button Style="{StaticResource IconButton}" Height="30" ToolTip="{loc:T Ed.Indent.More}"
                             Click="IndentInc_Click">
-                        <Path Style="{StaticResource PathIcon}" Data="{StaticResource Icon.IndentInc}"
+                        <views:Symbol Style="{StaticResource PathIcon}" Icon="IndentIncrease"
                               Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
                     </Button>
                     <Button Style="{StaticResource IconButton}" Height="30" ToolTip="{loc:T Ed.Indent.Less}"
                             Click="IndentDec_Click">
-                        <Path Style="{StaticResource PathIcon}" Data="{StaticResource Icon.IndentDec}"
+                        <views:Symbol Style="{StaticResource PathIcon}" Icon="IndentDecrease"
                               Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
                     </Button>
 
@@ -306,7 +303,7 @@
                     <!-- Formatvorlagen: 3 Kacheln inline + Aufklapp-Pfeil (Rest im Flyout) -->
                     <StackPanel x:Name="StyleGallery" Orientation="Horizontal"/>
                     <Button x:Name="BtnStyleMore" Style="{StaticResource IconButton}" Height="44" Width="20"
-                            Content="&#xE70D;" FontSize="9" ToolTip="{loc:T Ed.Styles.All}"
+                            Content="{views:Icon ChevronDown, Size=9}" FontSize="9" ToolTip="{loc:T Ed.Styles.All}"
                             Click="OpenStyleGallery_Click" AutomationProperties.Name="{loc:T Ed.Styles.All}"/>
                 </WrapPanel>
 
@@ -316,10 +313,10 @@
                     <Button x:Name="BtnInsertTable" Style="{StaticResource LabelButton}" Click="TableMenu_Click"
                             AutomationProperties.Name="{loc:T Ed.Table.Insert}">
                         <StackPanel Orientation="Horizontal">
-                            <Path Style="{StaticResource PathIcon}" Data="{StaticResource Icon.Table}"
+                            <views:Symbol Style="{StaticResource PathIcon}" Icon="Table"
                                   Stroke="{DynamicResource Brush.TextMuted}"/>
                             <TextBlock Text="{loc:T Ed.Tab.Table}" Margin="6,0,0,0"/>
-                            <TextBlock Text="&#xE70D;" FontFamily="{StaticResource IconFont}" FontSize="9"
+                            <views:Symbol Icon="ChevronDown" Size="9"
                                        Margin="5,2,0,0" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
@@ -357,7 +354,7 @@
                     <Button Style="{StaticResource LabelButton}" Click="InsertImage_Click"
                             AutomationProperties.Name="{loc:T Ed.Image.Insert}">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="&#xE8B9;" FontFamily="{StaticResource IconFont}" VerticalAlignment="Center"/>
+                            <views:Symbol Icon="Image" VerticalAlignment="Center"/>
                             <TextBlock Text="{loc:T Ed.Image}" Margin="6,0,0,0"/>
                         </StackPanel>
                     </Button>
@@ -365,7 +362,7 @@
                             ToolTip="{loc:T Ed.InfoBox.Tip}"
                             AutomationProperties.Name="{loc:T Ed.InfoBox.Insert}">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="&#xE8A5;" FontFamily="{StaticResource IconFont}" VerticalAlignment="Center"/>
+                            <views:Symbol Icon="TextDocument" VerticalAlignment="Center"/>
                             <TextBlock Text="{loc:T Ed.InfoBox}" Margin="6,0,0,0"/>
                         </StackPanel>
                     </Button>
@@ -382,7 +379,7 @@
                             ToolTip="{loc:T Ed.Chart.Tip}"
                             AutomationProperties.Name="{loc:T Ed.Chart}">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="&#xE9D2;" FontFamily="{StaticResource IconFont}" VerticalAlignment="Center"/>
+                            <views:Symbol Icon="Chart" VerticalAlignment="Center"/>
                             <TextBlock Text="{loc:T Ed.Chart}" Margin="6,0,0,0"/>
                         </StackPanel>
                     </Button>
@@ -420,21 +417,21 @@
                     <Button Style="{StaticResource LabelButton}" Click="OpenMargins_Click"
                             ToolTip="{loc:T Ed.Layout.Margins.Tip}" AutomationProperties.Name="{loc:T Ed.Layout.Margins}">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="&#xE799;" FontFamily="{StaticResource IconFont}" VerticalAlignment="Center"/>
+                            <views:Symbol Icon="Margins" VerticalAlignment="Center"/>
                             <TextBlock Text="{loc:T Ed.Layout.Margins}" Margin="6,0,0,0"/>
                         </StackPanel>
                     </Button>
                     <Button Style="{StaticResource LabelButton}" Click="OpenSpacing_Click"
                             ToolTip="{loc:T Ed.Layout.Spacing.Tip}" AutomationProperties.Name="{loc:T Ed.Layout.Spacing}">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="&#xE799;" FontFamily="{StaticResource IconFont}" VerticalAlignment="Center"/>
+                            <views:Symbol Icon="LineSpacing" VerticalAlignment="Center"/>
                             <TextBlock Text="{loc:T Ed.Layout.Spacing}" Margin="6,0,0,0"/>
                         </StackPanel>
                     </Button>
                     <Button Style="{StaticResource LabelButton}" Click="OpenWatermark_Click"
                             ToolTip="{loc:T Ed.Layout.Background.Tip}" AutomationProperties.Name="{loc:T Ed.Layout.Background}">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="&#xE91B;" FontFamily="{StaticResource IconFont}" VerticalAlignment="Center"/>
+                            <views:Symbol Icon="Background" VerticalAlignment="Center"/>
                             <TextBlock Text="{loc:T Ed.Layout.Background}" Margin="6,0,0,0"/>
                         </StackPanel>
                     </Button>
@@ -454,7 +451,7 @@
                             ToolTip="{loc:T Ed.Toc.Insert.Tip}"
                             AutomationProperties.Name="{loc:T Ed.Toc.Insert}">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="&#xE8FD;" FontFamily="{StaticResource IconFont}" VerticalAlignment="Center"/>
+                            <views:Symbol Icon="List" VerticalAlignment="Center"/>
                             <TextBlock Text="{loc:T Ed.Toc.Insert}" Margin="6,0,0,0"/>
                         </StackPanel>
                     </Button>
@@ -467,7 +464,7 @@
                     <Button Style="{StaticResource LabelButton}" Click="InsertLink_Click"
                             ToolTip="{loc:T Ed.Link.Tip}" AutomationProperties.Name="{loc:T Ed.Link.Insert}">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="&#xE71B;" FontFamily="{StaticResource IconFont}" VerticalAlignment="Center"/>
+                            <views:Symbol Icon="Link" VerticalAlignment="Center"/>
                             <TextBlock Text="{loc:T Ed.Link}" Margin="6,0,0,0"/>
                         </StackPanel>
                     </Button>
@@ -475,13 +472,13 @@
                             ToolTip="{loc:T Ed.Caption.Tip}"
                             AutomationProperties.Name="{loc:T Ed.Caption.Insert}">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="&#xE7C3;" FontFamily="{StaticResource IconFont}" VerticalAlignment="Center"/>
+                            <views:Symbol Icon="Caption" VerticalAlignment="Center"/>
                             <TextBlock Text="{loc:T Ed.Caption}" Margin="6,0,0,0"/>
                         </StackPanel>
                     </Button>
 
                     <!-- Hinweis hinter Info-i (nur bei Hover/Klick) -->
-                    <Button Style="{StaticResource IconButton}" Height="30" Width="26" Content="&#xE946;"
+                    <Button Style="{StaticResource IconButton}" Height="30" Width="26" Content="{views:Icon Info}"
                             Foreground="{DynamicResource Brush.TextMuted}" ToolTipService.InitialShowDelay="150"
                             ToolTipService.ShowDuration="20000" AutomationProperties.Name="{loc:T Ed.References.NoteName}">
                         <Button.ToolTip>
@@ -501,10 +498,10 @@
                     <!-- Zeilen (Sammel-Dropdown) -->
                     <Button Style="{StaticResource DropButton}" Click="RowMenu_Click">
                         <StackPanel Orientation="Horizontal">
-                            <Path Style="{StaticResource PathIcon}" Width="15" Height="15"
-                                  Data="{StaticResource Icon.Table}" Stroke="{DynamicResource Brush.TextMuted}"/>
+                            <views:Symbol Style="{StaticResource PathIcon}" Size="15"
+                                  Icon="Table" Stroke="{DynamicResource Brush.TextMuted}"/>
                             <TextBlock Text="{loc:T Ed.Table.Row}" Margin="6,0,0,0" VerticalAlignment="Center"/>
-                            <TextBlock Text="&#xE70D;" FontFamily="{StaticResource IconFont}" FontSize="9"
+                            <views:Symbol Icon="ChevronDown" Size="9"
                                        Margin="5,2,0,0" VerticalAlignment="Center"/>
                         </StackPanel>
                         <Button.ContextMenu>
@@ -520,7 +517,7 @@
                     <Button Style="{StaticResource DropButton}" Click="ColMenu_Click">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="{loc:T Ed.Table.Column}" VerticalAlignment="Center"/>
-                            <TextBlock Text="&#xE70D;" FontFamily="{StaticResource IconFont}" FontSize="9"
+                            <views:Symbol Icon="ChevronDown" Size="9"
                                        Margin="5,2,0,0" VerticalAlignment="Center"/>
                         </StackPanel>
                         <Button.ContextMenu>
@@ -541,7 +538,7 @@
                     <Button Style="{StaticResource DropButton}" Click="SplitMenu_Click">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="{loc:T Ed.Table.Split}" VerticalAlignment="Center"/>
-                            <TextBlock Text="&#xE70D;" FontFamily="{StaticResource IconFont}" FontSize="9"
+                            <views:Symbol Icon="ChevronDown" Size="9"
                                        Margin="5,2,0,0" VerticalAlignment="Center"/>
                         </StackPanel>
                         <Button.ContextMenu>
@@ -570,7 +567,7 @@
                     <Button Style="{StaticResource LabelButton}" Click="OpenTableDesign_Click"
                             ToolTip="{loc:T Ed.Table.Design.Tip}">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="&#xE790;" FontFamily="{StaticResource IconFont}" VerticalAlignment="Center"/>
+                            <views:Symbol Icon="Palette" VerticalAlignment="Center"/>
                             <TextBlock Text="{loc:T Ed.Table.Design}" Margin="6,0,0,0"/>
                         </StackPanel>
                     </Button>
@@ -580,7 +577,7 @@
                     <Button Style="{StaticResource LabelButton}" Content="{loc:T Ed.Table.Delete}" Click="TableDelete_Click"/>
 
                     <!-- Hinweis: was WPF nicht kann (ehrliches Scoping) -->
-                    <Button Style="{StaticResource IconButton}" Height="30" Width="26" Content="&#xE946;"
+                    <Button Style="{StaticResource IconButton}" Height="30" Width="26" Content="{views:Icon Info}"
                             Foreground="{DynamicResource Brush.TextMuted}" ToolTipService.InitialShowDelay="150"
                             ToolTipService.ShowDuration="20000" AutomationProperties.Name="{loc:T Ed.Table.NoteName}">
                         <Button.ToolTip>
@@ -606,7 +603,7 @@
                 <Button Style="{StaticResource FlatButton}" Content="{loc:T Ed.Find.ReplaceAll}" Margin="2,0,0,0" Click="ReplaceAll_Click"/>
                 <TextBlock x:Name="FindStatus" VerticalAlignment="Center" Margin="10,0,0,0"
                            Foreground="{DynamicResource Brush.TextMuted}"/>
-                <Button Style="{StaticResource IconButton}" Content="&#xE711;" FontSize="10" Margin="6,0,0,0"
+                <Button Style="{StaticResource IconButton}" Content="{views:Icon Close, Size=10}" FontSize="10" Margin="6,0,0,0"
                         ToolTip="{loc:T Ed.Find.Close}" Click="CloseFind_Click"/>
             </StackPanel>
         </Border>
@@ -619,8 +616,7 @@
                            Foreground="{DynamicResource Brush.TextMuted}" FontSize="12" VerticalAlignment="Center"/>
 
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                    <TextBlock x:Name="SpellLangWarn" Text="&#xE7BA;" FontFamily="{StaticResource IconFont}"
-                               FontSize="13" Foreground="#F59E0B" VerticalAlignment="Center" Margin="0,0,6,0"
+                    <views:Symbol x:Name="SpellLangWarn" Icon="Warning" Stroke="#F59E0B" VerticalAlignment="Center" Margin="0,0,6,0"
                                Visibility="Collapsed" Cursor="Help"
                                ToolTipService.ShowDuration="20000"/>
                     <ComboBox x:Name="LanguageCombo" Width="86" Height="24" FontSize="12"
@@ -636,11 +632,11 @@
 
                     <Border Style="{StaticResource GroupSep}"/>
 
-                    <Button Style="{StaticResource IconButton}" Content="&#xE949;" Width="24" Height="24" FontSize="11"
+                    <Button Style="{StaticResource IconButton}" Content="{views:Icon ZoomOut, Size=11}" Width="24" Height="24" FontSize="11"
                             Click="ZoomOut_Click" ToolTip="{loc:T Zoom.Out}" AutomationProperties.Name="{loc:T Zoom.Out.Long}"/>
                     <Slider x:Name="ZoomSlider" Width="90" Minimum="50" Maximum="200" Value="100"
                             ValueChanged="Zoom_Changed" VerticalAlignment="Center"/>
-                    <Button Style="{StaticResource IconButton}" Content="&#xE948;" Width="24" Height="24" FontSize="11"
+                    <Button Style="{StaticResource IconButton}" Content="{views:Icon ZoomIn, Size=11}" Width="24" Height="24" FontSize="11"
                             Click="ZoomIn_Click" ToolTip="{loc:T Zoom.In}" AutomationProperties.Name="{loc:T Zoom.In.Long}"/>
                     <TextBlock x:Name="ZoomText" Text="100 %" Width="42" TextAlignment="Right"
                                Foreground="{DynamicResource Brush.TextMuted}" FontSize="12" VerticalAlignment="Center"/>
@@ -653,10 +649,10 @@
         <Border DockPanel.Dock="Left" Width="42" Background="{DynamicResource Brush.SidebarBg}"
                 BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,0,1,0">
             <StackPanel>
-                <ToggleButton x:Name="BtnSideFind" Style="{StaticResource SideIconButton}" Content="&#xE721;"
+                <ToggleButton x:Name="BtnSideFind" Style="{StaticResource SideIconButton}" Content="{views:Icon Search}"
                               Click="ToggleFind_Click" ToolTip="{loc:T Ed.Find.Tip}"
                               AutomationProperties.Name="{loc:T Ed.Find}"/>
-                <ToggleButton x:Name="BtnSideNav" Style="{StaticResource SideIconButton}" Content="&#xE8A4;"
+                <ToggleButton x:Name="BtnSideNav" Style="{StaticResource SideIconButton}" Content="{views:Icon Outline}"
                               Click="ToggleNavigator_Click" ToolTip="{loc:T Ed.Navigator.Tip}"
                               AutomationProperties.Name="{loc:T Ed.Navigator}"/>
             </StackPanel>
@@ -712,7 +708,7 @@
                 <Grid DockPanel.Dock="Top" Margin="12,10,8,6">
                     <TextBlock Text="{loc:T Ed.Advanced}" FontWeight="SemiBold" FontSize="14"
                                Foreground="{DynamicResource Brush.Text}" VerticalAlignment="Center"/>
-                    <Button Style="{StaticResource IconButton}" Content="&#xE711;" FontSize="10" Width="26" Height="26"
+                    <Button Style="{StaticResource IconButton}" Content="{views:Icon Close, Size=10}" FontSize="10" Width="26" Height="26"
                             HorizontalAlignment="Right" ToolTip="{loc:T Window.Close}" Click="CloseSettings_Click"/>
                 </Grid>
                 <ScrollViewer VerticalScrollBarVisibility="Auto">

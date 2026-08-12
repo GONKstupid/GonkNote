@@ -324,11 +324,18 @@ Single-File-Exe), stehen in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md):
 | [DocumentFormat.OpenXml](https://github.com/dotnet/Open-XML-SDK) | DOCX-Import/-Export | MIT |
 | [Docnet.Core](https://github.com/GowenGit/docnet) / PDFium | PDF-Import | MIT / BSD-3-Clause |
 | [Tesseract](https://github.com/charlesw/tesseract) + `tessdata` (deu, eng) | OCR | Apache-2.0 |
+| [Lucide](https://lucide.dev) | Symbole der Oberfläche | ISC (teils MIT) |
 | [Inter](https://github.com/rsms/inter) | Schrift der Oberfläche | SIL OFL 1.1 |
 | [Source Sans 3](https://github.com/adobe-fonts/source-sans) | Grundschrift der Textdokumente | SIL OFL 1.1 |
 | [JetBrains Mono](https://github.com/JetBrains/JetBrainsMono) | Code und Festbreitentext | SIL OFL 1.1 |
 | [Space Grotesk](https://github.com/floriankarsten/space-grotesk) | Cover-Titel und große Überschriften | SIL OFL 1.1 |
 | [Geist](https://github.com/vercel/geist-font) | Textfelder und Notizzettel im Whiteboard | SIL OFL 1.1 |
+
+**Die Symbole kommen aus einer Tabelle im Programm**, nicht aus einer Icon-Schrift. Auch das ist
+Absicht und derselbe Grund wie bei den Schriften: „Segoe Fluent Icons" gehört Microsoft, darf
+nicht mitgeliefert werden und fehlt unter Linux — dort stünde an jeder Stelle ein leeres
+Kästchen. Sieben Formen (Notizbuch, Textdokument, Whiteboard, Geodreieck, Seitenbreite, Ganze
+Seite, Wiederherstellen) sind eigene, der Rest stammt aus Lucide.
 
 **Die fünf Schriften werden mitgeliefert** und liegen als `Fonts\`-Ordner neben dem Programm.
 Das ist Absicht: „Segoe UI" gibt es unter Linux nicht, und auf keinem Linux-System ist eine

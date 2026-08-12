@@ -4626,10 +4626,10 @@ nicht frei. **Das dort zuerst lesen spart eine Stunde.**
 ```text
 Du laeufst auf dem Windows-Rechner. Das Repo liegt in C:\Dev\Zed\gonk-note-V2.
 
-Lies dort HANDOFF.md, Abschnitt 5e ("Auftrag fuer den Windows-Rechner"). Von dort
-weiter: erst die drei Handgriffe zum Aufraeumen, dann der Arbeitsplan in §6
-("Als Naechstes: das Schreiben"). §7 (Fallen) vor der ersten Code-Aenderung
-ueberfliegen.
+Lies dort HANDOFF.md, Abschnitt 5e ("Auftrag fuer den Windows-Rechner"). Das
+Aufraeumen ist erledigt und Schritt 1 des Schreibens steht -- dran ist Schritt 2
+aus §6 ("Als Naechstes: das Schreiben"): was sich aendert, wenn man tippt.
+§7 (Fallen) vor der ersten Code-Aenderung ueberfliegen.
 
 Zieh zuerst den Stand: git pull. Dann bauen und testen, bevor du etwas anfasst --
 0 Fehler, 0 Warnungen, 557 Tests.
@@ -4662,9 +4662,20 @@ Sie standen offen, **weil sie auf dem Laptop nicht zu erledigen waren**. Der Bef
 **Nutzer-Entscheidung 2026-08-11: Weg (a)**, das Schreiben im Linux-Kopf, vor Phase 4.5
 (§5 „Noch offen" 2). **Nicht mehr nachfragen** — die Entscheidung ist gefallen.
 
-**Der erste Schritt ist reine Core-Arbeit:** wo steht der Cursor, und was ist eine Auswahl. Er
-berührt keinen Kopf, und er ist die Entscheidung, die alles Weitere prägt — **Stelle im Modell
-oder im Umbruch?** Der Vorschlag samt Begründung steht in §6.
+**✅ Schritt 1 steht** (§4.30): `TdPosition`, `TdSelection` und `TdCursor` in `Core/Text/`. Die
+Stelle steht **im Modell**, kanonisch ist die **linke** Schreibweise einer Stückgrenze, ein Feld
+ist **einen Schritt breit und kein Zeichen**, und bewegt wird in **ganzen Zeichen**. Wer Schritt
+2 baut, erbt diese vier Entscheidungen — sie stehen ausführlich in §4.30.
+
+**▶ Dran ist Schritt 2: was sich ändert, wenn man tippt.** Einfügen, Löschen, Zeilenumbruch,
+Absatz teilen und verbinden — **jedes mit seiner Gegenbewegung**, damit Schritt 3 (Rückgängig)
+nichts nachzubauen hat. Weiterhin **reine Core-Arbeit**; die Oberfläche fängt bei Schritt 4 an.
+
+> **Zwei Dinge fallen dabei mit ab und stehen dort schon:** die Frage, ob ein eingefügtes
+> Zeichen das Format links davon erbt (ja, wie in Word) — und §5 „Noch offen" **8**: Ein neu
+> angelegtes Textdokument hat weder `Model` noch `Rtf` und bekommt deshalb im Linux-Kopf den
+> falschen Hinweis „stammt aus der Windows-Fassung". Mit einem leeren `TdDocument` ist der Fall
+> weg.
 
 > **Warum das Schreiben trotz seiner Core-Anteile hierher gehört und nicht auf den Laptop:**
 > nicht wegen der Werkzeuge, sondern wegen der **Gegenprobe**. Jede Änderung am Modell muss der

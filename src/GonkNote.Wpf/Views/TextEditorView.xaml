@@ -13,16 +13,12 @@
         <SolidColorBrush x:Key="PageMutedBrush"    Color="#6B7A99"/>
         <SolidColorBrush x:Key="CanvasBgBrush" Color="{DynamicResource Color.CanvasBg}"/>
 
-        <!-- Ausrichtungs-Icons (Icon.Justify liegt in Styles.xaml) -->
-
-        <Style x:Key="PathIcon" TargetType="Path">
-            <Setter Property="StrokeThickness" Value="1.3"/>
-            <Setter Property="StrokeStartLineCap" Value="Round"/>
-            <Setter Property="StrokeEndLineCap" Value="Round"/>
-            <Setter Property="StrokeLineJoin" Value="Round"/>
-            <Setter Property="Width" Value="16"/>
-            <Setter Property="Height" Value="16"/>
-        </Style>
+        <!-- Hier stand bis zum 2026-08-12 der Stil "PathIcon" (TargetType="Path") für die
+             Symbole dieser Leiste. Mit §4.31 sind aus den <Path> <views:Symbol> geworden,
+             und ein Path-Stil an einem Symbol wirft: "TargetType Path entspricht nicht dem
+             Typ des Elements Symbol". Der Texteditor ließ sich damit gar nicht mehr öffnen.
+             Ersatzlos weg, denn views:Symbol bringt alles davon selbst mit: Strichstärke aus
+             der Tabelle (AppIcons.StrokeFor), runde Kappen fest, Größe über Size. -->
 
         <!-- Ribbon-Tab: Aktivierung über 2-px-Unterstrich in Akzentfarbe (Design-Konzept 7.2) -->
         <Style x:Key="RibbonTab" TargetType="RadioButton">
@@ -256,7 +252,7 @@
                     <Button x:Name="BtnAlign" Style="{StaticResource DropButton}" Click="OpenDropdown_Click"
                             ToolTip="{loc:T Ed.Align}" AutomationProperties.Name="{loc:T Ed.Align}">
                         <StackPanel Orientation="Horizontal">
-                            <views:Symbol x:Name="AlignGlyph" Style="{StaticResource PathIcon}"
+                            <views:Symbol x:Name="AlignGlyph"
                                   Icon="AlignLeft" VerticalAlignment="Center"
                                   Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
                             <views:Symbol Icon="ChevronDown" Size="8"
@@ -289,12 +285,12 @@
 
                     <Button Style="{StaticResource IconButton}" Height="30" ToolTip="{loc:T Ed.Indent.More}"
                             Click="IndentInc_Click">
-                        <views:Symbol Style="{StaticResource PathIcon}" Icon="IndentIncrease"
+                        <views:Symbol Icon="IndentIncrease"
                               Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
                     </Button>
                     <Button Style="{StaticResource IconButton}" Height="30" ToolTip="{loc:T Ed.Indent.Less}"
                             Click="IndentDec_Click">
-                        <views:Symbol Style="{StaticResource PathIcon}" Icon="IndentDecrease"
+                        <views:Symbol Icon="IndentDecrease"
                               Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
                     </Button>
 
@@ -313,7 +309,7 @@
                     <Button x:Name="BtnInsertTable" Style="{StaticResource LabelButton}" Click="TableMenu_Click"
                             AutomationProperties.Name="{loc:T Ed.Table.Insert}">
                         <StackPanel Orientation="Horizontal">
-                            <views:Symbol Style="{StaticResource PathIcon}" Icon="Table"
+                            <views:Symbol Icon="Table"
                                   Stroke="{DynamicResource Brush.TextMuted}"/>
                             <TextBlock Text="{loc:T Ed.Tab.Table}" Margin="6,0,0,0"/>
                             <views:Symbol Icon="ChevronDown" Size="9"
@@ -498,7 +494,7 @@
                     <!-- Zeilen (Sammel-Dropdown) -->
                     <Button Style="{StaticResource DropButton}" Click="RowMenu_Click">
                         <StackPanel Orientation="Horizontal">
-                            <views:Symbol Style="{StaticResource PathIcon}" Size="15"
+                            <views:Symbol Size="15"
                                   Icon="Table" Stroke="{DynamicResource Brush.TextMuted}"/>
                             <TextBlock Text="{loc:T Ed.Table.Row}" Margin="6,0,0,0" VerticalAlignment="Center"/>
                             <views:Symbol Icon="ChevronDown" Size="9"

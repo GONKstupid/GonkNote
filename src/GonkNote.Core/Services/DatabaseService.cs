@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 using GonkNote.Core.Models;
 using GonkNote.Core.Platform;
+using GonkNote.Core.Text;
 using Microsoft.Data.Sqlite;
 
 namespace GonkNote.Core.Services;
@@ -243,8 +244,29 @@ public sealed class DatabaseService : IDisposable
         }
     }
 
+    /// <summary>
+    /// Ein Textdokument. Steht in der Datenbank noch keines, entsteht es hier — **mit einem
+    /// leeren Dokumentmodell und nicht leerhändig**.
+    ///
+    /// <para>
+    /// <b>Das ist der Unterschied zwischen „neu angelegt" und „noch nicht übernommen"</b>, und
+    /// er kostete den Linux-Kopf eine falsche Auskunft (§4.29, §5 „Noch offen" 8): Ein frisch
+    /// angelegtes Dokument hatte weder <see cref="TextDoc.Model"/> noch <see cref="TextDoc.Rtf"/>
+    /// und sah damit genauso aus wie ein Bestandsdokument aus der Windows-Fassung — der
+    /// Avalonia-Kopf zeigte den Hinweis „stammt aus der Windows-Fassung und ist noch nicht
+    /// übernommen", und exportieren ließ es sich nicht. Es stammte aus *dieser* Fassung und war
+    /// einfach leer.
+    /// </para>
+    /// <para>
+    /// <b>Ein leeres <see cref="TdDocument"/> beantwortet das an der Wurzel</b>, statt einen
+    /// dritten Zustand durch alle Köpfe zu reichen: Wo etwas steht, gibt es nichts zu übernehmen.
+    /// <see cref="TextDoc.Rtf"/> bleibt dabei leer — die Regel „wer voll ist, führt" ist damit
+    /// nicht angetastet, und für ein Dokument ohne Altformat gibt es ohnehin nichts zu führen.
+    /// </para>
+    /// </summary>
     public TextDoc GetText(Guid id) =>
-        Lies(EinJson("texts", id), GonkJson.Default.TextDoc) ?? new TextDoc { Id = id };
+        Lies(EinJson("texts", id), GonkJson.Default.TextDoc)
+        ?? new TextDoc { Id = id, Model = TdFormatIo.Schreiben(TdDocument.Leer()) };
 
     public void SaveText(TextDoc doc) => SchreibeText(_db, null, doc);
 

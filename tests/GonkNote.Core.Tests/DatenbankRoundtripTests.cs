@@ -1,5 +1,6 @@
 using GonkNote.Core.Models;
 using GonkNote.Core.Services;
+using GonkNote.Core.Text;
 
 namespace GonkNote.Core.Tests;
 
@@ -107,6 +108,41 @@ public sealed class DatenbankRoundtripTests
             // erst greifen, wenn schon null angekommen ist.
             Assert.Equal("A4", geladen.PageFormat);
         }
+    }
+
+    /// <summary>
+    /// **Ein neu angelegtes Textdokument ist leer und nicht „noch nicht übernommen".**
+    ///
+    /// <para>
+    /// Der Unterschied kostete den Linux-Kopf eine falsche Auskunft (§4.29, §5 „Noch offen" 8):
+    /// Ein Dokument ohne <c>Model</c> und ohne <c>Rtf</c> sah dort aus wie ein
+    /// Bestandsdokument aus der Windows-Fassung — mit dem Hinweis „noch nicht übernommen" und
+    /// ausgegrautem Export, obwohl es gerade eben in dieser Fassung entstanden war. Seit
+    /// Schritt 2 des Schreibens bekommt es ein leeres <see cref="TdDocument"/>, und der Fall
+    /// ist an der Wurzel weg.
+    /// </para>
+    /// <para>
+    /// <b>Das Altfeld bleibt dabei leer</b> — es gibt keines. „Wer voll ist, führt" ist damit
+    /// nicht angetastet.
+    /// </para>
+    /// </summary>
+    [Fact]
+    public void Ein_neu_angelegtes_Textdokument_hat_ein_leeres_Modell()
+    {
+        using var ws = new TempWorkspace("neues-textdokument");
+        using var db = new DatabaseService(ws.DatabasePath);
+
+        var neu = db.GetText(Guid.NewGuid());
+
+        Assert.Empty(neu.Rtf);
+        Assert.NotEmpty(neu.Model);
+
+        var modell = TdFormatIo.Lesen(neu.Model);
+        Assert.NotNull(modell);
+
+        // Leer heißt: ein Absatz, in dem der Cursor stehen kann — nicht „kein Absatz".
+        Assert.Single(TdCursor.Absaetze(modell));
+        Assert.Equal("", modell.PlainText());
     }
 
     [Fact]

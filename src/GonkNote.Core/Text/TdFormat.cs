@@ -144,6 +144,26 @@ public sealed class TdCharFormat
     };
 
     /// <summary>
+    /// Sagen beide Formate dasselbe?
+    ///
+    /// <para>
+    /// <b>Verglichen wird Feld für Feld und nicht das Objekt</b> — zwei Läufe mit demselben
+    /// Format sind zwei Objekte, und genau sie will Schritt 2 zusammenlegen: Ohne diesen
+    /// Vergleich zerfiele ein Absatz mit jedem getippten Zeichen in ein weiteres Stück
+    /// (<c>TdEdit</c>). <c>null</c> zählt dabei als eigener Wert und nicht als
+    /// „Standardwert": Ein Lauf ohne Angabe und einer, der ausdrücklich <c>false</c> sagt,
+    /// verhalten sich heute gleich — aber nur, solange die Unterlage es tut, und die kann
+    /// sich ändern (§4.14).
+    /// </para>
+    /// </summary>
+    public bool Gleicht(TdCharFormat andere) =>
+        FontFamily == andere.FontFamily && FontSize == andere.FontSize &&
+        Bold == andere.Bold && Italic == andere.Italic &&
+        Underline == andere.Underline && Strikethrough == andere.Strikethrough &&
+        Color == andere.Color && Highlight == andere.Highlight &&
+        VerticalAlign == andere.VerticalAlign;
+
+    /// <summary>
     /// Ist überhaupt etwas gesetzt? Ein leeres Format wird beim Speichern weggelassen.
     /// <para>
     /// <b><c>JsonIgnore</c>, und das ist kein Schmuck:</b> Ohne es steht in **jedem** Format

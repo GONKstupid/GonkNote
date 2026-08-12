@@ -124,7 +124,7 @@ und iPadOS** — Greenfield-Solution, in die der wiederverwendbare Code aus V1 w
 >
 > | | |
 > |---|---|
-> | 🪟 **Windows** — der Normalfall, hier wird entwickelt | **§5e** sagt, womit die nächste Runde anfängt: drei Handgriffe zum Aufräumen, dann der Arbeitsplan aus §6 |
+> | 🪟 **Windows** — der Normalfall, hier wird entwickelt | **§5e** sagt, womit die nächste Runde anfängt; was gebaut wird, steht dahinter in **§6** |
 > | 🐧 **CachyOS-Laptop** — Messgerät, kein Arbeitsplatz | **§5d**, dort und nirgends sonst. Vorher §5b lesen (warum das so ist) |
 >
 > Der Nutzer muss dir in beiden Fällen nichts weiter sagen als „lies das HANDOFF".
@@ -296,7 +296,7 @@ angezeigt, importiert (DOCX) und in alle vier Formate exportiert. **Damit ist Ph
 abgeschlossen.** Der Anschluss hat sofort einen Fehler gezeigt, den vier Runden lang kein
 Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — behoben.
 
-### ▶ Hier geht es weiter (Stand 2026-08-12, nach Runde V2-42)
+### ▶ Hier geht es weiter (Stand 2026-08-12, nach Runde V2-43)
 
 > **✅ Phase 4 ist abgeschlossen** (§4.28) und **auf dem Laptop gegengeprüft** (§4.28, „Was der
 > Laptop gefunden hat"): die Anzeige trägt, ihr Umbruch stimmt mit dem PDF überein, Rollen und
@@ -322,22 +322,36 @@ Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — beh
 > mitgeliefert werden darf. Die Symbole stehen jetzt als **Tabelle in `Core/Theming/`** (71
 > Stück, aus Lucide; sieben eigene), beide Köpfe lesen sie, **12 neue Wächter**. **557 Tests.**
 >
-> **▶ Als Nächstes: Schritt 2 — was sich ändert, wenn man tippt.** Einfügen, Löschen,
-> Zeilenumbruch, Absatz teilen und verbinden, jedes mit seiner Gegenbewegung. Der Plan steht
-> in **§6, „Als Nächstes: das Schreiben"**; die Sprache dafür steht seit §4.30 bereit.
-> Weiterhin reine Core-Arbeit — die Oberfläche fängt bei Schritt 4 an.
+> **✅ Schritt 2 des Arbeitsplans steht** (2026-08-12, §4.32): `TdEdit`, `TdFragment` und
+> `TdChange` daneben, **58 Wächter**, Bau 0/0 und **616 Tests** grün. Alles läuft über **einen**
+> Handgriff, und eine Änderung merkt sich **die Blöcke davor und danach** statt des Handgriffs —
+> daraus folgt die Regel, die alles Weitere erbt: **Absätze und Stücke werden nie verändert,
+> sondern ersetzt.** §5 „Noch offen" **8** ist damit erledigt.
+>
+> **⚠ Und die Gegenprobe hat etwas gefunden, das nicht aus dieser Runde stammt:** Der
+> **WPF-Kopf konnte seit §4.31 kein Textdokument mehr öffnen** — ein Stil `TargetType="Path"`
+> an einem `views:Symbol` wirft beim Anwenden. Gegengeprüft auf dem unveränderten Stand,
+> behoben (§4.32, §7). **Keiner der zwölf Ikonen-Wächter konnte das sehen; nur ein laufendes
+> Fenster kann es.**
+>
+> **▶ Als Nächstes: Schritt 3 — Rückgängig.** `TdChange` kann sich schon anwenden, zurücknehmen
+> und beliebig oft im Wechsel beides; zu bauen ist die **Naht** zu `UndoStack`. Die eigentliche
+> Frage: `UndoStack` und `IEditAction` sind auf `WbPage` zugeschnitten, ein Textdokument hat
+> keine Seite (§6, §4.32). Weiterhin reine Core-Arbeit — die Oberfläche fängt bei Schritt 4 an.
 >
 > **Gearbeitet wird auf dem Windows-Rechner.** Nicht wegen der Werkzeuge, sondern wegen der
 > Gegenprobe — jede Änderung am Modell muss der WPF-Editor überleben, und beide Köpfe
-> nebeneinander an derselben Datenbank gibt es nur dort (§5b).
+> nebeneinander an derselben Datenbank gibt es nur dort (§5b). **Diese Runde ist der Beleg
+> dafür.**
 >
 > **M1 bleibt ein gültiger Ausstiegspunkt.**
 >
 > **Was dabei nicht untergehen darf:**
-> - **Neu und schon eingeplant:** ein **neu angelegtes** Textdokument zeigt im Linux-Kopf
->   „stammt aus der Windows-Fassung" und lässt sich nicht exportieren — `TextDocView`
->   unterscheidet *leer angelegt* nicht von *nicht übernommen* (§4.29, §5 „Noch offen" **8**).
->   **Schritt 2 des Arbeitsplans löst es auf**, dort steht es auch.
+> - **Neu und benannt:** Über eine **Tabellengrenze** hinweg wird nicht bearbeitet — eine
+>   Auswahl, die halb in einer Tabelle steht, wird abgelehnt statt geraten (§4.32). Zu
+>   schließen, ohne etwas zurückzudrehen.
+> - **Nebenbefund, unbehoben:** `%APPDATA%\GonkNote\fehler.log` ist auf **272 MB** angewachsen
+>   und wird nie beschnitten (§4.32). Gehört in die Aufräumrunde von Phase 6.
 > - **Ein Fund des Laptops, Arbeit und keine Entscheidung:** §5 „Noch offen" **6** — der
 >   Wortzwischenraum an einer Stückgrenze sitzt in der **Anzeige** falsch, im PDF nicht.
 > - **Halb beantwortet:** §5 „Noch offen" **7** — der Dateidialog trägt unter **Windows**
@@ -360,7 +374,7 @@ Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — beh
 **Tests laufen lassen:**
 
 ```powershell
-dotnet test -c Release        # Windows: beide Projekte, 557 Tests
+dotnet test -c Release        # Windows: beide Projekte, 616 Tests
 ```
 
 ```bash
@@ -402,7 +416,7 @@ möglich) gelten unverändert weiter — siehe `gonk-note\HANDOFF.md` §1.
 | | |
 |---|---|
 | **Version** | 0.3.0 · `net10.0` · SkiaSharp 3.119.4 · Avalonia 12.1.1 · SQLite |
-| **Tests** | **557** — 526 in `GonkNote.Core.Tests` (Windows **und** Linux), 31 in `GonkNote.Wpf.Tests` (alles, was am `FlowDocument` hängt) |
+| **Tests** | **616** — 585 in `GonkNote.Core.Tests` (Windows **und** Linux), 31 in `GonkNote.Wpf.Tests` (alles, was am `FlowDocument` hängt) |
 | **Bau** | Debug und Release je 0 Fehler / 0 Warnungen; CI mit zwei Läufen (Windows, Ubuntu) |
 | **Meilensteine** | ✅ **M0** (Core baut auf Linux) · ✅ **M1** (Notizbuch und Whiteboard laufen unter Linux) · ⏳ **M2** (Funktionsgleichheit) — er hängt an Phase 4.5, nicht an Phase 4 |
 
@@ -3738,6 +3752,11 @@ eingebauter dritter Zustand wäre morgen toter Code. Der Fund steht als §5 „N
 und im Arbeitsplan, damit er beim Schreiben mitgenommen wird und nicht danach noch einmal
 gesucht werden muss.
 
+> **✅ Genau so gekommen** (2026-08-12, §4.32): `DatabaseService.GetText` legt ein noch nicht
+> gespeichertes Dokument mit einem leeren Modell an, `TextDocView.Laden()` blieb unverändert —
+> es war nie dessen Fehler. **Das Vertagen hat sich gelohnt:** der dritte Zustand, den eine
+> sofortige Behebung gebraucht hätte, wäre heute toter Code.
+
 #### Handgriff 3 — die Roadmap-Datei
 
 `C:\Users\manue\Desktop\GonkNote-TM\gonk-note-port-RM.MD` **kennt jetzt Phase 4.5**, und
@@ -3930,6 +3949,118 @@ zuerst in `GonkNote.Avalonia.Views` — der Assemblyname. Damit gab es unterhalb
 plötzlich ein `Avalonia`, und in **jeder anderen Datei** des Kopfs zeigte `Avalonia.Interactivity`
 ins Leere. Der Kopf heißt im Quelltext `GonkNote.Views`, und zwar aus genau diesem Grund.
 
+### 4.32 Was sich ändert, wenn man tippt — Schritt 2 des Schreibens
+
+**2026-08-12 unter Windows (V2-43).** Eine neue Datei (`Core/Text/TdEdit.cs`) und **58 neue
+Wächter**; dazu ein Fund am laufenden Programm, der nicht aus dieser Runde stammt und weiter
+unten steht. Bau 0/0, **616 Tests** grün (vorher 557).
+
+**Was es gibt:** `TdEdit` mit sechs Handgriffen — tippen, löschen (Rücktaste und Entf), die
+Auswahl löschen, Zeilenumbruch, Absatz teilen —, dazu `TdFragment` (was an die Stelle einer
+Auswahl tritt) und `TdChange` (eine Änderung samt ihrer Gegenbewegung). Weiterhin reine
+Core-Arbeit; **die Oberfläche fängt bei Schritt 4 an**.
+
+#### Der eine Handgriff, aus dem alle anderen fallen
+
+**Alles läuft über `Ersetzen(doc, auswahl, inhalt)`.** Einfügen ist eine Ersetzung einer leeren
+Auswahl, Löschen eine Ersetzung durch nichts, Absatz teilen eine Ersetzung durch **zwei leere
+Absätze** — und die Rücktaste am Absatzanfang eine Ersetzung, deren Auswahl über die Absatzmarke
+reicht.
+
+> **Damit fällt „Absätze verbinden" heraus, ohne dass es dafür eine Zeile gibt.** Das ist der
+> eigentliche Gewinn: Ein zweiter Weg zum selben Ergebnis ist immer der, den niemand prüft.
+> Dasselbe Muster wie §4.17, §4.20, §4.21, §4.25 und §4.30 — zum sechsten Mal erst die eine
+> Rechnung, dann das, was sie benutzt.
+
+#### Die Gegenbewegung merkt sich Blöcke und nicht Handgriffe
+
+**Eine `TdChange` hält die Blöcke, die dort standen, und die, die jetzt dort stehen.** Rücknahme
+ist ein Tausch der beiden Listen, `Gegenbewegung` dieselbe Änderung mit vertauschten Rollen.
+
+**Warum nicht „an Stelle X wurden drei Zeichen eingefügt":** Weil das Zurücknehmen dann dieselbe
+Rechnung noch einmal rückwärts machen müsste — mit denselben Sonderfällen (Stückgrenzen,
+Verweise, aufgeräumte leere Stücke), nur spiegelverkehrt und ohne eigenen Wächter. **Daran
+scheitern Rückgängig-Funktionen: nicht am Merken, sondern an der zweiten Rechnung.**
+
+> **Daraus folgt eine Regel für den ganzen weiteren Schreibweg: Absätze und Stücke werden nie
+> verändert, sondern ersetzt.** Wer ein Zeichen tippt, bekommt einen neuen Absatz; der alte
+> bleibt unversehrt und **ist** die Sicherung. Wer das später bricht — etwa beim Fettmachen ein
+> `TdCharFormat` an Ort und Stelle umstellt —, macht jede bereits gemerkte Änderung still
+> falsch, und man sucht den Fehler im Rückgängig-Stapel.
+>
+> **Erprobt, nicht behauptet:** Baut `Absatz()` den vorhandenen Absatz um, statt einen neuen zu
+> bauen, werden **23 von 58** Wächtern rot.
+
+**Schritt 3 erbt damit fertige Ware.** `UndoStack` und `IEditAction` hängen an `WbPage`
+(Zeichenfläche) — `TextChangeAction` dort meint einen Textkasten im Whiteboard und **passt
+nicht**. Was Schritt 3 zu tun hat, ist die Naht zwischen `UndoStack` und `TdChange`, nicht das
+Rückgängigmachen selbst.
+
+#### Die vier Entscheidungen von Schritt 2
+
+| | |
+|---|---|
+| **Ein eingefügtes Zeichen erbt das Format links davon** | Die Word-Erwartung, und die Einlösung der kanonischen **linken** Schreibweise aus §4.30: Die Stelle gehört dem Stück, das **vor** ihr endet — daraus fällt „erbt links" heraus, statt abgefragt zu werden. Am Absatzanfang gibt es keinen linken Nachbarn, dort gilt das erste Stück; in einem leeren Absatz erbt es **nichts** (sonst trüge das Zeichen eine Kopie dessen, was der Absatz ohnehin sagt — §4.14) |
+| **Nach jeder Änderung wird der Absatz aufgeräumt** | Gleichformatige Nachbarstücke werden zusammengelegt, leere fallen weg. Ohne das zerfiele ein Absatz mit **jedem Tastendruck** weiter — nach hundert Zeichen stünde ein Satz in dreihundert Stücken, im DOCX ein Lauf je Zeichen, und der Wortzwischenraum säße an jeder Grenze falsch (§5 „Noch offen" 6). Es betrifft den **ganzen** berührten Absatz und ist gedeckt, weil die Rücknahme den ganzen Absatz zurückholt |
+| **Wer in einem Verweis tippt, bleibt darin — dahinter nicht** | Eine Änderung mitten in einem Verweis schneidet ihn in zwei Hälften; einfach aneinandergehängt stünden zwei Verweise da und der neue Text zwischen ihnen. Die Naht wird deshalb wieder geschlossen. **Am Ende** eines Verweises ist die Naht kein Schnitt — dort wächst er nicht mit. Word hängt dort an; das ist die Eigenheit, die Leute wieder herausnehmen |
+| **Ein `\n` im eingegebenen Text wird zur Absatzmarke** | Es kommt aus der Zwischenablage und von Eingabemethoden herein. Als Zeichen im Lauf stünde es im Dokument, der Umbruch setzte es nicht, und im DOCX stünde ein Steuerzeichen mitten im Absatz |
+
+#### Eine benannte Lücke: über eine Tabellengrenze hinweg wird nicht bearbeitet
+
+Beide Enden einer Auswahl müssen in **derselben** Blockliste liegen (demselben Abschnitt oder
+derselben Zelle); dazwischen dürfen nur Absätze und **Seitenumbrüche** stehen — letztere fallen
+mit, denn wer am Anfang des Absatzes dahinter die Rücktaste drückt, meint sie.
+
+Eine Auswahl, die halb in einer Tabelle steht, müsste beim Löschen entscheiden, was aus der
+Tabelle wird. Word baut dafür eine eigene Mechanik; ein geratenes Ergebnis wäre hier stiller
+Datenverlust. **Abgelehnt heißt `null`** — der Nutzer sieht, dass nichts geschieht. Mit einem
+Wächter festgehalten, und ohne etwas zurückzudrehen später zu schließen.
+
+#### ✅ §5 „Noch offen" 8 ist mit erledigt — und die Gegenprobe hat es gezeigt
+
+`DatabaseService.GetText` legt ein noch nicht gespeichertes Dokument jetzt **mit einem leeren
+`TdDocument`** an statt leerhändig. Damit ist „neu angelegt" von „noch nicht übernommen"
+unterscheidbar, ohne dass ein dritter Zustand durch alle Köpfe gereicht werden müsste: **wo
+etwas steht, gibt es nichts zu übernehmen.** `Rtf` bleibt leer, „wer voll ist, führt" ist nicht
+angetastet.
+
+**Am laufenden Programm geprüft, in beiden Köpfen, an einer Kopie der echten Datenbank:** Der
+Linux-Kopf zeigt für ein neu angelegtes Dokument jetzt ein leeres Blatt mit Seitenleiste und
+**nicht ausgegrautem Export** — statt „stammt aus der Windows-Fassung" (§4.29). Danach im
+WPF-Kopf getippt und gespeichert, Kopf gewechselt: derselbe Text, dieselben Zähler (4 / 19).
+
+#### Der Fund der Runde stammt nicht aus dieser Runde: der WPF-Texteditor war kaputt
+
+**Beim ersten Öffnen eines Textdokuments im Windows-Kopf kam ein Fehlerfenster statt des
+Editors:** „Beim Festlegen der Eigenschaft `System.Windows.FrameworkElement.Style` wurde eine
+Ausnahme ausgelöst" → `TargetType "Path" entspricht nicht dem Typ des Elements "Symbol"`.
+
+**Es lag nicht am Schreiben.** Gegengeprüft, indem die Arbeit dieser Runde weggelegt
+(`git stash`), neu gebaut und dasselbe getan wurde: **derselbe Fehler auf dem unveränderten
+Stand.** Er stammt aus **§4.31** (Symbolsatz, Commit 370e620) — dort wurden in
+`TextEditorView.xaml` fünf `<Path>` zu `<views:Symbol>`, und die Zeile
+`Style="{StaticResource PathIcon}"` blieb an ihnen stehen. `Symbol` ist ein `FrameworkElement`
+und kein `Path`; WPF wirft beim Anwenden.
+
+**Behoben:** die fünf Zuweisungen und der Stil selbst sind weg — `views:Symbol` bringt
+Strichstärke, runde Kappen und Größe ohnehin mit. Kein anderer Stil im Baum hat noch ein
+`TargetType="Path"`, und kein `views:Symbol` in beiden Köpfen trägt noch einen Stil.
+
+> **Was daran lehrreich ist, und es ist zum dritten Mal dieselbe Lehre (§4.28, §4.31):
+> Kein Wächter konnte das sehen.** Die neun Ikonen-Wächter in Core prüfen die *Tabelle*, die
+> drei im WPF-Projekt lesen den *Quelltext* der XAML — beide waren grün. Der Fehler entsteht
+> erst, wenn WPF den Stil **anwendet**, und das tut nur ein laufendes Fenster.
+>
+> **Und er kostete fast eine ganze Funktion:** Der Windows-Kopf konnte seit dem 2026-08-12 kein
+> Textdokument mehr öffnen — genau der Editor, den Schritt 7 auf das Modell umstellen soll.
+> **Das ist die Gegenprobe, wegen der §5e auf Windows besteht**, und diesmal hat sie etwas
+> gefunden.
+
+> **Nebenbefund, nicht behoben:** `%APPDATA%\GonkNote\fehler.log` ist auf **272 MB**
+> angewachsen — dieselbe Ausnahme, tausendfach, weil sie bei jedem Bildaufbau erneut fliegt.
+> Das Protokoll wächst unbegrenzt und wird nie beschnitten. Gehört in die Aufräumrunde von
+> Phase 6; die Datei selbst darf der Nutzer wegwerfen.
+
 ---
 
 ## 5. Entscheidungen
@@ -4086,17 +4217,16 @@ ins Leere. Der Kopf heißt im Quelltext `GonkNote.Views`, und zwar aus genau die
    liefert. Das ist eine andere Implementierung derselben Avalonia-Schnittstelle, also keine
    Formsache. **Zwei Minuten Nutzer am Gerät**, wenn er ohnehin am Laptop sitzt.
 
-8. **Ein neu angelegtes Textdokument zeigt im Linux-Kopf den falschen Hinweis.** Gefunden am
-   2026-08-11 (V2-40, §4.29): „Datei → Neues Textdokument" im **Avalonia**-Kopf erzeugt ein
-   Dokument ohne `Model` und ohne `Rtf`. `TextDocView.Laden()` prüft nur `Model == null` und
-   zeigt darum `Td.NotMigrated` — **„Dieses Dokument stammt aus der Windows-Fassung"**, was
-   für ein Dokument, das gerade *hier* entstanden ist, schlicht nicht stimmt. Export bleibt
-   ausgegraut; das Dokument ist im Linux-Kopf nicht benutzbar.
+8. ✅ **Erledigt am 2026-08-12 (V2-43, §4.32): ein neues Textdokument bekommt ein leeres
+   `TdDocument`.** Der Fund (V2-40, §4.29): „Datei → Neues Textdokument" erzeugte ein Dokument
+   ohne `Model` **und** ohne `Rtf`, und `TextDocView.Laden()` — das nur `Model == null` kennt —
+   zeigte dafür „Dieses Dokument stammt aus der Windows-Fassung"; Export blieb ausgegraut.
 
-   **Keine Entscheidung, sondern Arbeit — und sie gehört in den Arbeitsplan** (§6, „Als
-   Nächstes: das Schreiben"): mit Schritt 2 bekommt ein neues Dokument ein leeres
-   `TdDocument`, und damit verschwindet der Fall von selbst. **Bis dahin ist der Hinweis zu
-   trennen:** leer angelegt ist nicht dasselbe wie nicht übernommen. Vermerkt 2026-08-11.
+   **Gelöst an der Wurzel und nicht in den Köpfen:** `DatabaseService.GetText` legt ein noch
+   nicht gespeichertes Dokument mit einem leeren Modell an. Wo etwas steht, gibt es nichts zu
+   übernehmen — ein dritter Zustand durch alle Köpfe war damit nicht nötig. `Rtf` bleibt leer,
+   „wer voll ist, führt" ist unangetastet. **In beiden Köpfen am laufenden Programm geprüft**,
+   an einer Kopie der echten Datenbank.
 
 **Beantwortet und hier nur noch als Verweis** — der volle Wortlaut stand bis zum 2026-08-11
 darunter und wurde von niemandem mehr gelesen; was gilt, steht in der Tabelle oben:
@@ -4626,13 +4756,14 @@ nicht frei. **Das dort zuerst lesen spart eine Stunde.**
 ```text
 Du laeufst auf dem Windows-Rechner. Das Repo liegt in C:\Dev\Zed\gonk-note-V2.
 
-Lies dort HANDOFF.md, Abschnitt 5e ("Auftrag fuer den Windows-Rechner"). Das
-Aufraeumen ist erledigt und Schritt 1 des Schreibens steht -- dran ist Schritt 2
-aus §6 ("Als Naechstes: das Schreiben"): was sich aendert, wenn man tippt.
+Lies dort HANDOFF.md, Abschnitt 5e ("Auftrag fuer den Windows-Rechner"). Die
+Schritte 1 und 2 des Schreibens stehen -- dran ist Schritt 3 aus §6 ("Als
+Naechstes: das Schreiben"): Rueckgaengig. Lies dazu §4.32, dort steht, was
+TdChange schon kann und was die eigentliche Frage ist.
 §7 (Fallen) vor der ersten Code-Aenderung ueberfliegen.
 
 Zieh zuerst den Stand: git pull. Dann bauen und testen, bevor du etwas anfasst --
-0 Fehler, 0 Warnungen, 557 Tests.
+0 Fehler, 0 Warnungen, 616 Tests.
 
 Arbeite auf Deutsch, halte das HANDOFF nach, und sag mir am Ende, ob der Laptop
 dran ist.
@@ -4651,11 +4782,10 @@ Sie standen offen, **weil sie auf dem Laptop nicht zu erledigen waren**. Der Bef
 | **2** | Der Dateidialog des Linux-Kopfs | ✅ **Beide Fragen: ja.** Vorgewähltes Format *und* vorbelegter Dateiname, und der Pfad kommt zurück. PDF und DOCX geschrieben, das DOCX wieder eingelesen. **Offen bleibt nur der Portal-Fall** unter Wayland — §5 „Noch offen" 7 |
 | **3** | `gonk-note-port-RM.MD` nachziehen | ✅ **Phase 4.5 eingetragen, M2 dorthin verschoben**, Zeitrahmen ergänzt. Die Aufwandszahl (5–8 Wochen) ist ein **Vorschlag** und wartet auf das Ja des Nutzers |
 
-> **Dabei gefunden, und es gehört in den Arbeitsplan:** Ein **neu angelegtes** Textdokument
-> zeigt im Linux-Kopf „stammt aus der Windows-Fassung" und lässt sich nicht exportieren —
-> `TextDocView` unterscheidet *leer angelegt* nicht von *nicht übernommen* (§4.29, §5 „Noch
-> offen" 8). **Mit Schritt 2 löst sich das von selbst auf**, deshalb bleibt es bis dahin
-> stehen.
+> **Dabei gefunden, und es hat sich mit Schritt 2 aufgelöst wie angekündigt:** Ein **neu
+> angelegtes** Textdokument zeigte im Linux-Kopf „stammt aus der Windows-Fassung" und ließ sich
+> nicht exportieren (§4.29, §5 „Noch offen" 8). ✅ **Erledigt am 2026-08-12** (§4.32) — an der
+> Wurzel, in `DatabaseService.GetText`, und nicht im Kopf.
 
 ### Damit gilt jetzt: der Arbeitsplan — §6, „Als Nächstes: das Schreiben"
 
@@ -4664,18 +4794,22 @@ Sie standen offen, **weil sie auf dem Laptop nicht zu erledigen waren**. Der Bef
 
 **✅ Schritt 1 steht** (§4.30): `TdPosition`, `TdSelection` und `TdCursor` in `Core/Text/`. Die
 Stelle steht **im Modell**, kanonisch ist die **linke** Schreibweise einer Stückgrenze, ein Feld
-ist **einen Schritt breit und kein Zeichen**, und bewegt wird in **ganzen Zeichen**. Wer Schritt
-2 baut, erbt diese vier Entscheidungen — sie stehen ausführlich in §4.30.
+ist **einen Schritt breit und kein Zeichen**, und bewegt wird in **ganzen Zeichen**.
 
-**▶ Dran ist Schritt 2: was sich ändert, wenn man tippt.** Einfügen, Löschen, Zeilenumbruch,
-Absatz teilen und verbinden — **jedes mit seiner Gegenbewegung**, damit Schritt 3 (Rückgängig)
-nichts nachzubauen hat. Weiterhin **reine Core-Arbeit**; die Oberfläche fängt bei Schritt 4 an.
+**✅ Schritt 2 steht** (§4.32): `TdEdit`, `TdFragment` und `TdChange` daneben. Alles läuft über
+**einen** Handgriff (`Ersetzen`), eine Änderung merkt sich **die Blöcke davor und danach**, und
+daraus folgt die Regel, die alles Weitere erbt: **Absätze und Stücke werden nie verändert,
+sondern ersetzt.** Ein eingefügtes Zeichen erbt das Format **links** davon. §5 „Noch offen" 8
+ist mit erledigt.
 
-> **Zwei Dinge fallen dabei mit ab und stehen dort schon:** die Frage, ob ein eingefügtes
-> Zeichen das Format links davon erbt (ja, wie in Word) — und §5 „Noch offen" **8**: Ein neu
-> angelegtes Textdokument hat weder `Model` noch `Rtf` und bekommt deshalb im Linux-Kopf den
-> falschen Hinweis „stammt aus der Windows-Fassung". Mit einem leeren `TdDocument` ist der Fall
-> weg.
+**▶ Dran ist Schritt 3: Rückgängig.** `TdChange` kann sich schon anwenden, zurücknehmen und
+beliebig oft im Wechsel beides — zu bauen ist die **Naht** zu `UndoStack`. Die eigentliche Frage
+steht in §6: `UndoStack` und `IEditAction` sind auf `WbPage` zugeschnitten, ein Textdokument hat
+keine Seite. Weiterhin **reine Core-Arbeit**; die Oberfläche fängt bei Schritt 4 an.
+
+> **Was Schritt 2 dabei mitgenommen hat und nicht noch einmal zu suchen ist:** die Frage nach
+> der Formaterbung (beantwortet: links, wie in Word), §5 „Noch offen" 8 (erledigt) und die
+> Prüfung, ob `TextChangeAction` passt (sie passt nicht — §4.32).
 
 > **Warum das Schreiben trotz seiner Core-Anteile hierher gehört und nicht auf den Laptop:**
 > nicht wegen der Werkzeuge, sondern wegen der **Gegenprobe**. Jede Änderung am Modell muss der
@@ -4688,7 +4822,7 @@ nichts nachzubauen hat. Weiterhin **reine Core-Arbeit**; die Oberfläche fängt 
 ```powershell
 cd C:\Dev\Zed\gonk-note-V2
 dotnet build -c Release       # 0 Fehler, 0 Warnungen
-dotnet test -c Release        # beide Projekte, derzeit 557 Tests
+dotnet test -c Release        # beide Projekte, derzeit 616 Tests
 ```
 
 **Und danach am laufenden Programm**, mit einer **Kopie** der echten Datenbank (Dauerregel 4,
@@ -4965,19 +5099,22 @@ erst ab Schritt 4 wird es Kopfarbeit.
       Formaterbung), **Absatzende und nächster Absatzanfang bleiben zwei Stellen**, ein Feld
       und ein Bild sind **ein Schritt breit und kein Zeichen**, und bewegt wird in **ganzen
       Zeichen** und nicht in UTF-16-Einheiten.
-- [ ] **2. Was ändert sich, wenn man tippt?** Einfügen, Löschen, Zeilenumbruch, Absatz
-      teilen und verbinden — als **Änderungen am Modell** mit ihrer Gegenbewegung. Hier hängt
-      die zweite große Frage: **erbt ein eingefügtes Zeichen das Format links davon?** (In
-      Word ja; das ist die Erwartung.)
-      **Hier fällt §5 „Noch offen" 8 mit ab:** ein neu angelegtes Textdokument hat heute
-      weder `Model` noch `Rtf` und bekommt deshalb im Linux-Kopf den Hinweis „stammt aus der
-      Windows-Fassung" zu sehen (§4.29). Bekommt es ein **leeres `TdDocument`**, ist der Fall
-      weg — **darauf achten, dass `DatabaseService.GetText` und `TextDocView.Laden()`
-      zusammenpassen**, sonst bleibt der falsche Hinweis stehen.
+- [x] **2. Was ändert sich, wenn man tippt?** ✅ **Erledigt 2026-08-12 (§4.32).** `TdEdit`,
+      `TdFragment` und `TdChange` in `Core/Text/TdEdit.cs`; **58 Wächter**. Alles läuft über
+      **einen** Handgriff (`Ersetzen`) — damit fällt „Absätze verbinden" von selbst heraus. Eine
+      Änderung merkt sich **die Blöcke davor und danach** und nicht den Handgriff; daraus folgt
+      die Regel, die der ganze weitere Weg erbt: **Absätze und Stücke werden nie verändert,
+      sondern ersetzt.** Ein eingefügtes Zeichen erbt das Format **links** davon (die Einlösung
+      der kanonischen linken Form aus §4.30). **§5 „Noch offen" 8 ist mit erledigt.**
+      **Eine benannte Lücke:** über eine Tabellengrenze hinweg wird nicht bearbeitet (§4.32).
 - [ ] **3. Rückgängig.** `UndoStack` steht seit V1 in Core und wird von der Zeichenfläche
       benutzt (`IEditAction`) — **er wird hier nicht neu erfunden**, sondern bekommt
-      Textaktionen. `TextChangeAction` gibt es dort schon; ob sie passt, ist zu prüfen, nicht
-      anzunehmen.
+      Textaktionen. **Geprüft und beantwortet (§4.32): `TextChangeAction` passt nicht** — sie
+      meint einen Textkasten im Whiteboard, und `IEditAction` hängt an `WbPage`. Zu bauen ist
+      die **Naht** zwischen `UndoStack` und `TdChange`, nicht das Rückgängigmachen selbst: Eine
+      `TdChange` kann sich schon anwenden, zurücknehmen und beliebig oft im Wechsel beides.
+      **Die offene Frage ist, wem der Stapel gehört** — `UndoStack` ist heute auf `WbPage`
+      zugeschnitten, ein Textdokument hat keine Seite.
 - [ ] **4. Der Cursor auf dem Schirm.** Blinkende Schreibmarke und blaue Auswahl in
       `TdRenderer` — **er kennt heute weder das eine noch das andere.** Dazu die Umkehrung des
       Umbruchs: **welche Stelle im Modell gehört zu diesem Mausklick?**
@@ -5325,6 +5462,22 @@ weil sie bei der Portierung direkt zuschlagen:
   `net10.0-windows10.0.19041`. Wer nur `net10.0-windows` (= `…7.0`) angibt, bekommt
   wortlos die alte `net462`-Fassung untergeschoben (NU1701) — samt OpenTK/GLWpfControl.
   **NU1701 ist kein Schönheitsfehler, sondern der Hinweis auf ein falsch aufgelöstes Paket.**
+
+**Neu aus dem Symbolsatz (§4.31) — und es hat den Texteditor gekostet**
+
+- **Ein Stil mit `TargetType="Path"` an einem `views:Symbol` wirft.** `Symbol` ist ein
+  `FrameworkElement` und kein `Path`; WPF meldet beim **Anwenden** des Stils
+  „TargetType Path entspricht nicht dem Typ des Elements Symbol". Beim Umbau von `<Path>` auf
+  `<views:Symbol>` blieben in `TextEditorView.xaml` fünf `Style="{StaticResource PathIcon}"`
+  stehen — **der Windows-Kopf konnte danach kein Textdokument mehr öffnen**, einen ganzen Tag
+  lang. Behoben am 2026-08-12 (§4.32).
+  **Merksatz: Ein `views:Symbol` trägt keinen Stil.** Strichstärke, Kappen und Größe bringt es
+  selbst mit (`Size`, `Weight`, `AppIcons.StrokeFor`).
+- **Kein Wächter kann das sehen, und zwar keiner der zwölf.** Die neun in Core prüfen die
+  Tabelle, die drei im WPF-Projekt lesen den **Quelltext** der XAML — beide Sorten waren grün.
+  Der Fehler entsteht erst, wenn WPF den Stil anwendet, und das tut nur ein laufendes Fenster.
+  **Nach einer Runde, die XAML anfasst, gehört jede betroffene Ansicht einmal geöffnet** —
+  dieselbe Lehre wie §4.28 („die doppelte Kopfzeile") und §4.31 („das Kontaktblatt").
 
 **Oberfläche und Texte**
 
@@ -6148,7 +6301,7 @@ cd C:\Dev\Zed\gonk-note-V2
 dotnet build -c Release      # 0 Fehler / 0 Warnungen
 dotnet build -c Debug        # schneller, ohne Self-Contained/win-x64
 
-dotnet test -c Release       # beide Testprojekte, 557 Tests
+dotnet test -c Release       # beide Testprojekte, 616 Tests
 
 # Golden-Files bewusst neu setzen (danach den Diff lesen, siehe §4.6)
 $env:GONK_SNAPSHOT_UPDATE=1; dotnet test tests\GonkNote.Core.Tests; $env:GONK_SNAPSHOT_UPDATE=$null
@@ -6235,6 +6388,7 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 
 | Runde | Datum | Was |
 |---|---|---|
+| V2-43 | 2026-08-12 | **Was sich ändert, wenn man tippt — Schritt 2 des Schreibens** (§4.32). Eine neue Datei (`Core/Text/TdEdit.cs`) und **58 Wächter**; **616 Tests** (585 + 31) grün, Bau 0/0. **Alles läuft über einen einzigen Handgriff, `Ersetzen`:** Einfügen ist eine Ersetzung einer leeren Auswahl, Löschen eine Ersetzung durch nichts, Absatz teilen eine Ersetzung durch zwei leere Absätze — und die Rücktaste am Absatzanfang eine Ersetzung, deren Auswahl über die Absatzmarke reicht. **Damit fällt „Absätze verbinden" von selbst heraus**, ohne eine eigene Zeile; ein zweiter Weg zum selben Ergebnis ist immer der, den niemand prüft. Dasselbe Muster wie §4.17, §4.20, §4.21, §4.25 und §4.30, zum sechsten Mal. **Die tragende Entscheidung ist die Form der Gegenbewegung:** Eine `TdChange` merkt sich **die Blöcke davor und danach** und nicht den Handgriff — Rücknahme ist ein Tausch zweier Listen, `Gegenbewegung` dieselbe Änderung mit vertauschten Rollen. Ein Vermerk der Art „an Stelle X wurden drei Zeichen eingefügt" müsste beim Zurücknehmen dieselbe Rechnung spiegelverkehrt und ohne eigenen Wächter noch einmal machen — **daran scheitern Rückgängig-Funktionen, nicht am Merken, sondern an der zweiten Rechnung**. **Daraus folgt die Regel, die der ganze weitere Schreibweg erbt: Absätze und Stücke werden nie verändert, sondern ersetzt** — der alte Absatz bleibt unversehrt und *ist* die Sicherung; erprobt, indem `Absatz()` den vorhandenen umbaute: **23 von 58 Wächtern rot**. **Vier weitere Entscheidungen:** ein eingefügtes Zeichen erbt das Format **links** davon (die Einlösung der kanonischen linken Form aus §4.30 — die Stelle gehört dem Stück, das *vor* ihr endet, und daraus fällt die Erbfolge heraus, statt abgefragt zu werden); nach jeder Änderung wird der **ganze berührte Absatz aufgeräumt** (gleichformatige Nachbarn zusammengelegt, leere weg — sonst zerfiele ein Absatz mit jedem Tastendruck weiter, im DOCX ein Lauf je Zeichen); **wer in einem Verweis tippt, bleibt darin, hinter ihm nicht** (die Naht wird wieder geschlossen; Word hängt am Ende an, das ist die Eigenheit, die Leute wieder herausnehmen); und ein `\n` im eingegebenen Text wird zur **Absatzmarke** statt zu einem Zeichen im Lauf. **Eine benannte Lücke:** über eine **Tabellengrenze** hinweg wird nicht bearbeitet — abgelehnt statt geraten, denn was aus der Tabelle würde, ist eine eigene Entscheidung. **§5 „Noch offen" 8 ist mit erledigt:** `DatabaseService.GetText` legt ein noch nicht gespeichertes Dokument mit einem **leeren `TdDocument`** an — wo etwas steht, gibt es nichts zu übernehmen, ein dritter Zustand durch alle Köpfe war nicht nötig. **Am laufenden Programm in beiden Köpfen geprüft**, an einer Kopie der echten Datenbank: der Linux-Kopf zeigt für ein neues Dokument jetzt ein leeres Blatt mit nicht ausgegrautem Export statt „stammt aus der Windows-Fassung"; danach im WPF-Kopf getippt, gespeichert, Kopf gewechselt — derselbe Text, dieselben Zähler. **Der Fund der Runde stammt nicht aus der Runde:** Der **WPF-Kopf konnte seit §4.31 kein Textdokument mehr öffnen** — in `TextEditorView.xaml` blieben beim Umbau von `<Path>` auf `<views:Symbol>` fünf `Style="{StaticResource PathIcon}"` stehen, und ein Stil mit `TargetType="Path"` an einem `FrameworkElement` **wirft beim Anwenden**. Gegengeprüft durch Weglegen der eigenen Arbeit (`git stash`, neu gebaut, derselbe Fehler), dann behoben. **Keiner der zwölf Ikonen-Wächter konnte das sehen** — neun prüfen die Tabelle, drei lesen den Quelltext der XAML; der Fehler entsteht erst, wenn WPF den Stil anwendet, und das tut nur ein laufendes Fenster. Zum dritten Mal dieselbe Lehre nach §4.28 und §4.31. **Genau dafür besteht §5e auf Windows**, und diesmal hat die Gegenprobe etwas gefunden. **Nebenbefund, unbehoben:** `fehler.log` ist auf **272 MB** angewachsen und wird nie beschnitten — Phase 6 |
 | V2-42 | 2026-08-12 | **Ein Symbolsatz für alle drei Plattformen** (§4.31) — ausgelöst von einer Frage des Nutzers („können wir die Icons plattformübergreifend vereinheitlichen?"), und die Frage traf denselben blinden Fleck wie §4.26 bei den Schriften. **Der Befund:** Der WPF-Kopf setzte an **91 Stellen** Zeichen aus `Segoe Fluent Icons` (53 verschiedene) — eine **Windows-Systemschrift**, die unter Linux und iPadOS fehlt und **nicht mitgeliefert werden darf** —, dazu 14 eigene Vektoren; der Avalonia-Kopf hatte 31 eigene. `Icon.Lasso` und `Icon.Hand` gab es in **beiden Köpfen mit verschiedenen Formen** (§4.13, live), und vier **Segoe-Zeichencodes** saßen als `IconGlyph` in `GonkNote.ViewModels` — der Assembly, die laut §4.2 WPF-frei sein soll; der Compiler konnte es nicht sehen, es waren Zeichenketten. **Zum dritten Mal dieselbe Lage nach Farben (§4.9) und Schriften (§4.26).** **Nutzer-Entscheidung: alles auf einmal, Formen aus einem freien Satz.** Ihm war vorher zu sagen, dass sein Wunsch — die Windows-Formen behalten — nicht geht: Sie lassen sich **nicht mitnehmen, nur ersetzen**, und deshalb sieht auch der WPF-Kopf jetzt anders aus. Geblieben sind die zwei Formen, die ihm am Linux-Kopf besser gefielen (Notizbuch, Textdokument). Gewählt: **Lucide** (ISC, teils MIT über Feather), **71 Symbole**, davon **sieben eigene** (Notizbuch, Textdokument, Whiteboard, Geodreieck, Seitenbreite, Ganze Seite, Wiederherstellen). **Die Tabelle steht in `Core/Theming/`** (`AppIcon` + `AppIcons`), je Kopf liest sie ein kleines `Symbol`-Steuerelement; im WPF-Kopf zusätzlich eine Markup-Erweiterung `{views:Icon Undo}`, weil die Symbole dort als **Attribut** standen und nicht als Element — sonst wären aus 60 Werten 60 Knopf-Umbauten geworden. **Jede Form bringt ihren Kasten mit** (16 oder 24) statt umgerechnet zu werden: siebzig Pfadangaben mit 1,5 zu multiplizieren ist die Fleißarbeit, bei der ein Zahlendreher unbemerkt bleibt. **Ein Symbol je Bedeutung:** „Schließen" gab es dreimal, „Vergrößern" zweimal — und umgekehrt stand **eine** Glyphe für zwei Dinge (`E790` für „Format übertragen" *und* „Farbe wählen"). **Erzeugt statt abgetippt, und drei stille Fehler dabei gefunden:** ein führendes kleines `m` ist beim Aneinanderhängen zweier Pfade nicht mehr dasselbe wie ein großes (der zweite Strich eines „x" landete daneben); groß machen reicht nicht, denn nach einem großen `M` sind Folgezahlen **absolute** LineTos (der Rückgängig-Pfeil wurde zu etwas ganz anderem); und ein deutsches **Dezimalkomma** ist in einer Pfadangabe ein Trennzeichen. **Gefunden hat sie ein Kontaktblatt mit allen 71 Symbolen** — nicht der Quelltext und beim zweiten auch nicht das Parsen, denn die falsche Angabe war gültig. Dieselbe Lehre wie §4.28. **Ein vierter Fehler saß im Wächter:** `SKPath.Bounds` misst die **Stützpunkte** einer Kurve, nicht die Kurve — beim Lasso 4,5 Einheiten daneben; `TightBounds` misst richtig. **12 neue Wächter:** neun in Core (jede Form vorhanden, lesbar, im Kasten *und* den Kasten ausfüllend, gleiche Strichstärke, keine Glyphe aus dem privaten Unicode-Bereich) und **drei im WPF-Testprojekt, die den Quelltext lesen** und den Rückfall verbieten — ein Verhaltenstest könnte das nicht: Eine Glyphe im XAML sieht **unter Windows richtig aus**, falsch wird sie erst auf dem Laptop. **557 Tests** (526 + 31) grün, Bau 0/0, beide Köpfe am laufenden Programm angesehen. **Als Falle festgehalten:** Ein Namensraum, der wie das Framework heißt (`GonkNote.Avalonia.*`), **verdeckt das Framework** — danach zeigte `Avalonia.Interactivity` in jeder anderen Datei ins Leere |
 | V2-41 | 2026-08-12 | **Wo der Cursor steht — Schritt 1 des Schreibens** (§4.30). Reine Core-Arbeit, kein Kopf angefasst: `TdPosition` (Absatz, Stück, Zeichen), `TdSelection` (Anker und Spitze) und `TdCursor` (geradeziehen, an die Ränder springen, ein Zeichen nach links oder rechts, den ausgewählten Text lesen) in einer neuen Datei, dazu **28 Wächter**. **545 Tests** grün, Bau 0/0. **Die Stelle steht im Modell**, wie §6 vorgeschlagen hatte — der Umbruch ist ein Ergebnis und ändert sich bei jeder Eingabe; der Rückweg für Schritt 4 ist da, weil `TdLine.Source` seit §4.16 auf den Absatz zeigt. **Vier Entscheidungen, die Schritt 2 erbt:** (1) **Kanonisch ist die linke Schreibweise** einer Stückgrenze — nicht nach Geschmack, sondern weil ein eingefügtes Zeichen das Format links davon erbt; mit der rechten Form müsste man diese Erbfolge an jeder Einfügestelle zurückdrehen. (2) **Absatzende und nächster Absatzanfang bleiben zwei Stellen** — dazwischen steht die Absatzmarke. (3) **Ein Feld und ein Bild sind einen Schritt breit und steuern kein Zeichen bei**; damit fällt „ein Feld ist unteilbar" von selbst heraus, und der Preis — die Auswahl ist breiter, als ihr Text lang ist — steht als eigener Wächter da. (4) **Bewegt wird in ganzen Zeichen**, nicht in UTF-16-Einheiten, sonst zerlegt der nächste Tastendruck ein Emoji; der Offset bleibt trotzdem ein UTF-16-Index, damit Einfügen ohne Umrechnung auskommt. **Die tragende Idee ist eine Zwischengröße:** alles rechnet über den Abstand vom Absatzanfang in Cursorschritten, hin und zurück — so gibt es die Sonderfälle (leere Stücke, Stückgrenzen, unteilbare Felder, der Verweis, der selbst kein Stück ist) **nur einmal**, beim Umrechnen, statt verteilt über jede Methode. **Der Fund der Runde kam aus dem Erproben der Wächter:** die kanonische Form wurde absichtlich falsch gestellt — und der Testlauf wurde **nicht rot, sondern hing**, weil das Dokumentende unerreichbar wurde. Ein Wächter, der nicht fertig wird, meldet nichts und blockiert die ganze Suite. Der Durchlauf hat jetzt eine **Schrittgrenze**; dieselbe Mutation ergibt seitdem 12 rote Tests in 99 ms. **Als Regel festgehalten** für die Schritte 2 bis 5, die voll von solchen Schleifen sein werden. **Zum zweiten Mal gemessen statt angenommen:** der Wächter für das zusammengesetzte „ä" stand zuerst mit einem getippten Buchstaben da — zerlegt und zusammengesetzt sehen im Quelltext gleich aus, und beim Umschreiben der Datei wurde aus dem zerlegten still das zusammengesetzte; der Test wäre grün geblieben und hätte nichts mehr geprüft. Er baut das Zeichen jetzt aus seiner Nummer |
 | V2-40 | 2026-08-11 | **Die drei Handgriffe aus §5e abgearbeitet — und ein Fund dabei** (§4.29). **Kein Produktivcode angefasst**, die Runde war eine Bestandsaufnahme vor dem Schreiben: Bau 0/0, **517/517** Tests, gearbeitet an einer Kopie der echten Datenbank (Dauerregel 4, danach gelöscht). **(1) `About.Version` stimmt im WPF-Dialog**, in beiden Sprachen am laufenden Programm geprüft — §5 „Noch offen" 5 erledigt. **(2) Der Dateidialog des Linux-Kopfs trägt** — beide Fragen aus §5d mit **ja** beantwortet: der Export-Dialog kommt mit vorgewähltem Dateityp **und** vorbelegtem Dateinamen, der Import-Dialog mit vorgewähltem `Word-Dokument (*.docx)`, und nach dem Speichern meldet die App den **Pfad** samt „Datei jetzt öffnen?". **Durchgespielt wurde die ganze Kette**, nicht nur der Dialog: PDF (550 KB — die Größenordnung aus §5 „Noch offen" 3 bestätigt sich unter Windows) und DOCX geschrieben, **das DOCX wieder eingelesen**, Text und Umlaute unverändert. Damit ist der Weg **vom gewählten Pfad ins Modell** gesehen — der einzige Teil, den §4.28 als ungesehen benannt hatte. **Offen bleibt nur die Wayland-Hälfte**, der Portal-Dialog; das ist eine andere Implementierung derselben Schnittstelle und keine Formsache. **(3) `gonk-note-port-RM.MD` kennt Phase 4.5**, M2 ist ans Ende von Phase 4.5 gewandert, Phase 4 trägt stattdessen „Textdokumente laufen unter Linux", und der Zeitrahmen hat eine eigene Zeile — **die Aufwandszahl (5–8 Wochen) ist hergeleitet und nicht gemessen**, sie wartet auf das Ja des Nutzers. **Die Gegenprobe nebenbei ist gut ausgegangen:** um ein exportierbares Dokument zu haben, ist der Weg gegangen worden, den der Hinweis vorschlägt — im WPF-Kopf öffnen, zwei Absätze tippen, speichern; der Linux-Kopf zeigte danach denselben Text mit denselben Umlauten, gleiche Wort- und Zeichenzahl. **Genau dafür besteht §5e auf Windows**, und diesmal hat sie nichts gefunden. **Der Fund der Runde ist ein falscher Satz:** „Datei → Neues Textdokument" **im Avalonia-Kopf** erzeugt ein Dokument ohne `Model` und ohne `Rtf`, und `TextDocView.Laden()` kennt nur die Frage `modell == null` — also zeigt der Kopf „Dieses Dokument stammt aus der Windows-Fassung", für ein Dokument, das gerade *hier* entstanden ist, und lässt es nicht exportieren. **Leer angelegt und nicht übernommen sehen von dort aus gleich aus.** Nicht behoben, sondern eingeplant: mit **Schritt 2 des Arbeitsplans** bekommt ein neues Dokument ein leeres `TdDocument` und der Fall löst sich auf — ein heute eingebauter dritter Zustand wäre morgen toter Code (§5 „Noch offen" 8). **Eine Werkzeug-Falle dazugelernt:** das Untermenü „Sprache" im WPF-Kopf öffnet auf **Hover** und **schließt beim Klick** — `kette.ps1` klickt jeden Schritt, der Folgeklick landete deshalb in der Galerie dahinter; `SendKeys` erreicht das WPF-Menü-Popup nicht. Was hilft, ist ein **Schweb-Schritt** (Cursor bewegen ohne Klick), den `kette.ps1` heute nicht kann |

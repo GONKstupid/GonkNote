@@ -296,7 +296,7 @@ angezeigt, importiert (DOCX) und in alle vier Formate exportiert. **Damit ist Ph
 abgeschlossen.** Der Anschluss hat sofort einen Fehler gezeigt, den vier Runden lang kein
 Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — behoben.
 
-### ▶ Hier geht es weiter (Stand 2026-08-12, nach Runde V2-43)
+### ▶ Hier geht es weiter (Stand 2026-08-13, nach Runde V2-44)
 
 > **✅ Phase 4 ist abgeschlossen** (§4.28) und **auf dem Laptop gegengeprüft** (§4.28, „Was der
 > Laptop gefunden hat"): die Anzeige trägt, ihr Umbruch stimmt mit dem PDF überein, Rollen und
@@ -334,10 +334,16 @@ Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — beh
 > behoben (§4.32, §7). **Keiner der zwölf Ikonen-Wächter konnte das sehen; nur ein laufendes
 > Fenster kann es.**
 >
-> **▶ Als Nächstes: Schritt 3 — Rückgängig.** `TdChange` kann sich schon anwenden, zurücknehmen
-> und beliebig oft im Wechsel beides; zu bauen ist die **Naht** zu `UndoStack`. Die eigentliche
-> Frage: `UndoStack` und `IEditAction` sind auf `WbPage` zugeschnitten, ein Textdokument hat
-> keine Seite (§6, §4.32). Weiterhin reine Core-Arbeit — die Oberfläche fängt bei Schritt 4 an.
+> **✅ Schritt 3 des Arbeitsplans steht** (2026-08-13, §4.33): `TdUndo`, **21 Wächter**,
+> **637 Tests** grün. Er steht **neben** `UndoStack` und nicht darin — belegt mit drei Gründen
+> (kein `WbPage`, die Antwort ist eine Auswahl, und das **Zusammenfassen** gibt es dort gar
+> nicht: wer „Hallo" tippt, hat einen Handgriff gemacht und nicht fünf). **Der Fund kam wieder
+> aus dem Erproben der Wächter:** Ein Vergleich auf gleichen *Inhalt* statt auf dieselben
+> *Objekte* ließ alle 21 grün — und hätte beim Zusammenfassen Schritte übersprungen.
+>
+> **▶ Als Nächstes: Schritt 4 — der Cursor auf dem Schirm.** Schreibmarke und Auswahl in
+> `TdRenderer`, dazu die Umkehrung des Umbruchs (welche Stelle gehört zu diesem Mausklick?).
+> **Ab hier ist es Kopfarbeit** — die Schritte 1 bis 3 lagen vollständig in Core.
 >
 > **Gearbeitet wird auf dem Windows-Rechner.** Nicht wegen der Werkzeuge, sondern wegen der
 > Gegenprobe — jede Änderung am Modell muss der WPF-Editor überleben, und beide Köpfe
@@ -374,7 +380,7 @@ Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — beh
 **Tests laufen lassen:**
 
 ```powershell
-dotnet test -c Release        # Windows: beide Projekte, 616 Tests
+dotnet test -c Release        # Windows: beide Projekte, 637 Tests
 ```
 
 ```bash
@@ -416,7 +422,7 @@ möglich) gelten unverändert weiter — siehe `gonk-note\HANDOFF.md` §1.
 | | |
 |---|---|
 | **Version** | 0.3.0 · `net10.0` · SkiaSharp 3.119.4 · Avalonia 12.1.1 · SQLite |
-| **Tests** | **616** — 585 in `GonkNote.Core.Tests` (Windows **und** Linux), 31 in `GonkNote.Wpf.Tests` (alles, was am `FlowDocument` hängt) |
+| **Tests** | **637** — 606 in `GonkNote.Core.Tests` (Windows **und** Linux), 31 in `GonkNote.Wpf.Tests` (alles, was am `FlowDocument` hängt) |
 | **Bau** | Debug und Release je 0 Fehler / 0 Warnungen; CI mit zwei Läufen (Windows, Ubuntu) |
 | **Meilensteine** | ✅ **M0** (Core baut auf Linux) · ✅ **M1** (Notizbuch und Whiteboard laufen unter Linux) · ⏳ **M2** (Funktionsgleichheit) — er hängt an Phase 4.5, nicht an Phase 4 |
 
@@ -4061,6 +4067,85 @@ Strichstärke, runde Kappen und Größe ohnehin mit. Kein anderer Stil im Baum h
 > Das Protokoll wächst unbegrenzt und wird nie beschnitten. Gehört in die Aufräumrunde von
 > Phase 6; die Datei selbst darf der Nutzer wegwerfen.
 
+### 4.33 Rückgängig — Schritt 3 des Schreibens
+
+**2026-08-13 unter Windows (V2-44).** Eine neue Datei (`Core/Text/TdUndo.cs`) und **21 neue
+Wächter**; Bau 0/0, **637 Tests** grün (vorher 616). Reine Core-Arbeit, kein Kopf angefasst.
+
+#### Er macht nichts rückgängig — das konnte Schritt 2 schon
+
+`TdChange` kann sich seit §4.32 anwenden und zurücknehmen, beliebig oft im Wechsel. Was
+`TdUndo` dazutut, ist genau das, was eine einzelne Änderung nicht wissen kann: **in welcher
+Reihenfolge** die Schritte kamen und **welche davon der Nutzer als einen erlebt hat.**
+
+#### Die Frage aus §6 ist beantwortet: er steht *neben* `UndoStack`, nicht darin
+
+Die Antwort ist mit drei Gründen belegt und nicht mit einem Gefühl:
+
+| | |
+|---|---|
+| **`UndoStack` verlangt eine `WbPage`** | `IEditAction` bekommt sie bei **jedem** Zug gereicht, weil eine Zeichenflächen-Aktion Elemente hält und nicht ihren Ort. Ein Textdokument hat keine Seite; eine `TdChange` hält ihren Container selbst. Ein `IEditAction<TdDocument>`, dessen `Undo(doc)` das `doc` nicht ansieht, wäre eine Signatur, die lügt |
+| **Die Antwort ist eine andere** | `UndoStack.Undo()` gibt die **Seite** zurück, damit die Anzeige sie zeigt. Hier ist es eine **Auswahl**: Ein Rückgängig, das den Text wiederherstellt und den Cursor woanders stehen lässt, zwingt den Nutzer, seine Stelle wiederzufinden |
+| **Das Zusammenfassen gibt es dort gar nicht** | Wer „Hallo" tippt, hat **einen** Handgriff gemacht und nicht fünf. Auf der Zeichenfläche stellt sich die Frage nie — ein Strich ist ein Zug. Ohne das Zusammenfassen nimmt Strg+Z ein Zeichen je Druck zurück, und das ist der Fehler, über den jeder als Erstes stolpert |
+
+**Geblieben ist eine Doppelung von rund zwanzig Zeilen** (zwei Listen, ein Deckel, ein
+Ereignis). **Das ist nicht die Doppelung aus §4.13:** Dort standen Trefferprüfung und
+Markdown-Grammatik zweimal — **Verhalten**, in dem derselbe Fehler zweimal wohnte. Ob beide
+Stapel eines werden sollen, **gehört in die Aufräumrunde von Phase 6** und steht dort; heute
+trügen sie zwei Typparameter und einen Haken, um zwanzig Zeilen zu teilen. Die Mitglieder
+heißen deshalb absichtlich wie drüben (`Push`, `Undo`, `Redo`, `CanUndo`, `Changed`) — die
+Frage „sind das zwei?" soll sichtbar bleiben, statt sich hinter neuen Wörtern zu verstecken.
+
+#### Das Zusammenfassen ist der zweite Ertrag der Blocksicherung
+
+Zwei aufeinanderfolgende Änderungen zu einer zu machen, ist hier **kein Zusammenrechnen,
+sondern ein Weglassen der Mitte**: das Davor der ersten, das Danach der zweiten
+(`TdChange.Verschmelzen`). Ein Verlauf, der Handgriffe statt Zustände merkte, müsste an dieser
+Stelle zwei Einfügungen ineinander rechnen — mit denselben Sonderfällen wie das Einfügen
+selbst, nur noch einmal.
+
+**Geprüft wird auf Lückenlosigkeit, und zwar an den Objekten:** derselbe Container, dieselbe
+Stelle, und was die zweite Änderung ersetzt hat, ist **genau das Objekt**, das die erste
+hingelegt hat.
+
+> **Warum nicht auf gleichen Inhalt — der Fund beim Erproben der Wächter.** Die erste Fassung
+> des Wächters ließ sich mit einem Vergleich auf `PlainText` täuschen: **21 von 21 blieben
+> grün.** Der Fall, den er nicht sah, ist echt — tippt man ein Zeichen und löscht es wieder,
+> steht **derselbe Text** in einem **anderen** Absatz (jede Änderung baut einen neuen, §4.32).
+> Ein Inhaltsvergleich verschmölze dort, und die Rücknahme **übersprünge die beiden Schritte
+> dazwischen**: Sie legte den Absatz von vorher zurück, und was seitdem geschah, wäre weg.
+> Der Wächter dafür heißt jetzt `Verschmelzen_prueft_die_Objekte_und_nicht_den_Inhalt`, und
+> dieselbe Mutation macht ihn rot.
+>
+> **Das ist zum dritten Mal dieselbe Regel nach §4.30 und §4.32: ein Wächter, der beim
+> absichtlichen Kaputtmachen grün bleibt, prüft nichts.**
+
+#### Wo die Schnitte sitzen
+
+| Schnitt | Warum |
+|---|---|
+| **Zwischen Arten** — Tippen an Tippen, Löschen an Löschen, sonst nie | Wer erst schreibt und dann wegnimmt, hat sich dazwischen entschieden. Die Art wird aus dem Inhalt **abgeleitet** (`TdFragment.Art`) und nicht mitgegeben: ein Parameter an jedem Handgriff wäre die zweite Wahrheit, die jemand falsch setzt |
+| **Nach einem Zwischenraum** | Sonst nähme ein Strg+Z einen ganzen Absatz zurück, und niemand tippt ihn noch einmal |
+| **Bei jeder Struktur­änderung** | Die Eingabetaste ist von selbst eine Grenze; ein Absatz, der beim Zurücknehmen mit verschwindet, wäre eine Überraschung |
+| **Nach jedem Zug im Verlauf** | Wer zurückgeht und dann tippt, baut nicht an dem Schritt weiter, den er gerade zurückgenommen hat |
+| **`Abschliessen()` — von der Oberfläche gerufen** | **Der Verlauf sieht Änderungen und keine Klicks.** Wer die Schreibmarke versetzt, fängt einen neuen Handgriff an; ohne diesen Schnitt hinge ein zehn Zeilen weiter oben nachgetragener Buchstabe am selben Schritt wie der Satz davor. **Schritt 5 muss das rufen** — sonst fällt es niemandem auf, bis jemand einmal Strg+Z drückt und zu viel verliert |
+
+**Ohne Uhr.** Ein Schnitt nach einer Denkpause wäre die naheliegende fünfte Regel — aber Core
+fragt die Uhr nicht (§4.20, dieselbe Begründung wie bei `TdFieldContext`), und ein Verlauf, der
+je nach Tipptempo anders gruppiert, ist außerdem nicht prüfbar. **Alle Schnitte hier hängen an
+der Gestalt der Änderung**, nicht an der Zeit.
+
+> **Eine bewusste Vereinfachung, benannt:** Löschungen fassen zusammen, bis etwas anderes
+> kommt — **ohne** Wortgrenze. Das Gelöschte steht nicht im Inhalt der Änderung (der ist leer),
+> und eine Regel über das, was verschwunden ist, wäre eine, die man im Modell nicht sieht.
+> Gehaltene Rücktaste ergibt damit einen Schritt.
+
+#### Am laufenden Programm gibt es hier nichts zu sehen
+
+Wie Schritt 1: `TdUndo` ist **nirgends angeschlossen** — das ist Absicht und passiert mit den
+Schritten 4 und 5. Der Windows-Kopf ist in dieser Runde nicht angefasst worden; die Gegenprobe
+von §4.32 (beide Köpfe an derselben Datenbank-Kopie) gilt unverändert.
+
 ---
 
 ## 5. Entscheidungen
@@ -4757,13 +4842,13 @@ nicht frei. **Das dort zuerst lesen spart eine Stunde.**
 Du laeufst auf dem Windows-Rechner. Das Repo liegt in C:\Dev\Zed\gonk-note-V2.
 
 Lies dort HANDOFF.md, Abschnitt 5e ("Auftrag fuer den Windows-Rechner"). Die
-Schritte 1 und 2 des Schreibens stehen -- dran ist Schritt 3 aus §6 ("Als
-Naechstes: das Schreiben"): Rueckgaengig. Lies dazu §4.32, dort steht, was
-TdChange schon kann und was die eigentliche Frage ist.
+Schritte 1 bis 3 des Schreibens stehen -- dran ist Schritt 4 aus §6 ("Als
+Naechstes: das Schreiben"): der Cursor auf dem Schirm. Ab hier wird es
+Kopfarbeit, lies vorher §4.24 (der Zeichner) und §4.16 (der Umbruch).
 §7 (Fallen) vor der ersten Code-Aenderung ueberfliegen.
 
 Zieh zuerst den Stand: git pull. Dann bauen und testen, bevor du etwas anfasst --
-0 Fehler, 0 Warnungen, 616 Tests.
+0 Fehler, 0 Warnungen, 637 Tests.
 
 Arbeite auf Deutsch, halte das HANDOFF nach, und sag mir am Ende, ob der Laptop
 dran ist.
@@ -4802,14 +4887,24 @@ daraus folgt die Regel, die alles Weitere erbt: **Absätze und Stücke werden ni
 sondern ersetzt.** Ein eingefügtes Zeichen erbt das Format **links** davon. §5 „Noch offen" 8
 ist mit erledigt.
 
-**▶ Dran ist Schritt 3: Rückgängig.** `TdChange` kann sich schon anwenden, zurücknehmen und
-beliebig oft im Wechsel beides — zu bauen ist die **Naht** zu `UndoStack`. Die eigentliche Frage
-steht in §6: `UndoStack` und `IEditAction` sind auf `WbPage` zugeschnitten, ein Textdokument hat
-keine Seite. Weiterhin **reine Core-Arbeit**; die Oberfläche fängt bei Schritt 4 an.
+**✅ Schritt 3 steht** (§4.33): `TdUndo` daneben — **neben** `UndoStack` und nicht darin, mit
+drei Gründen belegt. Getippte Zeichen werden zu **einem** Schritt; die Schnitte hängen an der
+Gestalt der Änderung und nicht an der Uhr.
 
-> **Was Schritt 2 dabei mitgenommen hat und nicht noch einmal zu suchen ist:** die Frage nach
-> der Formaterbung (beantwortet: links, wie in Word), §5 „Noch offen" 8 (erledigt) und die
-> Prüfung, ob `TextChangeAction` passt (sie passt nicht — §4.32).
+**▶ Dran ist Schritt 4: der Cursor auf dem Schirm.** Blinkende Schreibmarke und blaue Auswahl
+in `TdRenderer` — er kennt heute weder das eine noch das andere —, dazu die **Umkehrung des
+Umbruchs**: welche Stelle im Modell gehört zu diesem Mausklick? **Ab hier ist es Kopfarbeit**,
+die Schritte 1 bis 3 lagen vollständig in Core.
+
+> **Was die Schritte 1 bis 3 mitgenommen haben und nicht noch einmal zu suchen ist:** die Frage
+> nach der Formaterbung (beantwortet: links, wie in Word), §5 „Noch offen" 8 (erledigt), die
+> Prüfung, ob `TextChangeAction` passt (nein — §4.32), und wem der Verlaufsstapel gehört
+> (§4.33). **Der Rückweg für Schritt 4 ist da:** `TdLine.Source` zeigt seit §4.16 auf den
+> Absatz, `TdCursor.IndexVon` macht daraus seine Nummer (§4.30).
+
+> **Für Schritt 5 vorgemerkt, damit es nicht untergeht:** `TdUndo.Abschliessen()` muss gerufen
+> werden, sobald der Nutzer die Schreibmarke versetzt. **Der Verlauf sieht Änderungen und keine
+> Klicks** — wird es vergessen, merkt es niemand, bis einmal ein Strg+Z zu viel zurücknimmt.
 
 > **Warum das Schreiben trotz seiner Core-Anteile hierher gehört und nicht auf den Laptop:**
 > nicht wegen der Werkzeuge, sondern wegen der **Gegenprobe**. Jede Änderung am Modell muss der
@@ -4822,7 +4917,7 @@ keine Seite. Weiterhin **reine Core-Arbeit**; die Oberfläche fängt bei Schritt
 ```powershell
 cd C:\Dev\Zed\gonk-note-V2
 dotnet build -c Release       # 0 Fehler, 0 Warnungen
-dotnet test -c Release        # beide Projekte, derzeit 616 Tests
+dotnet test -c Release        # beide Projekte, derzeit 637 Tests
 ```
 
 **Und danach am laufenden Programm**, mit einer **Kopie** der echten Datenbank (Dauerregel 4,
@@ -5107,20 +5202,23 @@ erst ab Schritt 4 wird es Kopfarbeit.
       sondern ersetzt.** Ein eingefügtes Zeichen erbt das Format **links** davon (die Einlösung
       der kanonischen linken Form aus §4.30). **§5 „Noch offen" 8 ist mit erledigt.**
       **Eine benannte Lücke:** über eine Tabellengrenze hinweg wird nicht bearbeitet (§4.32).
-- [ ] **3. Rückgängig.** `UndoStack` steht seit V1 in Core und wird von der Zeichenfläche
-      benutzt (`IEditAction`) — **er wird hier nicht neu erfunden**, sondern bekommt
-      Textaktionen. **Geprüft und beantwortet (§4.32): `TextChangeAction` passt nicht** — sie
-      meint einen Textkasten im Whiteboard, und `IEditAction` hängt an `WbPage`. Zu bauen ist
-      die **Naht** zwischen `UndoStack` und `TdChange`, nicht das Rückgängigmachen selbst: Eine
-      `TdChange` kann sich schon anwenden, zurücknehmen und beliebig oft im Wechsel beides.
-      **Die offene Frage ist, wem der Stapel gehört** — `UndoStack` ist heute auf `WbPage`
-      zugeschnitten, ein Textdokument hat keine Seite.
+- [x] **3. Rückgängig.** ✅ **Erledigt 2026-08-13 (§4.33).** `TdUndo` in `Core/Text/TdUndo.cs`;
+      **21 Wächter**. **Die Frage, wem der Stapel gehört, ist mit drei Gründen beantwortet: er
+      steht *neben* `UndoStack`** — `Push` dort verlangt eine `WbPage`, die Antwort ist dort
+      eine Seite und hier eine **Auswahl**, und das **Zusammenfassen** gibt es dort gar nicht.
+      Die ~20 Zeilen Doppelung sind benannt und gehören in die Aufräumrunde von Phase 6.
+      **Getippte Zeichen werden zu einem Schritt**, Schnitte sitzen an Wortgrenzen, zwischen
+      Arten und bei jeder Strukturänderung — **alle an der Gestalt der Änderung und nicht an
+      der Uhr** (Core fragt sie nicht, §4.20).
 - [ ] **4. Der Cursor auf dem Schirm.** Blinkende Schreibmarke und blaue Auswahl in
       `TdRenderer` — **er kennt heute weder das eine noch das andere.** Dazu die Umkehrung des
       Umbruchs: **welche Stelle im Modell gehört zu diesem Mausklick?**
 - [ ] **5. Tastatur und Maus im Linux-Kopf.** `TextDocView` nimmt Eingaben entgegen: Tippen,
       Pfeiltasten, Pos1/Ende, Umschalt-Auswahl, Ziehen mit der Maus, Doppelklick auf ein Wort.
       **`TextInput` statt `KeyDown`**, sonst gibt es keine Umlaute und keine tote Taste.
+      **Hier ist `TdUndo.Abschliessen()` zu rufen**, sobald der Nutzer die Schreibmarke
+      versetzt — der Verlauf sieht Änderungen und keine Klicks (§4.33). Wird es vergessen,
+      merkt es niemand, bis einmal ein Strg+Z zu viel zurücknimmt.
 - [ ] **6. Das Ribbon wird ehrlich.** „Nur Ansicht" verschwindet, die Reiter **Einfügen**,
       **Verweise** und **Tabelle** kommen dazu — **erst jetzt**, denn erst jetzt stünden sie
       nicht als drei leere Flächen da (§4.28, „ein halbes Feature ist schlechter als ein
@@ -5213,6 +5311,8 @@ haben — sie ist beim Aufräumen zu ergänzen, nicht abzuarbeiten wie ein Vertr
 | | |
 |---|---|
 | **Aufgelöste Nähte wegräumen** | Was das Umverdrahten übrig lässt: `§4.1` löst sich auf, und mit ihm die Frage, was noch im WPF-Kopf steht, weil es dort stehen **musste**, und was nur, weil es dort stand |
+| **Zwei Verlaufsstapel: einer oder zwei?** | `UndoStack` (Zeichenfläche) und `TdUndo` (Text) teilen rund zwanzig Zeilen — zwei Listen, ein Deckel, ein Ereignis. **Bewusst getrennt gelassen** (§4.33, mit drei Gründen), aber genau die Sorte Frage, die zum Aufräumen gehört und nicht zum Bauen |
+| **Das Fehlerprotokoll wächst unbegrenzt** | `%APPDATA%\GonkNote\fehler.log` war am 2026-08-12 auf **272 MB** — dieselbe Ausnahme tausendfach, und nichts beschneidet die Datei (§4.32) |
 | **Benannte Lücken schließen oder benennen** | Tabelle *in* einer Zelle (§4.19), ungenutzte Palettenfarben und fremde Zeichnungen (§4.21) — jede ist heute mit einem Wächter festgehalten und muss vor der Veröffentlichung entweder zu oder bewusst offen sein |
 | **Toter Code und Altlasten** | Was nach dem Umverdrahten niemand mehr ruft. **Der Compiler findet das nicht** — was `public` ist, sieht benutzt aus |
 | **Doku gegen den Code lesen** | §7 ist über zwölf Runden gewachsen; einzelne Fallen sind seitdem ausgeräumt (z. B. §4.2). Was nicht mehr gilt, gehört als **erledigt gekennzeichnet** und nicht gelöscht — die Begründung ist mehr wert als der Hinweis |
@@ -6301,7 +6401,7 @@ cd C:\Dev\Zed\gonk-note-V2
 dotnet build -c Release      # 0 Fehler / 0 Warnungen
 dotnet build -c Debug        # schneller, ohne Self-Contained/win-x64
 
-dotnet test -c Release       # beide Testprojekte, 616 Tests
+dotnet test -c Release       # beide Testprojekte, 637 Tests
 
 # Golden-Files bewusst neu setzen (danach den Diff lesen, siehe §4.6)
 $env:GONK_SNAPSHOT_UPDATE=1; dotnet test tests\GonkNote.Core.Tests; $env:GONK_SNAPSHOT_UPDATE=$null
@@ -6388,6 +6488,7 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 
 | Runde | Datum | Was |
 |---|---|---|
+| V2-44 | 2026-08-13 | **Rückgängig — Schritt 3 des Schreibens** (§4.33). `Core/Text/TdUndo.cs` und **21 Wächter**; **637 Tests** grün, Bau 0/0, reine Core-Arbeit. **Er macht nichts rückgängig** — das kann eine `TdChange` seit Schritt 2 selbst. Was er dazutut, ist das, was eine einzelne Änderung nicht wissen kann: die **Reihenfolge** der Schritte und **welche davon der Nutzer als einen erlebt hat**. **Die Frage aus §6 ist mit drei Gründen beantwortet — `TdUndo` steht neben `UndoStack` und nicht darin:** `Push` verlangt dort eine `WbPage` (eine Zeichenflächen-Aktion hält Elemente, nicht ihren Ort; ein `IEditAction<TdDocument>`, dessen `Undo(doc)` das `doc` nicht ansieht, wäre eine Signatur, die lügt), die Antwort ist dort eine **Seite** und hier eine **Auswahl** (ein Rückgängig, das den Cursor woanders stehen lässt, zwingt den Nutzer, seine Stelle wiederzufinden), und **das Zusammenfassen gibt es dort gar nicht** — wer „Hallo" tippt, hat einen Handgriff gemacht und nicht fünf; auf der Zeichenfläche stellt sich die Frage nie, denn ein Strich ist ein Zug. Die verbleibende Doppelung sind **rund zwanzig Zeilen** (zwei Listen, ein Deckel, ein Ereignis) — **nicht die Doppelung aus §4.13**, wo zweimal *Verhalten* stand, in dem derselbe Fehler zweimal wohnte; die Frage „sind das zwei?" steht als Punkt in der Aufräumrunde von Phase 6, und die Mitglieder heißen absichtlich wie drüben, damit sie sichtbar bleibt. **Das Zusammenfassen ist der zweite Ertrag der Blocksicherung:** zwei Änderungen zu einer zu machen ist hier kein Zusammenrechnen, sondern ein **Weglassen der Mitte** — das Davor der ersten, das Danach der zweiten. **Der Fund der Runde kam wieder aus dem Erproben der Wächter:** Die erste Fassung prüfte Lückenlosigkeit auf gleichen **Inhalt**, und mit dieser Mutation blieben **21 von 21 grün**. Der Fall, den sie nicht sah, ist echt — tippt man ein Zeichen und löscht es wieder, steht derselbe Text in einem **anderen** Absatz (jede Änderung baut einen neuen, §4.32); ein Inhaltsvergleich verschmölze dort, und die Rücknahme **übersprünge die Schritte dazwischen**. Geprüft wird jetzt an den **Objekten**, und ein eigener Wächter hält es fest. **Zum dritten Mal dieselbe Regel nach §4.30 und §4.32: ein Wächter, der beim absichtlichen Kaputtmachen grün bleibt, prüft nichts.** **Die Schnitte** sitzen zwischen Arten (Tippen an Tippen, Löschen an Löschen — die Art wird aus dem Inhalt **abgeleitet**, ein Parameter wäre die zweite Wahrheit, die jemand falsch setzt), nach einem **Zwischenraum**, bei jeder Strukturänderung, nach jedem Zug im Verlauf — und bei `Abschliessen()`, das **die Oberfläche rufen muss**, wenn der Nutzer die Schreibmarke versetzt: der Verlauf sieht Änderungen und keine Klicks. **Alle Schnitte hängen an der Gestalt der Änderung und nicht an der Uhr** — Core fragt sie nicht (§4.20), und ein Verlauf, der je nach Tipptempo anders gruppiert, wäre außerdem nicht prüfbar. **Benannt vereinfacht:** Löschungen fassen ohne Wortgrenze zusammen, weil das Gelöschte nicht im Inhalt der Änderung steht |
 | V2-43 | 2026-08-12 | **Was sich ändert, wenn man tippt — Schritt 2 des Schreibens** (§4.32). Eine neue Datei (`Core/Text/TdEdit.cs`) und **58 Wächter**; **616 Tests** (585 + 31) grün, Bau 0/0. **Alles läuft über einen einzigen Handgriff, `Ersetzen`:** Einfügen ist eine Ersetzung einer leeren Auswahl, Löschen eine Ersetzung durch nichts, Absatz teilen eine Ersetzung durch zwei leere Absätze — und die Rücktaste am Absatzanfang eine Ersetzung, deren Auswahl über die Absatzmarke reicht. **Damit fällt „Absätze verbinden" von selbst heraus**, ohne eine eigene Zeile; ein zweiter Weg zum selben Ergebnis ist immer der, den niemand prüft. Dasselbe Muster wie §4.17, §4.20, §4.21, §4.25 und §4.30, zum sechsten Mal. **Die tragende Entscheidung ist die Form der Gegenbewegung:** Eine `TdChange` merkt sich **die Blöcke davor und danach** und nicht den Handgriff — Rücknahme ist ein Tausch zweier Listen, `Gegenbewegung` dieselbe Änderung mit vertauschten Rollen. Ein Vermerk der Art „an Stelle X wurden drei Zeichen eingefügt" müsste beim Zurücknehmen dieselbe Rechnung spiegelverkehrt und ohne eigenen Wächter noch einmal machen — **daran scheitern Rückgängig-Funktionen, nicht am Merken, sondern an der zweiten Rechnung**. **Daraus folgt die Regel, die der ganze weitere Schreibweg erbt: Absätze und Stücke werden nie verändert, sondern ersetzt** — der alte Absatz bleibt unversehrt und *ist* die Sicherung; erprobt, indem `Absatz()` den vorhandenen umbaute: **23 von 58 Wächtern rot**. **Vier weitere Entscheidungen:** ein eingefügtes Zeichen erbt das Format **links** davon (die Einlösung der kanonischen linken Form aus §4.30 — die Stelle gehört dem Stück, das *vor* ihr endet, und daraus fällt die Erbfolge heraus, statt abgefragt zu werden); nach jeder Änderung wird der **ganze berührte Absatz aufgeräumt** (gleichformatige Nachbarn zusammengelegt, leere weg — sonst zerfiele ein Absatz mit jedem Tastendruck weiter, im DOCX ein Lauf je Zeichen); **wer in einem Verweis tippt, bleibt darin, hinter ihm nicht** (die Naht wird wieder geschlossen; Word hängt am Ende an, das ist die Eigenheit, die Leute wieder herausnehmen); und ein `\n` im eingegebenen Text wird zur **Absatzmarke** statt zu einem Zeichen im Lauf. **Eine benannte Lücke:** über eine **Tabellengrenze** hinweg wird nicht bearbeitet — abgelehnt statt geraten, denn was aus der Tabelle würde, ist eine eigene Entscheidung. **§5 „Noch offen" 8 ist mit erledigt:** `DatabaseService.GetText` legt ein noch nicht gespeichertes Dokument mit einem **leeren `TdDocument`** an — wo etwas steht, gibt es nichts zu übernehmen, ein dritter Zustand durch alle Köpfe war nicht nötig. **Am laufenden Programm in beiden Köpfen geprüft**, an einer Kopie der echten Datenbank: der Linux-Kopf zeigt für ein neues Dokument jetzt ein leeres Blatt mit nicht ausgegrautem Export statt „stammt aus der Windows-Fassung"; danach im WPF-Kopf getippt, gespeichert, Kopf gewechselt — derselbe Text, dieselben Zähler. **Der Fund der Runde stammt nicht aus der Runde:** Der **WPF-Kopf konnte seit §4.31 kein Textdokument mehr öffnen** — in `TextEditorView.xaml` blieben beim Umbau von `<Path>` auf `<views:Symbol>` fünf `Style="{StaticResource PathIcon}"` stehen, und ein Stil mit `TargetType="Path"` an einem `FrameworkElement` **wirft beim Anwenden**. Gegengeprüft durch Weglegen der eigenen Arbeit (`git stash`, neu gebaut, derselbe Fehler), dann behoben. **Keiner der zwölf Ikonen-Wächter konnte das sehen** — neun prüfen die Tabelle, drei lesen den Quelltext der XAML; der Fehler entsteht erst, wenn WPF den Stil anwendet, und das tut nur ein laufendes Fenster. Zum dritten Mal dieselbe Lehre nach §4.28 und §4.31. **Genau dafür besteht §5e auf Windows**, und diesmal hat die Gegenprobe etwas gefunden. **Nebenbefund, unbehoben:** `fehler.log` ist auf **272 MB** angewachsen und wird nie beschnitten — Phase 6 |
 | V2-42 | 2026-08-12 | **Ein Symbolsatz für alle drei Plattformen** (§4.31) — ausgelöst von einer Frage des Nutzers („können wir die Icons plattformübergreifend vereinheitlichen?"), und die Frage traf denselben blinden Fleck wie §4.26 bei den Schriften. **Der Befund:** Der WPF-Kopf setzte an **91 Stellen** Zeichen aus `Segoe Fluent Icons` (53 verschiedene) — eine **Windows-Systemschrift**, die unter Linux und iPadOS fehlt und **nicht mitgeliefert werden darf** —, dazu 14 eigene Vektoren; der Avalonia-Kopf hatte 31 eigene. `Icon.Lasso` und `Icon.Hand` gab es in **beiden Köpfen mit verschiedenen Formen** (§4.13, live), und vier **Segoe-Zeichencodes** saßen als `IconGlyph` in `GonkNote.ViewModels` — der Assembly, die laut §4.2 WPF-frei sein soll; der Compiler konnte es nicht sehen, es waren Zeichenketten. **Zum dritten Mal dieselbe Lage nach Farben (§4.9) und Schriften (§4.26).** **Nutzer-Entscheidung: alles auf einmal, Formen aus einem freien Satz.** Ihm war vorher zu sagen, dass sein Wunsch — die Windows-Formen behalten — nicht geht: Sie lassen sich **nicht mitnehmen, nur ersetzen**, und deshalb sieht auch der WPF-Kopf jetzt anders aus. Geblieben sind die zwei Formen, die ihm am Linux-Kopf besser gefielen (Notizbuch, Textdokument). Gewählt: **Lucide** (ISC, teils MIT über Feather), **71 Symbole**, davon **sieben eigene** (Notizbuch, Textdokument, Whiteboard, Geodreieck, Seitenbreite, Ganze Seite, Wiederherstellen). **Die Tabelle steht in `Core/Theming/`** (`AppIcon` + `AppIcons`), je Kopf liest sie ein kleines `Symbol`-Steuerelement; im WPF-Kopf zusätzlich eine Markup-Erweiterung `{views:Icon Undo}`, weil die Symbole dort als **Attribut** standen und nicht als Element — sonst wären aus 60 Werten 60 Knopf-Umbauten geworden. **Jede Form bringt ihren Kasten mit** (16 oder 24) statt umgerechnet zu werden: siebzig Pfadangaben mit 1,5 zu multiplizieren ist die Fleißarbeit, bei der ein Zahlendreher unbemerkt bleibt. **Ein Symbol je Bedeutung:** „Schließen" gab es dreimal, „Vergrößern" zweimal — und umgekehrt stand **eine** Glyphe für zwei Dinge (`E790` für „Format übertragen" *und* „Farbe wählen"). **Erzeugt statt abgetippt, und drei stille Fehler dabei gefunden:** ein führendes kleines `m` ist beim Aneinanderhängen zweier Pfade nicht mehr dasselbe wie ein großes (der zweite Strich eines „x" landete daneben); groß machen reicht nicht, denn nach einem großen `M` sind Folgezahlen **absolute** LineTos (der Rückgängig-Pfeil wurde zu etwas ganz anderem); und ein deutsches **Dezimalkomma** ist in einer Pfadangabe ein Trennzeichen. **Gefunden hat sie ein Kontaktblatt mit allen 71 Symbolen** — nicht der Quelltext und beim zweiten auch nicht das Parsen, denn die falsche Angabe war gültig. Dieselbe Lehre wie §4.28. **Ein vierter Fehler saß im Wächter:** `SKPath.Bounds` misst die **Stützpunkte** einer Kurve, nicht die Kurve — beim Lasso 4,5 Einheiten daneben; `TightBounds` misst richtig. **12 neue Wächter:** neun in Core (jede Form vorhanden, lesbar, im Kasten *und* den Kasten ausfüllend, gleiche Strichstärke, keine Glyphe aus dem privaten Unicode-Bereich) und **drei im WPF-Testprojekt, die den Quelltext lesen** und den Rückfall verbieten — ein Verhaltenstest könnte das nicht: Eine Glyphe im XAML sieht **unter Windows richtig aus**, falsch wird sie erst auf dem Laptop. **557 Tests** (526 + 31) grün, Bau 0/0, beide Köpfe am laufenden Programm angesehen. **Als Falle festgehalten:** Ein Namensraum, der wie das Framework heißt (`GonkNote.Avalonia.*`), **verdeckt das Framework** — danach zeigte `Avalonia.Interactivity` in jeder anderen Datei ins Leere |
 | V2-41 | 2026-08-12 | **Wo der Cursor steht — Schritt 1 des Schreibens** (§4.30). Reine Core-Arbeit, kein Kopf angefasst: `TdPosition` (Absatz, Stück, Zeichen), `TdSelection` (Anker und Spitze) und `TdCursor` (geradeziehen, an die Ränder springen, ein Zeichen nach links oder rechts, den ausgewählten Text lesen) in einer neuen Datei, dazu **28 Wächter**. **545 Tests** grün, Bau 0/0. **Die Stelle steht im Modell**, wie §6 vorgeschlagen hatte — der Umbruch ist ein Ergebnis und ändert sich bei jeder Eingabe; der Rückweg für Schritt 4 ist da, weil `TdLine.Source` seit §4.16 auf den Absatz zeigt. **Vier Entscheidungen, die Schritt 2 erbt:** (1) **Kanonisch ist die linke Schreibweise** einer Stückgrenze — nicht nach Geschmack, sondern weil ein eingefügtes Zeichen das Format links davon erbt; mit der rechten Form müsste man diese Erbfolge an jeder Einfügestelle zurückdrehen. (2) **Absatzende und nächster Absatzanfang bleiben zwei Stellen** — dazwischen steht die Absatzmarke. (3) **Ein Feld und ein Bild sind einen Schritt breit und steuern kein Zeichen bei**; damit fällt „ein Feld ist unteilbar" von selbst heraus, und der Preis — die Auswahl ist breiter, als ihr Text lang ist — steht als eigener Wächter da. (4) **Bewegt wird in ganzen Zeichen**, nicht in UTF-16-Einheiten, sonst zerlegt der nächste Tastendruck ein Emoji; der Offset bleibt trotzdem ein UTF-16-Index, damit Einfügen ohne Umrechnung auskommt. **Die tragende Idee ist eine Zwischengröße:** alles rechnet über den Abstand vom Absatzanfang in Cursorschritten, hin und zurück — so gibt es die Sonderfälle (leere Stücke, Stückgrenzen, unteilbare Felder, der Verweis, der selbst kein Stück ist) **nur einmal**, beim Umrechnen, statt verteilt über jede Methode. **Der Fund der Runde kam aus dem Erproben der Wächter:** die kanonische Form wurde absichtlich falsch gestellt — und der Testlauf wurde **nicht rot, sondern hing**, weil das Dokumentende unerreichbar wurde. Ein Wächter, der nicht fertig wird, meldet nichts und blockiert die ganze Suite. Der Durchlauf hat jetzt eine **Schrittgrenze**; dieselbe Mutation ergibt seitdem 12 rote Tests in 99 ms. **Als Regel festgehalten** für die Schritte 2 bis 5, die voll von solchen Schleifen sein werden. **Zum zweiten Mal gemessen statt angenommen:** der Wächter für das zusammengesetzte „ä" stand zuerst mit einem getippten Buchstaben da — zerlegt und zusammengesetzt sehen im Quelltext gleich aus, und beim Umschreiben der Datei wurde aus dem zerlegten still das zusammengesetzte; der Test wäre grün geblieben und hätte nichts mehr geprüft. Er baut das Zeichen jetzt aus seiner Nummer |

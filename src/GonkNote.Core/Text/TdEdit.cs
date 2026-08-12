@@ -1,5 +1,30 @@
 namespace GonkNote.Core.Text;
 
+// ==================== Was für eine Änderung das war ====================
+
+/// <summary>
+/// Die Art einer Änderung — **nur für den Verlauf** (<see cref="TdUndo"/>), damit er
+/// zusammenfassen kann, was der Nutzer als **einen** Handgriff erlebt hat.
+///
+/// <para>
+/// <b>Sie wird abgeleitet und nicht mitgegeben</b> (<see cref="TdFragment"/>): Ein Inhalt aus
+/// lauter Textstücken ist Tippen, ein leerer ist Löschen, alles andere — mehrere Absätze, ein
+/// Zeilenumbruch, ein Bild — ist Struktur. Ein zusätzlicher Parameter an jedem Handgriff wäre
+/// eine zweite Wahrheit über dieselbe Sache, und die erste, die jemand falsch setzt.
+/// </para>
+/// </summary>
+public enum TdEditArt
+{
+    /// <summary>Umbrechen, teilen, verbinden, einfügen von allem, was kein Text ist — **fasst nie zusammen**.</summary>
+    Struktur,
+
+    /// <summary>Zeichen eingefügt.</summary>
+    Tippen,
+
+    /// <summary>Zeichen entfernt.</summary>
+    Loeschen,
+}
+
 // ==================== Was an die Stelle einer Auswahl tritt ====================
 
 /// <summary>
@@ -83,6 +108,30 @@ public sealed class TdFragment
             return summe;
         }
     }
+
+    /// <inheritdoc cref="TdEditArt"/>
+    internal TdEditArt Art
+    {
+        get
+        {
+            if (!EinAbsatz) return TdEditArt.Struktur;
+            if (Absaetze[0].Count == 0) return TdEditArt.Loeschen;
+
+            foreach (var stueck in Absaetze[0])
+                if (stueck is not TdRun) return TdEditArt.Struktur;
+
+            return TdEditArt.Tippen;
+        }
+    }
+
+    /// <summary>
+    /// Endet dieser Inhalt auf einem Zwischenraum? Dann ist ein Wort fertig — und der Verlauf
+    /// macht dort einen Schnitt (<see cref="TdUndo"/>).
+    /// </summary>
+    internal bool SchliesstGruppe =>
+        EinAbsatz && Absaetze[0].Count > 0 &&
+        Absaetze[0][^1] is TdRun run && run.Text.Length > 0 &&
+        char.IsWhiteSpace(run.Text[^1]);
 }
 
 // ==================== Eine Änderung samt ihrer Gegenbewegung ====================
@@ -125,7 +174,8 @@ public sealed class TdChange
     internal TdChange(
         List<TdBlock> container, int index,
         IReadOnlyList<TdBlock> alt, IReadOnlyList<TdBlock> neu,
-        TdSelection vorher, TdSelection nachher)
+        TdSelection vorher, TdSelection nachher,
+        TdEditArt art, bool schliesstGruppe)
     {
         _container = container;
         _index = index;
@@ -133,7 +183,18 @@ public sealed class TdChange
         _neu = neu;
         Vorher = vorher;
         Nachher = nachher;
+        Art = art;
+        SchliesstGruppe = schliesstGruppe;
     }
+
+    /// <inheritdoc cref="TdEditArt"/>
+    public TdEditArt Art { get; }
+
+    /// <summary>
+    /// Ist mit dieser Änderung ein Wort fertig geworden? Dann setzt der Verlauf dahinter einen
+    /// Schnitt (<see cref="TdUndo"/>).
+    /// </summary>
+    public bool SchliesstGruppe { get; }
 
     /// <summary>Die Auswahl, wie sie vor der Änderung stand — geradegezogen (§4.30).</summary>
     public TdSelection Vorher { get; }
@@ -145,7 +206,41 @@ public sealed class TdChange
     /// Dieselbe Änderung andersherum. **Sie ist kein Nachbau, sondern dieselben zwei Listen mit
     /// vertauschten Rollen** — deshalb kann sie nicht von der Vorwärtsrichtung abweichen.
     /// </summary>
-    public TdChange Gegenbewegung => new(_container, _index, _neu, _alt, Nachher, Vorher);
+    public TdChange Gegenbewegung =>
+        new(_container, _index, _neu, _alt, Nachher, Vorher, Art, SchliesstGruppe);
+
+    /// <summary>
+    /// Diese Änderung und die unmittelbar danach ausgeführte <paramref name="folgende"/> als
+    /// **eine** — oder <c>null</c>, wenn die beiden nicht lückenlos aufeinanderfolgen.
+    ///
+    /// <para>
+    /// <b>Das ist der zweite Ertrag der Blocksicherung.</b> Weil eine Änderung die Blöcke davor
+    /// und danach hält, ist die Verschmelzung zweier aufeinanderfolgender kein Zusammenrechnen,
+    /// sondern ein **Weglassen der Mitte**: das Davor der ersten, das Danach der zweiten. Ein
+    /// Verlauf, der Handgriffe statt Zustände merkte, müsste hier zwei Einfügungen zu einer
+    /// verrechnen — mit denselben Sonderfällen wie beim Einfügen selbst.
+    /// </para>
+    /// <para>
+    /// <b>Geprüft wird auf Lückenlosigkeit, und zwar an den Objekten:</b> derselbe Container,
+    /// dieselbe Stelle, und was die zweite Änderung ersetzt hat, ist **genau das**, was die
+    /// erste hingelegt hat. Damit kann zwischen den beiden nichts anderes geschehen sein — eine
+    /// Prüfung auf gleichen *Inhalt* könnte das nicht ausschließen.
+    /// </para>
+    /// </summary>
+    public TdChange? Verschmelzen(TdChange folgende)
+    {
+        if (!ReferenceEquals(_container, folgende._container) || _index != folgende._index)
+            return null;
+
+        if (folgende._alt.Count != _neu.Count) return null;
+
+        for (int i = 0; i < _neu.Count; i++)
+            if (!ReferenceEquals(_neu[i], folgende._alt[i])) return null;
+
+        return new TdChange(
+            _container, _index, _alt, folgende._neu, Vorher, folgende.Nachher,
+            folgende.Art, folgende.SchliesstGruppe);
+    }
 
     /// <summary>Ausführen (und nach einem <see cref="Zuruecknehmen"/>: wiederherstellen).</summary>
     public TdSelection Anwenden()
@@ -293,7 +388,9 @@ public static class TdEdit
         int danachLinear = inhalt.EinAbsatz ? von + inhalt.LetzteBreite : inhalt.LetzteBreite;
         var danach = TdCursor.AusLinear(letzter, start.Paragraph + neu.Count - 1, danachLinear);
 
-        return new TdChange(container, iA, alt, neu, gezogen, new TdSelection(danach));
+        return new TdChange(
+            container, iA, alt, neu, gezogen, new TdSelection(danach),
+            inhalt.Art, inhalt.SchliesstGruppe);
     }
 
     // ---------------------------------------------------------------- Tippen

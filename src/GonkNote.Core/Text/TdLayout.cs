@@ -22,6 +22,25 @@ namespace GonkNote.Core.Text;
 /// <see cref="TdGraphic.HeightCm"/> ist die einzige Höhe, die nicht aus der Schrift kommt</b>;
 /// der Zeichner malt hier statt Buchstaben, und <see cref="Text"/> ist leer.
 /// </param>
+/// <param name="Linear">
+/// Der Abstand des **ersten Zeichens** dieses Stücks vom Absatzanfang, in Cursorschritten
+/// (<see cref="TdCursor.Linear"/>) — <c>-1</c>, wenn das Stück im Modell gar nicht steht (die
+/// Aufzählungsmarke, die Seitenzahl im Inhaltsverzeichnis).
+///
+/// <para>
+/// <b>Das ist der Rückweg vom Papier ins Modell, und er muss hier stehen.</b> §4.30 hat ihn
+/// für den Absatz versprochen (<see cref="TdLine.Source"/>), aber ein Absatz allein sagt nicht,
+/// das wievielte Zeichen angeklickt wurde. Nachzählen ginge nicht: Der Umbruch wirft den
+/// Leerraum am Zeilenende weg, ein Feld setzt seinen **gerechneten** Wert statt seiner selbst,
+/// und ein Zeilenumbruch hinterlässt gar kein Stück — wer die Textlängen der Läufe addiert,
+/// verzählt sich beim ersten umgebrochenen Wort und findet den Cursor danach immer weiter
+/// daneben. <b>Die Zahl kennt nur, wer schneidet</b>, also der Umbruch.
+/// </para>
+/// <para>
+/// <b>Bei einem Feld ist es die Stelle des Feldes und nicht seines Wertes</b> — im Dokument
+/// steht ein Feld und keine Zahl (§4.20), und es ist genau **einen** Schritt breit.
+/// </para>
+/// </param>
 public sealed record TdLaidOutRun(
     string Text,
     TdCharFormat Format,
@@ -29,7 +48,16 @@ public sealed record TdLaidOutRun(
     double WidthCm,
     TdHyperlink? Link = null,
     TdField? Field = null,
-    TdGraphic? Graphic = null);
+    TdGraphic? Graphic = null,
+    int Linear = -1)
+{
+    /// <summary>
+    /// Wie viele **Cursorschritte** dieses Stück breit ist — dieselbe Zählung wie
+    /// <see cref="TdCursor.Laenge(TdInline)"/>: ein Feld und ein Bild sind einer, obwohl auf
+    /// dem Papier mehr steht.
+    /// </summary>
+    public int Schritte => Field is not null || Graphic is not null ? 1 : Text.Length;
+}
 
 /// <summary>Eine gesetzte Zeile.</summary>
 public sealed class TdLine
@@ -47,6 +75,29 @@ public sealed class TdLine
 
     /// <summary>Der Absatz, aus dem diese Zeile stammt — für Auswahl und Cursor.</summary>
     public TdParagraph? Source { get; set; }
+
+    /// <summary>
+    /// Wo diese Zeile im Absatz **anfängt**, in Cursorschritten (<see cref="TdCursor.Linear"/>).
+    ///
+    /// <para>
+    /// <b>Ohne diese Zahl hätte eine leere Zeile keine Stelle.</b> Die Läufe tragen ihre eigene
+    /// (<see cref="TdLaidOutRun.Linear"/>), aber eine Zeile ohne Läufe gibt es laufend: ein
+    /// leerer Absatz, und jede Zeile hinter einem Umschalt+Eingabe-Umbruch. Genau dort steht
+    /// beim Schreiben besonders oft der Cursor.
+    /// </para>
+    /// </summary>
+    public int Linear { get; set; }
+
+    /// <summary>
+    /// Der linke Rand dieser Zeile, in Zentimetern ab dem Behälterrand — dieselbe Zählung wie
+    /// <see cref="TdLaidOutRun.XCm"/>.
+    /// <para>
+    /// Gebraucht wird er nur für die Schreibmarke in einer **leeren** Zeile: Wo Läufe stehen,
+    /// ist der erste ihr linker Rand. Wo keine stehen, wäre die Marke sonst auf 0 gerutscht —
+    /// also an den Textrand statt an den Einzug.
+    /// </para>
+    /// </summary>
+    public double StartXCm { get; set; }
 
     /// <summary>
     /// Die Aufzählungsmarke, falls dies die **erste** Zeile eines Listenpunkts ist. Sie steht
@@ -804,53 +855,70 @@ public static class TdLayout
 
         void ZeileAbschliessen(bool letzte)
         {
+            aktuell.StartXCm = zeilenStart;
             Ausrichten(aktuell, format.Alignment!.Value, rechtsKante - x, letzte);
             HoeheSetzen(aktuell, doc, absatz, format.LineSpacing!.Value, messung);
             zeilen.Add(aktuell);
         }
 
-        void NeueZeile()
+        // <paramref name="linear"/> ist die Stelle im Absatz, an der die neue Zeile anfängt —
+        // ohne sie hätte eine leere Zeile keinen Ort (siehe TdLine.Linear).
+        void NeueZeile(int linear)
         {
-            aktuell = new TdLine { Source = absatz };
+            aktuell = new TdLine { Source = absatz, Linear = linear };
             zeilenStart = links;
             x = zeilenStart;
         }
 
         // Setzt ein Stück und bricht davor um, wenn es nicht mehr passt.
-        void StueckSetzen(string stueck, TdCharFormat zeichenformat, TdHyperlink? verweis, TdField? feld)
+        void StueckSetzen(
+            string stueck, TdCharFormat zeichenformat, TdHyperlink? verweis, TdField? feld, int linear)
         {
             double stueckBreite = messung.WidthCm(stueck, zeichenformat);
 
             if (x + stueckBreite > rechtsKante && aktuell.Runs.Count > 0)
             {
                 ZeileAbschliessen(letzte: false);
-                NeueZeile();
 
                 // Nach einem Umbruch fällt der führende Leerraum weg — sonst rückte jede
-                // Folgezeile um ein Leerzeichen ein.
+                // Folgezeile um ein Leerzeichen ein. **Die Stelle rückt dabei mit**: Was hier
+                // wegfällt, steht weiter im Absatz, und ein Cursor, der das nicht wüsste, wäre
+                // ab der zweiten Zeile um jeden weggefallenen Zwischenraum verschoben.
                 string ohneLeerraum = stueck.TrimStart();
-                if (ohneLeerraum.Length == 0) return;
-                if (ohneLeerraum.Length != stueck.Length)
-                    stueckBreite = messung.WidthCm(ohneLeerraum, zeichenformat);
+                int weggefallen = stueck.Length - ohneLeerraum.Length;
 
-                aktuell.Runs.Add(new TdLaidOutRun(ohneLeerraum, zeichenformat, x, stueckBreite, verweis, feld));
+                NeueZeile(linear + weggefallen);
+
+                if (ohneLeerraum.Length == 0) return;
+                if (weggefallen > 0) stueckBreite = messung.WidthCm(ohneLeerraum, zeichenformat);
+
+                aktuell.Runs.Add(new TdLaidOutRun(
+                    ohneLeerraum, zeichenformat, x, stueckBreite, verweis, feld, null,
+                    linear + weggefallen));
                 x += stueckBreite;
                 return;
             }
 
-            aktuell.Runs.Add(new TdLaidOutRun(stueck, zeichenformat, x, stueckBreite, verweis, feld));
+            aktuell.Runs.Add(new TdLaidOutRun(
+                stueck, zeichenformat, x, stueckBreite, verweis, feld, null, linear));
             x += stueckBreite;
         }
 
         // **Der Durchlauf ist flach**: ein Verweis erscheint nicht selbst, sondern seine
         // Stücke. Wer hier über `Inlines` liefe, sähe den Verweis und nicht seinen Text
         // (§7, „Markdown-Export").
+        // **Der Abstand vom Absatzanfang läuft mit** — dieselbe Zählung wie TdCursor.Linear,
+        // also über die flachen Stücke und mit einem Schritt je Feld, Bild und Umbruch. Nur so
+        // findet Schritt 4 aus einem Mausklick die Stelle im Modell zurück.
+        int linear = 0;
+
         foreach (var (stueck, verweis) in absatz.FlacheStuecke())
         {
             if (stueck is TdLineBreak)
             {
                 ZeileAbschliessen(letzte: true);   // ein erzwungener Umbruch wird nicht gestreckt
-                NeueZeile();
+                linear++;
+                NeueZeile(linear);
                 continue;
             }
 
@@ -869,11 +937,13 @@ public static class TdLayout
                 if (x + kasten > rechtsKante && aktuell.Runs.Count > 0)
                 {
                     ZeileAbschliessen(letzte: false);
-                    NeueZeile();
+                    NeueZeile(linear);
                 }
 
-                aktuell.Runs.Add(new TdLaidOutRun("", zeichenformat, x, kasten, verweis, null, grafik));
+                aktuell.Runs.Add(new TdLaidOutRun(
+                    "", zeichenformat, x, kasten, verweis, null, grafik, linear));
                 x += kasten;
+                linear++;
                 continue;
             }
 
@@ -884,14 +954,20 @@ public static class TdLayout
                 // Seitenzahl mehr. Deshalb geht es ungeteilt durch, auch wenn es Leerraum
                 // enthält (ein Titel darf einen haben).
                 string wert = TdFieldValues.Text(feld, kontext, seitennummer, seiten);
-                if (wert.Length > 0) StueckSetzen(wert, zeichenformat, verweis, feld);
+                if (wert.Length > 0) StueckSetzen(wert, zeichenformat, verweis, feld, linear);
+
+                // **Ein Schritt, egal wie lang der Wert ist** — im Dokument steht ein Feld und
+                // keine Zahl (§4.30). Auch ein Feld ohne Wert zählt: es steht da.
+                linear++;
                 continue;
             }
 
             if (stueck is not TdRun lauf || lauf.Text.Length == 0) continue;
 
-            foreach (string wort in InWoerter(lauf.Text))
-                StueckSetzen(wort, zeichenformat, verweis, null);
+            foreach (var (wort, anfang) in InWoerter(lauf.Text))
+                StueckSetzen(wort, zeichenformat, verweis, null, linear + anfang);
+
+            linear += lauf.Text.Length;
         }
 
         ZeileAbschliessen(letzte: true);
@@ -918,14 +994,20 @@ public static class TdLayout
     }
 
     /// <summary>
-    /// Zerlegt einen Text in umbruchfähige Stücke: jedes Wort **samt** dem Leerraum davor.
+    /// Zerlegt einen Text in umbruchfähige Stücke: jedes Wort **samt** dem Leerraum davor,
+    /// und dazu, das wievielte Zeichen des Textes es ist.
     /// <para>
     /// Der Leerraum gehört ans Wort und nicht dazwischen, weil er beim Umbruch verschwinden
     /// muss — ein Leerzeichen am Zeilenanfang rückt die Zeile ein, und das fällt bei
     /// Blocksatz sofort auf.
     /// </para>
+    /// <para>
+    /// <b>Die Stelle kommt mit, weil nur hier bekannt ist, wo geschnitten wurde.</b> Wer sie
+    /// draußen mitzählte, käme auf dieselbe Zahl — bis jemand diese Zerlegung ändert, und dann
+    /// stünde die zweite Zählung still falsch da (<see cref="TdLaidOutRun.Linear"/>).
+    /// </para>
     /// </summary>
-    private static IEnumerable<string> InWoerter(string text)
+    private static IEnumerable<(string Wort, int Anfang)> InWoerter(string text)
     {
         int i = 0;
         while (i < text.Length)
@@ -940,7 +1022,7 @@ public static class TdLayout
             // nichts (§7, „Ein Testlauf, der nicht zurückkommt").
             if (i == anfang) i++;
 
-            yield return text[anfang..i];
+            yield return (text[anfang..i], anfang);
         }
     }
 

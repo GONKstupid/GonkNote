@@ -19,10 +19,21 @@ namespace GonkNote.Core.Rendering;
 /// Die Gesamtzahl der Seiten für <c>{SEITEN}</c>. <c>null</c> = noch nicht bekannt; dann bleibt
 /// der Platzhalter leer, statt eine falsche Zahl zu behaupten.
 /// </param>
+/// <param name="Markierung">
+/// Auswahl und Schreibmarke, **fertig gerechnet** von <see cref="TdHit"/> — <c>null</c> beim
+/// Drucken, beim Export und überall dort, wo niemand schreibt.
+///
+/// <para>
+/// <b>Der Zeichner rechnet sie nicht selbst aus</b>, und das ist dieselbe Trennung wie beim
+/// Umbruch und beim Diagramm (§4.16, §4.25): Wo etwas hingehört, ist eine Rechnung in
+/// Zentimetern und gehört nach <c>Core/Text</c>; hier werden daraus zwei Rechtecke.
+/// </para>
+/// </param>
 public readonly record struct TdRenderContext(
     ITdImages? Bilder = null,
     TdFieldContext? Felder = null,
-    int? Seitenzahl = null);
+    int? Seitenzahl = null,
+    TdMarkierung? Markierung = null);
 
 /// <summary>
 /// Der Zeichner: aus einer gesetzten Seite (<see cref="TdPage"/>) werden Pixel.
@@ -68,6 +79,14 @@ public static class TdRenderer
     /// gehört dem Kopf und nicht dem Zeichner.
     /// </summary>
     public static readonly SKColor Papier = SKColors.White;
+
+    /// <summary>
+    /// Die Farbe der Auswahl. <b>Dieselbe wie im heutigen WPF-Editor</b>
+    /// (<c>PageSelectionBrush</c>, <c>#C7DBFF</c>) und ein fester heller Wert wie das Papier:
+    /// Ein Dokument ist Papier (§1), und eine Auswahl, die im dunklen Thema die Farbe wechselt,
+    /// wäre auf weißem Grund einmal unlesbar.
+    /// </summary>
+    public static readonly SKColor Auswahlfarbe = new(0xC7, 0xDB, 0xFF);
 
     /// <summary>
     /// Zeichnet eine Seite. Der Nullpunkt der Leinwand ist die **obere linke Ecke des
@@ -147,6 +166,11 @@ public static class TdRenderer
             var zeile = zeilen[i];
             double grundlinieCm = zeile.YCm + zeile.BaselineCm;
 
+            // **Die Auswahl liegt hinter dem Text und vor dem Zellhintergrund** — deshalb steht
+            // sie hier und nicht in `Seite`: Dort wäre sie entweder über den Buchstaben oder
+            // unter der Füllfarbe einer Tabellenzelle.
+            AuswahlZeichnen(leinwand, zeile, massstab, kontext);
+
             // Die Aufzählungsmarke steht links vom Text (negatives XCm) und gehört nicht zu den
             // Läufen: sie ist nicht Teil des Textes (§4.17).
             if (zeile.Marker is { } marke) StueckZeichnen(leinwand, marke, grundlinieCm, massstab, kontext);
@@ -157,7 +181,58 @@ public static class TdRenderer
             // Zeile.** Ein Absatz, der über drei Zeilen läuft, hat *eine* Trennlinie — wer sie
             // je Zeile zöge, bekäme liniertes Papier.
             if (LetzteDesAbsatzes(zeilen, i)) AbsatzlinieZeichnen(leinwand, zeile, breiteCm, massstab);
+
+            // Die Schreibmarke zuletzt: Sie gehört über alles, auch über ein Bild.
+            SchreibmarkeZeichnen(leinwand, zeile, massstab, kontext);
         }
+    }
+
+    /// <summary>
+    /// Der blaue Kasten hinter dem ausgewählten Text.
+    /// <para>
+    /// <b>Er reicht über die ganze Zeilenhöhe</b> und nicht nur über die Buchstaben — sonst
+    /// stünden zwischen den Zeilen einer ausgewählten Stelle weiße Streifen, und die Auswahl
+    /// sähe zerrissen aus.
+    /// </para>
+    /// </summary>
+    private static void AuswahlZeichnen(
+        SKCanvas leinwand, TdLine zeile, double massstab, TdRenderContext kontext)
+    {
+        if (kontext.Markierung?.Auswahl.TryGetValue(zeile, out var spanne) is not true) return;
+        if (spanne.BreiteCm <= 0) return;
+
+        using var pinsel = new SKPaint { Color = Auswahlfarbe, IsAntialias = false };
+        leinwand.DrawRect(
+            SKRect.Create(
+                Px(spanne.VonCm, massstab), Px(zeile.YCm, massstab),
+                Px(spanne.BreiteCm, massstab), Px(zeile.HeightCm, massstab)),
+            pinsel);
+    }
+
+    /// <summary>
+    /// Die Schreibmarke: ein senkrechter Strich über die Zeilenhöhe.
+    /// <para>
+    /// <b>Ob sie blinkt, entscheidet der Kopf</b> — er lässt sie einfach mal mit und mal ohne
+    /// Marke zeichnen. Ein Takt gehört nicht in Core: Er wäre eine Uhr (§4.20), und beim Export
+    /// stünde plötzlich ein Strich im PDF.
+    /// </para>
+    /// </summary>
+    private static void SchreibmarkeZeichnen(
+        SKCanvas leinwand, TdLine zeile, double massstab, TdRenderContext kontext)
+    {
+        if (kontext.Markierung is not { } markierung) return;
+        if (!ReferenceEquals(markierung.MarkeZeile, zeile)) return;
+
+        using var stift = new SKPaint
+        {
+            Color = Farbe(zeile.Runs.Count > 0 ? zeile.Runs[0].Format.Color : null) ?? SKColors.Black,
+            StrokeWidth = Math.Max(1f, (float)(massstab / PixelProCm)),
+            IsAntialias = false,
+        };
+
+        float x = Px(markierung.MarkeXCm, massstab);
+        leinwand.DrawLine(
+            x, Px(zeile.YCm, massstab), x, Px(zeile.YCm + zeile.HeightCm, massstab), stift);
     }
 
     /// <summary>

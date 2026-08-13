@@ -296,7 +296,7 @@ angezeigt, importiert (DOCX) und in alle vier Formate exportiert. **Damit ist Ph
 abgeschlossen.** Der Anschluss hat sofort einen Fehler gezeigt, den vier Runden lang kein
 Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — behoben.
 
-### ▶ Hier geht es weiter (Stand 2026-08-13, nach Runde V2-44)
+### ▶ Hier geht es weiter (Stand 2026-08-13, nach Runde V2-45)
 
 > **✅ Phase 4 ist abgeschlossen** (§4.28) und **auf dem Laptop gegengeprüft** (§4.28, „Was der
 > Laptop gefunden hat"): die Anzeige trägt, ihr Umbruch stimmt mit dem PDF überein, Rollen und
@@ -341,9 +341,17 @@ Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — beh
 > aus dem Erproben der Wächter:** Ein Vergleich auf gleichen *Inhalt* statt auf dieselben
 > *Objekte* ließ alle 21 grün — und hätte beim Zusammenfassen Schritte übersprungen.
 >
-> **▶ Als Nächstes: Schritt 4 — der Cursor auf dem Schirm.** Schreibmarke und Auswahl in
-> `TdRenderer`, dazu die Umkehrung des Umbruchs (welche Stelle gehört zu diesem Mausklick?).
-> **Ab hier ist es Kopfarbeit** — die Schritte 1 bis 3 lagen vollständig in Core.
+> **✅ Schritt 4 des Arbeitsplans steht** (2026-08-13, §4.34): `TdHit`, **34 Wächter**,
+> **671 Tests** grün. Klick → Stelle und Stelle → Papier stehen als **eine** Rechnung
+> nebeneinander; der Zeichner bekommt Schreibmarke und Auswahl **je Zeile** fertig gerechnet.
+> **Der in §4.30 versprochene Rückweg war die Hälfte** — jedes gesetzte Stück trägt jetzt seine
+> Stelle im Absatz, denn nachzählen geht nicht (weggeworfener Leerraum, gerechnete Feldwerte,
+> Umbrüche ohne Stück). **Der Fund kam aus einer Mutation, die überlebt hat:** Ohne den
+> Spaltenversatz sind beide Richtungen *gleich falsch*, und der Hin-und-zurück-Wächter bleibt
+> grün — dabei kam heraus, dass ein Klick in die zweite Tabellenspalte in der ersten landete.
+>
+> **▶ Als Nächstes: Schritt 5 — Tastatur und Maus im Linux-Kopf.** Erst hier wird aus den vier
+> Bausteinen ein Editor. **Mit ihm ist auch der Laptop wieder dran.**
 >
 > **Gearbeitet wird auf dem Windows-Rechner.** Nicht wegen der Werkzeuge, sondern wegen der
 > Gegenprobe — jede Änderung am Modell muss der WPF-Editor überleben, und beide Köpfe
@@ -380,7 +388,7 @@ Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — beh
 **Tests laufen lassen:**
 
 ```powershell
-dotnet test -c Release        # Windows: beide Projekte, 637 Tests
+dotnet test -c Release        # Windows: beide Projekte, 671 Tests
 ```
 
 ```bash
@@ -422,7 +430,7 @@ möglich) gelten unverändert weiter — siehe `gonk-note\HANDOFF.md` §1.
 | | |
 |---|---|
 | **Version** | 0.3.0 · `net10.0` · SkiaSharp 3.119.4 · Avalonia 12.1.1 · SQLite |
-| **Tests** | **637** — 606 in `GonkNote.Core.Tests` (Windows **und** Linux), 31 in `GonkNote.Wpf.Tests` (alles, was am `FlowDocument` hängt) |
+| **Tests** | **671** — 640 in `GonkNote.Core.Tests` (Windows **und** Linux), 31 in `GonkNote.Wpf.Tests` (alles, was am `FlowDocument` hängt) |
 | **Bau** | Debug und Release je 0 Fehler / 0 Warnungen; CI mit zwei Läufen (Windows, Ubuntu) |
 | **Meilensteine** | ✅ **M0** (Core baut auf Linux) · ✅ **M1** (Notizbuch und Whiteboard laufen unter Linux) · ⏳ **M2** (Funktionsgleichheit) — er hängt an Phase 4.5, nicht an Phase 4 |
 
@@ -4146,6 +4154,86 @@ Wie Schritt 1: `TdUndo` ist **nirgends angeschlossen** — das ist Absicht und p
 Schritten 4 und 5. Der Windows-Kopf ist in dieser Runde nicht angefasst worden; die Gegenprobe
 von §4.32 (beide Köpfe an derselben Datenbank-Kopie) gilt unverändert.
 
+### 4.34 Der Cursor auf dem Schirm — Schritt 4 des Schreibens
+
+**2026-08-13 unter Windows (V2-45).** Eine neue Datei (`Core/Text/TdHit.cs`), drei Angaben mehr
+im Umbruch, Schreibmarke und Auswahl im Zeichner — **34 neue Wächter**; Bau 0/0, **671 Tests**
+grün (vorher 637).
+
+#### Der Rückweg aus §4.30 war die Hälfte
+
+§4.30 hat für Schritt 4 einen Rückweg versprochen: „`TdLine.Source` zeigt seit §4.16 auf den
+Absatz, und `TdCursor.IndexVon` macht daraus seine Nummer." **Das stimmt und reicht nicht** —
+ein Absatz allein sagt nicht, das wievielte Zeichen angeklickt wurde.
+
+**Nachzählen geht nicht**, und zwar aus drei Gründen, von denen jeder allein genügt:
+
+| | |
+|---|---|
+| Der Umbruch **wirft den Leerraum am Zeilenende weg** | Wer die Textlängen der Läufe addiert, verzählt sich beim ersten umgebrochenen Wort — und danach immer weiter |
+| Ein Feld setzt seinen **gerechneten Wert** | Auf dem Papier steht „12", im Absatz steht ein Feld: ein Schritt, kein Zeichen (§4.30) |
+| Ein Zeilenumbruch hinterlässt **gar kein Stück** | Er ist einen Schritt breit und zeichnet nichts |
+
+**Die Zahl kennt nur, wer schneidet.** Deshalb trägt jetzt jedes gesetzte Stück seine Stelle im
+Absatz mit (`TdLaidOutRun.Linear`), jede Zeile ihren Anfang (`TdLine.Linear`) und ihren linken
+Rand (`TdLine.StartXCm`, für die Marke in einer **leeren** Zeile — dort steht sie beim Schreiben
+besonders oft). Dasselbe Muster wie `TdLine.Source` in §4.16, nur eine Ebene tiefer: eine
+Angabe, die beim Setzen nichts kostet und ohne die man später raten müsste.
+
+#### Zwei Richtungen, eine Rechnung
+
+`TdHit.StelleAn` (Klick → Stelle) und `TdHit.Schreibmarke` / `TdHit.Markieren` (Stelle → Papier)
+stehen **nebeneinander in einer Datei und teilen sich, wie eine Zeile gefunden wird**. Getrennt
+gebaut wären es zwei Rechnungen, die auseinanderlaufen können — und der Fehler sähe aus wie ein
+Cursor, der beim Klicken woanders landet, als er danach blinkt.
+
+**Zwei Sorten Zeilen sind ausgenommen, weil sie nicht im Dokument stehen:** ein gerechneter
+Inhaltsverzeichnis-Eintrag (§4.20) und eine wiederholte Tabellenkopfzeile (§4.19). Beide haben
+im Umbruch längst ihre Kennzeichnung — sie stand seit §4.19 mit genau dieser Begründung dort
+(„wer sie beim Zurückrechnen mitzählt, findet den Cursor an der falschen Stelle") und wird jetzt
+zum ersten Mal benutzt.
+
+#### Der Zeichner bekommt Kästen und rechnet nichts
+
+`TdRenderContext` trägt eine **fertig gerechnete** `TdMarkierung`; ohne sie ändert sich am Bild
+nichts (der Export, der Druck und jede Vorschau bekommen keinen Strich mit — ein eigener
+Wächter dafür).
+
+**Die Markierung steht je Zeile und nicht in Seitenkoordinaten**, und das ist der Grund: Der
+Zeichner arbeitet ohnehin Zeile für Zeile, in einer Leinwand, deren Nullpunkt schon der Behälter
+ist. So malt er den Auswahlkasten **vor** den Buchstaben dieser Zeile und die Marke danach —
+damit liegt die Auswahl hinter dem Text und über dem Zellhintergrund, **ohne dass die
+Reihenfolge der Seite umgebaut werden muss**. Absolute Koordinaten hätte er zurückrechnen
+müssen, und ein Kasten in einer Tabellenzelle wäre entweder über den Buchstaben oder unter der
+Füllfarbe gelandet.
+
+> **Ob die Marke blinkt, entscheidet der Kopf** — er zeichnet einfach mal mit und mal ohne. Ein
+> Takt gehört nicht in Core: Er wäre eine Uhr (§4.20), und im PDF stünde plötzlich ein Strich.
+
+#### Der Fund: ein Klick in die zweite Tabellenspalte landete in der ersten
+
+**Er kam aus einer Mutation, die überlebt hat.** Nimmt man den **Spaltenversatz** in beiden
+Richtungen weg, findet jede Stelle weiterhin zu sich selbst — beide Rechnungen sind dann *gleich
+falsch*. Der Rückweg-Wächter blieb grün, obwohl der Cursor in der zweiten Spalte um deren ganze
+Breite danebengestanden hätte.
+
+**Der Wächter prüft seitdem die Zahl und nicht nur den Rückweg** (Seitenrand + Spalte +
+Innenabstand + Zeichen) — und wurde dabei sofort rot, aus einem anderen Grund als erwartet:
+`ZeileAn` suchte die Zeile **nur über die Höhe**. Für gewöhnliche Zeilen ist das richtig, die
+stehen untereinander; **Tabellenzellen stehen nebeneinander**, und so gewann immer die erste
+Spalte. Behoben: erst die Höhe, dann die Breite des Behälters.
+
+> **Als Regel, und es ist die vierte Runde in Folge mit derselben:** Ein Wächter, der beim
+> absichtlichen Kaputtmachen grün bleibt, prüft nichts — **und ein symmetrischer Fehler ist die
+> Sorte, die ein Hin-und-zurück-Wächter von Natur aus nicht sehen kann.** Wo zwei Richtungen
+> geprüft werden, muss mindestens eine Zahl absolut festgenagelt sein.
+
+#### Am laufenden Programm gibt es noch nichts zu sehen
+
+`TdHit` ist **nirgends angeschlossen**; `TextDocView` übergibt bis heute keine Markierung. Das
+ist Absicht und passiert mit Schritt 5, wenn Tastatur und Maus dazukommen — vorher gäbe es
+nichts, was den Cursor bewegen könnte. Kein Kopf ist in dieser Runde angefasst worden.
+
 ---
 
 ## 5. Entscheidungen
@@ -4776,23 +4864,25 @@ dotnet run --project src/GonkNote.Avalonia -- --db /tmp/gonk-test/gonknote.sqlit
 
 ---
 
-### ▶ Aktueller Auftrag — **keiner offen** (Stand 2026-08-11, nach Runde V2-37)
+### ▶ Aktueller Auftrag — **noch keiner, aber er ist in Sicht** (Stand 2026-08-13, nach Runde V2-45)
 
-> **Der Auftrag vom 2026-08-11 („der erste Augenschein des Textdokuments unter Linux") ist
+> **Der letzte Auftrag („der erste Augenschein des Textdokuments unter Linux") ist
 > abgearbeitet.** Befund: **§4.28, „Was der Laptop gefunden hat"**. Kurzfassung unten in der
 > Tabelle.
 >
-> **Hier steht bewusst kein neuer Auftrag.** Die Entscheidung ist gefallen — **(a), das
-> Schreiben im Linux-Kopf** (§5 „Noch offen" 2) —, und die ersten Schritte davon liegen in
-> **Core** und sind auf jedem Rechner prüfbar; der Laptop hätte daran nichts zu messen, was
-> Windows nicht selbst sieht.
+> **Hier steht noch kein neuer Auftrag, und das hat einen Grund:** Die Schritte 1 bis 4 des
+> Schreibens (§4.30, §4.32, §4.33, §4.34) liegen vollständig in **Core** — Stelle, Änderung,
+> Verlauf und die Rechnung vom Papier ins Modell. Sie sind auf jedem Rechner gleich prüfbar,
+> und der Laptop hätte daran nichts zu messen, was Windows nicht selbst sieht. **Angeschlossen
+> ist bis heute nichts davon**; auf dem Schirm hat sich seit dem letzten Auftrag nichts
+> geändert.
 >
-> **Fällig wird der Laptop wieder mit Schritt 5** des Arbeitsplans (§6, „Als Nächstes: das
-> Schreiben"): sobald `TextDocView` Tastatur und Maus annimmt. **Dann und erst dann** gibt es
-> hier etwas zu beantworten, das Windows nicht kann — **Umlaute, tote Tasten und die
-> Compose-Taste** über `TextInput` auf XWayland, das Zusammenspiel mit der **Bildschirmtastatur**,
-> und die Frage, ob sich der Cursor **mit dem Stift** setzen lässt. Der Auftrag dafür wird aus
-> der Windows-Runde heraus hier hineingeschrieben.
+> **Fällig wird der Laptop mit Schritt 5** — der ist als Nächstes dran (§5e). Sobald
+> `TextDocView` Tastatur und Maus annimmt, gibt es hier zu beantworten, was Windows nicht kann:
+> **Umlaute, tote Tasten und die Compose-Taste** über `TextInput` auf XWayland, das Zusammenspiel
+> mit der **Bildschirmtastatur**, und ob sich der Cursor **mit dem Stift** setzen lässt.
+> **Der Auftrag dafür wird aus jener Windows-Runde heraus hier hineingeschrieben**, bevor der
+> Nutzer wechselt (Dauerregel 3a) — er steht dann mit Datum an dieser Stelle.
 >
 > **Zwei Dinge kann der Nutzer hier trotzdem sofort erledigen**, beide brauchen ihn am Gerät
 > und beide sind in Minuten getan:
@@ -4842,13 +4932,14 @@ nicht frei. **Das dort zuerst lesen spart eine Stunde.**
 Du laeufst auf dem Windows-Rechner. Das Repo liegt in C:\Dev\Zed\gonk-note-V2.
 
 Lies dort HANDOFF.md, Abschnitt 5e ("Auftrag fuer den Windows-Rechner"). Die
-Schritte 1 bis 3 des Schreibens stehen -- dran ist Schritt 4 aus §6 ("Als
-Naechstes: das Schreiben"): der Cursor auf dem Schirm. Ab hier wird es
-Kopfarbeit, lies vorher §4.24 (der Zeichner) und §4.16 (der Umbruch).
-§7 (Fallen) vor der ersten Code-Aenderung ueberfliegen.
+Schritte 1 bis 4 des Schreibens stehen -- dran ist Schritt 5 aus §6 ("Als
+Naechstes: das Schreiben"): Tastatur und Maus im Linux-Kopf. Das ist der
+Schritt, mit dem danach der Laptop dran ist -- §5d also mitziehen.
+Lies vorher §4.34 (was bereitliegt) und §4.28 (wie der Kopf gebaut ist),
+dazu §7 "Der Avalonia-Kopf" und die drei Fallen am Ende von §6.
 
 Zieh zuerst den Stand: git pull. Dann bauen und testen, bevor du etwas anfasst --
-0 Fehler, 0 Warnungen, 637 Tests.
+0 Fehler, 0 Warnungen, 671 Tests.
 
 Arbeite auf Deutsch, halte das HANDOFF nach, und sag mir am Ende, ob der Laptop
 dran ist.
@@ -4891,20 +4982,22 @@ ist mit erledigt.
 drei Gründen belegt. Getippte Zeichen werden zu **einem** Schritt; die Schnitte hängen an der
 Gestalt der Änderung und nicht an der Uhr.
 
-**▶ Dran ist Schritt 4: der Cursor auf dem Schirm.** Blinkende Schreibmarke und blaue Auswahl
-in `TdRenderer` — er kennt heute weder das eine noch das andere —, dazu die **Umkehrung des
-Umbruchs**: welche Stelle im Modell gehört zu diesem Mausklick? **Ab hier ist es Kopfarbeit**,
-die Schritte 1 bis 3 lagen vollständig in Core.
+**✅ Schritt 4 steht** (§4.34): `TdHit` rechnet in beide Richtungen — Klick → Stelle und
+Stelle → Papier —, der Zeichner malt Schreibmarke und Auswahl. Jedes gesetzte Stück trägt jetzt
+seine Stelle im Absatz; der in §4.30 versprochene Rückweg war nur die Hälfte.
 
-> **Was die Schritte 1 bis 3 mitgenommen haben und nicht noch einmal zu suchen ist:** die Frage
+**▶ Dran ist Schritt 5: Tastatur und Maus im Linux-Kopf.** `TextDocView` nimmt Eingaben
+entgegen — und **erst hier wird aus den vier Bausteinen ein Editor**. Alles, was er dafür
+braucht, liegt bereit; was nur dort zu tun ist, steht in §6 aufgezählt.
+
+> **Was die Schritte 1 bis 4 mitgenommen haben und nicht noch einmal zu suchen ist:** die Frage
 > nach der Formaterbung (beantwortet: links, wie in Word), §5 „Noch offen" 8 (erledigt), die
-> Prüfung, ob `TextChangeAction` passt (nein — §4.32), und wem der Verlaufsstapel gehört
-> (§4.33). **Der Rückweg für Schritt 4 ist da:** `TdLine.Source` zeigt seit §4.16 auf den
-> Absatz, `TdCursor.IndexVon` macht daraus seine Nummer (§4.30).
+> Prüfung, ob `TextChangeAction` passt (nein — §4.32), wem der Verlaufsstapel gehört (§4.33) und
+> der Rückweg vom Papier ins Modell (§4.34).
 
-> **Für Schritt 5 vorgemerkt, damit es nicht untergeht:** `TdUndo.Abschliessen()` muss gerufen
-> werden, sobald der Nutzer die Schreibmarke versetzt. **Der Verlauf sieht Änderungen und keine
-> Klicks** — wird es vergessen, merkt es niemand, bis einmal ein Strg+Z zu viel zurücknimmt.
+> **Mit Schritt 5 ist der Laptop wieder dran** (§5e, §5d) — Umlaute, tote Tasten, Compose,
+> Bildschirmtastatur und der Cursor am Stift lassen sich nur dort beantworten. **Vorher §5d
+> nachziehen**, bevor der Nutzer wechselt (Dauerregel 3a).
 
 > **Warum das Schreiben trotz seiner Core-Anteile hierher gehört und nicht auf den Laptop:**
 > nicht wegen der Werkzeuge, sondern wegen der **Gegenprobe**. Jede Änderung am Modell muss der
@@ -4917,7 +5010,7 @@ die Schritte 1 bis 3 lagen vollständig in Core.
 ```powershell
 cd C:\Dev\Zed\gonk-note-V2
 dotnet build -c Release       # 0 Fehler, 0 Warnungen
-dotnet test -c Release        # beide Projekte, derzeit 637 Tests
+dotnet test -c Release        # beide Projekte, derzeit 671 Tests
 ```
 
 **Und danach am laufenden Programm**, mit einer **Kopie** der echten Datenbank (Dauerregel 4,
@@ -5210,15 +5303,28 @@ erst ab Schritt 4 wird es Kopfarbeit.
       **Getippte Zeichen werden zu einem Schritt**, Schnitte sitzen an Wortgrenzen, zwischen
       Arten und bei jeder Strukturänderung — **alle an der Gestalt der Änderung und nicht an
       der Uhr** (Core fragt sie nicht, §4.20).
-- [ ] **4. Der Cursor auf dem Schirm.** Blinkende Schreibmarke und blaue Auswahl in
-      `TdRenderer` — **er kennt heute weder das eine noch das andere.** Dazu die Umkehrung des
-      Umbruchs: **welche Stelle im Modell gehört zu diesem Mausklick?**
+- [x] **4. Der Cursor auf dem Schirm.** ✅ **Erledigt 2026-08-13 (§4.34).** `TdHit` in
+      `Core/Text/TdHit.cs` (Klick → Stelle, Stelle → Papier), Schreibmarke und Auswahl im
+      `TdRenderer`; **34 Wächter**. **Der Rückweg aus §4.30 war die Hälfte** — ein Absatz sagt
+      nicht, das wievielte Zeichen getroffen wurde, und nachzählen geht nicht (weggeworfener
+      Leerraum, gerechnete Feldwerte, Umbrüche ohne Stück). Jedes gesetzte Stück trägt jetzt
+      seine Stelle im Absatz. **Die Markierung geht je Zeile an den Zeichner**, damit die
+      Auswahl hinter dem Text und über dem Zellhintergrund liegt.
 - [ ] **5. Tastatur und Maus im Linux-Kopf.** `TextDocView` nimmt Eingaben entgegen: Tippen,
       Pfeiltasten, Pos1/Ende, Umschalt-Auswahl, Ziehen mit der Maus, Doppelklick auf ein Wort.
       **`TextInput` statt `KeyDown`**, sonst gibt es keine Umlaute und keine tote Taste.
-      **Hier ist `TdUndo.Abschliessen()` zu rufen**, sobald der Nutzer die Schreibmarke
-      versetzt — der Verlauf sieht Änderungen und keine Klicks (§4.33). Wird es vergessen,
-      merkt es niemand, bis einmal ein Strg+Z zu viel zurücknimmt.
+      **Alles, was die Schritte 1 bis 4 dafür bereitlegen, steht:** `TdEdit` für die Änderung,
+      `TdUndo` für den Verlauf, `TdHit.StelleAn` für den Klick, `TdHit.Markieren` für den
+      Zeichner und `TdHit.Schreibmarke` für das Ins-Bild-Rollen.
+      **Drei Dinge, die dabei nur hier zu tun sind und die sonst niemand bemerkt:**
+      `TdUndo.Abschliessen()` rufen, sobald der Nutzer die Schreibmarke versetzt (der Verlauf
+      sieht Änderungen und keine Klicks, §4.33); die Marke **blinken** lassen, indem mal mit und
+      mal ohne Markierung gezeichnet wird (ein Takt gehört nicht in Core, §4.34); und **nach
+      jeder Änderung neu umbrechen** — was heute einmal je Dokument geschieht und mit dem
+      Schreiben fällig wird (§4.28 und die drei Fallen unten).
+      **Ebenfalls hier fällig: die Pfeiltasten nach oben und unten.** Sie sind die einzige
+      Bewegung, die den Umbruch braucht — `TdCursor` kennt nur links und rechts (§4.30), und
+      „eine Zeile höher" gibt es im Modell nicht. Die Rechnung dafür gehört zu `TdHit`.
 - [ ] **6. Das Ribbon wird ehrlich.** „Nur Ansicht" verschwindet, die Reiter **Einfügen**,
       **Verweise** und **Tabelle** kommen dazu — **erst jetzt**, denn erst jetzt stünden sie
       nicht als drei leere Flächen da (§4.28, „ein halbes Feature ist schlechter als ein
@@ -6401,7 +6507,7 @@ cd C:\Dev\Zed\gonk-note-V2
 dotnet build -c Release      # 0 Fehler / 0 Warnungen
 dotnet build -c Debug        # schneller, ohne Self-Contained/win-x64
 
-dotnet test -c Release       # beide Testprojekte, 637 Tests
+dotnet test -c Release       # beide Testprojekte, 671 Tests
 
 # Golden-Files bewusst neu setzen (danach den Diff lesen, siehe §4.6)
 $env:GONK_SNAPSHOT_UPDATE=1; dotnet test tests\GonkNote.Core.Tests; $env:GONK_SNAPSHOT_UPDATE=$null
@@ -6488,6 +6594,7 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 
 | Runde | Datum | Was |
 |---|---|---|
+| V2-45 | 2026-08-13 | **Der Cursor auf dem Schirm — Schritt 4 des Schreibens** (§4.34). `Core/Text/TdHit.cs`, drei Angaben mehr im Umbruch, Schreibmarke und Auswahl im Zeichner; **34 Wächter**, **671 Tests** grün, Bau 0/0. **Der in §4.30 versprochene Rückweg war die Hälfte:** `TdLine.Source` nennt den Absatz, aber nicht, das wievielte Zeichen angeklickt wurde — und **nachzählen geht nicht**, aus drei Gründen, von denen jeder allein genügt: Der Umbruch **wirft den Leerraum am Zeilenende weg** (wer Textlängen addiert, verzählt sich beim ersten umgebrochenen Wort und danach immer weiter), ein Feld setzt seinen **gerechneten Wert** statt seiner selbst, und ein Zeilenumbruch hinterlässt **gar kein Stück**. Die Zahl kennt nur, wer schneidet — deshalb trägt jetzt jedes gesetzte Stück seine Stelle im Absatz (`TdLaidOutRun.Linear`), jede Zeile ihren Anfang (`TdLine.Linear`) und ihren linken Rand (`TdLine.StartXCm`, für die Marke in einer leeren Zeile, wo sie beim Schreiben besonders oft steht). Dasselbe Muster wie `TdLine.Source` in §4.16, eine Ebene tiefer. **Beide Richtungen stehen als eine Rechnung nebeneinander** — Klick → Stelle und Stelle → Papier teilen sich, wie eine Zeile gefunden wird; getrennt gebaut wären es zwei, die auseinanderlaufen können, und der Fehler sähe aus wie ein Cursor, der beim Klicken woanders landet, als er danach blinkt. **Ausgenommen sind die zwei Sorten Zeilen, die nicht im Dokument stehen:** der gerechnete Inhaltsverzeichnis-Eintrag (§4.20) und die wiederholte Tabellenkopfzeile (§4.19) — beide tragen ihre Kennzeichnung seit damals mit genau dieser Begründung und werden hier zum ersten Mal benutzt. **Der Zeichner rechnet nichts:** Er bekommt eine fertige `TdMarkierung`, und zwar **je Zeile** statt in Seitenkoordinaten — so malt er den Auswahlkasten vor den Buchstaben *dieser* Zeile und die Marke danach, womit die Auswahl hinter dem Text und über dem Zellhintergrund liegt, **ohne dass die Reihenfolge der Seite umgebaut werden muss**. Ob die Marke blinkt, entscheidet der Kopf — ein Takt wäre eine Uhr in Core (§4.20), und im PDF stünde ein Strich. **Der Fund der Runde kam aus einer Mutation, die überlebt hat:** Nimmt man den **Spaltenversatz** einer Tabellenzelle in beiden Richtungen weg, findet jede Stelle weiterhin zu sich selbst — beide Rechnungen sind *gleich falsch*, und der Hin-und-zurück-Wächter bleibt grün, obwohl der Cursor in der zweiten Spalte um deren ganze Breite danebenstünde. Der Wächter prüft seitdem die **Zahl** (Seitenrand + Spalte + Innenabstand + Zeichen) — und wurde sofort rot, aus einem anderen Grund als erwartet: Die Zeilensuche prüfte **nur die Höhe**. Für gewöhnliche Zeilen ist das richtig, sie stehen untereinander; Tabellenzellen stehen nebeneinander, und so gewann immer die erste Spalte. Behoben: erst die Höhe, dann die Breite. **Vierte Runde in Folge mit derselben Regel — und diesmal mit einem Zusatz: ein symmetrischer Fehler ist die Sorte, die ein Hin-und-zurück-Wächter von Natur aus nicht sehen kann.** Wo zwei Richtungen geprüft werden, muss mindestens eine Zahl absolut festgenagelt sein. **Nichts davon ist angeschlossen** — das passiert mit Schritt 5, und mit ihm ist der Laptop wieder dran |
 | V2-44 | 2026-08-13 | **Rückgängig — Schritt 3 des Schreibens** (§4.33). `Core/Text/TdUndo.cs` und **21 Wächter**; **637 Tests** grün, Bau 0/0, reine Core-Arbeit. **Er macht nichts rückgängig** — das kann eine `TdChange` seit Schritt 2 selbst. Was er dazutut, ist das, was eine einzelne Änderung nicht wissen kann: die **Reihenfolge** der Schritte und **welche davon der Nutzer als einen erlebt hat**. **Die Frage aus §6 ist mit drei Gründen beantwortet — `TdUndo` steht neben `UndoStack` und nicht darin:** `Push` verlangt dort eine `WbPage` (eine Zeichenflächen-Aktion hält Elemente, nicht ihren Ort; ein `IEditAction<TdDocument>`, dessen `Undo(doc)` das `doc` nicht ansieht, wäre eine Signatur, die lügt), die Antwort ist dort eine **Seite** und hier eine **Auswahl** (ein Rückgängig, das den Cursor woanders stehen lässt, zwingt den Nutzer, seine Stelle wiederzufinden), und **das Zusammenfassen gibt es dort gar nicht** — wer „Hallo" tippt, hat einen Handgriff gemacht und nicht fünf; auf der Zeichenfläche stellt sich die Frage nie, denn ein Strich ist ein Zug. Die verbleibende Doppelung sind **rund zwanzig Zeilen** (zwei Listen, ein Deckel, ein Ereignis) — **nicht die Doppelung aus §4.13**, wo zweimal *Verhalten* stand, in dem derselbe Fehler zweimal wohnte; die Frage „sind das zwei?" steht als Punkt in der Aufräumrunde von Phase 6, und die Mitglieder heißen absichtlich wie drüben, damit sie sichtbar bleibt. **Das Zusammenfassen ist der zweite Ertrag der Blocksicherung:** zwei Änderungen zu einer zu machen ist hier kein Zusammenrechnen, sondern ein **Weglassen der Mitte** — das Davor der ersten, das Danach der zweiten. **Der Fund der Runde kam wieder aus dem Erproben der Wächter:** Die erste Fassung prüfte Lückenlosigkeit auf gleichen **Inhalt**, und mit dieser Mutation blieben **21 von 21 grün**. Der Fall, den sie nicht sah, ist echt — tippt man ein Zeichen und löscht es wieder, steht derselbe Text in einem **anderen** Absatz (jede Änderung baut einen neuen, §4.32); ein Inhaltsvergleich verschmölze dort, und die Rücknahme **übersprünge die Schritte dazwischen**. Geprüft wird jetzt an den **Objekten**, und ein eigener Wächter hält es fest. **Zum dritten Mal dieselbe Regel nach §4.30 und §4.32: ein Wächter, der beim absichtlichen Kaputtmachen grün bleibt, prüft nichts.** **Die Schnitte** sitzen zwischen Arten (Tippen an Tippen, Löschen an Löschen — die Art wird aus dem Inhalt **abgeleitet**, ein Parameter wäre die zweite Wahrheit, die jemand falsch setzt), nach einem **Zwischenraum**, bei jeder Strukturänderung, nach jedem Zug im Verlauf — und bei `Abschliessen()`, das **die Oberfläche rufen muss**, wenn der Nutzer die Schreibmarke versetzt: der Verlauf sieht Änderungen und keine Klicks. **Alle Schnitte hängen an der Gestalt der Änderung und nicht an der Uhr** — Core fragt sie nicht (§4.20), und ein Verlauf, der je nach Tipptempo anders gruppiert, wäre außerdem nicht prüfbar. **Benannt vereinfacht:** Löschungen fassen ohne Wortgrenze zusammen, weil das Gelöschte nicht im Inhalt der Änderung steht |
 | V2-43 | 2026-08-12 | **Was sich ändert, wenn man tippt — Schritt 2 des Schreibens** (§4.32). Eine neue Datei (`Core/Text/TdEdit.cs`) und **58 Wächter**; **616 Tests** (585 + 31) grün, Bau 0/0. **Alles läuft über einen einzigen Handgriff, `Ersetzen`:** Einfügen ist eine Ersetzung einer leeren Auswahl, Löschen eine Ersetzung durch nichts, Absatz teilen eine Ersetzung durch zwei leere Absätze — und die Rücktaste am Absatzanfang eine Ersetzung, deren Auswahl über die Absatzmarke reicht. **Damit fällt „Absätze verbinden" von selbst heraus**, ohne eine eigene Zeile; ein zweiter Weg zum selben Ergebnis ist immer der, den niemand prüft. Dasselbe Muster wie §4.17, §4.20, §4.21, §4.25 und §4.30, zum sechsten Mal. **Die tragende Entscheidung ist die Form der Gegenbewegung:** Eine `TdChange` merkt sich **die Blöcke davor und danach** und nicht den Handgriff — Rücknahme ist ein Tausch zweier Listen, `Gegenbewegung` dieselbe Änderung mit vertauschten Rollen. Ein Vermerk der Art „an Stelle X wurden drei Zeichen eingefügt" müsste beim Zurücknehmen dieselbe Rechnung spiegelverkehrt und ohne eigenen Wächter noch einmal machen — **daran scheitern Rückgängig-Funktionen, nicht am Merken, sondern an der zweiten Rechnung**. **Daraus folgt die Regel, die der ganze weitere Schreibweg erbt: Absätze und Stücke werden nie verändert, sondern ersetzt** — der alte Absatz bleibt unversehrt und *ist* die Sicherung; erprobt, indem `Absatz()` den vorhandenen umbaute: **23 von 58 Wächtern rot**. **Vier weitere Entscheidungen:** ein eingefügtes Zeichen erbt das Format **links** davon (die Einlösung der kanonischen linken Form aus §4.30 — die Stelle gehört dem Stück, das *vor* ihr endet, und daraus fällt die Erbfolge heraus, statt abgefragt zu werden); nach jeder Änderung wird der **ganze berührte Absatz aufgeräumt** (gleichformatige Nachbarn zusammengelegt, leere weg — sonst zerfiele ein Absatz mit jedem Tastendruck weiter, im DOCX ein Lauf je Zeichen); **wer in einem Verweis tippt, bleibt darin, hinter ihm nicht** (die Naht wird wieder geschlossen; Word hängt am Ende an, das ist die Eigenheit, die Leute wieder herausnehmen); und ein `\n` im eingegebenen Text wird zur **Absatzmarke** statt zu einem Zeichen im Lauf. **Eine benannte Lücke:** über eine **Tabellengrenze** hinweg wird nicht bearbeitet — abgelehnt statt geraten, denn was aus der Tabelle würde, ist eine eigene Entscheidung. **§5 „Noch offen" 8 ist mit erledigt:** `DatabaseService.GetText` legt ein noch nicht gespeichertes Dokument mit einem **leeren `TdDocument`** an — wo etwas steht, gibt es nichts zu übernehmen, ein dritter Zustand durch alle Köpfe war nicht nötig. **Am laufenden Programm in beiden Köpfen geprüft**, an einer Kopie der echten Datenbank: der Linux-Kopf zeigt für ein neues Dokument jetzt ein leeres Blatt mit nicht ausgegrautem Export statt „stammt aus der Windows-Fassung"; danach im WPF-Kopf getippt, gespeichert, Kopf gewechselt — derselbe Text, dieselben Zähler. **Der Fund der Runde stammt nicht aus der Runde:** Der **WPF-Kopf konnte seit §4.31 kein Textdokument mehr öffnen** — in `TextEditorView.xaml` blieben beim Umbau von `<Path>` auf `<views:Symbol>` fünf `Style="{StaticResource PathIcon}"` stehen, und ein Stil mit `TargetType="Path"` an einem `FrameworkElement` **wirft beim Anwenden**. Gegengeprüft durch Weglegen der eigenen Arbeit (`git stash`, neu gebaut, derselbe Fehler), dann behoben. **Keiner der zwölf Ikonen-Wächter konnte das sehen** — neun prüfen die Tabelle, drei lesen den Quelltext der XAML; der Fehler entsteht erst, wenn WPF den Stil anwendet, und das tut nur ein laufendes Fenster. Zum dritten Mal dieselbe Lehre nach §4.28 und §4.31. **Genau dafür besteht §5e auf Windows**, und diesmal hat die Gegenprobe etwas gefunden. **Nebenbefund, unbehoben:** `fehler.log` ist auf **272 MB** angewachsen und wird nie beschnitten — Phase 6 |
 | V2-42 | 2026-08-12 | **Ein Symbolsatz für alle drei Plattformen** (§4.31) — ausgelöst von einer Frage des Nutzers („können wir die Icons plattformübergreifend vereinheitlichen?"), und die Frage traf denselben blinden Fleck wie §4.26 bei den Schriften. **Der Befund:** Der WPF-Kopf setzte an **91 Stellen** Zeichen aus `Segoe Fluent Icons` (53 verschiedene) — eine **Windows-Systemschrift**, die unter Linux und iPadOS fehlt und **nicht mitgeliefert werden darf** —, dazu 14 eigene Vektoren; der Avalonia-Kopf hatte 31 eigene. `Icon.Lasso` und `Icon.Hand` gab es in **beiden Köpfen mit verschiedenen Formen** (§4.13, live), und vier **Segoe-Zeichencodes** saßen als `IconGlyph` in `GonkNote.ViewModels` — der Assembly, die laut §4.2 WPF-frei sein soll; der Compiler konnte es nicht sehen, es waren Zeichenketten. **Zum dritten Mal dieselbe Lage nach Farben (§4.9) und Schriften (§4.26).** **Nutzer-Entscheidung: alles auf einmal, Formen aus einem freien Satz.** Ihm war vorher zu sagen, dass sein Wunsch — die Windows-Formen behalten — nicht geht: Sie lassen sich **nicht mitnehmen, nur ersetzen**, und deshalb sieht auch der WPF-Kopf jetzt anders aus. Geblieben sind die zwei Formen, die ihm am Linux-Kopf besser gefielen (Notizbuch, Textdokument). Gewählt: **Lucide** (ISC, teils MIT über Feather), **71 Symbole**, davon **sieben eigene** (Notizbuch, Textdokument, Whiteboard, Geodreieck, Seitenbreite, Ganze Seite, Wiederherstellen). **Die Tabelle steht in `Core/Theming/`** (`AppIcon` + `AppIcons`), je Kopf liest sie ein kleines `Symbol`-Steuerelement; im WPF-Kopf zusätzlich eine Markup-Erweiterung `{views:Icon Undo}`, weil die Symbole dort als **Attribut** standen und nicht als Element — sonst wären aus 60 Werten 60 Knopf-Umbauten geworden. **Jede Form bringt ihren Kasten mit** (16 oder 24) statt umgerechnet zu werden: siebzig Pfadangaben mit 1,5 zu multiplizieren ist die Fleißarbeit, bei der ein Zahlendreher unbemerkt bleibt. **Ein Symbol je Bedeutung:** „Schließen" gab es dreimal, „Vergrößern" zweimal — und umgekehrt stand **eine** Glyphe für zwei Dinge (`E790` für „Format übertragen" *und* „Farbe wählen"). **Erzeugt statt abgetippt, und drei stille Fehler dabei gefunden:** ein führendes kleines `m` ist beim Aneinanderhängen zweier Pfade nicht mehr dasselbe wie ein großes (der zweite Strich eines „x" landete daneben); groß machen reicht nicht, denn nach einem großen `M` sind Folgezahlen **absolute** LineTos (der Rückgängig-Pfeil wurde zu etwas ganz anderem); und ein deutsches **Dezimalkomma** ist in einer Pfadangabe ein Trennzeichen. **Gefunden hat sie ein Kontaktblatt mit allen 71 Symbolen** — nicht der Quelltext und beim zweiten auch nicht das Parsen, denn die falsche Angabe war gültig. Dieselbe Lehre wie §4.28. **Ein vierter Fehler saß im Wächter:** `SKPath.Bounds` misst die **Stützpunkte** einer Kurve, nicht die Kurve — beim Lasso 4,5 Einheiten daneben; `TightBounds` misst richtig. **12 neue Wächter:** neun in Core (jede Form vorhanden, lesbar, im Kasten *und* den Kasten ausfüllend, gleiche Strichstärke, keine Glyphe aus dem privaten Unicode-Bereich) und **drei im WPF-Testprojekt, die den Quelltext lesen** und den Rückfall verbieten — ein Verhaltenstest könnte das nicht: Eine Glyphe im XAML sieht **unter Windows richtig aus**, falsch wird sie erst auf dem Laptop. **557 Tests** (526 + 31) grün, Bau 0/0, beide Köpfe am laufenden Programm angesehen. **Als Falle festgehalten:** Ein Namensraum, der wie das Framework heißt (`GonkNote.Avalonia.*`), **verdeckt das Framework** — danach zeigte `Avalonia.Interactivity` in jeder anderen Datei ins Leere |

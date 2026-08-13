@@ -619,4 +619,70 @@ public sealed class ZeichnerTests
         var rand = bmp.GetPixel(bmp.Width / 2, 10);
         Assert.True(rand.Red > 150 && rand.Green < 120, $"Kein Wasserzeichen im Rand, gefunden {rand}.");
     }
+
+    // ==================== Schreibmarke und Auswahl (Schritt 4) ====================
+
+    /// <summary>
+    /// <b>Ohne Markierung ändert sich am Bild nichts.</b> Das ist der wichtigere der beiden
+    /// Fälle: Beim Export, beim Drucken und in jeder Vorschau gibt es keinen Cursor — ein
+    /// Strich, der dort mitgedruckt wird, fällt erst auf dem Papier auf.
+    /// </summary>
+    [Fact]
+    public void Ohne_Markierung_wird_nichts_zusaetzliches_gezeichnet()
+    {
+        var seite = Setzen(Dok(Blatt(), new TdParagraph("MMMM")));
+
+        using var ohne = Malen(seite, massstab: 20);
+        using var leer = Malen(seite, massstab: 20, new TdRenderContext(Markierung: new TdMarkierung()));
+
+        Assert.Equal(TinteKasten(ohne), TinteKasten(leer));
+    }
+
+    /// <summary>
+    /// Die Schreibmarke ist ein senkrechter Strich über die Zeilenhöhe, an der gerechneten
+    /// Stelle.
+    /// </summary>
+    [Fact]
+    public void Die_Schreibmarke_steht_als_Strich_an_ihrer_Stelle()
+    {
+        var doc = Dok(Blatt(), new TdParagraph());          // leerer Absatz: kein Text im Weg
+        var seite = Setzen(doc);
+
+        var markierung = new TdMarkierung { MarkeZeile = seite.Lines[0], MarkeXCm = 3 };
+        using var bmp = Malen(seite, massstab: 20, new TdRenderContext(Markierung: markierung));
+
+        var kasten = TinteKasten(bmp);
+
+        // 1 cm Rand + 3 cm, bei 20 px/cm — und eine Zeile hoch (1 cm = 20 px).
+        Assert.InRange(kasten.Left, 79, 81);
+        Assert.InRange(kasten.Top, 19, 21);
+        Assert.InRange(kasten.Height, 19, 21);
+        Assert.InRange(kasten.Width, 1, 3);
+    }
+
+    /// <summary>
+    /// Der Auswahlkasten liegt in der Farbe des Editors über die **ganze Zeilenhöhe** — sonst
+    /// stünden zwischen den Zeilen weiße Streifen, und die Auswahl sähe zerrissen aus.
+    /// </summary>
+    [Fact]
+    public void Die_Auswahl_liegt_als_Kasten_ueber_der_Zeilenhoehe()
+    {
+        var doc = Dok(Blatt(), new TdParagraph());
+        var seite = Setzen(doc);
+
+        var markierung = new TdMarkierung();
+        markierung.Auswahl[seite.Lines[0]] = new TdSpanne(2, 5);
+
+        using var bmp = Malen(seite, massstab: 20, new TdRenderContext(Markierung: markierung));
+
+        // Innerhalb: 1 cm Rand + 3 cm = 80 px, Mitte der ersten Zeile = 20 + 10 px.
+        Assert.Equal(TdRenderer.Auswahlfarbe, Ohne_Alpha(bmp.GetPixel(80, 30)));
+
+        // Oberkante und Unterkante der Zeile gehören dazu, links davon nicht.
+        Assert.Equal(TdRenderer.Auswahlfarbe, Ohne_Alpha(bmp.GetPixel(80, 21)));
+        Assert.Equal(TdRenderer.Auswahlfarbe, Ohne_Alpha(bmp.GetPixel(80, 38)));
+        Assert.Equal(SKColors.White, Ohne_Alpha(bmp.GetPixel(50, 30)));
+    }
+
+    private static SKColor Ohne_Alpha(SKColor farbe) => new(farbe.Red, farbe.Green, farbe.Blue);
 }

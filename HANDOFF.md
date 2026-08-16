@@ -364,9 +364,16 @@ Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — beh
 > sie beim nächsten Speichern — nachgemessen, betrifft **jedes Bestandsdokument**.
 > **§5 „Noch offen" 9, zur Entscheidung, vor der nächsten Windows-Runde.**
 >
-> **▶ Als Nächstes: der Laptop** (§5d trägt den Auftrag seit 2026-08-16) — Umlaute, tote
-> Tasten, Compose, Bildschirmtastatur, der Cursor am Stift. **Danach wieder Windows:** Schritt 6
-> oder Schritt 7 vorgezogen, je nachdem, wie §5 „Noch offen" 9 entschieden wird.
+> **✅ Der Laptop hat das inzwischen abgearbeitet** (2026-08-16, V2-47, §4.35 „Was der Laptop
+> gefunden hat"): Umlaute **und** tote Tasten kommen an, der **Stift setzt die Marke und zieht
+> eine Auswahl**, getippt wird flüssig ohne ein verlorenes Zeichen — Compose nur deshalb nicht
+> geprüft, weil auf dem Gerät keine eingerichtet ist. **Dabei zwei alte Punkte geschlossen**
+> (§5 „Noch offen" 7 und 1) und **einen neuen aufgeworfen** (§5 „Noch offen" 10: ohne
+> Hardware-Tastatur ist nicht zu schreiben).
+>
+> **▶ Als Nächstes: Windows** (§5e); **§5d trägt keinen Auftrag mehr.** Schritt 6 oder Schritt 7
+> vorgezogen — je nachdem, wie §5 „Noch offen" **9** entschieden wird; **§5 „Noch offen" 10**
+> steht als zweite Entscheidung daneben.
 >
 > **Gearbeitet wird auf dem Windows-Rechner.** Nicht wegen der Werkzeuge, sondern wegen der
 > Gegenprobe — jede Änderung am Modell muss der WPF-Editor überleben, und beide Köpfe
@@ -383,11 +390,15 @@ Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — beh
 >   und wird nie beschnitten (§4.32). Gehört in die Aufräumrunde von Phase 6.
 > - **Ein Fund des Laptops, Arbeit und keine Entscheidung:** §5 „Noch offen" **6** — der
 >   Wortzwischenraum an einer Stückgrenze sitzt in der **Anzeige** falsch, im PDF nicht.
-> - **Halb beantwortet:** §5 „Noch offen" **7** — der Dateidialog trägt unter **Windows**
->   (§4.29), der **Portal**-Dialog unter GNOME-Wayland ist weiter ungesehen. **Zwei Minuten
->   Nutzer am Gerät**, wenn er ohnehin am Laptop sitzt.
+> - ✅ **Ganz beantwortet:** §5 „Noch offen" **7** — der Dateidialog trägt unter **Windows**
+>   (§4.29) **und unter GNOME-Wayland** (§4.35, V2-47, von Hand am Gerät geprüft). Beide
+>   Fassungen sagen dasselbe: der Pfad kommt zurück, das Format steht vorgewählt oben.
 > - **Wartet auf ein Ja:** die Aufwandsschätzung für **Phase 4.5 — 5–8 Wochen**, in
 >   `gonk-note-port-RM.MD` eingetragen, hergeleitet und **nicht gemessen** (§4.29).
+> - **Neu und zur Entscheidung:** §5 „Noch offen" **10** — ohne Hardware-Tastatur ist im
+>   Linux-Kopf **nicht zu schreiben**, weil ihm ein `TextInputMethodClient` fehlt. **Nicht
+>   linuxspezifisch**, dem WPF-Kopf fehlt dasselbe. Für eine Stylus-first-App mit noch
+>   ausstehendem iPadOS-Kopf keine Randfrage.
 > - **§5d trägt keinen Auftrag** — der nächste entsteht aus dieser Arbeit heraus. Ein
 >   Vorschlag, wann er fällig wird, steht dort.
 > - **Vor jedem Laptop-Auftrag die betroffene `.axaml` ansehen** — ob der Linux-Kopf
@@ -396,9 +407,12 @@ Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — beh
 >   Absatz des Arbeitsplans): ein Verweis bekommt so viele `/Link`-Kästen wie Wörter, und
 >   `TdRenderer` malt einen Verweis ohne jede Kennzeichnung (beide §4.27) — dazu: ein Diagramm
 >   kommt im **WPF**-Editor nicht an, mit Absicht (§4.28).
-> - **Offen zur Entscheidung, beide unverändert:** §5 „Noch offen" **3** (darf ein PDF ~200 KB
->   je Schriftfamilie wiegen — Empfehlung: ja, so lassen) und **1** (zweites Stiftgerät, der
->   einzige Punkt mit echtem Restrisiko).
+> - **Offen zur Entscheidung, unverändert:** §5 „Noch offen" **3** (darf ein PDF ~200 KB je
+>   Schriftfamilie wiegen — Empfehlung: ja, so lassen).
+> - ✅ **Nicht mehr offen:** §5 „Noch offen" **1** (zweites Stiftgerät) — am 2026-08-16 an einem
+>   **MPP**-Stift belegt, also an einer **anderen Technik** als dem eingebauten EMR-Wacom:
+>   **Druck kommt an** (§4.35, V2-47). **Der einzige Punkt mit echtem Restrisiko ist damit
+>   eingelöst.**
 
 **Tests laufen lassen:**
 
@@ -5254,15 +5268,19 @@ dotnet run --project src/GonkNote.Avalonia -- --db /tmp/gonk-test/gonknote.sqlit
 Du laeufst auf dem Windows-Rechner. Das Repo liegt in C:\Dev\Zed\gonk-note-V2.
 
 Lies dort HANDOFF.md, Abschnitt 5e ("Auftrag fuer den Windows-Rechner"). Die
-Schritte 1 bis 5 des Schreibens stehen -- der Linux-Kopf schreibt (§4.35).
+Schritte 1 bis 5 des Schreibens stehen -- der Linux-Kopf schreibt (§4.35),
+und der Laptop hat Schritt 5 gegengeprueft (§4.35, V2-47).
 
-Bevor du irgendetwas baust: §5 "Noch offen" 9 lesen und mir vorlegen. Dort
-steht die Entscheidung, an der die naechste Runde haengt -- Schritt 6 (das
-Ribbon) oder Schritt 7 (Rtf verliert die Fuehrung) vorgezogen. Frag mich,
-wenn ich nicht schon geantwortet habe; raten gilt hier nicht.
+Bevor du irgendetwas baust: §5 "Noch offen" 9 UND 10 lesen und mir beide
+vorlegen. Dort stehen die zwei Entscheidungen, an denen die naechste Runde
+haengt -- Nr. 9: Schritt 6 (das Ribbon) oder Schritt 7 (Rtf verliert die
+Fuehrung) vorgezogen. Nr. 10: ohne Hardware-Tastatur ist nicht zu schreiben,
+dem Kopf fehlt ein TextInputMethodClient. Frag mich, wenn ich nicht schon
+geantwortet habe; raten gilt hier nicht.
 
-Lies vorher §4.35 (was gebaut wurde) und §4.28 (wie der Kopf gebaut ist),
-dazu §7 "Der Avalonia-Kopf" und die Fallen am Ende von §6.
+Lies vorher §4.35 (was gebaut wurde UND was der Laptop dazu gefunden hat)
+und §4.28 (wie der Kopf gebaut ist), dazu §7 "Der Avalonia-Kopf" und die
+Fallen am Ende von §6.
 
 Zieh zuerst den Stand: git pull. Dann bauen und testen, bevor du etwas anfasst --
 0 Fehler, 0 Warnungen, 693 Tests.
@@ -5281,7 +5299,7 @@ Sie standen offen, **weil sie auf dem Laptop nicht zu erledigen waren**. Der Bef
 | # | Was | Ergebnis |
 |---|---|---|
 | **1** | `About.Version` im WPF-Dialog | ✅ **Stimmt, beide Sprachen**, am laufenden Programm geprüft. §5 „Noch offen" 5 erledigt |
-| **2** | Der Dateidialog des Linux-Kopfs | ✅ **Beide Fragen: ja.** Vorgewähltes Format *und* vorbelegter Dateiname, und der Pfad kommt zurück. PDF und DOCX geschrieben, das DOCX wieder eingelesen. **Offen bleibt nur der Portal-Fall** unter Wayland — §5 „Noch offen" 7 |
+| **2** | Der Dateidialog des Linux-Kopfs | ✅ **Beide Fragen: ja.** Vorgewähltes Format *und* vorbelegter Dateiname, und der Pfad kommt zurück. PDF und DOCX geschrieben, das DOCX wieder eingelesen. **Der Portal-Fall ist seit dem 2026-08-16 ebenfalls geprüft** (V2-47, von Hand am Laptop): dieselben zwei Ja. §5 „Noch offen" 7 ist damit **ganz zu** |
 | **3** | `gonk-note-port-RM.MD` nachziehen | ✅ **Phase 4.5 eingetragen, M2 dorthin verschoben**, Zeitrahmen ergänzt. Die Aufwandszahl (5–8 Wochen) ist ein **Vorschlag** und wartet auf das Ja des Nutzers |
 
 > **Dabei gefunden, und es hat sich mit Schritt 2 aufgelöst wie angekündigt:** Ein **neu
@@ -5318,11 +5336,25 @@ Rechnungen kamen dafür in Core dazu (`TdHit.Hoch`/`Runter`, `TdHit.Zeilenrand`,
 `TdCursor.Wort`), Modell und Verlauf liegen am Register. Der Umbruch nach jeder Änderung ist
 **gemessen** und nicht geraten.
 
+**✅ Schritt 5 ist auf dem Laptop gegengeprüft** (§4.35, „Was der Laptop gefunden hat", V2-47):
+Umlaute **und** tote Tasten kommen an, der **Stift setzt die Marke und zieht eine Auswahl**,
+getippt wird flüssig — **kein Zeichen verloren, auch nicht in einem Dokument mit 32 Seiten**.
+Der Umbruch ist dort **schneller als hier**; die 40-ms-Grenze fällt erst bei ~32 Seiten. **Damit
+ist `TextInput` statt `KeyDown` gemessen und nicht mehr vermutet.**
+
 **▶ Dran ist Schritt 6 — oder Schritt 7 vorgezogen. Das entscheidet der Nutzer**, denn die
 Gegenprobe dieser Runde hat §5 „Noch offen" **9** aufgeworfen: Bei einem Dokument mit gefülltem
 `Rtf` zeigt der WPF-Editor die Linux-Arbeit nicht und **löscht sie beim nächsten Speichern**.
 Solange das steht, ist Schritt 5 nur für Dokumente gefahrlos, die der WPF-Editor nie
 beschrieben hat.
+
+**⚠ Und eine zweite Entscheidung ist dazugekommen: §5 „Noch offen" 10.** Der Laptop hat
+gefunden, dass **ohne Hardware-Tastatur im Kopf nicht zu schreiben ist** — GNOMEs
+Bildschirmtastatur erscheint nicht, und von Hand hervorgeholt kommt trotzdem nichts an. Die
+Ursache liegt **hier und nicht drüben**: im ganzen Avalonia-Kopf gibt es **kein
+`TextInputMethodClient`**. **Dem WPF-Kopf fehlt dasselbe**, dort fällt es nur nicht auf. Für
+eine Stylus-first-App mit noch ausstehendem iPadOS-Kopf ist das keine Randfrage — **beide
+Entscheidungen gehören dem Nutzer vorgelegt, bevor gebaut wird.**
 
 > **Was die Schritte 1 bis 5 mitgenommen haben und nicht noch einmal zu suchen ist:** die Frage
 > nach der Formaterbung (beantwortet: links, wie in Word), §5 „Noch offen" 8 (erledigt), die
@@ -5330,9 +5362,10 @@ beschrieben hat.
 > der Rückweg vom Papier ins Modell (§4.34) und **was ein Umbruch wirklich kostet** (§4.35 —
 > und das Verzeichnis ist es nicht).
 
-> **⚠ Jetzt ist der Laptop dran** (§5d) — Umlaute, tote Tasten, Compose, Bildschirmtastatur und
-> der Cursor **am Stift** lassen sich nur dort beantworten, und keine dieser Fragen kann ein
-> Wächter stellen. **§5d trägt den Auftrag seit dem 2026-08-16.**
+> **✅ Der Laptop ist durch** (§5d, V2-47 vom 2026-08-16) — Umlaute, tote Tasten,
+> Bildschirmtastatur und der Cursor **am Stift** sind beantwortet, Compose nur deshalb nicht,
+> weil auf dem Gerät keine eingerichtet ist (und das ist die Antwort, nicht eine Lücke).
+> **§5d trägt keinen Auftrag mehr.**
 
 > **Warum das Schreiben trotz seiner Core-Anteile hierher gehört und nicht auf den Laptop:**
 > nicht wegen der Werkzeuge, sondern wegen der **Gegenprobe**. Jede Änderung am Modell muss der
@@ -5354,13 +5387,23 @@ sieht der andere Kopf, nachdem dieser gespeichert hat?*
 
 ### Wann der Laptop wieder dran ist
 
-**Jetzt.** Schritt 5 steht (§4.35), `TextDocView` nimmt Tastatur und Maus an — und damit sind
-die Fragen fällig, die nur dort zu beantworten sind: Umlaute, tote Tasten und Compose über
-`TextInput` auf XWayland, die Bildschirmtastatur, und ob sich der Cursor **mit dem Stift**
-setzen lässt. **Der Auftrag steht seit dem 2026-08-16 in §5d** (Dauerregel 3a).
+**Nicht jetzt.** Er hat Schritt 5 am 2026-08-16 abgearbeitet (V2-47), **§5d trägt keinen
+Auftrag**, und auf dem Gerät steht derzeit nichts mehr offen, was nur er beantworten könnte —
+außer zwei alten Stift-Fragen (§5a „Offen" 2 und 3: eine Xorg-Sitzung als Vergleich und die
+Druckschwelle unten).
 
-**Danach ist wieder Windows dran** — mit Schritt 6 oder mit dem vorgezogenen Schritt 7, je
-nachdem, wie §5 „Noch offen" 9 entschieden wird.
+**Fällig wird er wieder mit Schritt 6**, sobald die drei Reiter im Linux-Ribbon stehen und sich
+Formate wirklich setzen lassen — **oder** sobald jemand `TextInputMethodClient` baut (§5 „Noch
+offen" 10), denn ob die Bildschirmtastatur danach wirklich aufgeht, ist erneut eine Frage, die
+nur dort zu beantworten ist. **Wenn es so weit ist, gehört der Auftrag nach §5d, bevor der
+Nutzer wechselt** (Dauerregel 3a).
+
+> **Zwei Punkte, die der Laptop mitgeschlossen hat und die hier nicht noch einmal zu suchen
+> sind:** der **Dateidialog** (§5 „Noch offen" 7 — jetzt in beiden Fassungen geprüft, Win32 wie
+> Portal) und das **zweite Stiftgerät** (§5 „Noch offen" 1 — ein **MPP**-Stift, andere Technik
+> als der eingebaute EMR-Wacom, **Druck kommt an**). Damit ist „läuft mit jedem Stylus" (§1)
+> zum ersten Mal an zwei Stifttechniken belegt und **der einzige Punkt mit echtem Restrisiko
+> eingelöst.**
 
 **Vor jedem Laptop-Auftrag die betroffene `.axaml` ansehen** — ob der Linux-Kopf überhaupt
 kann, was der Auftrag verlangt. In §4.26 ist genau das schiefgegangen.
@@ -5371,6 +5414,13 @@ kann, was der Auftrag verlangt. In §4.26 ist genau das schiefgegangen.
 > verloren, und der **Portal-Dateidialog** ist unter GNOME-Wayland weder zu fotografieren noch
 > zu bedienen. **Das gilt drüben, nicht hier** — unter Windows tun es die Skripte in `tools\`
 > wie gewohnt.
+>
+> **Dazu ein dritter Werkzeugfehler, gefunden am 2026-08-16** (§4.35): `zeiger` tippte
+> **Latin-1-Zeichen gar nicht** — `äöüß` erzeugte keinen einzigen Tastendruck, und auf dem
+> Schirm sah das aus, als schluckte der Kopf die Umlaute. Behoben. **Die Lehre daraus gilt auch
+> hier:** Wenn eine Prüfung am Laptop etwas findet, das nach einem Fehler der App aussieht,
+> **erst das Werkzeug ausschließen** — das ist jetzt zweimal hintereinander die Ursache
+> gewesen, und beide Male hätte es eine falsche Zeile im HANDOFF gegeben.
 
 ---
 

@@ -1,6 +1,6 @@
 # Gonk Note V2 — Projektübergabe
 
-**Stand: 2026-08-16 · Version 0.3.0 · net10.0 · SkiaSharp 3 · SQLite · Avalonia 12 · ✅ M1 erreicht · ✅ Phase 4 abgeschlossen (§4.28): Dokumentmodell, Übernahme, DOCX/Markdown/PDF/PNG gegen das Modell, Zeichner samt Diagrammen, Schriftkonzept — und die Anzeige im Linux-Kopf, **auf dem Laptop gegengeprüft** (§4.28, V2-37). ✅ **Aufgeräumt vor dem Schreiben** (§4.29, V2-40). ⏳ **Das Schreiben läuft** (§6): **Schritte 1 bis 5 stehen** — Stelle, Änderung, Verlauf, Trefferrechnung und seit dem 2026-08-16 **Tastatur und Maus: der Linux-Kopf schreibt** (§4.35, V2-46). **693 Tests.** ▶ **Dran ist der Laptop** (§5d: Umlaute, tote Tasten, Compose, Stift). ⚠ **Und eine Entscheidung steht an, bevor es unter Windows weitergeht: §5 „Noch offen" 9** — bei gefülltem `Rtf` überschreibt der WPF-Editor die Linux-Arbeit still**
+**Stand: 2026-08-16 · Version 0.3.0 · net10.0 · SkiaSharp 3 · SQLite · Avalonia 12 · ✅ M1 erreicht · ✅ Phase 4 abgeschlossen (§4.28): Dokumentmodell, Übernahme, DOCX/Markdown/PDF/PNG gegen das Modell, Zeichner samt Diagrammen, Schriftkonzept — und die Anzeige im Linux-Kopf, **auf dem Laptop gegengeprüft** (§4.28, V2-37). ✅ **Aufgeräumt vor dem Schreiben** (§4.29, V2-40). ⏳ **Das Schreiben läuft** (§6): **Schritte 1 bis 5 stehen** — Stelle, Änderung, Verlauf, Trefferrechnung und seit dem 2026-08-16 **Tastatur und Maus: der Linux-Kopf schreibt** (§4.35, V2-46). **693 Tests.** ✅ **Schritt 5 ist auf dem Laptop gegengeprüft** (§4.35, V2-47): Umlaute, tote Tasten und der Cursor am Stift tragen, getippt wird flüssig und **ohne ein verlorenes Zeichen**, 662/662 grün — dabei **zwei alte Punkte geschlossen** (Dateidialog und ein zweites Stiftgerät, MPP mit Druck). ▶ **Dran ist Windows** (§5e); §5d trägt keinen Auftrag. ⚠ **Zwei Entscheidungen stehen an: §5 „Noch offen" 9** — bei gefülltem `Rtf` überschreibt der WPF-Editor die Linux-Arbeit still — **und §5 „Noch offen" 10**: ohne Hardware-Tastatur ist nicht zu schreiben, dem Kopf fehlt ein `TextInputMethodClient`**
 
 > **📌 Dauerregeln des Nutzers — gelten immer, ohne Nachfragen:**
 >
@@ -4389,6 +4389,116 @@ Wahrheiten haben"). **Nachgemessen ist es schlimmer als das**, und zwar in diese
   Eingefügt wird über **denselben** Handgriff wie das Tippen — dass Zeilenumbrüche zu Absätzen
   werden, steht in `TdFragment.Text` und nicht ein zweites Mal im Kopf (§4.13).
 
+#### Was der Laptop gefunden hat (2026-08-16, V2-47)
+
+**Der Ablauf zuerst:** `dotnet build src/GonkNote.Core` und `src/GonkNote.Avalonia` je **0/0**,
+`dotnet test tests/GonkNote.Core.Tests` **662/662 grün** — die im Auftrag genannte Zahl, nichts
+rot. Geprüft am laufenden Kopf gegen eine eigene Datenbank unter `/tmp` (keine Kopie der echten
+Daten, §5d).
+
+| Frage | Antwort |
+|---|---|
+| **1 Umlaute und tote Tasten** | ✅ **Ja, beides.** `äöüß ÄÖÜ` stehen vollständig und mit richtiger Groß-/Kleinschreibung auf dem Blatt. Die tote Taste setzt zusammen: `^`+`e` gibt **`ê`**, `´`+`a` gibt **`á`** — nicht `^e` und `´a` |
+| **2 Compose** | ⚠ **Ungeprüft, weil nicht eingerichtet** — und das ist die Antwort, nicht eine Lücke. Auf diesem Laptop gibt es **kein `Multi_key`** im Keymap, `org.gnome.desktop.input-sources xkb-options` ist leer und `~/.XCompose` fehlt. Der Auftrag verlangt ausdrücklich, das zu notieren statt eine Compose-Taste einzurichten |
+| **3 Der Cursor am Stift** | ✅ **Volles Ja.** Antippen setzt die Schreibmarke, und Aufsetzen-und-Ziehen wählt aus. Avalonia liefert `PointerPressed`/`PointerMoved` unter Wayland für den Stift also genauso wie für die Maus — dass der Eingabepfad beide nicht unterscheidet, ist damit richtig und keine Wette |
+| **4 Die Bildschirmtastatur** | ❌ **Nein, und zwar doppelt** — schlechter als die Erwartung im Auftrag. Siehe unten |
+| **5 Läuft es flüssig?** | ✅ **Ja, und dieser Laptop ist schneller als der Windows-Rechner.** Siehe die Tabelle unten |
+
+##### Der Fund, der keiner der App war — und beinahe als einer aufgeschrieben worden wäre
+
+**Der erste Versuch mit `äöüß ÄÖÜ` ergab: nichts.** Kein Zeichen kam an, der Zähler blieb stehen.
+Auf dem Schirm sah das aus, als schluckte `TextDocView` genau die Zeichen, um derentwillen es
+diesen Laptop gibt.
+
+> **Es war `zeiger`.** `Tippen` sucht für jedes Zeichen den Keysym `0x01000000 + Codepunkt` —
+> den gibt es für `ä` auf keiner Belegung, denn die Keysyms `0x20`–`0xFF` **sind** Latin-1
+> (`adiaeresis` = `0x00e4`). Die Rückfallzeile darunter hörte bei `~` auf, also blieb der
+> Tastencode `0` und die Funktion brach ab, **ohne eine einzige Taste zu drücken**.
+>
+> **Das ist dieselbe Falle wie eine Runde zuvor, nur eine Ebene tiefer**: damals stimmte die
+> Umschalt-**Ebene** nicht (§4.28), diesmal wird der Keysym gar nicht erst gefunden. Beide Male
+> sah das Werkzeug wie die App aus. **Behoben** — die Rückfallzeile reicht jetzt bis `ÿ`; die
+> Begründung steht im Quelltext, damit sie beim dritten Mal schon dasteht. Linuxspezifisch, also
+> nach §5d hier behoben.
+
+**Was daran hängt:** Ohne diese Trennung stünde jetzt „der Linux-Kopf verliert Umlaute" im
+HANDOFF, §6 hätte seine Entscheidung für `TextInput` zurückgenommen, und der Windows-Rechner
+hätte eine Runde lang einen Fehler gesucht, den es nie gab. **`TextInput` statt `KeyDown` war
+richtig** — das ist hiermit gemessen und nicht mehr vermutet.
+
+> **Eine Einschränkung, die genannt sein will:** `dead_grave` liegt auf der **Umschalt**-Ebene
+> derselben Taste wie `dead_acute`, und der `#Taste`-Weg von `zeiger` drückt die Rohtaste ohne
+> Ebene. Der dritte Versuch hat deshalb wieder Akut getippt (`ú`). **Grave ist damit nicht
+> geprüft**, Zirkumflex und Akut sind es — und die Frage aus §5d lautete auf Zirkumflex.
+
+##### Die Bildschirmtastatur: nicht nur unsichtbar, sondern taub
+
+Es ist **keine** installiert (`squeekboard`, `onboard`, `caribou` fehlen alle), GNOMEs eigene
+stand auf `false`. Sie ist für die Prüfung eingeschaltet und **danach wieder zurückgesetzt**
+worden.
+
+- **Sie erscheint nicht von selbst**, wenn die Textfläche den Fokus hat. Der Grund steht im
+  Quelltext und ist eindeutig: **im ganzen Avalonia-Kopf gibt es kein `TextInputMethodClient`**.
+  `TextDocView` hört auf `TextInputEventArgs` und meldet sich nirgends als Eingabeziel an — die
+  Tastatur hat also nichts, woran sie andocken könnte. Genau das hatte §4.35 erwartet.
+- **Und von Hand hervorgeholt kommt trotzdem nichts an.** Das ist der Teil, der über die
+  Erwartung hinausgeht: es ist nicht nur das Aufklappen, das fehlt, sondern die Eingabe selbst.
+
+> **Damit ist die App auf diesem Laptop ohne Hardware-Tastatur nicht zu beschreiben.** Das ist
+> ein benannter Zustand und kein Fehler dieser Runde — es steht als neue Frage in §5 „Noch
+> offen" **10**, denn für ein Gerät, das der Stift-Fall ausdrücklich mitmeint, ist es eine
+> Entscheidung und keine Kleinigkeit.
+
+##### Die Umbruchrechnung auf diesem Laptop — gemessen, nicht angenommen
+
+Dieselbe Messung wie in §4.35, hier nachgefahren (Release, voller Umbruch, echte
+`TdSkiaMeasure`, Median aus sieben Läufen, frische Messung je Lauf):
+
+| Dokument | Seiten | ohne Verzeichnis | mit Verzeichnis | Windows (§4.35) |
+|---|---|---|---|---|
+| 30 Absätze | 2 | **3,4 ms** | 6,4 ms | 4,5 / 7,4 ms |
+| 150 Absätze | 8 | **19,6 ms** | 41,8 ms | 25,1 / 27,6 ms |
+| 600 Absätze | 32 | **42,7 ms** | 71,2 ms | — / 207,7 ms |
+
+**Der Laptop rechnet durchweg schneller als der Windows-Rechner** — die Sorge aus §5d („auf
+diesem Laptop kann die Schwelle anders liegen") beantwortet sich damit nach der guten Seite.
+Die **40-ms-Grenze** aus `UmbruchAnstossen` wird erst bei **rund 32 Seiten** überschritten;
+darunter wird sofort gerechnet.
+
+> **Zwei Zahlen sind nicht direkt vergleichbar, und das gehört dazu:** Das Prüfdokument ist
+> nicht dasselbe wie unter Windows (dieselbe Absatzzahl ergibt hier 8 statt 9 und 32 statt 35
+> Seiten), und die Spalte „mit Verzeichnis" trägt hier eine Überschrift je zehn Absätze — ein
+> längeres Verzeichnis als drüben. **Die Form stimmt trotzdem überein:** was zählt, ist die
+> Länge des Dokuments, nicht das mehrfache Rechnen des Verzeichnisses.
+
+**Am laufenden Kopf gegengeprüft, und das ist die eigentliche Antwort auf Frage 5:**
+
+| Was | Ergebnis |
+|---|---|
+| 169 Zeichen am Stück in ein kurzes Dokument (~76 Zeichen/s, schneller als Handtippen) | ✅ Zähler steht auf **198** — 195 Zeichen plus drei Absatzmarken, **exakt** |
+| 101 Zeichen in ein Dokument mit **32 Seiten** und 85.691 Zeichen | ✅ Zähler geht auf **85.792**, also 85.691 + 101 — **kein einziges Zeichen verloren** |
+
+**Das ist der Beleg für die Weiche aus §4.35**: Oberhalb der Schwelle hinkt das Bild hinterher,
+**das Modell nie**. Bei 32 Seiten liegt der Umbruch mit 42,7 ms knapp darüber, das Sammeln greift
+also — und trotzdem kommt jedes Zeichen an.
+
+##### Zwei alte Punkte, beide erledigt
+
+- **Der Dateidialog** (§5 „Noch offen" 7) ist **geprüft und in Ordnung**: `Datei → Dokument
+  importieren…` mit einer DOCX bringt das Dokument wirklich in den Kopf, und im
+  Speichern-Dialog steht **PDF oben vorgewählt**. Offen war seit dem 2026-08-11 genau die
+  **Wayland-Hälfte** — die Win32-Fassung hatte V2-40 unter Windows schon beantwortet (§4.29),
+  und das ist eine andere Umsetzung derselben Avalonia-Schnittstelle. **Beide Fassungen sagen
+  jetzt dasselbe**, damit ist der Punkt ganz zu. Nur von Hand zu prüfen — der Portal-Dialog
+  bleibt nicht fernsteuerbar (§4.28).
+- **Ein zweites Stiftgerät** (§5 „Noch offen" 1) lag vor, und zwar ein **MPP**-Stift — also eine
+  **andere Technik** als der eingebaute EMR-Wacom. Mit **F9** gegengeprüft: **Druck kommt an.**
+  Damit ist die Anforderung „läuft mit jedem Stylus" zum ersten Mal an zwei verschiedenen
+  Stifttechniken belegt und **der einzige Punkt mit echtem Restrisiko ist eingelöst**.
+
+**Nicht geprüft, und benannt:** Compose (nicht eingerichtet, siehe oben), eine Xorg-Sitzung als
+Vergleich (§5a „Offen" 2) und die Druckschwelle unten (§5a „Offen" 3).
+
 ---
 
 ## 5. Entscheidungen
@@ -4463,12 +4573,15 @@ Wahrheiten haben"). **Nachgemessen ist es schlimmer als das**, und zwar in diese
 
 **Noch offen:**
 
-1. **Zweites Stylus-Gerät** (MPP und/oder EMR) — der einzige Punkt mit echtem Restrisiko,
-   siehe §5a „Offen". Die Anforderung „läuft mit jedem Stylus" ist bis dahin unbeantwortet.
-   **Er ist mit der Zeichenfläche akut geworden.** Was sich seit §4.10 geändert hat: der
-   Rückfall ohne Druck ist jetzt gebaut und nachweislich wirksam (die Stift-Anzeige liest
-   ihn ab), und mit **F9** gibt es ein Messgerät, das die Frage an einem fremden Gerät in
-   einer Minute beantwortet. **Der Punkt ist damit kleiner geworden, aber nicht erledigt.**
+1. ✅ **Beantwortet am 2026-08-16: ein zweiter Stift läuft, und zwar mit anderer Technik.**
+   Auf dem Laptop mit **F9** gegengeprüft (§4.35, „Was der Laptop gefunden hat"): Der zweite
+   Stift ist ein **MPP**-Gerät — nicht dieselbe Technik wie der eingebaute EMR-Wacom —, und
+   **Druck kommt an**. Kein Rückfall, echte Werte.
+
+   **Damit ist die Anforderung „läuft mit jedem Stylus" (§1) zum ersten Mal an zwei
+   verschiedenen Stifttechniken belegt** und der einzige Punkt mit echtem Restrisiko
+   eingelöst. Was er vorher war, steht in §5a „Offen"; er stand seit §4.10 offen und war mit
+   der Zeichenfläche akut geworden.
 2. ✅ **Beantwortet am 2026-08-11: das Schreiben im Linux-Kopf zuerst — Weg (a).**
    **Nutzer-Entscheidung**, gegen die Empfehlung dieses Dokuments (die auf Phase 4.5 lautete,
    Begründung steht weiter unten in §6). **Sie gilt.**
@@ -4527,8 +4640,17 @@ Wahrheiten haben"). **Nachgemessen ist es schlimmer als das**, und zwar in diese
    Arbeit** — es steht hier, damit es nicht untergeht, bis eine Windows-Runde es aufgreift.
    Es fällt nur bei Text mit mehreren Zeichenformaten auf. Vermerkt 2026-08-11.
 
-7. ⏳ **Der Dateidialog des Linux-Kopfs — unter Windows beantwortet, unter Wayland weiter
-   offen.** Er öffnet sich und blockiert richtig (§4.28), aber die zwei Fragen aus §5d —
+7. ✅ **Beantwortet am 2026-08-16 (V2-47): auch der Portal-Dialog trägt.** Die Wayland-Hälfte,
+   die unten als „was offen bleibt" steht, ist von Hand am Gerät geprüft (§4.35, „Was der
+   Laptop gefunden hat"): `Datei → Dokument importieren…` mit einer DOCX **bringt das Dokument
+   wirklich in den Kopf**, und im Speichern-Dialog steht **PDF oben vorgewählt** — dieselben
+   zwei Ja wie unter Windows. **Damit ist der Punkt ganz zu**, in beiden Dialog-Fassungen.
+
+   **Fernsteuern lässt er sich weiterhin nicht** (§4.28); jede weitere Prüfung ist wieder
+   Handarbeit. Der Verlauf, der dahin geführt hat, steht darunter.
+
+   ⏳ *(Stand bis 2026-08-16 — unter Windows beantwortet, unter Wayland offen.)*
+   Er öffnet sich und blockiert richtig (§4.28), aber die zwei Fragen aus §5d —
    **kommt ein Pfad zurück**, und **steht das vorgewählte Format oben** — konnten auf dem
    Laptop nicht beantwortet werden: unter GNOME-Wayland ist es der **Portal**-Dialog, also
    ein natives Wayland-Fenster, und das ist mit `tools/linux` weder zu fotografieren noch zu
@@ -4583,6 +4705,36 @@ Wahrheiten haben"). **Nachgemessen ist es schlimmer als das**, und zwar in diese
    **Nichts davon ist in dieser Runde gebaut worden**, weil jede Antwort eine Entscheidung des
    Nutzers ist. Bis dahin gilt: **im Linux-Kopf gefahrlos schreiben lässt sich nur, was der
    WPF-Editor nie beschrieben hat.**
+
+10. ⚠ **Zur Entscheidung: Ohne Hardware-Tastatur ist im Linux-Kopf nicht zu schreiben.** Auf
+    dem Laptop gefunden am 2026-08-16 (§4.35, „Was der Laptop gefunden hat"): GNOMEs
+    Bildschirmtastatur **erscheint nicht**, wenn die Textfläche den Fokus hat — und **von Hand
+    hervorgeholt kommt trotzdem nichts an**. Beides gemessen, nicht vermutet.
+
+    **Die Ursache liegt im Kopf und nicht im System:** Im ganzen Avalonia-Kopf gibt es **kein
+    `TextInputMethodClient`**. `TextDocView` ist ein selbstgebautes Steuerelement, das auf
+    `TextInputEventArgs` hört; es meldet sich nirgends als Eingabeziel an, also hat die
+    Tastatur nichts, woran sie andocken könnte. §4.35 hatte das erwartet — **dass auch von
+    Hand nichts ankommt, geht darüber hinaus.**
+
+    **Warum das eine Entscheidung ist und keine Kleinigkeit:** Das Ziel ist eine
+    **Stylus-first**-App (§1), und der **iPadOS-Kopf steht noch aus** — dort ist die
+    Bildschirmtastatur nicht die Ausnahme, sondern der Normalfall. Ein Gerät, das man in die
+    Hand nimmt und mit dem Stift bedient, ohne Tastatur nicht beschreiben zu können, ist keine
+    Randfrage, sondern trifft den Zweck der App.
+
+    **Drei Antworten sind denkbar:**
+    (a) **`TextInputMethodClient` umsetzen** — Avalonia gibt die Naht her, aber sie will
+    bedient werden: wo die Marke steht, was der umgebende Text ist, was gerade zusammengesetzt
+    wird. Das löst es an der Wurzel und ist **eine eigene Runde**.
+    (b) **Vertagen bis zum iPadOS-Kopf** und es dort zusammen mit dessen Eingabe bauen — dann
+    steht es einmal statt zweimal, kostet aber bis dahin die Tablet-Benutzung unter Linux.
+    (c) **Als Grenze hinnehmen** und im HANDOFF benannt lassen. Am billigsten, und für einen
+    Entwicklungsstand vertretbar — für eine Stylus-first-App auf Dauer nicht.
+
+    **Empfehlung: (a), aber nicht vor Schritt 6.** Es ist nicht linuxspezifisch — dem WPF-Kopf
+    fehlt dasselbe, dort fällt es nur nicht auf, weil eine Tastatur danebensteht. **Also gehört
+    es nach Windows** (§5d) und ist in dieser Runde ausdrücklich nicht angefasst worden.
 
 **Beantwortet und hier nur noch als Verweis** — der volle Wortlaut stand bis zum 2026-08-11
 darunter und wurde von niemandem mehr gelesen; was gilt, steht in der Tabelle oben:
@@ -5047,70 +5199,30 @@ dotnet run --project src/GonkNote.Avalonia -- --db /tmp/gonk-test/gonknote.sqlit
 
 ---
 
-### ▶ Aktueller Auftrag — **das Schreiben unter Linux** (Stand 2026-08-16, nach Runde V2-46)
+### ▶ Aktueller Auftrag — **keiner offen** (Stand 2026-08-16, nach Runde V2-47)
 
-> **Schritt 5 steht** (§4.35): `TextDocView` nimmt Tastatur und Maus an — **der Linux-Kopf
-> schreibt.** Unter Windows läuft er sauber (getippt, ausgewählt, gelöscht, rückgängig
-> gemacht, in beiden Köpfen gegengeprüft). **Was Windows nicht beantworten kann, ist die
-> Tastatur selbst** — und genau dafür bist du dran.
+> **Der Auftrag vom 2026-08-16 („das Schreiben unter Linux") ist abgearbeitet.** Befund:
+> **§4.35, „Was der Laptop gefunden hat"**. Kurzfassung unten in der Tabelle.
 >
-> **Vorher lesen:** §4.35 (was gebaut wurde und warum), §4.28 „Was den Laptop dabei aufgehalten
-> hat" (die drei Löcher im Werkzeug — das spart eine Stunde) und §5b.
+> **Alle fünf Fragen sind beantwortet**, dazu die zwei Zusatzpunkte — und **beide alten
+> Laptop-Punkte sind damit zu**: der Dateidialog (§5 „Noch offen" 7) und das zweite Stiftgerät
+> (§5 „Noch offen" 1, der einzige Punkt mit echtem Restrisiko). **Auf diesem Laptop steht
+> derzeit nichts mehr offen, was nur er beantworten könnte** — außer den zwei alten
+> Stift-Fragen unten.
 >
-> **Der Ablauf wie immer:** `git pull`, dann `dotnet build src/GonkNote.Core` und
-> `dotnet build src/GonkNote.Avalonia` (0/0), dann `dotnet test tests/GonkNote.Core.Tests`
-> (**662** erwartet — `GonkNote.Wpf.Tests` gibt es hier nicht). **Erst danach anfassen.**
+> **Was der Laptop gefunden hat und nach Windows gehört**, steht als **§5 „Noch offen" 10**:
+> Ohne Hardware-Tastatur ist im Linux-Kopf nicht zu schreiben — dem Kopf fehlt ein
+> `TextInputMethodClient`. **Nicht linuxspezifisch** (dem WPF-Kopf fehlt er genauso), deshalb
+> nach §5d hier nicht angefasst.
 >
-> **Ein Dokument zum Schreiben brauchst du, und der Dateidialog hilft dir dabei nicht** (er ist
-> nicht fernsteuerbar). Zwei Wege: `Datei → Neues Textdokument` im Kopf selbst — das reicht für
-> alle fünf Fragen —, oder das Wegwerf-Programm aus §4.28 („Wie das Dokument dann doch in den
-> Kopf kam").
+> **Fällig wird der Laptop wieder**, wenn Schritt 6 (die Formate) im Linux-Kopf steht — oder
+> sobald jemand `TextInputMethodClient` baut, denn ob die Bildschirmtastatur danach wirklich
+> aufgeht, ist wieder eine Frage, die nur hier zu beantworten ist. Der Auftrag dafür wird aus
+> der Windows-Runde heraus hier hineingeschrieben.
 >
-> **Die fünf Fragen, alle nur hier zu beantworten:**
->
-> 1. **Umlaute und tote Tasten.** Tippe `äöüß` und `ÄÖÜ`. Dann eine **tote Taste**: `^` gefolgt
->    von `e` muss `ê` ergeben und nicht `^e`. **Das ist die Frage, um derentwillen der Kopf auf
->    `TextInput` und nicht auf `KeyDown` hört** (§6) — wenn hier etwas fehlt, ist die
->    Entscheidung falsch gewesen und muss begründet anders lauten.
-> 2. **Compose.** Falls eine Compose-Taste eingerichtet ist: `Compose` `o` `c` → `©`. Wenn
->    keine eingerichtet ist, **das notieren statt es einzurichten** — die Antwort „ungeprüft,
->    weil nicht eingerichtet" ist brauchbar, eine geratene nicht.
-> 3. **Der Cursor am Stift.** Setzt ein Antippen mit dem Stift die Schreibmarke, und lässt sich
->    damit **ziehen** (also auswählen)? Der Eingabepfad fragt nur nach `PointerPressed` und
->    `PointerMoved` und unterscheidet Stift und Maus nicht — **die Frage ist, ob Avalonia das
->    unter Wayland genauso liefert.** Falls der Stift nichts auslöst: schreibt die **Maus**
->    an derselben Stelle? Das trennt „Stift kommt nicht an" von „Eingabe kommt nicht an".
-> 4. **Die Bildschirmtastatur.** Falls eine erreichbar ist (`squeekboard`, `onboard`, GNOMEs
->    eigene): Kommt Getipptes im Dokument an? Erscheint sie überhaupt, wenn die Zeichenfläche
->    den Fokus hat? **Erwartung ehrlich: eher nein** — Avalonia meldet keinen
->    `TextInputMethodClient`, und die Fläche ist ein selbstgebautes Steuerelement, kein
->    `TextBox`. Wenn es nicht geht, ist **das** der Befund und keine Enttäuschung.
-> 5. **Läuft es flüssig?** Tippe einen längeren Absatz am Stück. Der Umbruch ist unter Windows
->    gemessen (§4.35: 4,5 ms bei 2 Seiten, 25 ms bei 9); die Schwelle steht bei 40 ms. **Auf
->    diesem Laptop kann sie anders liegen.** Wenn das Tippen hakt, ist die interessante Zahl,
->    **ab welcher Dokumentlänge** — nicht „es hakt".
->
-> **Was ausdrücklich nicht dein Auftrag ist:** die Formate (kommen mit Schritt 6) und der
-> Konflikt zwischen den beiden Köpfen (§5 „Noch offen" 9 — der gehört nach Windows).
->
-> **Zwei Dinge kann der Nutzer bei der Gelegenheit sofort miterledigen**, beide brauchen ihn am
-> Gerät und beide sind in Minuten getan:
->
-> 1. **Den Dateidialog ansehen** (§5 „Noch offen" **7**). Einmal `Datei → Dokument
->    importieren…`, eine DOCX wählen — kommt das Dokument an? Einmal `Exportieren → PDF` —
->    steht **PDF** im Speichern-Dialog oben? **Das ist der einzige Teil des Linux-Kopfs, den
->    noch niemand gesehen hat**, und er lässt sich nicht fernsteuern (siehe §4.28).
-> 2. **Ein zweites Stiftgerät** (§5 „Noch offen" **1**), falls eines greifbar ist — mit **F9**
->    in der Zeichenfläche in einer Minute geklärt. Der einzige Punkt mit echtem Restrisiko.
->
-> Dazu weiterhin offen und ebenfalls nur am Gerät zu beantworten: eine **Xorg-Sitzung** als
-> Vergleich (§5a „Offen" 2) und die **Druckschwelle unten** (§5a „Offen" 3).
-
-**Was der nächste Thread auf diesem Laptop wissen muss, bevor er etwas fernsteuert:** die drei
-Löcher im Werkzeug stehen in **§4.28, „Was den Laptop dabei aufgehalten hat"**. Eines ist
-behoben (`zeiger` tippte Sonderzeichen auf der deutschen Belegung falsch), zwei nicht — der
-Portal-Dateidialog ist weder zu fotografieren noch zu bedienen, und `schau.sh` gibt die Ausgabe
-nicht frei. **Das dort zuerst lesen spart eine Stunde.**
+> **Zwei Dinge bleiben offen und brauchen den Nutzer am Gerät**, beide seit Längerem: eine
+> **Xorg-Sitzung** als Vergleich (§5a „Offen" 2) und die **Druckschwelle unten**
+> (§5a „Offen" 3).
 
 ### Abgearbeitete Aufträge — nur die Kurzfassung
 
@@ -5122,6 +5234,7 @@ nicht frei. **Das dort zuerst lesen spart eine Stunde.**
 
 | Auftrag | Datum | Ergebnis |
 |---|---|---|
+| **Das Schreiben unter Linux** — Umlaute und tote Tasten, Compose, der Cursor am Stift, die Bildschirmtastatur, und läuft es flüssig? | 2026-08-16 (V2-47) | ✅ **Vier von fünf sauber; 662/662 grün.** Umlaute **und** tote Tasten kommen an (`^`+`e` → `ê`), der **Stift setzt die Marke und zieht eine Auswahl**, getippt wird flüssig — **kein Zeichen verloren, auch nicht in einem Dokument mit 32 Seiten** (85.691 → 85.792 exakt). Der Umbruch ist hier **schneller als unter Windows**; die 40-ms-Grenze fällt erst bei ~32 Seiten. **Compose:** ungeprüft, weil auf diesem Gerät keine eingerichtet ist. **Ein Fund:** ohne Hardware-Tastatur ist nicht zu schreiben — dem Kopf fehlt ein `TextInputMethodClient` (§5 „Noch offen" **10**, gehört nach Windows). **Ein Werkzeugfehler**, der wie ein Fehler der App aussah: `zeiger` tippte Latin-1-Zeichen gar nicht — behoben. **Zwei alte Punkte mit zu:** Dateidialog (§5 Nr. 7) und **zweites Stiftgerät** (§5 Nr. 1, MPP, **Druck kommt an**). Befund: **§4.35 „Was der Laptop gefunden hat"** |
 | **Der erste Augenschein des Textdokuments unter Linux** — steht Schrift auf dem Blatt, stimmt sie mit dem PDF überein, trägt das Rollen, trägt der Dateidialog? | 2026-08-11 (V2-37) | ✅ **Fragen 1, 3 und 5 sauber; 489/489 grün.** Anzeige vollständig (Formate, Aufzählung, Tabelle mit **einer** Kopfzeile, Diagramm, Kopf-/Fußzeile), Rollen und alle Zoomstufen tragen, der Portal-Dialog erscheint nicht hinter dem Fenster und **blockiert richtig**. **Ein Fund:** der Wortzwischenraum an einer Stückgrenze sitzt in der Anzeige falsch, im PDF nicht (§5 „Noch offen" 6). **Frage 4 blieb offen** — der Portal-Dialog ist nicht fernsteuerbar (§5 „Noch offen" 7). Befund: **§4.28 „Was der Laptop gefunden hat"** |
 | **Den PDF-Export gegenprüfen** — läuft er unter Linux, und bettet Skia die mitgelieferten Schriften wirklich ein? | 2026-08-11 (V2-34) | ✅ **Ja.** 18/18 und 479/479 grün, `emb yes` und CID TrueType bei allen fünf Schnitten, kein Systemname, kein `Type3`. **Ein Fund:** Skia bettet die ganze TTF ein statt eines Auszugs — rund 200 KB je Familie, aber **einmalig und nicht je Seite**. Befund: **§4.27 „Was der Laptop gefunden hat"**, offene Frage: §5 „Noch offen" 3 |
 | **Das Schriftkonzept gegenprüfen** — greift die Rückfallkette, und sieht Linux dieselben Schriften? | 2026-08-10/11 (V2-32) | ✅ Befund: **§4.26 „Was der Laptop gefunden hat"** |
@@ -6822,6 +6935,7 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 
 | Runde | Datum | Was |
 |---|---|---|
+| V2-47 | 2026-08-16 | **Das Schreiben unter Linux gegengeprüft — und der Laptop hat zwei alte Punkte mitgeschlossen** (§4.35, „Was der Laptop gefunden hat"; kein Produktivcode angefasst). Bau 0/0 in Core und im Avalonia-Kopf, **662/662 grün** — die im Auftrag genannte Zahl. **Vier der fünf Fragen sauber:** Umlaute (`äöüß ÄÖÜ`) kommen vollständig an, **tote Tasten setzen zusammen** (`^`+`e` → `ê`, `´`+`a` → `á`, nicht `^e`), der **Stift setzt die Marke und zieht eine Auswahl** (Avalonia liefert `PointerPressed`/`PointerMoved` unter Wayland also auch für den Stift — dass der Eingabepfad beide nicht unterscheidet, ist damit richtig und keine Wette), und **getippt wird flüssig**. **Compose blieb ungeprüft, weil auf diesem Gerät keine eingerichtet ist** — kein `Multi_key` im Keymap, leere `xkb-options`, keine `~/.XCompose`; der Auftrag verlangt ausdrücklich, das zu notieren statt eine einzurichten. **Der lehrreichste Teil der Runde war ein Fehler des Werkzeugs, der wie einer der App aussah:** Der erste Versuch mit `äöüß` ergab **nichts** — es sah aus, als schluckte `TextDocView` genau die Zeichen, um derentwillen es diesen Laptop gibt. Es war `zeiger`: `Tippen` sucht den Keysym `0x01000000+Codepunkt`, den es für `ä` auf keiner Belegung gibt, denn die Keysyms `0x20`–`0xFF` **sind** Latin-1 (`adiaeresis` = `0x00e4`) — und die Rückfallzeile hörte bei `~` auf, also brach die Funktion ab, **ohne eine einzige Taste zu drücken**. **Dieselbe Falle wie eine Runde zuvor, nur eine Ebene tiefer** (damals stimmte die Umschalt-Ebene nicht, §4.28). Behoben, die Rückfallzeile reicht jetzt bis `ÿ`, Begründung im Quelltext. **Ohne diese Trennung stünde jetzt „der Linux-Kopf verliert Umlaute" im HANDOFF und §6 hätte seine Entscheidung für `TextInput` zurückgenommen** — so ist sie gemessen statt vermutet. **Die Umbruchrechnung ist hier nachgefahren worden und fällt zugunsten des Laptops aus:** 3,4 ms bei 2 Seiten, 19,6 ms bei 8 und 42,7 ms bei 32 (Windows: 4,5 / 25,1 / 207,7 bei 35) — die **40-ms-Grenze** aus `UmbruchAnstossen` fällt erst bei rund **32 Seiten**. Am laufenden Kopf gegengeprüft, und das ist die eigentliche Antwort: 169 Zeichen am Stück ergaben den Zähler **198** (195 + drei Absatzmarken, exakt), und 101 Zeichen in ein Dokument mit **32 Seiten und 85.691 Zeichen** ergaben **85.792** — **kein einziges Zeichen verloren**, obwohl das Sammeln dort greift. **Der Beleg für die Weiche aus §4.35: das Bild hinkt hinterher, das Modell nie.** **⚠ Ein Fund, und er gehört nach Windows:** Ohne Hardware-Tastatur ist im Linux-Kopf **nicht zu schreiben** — GNOMEs Bildschirmtastatur erscheint nicht, wenn die Textfläche den Fokus hat, und **von Hand hervorgeholt kommt trotzdem nichts an**. Die Ursache steht im Quelltext: im ganzen Avalonia-Kopf gibt es **kein `TextInputMethodClient`**, `TextDocView` hört nur auf `TextInputEventArgs` und meldet sich nirgends als Eingabeziel an. §4.35 hatte das Ausbleiben erwartet — **dass auch von Hand nichts ankommt, geht darüber hinaus**. Für eine **Stylus-first**-App mit noch ausstehendem iPadOS-Kopf ist das keine Randfrage: steht als **§5 „Noch offen" 10** zur Entscheidung, mit drei Antworten und einer Empfehlung. **Nicht linuxspezifisch** (dem WPF-Kopf fehlt dasselbe), deshalb hier nicht angefasst. **Und zwei alte Punkte sind zu:** Der **Dateidialog** (§5 Nr. 7, die Wayland-Hälfte offen seit dem 2026-08-11) trägt — Import bringt die DOCX wirklich in den Kopf, im Speichern-Dialog steht **PDF oben vorgewählt**, dieselben zwei Ja wie die Win32-Fassung in V2-40. Und **ein zweites Stiftgerät** (§5 Nr. 1) lag vor, ein **MPP**-Stift und damit eine **andere Technik** als der eingebaute EMR-Wacom: mit **F9** gegengeprüft, **Druck kommt an**. Damit ist „läuft mit jedem Stylus" (§1) zum ersten Mal an zwei Stifttechniken belegt und **der einzige Punkt mit echtem Restrisiko eingelöst**. **Der Laptop ist vorerst nicht mehr dran** (§5d trägt keinen Auftrag) |
 | V2-46 | 2026-08-16 | **Tastatur und Maus — Schritt 5 des Schreibens, der Linux-Kopf schreibt** (§4.35). `src/GonkNote.Avalonia/Views/TextDocView.Eingabe.cs` neu, drei Rechnungen mehr in Core, zwei Felder am `TextTabViewModel`; **22 Wächter**, **693 Tests** grün, Bau 0/0. **Was geht:** tippen (Umlaute, ß, Gedankenstrich, €), Absatz teilen, Zeilenumbruch, löschen vorwärts und rückwärts, Pfeile in alle vier Richtungen, Strg+Pfeil wortweise, Pos1/Ende, Bild auf/ab, Umschalt-Auswahl, Ziehen, Doppelklick auf ein Wort, Dreifachklick auf den Absatz, Strg+A/C/X/V, Strg+Z/Y; die Marke blinkt und rollt sich ins Bild. **Getippt wird über `TextInput` und nicht über `KeyDown`** — eine Taste ist kein Zeichen: „ä" entsteht aus einer, „ê" aus zweien, ein Emoji aus einer Compose-Folge; wer aus `Key` Zeichen ableitet, schreibt eine Belegungstabelle nach, die das System schon hat. **Die erste Falle aus §6 ist gemessen statt geraten — und die Vermutung war falsch:** Ein voller Umbruch kostet 4,5 ms bei 2 Seiten, 25,1 ms bei 9 und 207,7 ms bei 35; **das mehrfache Rechnen des Inhaltsverzeichnisses ist nicht der teure Teil** (dieselben neun Seiten: 27,6 statt 25,1 ms — ein Zehntel, nicht ein Vielfaches). Teuer ist die **Länge** des Dokuments, und der Preis steckt im Messen der Schrift. Daraus die Weiche: unter **40 ms** sofort umbrechen, darüber über den Nachrichtenlauf **sammeln** (`DispatcherPriority.Background`, Eingaben haben Vorrang) — **das Modell hinkt nie hinterher, nur das Bild**, und es holt in der ersten Tippause auf. Damit ist auch die zweite Falle erledigt (die Anzeige rechnete bis heute einmal je Dokument, §4.28). **Drei Rechnungen kamen dafür nach Core:** `TdHit.Hoch`/`Runter` samt **angepeilter Spalte** (`TdZeilenzug` — ohne sie sammelt die erste kurze Zeile den Cursor ein und er klebt für den Rest des Dokuments an ihrem Ende), `TdHit.Zeilenrand` (Pos1 führt an den Anfang der **gesetzten Zeile**, nicht des Absatzes — sonst spränge es in einem vierzeiligen Absatz drei Zeilen weit) und `TdCursor.Wort`/`WortLinks`/`WortRechts` (eine Wortgrenze ist eine Frage an den Text und braucht keinen Umbruch). **Der Zeilensprung sucht über die Geometrie und nicht über die Zeilenliste:** Eine Seite trägt erst ihre Fließzeilen und danach ihre Tabellenzeilen — wer der Liste folgte, spränge aus der Zeile unter einer Tabelle über sie hinweg statt hinein. **Modell und Verlauf liegen am Register und nicht an der Ansicht**, und das ist Notwehr statt Aufbewahrung: Die Ansicht wird bei jedem Registerwechsel neu erzeugt, ein gemerkter Verlaufsschritt zeigt aber auf die Blockliste, in der er entstanden ist (§4.33) — nach einem Neulesen ersetzte ein Strg+Z still fremde Absätze. **Der Fund der Runde kam wieder vom Schirm und nicht von einem Wächter:** Die Schreibmarke ging über die **ganze Zeilenhöhe**, und die trägt den Absatzabstand mit — zwischen zwei Absätzen war sie doppelt so hoch wie die Buchstaben daneben und sah aus wie ein Trennstrich. Kein Wächter konnte das sehen, weil der Zeichner-Wächter mit fester Messung und ohne Absatzabstand setzt; dort *ist* die Zeilenhöhe die Schrifthöhe. Behoben: die Marke steht jetzt um die **Grundlinie** herum, so hoch wie die Schrift — **der Auswahlkasten bleibt zeilenhoch**, dort ist es richtig (sonst weiße Streifen zwischen den Zeilen). **„Nur Ansicht" im Ribbon heißt jetzt „Nur Text"**, denn der Satz war mit dieser Runde falsch geworden; die drei fehlenden Reiter kommen trotzdem erst mit Schritt 6. **⚠ Und die Gegenprobe hat den ernstesten Punkt gebracht, nachgemessen in beiden Köpfen:** Bei einem Dokument mit **gefülltem `Rtf`** zeigt der WPF-Editor die Linux-Arbeit **nicht** — und beim nächsten Speichern dort schreibt `WpfDocumentIo.Migrate` das `Model` bedingungslos aus `Rtf` neu, womit sie **still weg** ist. §6 nannte das „zwei Wahrheiten"; es ist **Datenverlust ohne Warnung**, und es betrifft **jedes Bestandsdokument**. Nichts daran wurde eigenmächtig geändert — `Rtf` zu leeren verbietet §4.22, ein Vorrangfeld wäre eine Formatänderung. **Steht als §5 „Noch offen" 9 zur Entscheidung, mit vier Antworten und einer Empfehlung.** **Mit dieser Runde ist der Laptop dran** (§5d trägt den Auftrag: Umlaute, tote Tasten, Compose, Bildschirmtastatur, der Cursor am Stift) |
 | V2-45 | 2026-08-13 | **Der Cursor auf dem Schirm — Schritt 4 des Schreibens** (§4.34). `Core/Text/TdHit.cs`, drei Angaben mehr im Umbruch, Schreibmarke und Auswahl im Zeichner; **34 Wächter**, **671 Tests** grün, Bau 0/0. **Der in §4.30 versprochene Rückweg war die Hälfte:** `TdLine.Source` nennt den Absatz, aber nicht, das wievielte Zeichen angeklickt wurde — und **nachzählen geht nicht**, aus drei Gründen, von denen jeder allein genügt: Der Umbruch **wirft den Leerraum am Zeilenende weg** (wer Textlängen addiert, verzählt sich beim ersten umgebrochenen Wort und danach immer weiter), ein Feld setzt seinen **gerechneten Wert** statt seiner selbst, und ein Zeilenumbruch hinterlässt **gar kein Stück**. Die Zahl kennt nur, wer schneidet — deshalb trägt jetzt jedes gesetzte Stück seine Stelle im Absatz (`TdLaidOutRun.Linear`), jede Zeile ihren Anfang (`TdLine.Linear`) und ihren linken Rand (`TdLine.StartXCm`, für die Marke in einer leeren Zeile, wo sie beim Schreiben besonders oft steht). Dasselbe Muster wie `TdLine.Source` in §4.16, eine Ebene tiefer. **Beide Richtungen stehen als eine Rechnung nebeneinander** — Klick → Stelle und Stelle → Papier teilen sich, wie eine Zeile gefunden wird; getrennt gebaut wären es zwei, die auseinanderlaufen können, und der Fehler sähe aus wie ein Cursor, der beim Klicken woanders landet, als er danach blinkt. **Ausgenommen sind die zwei Sorten Zeilen, die nicht im Dokument stehen:** der gerechnete Inhaltsverzeichnis-Eintrag (§4.20) und die wiederholte Tabellenkopfzeile (§4.19) — beide tragen ihre Kennzeichnung seit damals mit genau dieser Begründung und werden hier zum ersten Mal benutzt. **Der Zeichner rechnet nichts:** Er bekommt eine fertige `TdMarkierung`, und zwar **je Zeile** statt in Seitenkoordinaten — so malt er den Auswahlkasten vor den Buchstaben *dieser* Zeile und die Marke danach, womit die Auswahl hinter dem Text und über dem Zellhintergrund liegt, **ohne dass die Reihenfolge der Seite umgebaut werden muss**. Ob die Marke blinkt, entscheidet der Kopf — ein Takt wäre eine Uhr in Core (§4.20), und im PDF stünde ein Strich. **Der Fund der Runde kam aus einer Mutation, die überlebt hat:** Nimmt man den **Spaltenversatz** einer Tabellenzelle in beiden Richtungen weg, findet jede Stelle weiterhin zu sich selbst — beide Rechnungen sind *gleich falsch*, und der Hin-und-zurück-Wächter bleibt grün, obwohl der Cursor in der zweiten Spalte um deren ganze Breite danebenstünde. Der Wächter prüft seitdem die **Zahl** (Seitenrand + Spalte + Innenabstand + Zeichen) — und wurde sofort rot, aus einem anderen Grund als erwartet: Die Zeilensuche prüfte **nur die Höhe**. Für gewöhnliche Zeilen ist das richtig, sie stehen untereinander; Tabellenzellen stehen nebeneinander, und so gewann immer die erste Spalte. Behoben: erst die Höhe, dann die Breite. **Vierte Runde in Folge mit derselben Regel — und diesmal mit einem Zusatz: ein symmetrischer Fehler ist die Sorte, die ein Hin-und-zurück-Wächter von Natur aus nicht sehen kann.** Wo zwei Richtungen geprüft werden, muss mindestens eine Zahl absolut festgenagelt sein. **Nichts davon ist angeschlossen** — das passiert mit Schritt 5, und mit ihm ist der Laptop wieder dran |
 | V2-44 | 2026-08-13 | **Rückgängig — Schritt 3 des Schreibens** (§4.33). `Core/Text/TdUndo.cs` und **21 Wächter**; **637 Tests** grün, Bau 0/0, reine Core-Arbeit. **Er macht nichts rückgängig** — das kann eine `TdChange` seit Schritt 2 selbst. Was er dazutut, ist das, was eine einzelne Änderung nicht wissen kann: die **Reihenfolge** der Schritte und **welche davon der Nutzer als einen erlebt hat**. **Die Frage aus §6 ist mit drei Gründen beantwortet — `TdUndo` steht neben `UndoStack` und nicht darin:** `Push` verlangt dort eine `WbPage` (eine Zeichenflächen-Aktion hält Elemente, nicht ihren Ort; ein `IEditAction<TdDocument>`, dessen `Undo(doc)` das `doc` nicht ansieht, wäre eine Signatur, die lügt), die Antwort ist dort eine **Seite** und hier eine **Auswahl** (ein Rückgängig, das den Cursor woanders stehen lässt, zwingt den Nutzer, seine Stelle wiederzufinden), und **das Zusammenfassen gibt es dort gar nicht** — wer „Hallo" tippt, hat einen Handgriff gemacht und nicht fünf; auf der Zeichenfläche stellt sich die Frage nie, denn ein Strich ist ein Zug. Die verbleibende Doppelung sind **rund zwanzig Zeilen** (zwei Listen, ein Deckel, ein Ereignis) — **nicht die Doppelung aus §4.13**, wo zweimal *Verhalten* stand, in dem derselbe Fehler zweimal wohnte; die Frage „sind das zwei?" steht als Punkt in der Aufräumrunde von Phase 6, und die Mitglieder heißen absichtlich wie drüben, damit sie sichtbar bleibt. **Das Zusammenfassen ist der zweite Ertrag der Blocksicherung:** zwei Änderungen zu einer zu machen ist hier kein Zusammenrechnen, sondern ein **Weglassen der Mitte** — das Davor der ersten, das Danach der zweiten. **Der Fund der Runde kam wieder aus dem Erproben der Wächter:** Die erste Fassung prüfte Lückenlosigkeit auf gleichen **Inhalt**, und mit dieser Mutation blieben **21 von 21 grün**. Der Fall, den sie nicht sah, ist echt — tippt man ein Zeichen und löscht es wieder, steht derselbe Text in einem **anderen** Absatz (jede Änderung baut einen neuen, §4.32); ein Inhaltsvergleich verschmölze dort, und die Rücknahme **übersprünge die Schritte dazwischen**. Geprüft wird jetzt an den **Objekten**, und ein eigener Wächter hält es fest. **Zum dritten Mal dieselbe Regel nach §4.30 und §4.32: ein Wächter, der beim absichtlichen Kaputtmachen grün bleibt, prüft nichts.** **Die Schnitte** sitzen zwischen Arten (Tippen an Tippen, Löschen an Löschen — die Art wird aus dem Inhalt **abgeleitet**, ein Parameter wäre die zweite Wahrheit, die jemand falsch setzt), nach einem **Zwischenraum**, bei jeder Strukturänderung, nach jedem Zug im Verlauf — und bei `Abschliessen()`, das **die Oberfläche rufen muss**, wenn der Nutzer die Schreibmarke versetzt: der Verlauf sieht Änderungen und keine Klicks. **Alle Schnitte hängen an der Gestalt der Änderung und nicht an der Uhr** — Core fragt sie nicht (§4.20), und ein Verlauf, der je nach Tipptempo anders gruppiert, wäre außerdem nicht prüfbar. **Benannt vereinfacht:** Löschungen fassen ohne Wortgrenze zusammen, weil das Gelöschte nicht im Inhalt der Änderung steht |

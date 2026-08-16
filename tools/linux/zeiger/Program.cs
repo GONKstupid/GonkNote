@@ -517,9 +517,19 @@ internal static class Programm
             };
 
             byte code = XKeysymToKeycode(_anzeige, sym);
-            if (code == 0 && z is >= ' ' and <= '~')
+            if (code == 0 && z is >= ' ' and <= 'ÿ')
             {
-                sym = z;                                // ASCII-Keysyms sind der Codepunkt selbst
+                // Keysyms 0x20–0xFF *sind* Latin-1: nicht nur ASCII, sondern auch 'ä'
+                // (adiaeresis = 0x00e4), 'ß' (ssharp = 0x00df), '€' liegt dagegen erst
+                // im Unicode-Bereich darueber und wird schon von 0x01000000+z gefunden.
+                //
+                // WARUM DAS HIER STEHT (Laptop, 16.08.2026, §4.35): fuer 'ä' fragte
+                // 'Tippen' nur nach 0x010000e4 -- den Keysym gibt es auf keiner Belegung,
+                // und die Rueckfallzeile endete bei '~'. Ergebnis: 'Zeichen liegt nicht
+                // auf der Tastaturbelegung', also KEIN Tastendruck. Auf dem Schirm sah
+                // das aus, als schluckte der Kopf die Umlaute -- dieselbe Falle wie beim
+                // Umschalt-Fehler eine Runde zuvor, nur eine Ebene tiefer.
+                sym = z;
                 code = XKeysymToKeycode(_anzeige, sym);
             }
 

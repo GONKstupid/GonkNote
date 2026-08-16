@@ -485,6 +485,131 @@ public sealed class StelleTests
         Assert.Equal(-1, TdCursor.IndexVon(doc, Text("fremd")));
     }
 
+    // ==================== Wörter ====================
+
+    /// <summary>Was ein Doppelklick an dieser Stelle auswählt — als Klartext.</summary>
+    private static string Wort(TdDocument doc, int linear)
+    {
+        var absatz = TdCursor.AbsatzAn(doc, 0)!;
+        var auswahl = TdCursor.Wort(doc, TdCursor.AusLinear(absatz, 0, linear));
+
+        return TdCursor.Text(doc, auswahl);
+    }
+
+    /// <summary>Der Doppelklick nimmt das Wort — und nur das Wort.</summary>
+    [Theory]
+    [InlineData(0, "Hallo")]
+    [InlineData(3, "Hallo")]
+    [InlineData(6, "schöne")]
+    [InlineData(13, "Welt")]
+    public void Ein_Doppelklick_nimmt_das_ganze_Wort(int linear, string erwartet)
+    {
+        Assert.Equal(erwartet, Wort(Dok(Text("Hallo schöne Welt")), linear));
+    }
+
+    /// <summary>
+    /// **Am Absatzende zählt das Zeichen links.** Ein Doppelklick hinter das letzte Wort soll
+    /// dieses Wort nehmen und nicht ins Leere greifen — dort steht rechts nichts mehr.
+    /// </summary>
+    [Fact]
+    public void Am_Absatzende_nimmt_der_Doppelklick_das_Wort_davor()
+    {
+        Assert.Equal("Welt", Wort(Dok(Text("Hallo Welt")), 10));
+    }
+
+    /// <summary>
+    /// Ein Lauf gleicher Art ist ein Wort — auch Leerraum und auch Satzzeichen. So wählt ein
+    /// Doppelklick auf den Zwischenraum den Zwischenraum und nicht das halbe Nachbarwort.
+    /// </summary>
+    [Fact]
+    public void Leerraum_und_Satzzeichen_sind_eigene_Woerter()
+    {
+        var doc = Dok(Text("ja,   nein"));
+
+        Assert.Equal(",", Wort(doc, 2));
+        Assert.Equal("   ", Wort(doc, 4));
+    }
+
+    /// <summary>
+    /// Ein Feld ist unteilbar und steht für sich (§4.30) — ein Doppelklick darauf nimmt es
+    /// ganz und zieht nicht den Text daneben mit hinein.
+    /// </summary>
+    [Fact]
+    public void Ein_Feld_ist_ein_Wort_fuer_sich()
+    {
+        var doc = Dok(Abs(new TdRun("ab"), new TdField(TdFieldKind.PageNumber), new TdRun("cd")));
+
+        var absatz = TdCursor.AbsatzAn(doc, 0)!;
+        var auswahl = TdCursor.Wort(doc, TdCursor.AusLinear(absatz, 0, 2));
+
+        Assert.Equal(2, TdCursor.Linear(absatz, auswahl.Start));
+        Assert.Equal(3, TdCursor.Linear(absatz, auswahl.End));
+    }
+
+    /// <summary>
+    /// **Ein Wort steht in einem Absatz** — über die Absatzmarke hinweg wird nie ausgewählt.
+    /// Sonst nähme ein Doppelklick am Zeilenende die erste Zeile des nächsten Absatzes mit.
+    /// </summary>
+    [Fact]
+    public void Ein_Wort_geht_nie_ueber_die_Absatzgrenze()
+    {
+        var doc = Dok(Text("eins"), Text("zwei"));
+        var auswahl = TdCursor.Wort(doc, new TdPosition(0, 0, 4));
+
+        Assert.Equal(0, auswahl.Start.Paragraph);
+        Assert.Equal(0, auswahl.End.Paragraph);
+        Assert.Equal("eins", TdCursor.Text(doc, auswahl));
+    }
+
+    /// <summary>
+    /// Strg+Pfeil rechts führt an den **Anfang des nächsten Wortes** — über den Rest des
+    /// laufenden Wortes und den Leerraum dahinter, wie in Word.
+    /// </summary>
+    [Fact]
+    public void Ein_Wort_nach_rechts_landet_am_naechsten_Wortanfang()
+    {
+        var doc = Dok(Text("Hallo schöne Welt"));
+        var absatz = TdCursor.AbsatzAn(doc, 0)!;
+
+        int Rechts(int von) =>
+            TdCursor.Linear(absatz, TdCursor.WortRechts(doc, TdCursor.AusLinear(absatz, 0, von)));
+
+        Assert.Equal(6, Rechts(0));
+        Assert.Equal(6, Rechts(3));
+        Assert.Equal(13, Rechts(6));
+        Assert.Equal(17, Rechts(13));   // ans Absatzende, weiter geht es hier nicht
+    }
+
+    /// <summary>Und nach links an den Anfang des Wortes, in dem oder vor dem man steht.</summary>
+    [Fact]
+    public void Ein_Wort_nach_links_landet_am_Wortanfang()
+    {
+        var doc = Dok(Text("Hallo schöne Welt"));
+        var absatz = TdCursor.AbsatzAn(doc, 0)!;
+
+        int Links(int von) =>
+            TdCursor.Linear(absatz, TdCursor.WortLinks(doc, TdCursor.AusLinear(absatz, 0, von)));
+
+        Assert.Equal(13, Links(17));
+        Assert.Equal(6, Links(13));
+        Assert.Equal(6, Links(9));      // mitten im Wort: an seinen Anfang
+        Assert.Equal(0, Links(6));
+    }
+
+    /// <summary>
+    /// An der Absatzgrenze wird der Wortsprung zum gewöhnlichen Schritt: Ein Absatzwechsel ist
+    /// für sich schon ein Sprung, und wer ihn überspränge, käme an einer Absatzmarke nie zum
+    /// Stehen.
+    /// </summary>
+    [Fact]
+    public void Der_Wortsprung_haelt_an_der_Absatzgrenze_an()
+    {
+        var doc = Dok(Text("eins"), Text("zwei"));
+
+        Assert.Equal(new TdPosition(1, 0, 0), TdCursor.WortRechts(doc, new TdPosition(0, 0, 4)));
+        Assert.Equal(new TdPosition(0, 0, 4), TdCursor.WortLinks(doc, new TdPosition(1, 0, 0)));
+    }
+
     // ==================== Vergleichen ====================
 
     /// <summary>Die Reihenfolge ist die Leserichtung: erst Absatz, dann Stück, dann Zeichen.</summary>

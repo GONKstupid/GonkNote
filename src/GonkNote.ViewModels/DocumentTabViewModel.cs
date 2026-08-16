@@ -1,6 +1,7 @@
 using GonkNote.Core.Models;
 using GonkNote.Core.Platform;
 using GonkNote.Core.Services;
+using GonkNote.Core.Text;
 
 namespace GonkNote.ViewModels;
 
@@ -88,14 +89,56 @@ public sealed class TextTabViewModel : DocumentTabViewModel
     /// <summary>Editor-Zoom (1 = 100 %), überlebt Tab-Wechsel.</summary>
     public double Zoom { get; set; } = 1.0;
 
+    /// <summary>
+    /// Das Dokument im eigenen Modell, solange die Registerkarte offen ist — <c>null</c>, wenn
+    /// dieser Kopf nicht darauf schreibt (der WPF-Editor arbeitet weiter auf einem
+    /// <c>FlowDocument</c>, HANDOFF §6 Schritt 7).
+    ///
+    /// <para>
+    /// <b>Es steht hier und nicht in der Ansicht, und das ist kein Aufbewahrungsort:</b> Die
+    /// Ansicht wird bei jedem Wechsel der Registerkarte neu erzeugt. Läge das Modell dort,
+    /// wäre jeder Wechsel ein Neulesen aus <see cref="TextDoc.Model"/> — und damit ein
+    /// **anderes** Objekt. <see cref="Undo"/> merkt sich in seinen Schritten die Blocklisten,
+    /// in denen sie entstanden sind (§4.33); nach einem Neulesen zeigten sie auf ein Dokument,
+    /// das es nicht mehr gibt. Modell und Verlauf gehören deshalb zusammen an dieselbe Stelle.
+    /// </para>
+    /// </summary>
+    public TdDocument? Modell { get; set; }
+
+    /// <summary>
+    /// Rückgängig und Wiederherstellen für den Text — <b>neben</b> <c>UndoStack</c>, mit den
+    /// drei Gründen aus §4.33. Wie dort überlebt er den Wechsel der Registerkarte: Ein Verlauf,
+    /// der beim Umschalten verschwindet, ist keiner.
+    /// </summary>
+    public TdUndo Undo { get; } = new();
+
     public override void Save()
     {
         if (!IsDirty) return;
         FlushRequested?.Invoke();
         Mitschreiben();
+        ModellMitschreiben();
         Db.SaveText(Doc);
         Db.UpsertItem(Item);
         IsDirty = false;
+    }
+
+    /// <summary>
+    /// Schreibt <see cref="Modell"/> nach <see cref="TextDoc.Model"/> — <b>nach</b>
+    /// <see cref="Mitschreiben"/>, und das ist die Reihenfolge, auf die es ankommt.
+    ///
+    /// <para>
+    /// Beide füllen dasselbe Feld: die Übernahme aus dem Altformat und der Kopf, der wirklich
+    /// darauf geschrieben hat. Wo beides zusammenträfe, muss das Geschriebene gewinnen — sonst
+    /// überschriebe eine Übernahme von <c>Rtf</c> gerade das, was der Nutzer eben getippt hat.
+    /// Heute treffen sie sich nie (nur der Windows-Kopf übernimmt, nur der Linux-Kopf
+    /// schreibt), <b>und genau deshalb steht die Reihenfolge jetzt fest</b>: Wenn Schritt 7 den
+    /// WPF-Editor auf das Modell umstellt, ist sie schon richtig.
+    /// </para>
+    /// </summary>
+    private void ModellMitschreiben()
+    {
+        if (Modell is not null) Doc.Model = TdFormatIo.Schreiben(Modell);
     }
 
     /// <summary>

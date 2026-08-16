@@ -501,6 +501,136 @@ public static class TdCursor
         return (null, 0);
     }
 
+    // ---------------------------------------------------------------- Wörter
+
+    /// <summary>
+    /// Wozu ein Zeichen gehört. <b>Ein Wort ist ein Lauf gleicher Art</b> — das ist die
+    /// einfachste Regel, die sich verhält wie erwartet: Ein Doppelklick auf „Haus" nimmt das
+    /// Wort, einer auf „, " den Zwischenraum, und einer auf ein Feld das Feld.
+    /// </summary>
+    private enum Zeichenart
+    {
+        /// <summary>Ein Feld, ein Bild, ein Zeilenumbruch — unteilbar und für sich allein.</summary>
+        Unteilbar,
+        Leerraum,
+        Wortzeichen,
+
+        /// <summary>Satzzeichen und alles andere.</summary>
+        Sonstiges,
+    }
+
+    /// <summary>
+    /// Die Art des Zeichens **rechts** von <paramref name="linear"/> — <c>null</c> am
+    /// Absatzende, wo keines mehr steht.
+    /// </summary>
+    private static Zeichenart? ArtRechtsVon(TdParagraph absatz, int linear)
+    {
+        if (linear < 0 || linear >= Laenge(absatz)) return null;
+
+        var (stueck, innen) = StueckRechtsVon(absatz, linear);
+        if (stueck is not TdRun run || innen >= run.Text.Length) return Zeichenart.Unteilbar;
+
+        char c = run.Text[innen];
+
+        // Der Unterstrich zählt zum Wort, weil er in Bezeichnern und Dateinamen mitten darin
+        // steht; der Bindestrich nicht, weil „Schwarz-Weiß" zwei Wörter sind — so hält es Word.
+        if (char.IsWhiteSpace(c)) return Zeichenart.Leerraum;
+        if (char.IsLetterOrDigit(c) || c == '_') return Zeichenart.Wortzeichen;
+
+        return Zeichenart.Sonstiges;
+    }
+
+    /// <summary>
+    /// Das Wort unter dieser Stelle — die Antwort auf einen Doppelklick.
+    ///
+    /// <para>
+    /// <b>Genommen wird das Zeichen rechts der Stelle</b>, und am Absatzende das links davon:
+    /// Ein Doppelklick hinter das letzte Wort einer Zeile soll dieses Wort nehmen und nicht ins
+    /// Leere greifen. <b>Über die Absatzgrenze geht es nie</b> — ein Wort steht in einem Absatz.
+    /// </para>
+    /// </summary>
+    public static TdSelection Wort(TdDocument doc, TdPosition stelle)
+    {
+        var jetzt = Normalisieren(doc, stelle);
+        var absatz = AbsatzAn(doc, jetzt.Paragraph);
+        if (absatz is null) return new TdSelection(jetzt);
+
+        int linear = Linear(absatz, jetzt);
+
+        // Am Absatzende gibt es rechts nichts mehr — dann gilt das Zeichen davor.
+        var art = ArtRechtsVon(absatz, linear) ?? ArtRechtsVon(absatz, linear - 1);
+        if (art is not { } gesucht) return new TdSelection(jetzt);
+
+        // Unteilbares steht für sich: ein Feld ist ein „Wort", zwei Felder sind zwei.
+        if (gesucht == Zeichenart.Unteilbar)
+        {
+            int einer = ArtRechtsVon(absatz, linear) is null ? linear - 1 : linear;
+            return new TdSelection(
+                AusLinear(absatz, jetzt.Paragraph, einer),
+                AusLinear(absatz, jetzt.Paragraph, einer + 1));
+        }
+
+        int von = linear;
+        while (von > 0 && ArtRechtsVon(absatz, von - 1) == gesucht) von--;
+
+        int bis = linear;
+        while (ArtRechtsVon(absatz, bis) == gesucht) bis++;
+
+        return new TdSelection(
+            AusLinear(absatz, jetzt.Paragraph, von),
+            AusLinear(absatz, jetzt.Paragraph, bis));
+    }
+
+    /// <summary>
+    /// Ein Wort nach rechts (Strg+Pfeil): über den Rest des laufenden Wortes hinweg und über
+    /// den Leerraum dahinter — <b>an den Anfang des nächsten Wortes</b>, wie in Word.
+    ///
+    /// <para>
+    /// Am Absatzende geht es in den nächsten Absatz, und dort wird **nicht** weitergelaufen:
+    /// Ein Absatzwechsel ist für sich genommen schon ein Sprung, und wer ihn überspränge,
+    /// käme an einer Absatzmarke nie zum Stehen.
+    /// </para>
+    /// </summary>
+    public static TdPosition WortRechts(TdDocument doc, TdPosition stelle)
+    {
+        var jetzt = Normalisieren(doc, stelle);
+        var absatz = AbsatzAn(doc, jetzt.Paragraph);
+        if (absatz is null) return jetzt;
+
+        int linear = Linear(absatz, jetzt);
+        if (linear >= Laenge(absatz)) return Rechts(doc, jetzt);
+
+        // Erst den laufenden Lauf zu Ende, dann den Leerraum dahinter.
+        if (ArtRechtsVon(absatz, linear) is { } art)
+            while (ArtRechtsVon(absatz, linear) == art) linear++;
+
+        while (ArtRechtsVon(absatz, linear) == Zeichenart.Leerraum) linear++;
+
+        return AusLinear(absatz, jetzt.Paragraph, linear);
+    }
+
+    /// <summary>
+    /// Ein Wort nach links: über den Leerraum davor hinweg an den **Anfang** des Wortes, in dem
+    /// die Stelle steht oder das links von ihr liegt.
+    /// <inheritdoc cref="WortRechts" path="/para[1]"/>
+    /// </summary>
+    public static TdPosition WortLinks(TdDocument doc, TdPosition stelle)
+    {
+        var jetzt = Normalisieren(doc, stelle);
+        var absatz = AbsatzAn(doc, jetzt.Paragraph);
+        if (absatz is null) return jetzt;
+
+        int linear = Linear(absatz, jetzt);
+        if (linear <= 0) return Links(doc, jetzt);
+
+        while (linear > 0 && ArtRechtsVon(absatz, linear - 1) == Zeichenart.Leerraum) linear--;
+
+        if (linear > 0 && ArtRechtsVon(absatz, linear - 1) is { } art)
+            while (linear > 0 && ArtRechtsVon(absatz, linear - 1) == art) linear--;
+
+        return AusLinear(absatz, jetzt.Paragraph, linear);
+    }
+
     // ---------------------------------------------------------------- Lesen
 
     /// <summary>

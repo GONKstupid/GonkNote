@@ -639,25 +639,74 @@ public sealed class ZeichnerTests
     }
 
     /// <summary>
-    /// Die Schreibmarke ist ein senkrechter Strich über die Zeilenhöhe, an der gerechneten
-    /// Stelle.
+    /// Die Schreibmarke ist ein senkrechter Strich an der gerechneten Stelle — <b>so hoch wie
+    /// die Schrift und um die Grundlinie herum</b>.
+    ///
+    /// <para>
+    /// <b>Nicht über die Zeilenhöhe</b>, und das ist die Änderung aus §4.35: Die Zeilenhöhe
+    /// trägt den Absatzabstand mit, und der Strich war damit zwischen zwei Absätzen doppelt so
+    /// hoch wie die Buchstaben daneben. Aufgefallen ist es in der Sekunde, in der zum ersten
+    /// Mal wirklich eine Marke auf dem Schirm stand — die Anzeige als Prüfmittel (§4.28).
+    /// </para>
+    /// <para>
+    /// Geprüft wird deshalb die **Beziehung** und nicht die Zahl: Der Strich muss die
+    /// Grundlinie kreuzen und niedriger sein als die Zeile. Eine feste Höhe stünde hier nicht,
+    /// weil der Umbruch dieser Wächter mit fester Messung rechnet und der Zeichner mit der
+    /// echten Schrift — im laufenden Programm ist es dieselbe (§7).
+    /// </para>
     /// </summary>
     [Fact]
-    public void Die_Schreibmarke_steht_als_Strich_an_ihrer_Stelle()
+    public void Die_Schreibmarke_steht_als_Strich_um_die_Grundlinie()
     {
         var doc = Dok(Blatt(), new TdParagraph());          // leerer Absatz: kein Text im Weg
         var seite = Setzen(doc);
 
-        var markierung = new TdMarkierung { MarkeZeile = seite.Lines[0], MarkeXCm = 3 };
+        var zeile = seite.Lines[0];
+        var markierung = new TdMarkierung { MarkeZeile = zeile, MarkeXCm = 3 };
         using var bmp = Malen(seite, massstab: 20, new TdRenderContext(Markierung: markierung));
 
         var kasten = TinteKasten(bmp);
 
-        // 1 cm Rand + 3 cm, bei 20 px/cm — und eine Zeile hoch (1 cm = 20 px).
+        // 1 cm Rand + 3 cm, bei 20 px/cm.
         Assert.InRange(kasten.Left, 79, 81);
-        Assert.InRange(kasten.Top, 19, 21);
-        Assert.InRange(kasten.Height, 19, 21);
         Assert.InRange(kasten.Width, 1, 3);
+
+        double grundlinie = (1 + zeile.YCm + zeile.BaselineCm) * 20;
+        Assert.True(
+            kasten.Top < grundlinie && kasten.Bottom > grundlinie,
+            $"Der Strich ({kasten.Top}–{kasten.Bottom}) kreuzt die Grundlinie {grundlinie} nicht.");
+
+        Assert.True(
+            kasten.Height < zeile.HeightCm * 20,
+            $"Der Strich ist {kasten.Height} px hoch und damit nicht niedriger als die Zeile.");
+    }
+
+    /// <summary>
+    /// <b>Der Fall, der die Regel erzwungen hat:</b> Ein Absatzabstand macht die Zeile höher,
+    /// die Schrift aber nicht. Ein Strich über die ganze Zeilenhöhe reichte damit weit in den
+    /// Zwischenraum hinein und sah aus wie ein Trennstrich zwischen zwei Absätzen.
+    /// </summary>
+    [Fact]
+    public void Ein_Absatzabstand_macht_die_Schreibmarke_nicht_hoeher()
+    {
+        var doc = new TdDocument
+        {
+            DefaultParaFormat = { SpaceBeforePt = 0, SpaceAfterPt = 28 },   // ein knapper cm
+            Sections = { new TdSection([new TdParagraph()]) { Page = Blatt() } },
+        };
+
+        var seite = Setzen(doc);
+        var zeile = seite.Lines[0];
+
+        Assert.True(zeile.HeightCm > 1.5, "Der Absatzabstand ist gar nicht in der Zeile gelandet.");
+
+        var markierung = new TdMarkierung { MarkeZeile = zeile, MarkeXCm = 3 };
+        using var bmp = Malen(seite, massstab: 20, new TdRenderContext(Markierung: markierung));
+
+        // Der Strich hört über dem Zwischenraum auf — nicht am unteren Rand der Zeile.
+        Assert.True(
+            TinteKasten(bmp).Bottom < (1 + zeile.YCm + zeile.HeightCm) * 20 - 10,
+            "Der Strich reicht bis in den Absatzabstand hinein.");
     }
 
     /// <summary>

@@ -450,6 +450,11 @@ internal static class LocEnglish
             "The Linux edition shows the document; writing happens in the Windows edition " +
             "for now. What you see is exactly what would be exported — same layout, same " +
             "renderer.",
+        ["Ed.TextOnly"] = "Text only",
+        ["Ed.TextOnly.Tip"] =
+            "You can write the text here: type, delete, select, undo. Formatting, tables and " +
+            "pictures are still set in the Windows edition. What you see is exactly what " +
+            "would be exported — same layout, same renderer.",
         ["Ed.Export"] = "Export",
         ["Ed.Export.Tip"] = "Write this document as PDF, Word, Markdown or PNG",
         ["Ed.FitWidth"] = "Fit width",

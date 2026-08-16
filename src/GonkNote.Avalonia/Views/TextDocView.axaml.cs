@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -33,8 +34,10 @@ namespace GonkNote.Views;
 /// </para>
 ///
 /// <para>
-/// <b>Was hier ausdrücklich nicht ist: ein Editor.</b> Caret, Auswahl und Eingabe sind eine
-/// eigene Runde. Das steht als Satz im Ribbon (<c>Ed.ViewOnly</c>) und nicht als
+/// <b>Seit Schritt 5 des Schreibens ist sie ein Editor</b> (§4.35): Tastatur und Maus stehen in
+/// <c>TextDocView.Eingabe.cs</c>. Was hier bleibt, ist die Anzeige — Stapel, Sichtfenster,
+/// Zoom, Ribbon. <b>Geschrieben wird Text</b>; Formate, Tabellen und Bilder setzt weiterhin nur
+/// der Windows-Editor, und das steht als Satz im Ribbon (<c>Ed.TextOnly</c>) und nicht als
 /// ausgegrauter Knopf — was noch nicht geht, verschwindet nicht still (§7), aber es tut auch
 /// nicht so, als wäre es beinahe da.
 /// </para>
@@ -50,9 +53,33 @@ public partial class TextDocView : UserControl
     private TextTabViewModel? _vm;
 
     /// <summary>
-    /// Der Umbruch — <b>einmal je Dokument gerechnet und nicht je Bild</b>. Er hängt an
-    /// <see cref="TdSkiaMeasure"/> und läuft bei einem Inhaltsverzeichnis mehrfach (§4.20);
-    /// ihn im Zeichenpfad zu rechnen hieße, ihn sechzigmal je Sekunde zu rechnen.
+    /// Das Dokument im eigenen Modell. <b>Es gehört dem Register und nicht der Ansicht</b>
+    /// (<see cref="TextTabViewModel.Modell"/>) — hier steht nur der Verweis darauf.
+    /// </summary>
+    private TdDocument? _modell;
+
+    /// <summary>
+    /// Die Schriftmaschine für Umbruch **und** Trefferrechnung. <b>Eine für beide</b>: Wer die
+    /// Stelle eines Klicks mit anderen Maßen rechnete als den Umbruch, bekäme einen Cursor, der
+    /// je Zeile weiter danebenläge (§7, <see cref="ITdTextMeasure"/>).
+    /// </summary>
+    private TdSkiaMeasure? _messung;
+
+    /// <inheritdoc cref="_messung"/>
+    private TdSkiaMeasure Messung => _messung ??= new TdSkiaMeasure();
+
+    /// <summary>
+    /// Datum und Titel für Kopf- und Fußzeile. <b>Die Uhr wird hier gefragt und nicht in
+    /// Core</b> (§4.20) — und **einmal je Dokument**, damit ein Umbruch mitten im Tippen nicht
+    /// plötzlich ein anderes Datum setzt.
+    /// </summary>
+    private TdFieldContext _felder = new();
+
+    /// <summary>
+    /// Der Umbruch. <b>Bis §4.34 einmal je Dokument gerechnet — seit Schritt 5 nach jeder
+    /// Änderung</b>, denn jetzt ändert sich das Dokument. Wie oft das wirklich geschieht,
+    /// entscheidet <see cref="UmbruchAnstossen"/> an einer gemessenen Zahl; im Zeichenpfad
+    /// gerechnet wäre es nach wie vor sechzigmal je Sekunde.
     /// </summary>
     private TdLayoutResult? _umbruch;
 
@@ -96,12 +123,30 @@ public partial class TextDocView : UserControl
         {
             App.Platform.Theme.ThemeChanged -= OnThemeChanged;
             Loc.LanguageChanged -= OnLanguageChanged;
+
+            // Der Takt der Marke läuft sonst weiter und zeichnet in eine Fläche, die niemand
+            // mehr sieht — samt allem, woran sie hängt.
+            Aufraeumen();
         };
 
         DataContextChanged += (_, _) => Laden();
 
         // Strg + Rad zoomt, wie in jedem Dokumentbetrachter; ohne Strg rollt der ScrollViewer.
         Blaetter.AddHandler(PointerWheelChangedEvent, Rad, RoutingStrategies.Tunnel);
+
+        EingabeAnhaengen();
+    }
+
+    /// <summary>
+    /// Was diese Ansicht hält, wenn sie verschwindet. <b>Das Modell steht nicht darunter</b> —
+    /// es gehört dem Register und wird beim nächsten Öffnen wieder gebraucht.
+    /// </summary>
+    private void Aufraeumen()
+    {
+        _blinker?.Stop();
+
+        _messung?.Dispose();
+        _messung = null;
     }
 
     // ==================== Laden ====================
@@ -121,37 +166,76 @@ public partial class TextDocView : UserControl
         _vm = DataContext as TextTabViewModel;
         _umbruch = null;
         _seite = 0;
+        _umbruchMs = 0;
 
-        var modell = _vm != null ? TdFormatIo.Lesen(_vm.Doc.Model) : null;
+        _modell = _vm is null ? null : ModellVon(_vm);
 
-        HinweisUebernahme.IsVisible = modell == null;
-        Blaetter.IsVisible = modell != null;
-        Seitenleiste.IsVisible = modell != null;
-        KnopfExport.IsEnabled = modell != null;
+        HinweisUebernahme.IsVisible = _modell == null;
+        Blaetter.IsVisible = _modell != null;
+        Seitenleiste.IsVisible = _modell != null;
+        KnopfExport.IsEnabled = _modell != null;
 
-        if (modell == null || _vm == null)
+        if (_modell == null || _vm == null)
         {
+            EingabeAufsetzen();
             Beschriftungen();
             return;
         }
 
         _zoom = _vm.Zoom > 0 ? _vm.Zoom : 1.0;
+        _felder = new TdFieldContext { Date = DateTime.Now, Title = _vm.Title };
 
-        // Die Uhr wird hier gefragt und nicht in Core (§4.20) — sonst hinge jeder Wächter
-        // daran, wann er läuft.
-        var felder = new TdFieldContext { Date = DateTime.Now, Title = _vm.Title };
+        // **Erst die Marke aufsetzen, dann umbrechen:** Der Umbruch zieht die Markierung nach,
+        // und ohne diese Reihenfolge täte er das einmal für die Auswahl des vorigen Dokuments.
+        EingabeAufsetzen();
+        NeuUmbrechen();
+        LayoutFelder(_modell);
+    }
 
-        using (var messung = new TdSkiaMeasure())
-            _umbruch = TdLayout.Umbrechen(modell, messung, felder);
+    /// <summary>
+    /// Das Modell dieser Registerkarte — <b>einmal gelesen und danach dasselbe Objekt</b>.
+    ///
+    /// <para>
+    /// <b>Warum nicht bei jedem Öffnen neu:</b> Ein gemerkter Verlaufsschritt zeigt auf die
+    /// Blockliste, in der er entstanden ist (§4.33). Läse diese Ansicht bei jedem Wechsel der
+    /// Registerkarte neu, zeigte der Verlauf danach auf ein Dokument, das es nicht mehr gibt —
+    /// und ein Strg+Z ersetzte still fremde Absätze oder wirfe.
+    /// </para>
+    /// </summary>
+    private static TdDocument? ModellVon(TextTabViewModel vm) =>
+        vm.Modell ??= TdFormatIo.Lesen(vm.Doc.Model);
+
+    /// <summary>
+    /// Bricht das Dokument um und zieht alles nach, was daran hängt. <b>Wann das geschieht,
+    /// entscheidet <see cref="UmbruchAnstossen"/></b> — hier steht nur, was dabei zu tun ist.
+    /// </summary>
+    private void NeuUmbrechen()
+    {
+        if (_modell is null)
+        {
+            _umbruch = null;
+            return;
+        }
+
+        long begonnen = Stopwatch.GetTimestamp();
+        _umbruch = TdLayout.Umbrechen(_modell, Messung, _felder);
+        _umbruchMs = Stopwatch.GetElapsedTime(begonnen).TotalMilliseconds;
 
         _kontext = new TdRenderContext(
-            new TdBlobImages(App.Db.Blobs), felder, _umbruch.PageCount);
+            new TdBlobImages(App.Db.Blobs), _felder, _umbruch.PageCount);
+
+        // Ein Dokument kann beim Schreiben kürzer werden — dann zeigt die Leiste unten sonst
+        // auf eine Seite, die es nicht mehr gibt.
+        _seite = Math.Clamp(_seite, 0, Math.Max(0, _umbruch.Pages.Count - 1));
 
         StapelVermessen();
         LeinwandGroesse();
+        Zaehlen(_modell);
+
+        // **Nach dem Kontext und nicht davor:** Die Markierung hängt sich in ihn ein, und ein
+        // frisch gebauter Kontext trüge sie sonst nicht.
+        MarkeNachziehen();
         Beschriftungen();
-        LayoutFelder(modell);
-        Zaehlen(modell);
     }
 
     /// <summary>
@@ -204,6 +288,10 @@ public partial class TextDocView : UserControl
             leinwand.DrawRect(e.Bounds, hintergrund);
 
         if (_umbruch == null) return;
+
+        // Der halbe Takt der Schreibmarke, unmittelbar vor dem Aufzeichnen — so blinkt sie,
+        // ohne dass irgendetwas in Core eine Uhr kennt (§4.34).
+        MarkeTakten();
 
         double massstab = TdRenderer.PixelProCm * _zoom;
         var (obenPx, untenPx) = Sichtfenster();
@@ -463,7 +551,7 @@ public partial class TextDocView : UserControl
     private void OnLanguageChanged()
     {
         Beschriftungen();
-        if (_vm != null && TdFormatIo.Lesen(_vm.Doc.Model) is { } modell)
+        if (_modell is { } modell)
         {
             LayoutFelder(modell);
             Zaehlen(modell);

@@ -447,6 +447,187 @@ public sealed class SchreibmarkeTests
         Assert.Equal(stelle, zurueck);
     }
 
+    // ==================== Senkrecht bewegen ====================
+
+    private static TdZeilenzug Zug(TdDocument doc, TdPosition stelle, bool hoch, double? spalte = null)
+    {
+        var umbruch = Umbrechen(doc);
+        var zug = hoch
+            ? TdHit.Hoch(umbruch, doc, Messung, stelle, spalte)
+            : TdHit.Runter(umbruch, doc, Messung, stelle, spalte);
+
+        return zug ?? throw new InvalidOperationException($"Kein Zeilensprung von {stelle}.");
+    }
+
+    /// <summary>Eine Zeile tiefer heißt: dieselbe Spalte, eine Zeile weiter.</summary>
+    [Fact]
+    public void Eine_Zeile_tiefer_bleibt_in_derselben_Spalte()
+    {
+        var doc = Dok(new TdParagraph("abcdefg"), new TdParagraph("hijklmn"));
+
+        var zug = Zug(doc, new TdPosition(0, 0, 3), hoch: false);
+
+        Assert.Equal(new TdPosition(1, 0, 3), zug.Stelle);
+    }
+
+    /// <summary>Und eine Zeile höher genauso, zurück.</summary>
+    [Fact]
+    public void Eine_Zeile_hoeher_bleibt_in_derselben_Spalte()
+    {
+        var doc = Dok(new TdParagraph("abcdefg"), new TdParagraph("hijklmn"));
+
+        Assert.Equal(new TdPosition(0, 0, 3), Zug(doc, new TdPosition(1, 0, 3), hoch: true).Stelle);
+    }
+
+    /// <summary>
+    /// **Der Wächter, um dessentwillen es <see cref="TdZeilenzug.SpalteCm"/> gibt.** Wer über
+    /// eine kurze Zeile hinweg nach unten geht, muss danach wieder in seiner Spalte stehen —
+    /// ohne die gemerkte Spalte hätte die kurze Zeile den Cursor eingesammelt, und die Marke
+    /// bliebe für den Rest des Dokuments an ihrem Ende kleben.
+    /// </summary>
+    [Fact]
+    public void Ueber_eine_kurze_Zeile_hinweg_bleibt_die_Spalte_erhalten()
+    {
+        var doc = Dok(
+            new TdParagraph("abcdefghij"), new TdParagraph("xy"), new TdParagraph("klmnopqrst"));
+
+        var erster = Zug(doc, new TdPosition(0, 0, 8), hoch: false);
+        Assert.Equal(new TdPosition(1, 0, 2), erster.Stelle);   // die kurze Zeile ist zu Ende
+
+        var zweiter = Zug(doc, erster.Stelle, hoch: false, spalte: erster.SpalteCm);
+        Assert.Equal(new TdPosition(2, 0, 8), zweiter.Stelle);  // und die Spalte ist wieder da
+    }
+
+    /// <summary>
+    /// Ganz oben gibt es kein Höher und ganz unten kein Tiefer — <c>null</c> und keine Ausnahme.
+    /// Die Oberfläche lässt die Marke dann stehen; ein Sprung an den Dokumentanfang wäre eine
+    /// zweite Antwort auf eine Taste, die nur eine hat.
+    /// </summary>
+    [Fact]
+    public void Am_Rand_des_Dokuments_gibt_es_keinen_Sprung()
+    {
+        var doc = Dok(new TdParagraph("eins"), new TdParagraph("zwei"));
+        var umbruch = Umbrechen(doc);
+
+        Assert.Null(TdHit.Hoch(umbruch, doc, Messung, TdCursor.Anfang(doc)));
+        Assert.Null(TdHit.Runter(umbruch, doc, Messung, TdCursor.Ende(doc)));
+    }
+
+    /// <summary>
+    /// Über die Seitengrenze hinweg. **Der Sprung endet nicht am Blattrand** — im Modell steht
+    /// ein Text und keine Seite, und wer unten ankommt, will oben auf der nächsten weiter.
+    /// </summary>
+    [Fact]
+    public void Der_Sprung_geht_ueber_die_Seitengrenze()
+    {
+        var doc = Dok(new TdParagraph("oben"), new TdPageBreak(), new TdParagraph("unten"));
+        var umbruch = Umbrechen(doc);
+
+        Assert.Equal(2, umbruch.Pages.Count);
+
+        var zug = Zug(doc, new TdPosition(0, 0, 3), hoch: false);
+        Assert.Equal(1, zug.Stelle.Paragraph);
+
+        Assert.Equal(0, Zug(doc, zug.Stelle, hoch: true).Stelle.Paragraph);
+    }
+
+    /// <summary>
+    /// **Gesucht wird über die Geometrie und nicht über die Reihenfolge der Zeilenliste**, und
+    /// dieser Wächter ist der Grund: Eine Seite trägt erst ihre Fließzeilen und danach ihre
+    /// Tabellenzeilen. Wer der Liste folgte, spränge aus „danach" nicht in die Tabelle darüber,
+    /// sondern in „davor" — über die ganze Tabelle hinweg, und niemand sähe der Bewegung an,
+    /// warum.
+    /// </summary>
+    [Fact]
+    public void Aus_der_Zeile_unter_einer_Tabelle_geht_es_in_die_Tabelle()
+    {
+        var doc = MitTabelle(spalten: 2);
+
+        // Absätze: 0 „davor", 1 und 2 die Zellen, 3 „danach".
+        var zug = Zug(doc, new TdPosition(3, 0, 1), hoch: true);
+
+        Assert.Equal(1, zug.Stelle.Paragraph);
+    }
+
+    /// <summary>
+    /// **Eine Tabellenzeile liegt dort, wo ihre Reihe steht, und nicht am Seitenanfang.** Der
+    /// Ort einer Zeile in einer Zelle zählt ab der Zelle (§4.19); wer den Versatz der Reihe
+    /// beim Suchen wegließe, hielte jede Tabellenzeile für die oberste der Seite. Beim
+    /// Kaputtmachen ist genau das grün geblieben, solange die Tabelle als Erstes im Dokument
+    /// stand — deshalb steht sie hier in der Mitte, und geprüft wird **in beide Richtungen**.
+    /// </summary>
+    [Fact]
+    public void Eine_Tabellenzeile_liegt_dort_wo_ihre_Reihe_steht()
+    {
+        var doc = MitTabelle(spalten: 2, davor: ["eins", "zwei", "drei"]);
+
+        // Absätze: 0–2 die drei davor, 3 und 4 die Zellen, 5 „danach".
+        var inDieZelle = Zug(doc, new TdPosition(5, 0, 1), hoch: true);
+        Assert.Equal(3, inDieZelle.Stelle.Paragraph);
+
+        // Und aus der Zelle heraus wieder in die Zeile darüber — nicht ins Nichts.
+        Assert.Equal(2, Zug(doc, inDieZelle.Stelle, hoch: true).Stelle.Paragraph);
+
+        Assert.Equal(3, Zug(doc, new TdPosition(2, 0, 1), hoch: false).Stelle.Paragraph);
+    }
+
+    /// <summary>
+    /// **Und in die richtige Spalte.** Zwei Zellen derselben Reihe stehen in derselben Lage;
+    /// zwischen ihnen entscheidet allein die angepeilte Spalte. Ohne diese zweite Frage gewänne
+    /// hier immer die erste — derselbe Fehler, den §4.34 beim Klicken gefunden hat, nur eine
+    /// Bewegung später.
+    /// </summary>
+    [Fact]
+    public void Der_Sprung_in_eine_Tabelle_trifft_die_richtige_Spalte()
+    {
+        var doc = MitTabelle(spalten: 2);
+        var umbruch = Umbrechen(doc);
+
+        var zweite = umbruch.Pages[0].TableRows[0].Cells[1];
+        Assert.True(zweite.XCm > 0, "Die zweite Spalte steht nicht rechts von der ersten.");
+
+        // Eine Spalte mitten in der zweiten Zelle, in Seitenkoordinaten (1 cm Seitenrand).
+        double spalte = 1 + zweite.XCm + zweite.WidthCm / 2;
+
+        var zug = Zug(doc, new TdPosition(3, 0, 1), hoch: true, spalte: spalte);
+
+        Assert.Equal(2, zug.Stelle.Paragraph);
+    }
+
+    // ==================== Zeilenanfang und -ende ====================
+
+    /// <summary>
+    /// **Pos1 führt an den Anfang der gesetzten Zeile und nicht des Absatzes.** In einem Absatz
+    /// über vier Zeilen spränge es sonst drei Zeilen weit, und das meint niemand.
+    /// </summary>
+    [Fact]
+    public void Pos1_geht_an_den_Anfang_der_gesetzten_Zeile()
+    {
+        var doc = Dok(new TdParagraph("aaa bbb ccc"));
+        var umbruch = Umbrechen(doc);
+
+        Assert.Equal(2, umbruch.Pages[0].Lines.Count);
+
+        // Eine Stelle in der zweiten Zeile („ccc" fängt bei 8 an).
+        var mitten = new TdPosition(0, 0, 10);
+
+        Assert.Equal(new TdPosition(0, 0, 8), TdHit.Zeilenrand(umbruch, doc, mitten, ende: false));
+        Assert.Equal(new TdPosition(0, 0, 11), TdHit.Zeilenrand(umbruch, doc, mitten, ende: true));
+    }
+
+    /// <summary>
+    /// Und ohne gesetzte Zeile bleibt die Stelle stehen. Eine Taste, die nichts tut, ist besser
+    /// als eine, die den Cursor an eine geratene Stelle wirft.
+    /// </summary>
+    [Fact]
+    public void Ohne_gesetzte_Zeile_bleibt_Pos1_wirkungslos()
+    {
+        var doc = Dok(new TdParagraph("Hallo"));
+        var stelle = new TdPosition(0, 0, 3);
+
+        Assert.Equal(stelle, TdHit.Zeilenrand(new TdLayoutResult(), doc, stelle, ende: false));
+    }
+
     // ==================== Beispiele ====================
 
     private static TdDocument Beispiel(string fall) => fall switch
@@ -465,7 +646,7 @@ public sealed class SchreibmarkeTests
         _ => throw new ArgumentOutOfRangeException(nameof(fall), fall, "Unbekanntes Beispiel"),
     };
 
-    private static TdDocument MitTabelle(int spalten = 1)
+    private static TdDocument MitTabelle(int spalten = 1, string[]? davor = null)
     {
         var zeile = new TdTableRow();
         for (int i = 0; i < spalten; i++)
@@ -478,6 +659,11 @@ public sealed class SchreibmarkeTests
         var tabelle = new TdTable();
         tabelle.Rows.Add(zeile);
 
-        return Dok(new TdParagraph("davor"), tabelle, new TdParagraph("danach"));
+        var bloecke = new List<TdBlock>();
+        foreach (var text in davor ?? ["davor"]) bloecke.Add(new TdParagraph(text));
+        bloecke.Add(tabelle);
+        bloecke.Add(new TdParagraph("danach"));
+
+        return Dok([.. bloecke]);
     }
 }

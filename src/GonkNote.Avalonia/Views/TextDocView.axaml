@@ -6,13 +6,13 @@
              x:Class="GonkNote.Views.TextDocView"
              x:DataType="vm:TextTabViewModel">
 
-    <!-- Die Anzeige eines Textdokuments im Linux-Kopf (HANDOFF §4.28).
+    <!-- Die Anzeige eines Textdokuments im Linux-Kopf (HANDOFF §4.28, §4.35).
 
-         **Sie zeigt und sie schreibt nicht.** Gezeichnet wird von `TdRenderer` aus Core,
-         umbrochen von `TdLayout` — derselbe Weg, den der PDF-Export nimmt (§4.27), und
-         deshalb steht auf dem Schirm buchstäblich das, was ins PDF ginge. Was fehlt, ist
-         Caret, Auswahl und Eingabe; das ist eine eigene Runde und steht als solche im
-         Ribbon **dran** statt als halber Knopf darin (§7).
+         Gezeichnet wird von `TdRenderer` aus Core, umbrochen von `TdLayout` — derselbe Weg,
+         den der PDF-Export nimmt (§4.27), und deshalb steht auf dem Schirm buchstäblich das,
+         was ins PDF ginge. **Seit Schritt 5 des Schreibens nimmt sie Eingaben entgegen**
+         (TextDocView.Eingabe.cs); was weiterhin fehlt, sind die Formate, und das steht als
+         Satz im Ribbon statt als halber Knopf darin (§7).
 
          Der Aufbau folgt dem WPF-Gegenstück (src/GonkNote.Wpf/Views/TextEditorView.xaml):
          Ribbon oben mit Reiterleiste, Blätterbereich in der Mitte, Seitenleiste unten. -->
@@ -29,10 +29,14 @@
                      hier wären es drei leere Flächen — ein halbes Feature ist schlechter als
                      ein fehlendes, weil niemand ihm ansieht, dass es halb ist (§4.12). -->
                 <DockPanel>
+                    <!-- **„Nur Ansicht" ist seit Schritt 5 falsch** (§4.35): getippt wird
+                         hier. Was weiterhin fehlt, sind die Formate — und das steht als Satz
+                         da und nicht als ausgegrauter Knopf. Die drei fehlenden Reiter kommen
+                         mit Schritt 6, und erst dann stünden sie nicht leer da. -->
                     <TextBlock DockPanel.Dock="Right" VerticalAlignment="Center"
                                Margin="0,0,14,0" FontSize="11.5"
-                               Text="{loc:T Ed.ViewOnly}"
-                               ToolTip.Tip="{loc:T Ed.ViewOnly.Tip}"
+                               Text="{loc:T Ed.TextOnly}"
+                               ToolTip.Tip="{loc:T Ed.TextOnly.Tip}"
                                Foreground="{DynamicResource Brush.TextMuted}"/>
 
                     <StackPanel Orientation="Horizontal" Margin="6,0,0,0">

@@ -1,6 +1,6 @@
 # Gonk Note V2 — Projektübergabe
 
-**Stand: 2026-08-11 · Version 0.3.0 · net10.0 · SkiaSharp 3 · SQLite · Avalonia 12 · ✅ M1 erreicht · ✅ Phase 4 abgeschlossen (§4.28): Dokumentmodell, Übernahme, DOCX/Markdown/PDF/PNG gegen das Modell, Zeichner samt Diagrammen, Schriftkonzept — und die Anzeige im Linux-Kopf. Textdokumente sind dort nicht mehr ausgegraut, und die Anzeige ist **auf dem Laptop gegengeprüft** (§4.28, V2-37). ✅ **Aufgeräumt vor dem Schreiben** (§4.29, V2-40). ⏳ **Das Schreiben läuft** (§6): **Schritt 1 steht** — `TdPosition`, `TdSelection`, `TdCursor` (§4.30, V2-41); als Nächstes Schritt 2, die Änderungen am Modell. Dazu drei kleine Punkte (§5 „Noch offen" 6, 7 und 8)**
+**Stand: 2026-08-16 · Version 0.3.0 · net10.0 · SkiaSharp 3 · SQLite · Avalonia 12 · ✅ M1 erreicht · ✅ Phase 4 abgeschlossen (§4.28): Dokumentmodell, Übernahme, DOCX/Markdown/PDF/PNG gegen das Modell, Zeichner samt Diagrammen, Schriftkonzept — und die Anzeige im Linux-Kopf, **auf dem Laptop gegengeprüft** (§4.28, V2-37). ✅ **Aufgeräumt vor dem Schreiben** (§4.29, V2-40). ⏳ **Das Schreiben läuft** (§6): **Schritte 1 bis 5 stehen** — Stelle, Änderung, Verlauf, Trefferrechnung und seit dem 2026-08-16 **Tastatur und Maus: der Linux-Kopf schreibt** (§4.35, V2-46). **693 Tests.** ▶ **Dran ist der Laptop** (§5d: Umlaute, tote Tasten, Compose, Stift). ⚠ **Und eine Entscheidung steht an, bevor es unter Windows weitergeht: §5 „Noch offen" 9** — bei gefülltem `Rtf` überschreibt der WPF-Editor die Linux-Arbeit still**
 
 > **📌 Dauerregeln des Nutzers — gelten immer, ohne Nachfragen:**
 >
@@ -350,8 +350,23 @@ Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — beh
 > Spaltenversatz sind beide Richtungen *gleich falsch*, und der Hin-und-zurück-Wächter bleibt
 > grün — dabei kam heraus, dass ein Klick in die zweite Tabellenspalte in der ersten landete.
 >
-> **▶ Als Nächstes: Schritt 5 — Tastatur und Maus im Linux-Kopf.** Erst hier wird aus den vier
-> Bausteinen ein Editor. **Mit ihm ist auch der Laptop wieder dran.**
+> **✅ Schritt 5 des Arbeitsplans steht** (2026-08-16, §4.35): `TextDocView.Eingabe.cs`,
+> **22 Wächter**, **693 Tests** grün. **Der Linux-Kopf schreibt** — getippt wird über
+> `TextInput`, ausgewählt mit Maus und Umschalt, gesprungen wort- und zeilenweise, zurück-
+> genommen mit Strg+Z. Der Umbruch nach jeder Änderung ist **gemessen** (§4.35), und dabei kam
+> heraus, dass die Sorge aus §6 an der falschen Ursache hing: nicht das Verzeichnis kostet,
+> sondern die Länge. **Der Fund kam wieder vom Schirm und nicht von einem Wächter:** Die
+> Schreibmarke ging über die ganze Zeilenhöhe und war zwischen zwei Absätzen doppelt so hoch
+> wie die Buchstaben daneben.
+>
+> **⚠ Und die Gegenprobe hat den ernstesten offenen Punkt dieser Runde gebracht:** Bei einem
+> Dokument mit gefülltem `Rtf` zeigt der WPF-Editor die Linux-Arbeit **nicht** und überschreibt
+> sie beim nächsten Speichern — nachgemessen, betrifft **jedes Bestandsdokument**.
+> **§5 „Noch offen" 9, zur Entscheidung, vor der nächsten Windows-Runde.**
+>
+> **▶ Als Nächstes: der Laptop** (§5d trägt den Auftrag seit 2026-08-16) — Umlaute, tote
+> Tasten, Compose, Bildschirmtastatur, der Cursor am Stift. **Danach wieder Windows:** Schritt 6
+> oder Schritt 7 vorgezogen, je nachdem, wie §5 „Noch offen" 9 entschieden wird.
 >
 > **Gearbeitet wird auf dem Windows-Rechner.** Nicht wegen der Werkzeuge, sondern wegen der
 > Gegenprobe — jede Änderung am Modell muss der WPF-Editor überleben, und beide Köpfe
@@ -388,11 +403,11 @@ Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — beh
 **Tests laufen lassen:**
 
 ```powershell
-dotnet test -c Release        # Windows: beide Projekte, 671 Tests
+dotnet test -c Release        # Windows: beide Projekte, 693 Tests
 ```
 
 ```bash
-dotnet test tests/GonkNote.Core.Tests   # Linux: 526 Tests
+dotnet test tests/GonkNote.Core.Tests   # Linux: 662 Tests
 ```
 
 ---
@@ -2100,7 +2115,7 @@ ersten Fassung von `IstLeererAbsatz` als „hat ein Format" und damit als Inhalt
 
 #### Stand
 
-**21 neue Wächter** in `TabellenTests`, dazu eine Tabelle in beiden Beispieldokumenten.
+**22 neue Wächter** in `TabellenTests`, dazu eine Tabelle in beiden Beispieldokumenten.
 
 ---
 
@@ -4234,6 +4249,146 @@ Spalte. Behoben: erst die Höhe, dann die Breite des Behälters.
 ist Absicht und passiert mit Schritt 5, wenn Tastatur und Maus dazukommen — vorher gäbe es
 nichts, was den Cursor bewegen könnte. Kein Kopf ist in dieser Runde angefasst worden.
 
+### 4.35 Tastatur und Maus — Schritt 5 des Schreibens, **der Linux-Kopf schreibt**
+
+**2026-08-16 unter Windows (V2-46).** `TextDocView.Eingabe.cs` neu (rund 550 Zeilen), dazu drei
+Rechnungen in Core und ein Feld je im ViewModel — **22 neue Wächter**; Bau 0/0, **693 Tests**
+grün (vorher 671). Am laufenden Programm in beiden Köpfen geprüft, mit einer Kopie der echten
+Datenbank.
+
+**Was jetzt geht:** tippen (samt Umlauten, ß, Gedankenstrich, €), Absatz teilen, Zeilenumbruch,
+löschen vorwärts und rückwärts, Pfeile in alle vier Richtungen, Strg+Pfeil wortweise, Pos1/Ende,
+Bild auf/ab, Umschalt-Auswahl, Ziehen mit der Maus, Doppelklick auf ein Wort, Dreifachklick auf
+den Absatz, Strg+A/C/X/V und Strg+Z/Y. Die Marke blinkt und rollt sich ins Bild.
+
+#### Der Umbruch: gemessen, und die Vermutung aus §6 war falsch
+
+§6 sagte: „`TdLayout` rechnet bei einem Inhaltsverzeichnis so lange, bis sich nichts mehr
+ändert. **Bei jedem Tastendruck ist das zu teuer.** … Das ist zu messen, nicht zu raten."
+**Gemessen** (dieser Rechner, Release, voller Umbruch):
+
+| Dokument | Seiten | ohne Verzeichnis | mit Verzeichnis |
+|---|---|---|---|
+| 30 Absätze | 2 | **4,5 ms** | 7,4 ms |
+| 150 Absätze | 9 | **25,1 ms** | 27,6 ms |
+| 600 Absätze | 35 | — | **207,7 ms** |
+
+> **Der Fund: das mehrfache Rechnen des Verzeichnisses ist *nicht* der teure Teil.** Dieselben
+> neun Seiten kosten mit Verzeichnis 27,6 statt 25,1 ms — ein Zehntel, nicht ein Vielfaches. Was
+> zählt, ist die **Länge** des Dokuments; der Preis steckt im Messen der Schrift. Die Sorge aus
+> §6 stand am richtigen Ergebnis und an der falschen Ursache. Eine frische `TdSkiaMeasure` je
+> Umbruch kostet dabei fast nichts (29,5 statt 27,6 ms) — die Naht ist nicht die Bremse.
+
+**Daraus die Weiche in `UmbruchAnstossen`:** Bleibt der letzte Umbruch unter **40 ms**, wird
+sofort gerechnet — die Marke steht dann in derselben Sekunde richtig wie das Zeichen. Darüber
+wird über den Nachrichtenlauf **gesammelt** (`DispatcherPriority.Background`): Eingaben haben
+Vorrang, also laufen zehn schnell getippte Zeichen durch das Modell und danach **ein** Umbruch.
+**Das Modell hinkt dabei nie hinterher, nur das Bild**, und es holt in der ersten Tippause auf.
+
+> **Was damit ausdrücklich nicht getan ist:** nur den betroffenen Absatz neu zu setzen — der
+> andere Weg aus §6. Er ist keine Kleinigkeit: Eine Änderung in Absatz 3 verschiebt jeden
+> Seitenumbruch danach und jede Seitenzahl im Verzeichnis. Er lohnt erst, wenn ein Dokument
+> dieser Länge wirklich vorkommt. **Damit ist auch die zweite Falle aus §6 erledigt** — die
+> Anzeige rechnet nicht mehr einmal je Dokument, sondern nach jeder Änderung.
+
+#### Drei Rechnungen mehr in Core, und warum sie dort und nicht im Kopf stehen
+
+| Wo | Was | Warum in Core |
+|---|---|---|
+| `TdHit.Hoch` / `Runter` | eine Zeile höher/tiefer, samt **angepeilter Spalte** (`TdZeilenzug`) | „Eine Zeile höher" gibt es im Modell nicht — nur der Umbruch weiß, wo die nächste anfängt (§6 sagt das ausdrücklich) |
+| `TdHit.Zeilenrand` | Pos1 und Ende — **der gesetzten Zeile**, nicht des Absatzes | In einem Absatz über vier Zeilen spränge Pos1 sonst drei Zeilen weit |
+| `TdCursor.Wort` / `WortLinks` / `WortRechts` | Doppelklick und Strg+Pfeil | Eine Wortgrenze ist eine Frage an den **Text**, nicht an das Papier — sie braucht keinen Umbruch und ist damit auf jedem Rechner prüfbar |
+
+**Die angepeilte Spalte ist der eigentliche Inhalt von `TdZeilenzug`.** Wer aus einer langen
+Zeile in eine kurze hinuntergeht und weiter, landet ohne sie danach am Ende jeder folgenden
+Zeile — die kurze Zeile hätte den Cursor eingesammelt. **Merken muss sie die Oberfläche**, denn
+nur sie weiß, wann die Reihe abbricht (ein Klick, ein Pfeil nach links, ein getipptes Zeichen).
+
+> **Und der Sprung sucht über die Geometrie, nicht über die Zeilenliste.** Eine Seite trägt
+> erst ihre Fließzeilen und danach ihre Tabellenzeilen (`ZeilenDerSeite`, §4.19). Wer der Liste
+> folgte, spränge aus der Zeile unter einer Tabelle nicht in die Tabelle, sondern über sie
+> hinweg. Genommen wird die nächste **Zeilenlage**, und darin entscheidet die Spalte — dieselbe
+> Regel wie beim Klick (erst die Höhe, dann die Breite, §4.34).
+
+#### Modell und Verlauf gehören dem Register, nicht der Ansicht
+
+`TextTabViewModel` trägt jetzt `Modell` und `Undo`. **Das ist kein Aufbewahrungsort, sondern
+Notwehr:** Die Ansicht wird bei jedem Wechsel der Registerkarte neu erzeugt. Läge das Modell
+dort, wäre jeder Wechsel ein Neulesen aus `TextDoc.Model` — und damit ein **anderes** Objekt.
+Ein gemerkter Verlaufsschritt zeigt aber auf die Blockliste, in der er entstanden ist (§4.33);
+nach einem Neulesen ersetzte ein Strg+Z still fremde Absätze oder wirfe. **Beide gehören
+deshalb an dieselbe Stelle** — genau wie `UndoStack` am `WhiteboardTabViewModel`.
+
+Gespeichert wird in `Save()`, **nach** `Mitschreiben()`. Beide füllen `TextDoc.Model`: die
+Übernahme aus dem Altformat und der Kopf, der wirklich darauf geschrieben hat. Wo beides
+zusammenträfe, muss das Geschriebene gewinnen. Heute treffen sie sich nie (nur Windows
+übernimmt, nur Linux schreibt) — **und genau deshalb steht die Reihenfolge jetzt fest**, damit
+sie richtig ist, wenn Schritt 7 kommt.
+
+#### Der Fund: die Schreibmarke war zu hoch — und es fiel erst auf dem Schirm auf
+
+`TdRenderer` zog den Strich über die **ganze Zeilenhöhe** (§4.34). Die trägt aber den
+Absatzabstand mit: Zwischen zwei Absätzen war die Marke **doppelt so hoch wie die Buchstaben
+daneben** und sah nicht wie ein Cursor aus, sondern wie ein Trennstrich.
+
+> **Kein Wächter konnte das sehen, und der Grund ist lehrreich:** Der Zeichner-Wächter setzte
+> mit fester Messung (jede Zeile 1 cm) und **ohne Absatzabstand** — in dieser Welt *ist* die
+> Zeilenhöhe die Schrifthöhe. Der Fehler brauchte ein Dokument mit Abstand und ein Auge.
+> **Dieselbe Rolle wie in §4.28: eine Anzeige ist ein Prüfmittel.** Behoben — die Marke steht
+> jetzt um die **Grundlinie** herum, so hoch wie die Schrift. **Der Auswahlkasten bleibt
+> zeilenhoch**, dort ist genau das richtig (sonst weiße Streifen zwischen den Zeilen).
+> Zwei neue Wächter, beide prüfen die **Beziehung** (kreuzt die Grundlinie, niedriger als die
+> Zeile) und nicht eine Zahl — die Zahl stünde in diesen Wächtern in zwei verschiedenen Welten.
+
+#### „Nur Ansicht" ist eine Lüge geworden
+
+Der Satz im Ribbon heißt jetzt **„Nur Text"** (`Ed.TextOnly`, beide Sprachen): *hier lässt sich
+der Text schreiben; Formate, Tabellen und Bilder setzt weiterhin die Windows-Fassung.* **Die
+drei fehlenden Reiter kommen mit Schritt 6** und keinen Tag früher — vorher stünden sie leer da
+(§4.12). `Ed.ViewOnly` bleibt stehen: Ein Schlüssel, den heute niemand benutzt, ist kein Schaden;
+ein falscher Satz auf dem Schirm schon.
+
+#### Am laufenden Programm — und die Gegenprobe, um derentwillen hier gearbeitet wird
+
+| Was | Ergebnis |
+|---|---|
+| Tippen, Enter, Umlaute (`äöü ÄÖÜ ß — €`) | ✅ alles steht auf dem Blatt, Wörter/Zeichen zählen mit |
+| Ziehen mit der Maus | ✅ blauer Kasten, Marke auf der **Spitze** |
+| Doppelklick auf „Absatz" | ✅ genau das Wort, ohne die Zwischenräume |
+| Auswahl überschreiben, dann Strg+Z | ✅ Text **und Auswahl** kommen zurück — genau, was §4.33 zusagt |
+| Speichern und im **WPF**-Editor öffnen (`Rtf` leer) | ✅ vollständig da, über den Rückfall aus §4.28 |
+| Speichern und im **WPF**-Editor öffnen (`Rtf` gefüllt) | ❌ **siehe unten** |
+
+#### ⚠ Der ernste Befund: bei gefülltem `Rtf` ist die Linux-Arbeit verloren
+
+§6 nennt das als benannte Lücke („Zwei Editoren auf einem Modell … kann dasselbe Dokument zwei
+Wahrheiten haben"). **Nachgemessen ist es schlimmer als das**, und zwar in dieser Reihenfolge:
+
+1. Im WPF-Editor tippen und speichern → `Rtf` ist gefüllt und **führt** (§5).
+2. Im Linux-Kopf tippen und speichern → `Model` weicht ab, `Rtf` bleibt unangetastet (§4.22).
+3. Im WPF-Editor öffnen → **er zeigt Schritt 1 und nicht Schritt 2.** Nachgemessen.
+4. Dort einmal speichern → `WpfDocumentIo.Migrate` schreibt `Model` **bedingungslos** aus `Rtf`
+   neu. **Die Arbeit aus Schritt 2 ist damit still weg.**
+
+> **Das ist keine Anzeigefrage, sondern Datenverlust ohne Warnung** — und es betrifft **jedes
+> Bestandsdokument**, denn die haben alle ein `Rtf`. Nur für ein Dokument, das nie im
+> WPF-Editor beschrieben wurde, ist Schritt 5 heute gefahrlos zu benutzen.
+>
+> **Nichts daran ist in dieser Runde geändert worden**, und mit Absicht: `Rtf` beim Schreiben
+> zu leeren wäre der Griff, den §4.22 seit jeher verbietet, und ein Vorrangfeld am Dokument ist
+> eine Formatänderung — das ist Schritt 7 und keine Nebenbei-Entscheidung. **Was zur
+> Entscheidung ansteht, steht in §5 „Noch offen" 9.**
+
+#### Zwei kleinere Entscheidungen, die genannt sein wollen
+
+- **Die Tabulatortaste schreibt vier Leerzeichen.** Das Modell kennt keine Tabstopps (§4.20).
+  Die Alternative wäre, sie unbehandelt zu lassen — dann springt der Fokus aus dem Editor
+  heraus, und das ist in einem Textfenster schlechter. **Zur Bestätigung gestellt.**
+- **Die Zwischenablage trägt Klartext.** Formate, Felder und Bilder gehen beim Kopieren nicht
+  mit; `IClipboard` kennt nur Text, und ein eigenes Format dafür wäre eine Runde für sich.
+  Eingefügt wird über **denselben** Handgriff wie das Tippen — dass Zeilenumbrüche zu Absätzen
+  werden, steht in `TdFragment.Text` und nicht ein zweites Mal im Kopf (§4.13).
+
 ---
 
 ## 5. Entscheidungen
@@ -4400,6 +4555,34 @@ nichts, was den Cursor bewegen könnte. Kein Kopf ist in dieser Runde angefasst 
    übernehmen — ein dritter Zustand durch alle Köpfe war damit nicht nötig. `Rtf` bleibt leer,
    „wer voll ist, führt" ist unangetastet. **In beiden Köpfen am laufenden Programm geprüft**,
    an einer Kopie der echten Datenbank.
+
+9. ⚠ **Zur Entscheidung: Was tut der Linux-Kopf, wenn `Rtf` noch führt?** Neu und **dringend**
+   seit dem 2026-08-16 (§4.35), denn seit Schritt 5 lässt sich dort wirklich schreiben.
+
+   **Der gemessene Ablauf:** Ein Dokument, das schon einmal im WPF-Editor beschrieben wurde,
+   hat ein gefülltes `Rtf` — und das führt (§5, „wer voll ist, führt"). Wer es danach im
+   Linux-Kopf bearbeitet, schreibt in `Model`. Der WPF-Editor zeigt beim nächsten Öffnen
+   **den alten Stand**, und beim nächsten Speichern dort schreibt `WpfDocumentIo.Migrate` das
+   `Model` **bedingungslos** aus `Rtf` neu. **Die Linux-Arbeit ist dann still weg.** Das ist
+   nicht die „zweite Wahrheit" aus §6, sondern Datenverlust ohne Warnung — **und es betrifft
+   jedes Bestandsdokument.**
+
+   **Vier Antworten sind denkbar:**
+   (a) **Schritt 7 vorziehen** — der WPF-Editor liest aus dem Modell, `Rtf` verliert die
+   Führung. Das löst es an der Wurzel, ist aber der Schritt, bei dem am meisten schiefgehen
+   kann (§6), und er ist nicht klein.
+   (b) **Warnen statt verhindern** — der Linux-Kopf sagt im Ribbon, dass dieses Dokument noch
+   die Windows-Fassung führt. Zwei Übersetzungsschlüssel, keine Formatänderung, kein
+   Datenverlust ohne Vorwarnung. **Empfehlung, wenn (a) nicht sofort kommt.**
+   (c) **Das Schreiben sperren**, solange `Rtf` steht. Sicher — und macht Schritt 5 für echte
+   Dokumente unbenutzbar.
+   (d) **`Migrate` bremsen:** nicht übernehmen, wenn `Model` schon gefüllt ist. Klingt billig,
+   ist aber falsch herum: dann liefe der Umwandler nie mehr, und §4.23 hat ihn genau deshalb
+   bei jedem Speichern laufen lassen.
+
+   **Nichts davon ist in dieser Runde gebaut worden**, weil jede Antwort eine Entscheidung des
+   Nutzers ist. Bis dahin gilt: **im Linux-Kopf gefahrlos schreiben lässt sich nur, was der
+   WPF-Editor nie beschrieben hat.**
 
 **Beantwortet und hier nur noch als Verweis** — der volle Wortlaut stand bis zum 2026-08-11
 darunter und wurde von niemandem mehr gelesen; was gilt, steht in der Tabelle oben:
@@ -4864,28 +5047,54 @@ dotnet run --project src/GonkNote.Avalonia -- --db /tmp/gonk-test/gonknote.sqlit
 
 ---
 
-### ▶ Aktueller Auftrag — **noch keiner, aber er ist in Sicht** (Stand 2026-08-13, nach Runde V2-45)
+### ▶ Aktueller Auftrag — **das Schreiben unter Linux** (Stand 2026-08-16, nach Runde V2-46)
 
-> **Der letzte Auftrag („der erste Augenschein des Textdokuments unter Linux") ist
-> abgearbeitet.** Befund: **§4.28, „Was der Laptop gefunden hat"**. Kurzfassung unten in der
-> Tabelle.
+> **Schritt 5 steht** (§4.35): `TextDocView` nimmt Tastatur und Maus an — **der Linux-Kopf
+> schreibt.** Unter Windows läuft er sauber (getippt, ausgewählt, gelöscht, rückgängig
+> gemacht, in beiden Köpfen gegengeprüft). **Was Windows nicht beantworten kann, ist die
+> Tastatur selbst** — und genau dafür bist du dran.
 >
-> **Hier steht noch kein neuer Auftrag, und das hat einen Grund:** Die Schritte 1 bis 4 des
-> Schreibens (§4.30, §4.32, §4.33, §4.34) liegen vollständig in **Core** — Stelle, Änderung,
-> Verlauf und die Rechnung vom Papier ins Modell. Sie sind auf jedem Rechner gleich prüfbar,
-> und der Laptop hätte daran nichts zu messen, was Windows nicht selbst sieht. **Angeschlossen
-> ist bis heute nichts davon**; auf dem Schirm hat sich seit dem letzten Auftrag nichts
-> geändert.
+> **Vorher lesen:** §4.35 (was gebaut wurde und warum), §4.28 „Was den Laptop dabei aufgehalten
+> hat" (die drei Löcher im Werkzeug — das spart eine Stunde) und §5b.
 >
-> **Fällig wird der Laptop mit Schritt 5** — der ist als Nächstes dran (§5e). Sobald
-> `TextDocView` Tastatur und Maus annimmt, gibt es hier zu beantworten, was Windows nicht kann:
-> **Umlaute, tote Tasten und die Compose-Taste** über `TextInput` auf XWayland, das Zusammenspiel
-> mit der **Bildschirmtastatur**, und ob sich der Cursor **mit dem Stift** setzen lässt.
-> **Der Auftrag dafür wird aus jener Windows-Runde heraus hier hineingeschrieben**, bevor der
-> Nutzer wechselt (Dauerregel 3a) — er steht dann mit Datum an dieser Stelle.
+> **Der Ablauf wie immer:** `git pull`, dann `dotnet build src/GonkNote.Core` und
+> `dotnet build src/GonkNote.Avalonia` (0/0), dann `dotnet test tests/GonkNote.Core.Tests`
+> (**662** erwartet — `GonkNote.Wpf.Tests` gibt es hier nicht). **Erst danach anfassen.**
 >
-> **Zwei Dinge kann der Nutzer hier trotzdem sofort erledigen**, beide brauchen ihn am Gerät
-> und beide sind in Minuten getan:
+> **Ein Dokument zum Schreiben brauchst du, und der Dateidialog hilft dir dabei nicht** (er ist
+> nicht fernsteuerbar). Zwei Wege: `Datei → Neues Textdokument` im Kopf selbst — das reicht für
+> alle fünf Fragen —, oder das Wegwerf-Programm aus §4.28 („Wie das Dokument dann doch in den
+> Kopf kam").
+>
+> **Die fünf Fragen, alle nur hier zu beantworten:**
+>
+> 1. **Umlaute und tote Tasten.** Tippe `äöüß` und `ÄÖÜ`. Dann eine **tote Taste**: `^` gefolgt
+>    von `e` muss `ê` ergeben und nicht `^e`. **Das ist die Frage, um derentwillen der Kopf auf
+>    `TextInput` und nicht auf `KeyDown` hört** (§6) — wenn hier etwas fehlt, ist die
+>    Entscheidung falsch gewesen und muss begründet anders lauten.
+> 2. **Compose.** Falls eine Compose-Taste eingerichtet ist: `Compose` `o` `c` → `©`. Wenn
+>    keine eingerichtet ist, **das notieren statt es einzurichten** — die Antwort „ungeprüft,
+>    weil nicht eingerichtet" ist brauchbar, eine geratene nicht.
+> 3. **Der Cursor am Stift.** Setzt ein Antippen mit dem Stift die Schreibmarke, und lässt sich
+>    damit **ziehen** (also auswählen)? Der Eingabepfad fragt nur nach `PointerPressed` und
+>    `PointerMoved` und unterscheidet Stift und Maus nicht — **die Frage ist, ob Avalonia das
+>    unter Wayland genauso liefert.** Falls der Stift nichts auslöst: schreibt die **Maus**
+>    an derselben Stelle? Das trennt „Stift kommt nicht an" von „Eingabe kommt nicht an".
+> 4. **Die Bildschirmtastatur.** Falls eine erreichbar ist (`squeekboard`, `onboard`, GNOMEs
+>    eigene): Kommt Getipptes im Dokument an? Erscheint sie überhaupt, wenn die Zeichenfläche
+>    den Fokus hat? **Erwartung ehrlich: eher nein** — Avalonia meldet keinen
+>    `TextInputMethodClient`, und die Fläche ist ein selbstgebautes Steuerelement, kein
+>    `TextBox`. Wenn es nicht geht, ist **das** der Befund und keine Enttäuschung.
+> 5. **Läuft es flüssig?** Tippe einen längeren Absatz am Stück. Der Umbruch ist unter Windows
+>    gemessen (§4.35: 4,5 ms bei 2 Seiten, 25 ms bei 9); die Schwelle steht bei 40 ms. **Auf
+>    diesem Laptop kann sie anders liegen.** Wenn das Tippen hakt, ist die interessante Zahl,
+>    **ab welcher Dokumentlänge** — nicht „es hakt".
+>
+> **Was ausdrücklich nicht dein Auftrag ist:** die Formate (kommen mit Schritt 6) und der
+> Konflikt zwischen den beiden Köpfen (§5 „Noch offen" 9 — der gehört nach Windows).
+>
+> **Zwei Dinge kann der Nutzer bei der Gelegenheit sofort miterledigen**, beide brauchen ihn am
+> Gerät und beide sind in Minuten getan:
 >
 > 1. **Den Dateidialog ansehen** (§5 „Noch offen" **7**). Einmal `Datei → Dokument
 >    importieren…`, eine DOCX wählen — kommt das Dokument an? Einmal `Exportieren → PDF` —
@@ -4932,14 +5141,18 @@ nicht frei. **Das dort zuerst lesen spart eine Stunde.**
 Du laeufst auf dem Windows-Rechner. Das Repo liegt in C:\Dev\Zed\gonk-note-V2.
 
 Lies dort HANDOFF.md, Abschnitt 5e ("Auftrag fuer den Windows-Rechner"). Die
-Schritte 1 bis 4 des Schreibens stehen -- dran ist Schritt 5 aus §6 ("Als
-Naechstes: das Schreiben"): Tastatur und Maus im Linux-Kopf. Das ist der
-Schritt, mit dem danach der Laptop dran ist -- §5d also mitziehen.
-Lies vorher §4.34 (was bereitliegt) und §4.28 (wie der Kopf gebaut ist),
-dazu §7 "Der Avalonia-Kopf" und die drei Fallen am Ende von §6.
+Schritte 1 bis 5 des Schreibens stehen -- der Linux-Kopf schreibt (§4.35).
+
+Bevor du irgendetwas baust: §5 "Noch offen" 9 lesen und mir vorlegen. Dort
+steht die Entscheidung, an der die naechste Runde haengt -- Schritt 6 (das
+Ribbon) oder Schritt 7 (Rtf verliert die Fuehrung) vorgezogen. Frag mich,
+wenn ich nicht schon geantwortet habe; raten gilt hier nicht.
+
+Lies vorher §4.35 (was gebaut wurde) und §4.28 (wie der Kopf gebaut ist),
+dazu §7 "Der Avalonia-Kopf" und die Fallen am Ende von §6.
 
 Zieh zuerst den Stand: git pull. Dann bauen und testen, bevor du etwas anfasst --
-0 Fehler, 0 Warnungen, 671 Tests.
+0 Fehler, 0 Warnungen, 693 Tests.
 
 Arbeite auf Deutsch, halte das HANDOFF nach, und sag mir am Ende, ob der Laptop
 dran ist.
@@ -4986,18 +5199,27 @@ Gestalt der Änderung und nicht an der Uhr.
 Stelle → Papier —, der Zeichner malt Schreibmarke und Auswahl. Jedes gesetzte Stück trägt jetzt
 seine Stelle im Absatz; der in §4.30 versprochene Rückweg war nur die Hälfte.
 
-**▶ Dran ist Schritt 5: Tastatur und Maus im Linux-Kopf.** `TextDocView` nimmt Eingaben
-entgegen — und **erst hier wird aus den vier Bausteinen ein Editor**. Alles, was er dafür
-braucht, liegt bereit; was nur dort zu tun ist, steht in §6 aufgezählt.
+**✅ Schritt 5 steht** (§4.35): `TextDocView.Eingabe.cs` — **der Linux-Kopf schreibt.** Tippen
+über `TextInput`, Auswahl mit Maus und Umschalt, Wort- und Zeilensprünge, Rückgängig. Drei
+Rechnungen kamen dafür in Core dazu (`TdHit.Hoch`/`Runter`, `TdHit.Zeilenrand`,
+`TdCursor.Wort`), Modell und Verlauf liegen am Register. Der Umbruch nach jeder Änderung ist
+**gemessen** und nicht geraten.
 
-> **Was die Schritte 1 bis 4 mitgenommen haben und nicht noch einmal zu suchen ist:** die Frage
+**▶ Dran ist Schritt 6 — oder Schritt 7 vorgezogen. Das entscheidet der Nutzer**, denn die
+Gegenprobe dieser Runde hat §5 „Noch offen" **9** aufgeworfen: Bei einem Dokument mit gefülltem
+`Rtf` zeigt der WPF-Editor die Linux-Arbeit nicht und **löscht sie beim nächsten Speichern**.
+Solange das steht, ist Schritt 5 nur für Dokumente gefahrlos, die der WPF-Editor nie
+beschrieben hat.
+
+> **Was die Schritte 1 bis 5 mitgenommen haben und nicht noch einmal zu suchen ist:** die Frage
 > nach der Formaterbung (beantwortet: links, wie in Word), §5 „Noch offen" 8 (erledigt), die
-> Prüfung, ob `TextChangeAction` passt (nein — §4.32), wem der Verlaufsstapel gehört (§4.33) und
-> der Rückweg vom Papier ins Modell (§4.34).
+> Prüfung, ob `TextChangeAction` passt (nein — §4.32), wem der Verlaufsstapel gehört (§4.33),
+> der Rückweg vom Papier ins Modell (§4.34) und **was ein Umbruch wirklich kostet** (§4.35 —
+> und das Verzeichnis ist es nicht).
 
-> **Mit Schritt 5 ist der Laptop wieder dran** (§5e, §5d) — Umlaute, tote Tasten, Compose,
-> Bildschirmtastatur und der Cursor am Stift lassen sich nur dort beantworten. **Vorher §5d
-> nachziehen**, bevor der Nutzer wechselt (Dauerregel 3a).
+> **⚠ Jetzt ist der Laptop dran** (§5d) — Umlaute, tote Tasten, Compose, Bildschirmtastatur und
+> der Cursor **am Stift** lassen sich nur dort beantworten, und keine dieser Fragen kann ein
+> Wächter stellen. **§5d trägt den Auftrag seit dem 2026-08-16.**
 
 > **Warum das Schreiben trotz seiner Core-Anteile hierher gehört und nicht auf den Laptop:**
 > nicht wegen der Werkzeuge, sondern wegen der **Gegenprobe**. Jede Änderung am Modell muss der
@@ -5010,7 +5232,7 @@ braucht, liegt bereit; was nur dort zu tun ist, steht in §6 aufgezählt.
 ```powershell
 cd C:\Dev\Zed\gonk-note-V2
 dotnet build -c Release       # 0 Fehler, 0 Warnungen
-dotnet test -c Release        # beide Projekte, derzeit 671 Tests
+dotnet test -c Release        # beide Projekte, derzeit 693 Tests
 ```
 
 **Und danach am laufenden Programm**, mit einer **Kopie** der echten Datenbank (Dauerregel 4,
@@ -5019,10 +5241,13 @@ sieht der andere Kopf, nachdem dieser gespeichert hat?*
 
 ### Wann der Laptop wieder dran ist
 
-**Mit Schritt 5** des Arbeitsplans, sobald `TextDocView` Tastatur und Maus annimmt — Umlaute,
-tote Tasten und Compose über `TextInput` auf XWayland, die Bildschirmtastatur, und ob sich der
-Cursor **mit dem Stift** setzen lässt. **Vorher nicht.** Wenn es so weit ist, gehört der
-Auftrag nach **§5d**, bevor der Nutzer wechselt (Dauerregel 3a).
+**Jetzt.** Schritt 5 steht (§4.35), `TextDocView` nimmt Tastatur und Maus an — und damit sind
+die Fragen fällig, die nur dort zu beantworten sind: Umlaute, tote Tasten und Compose über
+`TextInput` auf XWayland, die Bildschirmtastatur, und ob sich der Cursor **mit dem Stift**
+setzen lässt. **Der Auftrag steht seit dem 2026-08-16 in §5d** (Dauerregel 3a).
+
+**Danach ist wieder Windows dran** — mit Schritt 6 oder mit dem vorgezogenen Schritt 7, je
+nachdem, wie §5 „Noch offen" 9 entschieden wird.
 
 **Vor jedem Laptop-Auftrag die betroffene `.axaml` ansehen** — ob der Linux-Kopf überhaupt
 kann, was der Auftrag verlangt. In §4.26 ist genau das schiefgegangen.
@@ -5310,36 +5535,39 @@ erst ab Schritt 4 wird es Kopfarbeit.
       Leerraum, gerechnete Feldwerte, Umbrüche ohne Stück). Jedes gesetzte Stück trägt jetzt
       seine Stelle im Absatz. **Die Markierung geht je Zeile an den Zeichner**, damit die
       Auswahl hinter dem Text und über dem Zellhintergrund liegt.
-- [ ] **5. Tastatur und Maus im Linux-Kopf.** `TextDocView` nimmt Eingaben entgegen: Tippen,
-      Pfeiltasten, Pos1/Ende, Umschalt-Auswahl, Ziehen mit der Maus, Doppelklick auf ein Wort.
-      **`TextInput` statt `KeyDown`**, sonst gibt es keine Umlaute und keine tote Taste.
-      **Alles, was die Schritte 1 bis 4 dafür bereitlegen, steht:** `TdEdit` für die Änderung,
-      `TdUndo` für den Verlauf, `TdHit.StelleAn` für den Klick, `TdHit.Markieren` für den
-      Zeichner und `TdHit.Schreibmarke` für das Ins-Bild-Rollen.
-      **Drei Dinge, die dabei nur hier zu tun sind und die sonst niemand bemerkt:**
-      `TdUndo.Abschliessen()` rufen, sobald der Nutzer die Schreibmarke versetzt (der Verlauf
-      sieht Änderungen und keine Klicks, §4.33); die Marke **blinken** lassen, indem mal mit und
-      mal ohne Markierung gezeichnet wird (ein Takt gehört nicht in Core, §4.34); und **nach
-      jeder Änderung neu umbrechen** — was heute einmal je Dokument geschieht und mit dem
-      Schreiben fällig wird (§4.28 und die drei Fallen unten).
-      **Ebenfalls hier fällig: die Pfeiltasten nach oben und unten.** Sie sind die einzige
-      Bewegung, die den Umbruch braucht — `TdCursor` kennt nur links und rechts (§4.30), und
-      „eine Zeile höher" gibt es im Modell nicht. Die Rechnung dafür gehört zu `TdHit`.
-- [ ] **6. Das Ribbon wird ehrlich.** „Nur Ansicht" verschwindet, die Reiter **Einfügen**,
-      **Verweise** und **Tabelle** kommen dazu — **erst jetzt**, denn erst jetzt stünden sie
-      nicht als drei leere Flächen da (§4.28, „ein halbes Feature ist schlechter als ein
-      fehlendes").
+- [x] **5. Tastatur und Maus im Linux-Kopf.** ✅ **Erledigt 2026-08-16 (§4.35).**
+      `TextDocView.Eingabe.cs`; **22 Wächter**. Tippen über **`TextInput`** (Umlaute und tote
+      Tasten), Absatz teilen, löschen, Pfeile in alle vier Richtungen, Strg+Pfeil wortweise,
+      Pos1/Ende, Bild auf/ab, Umschalt-Auswahl, Ziehen, Doppel- und Dreifachklick, Strg+A/C/X/V
+      und Strg+Z/Y. **Drei Rechnungen kamen dafür in Core dazu:** `TdHit.Hoch`/`Runter` samt
+      angepeilter Spalte (`TdZeilenzug`), `TdHit.Zeilenrand` und `TdCursor.Wort`/
+      `WortLinks`/`WortRechts`. **Modell und Verlauf liegen am Register** und nicht an der
+      Ansicht — sonst zeigte ein Verlaufsschritt nach jedem Registerwechsel auf ein Dokument,
+      das es nicht mehr gibt (§4.33). **Der Fund: die Schreibmarke war zu hoch** — sie ging
+      über die Zeilenhöhe samt Absatzabstand; jetzt steht sie um die Grundlinie herum. Kein
+      Wächter konnte das sehen, nur der Schirm (§4.28).
+      **⚠ Und die Gegenprobe hat den ernsten Befund gebracht:** Bei gefülltem `Rtf` zeigt der
+      WPF-Editor die Linux-Arbeit nicht und löscht sie beim nächsten Speichern —
+      **§5 „Noch offen" 9, zur Entscheidung.**
+- [ ] **6. Das Ribbon bekommt seine Reiter.** Die Reiter **Einfügen**, **Verweise** und
+      **Tabelle** kommen dazu — **erst jetzt**, denn erst jetzt stünden sie nicht als drei leere
+      Flächen da (§4.28, „ein halbes Feature ist schlechter als ein fehlendes"). **„Nur Ansicht"
+      ist schon weg** und heißt seit §4.35 „Nur Text": Der Satz war mit Schritt 5 falsch
+      geworden, und ein falscher Satz auf dem Schirm wartet nicht auf den nächsten Schritt.
 - [ ] **7. `Rtf` verliert die Führung.** Der WPF-Editor liest aus dem Modell statt aus dem
       `XamlPackage`. **Das ist der eigentliche Zweck des ganzen Wegs** (§5) — und der Schritt,
       bei dem am meisten schiefgehen kann: `Rtf` wird trotzdem **nie überschrieben** (§4.22).
+      **Seit §4.35 ist er kein Aufräumschritt mehr, sondern der einzige vollständige Ausweg
+      aus §5 „Noch offen" 9** — solange er aussteht, ist im Linux-Kopf nur gefahrlos zu
+      schreiben, was der WPF-Editor nie beschrieben hat.
 
-#### Drei Fallen, die schon feststehen
+#### Drei Fallen, die schon feststanden — zwei sind erledigt
 
 | | |
 |---|---|
-| **Der Umbruch läuft mehrfach** | `TdLayout` rechnet bei einem Inhaltsverzeichnis so lange, bis sich nichts mehr ändert (§4.20). **Bei jedem Tastendruck ist das zu teuer.** Es braucht einen Weg, nur den betroffenen Absatz neu zu setzen — oder eine Verzögerung. Das ist zu messen, nicht zu raten |
-| **Die Anzeige rechnet einmal je Dokument** | §4.28 hat das ausdrücklich so entschieden („nicht je Bild"). **Mit dem Schreiben wird diese Entscheidung fällig**, denn jetzt ändert sich das Dokument |
-| **Zwei Editoren auf einem Modell** | Solange der WPF-Editor auf `Rtf` steht und der Linux-Editor auf `Model`, kann dasselbe Dokument **zwei Wahrheiten** haben. Der Rückfall aus §4.28 deckt nur den einen Weg ab. **Schritt 7 löst das auf; bis dahin ist es eine benannte Lücke** |
+| ✅ **Der Umbruch läuft mehrfach** | **Gemessen und beantwortet (§4.35).** Und die Vermutung war falsch: Das mehrfache Rechnen des Verzeichnisses kostet ein Zehntel, nicht ein Vielfaches — teuer ist die **Länge** des Dokuments (2 Seiten 4,5 ms · 9 Seiten 25 ms · 35 Seiten 208 ms). Unter 40 ms wird sofort umbrochen, darüber über den Nachrichtenlauf gesammelt. **Nur den betroffenen Absatz neu zu setzen bleibt ungebaut** — es ist keine Kleinigkeit, weil jede Änderung die Seitenumbrüche danach verschiebt |
+| ✅ **Die Anzeige rechnet einmal je Dokument** | **Erledigt mit §4.35** — sie rechnet jetzt nach jeder Änderung, gesammelt wie oben |
+| ⚠ **Zwei Editoren auf einem Modell** | **Nachgemessen und schlimmer als hier beschrieben (§4.35):** Es sind nicht nur zwei Wahrheiten — der WPF-Editor **überschreibt** das Modell beim nächsten Speichern aus `Rtf`, und die Linux-Arbeit ist still weg. Betrifft **jedes Bestandsdokument**. Schritt 7 löst es auf; **bis dahin steht es als Entscheidung in §5 „Noch offen" 9** |
 
 > **Was dabei mitgenommen gehört, weil es ohnehin am Text hängt:** ein Verweis wird von
 > `TdRenderer` **ohne jede Kennzeichnung** gemalt (kein Blau, keine Unterstreichung) und
@@ -6507,7 +6735,7 @@ cd C:\Dev\Zed\gonk-note-V2
 dotnet build -c Release      # 0 Fehler / 0 Warnungen
 dotnet build -c Debug        # schneller, ohne Self-Contained/win-x64
 
-dotnet test -c Release       # beide Testprojekte, 671 Tests
+dotnet test -c Release       # beide Testprojekte, 693 Tests
 
 # Golden-Files bewusst neu setzen (danach den Diff lesen, siehe §4.6)
 $env:GONK_SNAPSHOT_UPDATE=1; dotnet test tests\GonkNote.Core.Tests; $env:GONK_SNAPSHOT_UPDATE=$null
@@ -6594,6 +6822,7 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 
 | Runde | Datum | Was |
 |---|---|---|
+| V2-46 | 2026-08-16 | **Tastatur und Maus — Schritt 5 des Schreibens, der Linux-Kopf schreibt** (§4.35). `src/GonkNote.Avalonia/Views/TextDocView.Eingabe.cs` neu, drei Rechnungen mehr in Core, zwei Felder am `TextTabViewModel`; **22 Wächter**, **693 Tests** grün, Bau 0/0. **Was geht:** tippen (Umlaute, ß, Gedankenstrich, €), Absatz teilen, Zeilenumbruch, löschen vorwärts und rückwärts, Pfeile in alle vier Richtungen, Strg+Pfeil wortweise, Pos1/Ende, Bild auf/ab, Umschalt-Auswahl, Ziehen, Doppelklick auf ein Wort, Dreifachklick auf den Absatz, Strg+A/C/X/V, Strg+Z/Y; die Marke blinkt und rollt sich ins Bild. **Getippt wird über `TextInput` und nicht über `KeyDown`** — eine Taste ist kein Zeichen: „ä" entsteht aus einer, „ê" aus zweien, ein Emoji aus einer Compose-Folge; wer aus `Key` Zeichen ableitet, schreibt eine Belegungstabelle nach, die das System schon hat. **Die erste Falle aus §6 ist gemessen statt geraten — und die Vermutung war falsch:** Ein voller Umbruch kostet 4,5 ms bei 2 Seiten, 25,1 ms bei 9 und 207,7 ms bei 35; **das mehrfache Rechnen des Inhaltsverzeichnisses ist nicht der teure Teil** (dieselben neun Seiten: 27,6 statt 25,1 ms — ein Zehntel, nicht ein Vielfaches). Teuer ist die **Länge** des Dokuments, und der Preis steckt im Messen der Schrift. Daraus die Weiche: unter **40 ms** sofort umbrechen, darüber über den Nachrichtenlauf **sammeln** (`DispatcherPriority.Background`, Eingaben haben Vorrang) — **das Modell hinkt nie hinterher, nur das Bild**, und es holt in der ersten Tippause auf. Damit ist auch die zweite Falle erledigt (die Anzeige rechnete bis heute einmal je Dokument, §4.28). **Drei Rechnungen kamen dafür nach Core:** `TdHit.Hoch`/`Runter` samt **angepeilter Spalte** (`TdZeilenzug` — ohne sie sammelt die erste kurze Zeile den Cursor ein und er klebt für den Rest des Dokuments an ihrem Ende), `TdHit.Zeilenrand` (Pos1 führt an den Anfang der **gesetzten Zeile**, nicht des Absatzes — sonst spränge es in einem vierzeiligen Absatz drei Zeilen weit) und `TdCursor.Wort`/`WortLinks`/`WortRechts` (eine Wortgrenze ist eine Frage an den Text und braucht keinen Umbruch). **Der Zeilensprung sucht über die Geometrie und nicht über die Zeilenliste:** Eine Seite trägt erst ihre Fließzeilen und danach ihre Tabellenzeilen — wer der Liste folgte, spränge aus der Zeile unter einer Tabelle über sie hinweg statt hinein. **Modell und Verlauf liegen am Register und nicht an der Ansicht**, und das ist Notwehr statt Aufbewahrung: Die Ansicht wird bei jedem Registerwechsel neu erzeugt, ein gemerkter Verlaufsschritt zeigt aber auf die Blockliste, in der er entstanden ist (§4.33) — nach einem Neulesen ersetzte ein Strg+Z still fremde Absätze. **Der Fund der Runde kam wieder vom Schirm und nicht von einem Wächter:** Die Schreibmarke ging über die **ganze Zeilenhöhe**, und die trägt den Absatzabstand mit — zwischen zwei Absätzen war sie doppelt so hoch wie die Buchstaben daneben und sah aus wie ein Trennstrich. Kein Wächter konnte das sehen, weil der Zeichner-Wächter mit fester Messung und ohne Absatzabstand setzt; dort *ist* die Zeilenhöhe die Schrifthöhe. Behoben: die Marke steht jetzt um die **Grundlinie** herum, so hoch wie die Schrift — **der Auswahlkasten bleibt zeilenhoch**, dort ist es richtig (sonst weiße Streifen zwischen den Zeilen). **„Nur Ansicht" im Ribbon heißt jetzt „Nur Text"**, denn der Satz war mit dieser Runde falsch geworden; die drei fehlenden Reiter kommen trotzdem erst mit Schritt 6. **⚠ Und die Gegenprobe hat den ernstesten Punkt gebracht, nachgemessen in beiden Köpfen:** Bei einem Dokument mit **gefülltem `Rtf`** zeigt der WPF-Editor die Linux-Arbeit **nicht** — und beim nächsten Speichern dort schreibt `WpfDocumentIo.Migrate` das `Model` bedingungslos aus `Rtf` neu, womit sie **still weg** ist. §6 nannte das „zwei Wahrheiten"; es ist **Datenverlust ohne Warnung**, und es betrifft **jedes Bestandsdokument**. Nichts daran wurde eigenmächtig geändert — `Rtf` zu leeren verbietet §4.22, ein Vorrangfeld wäre eine Formatänderung. **Steht als §5 „Noch offen" 9 zur Entscheidung, mit vier Antworten und einer Empfehlung.** **Mit dieser Runde ist der Laptop dran** (§5d trägt den Auftrag: Umlaute, tote Tasten, Compose, Bildschirmtastatur, der Cursor am Stift) |
 | V2-45 | 2026-08-13 | **Der Cursor auf dem Schirm — Schritt 4 des Schreibens** (§4.34). `Core/Text/TdHit.cs`, drei Angaben mehr im Umbruch, Schreibmarke und Auswahl im Zeichner; **34 Wächter**, **671 Tests** grün, Bau 0/0. **Der in §4.30 versprochene Rückweg war die Hälfte:** `TdLine.Source` nennt den Absatz, aber nicht, das wievielte Zeichen angeklickt wurde — und **nachzählen geht nicht**, aus drei Gründen, von denen jeder allein genügt: Der Umbruch **wirft den Leerraum am Zeilenende weg** (wer Textlängen addiert, verzählt sich beim ersten umgebrochenen Wort und danach immer weiter), ein Feld setzt seinen **gerechneten Wert** statt seiner selbst, und ein Zeilenumbruch hinterlässt **gar kein Stück**. Die Zahl kennt nur, wer schneidet — deshalb trägt jetzt jedes gesetzte Stück seine Stelle im Absatz (`TdLaidOutRun.Linear`), jede Zeile ihren Anfang (`TdLine.Linear`) und ihren linken Rand (`TdLine.StartXCm`, für die Marke in einer leeren Zeile, wo sie beim Schreiben besonders oft steht). Dasselbe Muster wie `TdLine.Source` in §4.16, eine Ebene tiefer. **Beide Richtungen stehen als eine Rechnung nebeneinander** — Klick → Stelle und Stelle → Papier teilen sich, wie eine Zeile gefunden wird; getrennt gebaut wären es zwei, die auseinanderlaufen können, und der Fehler sähe aus wie ein Cursor, der beim Klicken woanders landet, als er danach blinkt. **Ausgenommen sind die zwei Sorten Zeilen, die nicht im Dokument stehen:** der gerechnete Inhaltsverzeichnis-Eintrag (§4.20) und die wiederholte Tabellenkopfzeile (§4.19) — beide tragen ihre Kennzeichnung seit damals mit genau dieser Begründung und werden hier zum ersten Mal benutzt. **Der Zeichner rechnet nichts:** Er bekommt eine fertige `TdMarkierung`, und zwar **je Zeile** statt in Seitenkoordinaten — so malt er den Auswahlkasten vor den Buchstaben *dieser* Zeile und die Marke danach, womit die Auswahl hinter dem Text und über dem Zellhintergrund liegt, **ohne dass die Reihenfolge der Seite umgebaut werden muss**. Ob die Marke blinkt, entscheidet der Kopf — ein Takt wäre eine Uhr in Core (§4.20), und im PDF stünde ein Strich. **Der Fund der Runde kam aus einer Mutation, die überlebt hat:** Nimmt man den **Spaltenversatz** einer Tabellenzelle in beiden Richtungen weg, findet jede Stelle weiterhin zu sich selbst — beide Rechnungen sind *gleich falsch*, und der Hin-und-zurück-Wächter bleibt grün, obwohl der Cursor in der zweiten Spalte um deren ganze Breite danebenstünde. Der Wächter prüft seitdem die **Zahl** (Seitenrand + Spalte + Innenabstand + Zeichen) — und wurde sofort rot, aus einem anderen Grund als erwartet: Die Zeilensuche prüfte **nur die Höhe**. Für gewöhnliche Zeilen ist das richtig, sie stehen untereinander; Tabellenzellen stehen nebeneinander, und so gewann immer die erste Spalte. Behoben: erst die Höhe, dann die Breite. **Vierte Runde in Folge mit derselben Regel — und diesmal mit einem Zusatz: ein symmetrischer Fehler ist die Sorte, die ein Hin-und-zurück-Wächter von Natur aus nicht sehen kann.** Wo zwei Richtungen geprüft werden, muss mindestens eine Zahl absolut festgenagelt sein. **Nichts davon ist angeschlossen** — das passiert mit Schritt 5, und mit ihm ist der Laptop wieder dran |
 | V2-44 | 2026-08-13 | **Rückgängig — Schritt 3 des Schreibens** (§4.33). `Core/Text/TdUndo.cs` und **21 Wächter**; **637 Tests** grün, Bau 0/0, reine Core-Arbeit. **Er macht nichts rückgängig** — das kann eine `TdChange` seit Schritt 2 selbst. Was er dazutut, ist das, was eine einzelne Änderung nicht wissen kann: die **Reihenfolge** der Schritte und **welche davon der Nutzer als einen erlebt hat**. **Die Frage aus §6 ist mit drei Gründen beantwortet — `TdUndo` steht neben `UndoStack` und nicht darin:** `Push` verlangt dort eine `WbPage` (eine Zeichenflächen-Aktion hält Elemente, nicht ihren Ort; ein `IEditAction<TdDocument>`, dessen `Undo(doc)` das `doc` nicht ansieht, wäre eine Signatur, die lügt), die Antwort ist dort eine **Seite** und hier eine **Auswahl** (ein Rückgängig, das den Cursor woanders stehen lässt, zwingt den Nutzer, seine Stelle wiederzufinden), und **das Zusammenfassen gibt es dort gar nicht** — wer „Hallo" tippt, hat einen Handgriff gemacht und nicht fünf; auf der Zeichenfläche stellt sich die Frage nie, denn ein Strich ist ein Zug. Die verbleibende Doppelung sind **rund zwanzig Zeilen** (zwei Listen, ein Deckel, ein Ereignis) — **nicht die Doppelung aus §4.13**, wo zweimal *Verhalten* stand, in dem derselbe Fehler zweimal wohnte; die Frage „sind das zwei?" steht als Punkt in der Aufräumrunde von Phase 6, und die Mitglieder heißen absichtlich wie drüben, damit sie sichtbar bleibt. **Das Zusammenfassen ist der zweite Ertrag der Blocksicherung:** zwei Änderungen zu einer zu machen ist hier kein Zusammenrechnen, sondern ein **Weglassen der Mitte** — das Davor der ersten, das Danach der zweiten. **Der Fund der Runde kam wieder aus dem Erproben der Wächter:** Die erste Fassung prüfte Lückenlosigkeit auf gleichen **Inhalt**, und mit dieser Mutation blieben **21 von 21 grün**. Der Fall, den sie nicht sah, ist echt — tippt man ein Zeichen und löscht es wieder, steht derselbe Text in einem **anderen** Absatz (jede Änderung baut einen neuen, §4.32); ein Inhaltsvergleich verschmölze dort, und die Rücknahme **übersprünge die Schritte dazwischen**. Geprüft wird jetzt an den **Objekten**, und ein eigener Wächter hält es fest. **Zum dritten Mal dieselbe Regel nach §4.30 und §4.32: ein Wächter, der beim absichtlichen Kaputtmachen grün bleibt, prüft nichts.** **Die Schnitte** sitzen zwischen Arten (Tippen an Tippen, Löschen an Löschen — die Art wird aus dem Inhalt **abgeleitet**, ein Parameter wäre die zweite Wahrheit, die jemand falsch setzt), nach einem **Zwischenraum**, bei jeder Strukturänderung, nach jedem Zug im Verlauf — und bei `Abschliessen()`, das **die Oberfläche rufen muss**, wenn der Nutzer die Schreibmarke versetzt: der Verlauf sieht Änderungen und keine Klicks. **Alle Schnitte hängen an der Gestalt der Änderung und nicht an der Uhr** — Core fragt sie nicht (§4.20), und ein Verlauf, der je nach Tipptempo anders gruppiert, wäre außerdem nicht prüfbar. **Benannt vereinfacht:** Löschungen fassen ohne Wortgrenze zusammen, weil das Gelöschte nicht im Inhalt der Änderung steht |
 | V2-43 | 2026-08-12 | **Was sich ändert, wenn man tippt — Schritt 2 des Schreibens** (§4.32). Eine neue Datei (`Core/Text/TdEdit.cs`) und **58 Wächter**; **616 Tests** (585 + 31) grün, Bau 0/0. **Alles läuft über einen einzigen Handgriff, `Ersetzen`:** Einfügen ist eine Ersetzung einer leeren Auswahl, Löschen eine Ersetzung durch nichts, Absatz teilen eine Ersetzung durch zwei leere Absätze — und die Rücktaste am Absatzanfang eine Ersetzung, deren Auswahl über die Absatzmarke reicht. **Damit fällt „Absätze verbinden" von selbst heraus**, ohne eine eigene Zeile; ein zweiter Weg zum selben Ergebnis ist immer der, den niemand prüft. Dasselbe Muster wie §4.17, §4.20, §4.21, §4.25 und §4.30, zum sechsten Mal. **Die tragende Entscheidung ist die Form der Gegenbewegung:** Eine `TdChange` merkt sich **die Blöcke davor und danach** und nicht den Handgriff — Rücknahme ist ein Tausch zweier Listen, `Gegenbewegung` dieselbe Änderung mit vertauschten Rollen. Ein Vermerk der Art „an Stelle X wurden drei Zeichen eingefügt" müsste beim Zurücknehmen dieselbe Rechnung spiegelverkehrt und ohne eigenen Wächter noch einmal machen — **daran scheitern Rückgängig-Funktionen, nicht am Merken, sondern an der zweiten Rechnung**. **Daraus folgt die Regel, die der ganze weitere Schreibweg erbt: Absätze und Stücke werden nie verändert, sondern ersetzt** — der alte Absatz bleibt unversehrt und *ist* die Sicherung; erprobt, indem `Absatz()` den vorhandenen umbaute: **23 von 58 Wächtern rot**. **Vier weitere Entscheidungen:** ein eingefügtes Zeichen erbt das Format **links** davon (die Einlösung der kanonischen linken Form aus §4.30 — die Stelle gehört dem Stück, das *vor* ihr endet, und daraus fällt die Erbfolge heraus, statt abgefragt zu werden); nach jeder Änderung wird der **ganze berührte Absatz aufgeräumt** (gleichformatige Nachbarn zusammengelegt, leere weg — sonst zerfiele ein Absatz mit jedem Tastendruck weiter, im DOCX ein Lauf je Zeichen); **wer in einem Verweis tippt, bleibt darin, hinter ihm nicht** (die Naht wird wieder geschlossen; Word hängt am Ende an, das ist die Eigenheit, die Leute wieder herausnehmen); und ein `\n` im eingegebenen Text wird zur **Absatzmarke** statt zu einem Zeichen im Lauf. **Eine benannte Lücke:** über eine **Tabellengrenze** hinweg wird nicht bearbeitet — abgelehnt statt geraten, denn was aus der Tabelle würde, ist eine eigene Entscheidung. **§5 „Noch offen" 8 ist mit erledigt:** `DatabaseService.GetText` legt ein noch nicht gespeichertes Dokument mit einem **leeren `TdDocument`** an — wo etwas steht, gibt es nichts zu übernehmen, ein dritter Zustand durch alle Köpfe war nicht nötig. **Am laufenden Programm in beiden Köpfen geprüft**, an einer Kopie der echten Datenbank: der Linux-Kopf zeigt für ein neues Dokument jetzt ein leeres Blatt mit nicht ausgegrautem Export statt „stammt aus der Windows-Fassung"; danach im WPF-Kopf getippt, gespeichert, Kopf gewechselt — derselbe Text, dieselben Zähler. **Der Fund der Runde stammt nicht aus der Runde:** Der **WPF-Kopf konnte seit §4.31 kein Textdokument mehr öffnen** — in `TextEditorView.xaml` blieben beim Umbau von `<Path>` auf `<views:Symbol>` fünf `Style="{StaticResource PathIcon}"` stehen, und ein Stil mit `TargetType="Path"` an einem `FrameworkElement` **wirft beim Anwenden**. Gegengeprüft durch Weglegen der eigenen Arbeit (`git stash`, neu gebaut, derselbe Fehler), dann behoben. **Keiner der zwölf Ikonen-Wächter konnte das sehen** — neun prüfen die Tabelle, drei lesen den Quelltext der XAML; der Fehler entsteht erst, wenn WPF den Stil anwendet, und das tut nur ein laufendes Fenster. Zum dritten Mal dieselbe Lehre nach §4.28 und §4.31. **Genau dafür besteht §5e auf Windows**, und diesmal hat die Gegenprobe etwas gefunden. **Nebenbefund, unbehoben:** `fehler.log` ist auf **272 MB** angewachsen und wird nie beschnitten — Phase 6 |

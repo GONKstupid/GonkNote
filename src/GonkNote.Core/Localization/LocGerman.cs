@@ -465,6 +465,12 @@ internal static class LocGerman
             "Der Linux-Kopf zeigt das Dokument, geschrieben wird bis auf Weiteres in der " +
             "Windows-Fassung. Angezeigt wird genau das, was auch exportiert würde — " +
             "derselbe Umbruch, derselbe Zeichner.",
+        ["Ed.TextOnly"] = "Nur Text",
+        ["Ed.TextOnly.Tip"] =
+            "Hier lässt sich der Text schreiben: tippen, löschen, auswählen, rückgängig " +
+            "machen. Formate, Tabellen und Bilder setzt weiterhin die Windows-Fassung. " +
+            "Angezeigt wird genau das, was auch exportiert würde — derselbe Umbruch, " +
+            "derselbe Zeichner.",
         ["Ed.Export"] = "Exportieren",
         ["Ed.Export.Tip"] = "Dieses Dokument als PDF, Word, Markdown oder PNG schreiben",
         ["Ed.FitWidth"] = "Seitenbreite",

@@ -23,6 +23,28 @@ public readonly record struct TdSpanne(double VonCm, double BisCm)
 public readonly record struct TdCaret(int Seite, double XCm, double YCm, double HoeheCm);
 
 /// <summary>
+/// Das Ergebnis eines Zeilensprungs: wohin die Schreibmarke geht — und **die Spalte, die sie
+/// dabei anpeilt**.
+///
+/// <para>
+/// <b>Die Spalte ist der eigentliche Inhalt dieses Typs.</b> Wer aus einer langen Zeile in eine
+/// kurze hinuntergeht und weiter, landet ohne sie danach am Ende jeder folgenden Zeile — die
+/// kurze Zeile hätte den Cursor eingesammelt. Jeder Editor merkt sich deshalb die Spalte, aus
+/// der die senkrechte Bewegung losging, und gibt sie erst auf, wenn der Nutzer etwas anderes
+/// tut. **Merken muss sie die Oberfläche**, denn nur sie weiß, wann die Reihe abbricht (ein
+/// Klick, ein Pfeil nach links, ein getipptes Zeichen).
+/// </para>
+/// </summary>
+/// <param name="Stelle">Die neue Stelle im Modell.</param>
+/// <param name="SpalteCm">
+/// Die angepeilte Spalte in <b>Seitenkoordinaten</b> — dieselbe Zählung wie
+/// <see cref="TdCaret.XCm"/>. Sie ist absichtlich nicht behälterrelativ: Die Bewegung führt
+/// über Spalten- und Seitengrenzen, und eine Zahl, die je Behälter etwas anderes bedeutet,
+/// wäre nach dem ersten Sprung aus einer Tabellenzelle heraus falsch.
+/// </param>
+public readonly record struct TdZeilenzug(TdPosition Stelle, double SpalteCm);
+
+/// <summary>
 /// Wo die Auswahl liegt und wo die Schreibmarke steht — **je gesetzter Zeile**.
 ///
 /// <para>
@@ -210,6 +232,152 @@ public static class TdHit
         }
 
         return null;
+    }
+
+    // ---------------------------------------------------------------- Senkrecht bewegen
+
+    /// <summary>
+    /// Eine Zeile höher — <c>null</c>, wenn darüber keine mehr steht.
+    ///
+    /// <para>
+    /// <b>Das ist die einzige Bewegung, die den Umbruch braucht</b>, und deshalb steht sie hier
+    /// und nicht bei <see cref="TdCursor"/>: Links und rechts gibt es im Modell, „eine Zeile
+    /// höher" nicht. Wo die nächste Zeile anfängt, weiß nur, wer gesetzt hat (§4.30, §6).
+    /// </para>
+    /// <para>
+    /// <b>Gesucht wird über die Geometrie und nicht über die Reihenfolge der Zeilenliste.</b>
+    /// Eine Seite trägt erst ihre Fließzeilen und danach ihre Tabellenzeilen
+    /// (<see cref="ZeilenDerSeite"/>); wer der Liste folgte, spränge aus der letzten Fließzeile
+    /// in die erste Tabellenzelle statt eine Zeile weit. Genommen wird deshalb die **nächste
+    /// Zeilenlage darüber** — und darin die Zeile, die der angepeilten Spalte am nächsten
+    /// liegt, nach derselben Regel wie beim Klick (erst die Höhe, dann die Breite).
+    /// </para>
+    /// </summary>
+    /// <param name="spalteCm">
+    /// Die angepeilte Spalte aus einem vorangegangenen Zeilensprung, oder <c>null</c> für den
+    /// ersten — siehe <see cref="TdZeilenzug.SpalteCm"/>.
+    /// </param>
+    public static TdZeilenzug? Hoch(
+        TdLayoutResult umbruch, TdDocument doc, ITdTextMeasure messung,
+        TdPosition stelle, double? spalteCm = null) =>
+        Senkrecht(umbruch, doc, messung, stelle, spalteCm, hoch: true);
+
+    /// <summary>Eine Zeile tiefer — <c>null</c>, wenn darunter keine mehr steht.</summary>
+    /// <inheritdoc cref="Hoch" path="/param"/>
+    public static TdZeilenzug? Runter(
+        TdLayoutResult umbruch, TdDocument doc, ITdTextMeasure messung,
+        TdPosition stelle, double? spalteCm = null) =>
+        Senkrecht(umbruch, doc, messung, stelle, spalteCm, hoch: false);
+
+    /// <inheritdoc cref="Hoch"/>
+    private static TdZeilenzug? Senkrecht(
+        TdLayoutResult umbruch, TdDocument doc, ITdTextMeasure messung,
+        TdPosition stelle, double? spalteCm, bool hoch)
+    {
+        // Über die Marke und nicht über die Stelle: Nur so ist der Ausgangspunkt derselbe, den
+        // der Nutzer blinken sieht — samt Seite, Behälterversatz und Seitenrand.
+        if (Schreibmarke(umbruch, doc, messung, stelle) is not { } marke) return null;
+
+        double ziel = spalteCm ?? marke.XCm;
+
+        for (int s = marke.Seite; s >= 0 && s < umbruch.Pages.Count; s += hoch ? -1 : +1)
+        {
+            // Auf der Seite, auf der die Marke steht, zählt nur, was über (oder unter) ihr
+            // liegt; auf jeder weiteren die äußerste Lage — sonst übersprünge der Sprung über
+            // die Seitengrenze die halbe Nachbarseite.
+            double? grenze = s == marke.Seite ? marke.YCm : null;
+
+            if (NachbarzeileAuf(umbruch.Pages[s], grenze, ziel, hoch) is { } t)
+            {
+                double innen = ziel - umbruch.Pages[s].Setup.MarginLeftCm - t.XVersatzCm;
+                return new TdZeilenzug(StelleInZeile(doc, messung, t.Zeile, innen), ziel);
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Die nächste Zeilenlage über (oder unter) <paramref name="grenzeYCm"/> auf dieser Seite,
+    /// und darin die Zeile, die <paramref name="zielXCm"/> am nächsten liegt.
+    /// <c>null</c>, wenn es auf dieser Seite keine solche Lage gibt.
+    /// </summary>
+    /// <param name="grenzeYCm">
+    /// Die Oberkante der Zeile, von der aus gesprungen wird — <c>null</c> für „die ganze Seite
+    /// kommt in Frage" (jede Seite außer der, auf der die Marke steht).
+    /// </param>
+    private static Treffer? NachbarzeileAuf(
+        TdPage seite, double? grenzeYCm, double zielXCm, bool hoch)
+    {
+        // Ein Tausendstel Zentimeter: klein genug, um zwei Zeilen nie zu verschmelzen, groß
+        // genug, damit zwei Zellen derselben Reihe als **eine** Lage gelten.
+        const double gleich = 0.001;
+
+        double lage = double.NaN;
+
+        foreach (var t in ZeilenDerSeite(seite))
+        {
+            double oben = seite.Setup.MarginTopCm + t.YVersatzCm + t.Zeile.YCm;
+
+            if (grenzeYCm is { } g && (hoch ? oben >= g - gleich : oben <= g + gleich)) continue;
+            if (!double.IsNaN(lage) && (hoch ? oben < lage - gleich : oben > lage + gleich)) continue;
+
+            lage = oben;
+        }
+
+        if (double.IsNaN(lage)) return null;
+
+        Treffer? beste = null;
+        double bestAbstand = double.MaxValue;
+
+        foreach (var t in ZeilenDerSeite(seite))
+        {
+            double oben = seite.Setup.MarginTopCm + t.YVersatzCm + t.Zeile.YCm;
+            if (Math.Abs(oben - lage) > gleich) continue;
+
+            // Dieselbe waagerechte Regel wie beim Klick: Tabellenzellen stehen nebeneinander,
+            // und ohne sie gewänne in jeder Reihe die erste Spalte.
+            double x = zielXCm - seite.Setup.MarginLeftCm;
+            double abstand = x < t.VonCm ? t.VonCm - x : x >= t.BisCm ? x - t.BisCm : 0;
+
+            if (abstand >= bestAbstand) continue;
+
+            bestAbstand = abstand;
+            beste = t;
+        }
+
+        return beste;
+    }
+
+    // ---------------------------------------------------------------- Zeilenanfang und -ende
+
+    /// <summary>
+    /// Der Anfang oder das Ende der **gesetzten** Zeile, in der diese Stelle steht — Pos1 und
+    /// Ende.
+    ///
+    /// <para>
+    /// <b>Der gesetzten Zeile und nicht des Absatzes</b>, und darin liegt der Unterschied zu
+    /// <see cref="TdCursor.AbsatzAnfang"/>: In einem Absatz, der über vier Zeilen läuft, führt
+    /// Pos1 an den Anfang **dieser** Zeile. Wer dafür den Absatz nähme, spränge aus der vierten
+    /// Zeile drei Zeilen weit — und niemand, der Pos1 drückt, meint das.
+    /// </para>
+    /// <para>
+    /// Ist die Stelle nirgends gesetzt, kommt sie unverändert zurück: Eine Taste, die nichts
+    /// tut, ist besser als eine, die den Cursor an eine geratene Stelle wirft.
+    /// </para>
+    /// </summary>
+    public static TdPosition Zeilenrand(
+        TdLayoutResult umbruch, TdDocument doc, TdPosition stelle, bool ende)
+    {
+        var gezogen = TdCursor.Normalisieren(doc, stelle);
+        if (ZeileZu(umbruch, doc, gezogen) is not { } marke) return gezogen;
+        if (marke.Zeile.Source is not { } absatz) return gezogen;
+
+        int absatzIndex = TdCursor.IndexVon(doc, absatz);
+        if (absatzIndex < 0) return gezogen;
+
+        return TdCursor.AusLinear(
+            absatz, absatzIndex, ende ? ZeilenEnde(marke.Zeile) : marke.Zeile.Linear);
     }
 
     /// <summary>Liegt dieser Absatz **zwischen** den Enden der Auswahl, also ganz darin?</summary>

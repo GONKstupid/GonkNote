@@ -210,7 +210,18 @@ public static class TdRenderer
     }
 
     /// <summary>
-    /// Die Schreibmarke: ein senkrechter Strich über die Zeilenhöhe.
+    /// Die Schreibmarke: ein senkrechter Strich <b>so hoch wie die Schrift</b>, um die
+    /// Grundlinie herum.
+    ///
+    /// <para>
+    /// <b>Und ausdrücklich nicht über die Zeilenhöhe</b> — das war sie bis §4.35, und es fiel
+    /// in der Sekunde auf, in der zum ersten Mal wirklich eine Marke auf dem Schirm stand: Die
+    /// Zeilenhöhe trägt den Absatzabstand mit (<see cref="TdLine.HeightCm"/>), und zwischen
+    /// zwei Absätzen war der Strich damit doppelt so hoch wie die Buchstaben daneben. Er sah
+    /// nicht wie ein Cursor aus, sondern wie ein Trennstrich. <b>Der Auswahlkasten bleibt
+    /// dagegen zeilenhoch</b> (<see cref="AuswahlZeichnen"/>) — dort ist genau das richtig,
+    /// sonst stünden weiße Streifen zwischen den Zeilen.
+    /// </para>
     /// <para>
     /// <b>Ob sie blinkt, entscheidet der Kopf</b> — er lässt sie einfach mal mit und mal ohne
     /// Marke zeichnen. Ein Takt gehört nicht in Core: Er wäre eine Uhr (§4.20), und beim Export
@@ -223,16 +234,28 @@ public static class TdRenderer
         if (kontext.Markierung is not { } markierung) return;
         if (!ReferenceEquals(markierung.MarkeZeile, zeile)) return;
 
+        // In einer leeren Zeile gibt es keinen Lauf, aus dem sich die Schrift ablesen ließe —
+        // dann gilt die des Absatzes. Genau dort steht der Cursor beim Schreiben besonders oft.
+        var format = zeile.Runs.Count > 0
+            ? zeile.Runs[0].Format
+            : zeile.Source?.CharFormat.Aufgeloest() ?? TdCharFormat.Standard;
+
         using var stift = new SKPaint
         {
-            Color = Farbe(zeile.Runs.Count > 0 ? zeile.Runs[0].Format.Color : null) ?? SKColors.Black,
+            Color = Farbe(format.Color) ?? SKColors.Black,
             StrokeWidth = Math.Max(1f, (float)(massstab / PixelProCm)),
             IsAntialias = false,
         };
 
+        using var schrift = SchriftFuer(format, massstab);
+        var masse = schrift.Metrics;
+
+        // Skia zählt Ascent nach oben negativ und Descent nach unten positiv — beide werden
+        // deshalb addiert und nicht abgezogen.
+        float grundlinie = Px(zeile.YCm + zeile.BaselineCm, massstab);
         float x = Px(markierung.MarkeXCm, massstab);
-        leinwand.DrawLine(
-            x, Px(zeile.YCm, massstab), x, Px(zeile.YCm + zeile.HeightCm, massstab), stift);
+
+        leinwand.DrawLine(x, grundlinie + masse.Ascent, x, grundlinie + masse.Descent, stift);
     }
 
     /// <summary>

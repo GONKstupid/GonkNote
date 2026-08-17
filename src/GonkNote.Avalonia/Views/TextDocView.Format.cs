@@ -1,0 +1,264 @@
+using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
+using Avalonia.Interactivity;
+using GonkNote.Core.Text;
+
+namespace GonkNote.Views;
+
+/// <summary>
+/// Die Formatknöpfe des Ribbons — <b>Schritt 6 des Schreibens</b> (HANDOFF §6).
+///
+/// <para>
+/// <b>Sie rechnet nichts</b>, wie <c>TextDocView.Eingabe.cs</c>: Was eine Formatänderung am
+/// Dokument tut, baut <see cref="TdFormatEdit"/>; was die Auswahl gerade zeigt, beantwortet
+/// <see cref="TdFormatEdit.Gemeinsam"/>. Hier steht die Übersetzung von Klicks in diese Aufrufe
+/// — und das eine, was nur hier zu tun ist: <b>die Knöpfe nachziehen</b>, sobald sich die
+/// Auswahl bewegt.
+/// </para>
+/// <para>
+/// <b>Umgeschaltet wird gegen das Modell und nicht gegen den Knopf.</b> Avalonias
+/// <c>ToggleButton</c> hat seinen Zustand schon gewechselt, wenn <c>Click</c> ankommt, und bei
+/// <c>IsThreeState</c> läuft er im Kreis unbestimmt → an → aus. Wer den Knopf fragte, machte
+/// über einer gemischten Auswahl mal fett und mal mager, je nachdem, wo der Kreis gerade steht.
+/// Gefragt wird deshalb <see cref="TdFormatEdit.Gemeinsam"/>, und danach setzt
+/// <see cref="RibbonNachziehen"/> den Knopf ohnehin neu.
+/// </para>
+/// <para>
+/// <b>Was noch fehlt und hier benannt steht, statt als halber Knopf dazustehen</b> (§4.28):
+/// eine Auswahl der **Schriftart** — dafür bräuchte es den Bestand der verfügbaren Familien,
+/// und <c>IFontProvider</c> liefert das Schema und nicht den Bestand (§4.26). Ebenso Text- und
+/// Hervorhebungsfarbe (sie brauchen einen Farbwähler) und die Formatvorlagen. Und: **eine leere
+/// Auswahl ändert am Zeichenformat nichts** — Word merkt sich dann ein Format für das nächste
+/// getippte Zeichen; das ist ein Zustand dieser Ansicht und keiner des Dokuments, und er ist
+/// nicht gebaut (siehe <see cref="TdFormatEdit"/>).
+/// </para>
+/// </summary>
+public partial class TextDocView
+{
+    /// <summary>
+    /// Die Schriftgrößen, die „größer" und „kleiner" durchlaufen — dieselbe Leiter wie im
+    /// WPF-Editor. <b>Keine feste Schrittweite:</b> Von 8 auf 9 ist ein sichtbarer Sprung, von
+    /// 48 auf 49 keiner.
+    /// </summary>
+    private static readonly double[] Groessen =
+        [8, 9, 10, 11, 12, 14, 16, 18, 20, 22, 24, 28, 32, 36, 40, 48, 56, 64, 72];
+
+    /// <summary>
+    /// Wie weit ein Klick auf „Einzug vergrößern" rückt: 1,25 cm — Words Standardtabulator,
+    /// und damit die Schrittweite, die jeder von dort kennt.
+    /// </summary>
+    private const double EinzugSchrittCm = 1.25;
+
+    // ==================== Zeichenformat ====================
+
+    // **Knopf und Tastenkürzel rufen dieselbe Methode**, und deshalb steht das Paar aus Lesen
+    // und Setzen genau einmal da. Zwei Fassungen wären zwei, von denen später eine anders
+    // umschaltet als die andere — die Falle aus §4.13.
+    private void Fett() => Umschalten(f => f.Bold, (f, an) => f.Bold = an);
+    private void Kursiv() => Umschalten(f => f.Italic, (f, an) => f.Italic = an);
+    private void Unterstrichen() => Umschalten(f => f.Underline, (f, an) => f.Underline = an);
+    private void Durchgestrichen() =>
+        Umschalten(f => f.Strikethrough, (f, an) => f.Strikethrough = an);
+
+    private void Fett_Click(object? s, RoutedEventArgs e) => Fett();
+    private void Kursiv_Click(object? s, RoutedEventArgs e) => Kursiv();
+    private void Unterstrichen_Click(object? s, RoutedEventArgs e) => Unterstrichen();
+    private void Durchgestrichen_Click(object? s, RoutedEventArgs e) => Durchgestrichen();
+
+    private void Hoch_Click(object? s, RoutedEventArgs e) =>
+        Stellung(TdVerticalAlign.Superscript);
+
+    private void Tief_Click(object? s, RoutedEventArgs e) =>
+        Stellung(TdVerticalAlign.Subscript);
+
+    private void Groesser_Click(object? s, RoutedEventArgs e) => Stufe(+1);
+    private void Kleiner_Click(object? s, RoutedEventArgs e) => Stufe(-1);
+
+    /// <summary>
+    /// Ein Ja/Nein-Format umschalten.
+    ///
+    /// <para>
+    /// <b>Uneinig zählt als „aus".</b> Über einer Auswahl aus fettem und magerem Text macht der
+    /// erste Klick alles fett — die Erwartung aus jedem Textprogramm, und die einzige, bei der
+    /// zwei Klicks zu einem einheitlichen Zustand führen statt zurück ins Gemischte.
+    /// </para>
+    /// <para>
+    /// <b>Ausgeschaltet wird zu <c>false</c> und nicht zu <c>null</c></b>, und das ist der
+    /// Unterschied zwischen „nicht fett" und „nichts dazu gesagt" (§4.14). In einer Überschrift
+    /// steht das Fett am **Absatz** (<c>TdParagraph.CharFormat</c>); eine bloß gelöschte
+    /// Abweichung erbte es sofort wieder, und der Klick auf „F" täte sichtbar nichts. Word
+    /// schreibt an dieser Stelle aus demselben Grund ein ausdrückliches <c>w:val="0"</c>.
+    /// </para>
+    /// </summary>
+    private void Umschalten(Func<TdCharFormat, bool?> lesen, Action<TdCharFormat, bool> setzen)
+    {
+        if (!Schreibbar) return;
+
+        bool an = lesen(TdFormatEdit.Gemeinsam(_modell!, _auswahl)) == true;
+
+        Aendern(TdFormatEdit.Zeichen(_modell!, _auswahl,
+            (abweichung, _) => setzen(abweichung, !an)));
+
+        RibbonNachziehen();
+    }
+
+    /// <summary>
+    /// Hoch- und Tiefstellung. <b>Sie sind keine zwei Schalter, sondern einer mit drei
+    /// Stellungen</b> — ein Zeichen kann nicht gleichzeitig hoch und tief stehen. Nochmals
+    /// derselbe Knopf hebt sie auf.
+    /// </summary>
+    private void Stellung(TdVerticalAlign stellung)
+    {
+        if (!Schreibbar) return;
+
+        bool schon = TdFormatEdit.Gemeinsam(_modell!, _auswahl).VerticalAlign == stellung;
+
+        Aendern(TdFormatEdit.Zeichen(_modell!, _auswahl, (abweichung, _) =>
+            abweichung.VerticalAlign = schon ? null : stellung));
+
+        RibbonNachziehen();
+    }
+
+    /// <summary>
+    /// Eine Stufe größer oder kleiner. <b>Gerechnet wird je Stück am aufgelösten Format</b>:
+    /// Eine Auswahl über eine Überschrift und den Absatz darunter muss beide um eine Stufe
+    /// bewegen und nicht beide auf dieselbe Zahl setzen.
+    /// </summary>
+    private void Stufe(int richtung)
+    {
+        if (!Schreibbar) return;
+
+        Aendern(TdFormatEdit.Zeichen(_modell!, _auswahl, (abweichung, aufgeloest) =>
+            abweichung.FontSize = Nachbar(aufgeloest.FontSize, richtung)));
+
+        RibbonNachziehen();
+    }
+
+    /// <summary>
+    /// Die nächste Stufe der Leiter. Eine Größe, die nicht auf der Leiter steht (aus einem
+    /// importierten Dokument), springt auf die nächste darüber oder darunter — und liegt danach
+    /// darauf.
+    /// </summary>
+    private static double? Nachbar(double? groesse, int richtung)
+    {
+        if (groesse is not { } jetzt) return null;
+
+        if (richtung > 0)
+        {
+            int i = Array.FindIndex(Groessen, g => g > jetzt + 0.01);
+            return i < 0 ? Groessen[^1] : Groessen[i];
+        }
+
+        int j = Array.FindLastIndex(Groessen, g => g < jetzt - 0.01);
+        return j < 0 ? Groessen[0] : Groessen[j];
+    }
+
+    // ==================== Absatzformat ====================
+
+    /// <summary>
+    /// Ausrichtung setzen. Nochmals dieselbe hebt sie auf — dann gilt wieder, was das Dokument
+    /// vorgibt, und nicht „linksbündig, weil das die Vorgabe ist".
+    /// </summary>
+    private void Ausrichten_Click(object? sender, RoutedEventArgs e)
+    {
+        if (!Schreibbar || sender is not ToggleButton { Tag: string name }) return;
+        if (!Enum.TryParse<TdAlign>(name, out var gewuenscht)) return;
+
+        bool schon = TdFormatEdit.GemeinsamerAbsatz(_modell!, _auswahl).Alignment == gewuenscht;
+
+        Aendern(TdFormatEdit.Absatz(_modell!, _auswahl,
+            f => f.Alignment = schon ? null : gewuenscht));
+
+        RibbonNachziehen();
+    }
+
+    private void EinzugRein_Click(object? s, RoutedEventArgs e) => Einzug(+EinzugSchrittCm);
+    private void EinzugRaus_Click(object? s, RoutedEventArgs e) => Einzug(-EinzugSchrittCm);
+
+    /// <summary>
+    /// Den linken Einzug verschieben. <b>Nicht unter null</b> — ein negativer Einzug schöbe den
+    /// Text in den Seitenrand, und das ist nie gemeint, wenn jemand auf „verkleinern" drückt.
+    /// </summary>
+    private void Einzug(double schrittCm)
+    {
+        if (!Schreibbar) return;
+
+        Aendern(TdFormatEdit.Absatz(_modell!, _auswahl, f =>
+        {
+            double neu = Math.Max(0, (f.LeftIndentCm ?? 0) + schrittCm);
+            f.LeftIndentCm = neu == 0 ? null : neu;
+        }));
+
+        RibbonNachziehen();
+    }
+
+    // ==================== Die Knöpfe nachziehen ====================
+
+    /// <summary>
+    /// Stellt die Formatknöpfe auf das, was die Auswahl gerade zeigt.
+    ///
+    /// <para>
+    /// <b>Gerufen aus <c>MarkeNachziehen</c></b> — also nach jedem Klick, jeder Pfeiltaste und
+    /// jedem Umbruch, und damit an genau einer Stelle. Zwei Aufruflisten für „die Auswahl hat
+    /// sich bewegt" wären zwei, von denen eine irgendwann einen Punkt weniger hat (§4.35).
+    /// </para>
+    /// <para>
+    /// <b><c>null</c> heißt hier unbestimmt und nicht „aus"</b> (siehe
+    /// <see cref="TdFormatEdit.Gemeinsam"/>): Ein Knopf über einer gemischten Auswahl darf sich
+    /// nicht für eine der beiden Antworten entscheiden.
+    /// </para>
+    /// </summary>
+    private void RibbonNachziehen()
+    {
+        // Vor InitializeComponent gibt es die Knöpfe noch nicht — dieselbe Vorsorge wie in
+        // Reiter_Gewechselt, und aus demselben Grund nötig und nicht bloß vorsichtig.
+        if (SchalterFett is null) return;
+
+        bool an = Schreibbar;
+        foreach (var schalter in Formatschalter()) schalter.IsEnabled = an;
+        GroesseAnzeige.IsEnabled = an;
+
+        if (!an)
+        {
+            foreach (var schalter in Formatschalter()) schalter.IsChecked = false;
+            GroesseAnzeige.Content = "";
+            return;
+        }
+
+        var zeichen = TdFormatEdit.Gemeinsam(_modell!, _auswahl);
+        var absatz = TdFormatEdit.GemeinsamerAbsatz(_modell!, _auswahl);
+
+        SchalterFett.IsChecked = zeichen.Bold;
+        SchalterKursiv.IsChecked = zeichen.Italic;
+        SchalterUnterstrichen.IsChecked = zeichen.Underline;
+        SchalterDurchgestrichen.IsChecked = zeichen.Strikethrough;
+
+        // Die Stellung ist einer aus drei Zuständen; ein Schalter, der nicht dafür steht, ist
+        // aus und nicht unbestimmt.
+        SchalterHoch.IsChecked = zeichen.VerticalAlign == TdVerticalAlign.Superscript;
+        SchalterTief.IsChecked = zeichen.VerticalAlign == TdVerticalAlign.Subscript;
+
+        SchalterLinks.IsChecked = absatz.Alignment == TdAlign.Left;
+        SchalterMitte.IsChecked = absatz.Alignment == TdAlign.Center;
+        SchalterRechts.IsChecked = absatz.Alignment == TdAlign.Right;
+        SchalterBlock.IsChecked = absatz.Alignment == TdAlign.Justify;
+
+        // Uneinige Größen bekommen keinen Zahlenwert: „12" über einer Auswahl aus 12 und 20
+        // wäre schlicht falsch.
+        GroesseAnzeige.Content = zeichen.FontSize is { } pt ? $"{pt:0.#}" : "–";
+    }
+
+    private IEnumerable<ToggleButton> Formatschalter()
+    {
+        yield return SchalterFett;
+        yield return SchalterKursiv;
+        yield return SchalterUnterstrichen;
+        yield return SchalterDurchgestrichen;
+        yield return SchalterHoch;
+        yield return SchalterTief;
+        yield return SchalterLinks;
+        yield return SchalterMitte;
+        yield return SchalterRechts;
+        yield return SchalterBlock;
+    }
+}

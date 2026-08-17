@@ -48,6 +48,33 @@ public abstract class TdInline
     /// später wie gespeicherte Wahrheit aus (HANDOFF §7).
     /// </summary>
     public abstract string PlainText();
+
+    /// <summary>
+    /// Dasselbe Stück mit einem anderen Zeichenformat — <b>als Kopie</b>.
+    ///
+    /// <para>
+    /// <b>Das ist der Grund, warum es diese Methode gibt und nicht einfach
+    /// <c>stueck.Format = neu</c> heißt</b> (§4.32, „Absätze und Stücke werden nie verändert,
+    /// sondern ersetzt"): <see cref="TdChange"/> hält als Sicherung die Absätze, wie sie waren —
+    /// samt ihrer Stücke. Ein an Ort und Stelle umgestelltes Format änderte die Sicherung mit,
+    /// und ein Strg+Z holte den fetten Text als fetten Text zurück. Der Fehler sähe nicht nach
+    /// Formatieren aus, sondern nach kaputtem Rückgängig.
+    /// </para>
+    /// <para>
+    /// <b>Flach kopiert.</b> Was ein Stück sonst noch hält — die Kennung eines Bildes, die
+    /// Werte eines Diagramms —, wird dabei geteilt und nicht verdoppelt. Das trägt, solange
+    /// diese Dinge nach demselben Grundsatz behandelt werden: geändert wird, indem ersetzt
+    /// wird. <see cref="TdHyperlink"/> hat eine veränderliche Stückliste und wird deshalb
+    /// nicht über diesen Weg umformatiert, sondern in <see cref="TdFormatEdit"/> eigens
+    /// nachgebaut.
+    /// </para>
+    /// </summary>
+    public TdInline MitFormat(TdCharFormat format)
+    {
+        var kopie = (TdInline)MemberwiseClone();
+        kopie.Format = format;
+        return kopie;
+    }
 }
 
 /// <summary>Ein Stück Text mit einheitlichem Zeichenformat.</summary>

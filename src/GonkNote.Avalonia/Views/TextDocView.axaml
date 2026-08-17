@@ -49,8 +49,92 @@
                     </StackPanel>
                 </DockPanel>
 
-                <!-- ============ Reiter „Start": Ansicht und Ausgabe ============ -->
+                <!-- ============ Reiter „Start": Format, Ansicht und Ausgabe ============ -->
                 <WrapPanel x:Name="LeisteStart" Margin="8,2,8,6">
+
+                    <!-- Zeichenformat (Schritt 6, HANDOFF §6).
+                         **F, K, U, S als Buchstaben und nicht als Symbole** — dieselbe Wahl wie
+                         im WPF-Ribbon, und sie ist keine Sparsamkeit: Ein „F" in Fett zeigt, was
+                         der Knopf tut, ohne dass jemand ein Symbol dafür lernen müsste.
+
+                         Sie sind **dreiwertig** (`IsThreeState`): Über einer Auswahl aus fettem
+                         und magerem Text ist die Antwort weder ja noch nein, und ein Knopf, der
+                         sich dann für eine der beiden entscheidet, behauptet etwas Falsches
+                         (`TdFormatEdit.Gemeinsam`). Umgeschaltet wird trotzdem in zwei Stufen —
+                         das besorgt `Schalter_Geklickt`, nicht der Schalter selbst. -->
+                    <ToggleButton x:Name="SchalterFett" Classes="ribbonschalter" IsThreeState="True"
+                                  Click="Fett_Click" ToolTip.Tip="{loc:T Ed.Bold}">
+                        <TextBlock Text="F" FontWeight="Bold"/>
+                    </ToggleButton>
+                    <ToggleButton x:Name="SchalterKursiv" Classes="ribbonschalter" IsThreeState="True"
+                                  Click="Kursiv_Click" ToolTip.Tip="{loc:T Ed.Italic}">
+                        <TextBlock Text="K" FontStyle="Italic"/>
+                    </ToggleButton>
+                    <ToggleButton x:Name="SchalterUnterstrichen" Classes="ribbonschalter" IsThreeState="True"
+                                  Click="Unterstrichen_Click" ToolTip.Tip="{loc:T Ed.Underline}">
+                        <TextBlock Text="U" TextDecorations="Underline"/>
+                    </ToggleButton>
+                    <ToggleButton x:Name="SchalterDurchgestrichen" Classes="ribbonschalter" IsThreeState="True"
+                                  Click="Durchgestrichen_Click" ToolTip.Tip="{loc:T Ed.Strike}">
+                        <TextBlock Text="S" TextDecorations="Strikethrough"/>
+                    </ToggleButton>
+                    <ToggleButton x:Name="SchalterTief" Classes="ribbonschalter" IsThreeState="True"
+                                  Click="Tief_Click" ToolTip.Tip="{loc:T Ed.Subscript}" Content="x₂"/>
+                    <ToggleButton x:Name="SchalterHoch" Classes="ribbonschalter" IsThreeState="True"
+                                  Click="Hoch_Click" ToolTip.Tip="{loc:T Ed.Superscript}" Content="x²"/>
+
+                    <Border Classes="trenner"/>
+
+                    <!-- Schriftgröße.
+                         **Nur größer und kleiner, keine Schriftartenliste.** Die Liste bräuchte
+                         die verfügbaren Familien, und die Naht dafür gibt es nicht
+                         (`IFontProvider` liefert das Schema, nicht den Bestand, §4.26). Ein
+                         Auswahlfeld mit drei Namen darin wäre genau der halbe Knopf aus §4.28. -->
+                    <Button Classes="flach symbol" Click="Kleiner_Click" ToolTip.Tip="{loc:T Ed.FontShrink}">
+                        <views:Symbol Icon="FontShrink" Stroke="{DynamicResource Brush.Text}"/>
+                    </Button>
+                    <Button x:Name="GroesseAnzeige" Classes="flach" MinWidth="46" FontSize="12"
+                            IsHitTestVisible="False" ToolTip.Tip="{loc:T Ed.FontSize}"
+                            Foreground="{DynamicResource Brush.TextMuted}"/>
+                    <Button Classes="flach symbol" Click="Groesser_Click" ToolTip.Tip="{loc:T Ed.FontGrow}">
+                        <views:Symbol Icon="FontGrow" Stroke="{DynamicResource Brush.Text}"/>
+                    </Button>
+
+                    <Border Classes="trenner"/>
+
+                    <!-- Absatzformat.
+                         Vier Ausrichtungen als Gruppe: **genau eine gilt**, und ein Ribbon, das
+                         das als vier voneinander unabhängige Schalter zeigte, ließe sich in
+                         einen Zustand bringen, den es im Dokument nicht gibt. -->
+                    <ToggleButton x:Name="SchalterLinks" Classes="ribbonschalter"
+                                  Click="Ausrichten_Click" Tag="Left" ToolTip.Tip="{loc:T Ed.Align.Left}">
+                        <views:Symbol Icon="AlignLeft"
+                                      Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ToggleButton}}"/>
+                    </ToggleButton>
+                    <ToggleButton x:Name="SchalterMitte" Classes="ribbonschalter"
+                                  Click="Ausrichten_Click" Tag="Center" ToolTip.Tip="{loc:T Ed.Align.Center}">
+                        <views:Symbol Icon="AlignCenter"
+                                      Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ToggleButton}}"/>
+                    </ToggleButton>
+                    <ToggleButton x:Name="SchalterRechts" Classes="ribbonschalter"
+                                  Click="Ausrichten_Click" Tag="Right" ToolTip.Tip="{loc:T Ed.Align.Right}">
+                        <views:Symbol Icon="AlignRight"
+                                      Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ToggleButton}}"/>
+                    </ToggleButton>
+                    <ToggleButton x:Name="SchalterBlock" Classes="ribbonschalter"
+                                  Click="Ausrichten_Click" Tag="Justify" ToolTip.Tip="{loc:T Ed.Align.Justify}">
+                        <views:Symbol Icon="AlignJustify"
+                                      Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ToggleButton}}"/>
+                    </ToggleButton>
+
+                    <Button Classes="flach symbol" Click="EinzugRaus_Click" ToolTip.Tip="{loc:T Ed.Indent.Less}">
+                        <views:Symbol Icon="IndentDecrease" Stroke="{DynamicResource Brush.Text}"/>
+                    </Button>
+                    <Button Classes="flach symbol" Click="EinzugRein_Click" ToolTip.Tip="{loc:T Ed.Indent.More}">
+                        <views:Symbol Icon="IndentIncrease" Stroke="{DynamicResource Brush.Text}"/>
+                    </Button>
+
+                    <Border Classes="trenner"/>
 
                     <Button x:Name="KnopfExport" Classes="ribbonknopf"
                             ToolTip.Tip="{loc:T Ed.Export.Tip}">
@@ -135,6 +219,40 @@
                         <TextBlock x:Name="FeldKopfFuss" Classes="feldwert"/>
                     </StackPanel>
                 </WrapPanel>
+
+                <!-- ============ Die Warnung, wenn das Altformat noch führt ============ -->
+                <!-- HANDOFF §5 „Noch offen" 9, Nutzer-Entscheidung 2026-08-16: **warnen, nicht
+                     sperren.** Ein Dokument, das der WPF-Editor schon einmal beschrieben hat,
+                     hat ein gefülltes `Rtf` — und das führt. Was hier hineingeschrieben wird,
+                     landet in `Model` und wird drüben beim nächsten Speichern bedingungslos aus
+                     `Rtf` überschrieben. Der Ausweg ist Schritt 7 (§6); bis dahin steht hier
+                     wenigstens, was passiert.
+
+                     **Sie sitzt unter den Leisten und nicht in der Reiterzeile**, also
+                     unmittelbar über dem Blatt: dort steht sie im Blick dessen, der schreibt,
+                     und sie wandert nicht mit dem gewählten Reiter weg.
+
+                     Der Streifen links in Pink ist dieselbe Farbe, die `MessageWindow` einer
+                     Warnung gibt (`DialogSeverity.Warning` → `ThemeColor.Pink`) — die App hat
+                     keine zweite Warnfarbe, und eine dritte hier zu erfinden hieße, dieselbe
+                     Sache an zwei Orten verschieden auszusehen. -->
+                <Border x:Name="HinweisRtfFuehrt" IsVisible="False"
+                        Background="{DynamicResource Brush.CardBg}"
+                        BorderBrush="{DynamicResource Brush.Pink}"
+                        BorderThickness="3,0,0,0"
+                        Padding="10,6" Margin="8,0,8,8"
+                        ToolTip.Tip="{loc:T Td.RtfLeads.Tip}">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <views:Symbol Icon="Warning" VerticalAlignment="Center"
+                                      Stroke="{DynamicResource Brush.Pink}"/>
+                        <TextBlock Text="{loc:T Td.RtfLeads}" VerticalAlignment="Center"
+                                   FontSize="12" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource Brush.Text}"/>
+                        <TextBlock Text="{loc:T Td.RtfLeads.Text}" VerticalAlignment="Center"
+                                   FontSize="12" TextWrapping="Wrap"
+                                   Foreground="{DynamicResource Brush.TextMuted}"/>
+                    </StackPanel>
+                </Border>
             </StackPanel>
         </Border>
 

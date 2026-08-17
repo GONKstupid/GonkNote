@@ -152,7 +152,7 @@ public sealed class WpfDocumentIo : IDocumentIo
 
     public MigrationResult Migrate(TextDoc doc)
     {
-        if (doc.Rtf.Length == 0) return new MigrationResult(false);
+        if (!TdFuehrung.AltformatFuehrt(doc)) return new MigrationResult(false);
 
         try
         {

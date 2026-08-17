@@ -471,6 +471,25 @@ internal static class LocGerman
             "machen. Formate, Tabellen und Bilder setzt weiterhin die Windows-Fassung. " +
             "Angezeigt wird genau das, was auch exportiert würde — derselbe Umbruch, " +
             "derselbe Zeichner.",
+        // Die Warnung über dem Blatt, wenn das Altformat noch führt (HANDOFF §5 „Noch offen" 9,
+        // Nutzer-Entscheidung 2026-08-16: warnen, nicht sperren).
+        //
+        // **Sie muss die Folge nennen und nicht den Zustand.** „Dieses Dokument führt noch das
+        // Altformat" ist für den, der es liest, keine Auskunft, sondern ein Rätsel — was er
+        // wissen muss, ist, dass seine Arbeit hier verschwinden kann und wann. Der Grund steht
+        // im Tooltip; auf der Leiste steht der Satz, der zum Handeln reicht.
+        ["Td.RtfLeads"] = "Windows-Fassung führt",
+        ["Td.RtfLeads.Text"] =
+            "Was hier geschrieben wird, geht verloren, sobald dieses Dokument in der " +
+            "Windows-Fassung gespeichert wird.",
+        ["Td.RtfLeads.Tip"] =
+            "Dieses Dokument liegt doppelt: im Altformat der Windows-Fassung und im eigenen " +
+            "Modell. Solange das Altformat gefüllt ist, führt es — die Windows-Fassung zeigt " +
+            "beim nächsten Öffnen den Stand von dort und schreibt das Modell daraus neu. Was " +
+            "hier getippt wurde, ist danach weg, ohne Nachfrage.\n\n" +
+            "Der Inhalt selbst ist nicht in Gefahr: das Altformat wird nie überschrieben. " +
+            "Gefahrlos schreiben lässt sich hier deshalb alles, was die Windows-Fassung nie " +
+            "geöffnet hat — und alles andere, sobald die Führung umgestellt ist.",
         ["Ed.Export"] = "Exportieren",
         ["Ed.Export.Tip"] = "Dieses Dokument als PDF, Word, Markdown oder PNG schreiben",
         ["Ed.FitWidth"] = "Seitenbreite",

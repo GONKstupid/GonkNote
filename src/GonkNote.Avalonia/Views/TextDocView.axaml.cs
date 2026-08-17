@@ -175,9 +175,21 @@ public partial class TextDocView : UserControl
         Seitenleiste.IsVisible = _modell != null;
         KnopfExport.IsEnabled = _modell != null;
 
+        // **Nur zusammen mit einem angezeigten Dokument** (§5 „Noch offen" 9): Steht der
+        // Übernahme-Hinweis da, ist ohnehin nichts zu sehen und nichts zu schreiben — zwei
+        // Hinweise übereinander, von denen einer vor einer Gefahr warnt, die es gerade gar
+        // nicht gibt, machen beide unglaubwürdig.
+        HinweisRtfFuehrt.IsVisible =
+            _modell != null && _vm != null && TdFuehrung.AltformatFuehrt(_vm.Doc);
+
         if (_modell == null || _vm == null)
         {
             EingabeAufsetzen();
+
+            // **Auch hier nachziehen, und deshalb steht es zweimal da:** Auf diesem Weg gibt es
+            // keinen Umbruch, also auch kein `MarkeNachziehen` — die Formatknöpfe blieben
+            // anklickbar über einem Dokument, das gar nicht angezeigt wird.
+            RibbonNachziehen();
             Beschriftungen();
             return;
         }

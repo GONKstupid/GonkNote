@@ -322,6 +322,22 @@ public partial class TextDocView
                 Zuruecknehmen(vor: true);
                 break;
 
+            // ---------- Format (Schritt 6) ----------
+            // **Sie stehen hier und nicht nur am Knopf**: Die Kurzbefehle stehen in den
+            // Kurzhinweisen des Ribbons („Fett (Strg+B)", `Ed.Bold`) — ein Hinweis, der etwas
+            // verspricht, das es nicht gibt, ist schlimmer als keiner.
+            case Key.B when strg:
+                Fett();
+                break;
+
+            case Key.I when strg:
+                Kursiv();
+                break;
+
+            case Key.U when strg:
+                Unterstrichen();
+                break;
+
             default:
                 e.Handled = false;
                 break;
@@ -559,6 +575,10 @@ public partial class TextDocView
         MarkierungNeu();
         InsBildRollen();
         BlinkenAnstossen();
+
+        // Seit Schritt 6 hängt daran ein vierter: Die Formatknöpfe zeigen, was **an der
+        // Auswahl** gilt — sie bewegen sich also mit ihr und nicht mit dem Text.
+        RibbonNachziehen();
     }
 
     /// <summary>Rechnet Auswahl und Marke für den Zeichner neu.</summary>

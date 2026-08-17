@@ -4,6 +4,7 @@ using GonkNote.Core.Models;
 using GonkNote.Core.Platform;
 using GonkNote.Services;
 using GonkNote.Core.Services;
+using GonkNote.Core.Text;
 
 namespace GonkNote.ViewModels;
 
@@ -701,7 +702,7 @@ public sealed class MainViewModel : ObservableObject
         var doc = tab.Doc;
 
         // Schon übernommen, oder es gibt nichts zu übernehmen.
-        if (doc.Model.Length > 0 || doc.Rtf.Length == 0) return;
+        if (!TdFuehrung.UebernahmeStehtAus(doc)) return;
 
         // Der Linux-Kopf kann es nicht und darf es nicht versuchen — er würde ein leeres
         // Dokument erzeugen und den Inhalt damit scheinbar löschen.

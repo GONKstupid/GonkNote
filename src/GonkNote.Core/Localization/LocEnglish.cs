@@ -455,6 +455,19 @@ internal static class LocEnglish
             "You can write the text here: type, delete, select, undo. Formatting, tables and " +
             "pictures are still set in the Windows edition. What you see is exactly what " +
             "would be exported — same layout, same renderer.",
+        // Gegenstuecke zu Td.RtfLeads* in LocGerman (§5 „Noch offen" 9, siehe dort).
+        ["Td.RtfLeads"] = "Windows edition leads",
+        ["Td.RtfLeads.Text"] =
+            "Anything written here is lost as soon as this document is saved in the Windows " +
+            "edition.",
+        ["Td.RtfLeads.Tip"] =
+            "This document is stored twice: in the Windows edition's legacy format and in the " +
+            "built-in model. While the legacy format holds content, it leads — the Windows " +
+            "edition shows that state the next time it opens the document and rewrites the " +
+            "model from it. Whatever was typed here is gone afterwards, without asking.\n\n" +
+            "The content itself is not at risk: the legacy format is never overwritten. So " +
+            "writing here is safe for anything the Windows edition has never opened — and for " +
+            "everything else once the lead has been handed over.",
         ["Ed.Export"] = "Export",
         ["Ed.Export.Tip"] = "Write this document as PDF, Word, Markdown or PNG",
         ["Ed.FitWidth"] = "Fit width",

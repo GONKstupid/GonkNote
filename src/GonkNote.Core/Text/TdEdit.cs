@@ -522,7 +522,7 @@ public static class TdEdit
     /// <c>null</c>, wenn dort nicht bearbeitet werden kann — siehe die benannte Lücke in
     /// <see cref="Ersetzen"/>.
     /// </summary>
-    private static (List<TdBlock> Container, int Von, int Bis, TdParagraph A, TdParagraph B)?
+    internal static (List<TdBlock> Container, int Von, int Bis, TdParagraph A, TdParagraph B)?
         Bereich(TdDocument doc, TdPosition start, TdPosition ende)
     {
         var absatzA = TdCursor.AbsatzAn(doc, start.Paragraph);
@@ -610,7 +610,7 @@ public static class TdEdit
     /// breit ist wie seine Stücke zusammen (<see cref="TdCursor.Laenge(TdInline)"/>).
     /// </para>
     /// </summary>
-    private static List<TdInline> Teil(IReadOnlyList<TdInline> stuecke, int von, int bis)
+    internal static List<TdInline> Teil(IReadOnlyList<TdInline> stuecke, int von, int bis)
     {
         var ziel = new List<TdInline>();
 
@@ -713,7 +713,7 @@ public static class TdEdit
     /// Rücknahme holt den **ganzen** Absatz zurück, wie er war.
     /// </para>
     /// </summary>
-    private static List<TdInline> Aufraeumen(IEnumerable<TdInline> stuecke)
+    internal static List<TdInline> Aufraeumen(IEnumerable<TdInline> stuecke)
     {
         var ziel = new List<TdInline>();
 

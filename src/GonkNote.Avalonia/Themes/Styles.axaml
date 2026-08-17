@@ -312,6 +312,45 @@
         <Setter Property="Opacity" Value="0.45"/>
     </Style>
 
+    <!-- Formatschalter im Ribbon (F, K, U, S, Ausrichtung) — Schritt 6 des Schreibens.
+
+         **Kleiner als `ToggleButton.werkzeug`** (30 statt 34) und mit eigenem Aussehen für den
+         gedrückten Zustand: Der Werkzeugschalter der Zeichenfläche färbt im Template ein
+         `Path` ein, hier steht aber meist ein Buchstabe. Beides über einen Stil zu ziehen hieße,
+         den einen Fall stumm zu lassen — und stumm heißt hier: der Knopf sieht nicht gedrückt
+         aus, obwohl der Text fett ist.
+
+         **Dritter Zustand: unbestimmt.** Über einer Auswahl aus fettem und magerem Text ist der
+         Knopf weder gedrückt noch nicht gedrückt (`TdFormatEdit.Gemeinsam` antwortet dort mit
+         `null`). Avalonias `IsThreeState` trägt das schon; sichtbar gemacht wird es hier. -->
+    <Style Selector="ToggleButton.ribbonschalter">
+        <Setter Property="MinWidth" Value="30"/>
+        <Setter Property="Height" Value="30"/>
+        <Setter Property="Padding" Value="6,0"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="CornerRadius" Value="6"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="Foreground" Value="{DynamicResource Brush.Text}"/>
+        <Setter Property="Cursor" Value="Hand"/>
+    </Style>
+    <Style Selector="ToggleButton.ribbonschalter:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource Brush.Hover}"/>
+    </Style>
+    <Style Selector="ToggleButton.ribbonschalter:checked /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource Brush.AccentSoft}"/>
+    </Style>
+    <Style Selector="ToggleButton.ribbonschalter:checked">
+        <Setter Property="Foreground" Value="{DynamicResource Brush.Accent}"/>
+    </Style>
+    <Style Selector="ToggleButton.ribbonschalter:indeterminate /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource Brush.Hover}"/>
+    </Style>
+    <Style Selector="ToggleButton.ribbonschalter:disabled">
+        <Setter Property="Opacity" Value="0.45"/>
+    </Style>
+
     <!-- Beschriftung eines Ablesefeldes im Ribbon (Format, Ränder, Kopfzeile …). -->
     <Style Selector="TextBlock.feldname">
         <Setter Property="FontSize" Value="11"/>

@@ -1,6 +1,6 @@
 ﻿# Gonk Note V2 — Projektübergabe
 
-**Stand: 2026-08-17 · Version 0.3.0 · net10.0 · SkiaSharp 3 · SQLite · Avalonia 12 · ✅ M1 erreicht · ✅ Phase 4 abgeschlossen (§4.28): Dokumentmodell, Übernahme, DOCX/Markdown/PDF/PNG gegen das Modell, Zeichner samt Diagrammen, Schriftkonzept — und die Anzeige im Linux-Kopf, **auf dem Laptop gegengeprüft** (§4.28, V2-37). ✅ **Aufgeräumt vor dem Schreiben** (§4.29, V2-40). ⏳ **Das Schreiben läuft** (§6): **Schritte 1 bis 5 stehen** — Stelle, Änderung, Verlauf, Trefferrechnung und **Tastatur und Maus: der Linux-Kopf schreibt** (§4.35, V2-46), **auf dem Laptop gegengeprüft** (§4.35, V2-47: Umlaute, tote Tasten, der Cursor am Stift, kein verlorenes Zeichen — dabei zwei alte Punkte geschlossen). ✅ **Seit dem 2026-08-17 steht Schritt 6 ganz** (§4.36 und §4.37, V2-48/49): **Formate lassen sich setzen** (`TdFormatEdit`, Formatgruppe im Ribbon, Strg+B/I/U), **die drei Reiter Einfügen, Verweise und Tabelle sind da** (`TdBlockEdit`, `TdTableEdit`, `TdFormatEdit.Verweis`) — **und die Warnung steht**, wenn das Altformat noch führt (`TdFuehrung`). **754 Tests.** ✅ **Beide offenen Entscheidungen sind gefallen** (Nutzer, 2026-08-16): §5 Nr. 9 → **warnen statt sperren** (gebaut), §5 Nr. 10 → **`TextInputMethodClient` umsetzen, nach Schritt 6** (steht aus). ▶ **Dran ist Windows** (§5e); §5d trägt keinen Auftrag. ⚠ **Die Sichtprüfung von §4.36 und §4.37 steht aus** — die Fernsteuer-Skripte in `tools\` stellten in dieser Sitzung keine Klicks zu (Werkzeugbefund, §4.36). ▶ **Danach: Schritt 6a (`TextInputMethodClient`) und Schritt 7**
+**Stand: 2026-08-17 · Version 0.3.0 · net10.0 · SkiaSharp 3 · SQLite · Avalonia 12 · ✅ M1 erreicht · ✅ Phase 4 abgeschlossen (§4.28): Dokumentmodell, Übernahme, DOCX/Markdown/PDF/PNG gegen das Modell, Zeichner samt Diagrammen, Schriftkonzept — und die Anzeige im Linux-Kopf, **auf dem Laptop gegengeprüft** (§4.28, V2-37). ✅ **Aufgeräumt vor dem Schreiben** (§4.29, V2-40). ⏳ **Das Schreiben läuft** (§6): **Schritte 1 bis 5 stehen** — Stelle, Änderung, Verlauf, Trefferrechnung und **Tastatur und Maus: der Linux-Kopf schreibt** (§4.35, V2-46), **auf dem Laptop gegengeprüft** (§4.35, V2-47: Umlaute, tote Tasten, der Cursor am Stift, kein verlorenes Zeichen — dabei zwei alte Punkte geschlossen). ✅ **Seit dem 2026-08-17 steht Schritt 6 ganz** (§4.36 und §4.37, V2-48/49): **Formate lassen sich setzen** (`TdFormatEdit`, Formatgruppe im Ribbon, Strg+B/I/U), **die drei Reiter Einfügen, Verweise und Tabelle sind da** (`TdBlockEdit`, `TdTableEdit`, `TdFormatEdit.Verweis`) — **und die Warnung steht**, wenn das Altformat noch führt (`TdFuehrung`). **754 Tests.** ✅ **Beide offenen Entscheidungen sind gefallen** (Nutzer, 2026-08-16): §5 Nr. 9 → **warnen statt sperren** (gebaut), §5 Nr. 10 → **`TextInputMethodClient` umsetzen, nach Schritt 6** (steht aus). ▶ **Dran ist Windows** (§5e); §5d trägt keinen Auftrag. ✅ **Am laufenden Programm in beiden Köpfen gegengeprüft** (§4.37): Der WPF-Editor zeigt die vom Linux-Kopf angelegte Tabelle, das Fett und den Verweis — und **der Warnstreifen erscheint genau dann, wenn `Rtf` gefüllt ist**. ▶ **Dran ist Schritt 6a (`TextInputMethodClient`), danach Schritt 7**
 
 > **📌 Dauerregeln des Nutzers — gelten immer, ohne Nachfragen:**
 >
@@ -377,8 +377,12 @@ Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — beh
 > Möglichkeit mit sich, die er nie braucht). **Die Regel aus §4.32 wird hier zum ersten Mal
 > ernst:** Stücke werden kopiert und nicht umgestellt, sonst ändert das Formatieren die
 > Sicherung des Verlaufs mit.
-> **⚠ Am laufenden Programm ist davon nichts gesehen worden** — die Skripte in `tools\` stellten
-> keine Klicks zu (Werkzeugbefund, §4.36).
+> **✅ Am laufenden Programm in beiden Köpfen gegengeprüft** (§4.37): Der WPF-Editor zeigt die vom
+> Linux-Kopf angelegte Tabelle, das Fett und den **blau unterstrichenen Verweis** — und der
+> **Warnstreifen erscheint genau dann, wenn `Rtf` gefüllt ist**, vorher nicht. **Zwei Funde, die
+> nur der Schirm liefern konnte:** die zwei Zahlenfelder waren zu schmal für ihren Wert
+> (behoben und nachgesehen), und der Weg durch den WPF-Editor setzt den Absatz auf **Blocksatz**
+> — das gehört zu Schritt 7 und ist dort vermerkt.
 >
 > **✅ Der Laptop hat das inzwischen abgearbeitet** (2026-08-16, V2-47, §4.35 „Was der Laptop
 > gefunden hat"): Umlaute **und** tote Tasten kommen an, der **Stift setzt die Marke und zieht
@@ -387,9 +391,9 @@ Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — beh
 > (§5 „Noch offen" 7 und 1) und **einen neuen aufgeworfen** (§5 „Noch offen" 10: ohne
 > Hardware-Tastatur ist nicht zu schreiben).
 >
-> **▶ Als Nächstes: Windows** (§5e); **§5d trägt keinen Auftrag mehr.** Zuerst die **ausstehende
-> Sichtprüfung** von §4.36 und §4.37, dann **`TextInputMethodClient`** (§5 „Noch offen" 10, so
-> entschieden), dann **Schritt 7** — `Rtf` verliert die Führung. **Beide Entscheidungen sind
+> **▶ Als Nächstes: Windows** (§5e); **§5d trägt keinen Auftrag mehr.** Zuerst
+> **`TextInputMethodClient`** (§5 „Noch offen" 10, so entschieden) — **danach ist der Laptop
+> fällig** —, dann **Schritt 7**: `Rtf` verliert die Führung. **Beide Entscheidungen sind
 > gefallen — nicht mehr nachfragen.**
 >
 > **Gearbeitet wird auf dem Windows-Rechner.** Nicht wegen der Werkzeuge, sondern wegen der
@@ -4758,11 +4762,52 @@ falschen Handgriff misst, ist grün und sagt nichts.
 - **Beschriftungen, Fußnoten, Textmarken.** Im Modell nicht vorgesehen; eigene Runden.
 - **Schriftartenliste, Textfarbe, Hervorhebung** — unverändert offen aus §4.36.
 
-#### ⚠ Auch diese Runde ist nicht am laufenden Programm gesehen worden
+#### ✅ Die Sichtprüfung ist nachgeholt — §4.36 **und** §4.37, am laufenden Programm
 
-**Aus demselben Grund wie §4.36:** Die Skripte in `tools\` stellen aus dieser Sitzung heraus
-keine Klicks zu. Bau und Wächter sind grün, **die Sichtprüfung steht für §4.36 und §4.37
-zusammen aus** — und sie ist jetzt größer geworden. Was zu sehen ist, steht in §5e.
+**2026-08-17, dritter Anlauf (V2-50).** Die Fernsteuer-Skripte stellten in derselben Sitzung
+später **wieder Klicks zu** — ohne dass an ihnen etwas geändert wurde. **Damit bleibt der
+Werkzeugbefund aus §4.36 stehen, aber er ist vorübergehend**, und die Regel daraus gilt
+unverändert: *erst das Werkzeug ausschließen* (ein Klick auf „Erscheinungsbild wechseln", §7).
+
+**Geprüft wurde in beiden Köpfen an einer Kopie der echten Datenbank** (Dauerregel 4, danach
+gelöscht) — und zwar die ganze Kette, nicht die Knöpfe einzeln:
+
+| Was | Ergebnis |
+|---|---|
+| **Fünf Reiter** | Start, Einfügen, Layout, Verweise, Tabelle stehen und schalten um |
+| **Formatgruppe** | F, K, U, S, hoch/tief, Größe (liest **11** ab), vier Ausrichtungen, Einzug |
+| **Fett** | Wort per Doppelklick gewählt, „F" gedrückt → **Text wird fett, der Knopf zeigt es** |
+| **Kein Warnstreifen** | bei einem Dokument, das der WPF-Editor nie beschrieben hat — richtig |
+| **Tabelle einfügen** | 2×2 entsteht, **die Marke steht in der ersten Zelle** (die Regel aus §4.37, am Schirm belegt) |
+| **Reiter „Tabelle"** | ohne Marke in einer Tabelle: nur der Satz. Mit: die sieben Knöpfe |
+| **Zeile + Spalte** | aus 2×2 wird 3×3, Spaltenbreiten gleichmäßig neu verteilt |
+| **Verweis** | gesetzt; Marke heraus → Feld leer und „Setzen"/„Entfernen" grau; Marke hinein → **das Ziel steht wieder da** (`VerweisZiel` trägt) |
+
+**Die eigentliche Gegenprobe — und sie geht auf.** Dasselbe Dokument im **WPF-Editor** geöffnet:
+Er zeigt die vom Linux-Kopf angelegte **3×3-Tabelle**, „Hallo" **fett**, und den Verweis **blau
+und unterstrichen**. Damit ist belegt, dass Tabelle, Zeichenformat und Verweis wirklich im
+Modell stehen und der andere Kopf sie liest — die Frage aus §5e (*„Was sieht der andere Kopf,
+nachdem dieser gespeichert hat?"*) ist mit **alles** beantwortet.
+
+**Und danach der Warnstreifen, im WPF-Kopf gespeichert und zurückgewechselt:** Der Linux-Kopf
+zeigt jetzt „**Windows edition leads** — Anything written here is lost as soon as this document
+is saved in the Windows edition." **Er war vorher nicht da und ist es jetzt.** §5 „Noch offen" 9
+ist damit nicht nur gebaut, sondern gesehen.
+
+##### Zwei Funde, die nur der Schirm liefern konnte
+
+1. **Die beiden Zahlenfelder zeigten ihren Wert nicht.** `NumericUpDown` mit `Width="86"`: Die
+   zwei Spinner-Knöpfe fressen die Breite, für die Zahl bleibt nichts. **Am Bild sah es aus, als
+   seien die Felder leer** — dass sie ihren Wert trotzdem hatten, hat erst die eingefügte
+   Tabelle gezeigt: Sie kam als **2×2** heraus. Auf `130` verbreitert und **nachgesehen**: „Rows
+   2", „Columns 2" stehen da. **Zum wievielten Mal derselbe Satz aus §4.28 und §4.35:** Kein
+   Wächter kann das sehen; die Zahl war ja richtig.
+2. ⚠ **Nach dem Weg durch den WPF-Editor steht der Absatz auf Blocksatz.** Vor dem Wechsel war
+   im Linux-Ribbon „linksbündig" gedrückt, danach „Blocksatz" — die Übernahme
+   `Rtf → Model` (`WpfDocumentIo.Migrate`) schreibt also eine Ausrichtung ins Modell, die vorher
+   nicht dastand. **Nicht in dieser Runde entstanden und nicht hier behoben:** Es ist Arbeit an
+   der Übernahme und gehört zu **Schritt 7**, wo `Rtf` die Führung verliert. Vermerkt, damit es
+   dort nicht neu gesucht wird.
 
 ---
 
@@ -5629,29 +5674,26 @@ Kopf, dass die Windows-Fassung führt und hier Geschriebenes verlorengeht.
 sperren**; §5 Nr. 10 → **(a) `TextInputMethodClient` umsetzen, aber nach Schritt 6**. **Nicht
 mehr nachfragen.**
 
-**▶ Dran ist dreierlei, in dieser Reihenfolge:**
+**✅ Die Sichtprüfung ist erledigt** (§4.37, „Die Sichtprüfung ist nachgeholt"): In beiden Köpfen
+an einer Kopie der echten Datenbank durchgespielt — Formatknöpfe, Tabelle samt Marke in der
+ersten Zelle, Verweis, und **der Warnstreifen erscheint genau dann, wenn `Rtf` gefüllt ist**.
+Der WPF-Editor zeigt die vom Linux-Kopf angelegte Tabelle, das Fett und den Verweis.
 
-1. **Die Sichtprüfung von §4.36 und §4.37 nachholen** — sie steht aus, und zwar aus einem
-   Werkzeuggrund (siehe unten). **Zu sehen ist:**
-   - der **Warnstreifen** bei einem Bestandsdokument — und **kein** Streifen bei einem hier
-     angelegten;
-   - die **Formatknöpfe** über wechselnden Auswahlen (fett, gemischt, leere Auswahl hinter
-     einem fetten Wort) und ob der Umbruch nach einer Formatänderung stimmt;
-   - **eine eingefügte Tabelle**: steht die Marke danach in der ersten Zelle? Lassen sich Zeile
-     und Spalte einfügen und löschen? Verschwinden die Tabellenknöpfe, sobald die Marke
-     außerhalb steht?
-   - ein **Verweis**: Zeigt das Feld beim Hineinklicken das Ziel? Überlebt er das Speichern und
-     einen Neustart?
-2. **Schritt 6a: `TextInputMethodClient`** (§5 „Noch offen" 10, so entschieden).
-3. **Schritt 7: `Rtf` verliert die Führung** — der einzige vollständige Ausweg aus §5 Nr. 9.
+**▶ Dran ist zweierlei, in dieser Reihenfolge:**
 
-> **⚠ Vorher zu klären, und es ist kein Nebenpunkt:** Die Fernsteuer-Skripte in `tools\` haben
-> in der Sitzung vom 2026-08-17 **keine Klicks zugestellt** — `schau.ps1` fotografiert richtig,
-> der Zeiger bewegt sich nachweislich, `SendInput` meldet Erfolg, und im Kopf kommt nichts an
-> (auch ohne Sandbox nicht). **Das ist ein Werkzeugbefund und keiner der App** (§4.36). Wer hier
-> weitermacht, prüft das **zuerst** mit einem einzigen Klick auf „Erscheinungsbild wechseln" —
-> und sagt dem Nutzer Bescheid, wenn es weiterhin nicht geht: Dann ist jede Sichtprüfung
-> Handarbeit, und das gehört gesagt und nicht umgangen.
+1. **Schritt 6a: `TextInputMethodClient`** (§5 „Noch offen" 10, so entschieden). Danach ist der
+   **Laptop** fällig — ob die Bildschirmtastatur wirklich aufgeht, kann nur er sagen.
+2. **Schritt 7: `Rtf` verliert die Führung** — der einzige vollständige Ausweg aus §5 Nr. 9.
+   **Dabei liegt ein Fund bereit:** Der Weg durch den WPF-Editor setzt den Absatz auf
+   **Blocksatz** (§4.37, Fund 2).
+
+> **⚠ Beim Fernsteuern zu wissen:** Am 2026-08-17 haben die Skripte in `tools\` **zeitweise
+> keine Klicks zugestellt** — `schau.ps1` fotografierte richtig, der Zeiger bewegte sich
+> nachweislich, `SendInput` meldete Erfolg, und im Kopf kam nichts an (auch ohne Sandbox nicht).
+> Später in derselben Sitzung ging es wieder, ohne dass etwas geändert wurde. **Das ist ein
+> Werkzeugbefund und keiner der App** (§4.36, §7). Wer eine Sichtprüfung anfängt, macht **einen
+> Klick auf „Erscheinungsbild wechseln"** als Erstes — und sagt dem Nutzer Bescheid, wenn der
+> nichts tut: Dann ist jede Sichtprüfung Handarbeit, und das gehört gesagt und nicht umgangen.
 
 > **Was die Schritte 1 bis 5 mitgenommen haben und nicht noch einmal zu suchen ist:** die Frage
 > nach der Formaterbung (beantwortet: links, wie in Word), §5 „Noch offen" 8 (erledigt), die
@@ -6719,7 +6761,8 @@ weil sie bei der Portierung direkt zuschlagen:
   misst und auf dem Bildschirm klickt, liegt um diesen Betrag daneben — bei einem großen
   Knopf egal, bei einem Menüeintrag nicht. **Mit `-Voll` gemessen stimmen beide überein.**
 - **Beide Köpfe fotografieren:** `schau.ps1 -Kopf avalonia|wpf -Konfig Debug|Release`.
-- **⚠ Ein Klick, der angenommen wird, ist noch kein Klick, der ankommt.** Am 2026-08-17
+- **⚠ Ein Klick, der angenommen wird, ist noch kein Klick, der ankommt — und es kann von selbst
+  wieder gehen.** Am 2026-08-17
   (§4.36) stellten die Skripte **keinerlei Mauseingaben** an den laufenden Kopf zu — und zwar
   ohne eine einzige Fehlermeldung: `schau.ps1` fotografierte richtig, `SetCursorPos` bewegte
   den Zeiger **nachweislich** (abgefragt: 151,1764 → 600,900), `SendInput` meldete **zwei
@@ -6732,6 +6775,9 @@ weil sie bei der Portierung direkt zuschlagen:
   ein einziger Klick auf einen Knopf mit auffälliger Wirkung — „Erscheinungsbild wechseln"
   unten links im Avalonia-Kopf —, und wenn der nichts tut, ist die Kette tot und **jede
   Sichtprüfung Handarbeit**. Das gehört dem Nutzer gesagt, nicht umgangen.
+  **Später in derselben Sitzung ging es wieder**, ohne dass an den Skripten etwas geändert
+  wurde — die Sichtprüfung von §4.36 und §4.37 ist damit nachgeholt worden (§4.37). **Der
+  Zustand ist also vorübergehend: bevor man ihn für dauerhaft hält, lohnt ein zweiter Versuch.**
 
 **Neu aus Phase 3 — Fernsteuern unter Wayland (`tools/linux/`)**
 
@@ -7317,6 +7363,7 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 
 | Runde | Datum | Was |
 |---|---|---|
+| V2-50 | 2026-08-17 | **Die Sichtprüfung von §4.36 und §4.37 nachgeholt — in beiden Köpfen, an einer Kopie der echten Daten** (§4.37, „Die Sichtprüfung ist nachgeholt"; danach gelöscht, Dauerregel 4). **Zuerst das Werkzeug:** Die Skripte in `tools\` stellten **wieder Klicks zu**, ohne dass an ihnen etwas geändert wurde — der Befund aus V2-48/49 war **vorübergehend**, und genau das steht jetzt in §7, damit ihn niemand für dauerhaft hält. **Geprüft wurde die ganze Kette und nicht die Knöpfe einzeln:** fünf Reiter schalten um; „F" macht ein per Doppelklick gewähltes Wort fett und **zeigt sich danach gedrückt**; die Größenanzeige liest **11** ab; ein hier angelegtes Dokument bekommt **keinen** Warnstreifen; eine eingefügte Tabelle entsteht als 2×2 und **die Marke steht in der ersten Zelle** (die Regel aus §4.37, am Schirm belegt); der Reiter „Tabelle" zeigt ohne Marke darin nur seinen Satz und mit Marke seine sieben Knöpfe; aus 2×2 wird per Zeile und Spalte ein 3×3; ein Verweis lässt sich setzen, und beim Herausklicken wird das Feld leer und „Setzen"/„Entfernen" grau, beim Hineinklicken **steht das Ziel wieder da**. **Die eigentliche Gegenprobe geht auf:** Dasselbe Dokument im **WPF-Editor** geöffnet zeigt die vom Linux-Kopf angelegte **3×3-Tabelle**, „Hallo" **fett** und den Verweis **blau unterstrichen** — Tabelle, Zeichenformat und Verweis stehen also wirklich im Modell, und der andere Kopf liest sie. Danach dort gespeichert und zurückgewechselt: **der Warnstreifen steht** („Windows edition leads — Anything written here is lost as soon as this document is saved in the Windows edition"), und er war vorher nicht da. **§5 „Noch offen" 9 ist damit nicht nur gebaut, sondern gesehen.** **Zwei Funde, die nur der Schirm liefern konnte:** (1) Die zwei `NumericUpDown` zeigten ihren **Wert nicht** — bei `Width="86"` fressen die Spinner-Knöpfe die Breite; **am Bild sahen die Felder leer aus**, und dass sie ihren Wert trotzdem hatten, hat erst die eingefügte Tabelle gezeigt (sie kam als 2×2 heraus). Auf 130 verbreitert und **nachgesehen**. Kein Wächter kann das sehen — die Zahl war ja richtig; derselbe Satz wie in §4.28 und §4.35. (2) ⚠ **Der Weg durch den WPF-Editor setzt den Absatz auf Blocksatz** — vorher war „linksbündig" gedrückt, danach „Blocksatz"; die Übernahme `Rtf → Model` schreibt also eine Ausrichtung ins Modell, die vorher nicht dastand. **Nicht in dieser Runde entstanden und nicht hier behoben** — es ist Arbeit an der Übernahme und gehört zu **Schritt 7**, wo es jetzt vermerkt ist. **▶ Dran ist Schritt 6a (`TextInputMethodClient`), danach ist der Laptop fällig** |
 | V2-49 | 2026-08-17 | **Die drei Reiter — Schritt 6 ist damit ganz** (§4.37). `Core/Text/TdBlockEdit.cs` und `Core/Text/TdTableEdit.cs` neu, `TdFormatEdit.Verweis` dazu, `Views/TextDocView.Reiter.cs` im Kopf; **30 Wächter**, **754 Tests** grün, Bau 0/0. **Einfügen** (Seitenumbruch, Zeilenumbruch, Tabelle, Felder), **Verweise** (setzen/entfernen, Inhaltsverzeichnis) und **Tabelle** (Zeile/Spalte einfügen und löschen, Tabelle löschen) stehen. **Die Entscheidung der Runde ist eine Nicht-Erweiterung: `TdFragment` bekommt keine Blöcke.** Ein Fragment beschreibt „Absätze voller Stücke" (§4.32) — ein Seitenumbruch ist keiner davon, sondern steht **zwischen** ihnen. Erweitert man es, trägt **jeder Tastendruck** eine Möglichkeit mit sich, die er nie braucht, und `Ersetzen` bekommt einen Zweig, den nur eine Datei auslöst; ein eigener Handgriff daneben ist billiger als ein Sonderfall darin. `TdBlockEdit.Einfuegen` bleibt trotzdem derselbe Gedanke: Auswahl weg, Absatz geteilt, Blöcke dazwischen — womit „Seitenumbruch einfügen" dasselbe ist wie „Tabelle einfügen". **Zwei nicht offensichtliche Regeln:** die Marke landet im ersten Absatz **innerhalb** des Eingefügten (bei einer Tabelle also in der ersten Zelle, wie in Word) — **eine** Regel statt einer Fallunterscheidung nach Blockart; und **beide Hälften bleiben stehen, auch leere**, sonst verschluckt ein Seitenumbruch am Absatzanfang den Absatz und eine Tabelle als erster Block wird unerreichbar. **Bei Tabellen wird durchweg in Rasterspalten gerechnet und nicht in Zellindizes:** Eine Zelle über zwei Spalten belegt zwei Rasterplätze, steht aber einmal in der Zeile (DOCX' Sicht, §4.19) — daraus folgt, dass eine neue Zeile so viele Zellen bekommt, wie die Vorlage **Rasterspalten** belegt, und dass eine neue Spalte mitten in einer verbundenen Zelle diese **breiter** macht statt sie zu zerschneiden (zerschneiden hieße entscheiden, welche Hälfte den Inhalt behält). Eine Tabellenänderung ist ein **Blocktausch** und fällt damit unter dieselbe `TdChange` wie alles andere; die Absätze in den Zellen werden weitergereicht, nicht verdoppelt. **Der Fund der Runde kam wieder aus dem Erproben der Wächter, und er ist neu:** Die Mutation „`Kopie` reicht dieselben Zeilenobjekte weiter" machte nur den *Rücknahme*-Wächter rot — **`Die_alte_Tabelle_bleibt_unveraendert` blieb grün**, weil er nach einem `ZeileEinfuegen` nur `Rows.Count` prüfte und eine neue Zeilenliste mit alten Zeilen darin beim Zählen der Zeilen nicht auffällt. Erst ein Handgriff, der **in** eine Zeile greift (Spalte einfügen), macht es sichtbar; der Wächter prüft seitdem beides. **Zum vierten Mal dieselbe Regel nach §4.30, §4.32 und §4.33 — mit einem Zusatz: es genügt nicht, den richtigen Gegenstand zu prüfen, man muss ihn mit dem Handgriff prüfen, der ihn anfasst.** **Zwei Stellen lösen anders als der Windows-Kopf, beide begründet:** die Tabellengröße kommt aus **zwei Zahlen** statt aus einem aufgezogenen Gitter (das hängt an einem Schwebe-Zustand, den in dieser Sitzung niemand gegenprüfen konnte), und das **Verweisziel steht als Feld in der Leiste** statt in einem Dialog (der Naht fehlt „frag nach Text", und das Feld macht aus einfügen und bearbeiten denselben Handgriff). Der Reiter „Tabelle" ist immer da, seine Knöpfe nicht — außerhalb einer Tabelle steht dort ein Satz statt ausgegrauter Flächen (§4.28). **Benannt ausgelassen:** Zellen verbinden und teilen (was geschieht mit dem Inhalt der aufgehenden Zellen? — geraten wäre es Datenverlust), Bilder (Phase 4.5), Beschriftungen und Fußnoten. **⚠ Auch diese Runde ist nicht am laufenden Programm gesehen worden**, aus demselben Werkzeuggrund wie V2-48 — **die Sichtprüfung steht jetzt für §4.36 und §4.37 zusammen aus** und ist der erste Punkt der nächsten Runde (§5e) |
 | V2-48 | 2026-08-17 | **Formate setzen — Schritt 6, erste Hälfte — und die Warnung aus §5 Nr. 9** (§4.36). Zwei neue Dateien in Core (`TdFuehrung.cs`, `TdFormatEdit.cs`), eine im Kopf (`TextDocView.Format.cs`), die Formatgruppe im Ribbon; **31 Wächter**, **724 Tests** grün, Bau 0/0. **Beide offenen Entscheidungen wurden dem Nutzer vorgelegt und sind gefallen:** §5 Nr. 9 → **(b) warnen, nicht sperren**; §5 Nr. 10 → **(a) `TextInputMethodClient`, aber nach Schritt 6**. **Die Warnung** steht als Streifen über dem Blatt, wenn `Rtf` gefüllt ist — und dabei ist die Regel „wer voll ist, führt" zum ersten Mal **benannt** worden: Sie stand an drei Stellen als roher Längenvergleich, jetzt in `TdFuehrung` mit **zwei** Fragen, die nicht dasselbe sind (`AltformatFuehrt` / `UebernahmeStehtAus`). **Der naheliegende Fehler wäre gewesen, sie zusammenfallen zu lassen — und zwar genau falsch herum:** Ein übernommenes Bestandsdokument hat *beide* Felder gefüllt, und das ist der **gefährliche** Fall; eine Warnung, die nur bei leerem `Model` anschlüge, schwiege ausgerechnet bei jedem echten Dokument. **Formatieren läuft ausdrücklich nicht über `TdEdit.Ersetzen`**, obwohl es zunächst danach aussieht, und zwar mit zwei Gründen: `Ersetzen` gäbe den **Zwischenabsätzen** einer mehrabsätzigen Auswahl das Absatzformat des ersten (die Word-Regel fürs Verbinden, §4.32 — beim Fettmachen über drei Absätze verlöre der mittlere still seine Gestalt), und als Art käme **`Tippen`** heraus, womit `TdUndo` das Fettmachen mit dem Wort davor zu **einem** Schritt zöge (§4.33). Formatieren ist `Struktur`. Geteilt wird trotzdem, was wirklich geteilt gehört: `TdEdit.Bereich`, `.Teil` und `.Aufraeumen` sind `internal` geworden. **Die Regel aus §4.32 wird hier zum ersten Mal ernst** — sie hatte diese Stelle wörtlich vorhergesagt („wer beim Fettmachen ein `TdCharFormat` an Ort und Stelle umstellt …"); jedes berührte Stück bekommt deshalb eine **Kopie** (`TdInline.MitFormat`), und **zwei Wächter fragen das alte Stück selbst**, weil der Fehler am Abbild des Dokuments nicht zu sehen wäre. **Drei Entscheidungen:** der Handgriff sieht **zwei** Formate (Abweichung zum Schreiben, aufgelöst zum Nachsehen — ohne das setzte „eine Stufe größer" über Überschrift und Fließtext beide auf dieselbe Zahl); **ausgeschaltet wird zu `false` und nicht zu `null`**, sonst erbte ein Wort in einer fetten Überschrift das Fett sofort wieder und der Klick täte sichtbar nichts (Word schreibt dort `w:val="0"`); und **uneinig ist eine dritte Antwort** — `Gemeinsam` liefert `null`, wo die Auswahl sich nicht einig ist, die Schalter sind dreiwertig. **Umgeschaltet wird gegen das Modell und nicht gegen den Knopf**: Avalonias `ToggleButton` hat bei `Click` schon gewechselt und läuft bei `IsThreeState` im Kreis. **Vor dem Bauen geprüft, ob der Zeichner kann, was die Knöpfe versprechen** (die Lehre aus §4.26) — `TdRenderer` malt Unterstrich, Durchstreichung und versetzt die Grundlinie, `TdLayout` kennt `Alignment` und `LeftIndentCm`. **Benannt ausgelassen statt halb gebaut** (§4.28): Schriftartenliste (es gibt keine Naht für den **Bestand** der Familien, nur für das Schema), Textfarbe/Hervorhebung, ein gemerktes Format für das nächste Zeichen, und die drei Reiter „Einfügen"/„Verweise"/„Tabelle" — sie brauchen je eine Core-Rechnung, die es noch nicht gibt (Blöcke einfügen, einen Verweis um eine Auswahl legen, Tabellen bearbeiten). **⚠ Der offene Punkt der Runde ist eine Nicht-Prüfung:** Am laufenden Programm ist **nichts** davon gesehen worden — die Skripte in `tools\` stellten aus dieser Sitzung heraus **keine Klicks** zu. `schau.ps1` fotografiert richtig, `SetCursorPos` bewegt den Zeiger nachweislich (151,1764 → 600,900 abgefragt), `SendInput` meldet zwei angenommene Ereignisse — und im Kopf kommt nichts an, auch ohne Sandbox nicht. **Werkzeugbefund, nicht App-Befund**, genau die Trennung aus §4.35; die Kopie der echten Datenbank ist danach gelöscht worden (Dauerregel 4). **Die Sichtprüfung steht damit aus und ist der erste Punkt der nächsten Runde** (§5e) |
 | V2-47 | 2026-08-16 | **Das Schreiben unter Linux gegengeprüft — und der Laptop hat zwei alte Punkte mitgeschlossen** (§4.35, „Was der Laptop gefunden hat"; kein Produktivcode angefasst). Bau 0/0 in Core und im Avalonia-Kopf, **662/662 grün** — die im Auftrag genannte Zahl. **Vier der fünf Fragen sauber:** Umlaute (`äöüß ÄÖÜ`) kommen vollständig an, **tote Tasten setzen zusammen** (`^`+`e` → `ê`, `´`+`a` → `á`, nicht `^e`), der **Stift setzt die Marke und zieht eine Auswahl** (Avalonia liefert `PointerPressed`/`PointerMoved` unter Wayland also auch für den Stift — dass der Eingabepfad beide nicht unterscheidet, ist damit richtig und keine Wette), und **getippt wird flüssig**. **Compose blieb ungeprüft, weil auf diesem Gerät keine eingerichtet ist** — kein `Multi_key` im Keymap, leere `xkb-options`, keine `~/.XCompose`; der Auftrag verlangt ausdrücklich, das zu notieren statt eine einzurichten. **Der lehrreichste Teil der Runde war ein Fehler des Werkzeugs, der wie einer der App aussah:** Der erste Versuch mit `äöüß` ergab **nichts** — es sah aus, als schluckte `TextDocView` genau die Zeichen, um derentwillen es diesen Laptop gibt. Es war `zeiger`: `Tippen` sucht den Keysym `0x01000000+Codepunkt`, den es für `ä` auf keiner Belegung gibt, denn die Keysyms `0x20`–`0xFF` **sind** Latin-1 (`adiaeresis` = `0x00e4`) — und die Rückfallzeile hörte bei `~` auf, also brach die Funktion ab, **ohne eine einzige Taste zu drücken**. **Dieselbe Falle wie eine Runde zuvor, nur eine Ebene tiefer** (damals stimmte die Umschalt-Ebene nicht, §4.28). Behoben, die Rückfallzeile reicht jetzt bis `ÿ`, Begründung im Quelltext. **Ohne diese Trennung stünde jetzt „der Linux-Kopf verliert Umlaute" im HANDOFF und §6 hätte seine Entscheidung für `TextInput` zurückgenommen** — so ist sie gemessen statt vermutet. **Die Umbruchrechnung ist hier nachgefahren worden und fällt zugunsten des Laptops aus:** 3,4 ms bei 2 Seiten, 19,6 ms bei 8 und 42,7 ms bei 32 (Windows: 4,5 / 25,1 / 207,7 bei 35) — die **40-ms-Grenze** aus `UmbruchAnstossen` fällt erst bei rund **32 Seiten**. Am laufenden Kopf gegengeprüft, und das ist die eigentliche Antwort: 169 Zeichen am Stück ergaben den Zähler **198** (195 + drei Absatzmarken, exakt), und 101 Zeichen in ein Dokument mit **32 Seiten und 85.691 Zeichen** ergaben **85.792** — **kein einziges Zeichen verloren**, obwohl das Sammeln dort greift. **Der Beleg für die Weiche aus §4.35: das Bild hinkt hinterher, das Modell nie.** **⚠ Ein Fund, und er gehört nach Windows:** Ohne Hardware-Tastatur ist im Linux-Kopf **nicht zu schreiben** — GNOMEs Bildschirmtastatur erscheint nicht, wenn die Textfläche den Fokus hat, und **von Hand hervorgeholt kommt trotzdem nichts an**. Die Ursache steht im Quelltext: im ganzen Avalonia-Kopf gibt es **kein `TextInputMethodClient`**, `TextDocView` hört nur auf `TextInputEventArgs` und meldet sich nirgends als Eingabeziel an. §4.35 hatte das Ausbleiben erwartet — **dass auch von Hand nichts ankommt, geht darüber hinaus**. Für eine **Stylus-first**-App mit noch ausstehendem iPadOS-Kopf ist das keine Randfrage: steht als **§5 „Noch offen" 10** zur Entscheidung, mit drei Antworten und einer Empfehlung. **Nicht linuxspezifisch** (dem WPF-Kopf fehlt dasselbe), deshalb hier nicht angefasst. **Und zwei alte Punkte sind zu:** Der **Dateidialog** (§5 Nr. 7, die Wayland-Hälfte offen seit dem 2026-08-11) trägt — Import bringt die DOCX wirklich in den Kopf, im Speichern-Dialog steht **PDF oben vorgewählt**, dieselben zwei Ja wie die Win32-Fassung in V2-40. Und **ein zweites Stiftgerät** (§5 Nr. 1) lag vor, ein **MPP**-Stift und damit eine **andere Technik** als der eingebaute EMR-Wacom: mit **F9** gegengeprüft, **Druck kommt an**. Damit ist „läuft mit jedem Stylus" (§1) zum ersten Mal an zwei Stifttechniken belegt und **der einzige Punkt mit echtem Restrisiko eingelöst**. **Der Laptop ist vorerst nicht mehr dran** (§5d trägt keinen Auftrag) |

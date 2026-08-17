@@ -231,13 +231,13 @@
                                FontSize="12" Margin="0,0,4,0"
                                Foreground="{DynamicResource Brush.TextMuted}"/>
                     <NumericUpDown x:Name="TabelleZeilen" Value="2" Minimum="1" Maximum="50"
-                                   Increment="1" FormatString="0" Width="86"
+                                   Increment="1" FormatString="0" Width="130"
                                    VerticalAlignment="Center"/>
                     <TextBlock Text="{loc:T Ed.Table.Columns}" VerticalAlignment="Center"
                                FontSize="12" Margin="8,0,4,0"
                                Foreground="{DynamicResource Brush.TextMuted}"/>
                     <NumericUpDown x:Name="TabelleSpalten" Value="2" Minimum="1" Maximum="20"
-                                   Increment="1" FormatString="0" Width="86"
+                                   Increment="1" FormatString="0" Width="130"
                                    VerticalAlignment="Center"/>
                     <Button Classes="ribbonknopf" Margin="4,0,0,0" Click="TabelleEinfuegen_Click"
                             ToolTip.Tip="{loc:T Ed.Table.Insert}">

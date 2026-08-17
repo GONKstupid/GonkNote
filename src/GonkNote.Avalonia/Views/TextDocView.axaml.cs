@@ -135,6 +135,10 @@ public partial class TextDocView : UserControl
         Blaetter.AddHandler(PointerWheelChangedEvent, Rad, RoutingStrategies.Tunnel);
 
         EingabeAnhaengen();
+
+        // **Nach InitializeComponent und vor dem ersten Nachziehen:** Die beiden Auswahllisten
+        // entstehen aus Tabellen (§4.39) und nicht aus der XAML.
+        ListenAufbauen();
     }
 
     /// <summary>
@@ -570,6 +574,12 @@ public partial class TextDocView : UserControl
     private void OnLanguageChanged()
     {
         Beschriftungen();
+
+        // Die Vorlagennamen stehen in einer Tabelle in Core und kommen über `Loc.T` — sie
+        // gehören zu dem, was **der Code** setzt, und müssen deshalb neu gebaut werden (§4.39).
+        ListenAufbauen();
+        RibbonNachziehen();
+
         if (_modell is { } modell)
         {
             LayoutFelder(modell);

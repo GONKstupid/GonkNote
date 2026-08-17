@@ -61,6 +61,16 @@
                 <!-- ============ Reiter „Start": Format, Ansicht und Ausgabe ============ -->
                 <WrapPanel x:Name="LeisteStart" Margin="8,2,8,6">
 
+                    <!-- Absatzvorlage (§4.39). **Die Tabelle steht in Core** (`TdStil`), damit
+                         beide Köpfe dieselben Überschriften setzen — dieselbe Lage wie bei
+                         Farben (§4.9), Schriften (§4.26) und Symbolen (§4.31), zum vierten Mal.
+                         Die Einträge entstehen im Code, weil sie aus der Tabelle kommen. -->
+                    <ComboBox x:Name="VorlageWahl" Width="150" VerticalAlignment="Center"
+                              FontSize="12" SelectionChanged="Vorlage_Gewechselt"
+                              ToolTip.Tip="{loc:T Ed.Styles}"/>
+
+                    <Border Classes="trenner"/>
+
                     <!-- Zeichenformat (Schritt 6, HANDOFF §6).
                          **F, K, U, S als Buchstaben und nicht als Symbole** — dieselbe Wahl wie
                          im WPF-Ribbon, und sie ist keine Sparsamkeit: Ein „F" in Fett zeigt, was
@@ -102,9 +112,13 @@
                     <Button Classes="flach symbol" Click="Kleiner_Click" ToolTip.Tip="{loc:T Ed.FontShrink}">
                         <views:Symbol Icon="FontShrink" Stroke="{DynamicResource Brush.Text}"/>
                     </Button>
-                    <Button x:Name="GroesseAnzeige" Classes="flach" MinWidth="46" FontSize="12"
-                            IsHitTestVisible="False" ToolTip.Tip="{loc:T Ed.FontSize}"
-                            Foreground="{DynamicResource Brush.TextMuted}"/>
+                    <!-- **Eine Liste statt einer Anzeige** (§4.39): Bis dahin stand hier die
+                         geltende Größe als toter Text, und wer 24 wollte, musste sich siebenmal
+                         hochklicken. Die Stufenknöpfe bleiben trotzdem — sie sind der schnelle
+                         Weg, wenn man nicht weiß, welche Zahl man will. -->
+                    <ComboBox x:Name="GroesseWahl" Width="96" VerticalAlignment="Center"
+                              FontSize="12" SelectionChanged="Groesse_Gewechselt"
+                              ToolTip.Tip="{loc:T Ed.FontSize}"/>
                     <Button Classes="flach symbol" Click="Groesser_Click" ToolTip.Tip="{loc:T Ed.FontGrow}">
                         <views:Symbol Icon="FontGrow" Stroke="{DynamicResource Brush.Text}"/>
                     </Button>
@@ -135,6 +149,18 @@
                         <views:Symbol Icon="AlignJustify"
                                       Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ToggleButton}}"/>
                     </ToggleButton>
+
+                    <!-- Aufzählung und Nummerierung (§4.39). Zwei Schalter, nicht einer mit zwei
+                         Zuständen: Ein Absatz kann keins von beidem sein, und das ist der
+                         häufigste Zustand. -->
+                    <ToggleButton x:Name="SchalterPunkte" Classes="ribbonschalter"
+                                  Click="Aufzaehlung_Click" ToolTip.Tip="{loc:T Ed.List.Bullet}">
+                        <views:Symbol Icon="List"
+                                      Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ToggleButton}}"/>
+                    </ToggleButton>
+                    <ToggleButton x:Name="SchalterNummern" Classes="ribbonschalter"
+                                  Click="Nummerierung_Click" ToolTip.Tip="{loc:T Ed.List.Number}"
+                                  Content="№"/>
 
                     <Button Classes="flach symbol" Click="EinzugRaus_Click" ToolTip.Tip="{loc:T Ed.Indent.Less}">
                         <views:Symbol Icon="IndentDecrease" Stroke="{DynamicResource Brush.Text}"/>

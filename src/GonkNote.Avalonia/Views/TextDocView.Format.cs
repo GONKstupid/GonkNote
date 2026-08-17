@@ -176,12 +176,32 @@ public partial class TextDocView
     private void EinzugRaus_Click(object? s, RoutedEventArgs e) => Einzug(-EinzugSchrittCm);
 
     /// <summary>
-    /// Den linken Einzug verschieben. <b>Nicht unter null</b> — ein negativer Einzug schöbe den
-    /// Text in den Seitenrand, und das ist nie gemeint, wenn jemand auf „verkleinern" drückt.
+    /// Den linken Einzug verschieben — <b>oder die Listenebene, wenn die Auswahl in einer Liste
+    /// steht</b> (§4.39).
+    ///
+    /// <para>
+    /// <b>Das ist Words Verhalten, und es ist das richtige:</b> In einer Liste ist „einrücken"
+    /// keine Zentimeterfrage, sondern eine Ebene — die Marke wechselt mit, und der Einzug kommt
+    /// aus der Listendefinition (<see cref="TdListLevel.IndentCm"/>). Wer hier stattdessen
+    /// Zentimeter addierte, bekäme einen Aufzählungspunkt, der weiter rechts steht und trotzdem
+    /// dieselbe Marke trägt.
+    /// </para>
+    /// <para>
+    /// <b>Sonst: nicht unter null</b> — ein negativer Einzug schöbe den Text in den Seitenrand,
+    /// und das ist nie gemeint, wenn jemand auf „verkleinern" drückt.
+    /// </para>
     /// </summary>
     private void Einzug(double schrittCm)
     {
         if (!Schreibbar) return;
+
+        if (TdListEdit.Gemeinsam(_modell!, _auswahl, nummeriert: false)
+            || TdListEdit.Gemeinsam(_modell!, _auswahl, nummeriert: true))
+        {
+            Aendern(TdListEdit.Ebene(_modell!, _auswahl, schrittCm > 0 ? +1 : -1));
+            RibbonNachziehen();
+            return;
+        }
 
         Aendern(TdFormatEdit.Absatz(_modell!, _auswahl, f =>
         {
@@ -216,16 +236,15 @@ public partial class TextDocView
 
         bool an = Schreibbar;
         foreach (var schalter in Formatschalter()) schalter.IsEnabled = an;
-        GroesseAnzeige.IsEnabled = an;
 
         if (!an)
         {
             foreach (var schalter in Formatschalter()) schalter.IsChecked = false;
-            GroesseAnzeige.Content = "";
 
-            // **Auch hier, und deshalb steht der Aufruf zweimal da:** Ein Dokument, das gerade
+            // **Auch hier, und deshalb stehen die Aufrufe zweimal da:** Ein Dokument, das gerade
             // gar nicht angezeigt wird, darf nicht die Tabellenwerkzeuge des vorigen
             // stehenlassen.
+            ListenNachziehen();
             ReiterNachziehen();
             SeiteNachziehen();
             return;
@@ -249,10 +268,7 @@ public partial class TextDocView
         SchalterRechts.IsChecked = absatz.Alignment == TdAlign.Right;
         SchalterBlock.IsChecked = absatz.Alignment == TdAlign.Justify;
 
-        // Uneinige Größen bekommen keinen Zahlenwert: „12" über einer Auswahl aus 12 und 20
-        // wäre schlicht falsch.
-        GroesseAnzeige.Content = zeichen.FontSize is { } pt ? $"{pt:0.#}" : "–";
-
+        ListenNachziehen();
         ReiterNachziehen();
         SeiteNachziehen();
     }

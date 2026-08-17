@@ -90,7 +90,7 @@ Die Datei ist lang, und das bleibt sie: sie trägt die Begründungen, nicht nur 
 | **1** | Auftrag und die Entscheidungen dahinter | einmal, zum Verstehen des Ganzen |
 | **2** | Stand: Version, Testzahl, Meilensteine, welche Phase wo steht | „wo stehen wir?" |
 | **3** | Struktur der Solution, Faustregel Core ↔ Kopf | vor jeder neuen Datei |
-| **4** | **Warum es so ist, wie es ist** — eine Nummer je Runde (§4.1 – §4.38) | wenn eine Entscheidung fremd wirkt |
+| **4** | **Warum es so ist, wie es ist** — eine Nummer je Runde (§4.1 – §4.39) | wenn eine Entscheidung fremd wirkt |
 | **5** | **Entscheidungen** — getroffene als Tabelle, offene als Liste | **vor jeder Rückfrage an den Nutzer** |
 | **5a** | Stylus unter Linux: was gemessen wurde und was offen ist | bei allem, was am Stift hängt |
 | **5b** | Wann und wie auf den CachyOS-Laptop gewechselt wird | bevor man ihn anfasst |
@@ -438,7 +438,7 @@ Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — beh
 **Tests laufen lassen:**
 
 ```powershell
-dotnet test -c Release        # Windows: beide Projekte, 754 Tests
+dotnet test -c Release        # Windows: beide Projekte, 778 Tests
 ```
 
 ```bash
@@ -480,7 +480,7 @@ möglich) gelten unverändert weiter — siehe `gonk-note\HANDOFF.md` §1.
 | | |
 |---|---|
 | **Version** | 0.3.0 · `net10.0` · SkiaSharp 3.119.4 · Avalonia 12.1.1 · SQLite |
-| **Tests** | **754** — 723 in `GonkNote.Core.Tests` (Windows **und** Linux), 31 in `GonkNote.Wpf.Tests` (alles, was am `FlowDocument` hängt) |
+| **Tests** | **778** — 744 in `GonkNote.Core.Tests` (Windows **und** Linux), 34 in `GonkNote.Wpf.Tests` (alles, was am `FlowDocument` hängt) |
 | **Bau** | Debug und Release je 0 Fehler / 0 Warnungen; CI mit zwei Läufen (Windows, Ubuntu) |
 | **Meilensteine** | ✅ **M0** (Core baut auf Linux) · ✅ **M1** (Notizbuch und Whiteboard laufen unter Linux) · ⏳ **M2** (Funktionsgleichheit) — er hängt an Phase 4.5, nicht an Phase 4 |
 
@@ -4892,6 +4892,88 @@ Reiter „Verweise". An einer Kopie der echten Datenbank, danach gelöscht (Daue
 
 ---
 
+### 4.39 Gruppe A — Listen, Vorlagen und die Größenliste
+
+**2026-08-17 unter Windows (V2-52).** `Core/Text/TdStil.cs` und `Core/Text/TdListEdit.cs` neu,
+`TdFormatEdit.Absatzweise` dazu, `Views/TextDocView.Listen.cs` im Kopf — **24 neue Wächter**;
+Bau 0/0, **778 Tests** grün (vorher 754). **Am laufenden Programm gegengeprüft.**
+
+#### Die Vorlagentabelle wandert nach Core — zum vierten Mal dieselbe Lage
+
+Der WPF-Kopf führte die zehn Absatzvorlagen in `TextStyles.All`; der Linux-Kopf hatte sie gar
+nicht. **Dieselbe Lage wie bei Farben (§4.9), Schriften (§4.26) und Symbolen (§4.31)**, und
+dieselbe Antwort: **Die Tabelle steht jetzt in Core** (`TdStil.Alle`) — zehn Vorlagen, Größe,
+Fett, Kursiv, Farbe, Abstände, Gliederungsebene.
+
+> **Der WPF-Kopf ist trotzdem nicht umgebaut worden.** Sein `TextStyles` arbeitet mit WPF-Typen
+> (`FontWeight`, `Thickness`) auf einem `FlowDocument`; ein Umbau im laufenden Kopf wäre einer
+> ohne Gegenwert. **Stattdessen hält ein Wächter im WPF-Testprojekt beide Tabellen Zeile für
+> Zeile aneinander** (`VorlagentabelleTests`) — genau die Lösung, die §4.9 für die Farben
+> gefunden hat. Wer hier oder dort eine Zahl ändert, bekommt einen roten Lauf statt zweier
+> Köpfe, die dasselbe Dokument verschieden aussehen lassen.
+
+**Erkannt wird eine Vorlage an ihren Werten und nicht an einem gespeicherten Namen**
+(`TdStil.Passt`). Ein Name am Absatz wäre eine zweite Wahrheit: Wer die Größe von Hand ändert,
+hätte danach eine „Überschrift 1", die keine ist. Der WPF-Kopf entscheidet es seit jeher genauso
+— und weil beide dieselbe Tabelle benutzen, kommen sie auf dasselbe Ergebnis.
+
+#### `TdFormatEdit.Absatz` bekommt einen allgemeinen Bruder
+
+Eine Vorlage setzt **drei** Dinge auf einmal: Absatzformat (Abstände, Gliederungsebene),
+Zeichenformat des Absatzes (Größe, Fett) und die Listenzugehörigkeit (eine Überschrift ist kein
+Listenpunkt). `Absatz` konnte nur das erste. **Drei Handgriffe daraus zu machen hieße: drei
+Schritte im Verlauf für einen Klick** (§4.33), und ein Strg+Z ließe die halbe Vorlage stehen.
+
+Deshalb `Absatzweise(doc, auswahl, Action<TdAbsatzStil>)` — ein Träger mit den drei Teilen.
+`Absatz` ist seitdem ein Einzeiler darauf. **Die Stücke stehen absichtlich nicht im Träger:** Wer
+sie ändern will, nimmt `Zeichen`, wo sie kopiert statt umgestellt werden (§4.32); ein Träger,
+der sie mitreichte, wäre die Einladung, genau das zu brechen.
+
+#### Vier Entscheidungen bei den Listen
+
+| | |
+|---|---|
+| **Alle berührten Absätze in *eine* Liste** | Wer drei Absätze markiert und nummeriert, will 1, 2, 3 — nicht dreimal die 1. Es wird **eine** Definition gesucht oder angelegt und allen zugewiesen |
+| **Definitionen werden wiederverwendet** | Zwei Definitionen derselben Art sind zwei Zählungen. §4.17 sagt „zwei Listen dürfen sich keine Kennung teilen" — **die Umkehrung gilt auch** |
+| **Die Definition bleibt im Dokument** | Auch wenn die Liste aufgehoben wird. `TdDocument.Lists` ist eine Vorlagensammlung, kein Baum (§4.17); sie im Verlauf zu führen hieße, neben dem Blocktausch eine **zweite Mechanik** zu bauen (§4.32). Eine Definition ohne Absätze kostet ein paar Bytes und ist beim nächsten Klick wieder da |
+| **Der Einzugknopf ändert in einer Liste die *Ebene*** | Words Verhalten, und das richtige: In einer Liste ist „einrücken" keine Zentimeterfrage, sondern eine Ebene — die Marke wechselt mit, und der Einzug kommt aus der Definition. Wer stattdessen Zentimeter addierte, bekäme einen Punkt, der weiter rechts steht und dieselbe Marke trägt |
+
+**Eine Vorlage hebt die Listenzugehörigkeit auf — „Standard" nicht.** Eine Überschrift ist kein
+Listenpunkt; „Standard" dagegen ist das, worauf man landet, wenn man eine Überschrift
+zurücknimmt, und dabei einen Aufzählungspunkt mit zu verlieren wäre eine Überraschung.
+
+**Die Gliederungsebene wird mitgesetzt** (`TdParaFormat.OutlineLevel`) — daran hängt das
+Inhaltsverzeichnis (§4.20). Ohne sie sähe eine Überschrift wie eine aus und stünde trotzdem
+nicht darin. Ein eigener Wächter hält das fest.
+
+#### Die Schriftgröße bekommt eine Liste
+
+Bis §4.38 stand dort die geltende Größe als **toter Text**; wer 24 wollte, musste sich siebenmal
+hochklicken. Jetzt ist es ein Auswahlfeld — **die Stufenknöpfe bleiben trotzdem**: Sie sind der
+schnelle Weg, wenn man nicht weiß, welche Zahl man will. **Die Leiter steht weiterhin nur
+einmal** (`TextDocView.Format.cs`), die Liste wird daraus gebaut (§4.13).
+
+#### Beide Auswahllisten entstehen im Code
+
+Bei den Vorlagen ist das nötig — die Tabelle steht in Core. Bei den Größen wäre es nicht nötig,
+aber neunzehn Einträge in die XAML zu schreiben hieße, die Leiter ein zweites Mal
+hinzuschreiben. **Damit hängt an ihnen die Falle aus §7:** Ein Menü, das der Code baut, hat kein
+`{loc:T …}` — die Vorlagennamen werden deshalb bei jedem Sprachwechsel **neu gebaut**.
+
+#### Am laufenden Programm gesehen
+
+Vorlagenliste mit allen zehn Einträgen auf Deutsch · „Überschrift 1" gesetzt → **der Absatz wird
+groß, fett und blau**, die Liste zeigt „Überschrift 1", die Größe **28**, der F-Knopf ist
+gedrückt · Aufzählung eingeschaltet → **der Punkt steht davor**, der Knopf ist gedrückt. An
+einer Kopie der echten Datenbank, danach gelöscht.
+
+> **Was dabei auffiel und richtig ist, obwohl es wie ein Fehler aussieht:** Bei einem
+> Bestandsdokument mit 11 pt Fließtext ist die Vorlagenliste **leer** — keine der zehn Vorlagen
+> passt (der Körper misst 15 pt). Das ist die dritte Antwort aus §4.36 an neuer Stelle, und der
+> WPF-Kopf verhält sich genauso. **Eine Liste, die dann „Standard" behauptete, wäre falsch.**
+
+---
+
 ## 5. Entscheidungen
 
 **Getroffen, alle umgesetzt:**
@@ -5675,7 +5757,7 @@ Haelfte: Formate lassen sich setzen (§4.36). Die zwei Entscheidungen aus
 §5 "Noch offen" 9 und 10 sind gefallen -- nicht noch einmal fragen.
 
 Zieh zuerst den Stand: git pull. Dann bauen und testen, bevor du etwas
-anfasst -- 0 Fehler, 0 Warnungen, 754 Tests.
+anfasst -- 0 Fehler, 0 Warnungen, 778 Tests.
 
 Womit anzufangen ist, steht in §5e unter "Dran ist". Der Kern: die
 Sichtpruefung von §4.36 steht aus, weil die Fernsteuer-Skripte in tools\
@@ -5767,11 +5849,12 @@ Reiter „Layout" **stellt** Format und Ausrichtung, rechts gibt es eine **Einst
 
 **▶ Dran ist — die Reihenfolge gehört dem Nutzer, vorgeschlagen ist:**
 
-1. **Gruppe A aus §6 („Was dem Linux-Editor noch fehlt")** — Aufzählung, Nummerierung,
-   Überschriften-Vorlagen, Schriftgröße als Liste. **Alles vier geht mit dem, was Core heute
-   kann**, und macht den Editor erst benutzbar.
-2. **Gruppe B** — Schriftart, Farbe/Hervorhebung, Trennlinie, Kopf-/Fußzeile, Wasserzeichen.
-   Jedes braucht eine kleine Ergänzung vorweg.
+1. ✅ **Gruppe A ist erledigt** (§4.39, 2026-08-17): Aufzählung, Nummerierung,
+   Überschriften-Vorlagen und die Schriftgrößenliste stehen — die Vorlagentabelle liegt in Core
+   und wird von einem Wächter gegen die des WPF-Kopfs gehalten.
+2. **▶ Gruppe B** — Schriftart, Farbe/Hervorhebung, Trennlinie, Kopf-/Fußzeile, Wasserzeichen.
+   Jedes braucht eine kleine Ergänzung vorweg. **Nutzer-Entscheidung 2026-08-17: A, dann B,
+   dann weiter nach Plan.**
 3. **Schritt 6a: `TextInputMethodClient`** (§5 „Noch offen" 10, so entschieden). Danach ist der
    **Laptop** fällig — ob die Bildschirmtastatur wirklich aufgeht, kann nur er sagen.
 4. **Schritt 7: `Rtf` verliert die Führung** — der einzige vollständige Ausweg aus §5 Nr. 9.
@@ -5810,7 +5893,7 @@ Reiter „Layout" **stellt** Format und Ausrichtung, rechts gibt es eine **Einst
 ```powershell
 cd C:\Dev\Zed\gonk-note-V2
 dotnet build -c Release       # 0 Fehler, 0 Warnungen
-dotnet test -c Release        # beide Projekte, derzeit 754 Tests
+dotnet test -c Release        # beide Projekte, derzeit 778 Tests
 ```
 
 **Und danach am laufenden Programm**, mit einer **Kopie** der echten Datenbank (Dauerregel 4,
@@ -6183,9 +6266,9 @@ dem, was es kostet:
 
 | | Was fehlt | Was es braucht |
 |---|---|---|
-| **A** | **Aufzählung und Nummerierung** | Nur Kopfarbeit: `TdParagraph.List` und `TdListDefinition` stehen seit §4.17, der Umbruch zeichnet sie. Ein Knopf, der eine Listendefinition anlegt und den Absätzen zuweist |
-| **A** | **Überschriften-Vorlagen** („Überschrift 1–4") | Absatz- **und** Zeichenformat in einem Griff; beides kann `TdFormatEdit` schon. Was fehlt, ist die Tabelle der Vorlagen und `OutlineLevel` (für das Inhaltsverzeichnis) |
-| **A** | **Schriftgröße als Punktliste** | Ein Auswahlfeld statt der zwei Stufenknöpfe — `TdFormatEdit.Zeichen` kann es längst |
+| ✅ **A** | ~~Aufzählung und Nummerierung~~ | **Erledigt 2026-08-17 (§4.39)** — `TdListEdit.Umschalten`/`Ebene` |
+| ✅ **A** | ~~Überschriften-Vorlagen~~ | **Erledigt 2026-08-17 (§4.39)** — `TdStil` in Core, `TdListEdit.Vorlage`, Wächter gegen die WPF-Tabelle |
+| ✅ **A** | ~~Schriftgröße als Punktliste~~ | **Erledigt 2026-08-17 (§4.39)** |
 | **B** | **Schriftart wählen** | Eine Naht für den **Bestand** der Familien; `IFontProvider` liefert das Schema und nicht den Bestand (§4.26) |
 | **B** | **Schriftfarbe und Hervorhebung** | Einen Farbwähler im Avalonia-Kopf (den es für die Zeichenfläche schon gibt — er ist wiederzuverwenden) |
 | **B** | **Trennlinie** | `TdParaFormat.BottomBorder` steht seit §4.15; ein Absatz mit Linie und ohne Text. Reine Kopfarbeit |
@@ -7403,7 +7486,7 @@ cd C:\Dev\Zed\gonk-note-V2
 dotnet build -c Release      # 0 Fehler / 0 Warnungen
 dotnet build -c Debug        # schneller, ohne Self-Contained/win-x64
 
-dotnet test -c Release       # beide Testprojekte, 754 Tests
+dotnet test -c Release       # beide Testprojekte, 778 Tests
 
 # Golden-Files bewusst neu setzen (danach den Diff lesen, siehe §4.6)
 $env:GONK_SNAPSHOT_UPDATE=1; dotnet test tests\GonkNote.Core.Tests; $env:GONK_SNAPSHOT_UPDATE=$null
@@ -7490,6 +7573,7 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 
 | Runde | Datum | Was |
 |---|---|---|
+| V2-52 | 2026-08-17 | **Gruppe A — Listen, Vorlagen und die Größenliste** (§4.39). `Core/Text/TdStil.cs` und `Core/Text/TdListEdit.cs` neu, `TdFormatEdit.Absatzweise` dazu, `Views/TextDocView.Listen.cs` im Kopf; **24 Wächter**, **778 Tests** grün, Bau 0/0, am laufenden Programm gegengeprüft. **Die Vorlagentabelle wandert nach Core — zum vierten Mal dieselbe Lage nach Farben (§4.9), Schriften (§4.26) und Symbolen (§4.31):** Der WPF-Kopf führte die zehn Absatzvorlagen in `TextStyles.All`, der Linux-Kopf hatte sie gar nicht. Jetzt steht sie in `TdStil.Alle`, **und ein Wächter im WPF-Testprojekt hält beide Zeile für Zeile aneinander** (`VorlagentabelleTests`) — dieselbe Lösung wie §4.9 für die Farben, statt eines Umbaus im laufenden WPF-Kopf. **Erkannt wird eine Vorlage an ihren Werten und nicht an einem gespeicherten Namen:** Ein Name am Absatz wäre eine zweite Wahrheit — wer die Größe von Hand ändert, hätte danach eine „Überschrift 1", die keine ist. **`TdFormatEdit.Absatz` bekommt einen allgemeinen Bruder:** Eine Vorlage setzt drei Dinge auf einmal (Absatzformat, Zeichenformat des Absatzes, Listenzugehörigkeit), und drei Handgriffe daraus zu machen hieße drei Verlaufsschritte für einen Klick (§4.33) — ein Strg+Z ließe die halbe Vorlage stehen. **Die Stücke stehen absichtlich nicht im Träger:** Wer sie ändern will, nimmt `Zeichen`, wo sie kopiert statt umgestellt werden (§4.32). **Vier Entscheidungen bei den Listen:** alle berührten Absätze kommen in **eine** Liste (wer drei markiert und nummeriert, will 1, 2, 3 — nicht dreimal die 1); Definitionen werden **wiederverwendet** (§4.17 sagt „zwei Listen dürfen sich keine Kennung teilen" — die Umkehrung gilt auch); eine Definition **bleibt im Dokument**, auch wenn die Liste aufgehoben wird (sie im Verlauf zu führen hieße, neben dem Blocktausch eine zweite Mechanik zu bauen); und der **Einzugknopf ändert in einer Liste die Ebene** statt Zentimeter — Words Verhalten, und das richtige, denn die Marke wechselt mit. **Eine Vorlage hebt die Listenzugehörigkeit auf, „Standard" nicht** — sie ist das, worauf man landet, wenn man eine Überschrift zurücknimmt. **Die Gliederungsebene wird mitgesetzt**, sonst sähe eine Überschrift wie eine aus und stünde nicht im Inhaltsverzeichnis (§4.20). **Die Schriftgröße bekommt eine Liste** statt der toten Anzeige; die Stufenknöpfe bleiben, und die Leiter steht weiterhin nur einmal (§4.13). **Beide Auswahllisten entstehen im Code** und werden bei jedem Sprachwechsel neu gebaut — die Falle aus §7. **Gesehen:** zehn Vorlagen auf Deutsch, „Überschrift 1" gesetzt → der Absatz wird groß, fett und blau, die Liste zeigt „Überschrift 1", die Größe 28, der F-Knopf ist gedrückt; Aufzählung eingeschaltet → der Punkt steht davor. **Was dabei richtig ist, obwohl es wie ein Fehler aussieht:** Bei einem Bestandsdokument mit 11 pt ist die Vorlagenliste **leer** — keine der zehn passt (der Körper misst 15 pt); das ist die dritte Antwort aus §4.36 an neuer Stelle, und der WPF-Kopf verhält sich genauso |
 | V2-51 | 2026-08-17 | **Das Ribbon aufgeräumt — und die Liste nachgetragen, die gefehlt hat** (§4.38, auf Nutzerwunsch). Bau 0/0, **754 Tests** grün, alle sechs Umbauten **am laufenden Programm gegengeprüft** (Kopie der echten Daten, danach gelöscht). **Der Anstoß war eine Frage, und die ehrliche Antwort darauf ist unbequem:** Der Nutzer fragte, ob siebzehn Dinge (Überschriften-Vorlagen, Schriftart, Punktgröße, Hervorhebung, Farbe, Nummerierung, Aufzählung, Bilder, Infoboxen, Trennlinien, Symbole, Diagramme, Kopf-/Fußzeile, Seitenformat, Ränder, Hintergrundbilder, Beschriftungen) noch kommen oder vergessen wurden. **Ein Teil stand benannt in §4.36/§4.37, der größere Teil stand nirgends** — fachlich war nichts davon vergessen (es steht alles im WPF-Kopf und gehört damit zu M2), aber ohne Liste ist der Unterschied zwischen „bewusst offen" und „übersehen" nur im Kopf dessen, der sie gelassen hat. **Die vollständige Liste steht jetzt in §6**, nach Aufwand in A/B/C sortiert. **Sechs Umbauten:** Zoom, Seitenbreite, Ganze Seite und die Wort-/Zeichenzählung sind aus dem Reiter „Start" in die **untere Leiste** gewandert (sie waren Einstellungen zwischen Werkzeugen — der Reiter, der Text formatiert, trug drei Knöpfe, die den Text nicht anfassen); die **Tabellengröße** steht im Flyout statt dauerhaft in der Leiste; die **Word-Hinweise** stehen hinter einem **„i"** und erscheinen bei Schweben *und* Klick; der Reiter **„Layout" stellt jetzt** Papierformat und Ausrichtung, statt sie nur abzulesen; rechts gibt es eine **Einstellungsleiste** mit den Abschnitten Ränder und Absätze; und die **rechte Maustaste** öffnet in einer Tabelle deren sieben Befehle — **außerhalb öffnet sie gar nichts** und setzt nur die Marke. **Zwei Entscheidungen dabei:** Der Rechtsklick setzt die Marke **nur außerhalb der Auswahl** (drin meint er sie — die Erwartung aus jedem Textprogramm; ohne den ersten Teil zeigte das Menü Befehle für die zuletzt besuchte Zelle, ohne den zweiten verlöre jeder Rechtsklick die Auswahl). Und **Seitenränder und Papierformat stehen nicht im Verlauf** — sie sitzen am `TdSection` und nicht in einer Blockliste, `TdChange` tauscht Blöcke (§4.32); ein eigener Verlaufsweg wäre eine zweite Mechanik. **Die Grenze wird benannt statt versteckt** (`Ed.Page.NoUndo`), sonst findet der Nutzer sie genau dann, wenn er sie rückgängig machen will. Absatzabstände laufen dagegen über `TdFormatEdit.Absatz` und liegen im Verlauf. **Eine Ikone im WPF-Kopf korrigiert:** Er nahm für „Inhaltsverzeichnis einfügen" dasselbe `List` wie für die Aufzählung — genau der Fehler, den §4.31 aufgeräumt hat („ein Symbol je Bedeutung"), hier stehengeblieben; **der Linux-Kopf hatte es richtig** (`Outline`), angeglichen wurde deshalb Windows. **Der Fund der Runde ist derselbe zum dritten Mal:** `NumericUpDown` zeigt seinen Wert nicht, wenn er zu schmal ist — die zwei Spinner-Knöpfe fressen die Breite, und **das Feld sieht leer aus, obwohl der Wert da ist**. Erst im Reiter „Einfügen" (§4.37), dann **erneut in der neuen Seitenleiste**, wo vier Felder in zwei Spalten standen. Behoben (Ränder untereinander, Leiste 280 statt 248) und jedes Mal nachgesehen. **Der Zusatz zur alten Lehre: Es genügt nicht, einen Fund zu beheben — man muss danach suchen, wo derselbe Fehler noch einmal steht. Die zweite Stelle entstand in derselben Runde wie die Behebung der ersten** |
 | V2-50 | 2026-08-17 | **Die Sichtprüfung von §4.36 und §4.37 nachgeholt — in beiden Köpfen, an einer Kopie der echten Daten** (§4.37, „Die Sichtprüfung ist nachgeholt"; danach gelöscht, Dauerregel 4). **Zuerst das Werkzeug:** Die Skripte in `tools\` stellten **wieder Klicks zu**, ohne dass an ihnen etwas geändert wurde — der Befund aus V2-48/49 war **vorübergehend**, und genau das steht jetzt in §7, damit ihn niemand für dauerhaft hält. **Geprüft wurde die ganze Kette und nicht die Knöpfe einzeln:** fünf Reiter schalten um; „F" macht ein per Doppelklick gewähltes Wort fett und **zeigt sich danach gedrückt**; die Größenanzeige liest **11** ab; ein hier angelegtes Dokument bekommt **keinen** Warnstreifen; eine eingefügte Tabelle entsteht als 2×2 und **die Marke steht in der ersten Zelle** (die Regel aus §4.37, am Schirm belegt); der Reiter „Tabelle" zeigt ohne Marke darin nur seinen Satz und mit Marke seine sieben Knöpfe; aus 2×2 wird per Zeile und Spalte ein 3×3; ein Verweis lässt sich setzen, und beim Herausklicken wird das Feld leer und „Setzen"/„Entfernen" grau, beim Hineinklicken **steht das Ziel wieder da**. **Die eigentliche Gegenprobe geht auf:** Dasselbe Dokument im **WPF-Editor** geöffnet zeigt die vom Linux-Kopf angelegte **3×3-Tabelle**, „Hallo" **fett** und den Verweis **blau unterstrichen** — Tabelle, Zeichenformat und Verweis stehen also wirklich im Modell, und der andere Kopf liest sie. Danach dort gespeichert und zurückgewechselt: **der Warnstreifen steht** („Windows edition leads — Anything written here is lost as soon as this document is saved in the Windows edition"), und er war vorher nicht da. **§5 „Noch offen" 9 ist damit nicht nur gebaut, sondern gesehen.** **Zwei Funde, die nur der Schirm liefern konnte:** (1) Die zwei `NumericUpDown` zeigten ihren **Wert nicht** — bei `Width="86"` fressen die Spinner-Knöpfe die Breite; **am Bild sahen die Felder leer aus**, und dass sie ihren Wert trotzdem hatten, hat erst die eingefügte Tabelle gezeigt (sie kam als 2×2 heraus). Auf 130 verbreitert und **nachgesehen**. Kein Wächter kann das sehen — die Zahl war ja richtig; derselbe Satz wie in §4.28 und §4.35. (2) ⚠ **Der Weg durch den WPF-Editor setzt den Absatz auf Blocksatz** — vorher war „linksbündig" gedrückt, danach „Blocksatz"; die Übernahme `Rtf → Model` schreibt also eine Ausrichtung ins Modell, die vorher nicht dastand. **Nicht in dieser Runde entstanden und nicht hier behoben** — es ist Arbeit an der Übernahme und gehört zu **Schritt 7**, wo es jetzt vermerkt ist. **▶ Dran ist Schritt 6a (`TextInputMethodClient`), danach ist der Laptop fällig** |
 | V2-49 | 2026-08-17 | **Die drei Reiter — Schritt 6 ist damit ganz** (§4.37). `Core/Text/TdBlockEdit.cs` und `Core/Text/TdTableEdit.cs` neu, `TdFormatEdit.Verweis` dazu, `Views/TextDocView.Reiter.cs` im Kopf; **30 Wächter**, **754 Tests** grün, Bau 0/0. **Einfügen** (Seitenumbruch, Zeilenumbruch, Tabelle, Felder), **Verweise** (setzen/entfernen, Inhaltsverzeichnis) und **Tabelle** (Zeile/Spalte einfügen und löschen, Tabelle löschen) stehen. **Die Entscheidung der Runde ist eine Nicht-Erweiterung: `TdFragment` bekommt keine Blöcke.** Ein Fragment beschreibt „Absätze voller Stücke" (§4.32) — ein Seitenumbruch ist keiner davon, sondern steht **zwischen** ihnen. Erweitert man es, trägt **jeder Tastendruck** eine Möglichkeit mit sich, die er nie braucht, und `Ersetzen` bekommt einen Zweig, den nur eine Datei auslöst; ein eigener Handgriff daneben ist billiger als ein Sonderfall darin. `TdBlockEdit.Einfuegen` bleibt trotzdem derselbe Gedanke: Auswahl weg, Absatz geteilt, Blöcke dazwischen — womit „Seitenumbruch einfügen" dasselbe ist wie „Tabelle einfügen". **Zwei nicht offensichtliche Regeln:** die Marke landet im ersten Absatz **innerhalb** des Eingefügten (bei einer Tabelle also in der ersten Zelle, wie in Word) — **eine** Regel statt einer Fallunterscheidung nach Blockart; und **beide Hälften bleiben stehen, auch leere**, sonst verschluckt ein Seitenumbruch am Absatzanfang den Absatz und eine Tabelle als erster Block wird unerreichbar. **Bei Tabellen wird durchweg in Rasterspalten gerechnet und nicht in Zellindizes:** Eine Zelle über zwei Spalten belegt zwei Rasterplätze, steht aber einmal in der Zeile (DOCX' Sicht, §4.19) — daraus folgt, dass eine neue Zeile so viele Zellen bekommt, wie die Vorlage **Rasterspalten** belegt, und dass eine neue Spalte mitten in einer verbundenen Zelle diese **breiter** macht statt sie zu zerschneiden (zerschneiden hieße entscheiden, welche Hälfte den Inhalt behält). Eine Tabellenänderung ist ein **Blocktausch** und fällt damit unter dieselbe `TdChange` wie alles andere; die Absätze in den Zellen werden weitergereicht, nicht verdoppelt. **Der Fund der Runde kam wieder aus dem Erproben der Wächter, und er ist neu:** Die Mutation „`Kopie` reicht dieselben Zeilenobjekte weiter" machte nur den *Rücknahme*-Wächter rot — **`Die_alte_Tabelle_bleibt_unveraendert` blieb grün**, weil er nach einem `ZeileEinfuegen` nur `Rows.Count` prüfte und eine neue Zeilenliste mit alten Zeilen darin beim Zählen der Zeilen nicht auffällt. Erst ein Handgriff, der **in** eine Zeile greift (Spalte einfügen), macht es sichtbar; der Wächter prüft seitdem beides. **Zum vierten Mal dieselbe Regel nach §4.30, §4.32 und §4.33 — mit einem Zusatz: es genügt nicht, den richtigen Gegenstand zu prüfen, man muss ihn mit dem Handgriff prüfen, der ihn anfasst.** **Zwei Stellen lösen anders als der Windows-Kopf, beide begründet:** die Tabellengröße kommt aus **zwei Zahlen** statt aus einem aufgezogenen Gitter (das hängt an einem Schwebe-Zustand, den in dieser Sitzung niemand gegenprüfen konnte), und das **Verweisziel steht als Feld in der Leiste** statt in einem Dialog (der Naht fehlt „frag nach Text", und das Feld macht aus einfügen und bearbeiten denselben Handgriff). Der Reiter „Tabelle" ist immer da, seine Knöpfe nicht — außerhalb einer Tabelle steht dort ein Satz statt ausgegrauter Flächen (§4.28). **Benannt ausgelassen:** Zellen verbinden und teilen (was geschieht mit dem Inhalt der aufgehenden Zellen? — geraten wäre es Datenverlust), Bilder (Phase 4.5), Beschriftungen und Fußnoten. **⚠ Auch diese Runde ist nicht am laufenden Programm gesehen worden**, aus demselben Werkzeuggrund wie V2-48 — **die Sichtprüfung steht jetzt für §4.36 und §4.37 zusammen aus** und ist der erste Punkt der nächsten Runde (§5e) |

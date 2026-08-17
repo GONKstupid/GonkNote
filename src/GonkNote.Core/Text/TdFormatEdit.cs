@@ -34,6 +34,32 @@ namespace GonkNote.Core.Text;
 /// Wer es bauen will, hält es im Kopf und gibt es <see cref="TdEdit.Tippen"/> mit.
 /// </para>
 /// </summary>
+/// <summary>
+/// Was ein Absatz außer seinen Stücken hat — <b>der Griff, den
+/// <see cref="TdFormatEdit.Absatzweise"/> dem Aufrufer in die Hand gibt.</b>
+///
+/// <para>
+/// <b>Die Stücke stehen absichtlich nicht darin.</b> Wer sie ändern will, nimmt
+/// <see cref="TdFormatEdit.Zeichen"/> — dort werden sie kopiert statt umgestellt (§4.32). Ein
+/// Träger, der sie mitreichte, wäre die Einladung, genau das zu brechen.
+/// </para>
+/// </summary>
+public sealed class TdAbsatzStil
+{
+    /// <summary>Ausrichtung, Einzüge, Abstände — als Abweichung vom Dokumentstandard.</summary>
+    public TdParaFormat Format { get; set; } = new();
+
+    /// <summary>
+    /// Das Zeichenformat des **ganzen** Absatzes. Hier steht, was eine Überschrift ausmacht:
+    /// Größe und Fett einmal am Absatz statt an jedem Lauf — nur so überlebt ein fett gemachtes
+    /// Wort darin eine spätere Änderung der Überschrift (<see cref="TdParagraph.CharFormat"/>).
+    /// </summary>
+    public TdCharFormat CharFormat { get; set; } = new();
+
+    /// <summary>Zu welcher Liste und Ebene der Absatz gehört; <c>null</c> = kein Listenpunkt.</summary>
+    public TdListRef? List { get; set; }
+}
+
 public static class TdFormatEdit
 {
     // ---------------------------------------------------------------- Zeichenformat
@@ -120,7 +146,26 @@ public static class TdFormatEdit
     /// sich ändert, und die Rücknahme braucht ihn unversehrt.
     /// </para>
     /// </summary>
-    public static TdChange? Absatz(TdDocument doc, TdSelection auswahl, Action<TdParaFormat> aendern)
+    public static TdChange? Absatz(TdDocument doc, TdSelection auswahl, Action<TdParaFormat> aendern) =>
+        Absatzweise(doc, auswahl, stil => aendern(stil.Format));
+
+    /// <summary>
+    /// <b>Der allgemeine Fall:</b> alles ändern, was ein Absatz außer seinen Stücken hat —
+    /// Absatzformat, Zeichenformat des ganzen Absatzes und Listenzugehörigkeit.
+    ///
+    /// <para>
+    /// <b>Warum es die drei zusammen gibt und nicht drei Handgriffe:</b> Eine Vorlage
+    /// (<see cref="TdStil"/>) setzt alle drei auf einmal — Größe und Fett am
+    /// <see cref="TdParagraph.CharFormat"/>, Abstände am <see cref="TdParagraph.Format"/>, und
+    /// eine Überschrift ist kein Listenpunkt mehr. Drei Änderungen daraus zu machen hieße: drei
+    /// Schritte im Verlauf für einen Handgriff (§4.33), und ein Strg+Z ließe die halbe Vorlage
+    /// stehen.
+    /// </para>
+    /// <inheritdoc cref="Absatz" path="/summary/para[1]"/>
+    /// <inheritdoc cref="Absatz" path="/summary/para[2]"/>
+    /// </summary>
+    public static TdChange? Absatzweise(
+        TdDocument doc, TdSelection auswahl, Action<TdAbsatzStil> aendern)
     {
         var gezogen = TdCursor.Normalisieren(doc, auswahl);
 
@@ -135,14 +180,19 @@ public static class TdFormatEdit
         {
             if (block is not TdParagraph absatz) { neu.Add(block); continue; }
 
-            var format = absatz.Format.Kopie();
-            aendern(format);
+            var stil = new TdAbsatzStil
+            {
+                Format = absatz.Format.Kopie(),
+                CharFormat = absatz.CharFormat.Kopie(),
+                List = absatz.List,
+            };
+            aendern(stil);
 
             neu.Add(new TdParagraph(absatz.Inlines)
             {
-                Format = format,
-                CharFormat = absatz.CharFormat,
-                List = absatz.List,
+                Format = stil.Format,
+                CharFormat = stil.CharFormat,
+                List = stil.List,
             });
             etwas = true;
         }

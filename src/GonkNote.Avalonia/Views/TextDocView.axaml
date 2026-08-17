@@ -43,9 +43,18 @@
                         <RadioButton x:Name="ReiterStart" Classes="ribbonreiter" GroupName="ribbon"
                                      Content="{loc:T Ed.Tab.Home}" IsChecked="True"
                                      IsCheckedChanged="Reiter_Gewechselt" Tag="Start"/>
+                        <RadioButton x:Name="ReiterEinfuegen" Classes="ribbonreiter" GroupName="ribbon"
+                                     Content="{loc:T Ed.Tab.Insert}"
+                                     IsCheckedChanged="Reiter_Gewechselt" Tag="Einfuegen"/>
                         <RadioButton x:Name="ReiterLayout" Classes="ribbonreiter" GroupName="ribbon"
                                      Content="{loc:T Ed.Tab.Layout}"
                                      IsCheckedChanged="Reiter_Gewechselt" Tag="Layout"/>
+                        <RadioButton x:Name="ReiterVerweise" Classes="ribbonreiter" GroupName="ribbon"
+                                     Content="{loc:T Ed.Tab.References}"
+                                     IsCheckedChanged="Reiter_Gewechselt" Tag="Verweise"/>
+                        <RadioButton x:Name="ReiterTabelle" Classes="ribbonreiter" GroupName="ribbon"
+                                     Content="{loc:T Ed.Tab.Table}"
+                                     IsCheckedChanged="Reiter_Gewechselt" Tag="Tabelle"/>
                     </StackPanel>
                 </DockPanel>
 
@@ -196,6 +205,71 @@
                                Foreground="{DynamicResource Brush.TextMuted}"/>
                 </WrapPanel>
 
+                <!-- ============ Reiter „Einfügen" ============ -->
+                <!-- Was hier steht, kann Core seit §4.37 wirklich: Blöcke einfügen
+                     (`TdBlockEdit`) und Felder als Stücke (`TdEdit.Ersetzen`). **Bilder fehlen
+                     und stehen deshalb nicht da** — sie brauchen den Blob-Speicher und einen
+                     Dateidialog, das ist Phase 4.5 (§6). -->
+                <WrapPanel x:Name="LeisteEinfuegen" Margin="8,2,8,6" IsVisible="False">
+
+                    <Button Classes="ribbonknopf" Click="Seitenumbruch_Click"
+                            ToolTip.Tip="{loc:T Ed.Break.Page.Tip}">
+                        <TextBlock Text="{loc:T Ed.Break.Page}" VerticalAlignment="Center"/>
+                    </Button>
+                    <Button Classes="ribbonknopf" Click="Zeilenumbruch_Click"
+                            ToolTip.Tip="{loc:T Ed.Break.Line.Tip}">
+                        <TextBlock Text="{loc:T Ed.Break.Line}" VerticalAlignment="Center"/>
+                    </Button>
+
+                    <Border Classes="trenner"/>
+
+                    <!-- Tabelle: **zwei Zahlen und ein Knopf, kein Raster zum Aufziehen.**
+                         Drüben zieht man die Größe in einem Gitter auf; das ist schöner und
+                         hängt an einem Schwebe-Zustand, den hier niemand gegenprüfen konnte
+                         (§4.37). Zwei Zahlen sagen dasselbe und können nicht halb funktionieren. -->
+                    <TextBlock Text="{loc:T Ed.Table.Rows}" VerticalAlignment="Center"
+                               FontSize="12" Margin="0,0,4,0"
+                               Foreground="{DynamicResource Brush.TextMuted}"/>
+                    <NumericUpDown x:Name="TabelleZeilen" Value="2" Minimum="1" Maximum="50"
+                                   Increment="1" FormatString="0" Width="86"
+                                   VerticalAlignment="Center"/>
+                    <TextBlock Text="{loc:T Ed.Table.Columns}" VerticalAlignment="Center"
+                               FontSize="12" Margin="8,0,4,0"
+                               Foreground="{DynamicResource Brush.TextMuted}"/>
+                    <NumericUpDown x:Name="TabelleSpalten" Value="2" Minimum="1" Maximum="20"
+                                   Increment="1" FormatString="0" Width="86"
+                                   VerticalAlignment="Center"/>
+                    <Button Classes="ribbonknopf" Margin="4,0,0,0" Click="TabelleEinfuegen_Click"
+                            ToolTip.Tip="{loc:T Ed.Table.Insert}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <views:Symbol Icon="Table" Stroke="{DynamicResource Brush.Text}"/>
+                            <TextBlock Text="{loc:T Ed.Table.Insert}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Border Classes="trenner"/>
+
+                    <Button Classes="ribbonknopf" ToolTip.Tip="{loc:T Ed.Field.Tip}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <TextBlock Text="{loc:T Ed.Field}" VerticalAlignment="Center"/>
+                            <views:Symbol Icon="ChevronDown" Size="10"
+                                          Stroke="{DynamicResource Brush.TextMuted}"/>
+                        </StackPanel>
+                        <Button.Flyout>
+                            <MenuFlyout>
+                                <MenuItem Header="{loc:T Ed.Field.PageNumber}" Tag="PageNumber"
+                                          Click="Feld_Click"/>
+                                <MenuItem Header="{loc:T Ed.Field.PageCount}" Tag="PageCount"
+                                          Click="Feld_Click"/>
+                                <MenuItem Header="{loc:T Ed.Field.Date}" Tag="Date"
+                                          Click="Feld_Click"/>
+                                <MenuItem Header="{loc:T Ed.Field.Title}" Tag="Title"
+                                          Click="Feld_Click"/>
+                            </MenuFlyout>
+                        </Button.Flyout>
+                    </Button>
+                </WrapPanel>
+
                 <!-- ============ Reiter „Layout": die Seiteneinrichtung, abgelesen ============ -->
                 <!-- **Nur ablesen, nicht stellen.** Die Werte stehen im Abschnitt
                      (`TdSection.Page`, §4.15); sie zu ändern hieße das Dokument zu ändern,
@@ -217,6 +291,94 @@
                     <StackPanel Margin="0,0,18,0">
                         <TextBlock Classes="feldname" Text="{loc:T Ed.HeaderFooter}"/>
                         <TextBlock x:Name="FeldKopfFuss" Classes="feldwert"/>
+                    </StackPanel>
+                </WrapPanel>
+
+                <!-- ============ Reiter „Verweise" ============ -->
+                <!-- **Das Ziel steht als Feld in der Leiste und nicht in einem Dialog.** Der
+                     WPF-Kopf fragt es in einem Fenster ab; dafür fehlt der Naht ein Handgriff
+                     („frag nach Text"), und einen in die Plattformschnittstelle zu ziehen wäre
+                     für einen Verweis viel — ein Feld im Ribbon tut dasselbe, zeigt beim
+                     Hineinklicken das vorhandene Ziel und macht aus „einfügen" und „bearbeiten"
+                     denselben Handgriff. -->
+                <WrapPanel x:Name="LeisteVerweise" Margin="8,2,8,6" IsVisible="False">
+
+                    <TextBlock Text="{loc:T Ed.Link.Target}" VerticalAlignment="Center"
+                               FontSize="12" Margin="0,0,6,0"
+                               Foreground="{DynamicResource Brush.TextMuted}"/>
+                    <TextBox x:Name="VerweisZiel" Width="280" VerticalAlignment="Center"
+                             FontSize="12" PlaceholderText="https://"
+                             ToolTip.Tip="{loc:T Ed.Link.Target.Tip}"
+                             KeyDown="VerweisZiel_Taste"/>
+                    <Button x:Name="KnopfVerweisSetzen" Classes="ribbonknopf" Margin="4,0,0,0"
+                            Click="VerweisSetzen_Click" ToolTip.Tip="{loc:T Ed.Link.Tip}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <views:Symbol Icon="Link" Stroke="{DynamicResource Brush.Text}"/>
+                            <TextBlock Text="{loc:T Ed.Link.Set}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="KnopfVerweisWeg" Classes="ribbonknopf"
+                            Click="VerweisEntfernen_Click">
+                        <TextBlock Text="{loc:T Ed.Link.Remove}" VerticalAlignment="Center"/>
+                    </Button>
+
+                    <Border Classes="trenner"/>
+
+                    <Button Classes="ribbonknopf" Click="Inhaltsverzeichnis_Click"
+                            ToolTip.Tip="{loc:T Ed.Toc.Insert.Tip}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <views:Symbol Icon="Outline" Stroke="{DynamicResource Brush.Text}"/>
+                            <TextBlock Text="{loc:T Ed.Toc.Insert}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <TextBlock Text="{loc:T Ed.References.Note}" TextWrapping="Wrap"
+                               MaxWidth="420" FontSize="11" VerticalAlignment="Center"
+                               Margin="12,0,0,0"
+                               Foreground="{DynamicResource Brush.TextMuted}"/>
+                </WrapPanel>
+
+                <!-- ============ Reiter „Tabelle" ============ -->
+                <!-- **Die Knöpfe verschwinden, wenn die Marke in keiner Tabelle steht** — dann
+                     steht dort ein Satz, der sagt, wie man hinkommt. Ausgraute Knöpfe wären die
+                     Fläche aus §4.28; ein Satz beantwortet die Frage, die der Nutzer in dem
+                     Moment wirklich hat.
+                     **Zellen verbinden und teilen fehlen und stehen deshalb nicht da** — sie
+                     verlangen eine Antwort darauf, was mit dem Inhalt der aufgehenden Zellen
+                     geschieht (§4.37). -->
+                <WrapPanel x:Name="LeisteTabelle" Margin="8,2,8,6" IsVisible="False">
+
+                    <TextBlock x:Name="TabelleHinweis" Text="{loc:T Ed.Table.NotInTable}"
+                               VerticalAlignment="Center" FontSize="12" TextWrapping="Wrap"
+                               MaxWidth="520"
+                               Foreground="{DynamicResource Brush.TextMuted}"/>
+
+                    <StackPanel x:Name="TabelleWerkzeuge" Orientation="Horizontal"
+                                IsVisible="False">
+                        <Button Classes="ribbonknopf" Click="ZeileDarueber_Click">
+                            <TextBlock Text="{loc:T Ed.Table.Row.Above}" VerticalAlignment="Center"/>
+                        </Button>
+                        <Button Classes="ribbonknopf" Click="ZeileDarunter_Click">
+                            <TextBlock Text="{loc:T Ed.Table.Row.Below}" VerticalAlignment="Center"/>
+                        </Button>
+                        <Button Classes="ribbonknopf" Click="SpalteLinks_Click">
+                            <TextBlock Text="{loc:T Ed.Table.Column.Left}" VerticalAlignment="Center"/>
+                        </Button>
+                        <Button Classes="ribbonknopf" Click="SpalteRechts_Click">
+                            <TextBlock Text="{loc:T Ed.Table.Column.Right}" VerticalAlignment="Center"/>
+                        </Button>
+
+                        <Border Classes="trenner"/>
+
+                        <Button x:Name="KnopfZeileWeg" Classes="ribbonknopf" Click="ZeileWeg_Click">
+                            <TextBlock Text="{loc:T Ed.Table.Row.Delete}" VerticalAlignment="Center"/>
+                        </Button>
+                        <Button x:Name="KnopfSpalteWeg" Classes="ribbonknopf" Click="SpalteWeg_Click">
+                            <TextBlock Text="{loc:T Ed.Table.Column.Delete}" VerticalAlignment="Center"/>
+                        </Button>
+                        <Button Classes="ribbonknopf" Click="TabelleWeg_Click">
+                            <TextBlock Text="{loc:T Ed.Table.Delete}" VerticalAlignment="Center"/>
+                        </Button>
                     </StackPanel>
                 </WrapPanel>
 

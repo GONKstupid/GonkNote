@@ -401,10 +401,18 @@ public partial class TextDocView : UserControl
     /// </summary>
     private void Reiter_Gewechselt(object? sender, RoutedEventArgs e)
     {
-        if (LeisteStart == null || LeisteLayout == null || ReiterStart == null) return;
+        if (LeisteStart == null || LeisteTabelle == null || ReiterStart == null) return;
 
         LeisteStart.IsVisible = ReiterStart.IsChecked == true;
+        LeisteEinfuegen.IsVisible = ReiterEinfuegen.IsChecked == true;
         LeisteLayout.IsVisible = ReiterLayout.IsChecked == true;
+        LeisteVerweise.IsVisible = ReiterVerweise.IsChecked == true;
+        LeisteTabelle.IsVisible = ReiterTabelle.IsChecked == true;
+
+        // Die beiden Leisten, die von der Stelle der Marke abhängen, sind beim Aufklappen
+        // vielleicht veraltet — der Wechsel selbst bewegt die Marke nicht, also ruft ihn
+        // niemand sonst.
+        RibbonNachziehen();
     }
 
     /// <summary>

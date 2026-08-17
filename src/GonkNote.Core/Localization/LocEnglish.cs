@@ -455,6 +455,30 @@ internal static class LocEnglish
             "You can write the text here: type, delete, select, undo. Formatting, tables and " +
             "pictures are still set in the Windows edition. What you see is exactly what " +
             "would be exported — same layout, same renderer.",
+        // Gegenstuecke zu den drei neuen Reitern in LocGerman (§4.37, siehe dort).
+        ["Ed.Break.Page"] = "Page break",
+        ["Ed.Break.Page.Tip"] = "Continue on a new page from here",
+        ["Ed.Break.Line"] = "Line break",
+        ["Ed.Break.Line.Tip"] =
+            "A new line inside the same paragraph (Shift+Enter) — paragraph spacing and list " +
+            "marker stay untouched",
+        ["Ed.Field"] = "Field",
+        ["Ed.Field.Tip"] =
+            "A spot whose content is calculated: page number, page count, date, title. It stays " +
+            "correct after every change.",
+        ["Ed.Field.PageNumber"] = "Page number",
+        ["Ed.Field.PageCount"] = "Page count",
+        ["Ed.Field.Date"] = "Date",
+        ["Ed.Field.Title"] = "Document title",
+        ["Ed.Table.Rows"] = "Rows",
+        ["Ed.Table.Columns"] = "Columns",
+        ["Ed.Link.Target"] = "Target",
+        ["Ed.Link.Target.Tip"] =
+            "Address of the link. If the caret sits inside an existing link, its target appears " +
+            "here and can be changed.",
+        ["Ed.Link.Set"] = "Set",
+        ["Ed.Table.NotInTable"] =
+            "Put the caret inside a table — its tools appear here.",
         // Gegenstuecke zu Td.RtfLeads* in LocGerman (§5 „Noch offen" 9, siehe dort).
         ["Td.RtfLeads"] = "Windows edition leads",
         ["Td.RtfLeads.Text"] =

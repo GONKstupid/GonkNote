@@ -222,6 +222,11 @@ public partial class TextDocView
         {
             foreach (var schalter in Formatschalter()) schalter.IsChecked = false;
             GroesseAnzeige.Content = "";
+
+            // **Auch hier, und deshalb steht der Aufruf zweimal da:** Ein Dokument, das gerade
+            // gar nicht angezeigt wird, darf nicht die Tabellenwerkzeuge des vorigen
+            // stehenlassen.
+            ReiterNachziehen();
             return;
         }
 
@@ -246,6 +251,8 @@ public partial class TextDocView
         // Uneinige Größen bekommen keinen Zahlenwert: „12" über einer Auswahl aus 12 und 20
         // wäre schlicht falsch.
         GroesseAnzeige.Content = zeichen.FontSize is { } pt ? $"{pt:0.#}" : "–";
+
+        ReiterNachziehen();
     }
 
     private IEnumerable<ToggleButton> Formatschalter()

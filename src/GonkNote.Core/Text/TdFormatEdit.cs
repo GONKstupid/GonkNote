@@ -157,6 +157,143 @@ public static class TdFormatEdit
             TdEditArt.Struktur, schliesstGruppe: true);
     }
 
+    // ---------------------------------------------------------------- Verweis
+
+    /// <summary>
+    /// Legt einen Verweis um die Auswahl — oder nimmt ihn heraus, wenn
+    /// <paramref name="ziel"/> leer ist.
+    ///
+    /// <para>
+    /// <b>Es steht hier und nicht in einer eigenen Datei</b>, weil es dieselbe Sache ist wie
+    /// fett machen: Der Text bleibt Zeichen für Zeichen derselbe, und nur seine Auszeichnung
+    /// ändert sich. Es teilt deshalb bis auf eine Zeile denselben Weg — Kopf und Schwanz bleiben
+    /// dieselben Objekte, die Mitte wird neu gebaut, und die Stelle wird nachgerechnet.
+    /// </para>
+    /// <para>
+    /// <b>Erst auswickeln, dann einwickeln.</b> Liegt in der Auswahl schon ein Verweis, wird er
+    /// aufgelöst und der neue um **alles** gelegt. Ohne das entstünde ein Verweis im Verweis —
+    /// den kennt weder DOCX noch <see cref="TdParagraph.FlacheStuecke"/>, und beim Export käme
+    /// das äußere Ziel für den ganzen Text heraus (§7, die Erbfolge).
+    /// </para>
+    /// <para>
+    /// <b>Je Absatz einer</b>, wenn die Auswahl über mehrere reicht: Ein Verweis steht in einem
+    /// Absatz, denn eine Absatzmarke dazwischen wäre im DOCX ein zweites <c>w:hyperlink</c>
+    /// ohnehin.
+    /// </para>
+    /// </summary>
+    public static TdChange? Verweis(TdDocument doc, TdSelection auswahl, string? ziel)
+    {
+        var gezogen = TdCursor.Normalisieren(doc, auswahl);
+        var start = gezogen.Start;
+        var ende = gezogen.End;
+
+        // Ein Verweis ohne Text zeigt nichts an und kann den Cursor nicht tragen (§4.30) —
+        // eine leere Auswahl ist deshalb nicht „ein Verweis der Länge null", sondern nichts.
+        if (start == ende) return null;
+
+        if (TdEdit.Bereich(doc, start, ende) is not { } bereich) return null;
+        var (container, iA, iB, absatzA, absatzB) = bereich;
+
+        int vonA = TdCursor.Linear(absatzA, start);
+        int bisB = TdCursor.Linear(absatzB, ende);
+
+        var alt = container.GetRange(iA, iB - iA + 1);
+        var neu = new List<TdBlock>(alt.Count);
+
+        foreach (var block in alt)
+        {
+            if (block is not TdParagraph absatz) { neu.Add(block); continue; }
+
+            int von = ReferenceEquals(absatz, absatzA) ? vonA : 0;
+            int bis = ReferenceEquals(absatz, absatzB) ? bisB : TdCursor.Laenge(absatz);
+
+            var kopf = TdEdit.Teil(absatz.Inlines, 0, von);
+            var mitte = Ausgewickelt(TdEdit.Teil(absatz.Inlines, von, bis));
+            var schwanz = TdEdit.Teil(absatz.Inlines, bis, TdCursor.Laenge(absatz));
+
+            var stuecke = new List<TdInline>(kopf.Count + 1 + schwanz.Count);
+            stuecke.AddRange(kopf);
+
+            if (string.IsNullOrEmpty(ziel)) stuecke.AddRange(mitte);
+            else if (mitte.Count > 0) stuecke.Add(new TdHyperlink(ziel) { Inlines = mitte });
+
+            stuecke.AddRange(schwanz);
+
+            neu.Add(new TdParagraph(TdEdit.Aufraeumen(stuecke))
+            {
+                Format = absatz.Format,
+                CharFormat = absatz.CharFormat,
+                List = absatz.List,
+            });
+        }
+
+        var neuStart = TdCursor.AusLinear((TdParagraph)neu[0], start.Paragraph, vonA);
+        var neuEnde = TdCursor.AusLinear((TdParagraph)neu[^1], ende.Paragraph, bisB);
+
+        return new TdChange(
+            container, iA, alt, neu, gezogen, Wie(gezogen, neuStart, neuEnde),
+            TdEditArt.Struktur, schliesstGruppe: true);
+    }
+
+    /// <summary>
+    /// Das Ziel des Verweises, in dem die Auswahl liegt — <c>null</c>, wenn dort keiner liegt
+    /// oder mehrere verschiedene. <b>Die Auskunft, aus der ein Ribbon „Verweis bearbeiten" von
+    /// „Verweis einfügen" unterscheidet.</b>
+    /// </summary>
+    public static string? VerweisZiel(TdDocument doc, TdSelection auswahl)
+    {
+        var gezogen = TdCursor.Normalisieren(doc, auswahl);
+        var absatz = TdCursor.AbsatzAn(doc, gezogen.Start.Paragraph);
+        if (absatz is null) return null;
+
+        int von = TdCursor.Linear(absatz, gezogen.Start);
+        int bis = ReferenceEquals(absatz, TdCursor.AbsatzAn(doc, gezogen.End.Paragraph))
+            ? TdCursor.Linear(absatz, gezogen.End)
+            : TdCursor.Laenge(absatz);
+
+        string? gefunden = null;
+        int summe = 0;
+
+        foreach (var (stueck, verweis) in absatz.FlacheStuecke())
+        {
+            int laenge = TdCursor.Laenge(stueck);
+
+            // **Berührt genügt, und bei leerer Auswahl zählt das Stück links** — dieselbe
+            // Zugehörigkeit wie beim Erben eines Formats (§4.30), damit ein Klick hinter einen
+            // Verweis ihn noch meint.
+            bool drin = von == bis
+                ? von > summe && von <= summe + laenge
+                : Math.Min(bis, summe + laenge) > Math.Max(von, summe);
+
+            if (drin)
+            {
+                if (verweis is null) return null;
+                if (gefunden is not null && gefunden != verweis.Target) return null;
+                gefunden = verweis.Target;
+            }
+
+            summe += laenge;
+        }
+
+        return gefunden;
+    }
+
+    /// <summary>
+    /// Die Stücke ohne die Verweise um sie herum — <inheritdoc cref="Verweis" path="/summary/para[2]"/>
+    /// </summary>
+    private static List<TdInline> Ausgewickelt(IReadOnlyList<TdInline> stuecke)
+    {
+        var ziel = new List<TdInline>(stuecke.Count);
+
+        foreach (var stueck in stuecke)
+        {
+            if (stueck is TdHyperlink verweis) ziel.AddRange(Ausgewickelt(verweis.Inlines));
+            else ziel.Add(stueck);
+        }
+
+        return ziel;
+    }
+
     // ---------------------------------------------------------------- Was zeigt die Auswahl?
 
     /// <summary>

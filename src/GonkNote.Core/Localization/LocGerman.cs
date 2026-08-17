@@ -471,6 +471,36 @@ internal static class LocGerman
             "machen. Formate, Tabellen und Bilder setzt weiterhin die Windows-Fassung. " +
             "Angezeigt wird genau das, was auch exportiert würde — derselbe Umbruch, " +
             "derselbe Zeichner.",
+        // ---- Die drei neuen Reiter des Linux-Ribbons (HANDOFF §4.37, Schritt 6) ----
+        // Was es drüben schon gibt, benutzt die vorhandenen Schlüssel (Ed.Table.*, Ed.Link.*,
+        // Ed.Toc.*); hier stehen nur die, die der WPF-Kopf nicht braucht, weil er es anders
+        // löst — er hat einen Dialog, wo hier ein Feld in der Leiste steht.
+        ["Ed.Break.Page"] = "Seitenumbruch",
+        ["Ed.Break.Page.Tip"] = "Ab hier auf einer neuen Seite weiterschreiben",
+        ["Ed.Break.Line"] = "Zeilenumbruch",
+        ["Ed.Break.Line.Tip"] =
+            "Neue Zeile im selben Absatz (Umschalt+Eingabe) — Absatzabstände und Listenmarke " +
+            "bleiben unangetastet",
+        ["Ed.Field"] = "Feld",
+        ["Ed.Field.Tip"] =
+            "Eine Stelle, deren Inhalt gerechnet wird: Seitenzahl, Seitenanzahl, Datum, Titel. " +
+            "Sie stimmt nach jeder Änderung von selbst.",
+        ["Ed.Field.PageNumber"] = "Seitenzahl",
+        ["Ed.Field.PageCount"] = "Seitenanzahl",
+        ["Ed.Field.Date"] = "Datum",
+        ["Ed.Field.Title"] = "Titel des Dokuments",
+        ["Ed.Table.Rows"] = "Zeilen",
+        ["Ed.Table.Columns"] = "Spalten",
+        ["Ed.Link.Target"] = "Ziel",
+        ["Ed.Link.Target.Tip"] =
+            "Adresse des Verweises. Steht die Schreibmarke in einem vorhandenen Verweis, " +
+            "erscheint sein Ziel hier und lässt sich ändern.",
+        ["Ed.Link.Set"] = "Setzen",
+        // Der Satz, der den Reiter „Tabelle" ersetzt, solange die Marke in keiner steht.
+        // **Kein ausgegrauter Reiter:** Ein Knopf, der meistens nichts tun kann, ist die
+        // ausgegraute Fläche aus §4.28 in groß (HANDOFF §4.37).
+        ["Ed.Table.NotInTable"] =
+            "Setz die Schreibmarke in eine Tabelle — dann stehen hier ihre Werkzeuge.",
         // Die Warnung über dem Blatt, wenn das Altformat noch führt (HANDOFF §5 „Noch offen" 9,
         // Nutzer-Entscheidung 2026-08-16: warnen, nicht sperren).
         //

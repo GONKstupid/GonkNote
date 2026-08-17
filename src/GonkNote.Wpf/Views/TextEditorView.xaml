@@ -447,7 +447,12 @@
                             ToolTip="{loc:T Ed.Toc.Insert.Tip}"
                             AutomationProperties.Name="{loc:T Ed.Toc.Insert}">
                         <StackPanel Orientation="Horizontal">
-                            <views:Symbol Icon="List" VerticalAlignment="Center"/>
+                            <!-- **Outline und nicht List** (§4.38): `List` steht im Reiter
+                                 „Start" für die Aufzählung. Dieselbe Form für zwei Bedeutungen
+                                 ist genau der Fehler, den §4.31 beim Symbolsatz aufgeräumt hat —
+                                 er war hier stehengeblieben. Der Linux-Kopf hatte es von Anfang
+                                 an richtig; angeglichen wird deshalb hier. -->
+                            <views:Symbol Icon="Outline" VerticalAlignment="Center"/>
                             <TextBlock Text="{loc:T Ed.Toc.Insert}" Margin="6,0,0,0"/>
                         </StackPanel>
                     </Button>

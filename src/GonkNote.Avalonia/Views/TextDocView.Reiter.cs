@@ -1,7 +1,9 @@
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using GonkNote.Core.Text;
+using GonkNote.Services;
 
 namespace GonkNote.Views;
 
@@ -149,25 +151,84 @@ public partial class TextDocView
         RibbonNachziehen();
     }
 
-    private void ZeileWeg_Click(object? s, RoutedEventArgs e)
+    // Knopf im Reiter und Eintrag im Kontextmenü rufen dieselbe Methode — zwei Fassungen wären
+    // zwei, von denen später eine anders löscht (§4.13).
+    private void ZeileWeg_Click(object? s, RoutedEventArgs e) => ZeileWeg();
+    private void SpalteWeg_Click(object? s, RoutedEventArgs e) => SpalteWeg();
+    private void TabelleWeg_Click(object? s, RoutedEventArgs e) => TabelleWeg();
+
+    private void ZeileWeg()
     {
         if (!Schreibbar) return;
         Aendern(TdTableEdit.ZeileLoeschen(_modell!, _auswahl));
         RibbonNachziehen();
     }
 
-    private void SpalteWeg_Click(object? s, RoutedEventArgs e)
+    private void SpalteWeg()
     {
         if (!Schreibbar) return;
         Aendern(TdTableEdit.SpalteLoeschen(_modell!, _auswahl));
         RibbonNachziehen();
     }
 
-    private void TabelleWeg_Click(object? s, RoutedEventArgs e)
+    private void TabelleWeg()
     {
         if (!Schreibbar) return;
         Aendern(TdTableEdit.TabelleLoeschen(_modell!, _auswahl));
         RibbonNachziehen();
+    }
+
+    // ==================== Das Menü der rechten Maustaste ====================
+
+    /// <summary>
+    /// Zeigt das Tabellenmenü am Zeiger — <b>oder gar nichts, wenn die Marke in keiner Tabelle
+    /// steht</b>.
+    ///
+    /// <para>
+    /// <b>Nicht öffnen statt alles ausgrauen:</b> Ein Menü, dessen sämtliche Einträge grau sind,
+    /// ist eine Antwort auf eine Frage, die niemand gestellt hat — dieselbe Überlegung wie beim
+    /// Reiter „Tabelle" (§4.37), nur schärfer, weil ein Menü den Blick nimmt. Wer außerhalb
+    /// einer Tabelle rechtsklickt, hat damit die Marke gesetzt und sieht kein Menü.
+    /// </para>
+    /// <para>
+    /// <b>Es entsteht bei jedem Öffnen neu</b>, und das ist kein Aufwand, sondern die Lösung
+    /// zweier Fragen auf einmal: Die Beschriftungen kommen so zur richtigen Zeit aus
+    /// <see cref="Loc.T"/> und brauchen kein <c>LanguageChanged</c> (§7), und die zwei
+    /// Grenzfälle — letzte Zeile, letzte Spalte — werden gegen den Zustand von *jetzt* gestellt.
+    /// </para>
+    /// <para>
+    /// <b>Ausschneiden, Kopieren und Einfügen stehen bewusst nicht darin.</b> Dafür gibt es
+    /// Strg+X/C/V, und ein Menü, das die häufigen mit den seltenen Befehlen mischt, macht den
+    /// Tabellenteil unauffindbar — er stünde immer unter drei Einträgen, die man nie anklickt.
+    /// </para>
+    /// </summary>
+    private void TabellenmenueZeigen()
+    {
+        if (!Schreibbar || TdTableEdit.Ort(_modell!, _auswahl.Focus) is not { } ort) return;
+
+        var menue = new MenuFlyout { Placement = PlacementMode.Pointer };
+
+        menue.Items.Add(Eintrag("Ed.Table.Row.Above", () => Zeile(darunter: false)));
+        menue.Items.Add(Eintrag("Ed.Table.Row.Below", () => Zeile(darunter: true)));
+        menue.Items.Add(Eintrag("Ed.Table.Column.Left", () => Spalte(rechts: false)));
+        menue.Items.Add(Eintrag("Ed.Table.Column.Right", () => Spalte(rechts: true)));
+        menue.Items.Add(new Separator());
+
+        // Dieselbe Grenze wie im Reiter: die letzte Zeile und die letzte Spalte bleiben stehen.
+        menue.Items.Add(Eintrag(
+            "Ed.Table.Row.Delete", ZeileWeg, ort.Tabelle.Rows.Count > 1));
+        menue.Items.Add(Eintrag(
+            "Ed.Table.Column.Delete", SpalteWeg, ort.Tabelle.Spaltenzahl() > 1));
+        menue.Items.Add(Eintrag("Ed.Table.Delete", TabelleWeg));
+
+        menue.ShowAt(Skia, showAtPointer: true);
+    }
+
+    private static MenuItem Eintrag(string schluessel, Action tun, bool an = true)
+    {
+        var eintrag = new MenuItem { Header = Loc.T(schluessel), IsEnabled = an };
+        eintrag.Click += (_, _) => tun();
+        return eintrag;
     }
 
     // ==================== Nachziehen ====================

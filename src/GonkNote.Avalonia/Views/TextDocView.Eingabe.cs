@@ -143,6 +143,22 @@ public partial class TextDocView
         if (StelleUnter(e.GetPosition(Skia)) is not { } stelle) return;
 
         var punkt = e.GetCurrentPoint(Skia);
+
+        // **Die rechte Taste setzt die Marke, wenn außerhalb der Auswahl geklickt wird — und
+        // sonst nicht.** Das ist die Erwartung aus jedem Textprogramm: Ein Rechtsklick *in* eine
+        // Auswahl meint sie, ein Rechtsklick daneben meint die Stelle darunter. Ohne den ersten
+        // Teil zeigte das Menü Tabellenbefehle für die Zelle, in der man zuletzt war; ohne den
+        // zweiten verlöre ein Rechtsklick jede Auswahl, die man gerade treffen wollte.
+        if (punkt.Properties.IsRightButtonPressed)
+        {
+            if (!InAuswahl(stelle)) { _auswahl = new TdSelection(stelle); MarkeVersetzt(); }
+            _zieht = false;
+
+            TabellenmenueZeigen();
+            e.Handled = true;
+            return;
+        }
+
         if (!punkt.Properties.IsLeftButtonPressed && punkt.Pointer.Type == PointerType.Mouse) return;
 
         _auswahl = e.ClickCount switch
@@ -172,6 +188,21 @@ public partial class TextDocView
     }
 
     private void Zeiger_Losgelassen(object? sender, PointerReleasedEventArgs e) => _zieht = false;
+
+    /// <summary>
+    /// Liegt diese Stelle in der aktuellen Auswahl? <b>Verglichen wird zwischen normalisierten
+    /// Stellen</b> (§4.30) — zwei Schreibweisen derselben Lücke kämen sonst als verschieden
+    /// heraus, und ein Rechtsklick auf den Rand der Auswahl verlöre sie.
+    /// </summary>
+    private bool InAuswahl(TdPosition stelle)
+    {
+        if (_auswahl.IsEmpty || _modell is null) return false;
+
+        var gezogen = TdCursor.Normalisieren(_modell, _auswahl);
+        var hier = TdCursor.Normalisieren(_modell, stelle);
+
+        return hier >= gezogen.Start && hier <= gezogen.End;
+    }
 
     /// <summary>Der ganze Absatz, für den Dreifachklick.</summary>
     private TdSelection AbsatzAuswahl(TdPosition stelle) => new(

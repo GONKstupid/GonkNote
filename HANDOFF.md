@@ -90,7 +90,7 @@ Die Datei ist lang, und das bleibt sie: sie trägt die Begründungen, nicht nur 
 | **1** | Auftrag und die Entscheidungen dahinter | einmal, zum Verstehen des Ganzen |
 | **2** | Stand: Version, Testzahl, Meilensteine, welche Phase wo steht | „wo stehen wir?" |
 | **3** | Struktur der Solution, Faustregel Core ↔ Kopf | vor jeder neuen Datei |
-| **4** | **Warum es so ist, wie es ist** — eine Nummer je Runde (§4.1 – §4.37) | wenn eine Entscheidung fremd wirkt |
+| **4** | **Warum es so ist, wie es ist** — eine Nummer je Runde (§4.1 – §4.38) | wenn eine Entscheidung fremd wirkt |
 | **5** | **Entscheidungen** — getroffene als Tabelle, offene als Liste | **vor jeder Rückfrage an den Nutzer** |
 | **5a** | Stylus unter Linux: was gemessen wurde und was offen ist | bei allem, was am Stift hängt |
 | **5b** | Wann und wie auf den CachyOS-Laptop gewechselt wird | bevor man ihn anfasst |
@@ -4811,6 +4811,87 @@ ist damit nicht nur gebaut, sondern gesehen.
 
 ---
 
+### 4.38 Das Ribbon aufgeräumt — und die Liste, die gefehlt hat
+
+**2026-08-17 unter Windows (V2-51), auf Nutzerwunsch.** Sechs Umbauten am Linux-Kopf, alle
+**am laufenden Programm gegengeprüft**, dazu eine Korrektur im WPF-Kopf.
+
+#### Die Frage, die den Anstoß gab — und die ehrliche Antwort darauf
+
+Der Nutzer hat gefragt, ob Überschriften-Vorlagen, Schriftart, Schriftgröße in Punkt,
+Hervorhebung, Schriftfarbe, Nummerierung, Aufzählung, Bilder, Infoboxen, Trennlinien, Symbole,
+Diagramme, Kopf-/Fußzeile, Seitenformat, Seitenränder, Hintergrundbilder und Beschriftungen
+noch kommen — **oder vergessen wurden**.
+
+**Ein Teil stand benannt in §4.36/§4.37** (Schriftartenliste, Schriftfarbe, Hervorhebung,
+Formatvorlagen, Bilder, Beschriftungen). **Der größere Teil stand nirgends:** Aufzählung,
+Nummerierung, Infoboxen, Trennlinien, Symbole, Diagramme, Kopf-/Fußzeile bearbeiten,
+Seitenformat, Seitenränder, Wasserzeichen, Schriftgröße als Punktliste. Fachlich war nichts
+davon vergessen — es steht alles im WPF-Kopf und ist damit Teil der Funktionsgleichheit (M2) —,
+**aber es stand als Liste an keiner Stelle**, und §6 verwies dafür auf Phase 4.5, die nur die
+Zeichenflächen-Werkzeuge aufzählt.
+
+> **Die Lehre ist keine über Code:** Eine Lücke, die man beim Bauen bewusst offen lässt, muss in
+> die Liste — sonst ist der Unterschied zwischen „bewusst offen" und „übersehen" nur im Kopf
+> dessen, der sie gelassen hat. **Die vollständige Liste steht jetzt in §6** („Was dem
+> Linux-Editor noch fehlt").
+
+#### Was umgebaut wurde
+
+| | |
+|---|---|
+| **Statusleiste unten** | Zoom, Seitenbreite, Ganze Seite und die Wort-/Zeichenzählung sind aus dem Reiter „Start" nach unten gewandert — zu den Seitenzahlen, wie im WPF-Kopf. **Sie waren Einstellungen zwischen Werkzeugen:** Der Reiter, der Text formatiert, trug drei Knöpfe, die den Text nicht anfassen |
+| **Tabellengröße** | Zeilen und Spalten stehen jetzt im **Flyout** des Knopfs „Tabelle einfügen" statt dauerhaft in der Leiste. Zwei Zahlenfelder, die man neunundneunzigmal sieht und einmal braucht, gehören nicht in eine Werkzeugleiste |
+| **Word-Hinweise** | Der Satz im Reiter „Verweise" und der Tabellenhinweis stehen hinter einem **„i"** und erscheinen bei Schweben **und** Klick — wie drüben. Ein Satz, der immer dasteht, wird nach dem dritten Mal nicht gelesen und nimmt der Leiste die halbe Breite |
+| **Reiter „Layout"** | **Stellt jetzt, statt nur abzulesen:** Papierformat (A4/A5/A3/Letter), Hoch-/Querformat, und zwei Knöpfe, die die Seitenleiste öffnen. Kopf-/Fußzeile bleibt eine Auskunft — dafür gibt es noch keinen Schreibweg |
+| **Einstellungsleiste rechts** | Neu, 280 breit, mit den Abschnitten **Ränder** und **Absätze** (Abstand davor/danach, Zeilenabstand). Immer nur der geöffnete Abschnitt ist sichtbar |
+| **Rechtsklickmenü** | In einer Tabelle öffnet die rechte Maustaste die sieben Tabellenbefehle. **Außerhalb öffnet es gar nicht** — es setzt nur die Marke |
+
+#### Zwei Entscheidungen, die dabei fielen
+
+**Die rechte Maustaste setzt die Marke nur außerhalb der Auswahl.** Ein Rechtsklick *in* eine
+Auswahl meint sie, ein Rechtsklick daneben meint die Stelle darunter — die Erwartung aus jedem
+Textprogramm. Ohne den ersten Teil zeigte das Menü Befehle für die Zelle, in der man zuletzt
+war; ohne den zweiten verlöre jeder Rechtsklick die Auswahl, die man gerade treffen wollte.
+
+**Seitenränder und Papierformat stehen *nicht* im Verlauf, und das steht als Satz in der
+Leiste.** Sie sitzen am <c>TdSection</c> und nicht in einer Blockliste; <see cref="TdChange"/>
+tauscht Blöcke (§4.32). Ein eigener Verlaufsweg dafür wäre eine zweite Mechanik neben der
+vorhandenen. **Die Grenze wird benannt statt versteckt** (`Ed.Page.NoUndo`) — sonst findet sie
+der Nutzer durch Ausprobieren, und zwar an der Stelle, an der er sie rückgängig machen will.
+Absatzabstände laufen dagegen über `TdFormatEdit.Absatz` und stehen im Verlauf wie alles andere.
+
+#### Eine Ikone im WPF-Kopf korrigiert
+
+Der Nutzer wollte in beiden Köpfen dieselben Symbole. **Per Konstruktion sind sie das schon**
+(beide lesen `AppIcons` aus Core, §4.31) — **eine Abweichung gab es doch:** Der WPF-Kopf nahm
+für „Inhaltsverzeichnis einfügen" dasselbe `List` wie für die Aufzählung. Das ist genau der
+Fehler, den §4.31 aufgeräumt hat („ein Symbol je Bedeutung"), hier stehengeblieben. **Der
+Linux-Kopf hatte es richtig** (`Outline`); angeglichen wurde deshalb der WPF-Kopf.
+
+#### Der Fund der Runde — derselbe, dreimal
+
+**`NumericUpDown` zeigt seinen Wert nicht, wenn er zu schmal ist.** Zuerst im Reiter „Einfügen"
+(§4.37, `Width="86"`), dann — nach der Verbreiterung auf 130 — **erneut in der neuen
+Seitenleiste**, wo vier Felder in zwei Spalten standen. Die zwei Spinner-Knöpfe fressen die
+Breite, bevor die Zahl drankommt, und **das Feld sieht dann leer aus, obwohl der Wert da ist**.
+
+**Behoben und jedes Mal nachgesehen:** Die Ränder stehen jetzt untereinander, die Leiste ist
+280 statt 248 breit (der WPF-Kopf kommt mit 248 aus, weil er schlichte Textfelder benutzt).
+**Zum dritten Mal dieselbe Lehre aus §4.28 und §4.35 — und diesmal mit einem Zusatz: Es genügt
+nicht, einen Fund zu beheben; man muss danach suchen, wo derselbe Fehler noch einmal steht.**
+Die zweite Stelle entstand in derselben Runde wie die Behebung der ersten.
+
+#### Am laufenden Programm gesehen
+
+Untere Leiste (Zählung links, Seite mittig, Zoom rechts) · Start-Reiter nur noch Format und
+Export · Layout-Reiter mit Format, Hoch/Quer, Ränder, Abstände — **„Quer" umgestellt, der
+Umbruch rechnete nach** (aus 2 Seiten wurden 3) · Seitenleiste „Ränder" mit lesbaren Werten und
+dem Hinweissatz · **Rechtsklickmenü in der Tabelle mit allen sieben Einträgen** · Info-i im
+Reiter „Verweise". An einer Kopie der echten Datenbank, danach gelöscht (Dauerregel 4).
+
+---
+
 ## 5. Entscheidungen
 
 **Getroffen, alle umgesetzt:**
@@ -5679,13 +5760,25 @@ an einer Kopie der echten Datenbank durchgespielt — Formatknöpfe, Tabelle sam
 ersten Zelle, Verweis, und **der Warnstreifen erscheint genau dann, wenn `Rtf` gefüllt ist**.
 Der WPF-Editor zeigt die vom Linux-Kopf angelegte Tabelle, das Fett und den Verweis.
 
-**▶ Dran ist zweierlei, in dieser Reihenfolge:**
+**✅ Das Ribbon ist aufgeräumt** (§4.38, Nutzerwunsch): Zoom, Einpassung und Zählung stehen in
+der **unteren Leiste**, die Tabellengröße im Flyout, die Word-Hinweise hinter einem **„i"**, der
+Reiter „Layout" **stellt** Format und Ausrichtung, rechts gibt es eine **Einstellungsleiste**
+(Ränder, Absätze), und die rechte Maustaste öffnet in einer Tabelle deren Menü.
 
-1. **Schritt 6a: `TextInputMethodClient`** (§5 „Noch offen" 10, so entschieden). Danach ist der
+**▶ Dran ist — die Reihenfolge gehört dem Nutzer, vorgeschlagen ist:**
+
+1. **Gruppe A aus §6 („Was dem Linux-Editor noch fehlt")** — Aufzählung, Nummerierung,
+   Überschriften-Vorlagen, Schriftgröße als Liste. **Alles vier geht mit dem, was Core heute
+   kann**, und macht den Editor erst benutzbar.
+2. **Gruppe B** — Schriftart, Farbe/Hervorhebung, Trennlinie, Kopf-/Fußzeile, Wasserzeichen.
+   Jedes braucht eine kleine Ergänzung vorweg.
+3. **Schritt 6a: `TextInputMethodClient`** (§5 „Noch offen" 10, so entschieden). Danach ist der
    **Laptop** fällig — ob die Bildschirmtastatur wirklich aufgeht, kann nur er sagen.
-2. **Schritt 7: `Rtf` verliert die Führung** — der einzige vollständige Ausweg aus §5 Nr. 9.
+4. **Schritt 7: `Rtf` verliert die Führung** — der einzige vollständige Ausweg aus §5 Nr. 9.
    **Dabei liegt ein Fund bereit:** Der Weg durch den WPF-Editor setzt den Absatz auf
    **Blocksatz** (§4.37, Fund 2).
+5. **Gruppe C** zusammen mit Phase 4.5 — Bilder, Diagramme, Infoboxen, Symbole, Beschriftungen,
+   Zellen verbinden.
 
 > **⚠ Beim Fernsteuern zu wissen:** Am 2026-08-17 haben die Skripte in `tools\` **zeitweise
 > keine Klicks zugestellt** — `schau.ps1` fotografierte richtig, der Zeiger bewegte sich
@@ -6078,6 +6171,40 @@ erst ab Schritt 4 wird es Kopfarbeit.
 - [ ] **6a. `TextInputMethodClient`.** **Nutzer-Entscheidung 2026-08-16** (§5 „Noch offen" 10):
       umsetzen, **nach** Schritt 6. Ohne ihn ist ohne Hardware-Tastatur nicht zu schreiben — und
       der iPadOS-Kopf erbt die Naht.
+
+#### Was dem Linux-Editor noch fehlt — die vollständige Liste
+
+**Neu am 2026-08-17 (§4.38), auf eine Frage des Nutzers hin.** Ein Teil davon stand in §4.36 und
+§4.37 als „benannt ausgelassen", der größere Teil stand **nirgends** — und ohne Liste ist der
+Unterschied zwischen „bewusst offen" und „übersehen" nur im Kopf dessen, der sie gelassen hat.
+
+**Alles hiervon gibt es im WPF-Kopf**, gehört also zur Funktionsgleichheit (M2). Sortiert nach
+dem, was es kostet:
+
+| | Was fehlt | Was es braucht |
+|---|---|---|
+| **A** | **Aufzählung und Nummerierung** | Nur Kopfarbeit: `TdParagraph.List` und `TdListDefinition` stehen seit §4.17, der Umbruch zeichnet sie. Ein Knopf, der eine Listendefinition anlegt und den Absätzen zuweist |
+| **A** | **Überschriften-Vorlagen** („Überschrift 1–4") | Absatz- **und** Zeichenformat in einem Griff; beides kann `TdFormatEdit` schon. Was fehlt, ist die Tabelle der Vorlagen und `OutlineLevel` (für das Inhaltsverzeichnis) |
+| **A** | **Schriftgröße als Punktliste** | Ein Auswahlfeld statt der zwei Stufenknöpfe — `TdFormatEdit.Zeichen` kann es längst |
+| **B** | **Schriftart wählen** | Eine Naht für den **Bestand** der Familien; `IFontProvider` liefert das Schema und nicht den Bestand (§4.26) |
+| **B** | **Schriftfarbe und Hervorhebung** | Einen Farbwähler im Avalonia-Kopf (den es für die Zeichenfläche schon gibt — er ist wiederzuverwenden) |
+| **B** | **Trennlinie** | `TdParaFormat.BottomBorder` steht seit §4.15; ein Absatz mit Linie und ohne Text. Reine Kopfarbeit |
+| **B** | **Kopf- und Fußzeile bearbeiten** | `TdPageSetup.HeaderText`/`FooterText` stehen; ein kleiner Dialog oder ein Abschnitt in der Seitenleiste |
+| **B** | **Hintergrundbild / Wasserzeichen** | `TdPageSetup.Watermark*` steht; braucht den Blob-Weg wie Bilder |
+| **C** | **Bilder einfügen** | Blob-Speicher **und** Dateidialog; `TdImage` steht seit §4.21 |
+| **C** | **Diagramme** | `TdChart` und der Zeichner stehen seit §4.25 — es fehlt der **Dialog** (WPF hat `ChartDialog`) |
+| **C** | **Infoboxen** | Im Modell nicht vorgesehen — im WPF-Kopf ein Absatz mit Rahmen und Füllung; zu entscheiden, ob es ein eigener Blocktyp wird |
+| **C** | **Symbole einfügen** | Eine Zeichentafel; im Modell ist es gewöhnlicher Text und damit trivial — der Aufwand liegt ganz in der Oberfläche |
+| **C** | **Beschriftungen, Fußnoten, Textmarken** | Im Modell nicht vorgesehen; eigene Runden |
+| **C** | **Zellen verbinden und teilen** | Verlangt eine Antwort darauf, was mit dem Inhalt der aufgehenden Zellen geschieht (§4.37) |
+
+> **A = geht mit dem, was Core heute kann** (reine Kopfarbeit). **B = eine kleine Ergänzung
+> vorweg.** **C = eigene Runde, teils mit Modellfrage.**
+>
+> **Wo das hingehört:** A und B sind der Rest von Phase 4 — sie machen den Linux-Editor
+> benutzbar. C überschneidet sich mit **Phase 4.5** (Bilder brauchen denselben Blob-Weg wie die
+> Zeichenfläche). **Die Reihenfolge entscheidet der Nutzer**; vorgeschlagen ist A, dann B, dann
+> Schritt 6a und Schritt 7, dann C zusammen mit Phase 4.5.
 - [ ] **7. `Rtf` verliert die Führung.** Der WPF-Editor liest aus dem Modell statt aus dem
       `XamlPackage`. **Das ist der eigentliche Zweck des ganzen Wegs** (§5) — und der Schritt,
       bei dem am meisten schiefgehen kann: `Rtf` wird trotzdem **nie überschrieben** (§4.22).
@@ -7363,6 +7490,7 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 
 | Runde | Datum | Was |
 |---|---|---|
+| V2-51 | 2026-08-17 | **Das Ribbon aufgeräumt — und die Liste nachgetragen, die gefehlt hat** (§4.38, auf Nutzerwunsch). Bau 0/0, **754 Tests** grün, alle sechs Umbauten **am laufenden Programm gegengeprüft** (Kopie der echten Daten, danach gelöscht). **Der Anstoß war eine Frage, und die ehrliche Antwort darauf ist unbequem:** Der Nutzer fragte, ob siebzehn Dinge (Überschriften-Vorlagen, Schriftart, Punktgröße, Hervorhebung, Farbe, Nummerierung, Aufzählung, Bilder, Infoboxen, Trennlinien, Symbole, Diagramme, Kopf-/Fußzeile, Seitenformat, Ränder, Hintergrundbilder, Beschriftungen) noch kommen oder vergessen wurden. **Ein Teil stand benannt in §4.36/§4.37, der größere Teil stand nirgends** — fachlich war nichts davon vergessen (es steht alles im WPF-Kopf und gehört damit zu M2), aber ohne Liste ist der Unterschied zwischen „bewusst offen" und „übersehen" nur im Kopf dessen, der sie gelassen hat. **Die vollständige Liste steht jetzt in §6**, nach Aufwand in A/B/C sortiert. **Sechs Umbauten:** Zoom, Seitenbreite, Ganze Seite und die Wort-/Zeichenzählung sind aus dem Reiter „Start" in die **untere Leiste** gewandert (sie waren Einstellungen zwischen Werkzeugen — der Reiter, der Text formatiert, trug drei Knöpfe, die den Text nicht anfassen); die **Tabellengröße** steht im Flyout statt dauerhaft in der Leiste; die **Word-Hinweise** stehen hinter einem **„i"** und erscheinen bei Schweben *und* Klick; der Reiter **„Layout" stellt jetzt** Papierformat und Ausrichtung, statt sie nur abzulesen; rechts gibt es eine **Einstellungsleiste** mit den Abschnitten Ränder und Absätze; und die **rechte Maustaste** öffnet in einer Tabelle deren sieben Befehle — **außerhalb öffnet sie gar nichts** und setzt nur die Marke. **Zwei Entscheidungen dabei:** Der Rechtsklick setzt die Marke **nur außerhalb der Auswahl** (drin meint er sie — die Erwartung aus jedem Textprogramm; ohne den ersten Teil zeigte das Menü Befehle für die zuletzt besuchte Zelle, ohne den zweiten verlöre jeder Rechtsklick die Auswahl). Und **Seitenränder und Papierformat stehen nicht im Verlauf** — sie sitzen am `TdSection` und nicht in einer Blockliste, `TdChange` tauscht Blöcke (§4.32); ein eigener Verlaufsweg wäre eine zweite Mechanik. **Die Grenze wird benannt statt versteckt** (`Ed.Page.NoUndo`), sonst findet der Nutzer sie genau dann, wenn er sie rückgängig machen will. Absatzabstände laufen dagegen über `TdFormatEdit.Absatz` und liegen im Verlauf. **Eine Ikone im WPF-Kopf korrigiert:** Er nahm für „Inhaltsverzeichnis einfügen" dasselbe `List` wie für die Aufzählung — genau der Fehler, den §4.31 aufgeräumt hat („ein Symbol je Bedeutung"), hier stehengeblieben; **der Linux-Kopf hatte es richtig** (`Outline`), angeglichen wurde deshalb Windows. **Der Fund der Runde ist derselbe zum dritten Mal:** `NumericUpDown` zeigt seinen Wert nicht, wenn er zu schmal ist — die zwei Spinner-Knöpfe fressen die Breite, und **das Feld sieht leer aus, obwohl der Wert da ist**. Erst im Reiter „Einfügen" (§4.37), dann **erneut in der neuen Seitenleiste**, wo vier Felder in zwei Spalten standen. Behoben (Ränder untereinander, Leiste 280 statt 248) und jedes Mal nachgesehen. **Der Zusatz zur alten Lehre: Es genügt nicht, einen Fund zu beheben — man muss danach suchen, wo derselbe Fehler noch einmal steht. Die zweite Stelle entstand in derselben Runde wie die Behebung der ersten** |
 | V2-50 | 2026-08-17 | **Die Sichtprüfung von §4.36 und §4.37 nachgeholt — in beiden Köpfen, an einer Kopie der echten Daten** (§4.37, „Die Sichtprüfung ist nachgeholt"; danach gelöscht, Dauerregel 4). **Zuerst das Werkzeug:** Die Skripte in `tools\` stellten **wieder Klicks zu**, ohne dass an ihnen etwas geändert wurde — der Befund aus V2-48/49 war **vorübergehend**, und genau das steht jetzt in §7, damit ihn niemand für dauerhaft hält. **Geprüft wurde die ganze Kette und nicht die Knöpfe einzeln:** fünf Reiter schalten um; „F" macht ein per Doppelklick gewähltes Wort fett und **zeigt sich danach gedrückt**; die Größenanzeige liest **11** ab; ein hier angelegtes Dokument bekommt **keinen** Warnstreifen; eine eingefügte Tabelle entsteht als 2×2 und **die Marke steht in der ersten Zelle** (die Regel aus §4.37, am Schirm belegt); der Reiter „Tabelle" zeigt ohne Marke darin nur seinen Satz und mit Marke seine sieben Knöpfe; aus 2×2 wird per Zeile und Spalte ein 3×3; ein Verweis lässt sich setzen, und beim Herausklicken wird das Feld leer und „Setzen"/„Entfernen" grau, beim Hineinklicken **steht das Ziel wieder da**. **Die eigentliche Gegenprobe geht auf:** Dasselbe Dokument im **WPF-Editor** geöffnet zeigt die vom Linux-Kopf angelegte **3×3-Tabelle**, „Hallo" **fett** und den Verweis **blau unterstrichen** — Tabelle, Zeichenformat und Verweis stehen also wirklich im Modell, und der andere Kopf liest sie. Danach dort gespeichert und zurückgewechselt: **der Warnstreifen steht** („Windows edition leads — Anything written here is lost as soon as this document is saved in the Windows edition"), und er war vorher nicht da. **§5 „Noch offen" 9 ist damit nicht nur gebaut, sondern gesehen.** **Zwei Funde, die nur der Schirm liefern konnte:** (1) Die zwei `NumericUpDown` zeigten ihren **Wert nicht** — bei `Width="86"` fressen die Spinner-Knöpfe die Breite; **am Bild sahen die Felder leer aus**, und dass sie ihren Wert trotzdem hatten, hat erst die eingefügte Tabelle gezeigt (sie kam als 2×2 heraus). Auf 130 verbreitert und **nachgesehen**. Kein Wächter kann das sehen — die Zahl war ja richtig; derselbe Satz wie in §4.28 und §4.35. (2) ⚠ **Der Weg durch den WPF-Editor setzt den Absatz auf Blocksatz** — vorher war „linksbündig" gedrückt, danach „Blocksatz"; die Übernahme `Rtf → Model` schreibt also eine Ausrichtung ins Modell, die vorher nicht dastand. **Nicht in dieser Runde entstanden und nicht hier behoben** — es ist Arbeit an der Übernahme und gehört zu **Schritt 7**, wo es jetzt vermerkt ist. **▶ Dran ist Schritt 6a (`TextInputMethodClient`), danach ist der Laptop fällig** |
 | V2-49 | 2026-08-17 | **Die drei Reiter — Schritt 6 ist damit ganz** (§4.37). `Core/Text/TdBlockEdit.cs` und `Core/Text/TdTableEdit.cs` neu, `TdFormatEdit.Verweis` dazu, `Views/TextDocView.Reiter.cs` im Kopf; **30 Wächter**, **754 Tests** grün, Bau 0/0. **Einfügen** (Seitenumbruch, Zeilenumbruch, Tabelle, Felder), **Verweise** (setzen/entfernen, Inhaltsverzeichnis) und **Tabelle** (Zeile/Spalte einfügen und löschen, Tabelle löschen) stehen. **Die Entscheidung der Runde ist eine Nicht-Erweiterung: `TdFragment` bekommt keine Blöcke.** Ein Fragment beschreibt „Absätze voller Stücke" (§4.32) — ein Seitenumbruch ist keiner davon, sondern steht **zwischen** ihnen. Erweitert man es, trägt **jeder Tastendruck** eine Möglichkeit mit sich, die er nie braucht, und `Ersetzen` bekommt einen Zweig, den nur eine Datei auslöst; ein eigener Handgriff daneben ist billiger als ein Sonderfall darin. `TdBlockEdit.Einfuegen` bleibt trotzdem derselbe Gedanke: Auswahl weg, Absatz geteilt, Blöcke dazwischen — womit „Seitenumbruch einfügen" dasselbe ist wie „Tabelle einfügen". **Zwei nicht offensichtliche Regeln:** die Marke landet im ersten Absatz **innerhalb** des Eingefügten (bei einer Tabelle also in der ersten Zelle, wie in Word) — **eine** Regel statt einer Fallunterscheidung nach Blockart; und **beide Hälften bleiben stehen, auch leere**, sonst verschluckt ein Seitenumbruch am Absatzanfang den Absatz und eine Tabelle als erster Block wird unerreichbar. **Bei Tabellen wird durchweg in Rasterspalten gerechnet und nicht in Zellindizes:** Eine Zelle über zwei Spalten belegt zwei Rasterplätze, steht aber einmal in der Zeile (DOCX' Sicht, §4.19) — daraus folgt, dass eine neue Zeile so viele Zellen bekommt, wie die Vorlage **Rasterspalten** belegt, und dass eine neue Spalte mitten in einer verbundenen Zelle diese **breiter** macht statt sie zu zerschneiden (zerschneiden hieße entscheiden, welche Hälfte den Inhalt behält). Eine Tabellenänderung ist ein **Blocktausch** und fällt damit unter dieselbe `TdChange` wie alles andere; die Absätze in den Zellen werden weitergereicht, nicht verdoppelt. **Der Fund der Runde kam wieder aus dem Erproben der Wächter, und er ist neu:** Die Mutation „`Kopie` reicht dieselben Zeilenobjekte weiter" machte nur den *Rücknahme*-Wächter rot — **`Die_alte_Tabelle_bleibt_unveraendert` blieb grün**, weil er nach einem `ZeileEinfuegen` nur `Rows.Count` prüfte und eine neue Zeilenliste mit alten Zeilen darin beim Zählen der Zeilen nicht auffällt. Erst ein Handgriff, der **in** eine Zeile greift (Spalte einfügen), macht es sichtbar; der Wächter prüft seitdem beides. **Zum vierten Mal dieselbe Regel nach §4.30, §4.32 und §4.33 — mit einem Zusatz: es genügt nicht, den richtigen Gegenstand zu prüfen, man muss ihn mit dem Handgriff prüfen, der ihn anfasst.** **Zwei Stellen lösen anders als der Windows-Kopf, beide begründet:** die Tabellengröße kommt aus **zwei Zahlen** statt aus einem aufgezogenen Gitter (das hängt an einem Schwebe-Zustand, den in dieser Sitzung niemand gegenprüfen konnte), und das **Verweisziel steht als Feld in der Leiste** statt in einem Dialog (der Naht fehlt „frag nach Text", und das Feld macht aus einfügen und bearbeiten denselben Handgriff). Der Reiter „Tabelle" ist immer da, seine Knöpfe nicht — außerhalb einer Tabelle steht dort ein Satz statt ausgegrauter Flächen (§4.28). **Benannt ausgelassen:** Zellen verbinden und teilen (was geschieht mit dem Inhalt der aufgehenden Zellen? — geraten wäre es Datenverlust), Bilder (Phase 4.5), Beschriftungen und Fußnoten. **⚠ Auch diese Runde ist nicht am laufenden Programm gesehen worden**, aus demselben Werkzeuggrund wie V2-48 — **die Sichtprüfung steht jetzt für §4.36 und §4.37 zusammen aus** und ist der erste Punkt der nächsten Runde (§5e) |
 | V2-48 | 2026-08-17 | **Formate setzen — Schritt 6, erste Hälfte — und die Warnung aus §5 Nr. 9** (§4.36). Zwei neue Dateien in Core (`TdFuehrung.cs`, `TdFormatEdit.cs`), eine im Kopf (`TextDocView.Format.cs`), die Formatgruppe im Ribbon; **31 Wächter**, **724 Tests** grün, Bau 0/0. **Beide offenen Entscheidungen wurden dem Nutzer vorgelegt und sind gefallen:** §5 Nr. 9 → **(b) warnen, nicht sperren**; §5 Nr. 10 → **(a) `TextInputMethodClient`, aber nach Schritt 6**. **Die Warnung** steht als Streifen über dem Blatt, wenn `Rtf` gefüllt ist — und dabei ist die Regel „wer voll ist, führt" zum ersten Mal **benannt** worden: Sie stand an drei Stellen als roher Längenvergleich, jetzt in `TdFuehrung` mit **zwei** Fragen, die nicht dasselbe sind (`AltformatFuehrt` / `UebernahmeStehtAus`). **Der naheliegende Fehler wäre gewesen, sie zusammenfallen zu lassen — und zwar genau falsch herum:** Ein übernommenes Bestandsdokument hat *beide* Felder gefüllt, und das ist der **gefährliche** Fall; eine Warnung, die nur bei leerem `Model` anschlüge, schwiege ausgerechnet bei jedem echten Dokument. **Formatieren läuft ausdrücklich nicht über `TdEdit.Ersetzen`**, obwohl es zunächst danach aussieht, und zwar mit zwei Gründen: `Ersetzen` gäbe den **Zwischenabsätzen** einer mehrabsätzigen Auswahl das Absatzformat des ersten (die Word-Regel fürs Verbinden, §4.32 — beim Fettmachen über drei Absätze verlöre der mittlere still seine Gestalt), und als Art käme **`Tippen`** heraus, womit `TdUndo` das Fettmachen mit dem Wort davor zu **einem** Schritt zöge (§4.33). Formatieren ist `Struktur`. Geteilt wird trotzdem, was wirklich geteilt gehört: `TdEdit.Bereich`, `.Teil` und `.Aufraeumen` sind `internal` geworden. **Die Regel aus §4.32 wird hier zum ersten Mal ernst** — sie hatte diese Stelle wörtlich vorhergesagt („wer beim Fettmachen ein `TdCharFormat` an Ort und Stelle umstellt …"); jedes berührte Stück bekommt deshalb eine **Kopie** (`TdInline.MitFormat`), und **zwei Wächter fragen das alte Stück selbst**, weil der Fehler am Abbild des Dokuments nicht zu sehen wäre. **Drei Entscheidungen:** der Handgriff sieht **zwei** Formate (Abweichung zum Schreiben, aufgelöst zum Nachsehen — ohne das setzte „eine Stufe größer" über Überschrift und Fließtext beide auf dieselbe Zahl); **ausgeschaltet wird zu `false` und nicht zu `null`**, sonst erbte ein Wort in einer fetten Überschrift das Fett sofort wieder und der Klick täte sichtbar nichts (Word schreibt dort `w:val="0"`); und **uneinig ist eine dritte Antwort** — `Gemeinsam` liefert `null`, wo die Auswahl sich nicht einig ist, die Schalter sind dreiwertig. **Umgeschaltet wird gegen das Modell und nicht gegen den Knopf**: Avalonias `ToggleButton` hat bei `Click` schon gewechselt und läuft bei `IsThreeState` im Kreis. **Vor dem Bauen geprüft, ob der Zeichner kann, was die Knöpfe versprechen** (die Lehre aus §4.26) — `TdRenderer` malt Unterstrich, Durchstreichung und versetzt die Grundlinie, `TdLayout` kennt `Alignment` und `LeftIndentCm`. **Benannt ausgelassen statt halb gebaut** (§4.28): Schriftartenliste (es gibt keine Naht für den **Bestand** der Familien, nur für das Schema), Textfarbe/Hervorhebung, ein gemerktes Format für das nächste Zeichen, und die drei Reiter „Einfügen"/„Verweise"/„Tabelle" — sie brauchen je eine Core-Rechnung, die es noch nicht gibt (Blöcke einfügen, einen Verweis um eine Auswahl legen, Tabellen bearbeiten). **⚠ Der offene Punkt der Runde ist eine Nicht-Prüfung:** Am laufenden Programm ist **nichts** davon gesehen worden — die Skripte in `tools\` stellten aus dieser Sitzung heraus **keine Klicks** zu. `schau.ps1` fotografiert richtig, `SetCursorPos` bewegt den Zeiger nachweislich (151,1764 → 600,900 abgefragt), `SendInput` meldet zwei angenommene Ereignisse — und im Kopf kommt nichts an, auch ohne Sandbox nicht. **Werkzeugbefund, nicht App-Befund**, genau die Trennung aus §4.35; die Kopie der echten Datenbank ist danach gelöscht worden (Dauerregel 4). **Die Sichtprüfung steht damit aus und ist der erste Punkt der nächsten Runde** (§5e) |

@@ -164,45 +164,6 @@
                         </Button.Flyout>
                     </Button>
 
-                    <Border Classes="trenner"/>
-
-                    <Button Classes="flach symbol" Click="ZoomRaus_Click" ToolTip.Tip="{loc:T Zoom.Out}">
-                        <views:Symbol Icon="ZoomOut"
-                              Stroke="{DynamicResource Brush.Text}"/>
-                    </Button>
-                    <Button x:Name="ZoomAnzeige" Classes="flach" MinWidth="52" Content="100 %"
-                            FontSize="12" Click="ZoomZurueck_Click" ToolTip.Tip="{loc:T Zoom.Reset}"
-                            Foreground="{DynamicResource Brush.TextMuted}"/>
-                    <Button Classes="flach symbol" Click="ZoomRein_Click" ToolTip.Tip="{loc:T Zoom.In}">
-                        <views:Symbol Icon="ZoomIn"
-                              Stroke="{DynamicResource Brush.Text}"/>
-                    </Button>
-
-                    <Border Classes="trenner"/>
-
-                    <Button Classes="ribbonknopf" Click="Seitenbreite_Click"
-                            ToolTip.Tip="{loc:T Ed.FitWidth.Tip}">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <views:Symbol Icon="FitWidth"
-                                  Stroke="{DynamicResource Brush.Text}"/>
-                            <TextBlock Text="{loc:T Ed.FitWidth}" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
-                    <Button Classes="ribbonknopf" Click="GanzeSeite_Click"
-                            ToolTip.Tip="{loc:T Ed.FitPage.Tip}">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <views:Symbol Icon="FitPage"
-                                  Stroke="{DynamicResource Brush.Text}"/>
-                            <TextBlock Text="{loc:T Ed.FitPage}" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
-
-                    <Border Classes="trenner"/>
-
-                    <!-- Wörter und Zeichen: dieselbe Angabe wie in der Statusleiste des
-                         WPF-Editors, hier aus dem Modell gezählt statt aus dem FlowDocument. -->
-                    <TextBlock x:Name="Zaehlung" VerticalAlignment="Center" FontSize="12"
-                               Foreground="{DynamicResource Brush.TextMuted}"/>
                 </WrapPanel>
 
                 <!-- ============ Reiter „Einfügen" ============ -->
@@ -223,28 +184,44 @@
 
                     <Border Classes="trenner"/>
 
-                    <!-- Tabelle: **zwei Zahlen und ein Knopf, kein Raster zum Aufziehen.**
-                         Drüben zieht man die Größe in einem Gitter auf; das ist schöner und
-                         hängt an einem Schwebe-Zustand, den hier niemand gegenprüfen konnte
-                         (§4.37). Zwei Zahlen sagen dasselbe und können nicht halb funktionieren. -->
-                    <TextBlock Text="{loc:T Ed.Table.Rows}" VerticalAlignment="Center"
-                               FontSize="12" Margin="0,0,4,0"
-                               Foreground="{DynamicResource Brush.TextMuted}"/>
-                    <NumericUpDown x:Name="TabelleZeilen" Value="2" Minimum="1" Maximum="50"
-                                   Increment="1" FormatString="0" Width="130"
-                                   VerticalAlignment="Center"/>
-                    <TextBlock Text="{loc:T Ed.Table.Columns}" VerticalAlignment="Center"
-                               FontSize="12" Margin="8,0,4,0"
-                               Foreground="{DynamicResource Brush.TextMuted}"/>
-                    <NumericUpDown x:Name="TabelleSpalten" Value="2" Minimum="1" Maximum="20"
-                                   Increment="1" FormatString="0" Width="130"
-                                   VerticalAlignment="Center"/>
-                    <Button Classes="ribbonknopf" Margin="4,0,0,0" Click="TabelleEinfuegen_Click"
-                            ToolTip.Tip="{loc:T Ed.Table.Insert}">
+                    <!-- Tabelle. **Die Größe steht im Flyout und nicht in der Leiste** (§4.38):
+                         Eine Werkzeugleiste trägt Werkzeuge, keine Einstellungen zu ihnen — zwei
+                         Zahlenfelder, die dauerhaft danebenstehen, sind eine Einstellung, die
+                         man neunundneunzig Mal sieht und einmal braucht. Drüben löst es ein
+                         Raster zum Aufziehen; zwei Zahlen sagen dasselbe und hängen nicht an
+                         einem Schwebe-Zustand. -->
+                    <Button Classes="ribbonknopf" ToolTip.Tip="{loc:T Ed.Table.Insert}">
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <views:Symbol Icon="Table" Stroke="{DynamicResource Brush.Text}"/>
                             <TextBlock Text="{loc:T Ed.Table.Insert}" VerticalAlignment="Center"/>
+                            <views:Symbol Icon="ChevronDown" Size="10"
+                                          Stroke="{DynamicResource Brush.TextMuted}"/>
                         </StackPanel>
+                        <Button.Flyout>
+                            <Flyout Placement="BottomEdgeAlignedLeft">
+                                <StackPanel Width="220" Spacing="8">
+                                    <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto"
+                                          ColumnSpacing="8" RowSpacing="6">
+                                        <TextBlock Grid.Row="0" Grid.Column="0" FontSize="12"
+                                                   VerticalAlignment="Center"
+                                                   Text="{loc:T Ed.Table.Rows}"/>
+                                        <NumericUpDown Grid.Row="0" Grid.Column="1"
+                                                       x:Name="TabelleZeilen" Value="2" Minimum="1"
+                                                       Maximum="50" Increment="1" FormatString="0"/>
+                                        <TextBlock Grid.Row="1" Grid.Column="0" FontSize="12"
+                                                   VerticalAlignment="Center"
+                                                   Text="{loc:T Ed.Table.Columns}"/>
+                                        <NumericUpDown Grid.Row="1" Grid.Column="1"
+                                                       x:Name="TabelleSpalten" Value="2" Minimum="1"
+                                                       Maximum="20" Increment="1" FormatString="0"/>
+                                    </Grid>
+                                    <Button Classes="ribbonknopf" HorizontalAlignment="Stretch"
+                                            HorizontalContentAlignment="Center"
+                                            Click="TabelleEinfuegen_Click"
+                                            Content="{loc:T Ed.Table.Insert}"/>
+                                </StackPanel>
+                            </Flyout>
+                        </Button.Flyout>
                     </Button>
 
                     <Border Classes="trenner"/>
@@ -270,25 +247,58 @@
                     </Button>
                 </WrapPanel>
 
-                <!-- ============ Reiter „Layout": die Seiteneinrichtung, abgelesen ============ -->
-                <!-- **Nur ablesen, nicht stellen.** Die Werte stehen im Abschnitt
-                     (`TdSection.Page`, §4.15); sie zu ändern hieße das Dokument zu ändern,
-                     und dafür fehlt der Schreibweg. Angezeigt werden sie trotzdem: sie
-                     erklären den Umbruch, den man daneben sieht. -->
+                <!-- ============ Reiter „Layout" ============ -->
+                <!-- **Seit §4.38 wird hier gestellt und nicht mehr nur abgelesen.** Was oft
+                     gebraucht wird, steht in der Leiste (Format, Ausrichtung); was selten
+                     gebraucht wird und viele Zahlen hat, wandert in die **Seitenleiste rechts**
+                     — genau die Aufteilung des WPF-Kopfs („Detaileinstellungen wandern in die
+                     Seitenleiste rechts"). Damit steht in der Werkzeugleiste kein Zahlenfeld
+                     mehr. -->
                 <WrapPanel x:Name="LeisteLayout" Margin="8,2,8,6" IsVisible="False">
-                    <StackPanel Margin="0,0,18,0">
-                        <TextBlock Classes="feldname" Text="{loc:T Ed.Layout.PaperSize}"/>
-                        <TextBlock x:Name="FeldFormat" Classes="feldwert"/>
-                    </StackPanel>
-                    <StackPanel Margin="0,0,18,0">
-                        <TextBlock Classes="feldname" Text="{loc:T Settings.Page.Orientation}"/>
-                        <TextBlock x:Name="FeldLage" Classes="feldwert"/>
-                    </StackPanel>
-                    <StackPanel Margin="0,0,18,0">
-                        <TextBlock Classes="feldname" Text="{loc:T Ed.Layout.Margins}"/>
-                        <TextBlock x:Name="FeldRaender" Classes="feldwert"/>
-                    </StackPanel>
-                    <StackPanel Margin="0,0,18,0">
+                    <TextBlock Text="{loc:T Ed.Layout.Format}" VerticalAlignment="Center"
+                               FontSize="12" Margin="0,0,6,0"
+                               Foreground="{DynamicResource Brush.TextMuted}"/>
+                    <ComboBox x:Name="FormatWahl" Width="120" VerticalAlignment="Center"
+                              FontSize="12" SelectionChanged="Papierformat_Gewechselt"
+                              ToolTip.Tip="{loc:T Ed.Layout.PaperSize}">
+                        <ComboBoxItem Content="A4" Tag="A4"/>
+                        <ComboBoxItem Content="A5" Tag="A5"/>
+                        <ComboBoxItem Content="A3" Tag="A3"/>
+                        <ComboBoxItem Content="{loc:T Ed.Layout.Letter}" Tag="Letter"/>
+                    </ComboBox>
+
+                    <ToggleButton x:Name="SchalterHoch2" Classes="ribbonschalter" Margin="8,0,0,0"
+                                  Click="Ausrichtung_Click" Tag="P"
+                                  ToolTip.Tip="{loc:T Ed.Layout.Portrait}"
+                                  Content="{loc:T Ed.Layout.Portrait.Short}"/>
+                    <ToggleButton x:Name="SchalterQuer" Classes="ribbonschalter"
+                                  Click="Ausrichtung_Click" Tag="L"
+                                  ToolTip.Tip="{loc:T Ed.Layout.Landscape}"
+                                  Content="{loc:T Ed.Layout.Landscape.Short}"/>
+
+                    <Border Classes="trenner"/>
+
+                    <Button Classes="ribbonknopf" Click="Raender_Click"
+                            ToolTip.Tip="{loc:T Ed.Layout.Margins.Tip}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <views:Symbol Icon="Margins" Stroke="{DynamicResource Brush.Text}"/>
+                            <TextBlock Text="{loc:T Ed.Layout.Margins}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Classes="ribbonknopf" Click="Abstaende_Click"
+                            ToolTip.Tip="{loc:T Ed.Layout.Spacing.Tip}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <views:Symbol Icon="LineSpacing" Stroke="{DynamicResource Brush.Text}"/>
+                            <TextBlock Text="{loc:T Ed.Layout.Spacing}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Border Classes="trenner"/>
+
+                    <!-- Kopf- und Fußzeile bleiben vorerst eine **Auskunft** und kein Knopf:
+                         Sie zu bearbeiten braucht einen eigenen Weg, den es noch nicht gibt
+                         (§6). Was dasteht, erklärt den Umbruch, den man daneben sieht. -->
+                    <StackPanel VerticalAlignment="Center">
                         <TextBlock Classes="feldname" Text="{loc:T Ed.HeaderFooter}"/>
                         <TextBlock x:Name="FeldKopfFuss" Classes="feldwert"/>
                     </StackPanel>
@@ -332,10 +342,22 @@
                         </StackPanel>
                     </Button>
 
-                    <TextBlock Text="{loc:T Ed.References.Note}" TextWrapping="Wrap"
-                               MaxWidth="420" FontSize="11" VerticalAlignment="Center"
-                               Margin="12,0,0,0"
-                               Foreground="{DynamicResource Brush.TextMuted}"/>
+                    <!-- **Der Hinweis steht hinter einem „i" und nicht als Fließtext daneben**
+                         (§4.38, wie im WPF-Kopf): Ein Satz, der immer dasteht, wird nach dem
+                         dritten Mal nicht mehr gelesen und nimmt der Leiste die Hälfte ihrer
+                         Breite. Er erscheint beim Schweben **und** beim Anklicken — Schweben
+                         allein hilft dem nicht, der mit dem Stift arbeitet. -->
+                    <Button Classes="flach symbol" ToolTip.Tip="{loc:T Ed.References.Note}"
+                            ToolTip.ShowDelay="150"
+                            ToolTip.Placement="BottomEdgeAlignedLeft">
+                        <views:Symbol Icon="Info" Stroke="{DynamicResource Brush.TextMuted}"/>
+                        <Button.Flyout>
+                            <Flyout Placement="BottomEdgeAlignedLeft">
+                                <TextBlock Text="{loc:T Ed.References.Note}" TextWrapping="Wrap"
+                                           MaxWidth="360" FontSize="12"/>
+                            </Flyout>
+                        </Button.Flyout>
+                    </Button>
                 </WrapPanel>
 
                 <!-- ============ Reiter „Tabelle" ============ -->
@@ -379,6 +401,19 @@
                         <Button Classes="ribbonknopf" Click="TabelleWeg_Click">
                             <TextBlock Text="{loc:T Ed.Table.Delete}" VerticalAlignment="Center"/>
                         </Button>
+
+                        <!-- <inheritdoc/> — dasselbe „i" wie im Reiter „Verweise". -->
+                        <Button Classes="flach symbol" ToolTip.Tip="{loc:T Ed.Table.Note}"
+                                ToolTip.ShowDelay="150"
+                                ToolTip.Placement="BottomEdgeAlignedLeft">
+                            <views:Symbol Icon="Info" Stroke="{DynamicResource Brush.TextMuted}"/>
+                            <Button.Flyout>
+                                <Flyout Placement="BottomEdgeAlignedLeft">
+                                    <TextBlock Text="{loc:T Ed.Table.Note}" TextWrapping="Wrap"
+                                               MaxWidth="360" FontSize="12"/>
+                                </Flyout>
+                            </Button.Flyout>
+                        </Button>
                     </StackPanel>
                 </WrapPanel>
 
@@ -418,25 +453,160 @@
             </StackPanel>
         </Border>
 
-        <!-- ==================== Seitenleiste unten ==================== -->
-        <!-- Sie verschwindet mit den Seiten: „Zurück / Vor" über einem Dokument, das gar
-             nicht angezeigt wird, sind zwei Knöpfe, die nichts tun können. -->
+        <!-- ==================== Einstellungs-Seitenleiste (rechts) ==================== -->
+        <!-- **Sie trägt, was nicht in eine Werkzeugleiste gehört** (§4.38): viele Zahlen, selten
+             gebraucht, mit Beschriftung. Dasselbe Muster wie im WPF-Kopf (`SettingsPanel`) —
+             und derselbe Grund: Eine Werkzeugleiste trägt Werkzeuge; Einstellungen zu ihnen
+             machen sie unlesbar und stehen dann neunundneunzigmal da, wenn man sie einmal
+             braucht.
+
+             **Sichtbar ist immer nur der Abschnitt, den man geöffnet hat** — wer auf „Ränder"
+             drückt, will Ränder sehen und nicht eine Liste aller Möglichkeiten. -->
+        <!-- **280 und nicht 248 wie drüben:** Ein `NumericUpDown` trägt zwei Spinner-Knöpfe, und
+             die fressen die Breite, bevor die Zahl drankommt (§4.38, derselbe Fund zweimal). Der
+             WPF-Kopf kommt mit 248 aus, weil er dort schlichte Textfelder benutzt. -->
+        <Border x:Name="Einstellungen" DockPanel.Dock="Right" Width="280" IsVisible="False"
+                Background="{DynamicResource Brush.SidebarBg}"
+                BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1,0,0,0">
+            <DockPanel>
+                <Grid DockPanel.Dock="Top" Margin="12,10,8,6">
+                    <TextBlock x:Name="EinstellungenTitel" FontWeight="SemiBold" FontSize="14"
+                               VerticalAlignment="Center"
+                               Foreground="{DynamicResource Brush.Text}"/>
+                    <Button Classes="flach symbol" HorizontalAlignment="Right"
+                            Click="EinstellungenZu_Click" ToolTip.Tip="{loc:T Window.Close}">
+                        <views:Symbol Icon="Close" Size="12"
+                                      Stroke="{DynamicResource Brush.TextMuted}"/>
+                    </Button>
+                </Grid>
+
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="12,0,12,12" Spacing="10">
+
+                        <!-- Seitenränder. -->
+                        <StackPanel x:Name="AbschnittRaender" IsVisible="False" Spacing="6">
+                            <!-- **Untereinander und nicht zu zweit nebeneinander.** Vier Felder
+                                 in zwei Spalten passen in 280 Pixel nicht: Was übrig bleibt,
+                                 reicht für die Spinner-Knöpfe und nicht mehr für die Zahl. -->
+                            <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto"
+                                  ColumnSpacing="8" RowSpacing="6">
+                                <TextBlock Grid.Row="0" Grid.Column="0" Classes="feldname"
+                                           VerticalAlignment="Center" Text="{loc:T Ed.Margins.Left}"/>
+                                <NumericUpDown Grid.Row="0" Grid.Column="1" x:Name="RandLinks"
+                                               Minimum="0" Maximum="10" Increment="0.5"
+                                               FormatString="0.0#" ValueChanged="Rand_Geaendert"/>
+                                <TextBlock Grid.Row="1" Grid.Column="0" Classes="feldname"
+                                           VerticalAlignment="Center" Text="{loc:T Ed.Margins.Top}"/>
+                                <NumericUpDown Grid.Row="1" Grid.Column="1" x:Name="RandOben"
+                                               Minimum="0" Maximum="10" Increment="0.5"
+                                               FormatString="0.0#" ValueChanged="Rand_Geaendert"/>
+                                <TextBlock Grid.Row="2" Grid.Column="0" Classes="feldname"
+                                           VerticalAlignment="Center" Text="{loc:T Ed.Margins.Right}"/>
+                                <NumericUpDown Grid.Row="2" Grid.Column="1" x:Name="RandRechts"
+                                               Minimum="0" Maximum="10" Increment="0.5"
+                                               FormatString="0.0#" ValueChanged="Rand_Geaendert"/>
+                                <TextBlock Grid.Row="3" Grid.Column="0" Classes="feldname"
+                                           VerticalAlignment="Center" Text="{loc:T Ed.Margins.Bottom}"/>
+                                <NumericUpDown Grid.Row="3" Grid.Column="1" x:Name="RandUnten"
+                                               Minimum="0" Maximum="10" Increment="0.5"
+                                               FormatString="0.0#" ValueChanged="Rand_Geaendert"/>
+                            </Grid>
+                            <TextBlock Classes="feldname" Text="{loc:T Ed.Margins.Unit}"/>
+                            <TextBlock Classes="feldname" TextWrapping="Wrap"
+                                       Text="{loc:T Ed.Page.NoUndo}"/>
+                        </StackPanel>
+
+                        <!-- Absatzabstände. -->
+                        <StackPanel x:Name="AbschnittAbstaende" IsVisible="False" Spacing="6">
+                            <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto"
+                                  ColumnSpacing="6" RowSpacing="6">
+                                <TextBlock Grid.Row="0" Grid.Column="0" Classes="feldname"
+                                           VerticalAlignment="Center" Text="{loc:T Ed.Spacing.Before}"/>
+                                <NumericUpDown Grid.Row="0" Grid.Column="1" x:Name="AbstandDavor"
+                                               Width="150" Minimum="0" Maximum="200" Increment="2"
+                                               FormatString="0.#" ValueChanged="Abstand_Geaendert"/>
+                                <TextBlock Grid.Row="1" Grid.Column="0" Classes="feldname"
+                                           VerticalAlignment="Center" Text="{loc:T Ed.Spacing.After}"/>
+                                <NumericUpDown Grid.Row="1" Grid.Column="1" x:Name="AbstandDanach"
+                                               Width="150" Minimum="0" Maximum="200" Increment="2"
+                                               FormatString="0.#" ValueChanged="Abstand_Geaendert"/>
+                                <TextBlock Grid.Row="2" Grid.Column="0" Classes="feldname"
+                                           VerticalAlignment="Center" Text="{loc:T Ed.Spacing.Line}"/>
+                                <ComboBox Grid.Row="2" Grid.Column="1" x:Name="Zeilenabstand"
+                                          Width="150" FontSize="12"
+                                          SelectionChanged="Zeilenabstand_Gewechselt">
+                                    <ComboBoxItem Content="1,0" Tag="1.0"/>
+                                    <ComboBoxItem Content="1,15" Tag="1.15"/>
+                                    <ComboBoxItem Content="1,5" Tag="1.5"/>
+                                    <ComboBoxItem Content="2,0" Tag="2.0"/>
+                                </ComboBox>
+                            </Grid>
+                            <TextBlock Classes="feldname" Text="{loc:T Ed.Spacing.Unit}"/>
+                            <TextBlock Classes="feldname" TextWrapping="Wrap"
+                                       Text="{loc:T Ed.Spacing.Scope}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </DockPanel>
+        </Border>
+
+        <!-- ==================== Statusleiste unten ==================== -->
+        <!-- **Alles, was die Ansicht betrifft und nicht das Dokument, steht hier** — Zählung,
+             Seitenzahl, Zoom und die zwei Einpassungen. Bis §4.38 saßen Zoom, Seitenbreite,
+             Ganze Seite und die Zählung im Reiter „Start" (§4.28); dort waren sie
+             **Einstellungen zwischen Werkzeugen**, und der Reiter, der Text formatiert, trug
+             drei Knöpfe, die den Text nicht anfassen. Der WPF-Kopf hält es seit jeher so:
+             Zählung links, Zoom rechts (`TextEditorView.xaml`, „Statusleiste").
+
+             Sie verschwindet mit den Seiten: „Zurück / Vor" über einem Dokument, das gar nicht
+             angezeigt wird, sind zwei Knöpfe, die nichts tun können. -->
         <Border x:Name="Seitenleiste" DockPanel.Dock="Bottom" IsVisible="False"
                 Background="{DynamicResource Brush.ToolbarBg}"
-                BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,1,0,0">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="8,4" Spacing="2">
-                <Button Classes="flach symbol" Click="SeiteZurueck_Click" ToolTip.Tip="{loc:T Page.Previous}">
-                    <views:Symbol Icon="ChevronLeft"
-                          Stroke="{DynamicResource Brush.Text}"/>
-                </Button>
-                <TextBlock x:Name="SeitenAnzeige" VerticalAlignment="Center" MinWidth="110"
-                           TextAlignment="Center" FontSize="12"
-                           Foreground="{DynamicResource Brush.TextMuted}"/>
-                <Button Classes="flach symbol" Click="SeiteVor_Click" ToolTip.Tip="{loc:T Page.Next}">
-                    <views:Symbol Icon="ChevronRight"
-                          Stroke="{DynamicResource Brush.Text}"/>
-                </Button>
-            </StackPanel>
+                BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,1,0,0"
+                Padding="10,3">
+            <DockPanel>
+                <!-- Wörter und Zeichen: dieselbe Angabe wie in der Statusleiste des
+                     WPF-Editors, hier aus dem Modell gezählt statt aus dem FlowDocument. -->
+                <TextBlock x:Name="Zaehlung" DockPanel.Dock="Left" VerticalAlignment="Center"
+                           FontSize="12" Foreground="{DynamicResource Brush.TextMuted}"/>
+
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="2">
+                    <Button Classes="flach symbol" Click="Seitenbreite_Click"
+                            ToolTip.Tip="{loc:T Ed.FitWidth.Tip}">
+                        <views:Symbol Icon="FitWidth" Stroke="{DynamicResource Brush.Text}"/>
+                    </Button>
+                    <Button Classes="flach symbol" Click="GanzeSeite_Click"
+                            ToolTip.Tip="{loc:T Ed.FitPage.Tip}">
+                        <views:Symbol Icon="FitPage" Stroke="{DynamicResource Brush.Text}"/>
+                    </Button>
+
+                    <Border Classes="trenner"/>
+
+                    <Button Classes="flach symbol" Click="ZoomRaus_Click" ToolTip.Tip="{loc:T Zoom.Out}">
+                        <views:Symbol Icon="ZoomOut" Stroke="{DynamicResource Brush.Text}"/>
+                    </Button>
+                    <Button x:Name="ZoomAnzeige" Classes="flach" MinWidth="52" Content="100 %"
+                            FontSize="12" Click="ZoomZurueck_Click" ToolTip.Tip="{loc:T Zoom.Reset}"
+                            Foreground="{DynamicResource Brush.TextMuted}"/>
+                    <Button Classes="flach symbol" Click="ZoomRein_Click" ToolTip.Tip="{loc:T Zoom.In}">
+                        <views:Symbol Icon="ZoomIn" Stroke="{DynamicResource Brush.Text}"/>
+                    </Button>
+                </StackPanel>
+
+                <!-- Die Seitenzahl bleibt mittig, wie bisher — sie gehört zum Blättern und
+                     nicht zu einer der beiden Seiten. -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="2">
+                    <Button Classes="flach symbol" Click="SeiteZurueck_Click" ToolTip.Tip="{loc:T Page.Previous}">
+                        <views:Symbol Icon="ChevronLeft" Stroke="{DynamicResource Brush.Text}"/>
+                    </Button>
+                    <TextBlock x:Name="SeitenAnzeige" VerticalAlignment="Center" MinWidth="110"
+                               TextAlignment="Center" FontSize="12"
+                               Foreground="{DynamicResource Brush.TextMuted}"/>
+                    <Button Classes="flach symbol" Click="SeiteVor_Click" ToolTip.Tip="{loc:T Page.Next}">
+                        <views:Symbol Icon="ChevronRight" Stroke="{DynamicResource Brush.Text}"/>
+                    </Button>
+                </StackPanel>
+            </DockPanel>
         </Border>
 
         <!-- ==================== Die Blätter ==================== -->
@@ -446,6 +616,12 @@
                  Sichtfenster steht (siehe TextDocView.axaml.cs, `Sichtbar`). -->
             <ScrollViewer x:Name="Blaetter" Background="{DynamicResource Brush.CanvasBg}"
                           HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                <!-- Das Menü der rechten Maustaste steht **im Code** (TextDocView.Reiter.cs,
+                     `TabellenmenueZeigen`) und nicht hier: Avalonias `MenuFlyout` nimmt weder
+                     einen Namen noch ein abbrechbares `Opening`, und „gar nicht öffnen, wenn die
+                     Marke in keiner Tabelle steht" ist genau ein Abbruch. Dasselbe Muster wie
+                     `MainWindow.ShowGalleryMenu` — und dieselbe Falle: die Beschriftungen müssen
+                     über `Loc.T` gehen, sonst stehen sie für immer auf Deutsch (§7). -->
                 <views:SkiaCanvas x:Name="Skia"/>
             </ScrollViewer>
 

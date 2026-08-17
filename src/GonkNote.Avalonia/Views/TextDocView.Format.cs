@@ -227,6 +227,7 @@ public partial class TextDocView
             // gar nicht angezeigt wird, darf nicht die Tabellenwerkzeuge des vorigen
             // stehenlassen.
             ReiterNachziehen();
+            SeiteNachziehen();
             return;
         }
 
@@ -253,6 +254,7 @@ public partial class TextDocView
         GroesseAnzeige.Content = zeichen.FontSize is { } pt ? $"{pt:0.#}" : "–";
 
         ReiterNachziehen();
+        SeiteNachziehen();
     }
 
     private IEnumerable<ToggleButton> Formatschalter()

@@ -479,6 +479,12 @@ internal static class LocEnglish
         ["Ed.Link.Set"] = "Set",
         ["Ed.Table.NotInTable"] =
             "Put the caret inside a table — its tools appear here.",
+        // Gegenstuecke zu Ed.Page.NoUndo und Ed.Spacing.Scope in LocGerman (§4.38, siehe dort).
+        ["Ed.Page.NoUndo"] =
+            "Margins and paper size apply to the whole section and are not part of the undo " +
+            "history — undo will not bring them back.",
+        ["Ed.Spacing.Scope"] =
+            "Applies to the paragraphs the selection touches.",
         // Gegenstuecke zu Td.RtfLeads* in LocGerman (§5 „Noch offen" 9, siehe dort).
         ["Td.RtfLeads"] = "Windows edition leads",
         ["Td.RtfLeads.Text"] =

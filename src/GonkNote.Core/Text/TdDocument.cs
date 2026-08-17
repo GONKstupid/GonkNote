@@ -412,6 +412,37 @@ public sealed class TdDocument
                 if (stueck is TdImage bild) yield return bild.BlobId;
     }
 
+    /// <summary>
+    /// Der Abschnitt, in dem der <paramref name="absatzIndex"/>-te Absatz steht — <c>null</c>,
+    /// wenn es ihn nicht gibt.
+    ///
+    /// <para>
+    /// <b>Die Auskunft, die eine Oberfläche braucht, um die Seiteneinrichtung zu stellen</b>
+    /// (§4.38): Jeder Abschnitt trägt seine eigene (§4.15), und wer statt dessen
+    /// <c>Sections[0]</c> nähme, stellte beim Blättern in einem quer liegenden Abschnitt die
+    /// Ränder des ersten.
+    /// </para>
+    /// <para>
+    /// <b>Gezählt wird wie in <see cref="Paragraphs"/></b> — demselben Durchlauf, dem alle
+    /// Stellen folgen (§4.30), Tabellenzellen eingeschlossen. Eine eigene Zählung hier wäre die
+    /// zweite, die von der ersten abweicht.
+    /// </para>
+    /// </summary>
+    public TdSection? AbschnittVon(int absatzIndex)
+    {
+        if (absatzIndex < 0) return null;
+
+        int i = 0;
+        foreach (var abschnitt in Sections)
+        {
+            foreach (var block in abschnitt.Blocks)
+                foreach (var _ in AbsaetzeIn(block))
+                    if (i++ == absatzIndex) return abschnitt;
+        }
+
+        return null;
+    }
+
     /// <summary>Die Absätze eines Blocks, Tabellen eingeschlossen — auch verschachtelte.</summary>
     private static IEnumerable<TdParagraph> AbsaetzeIn(TdBlock block)
     {

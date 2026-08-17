@@ -501,6 +501,13 @@ internal static class LocGerman
         // ausgegraute Fläche aus §4.28 in groß (HANDOFF §4.37).
         ["Ed.Table.NotInTable"] =
             "Setz die Schreibmarke in eine Tabelle — dann stehen hier ihre Werkzeuge.",
+        // Zwei Sätze in der Einstellungs-Seitenleiste, die eine Grenze benennen, statt sie
+        // den Nutzer suchen zu lassen (HANDOFF §4.38).
+        ["Ed.Page.NoUndo"] =
+            "Seitenränder und Format gelten für den ganzen Abschnitt und stehen nicht im " +
+            "Verlauf — Rückgängig holt sie nicht zurück.",
+        ["Ed.Spacing.Scope"] =
+            "Gilt für die Absätze, die die Auswahl berührt.",
         // Die Warnung über dem Blatt, wenn das Altformat noch führt (HANDOFF §5 „Noch offen" 9,
         // Nutzer-Entscheidung 2026-08-16: warnen, nicht sperren).
         //

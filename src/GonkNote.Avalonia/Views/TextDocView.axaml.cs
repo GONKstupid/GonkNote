@@ -529,19 +529,18 @@ public partial class TextDocView : UserControl
             : Loc.T("Page.Label", _seite + 1, _umbruch.PageCount);
     }
 
-    /// <summary>Die Seiteneinrichtung des ersten Abschnitts, abgelesen für den Reiter „Layout".</summary>
+    /// <summary>
+    /// Die Auskunft über Kopf- und Fußzeile im Reiter „Layout".
+    /// <para>
+    /// <b>Was hier stand, ist mit §4.38 auf die Hälfte geschrumpft:</b> Format, Ausrichtung und
+    /// Ränder werden seitdem **gestellt** und nicht mehr abgelesen — sie stehen in der Leiste
+    /// und in der Seitenleiste (<c>TextDocView.Seite.cs</c>). Geblieben ist die eine Angabe, für
+    /// die es noch keinen Schreibweg gibt.
+    /// </para>
+    /// </summary>
     private void LayoutFelder(TdDocument modell)
     {
         var seite = modell.Sections.FirstOrDefault()?.Page ?? TdPageSetup.A4;
-
-        // Ein Blatt ohne benanntes Format ist kein Fehler — es hat nur keinen Namen (§4.15).
-        FeldFormat.Text = seite.Name ?? $"{seite.WidthCm:0.#} × {seite.HeightCm:0.#} cm";
-        FeldLage.Text = Loc.T(seite.IstQuerformat
-            ? "Settings.Page.Landscape"
-            : "Settings.Page.Portrait");
-        FeldRaender.Text =
-            $"{seite.MarginLeftCm:0.#} / {seite.MarginTopCm:0.#} / " +
-            $"{seite.MarginRightCm:0.#} / {seite.MarginBottomCm:0.#} cm";
 
         bool kopf = seite.HeaderText.Length > 0, fuss = seite.FooterText.Length > 0;
         FeldKopfFuss.Text = (kopf, fuss) switch

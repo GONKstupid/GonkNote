@@ -1,4 +1,4 @@
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Input;
 using Avalonia.Threading;
 using GonkNote.Core.Rendering;
@@ -403,6 +403,12 @@ public partial class TextDocView
         string text = new([.. e.Text.Where(c => !char.IsControl(c))]);
         if (text.Length == 0) return;
 
+        // **Der fertige Text verbraucht den unfertigen** (§4.43). IBus schickt zwar meist noch
+        // eine leere Vorschau hinterher, aber nicht verlässlich und nicht vor dem `commit` —
+        // ohne diese Zeile stünde die Silbe für einen Augenblick doppelt da: einmal
+        // festgeschrieben im Absatz und einmal als Auflage darüber.
+        VorschauVerwerfen();
+
         Aendern(TdEdit.Tippen(_modell!, _auswahl, text));
         e.Handled = true;
     }
@@ -691,8 +697,13 @@ public partial class TextDocView
     /// </summary>
     private void MarkeTakten()
     {
-        if (_markierung is not null)
-            _markierung.MarkeZeile = _markeAn ? _markeZeile : null;
+        if (_markierung is null) return;
+
+        // **Solange etwas zusammengesetzt wird, gehört die Marke dem unfertigen Text** (§4.43).
+        // Die des Dokuments stünde genau an dessen Anfang — zwei Striche nebeneinander, von
+        // denen einer blinkt und der andere nicht, und keiner sagt, wo das nächste Zeichen
+        // hinkommt.
+        _markierung.MarkeZeile = Setzt ? null : _markeAn ? _markeZeile : null;
     }
 
     /// <summary>

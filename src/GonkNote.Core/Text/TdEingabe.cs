@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 
 namespace GonkNote.Core.Text;
 
@@ -34,6 +34,90 @@ namespace GonkNote.Core.Text;
 /// <param name="Start">Der kleinere der beiden Abstände, in <see cref="Text"/> gezählt.</param>
 /// <param name="Ende">Der größere. Bei leerer Auswahl gleich <see cref="Start"/>.</param>
 public readonly record struct TdUmfeld(int Absatz, string Text, int Start, int Ende);
+
+// ==================== Der unfertige Text ====================
+
+/// <summary>
+/// Der <b>unfertige</b> Text einer Eingabemethode — „Preedit" — samt der Stelle, an der die
+/// Marke darin steht. <b>Schritt 6b des Schreibens</b> (HANDOFF §4.43, §5 „Noch offen" 10a
+/// und 11).
+///
+/// <para>
+/// <b>Warum es das überhaupt gibt, und warum erst jetzt.</b> §4.41 hat das Zusammensetzen
+/// ausdrücklich ausgelassen und <c>SupportsPreedit</c> auf <c>false</c> gemeldet — unter der
+/// Annahme, die Plattform zeige den unfertigen Text dann selbst und liefere ihn fertig als
+/// <c>TextInput</c> nach. <b>Unter Windows/TSF stimmt das, unter X11/IBus nicht</b>, und der
+/// Preis war eine Regression: <b>tote Tasten kamen gar nicht mehr an</b> (§4.42, am
+/// ausgelieferten Rücken nachgelesen). <c>SupportsPreedit</c> ist dort keine Anzeigefrage,
+/// sondern bestimmt das <b>Fähigkeitswort an IBus</b> — und damit, ob IBus das Zusammensetzen
+/// überhaupt an uns schickt.
+/// </para>
+///
+/// <para>
+/// <b>Die Entscheidung, die den Einwand aus §4.41 ausräumt: der unfertige Text ist
+/// Ansichtszustand.</b> §4.41 sah nur zwei Wege — ihn ins Modell schreiben und wieder
+/// herausnehmen (<b>genau der Griff, vor dem §4.32 warnt</b>) oder ihn über den Text daneben
+/// malen. <b>Der zweite ist der richtige, und er ist kein Notbehelf:</b> Unfertiger Text ist
+/// per Definition noch <i>nicht</i> Inhalt des Dokuments. Er gehört nicht in
+/// <see cref="TdDocument"/>, er steht in keiner Datei, er kommt in keinen Export und er taucht
+/// im Verlauf nicht auf. <b>Damit wird <see cref="TdDocument"/> nie angefasst</b>, und §4.32
+/// greift gar nicht erst.
+/// </para>
+///
+/// <para>
+/// <b>Was hier in Core steht, ist nur das Klemmen — und das ist genau die Stelle, an der es
+/// schiefgeht.</b> Die Zahl kommt von außen, aus fremdem Code, und §4.41 hat die Lehre schon
+/// aufgeschrieben: Ein Abstand, der um eins danebenliegt, ist kein Absturz, sondern ein
+/// Zeichen an der falschen Stelle. Gezeichnet wird im Kopf, gerechnet hier.
+/// </para>
+/// </summary>
+/// <param name="Text">
+/// Der unfertige Text. <b>Nie <c>null</c></b> — eine leere Zeichenkette heißt „nichts im
+/// Gange", und der Kopf muss dafür keine zweite Frage stellen.
+/// </param>
+/// <param name="Marke">
+/// Wo die Marke <i>innerhalb</i> von <see cref="Text"/> steht, in UTF-16-Stellen. Immer
+/// zwischen 0 und <c>Text.Length</c>, und <b>nie mitten in einem Ersatzpaar</b>.
+/// </param>
+public readonly record struct TdVorschau(string Text, int Marke)
+{
+    /// <summary>Nichts im Gange.</summary>
+    public static readonly TdVorschau Leer = new("", 0);
+
+    /// <summary>Ob gerade nichts zusammengesetzt wird.</summary>
+    public bool IstLeer => Text.Length == 0;
+
+    /// <summary>
+    /// Aus dem, was die Eingabemethode meldet, eine brauchbare Vorschau —
+    /// <b>nichts, was von außen kommt, wird geglaubt</b> (dieselbe Regel wie bei
+    /// <see cref="TdEingabe.Auswahl"/>).
+    ///
+    /// <para>
+    /// <b>Drei Dinge werden zurechtgerückt.</b> <c>null</c> wird zu <see cref="Leer"/>. Eine
+    /// fehlende Marke landet am <b>Ende</b> — dort steht sie beim Zusammensetzen fast immer,
+    /// und ein Anfang wäre die unwahrscheinlichere Vermutung. Und der Abstand wird geklemmt.
+    /// </para>
+    /// <para>
+    /// <b>Das Ersatzpaar ist der Grund, warum das nicht bloß ein <c>Math.Clamp</c> ist.</b>
+    /// Ein Emoji oder ein seltenes CJK-Zeichen steht in .NET als <i>zwei</i> UTF-16-Stellen.
+    /// Eine Marke dazwischen ist keine Stelle, sondern ein halbes Zeichen — und ein
+    /// <c>Substring</c> darauf liefert eine ungültige Zeichenkette, die Skia als leeren Kasten
+    /// malt. <b>Sie rückt deshalb auf den Anfang des Zeichens zurück</b> und nicht vor.
+    /// </para>
+    /// </summary>
+    public static TdVorschau Aus(string? text, int? marke)
+    {
+        if (string.IsNullOrEmpty(text)) return Leer;
+
+        int m = Math.Clamp(marke ?? text.Length, 0, text.Length);
+
+        // Nur ein *nachlaufendes* Ersatzzeichen kann eine Marke zerschneiden: Es steht als
+        // zweite Hälfte eines Paars da, also gehört die Stelle davor zum selben Zeichen.
+        if (m > 0 && m < text.Length && char.IsLowSurrogate(text[m])) m--;
+
+        return new TdVorschau(text, m);
+    }
+}
 
 // ==================== Die Naht ====================
 

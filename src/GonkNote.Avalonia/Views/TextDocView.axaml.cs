@@ -339,6 +339,11 @@ public partial class TextDocView : UserControl
 
             Blattrand(leinwand, blatt);
         }
+
+        // Zuletzt und über allem: der unfertige Text einer Eingabemethode (§4.43). Er nimmt am
+        // Umbruch nicht teil und steht deshalb nicht in der Seitenschleife, sondern an der
+        // Marke auf der Leinwand.
+        VorschauMalen(leinwand);
     }
 
     /// <summary>

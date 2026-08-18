@@ -1,6 +1,6 @@
 ﻿# Gonk Note V2 — Projektübergabe
 
-**Stand: 2026-08-18 · Version 0.3.0 · net10.0 · SkiaSharp 3 · SQLite · Avalonia 12 · ✅ M1 erreicht · ✅ Phase 4 abgeschlossen (§4.28): Dokumentmodell, Übernahme, DOCX/Markdown/PDF/PNG gegen das Modell, Zeichner samt Diagrammen, Schriftkonzept — und die Anzeige im Linux-Kopf, **auf dem Laptop gegengeprüft** (§4.28, V2-37). ⏳ **Das Schreiben läuft** (§6): **Schritte 1 bis 6 stehen** — Stelle, Änderung, Verlauf, Trefferrechnung, **Tastatur und Maus** (§4.35, auf dem Laptop gegengeprüft: Umlaute, tote Tasten, der Cursor am Stift, kein verlorenes Zeichen) und **Schritt 6 ganz** (§4.36/§4.37): Formate, die drei Reiter Einfügen/Verweise/Tabelle — **und die Warnung**, wenn das Altformat noch führt (`TdFuehrung`). ✅ **Das Ribbon ist aufgeräumt** (§4.38) und **die Gruppen A und B stehen** (§4.39/§4.40): Listen, Vorlagen, Größenliste, Schriftart, Farben, Trennlinie, Kopf- und Fußzeile. ✅ **Neu am 2026-08-18: Schritt 6a, die Eingabe-Naht** (§4.41, V2-54) — `TdEingabe` in Core und ein `TextInputMethodClient` im Kopf; ein Cursorschritt ist dort genau **ein** Zeichen breit, sonst zeigte jeder Abstand hinter jedem Feld um eins daneben. **803 Tests.** ✅ **Beide offenen Entscheidungen sind gefallen** (Nutzer, 2026-08-16): §5 Nr. 9 → **warnen statt sperren** (gebaut **und gesehen**, §4.37), §5 Nr. 10 → **`TextInputMethodClient`, nach Schritt 6** (gebaut, §4.41). ✅⚠ **Der Laptop hat am 2026-08-18 gemessen** (§4.41, V2-55, **769/769 grün**), und die Antwort ist zweigeteilt: **Die Bildschirmtastatur *schreibt* jetzt** — von Hand hervorgeholt kommt ihr Text im Dokument an, in V2-47 kam er nicht an; **die Naht aus V2-54 hat damit die Hälfte ihres Zwecks erreicht**. **Von selbst klappt sie nicht auf**, weil `Avalonia.X11` gar **keine `IInputPane`** hat (`TopLevel.InputPane` ist `null`, zur Laufzeit gemessen) — das behebt kein Kopfcode. **⚠ Dabei ist eine Regression aufgefallen: tote Tasten kommen seit V2-54 nicht mehr an** (`^`+`e` → nichts statt `ê`; Umlaute schon), eingekreist auf **IBus + `SupportsPreedit => false`** — §5 „Noch offen" **11**. ✅ **Neu am 2026-08-18 (V2-56, §4.42): die Ursache ist geklärt — am ausgelieferten Rücken nachgelesen** (`ilspycmd` gegen Avalonia 12.1.1), **kein Produktivcode angefasst**. **Der Befund kippt die bisherige Empfehlung:** Weg **(b) fällt aus**, denn `OnCommitText` reicht den `commit` **ohne jede Abfrage von `SupportsPreedit`** durch — die vermutete Lücke gibt es nicht; der Hebel ist, dass `SupportsPreedit` das **Fähigkeitswort an IBus** (`CapPreeditText`) bestimmt und damit, **wohin IBus das Zusammensetzen schickt** — und `gnome-text-editor`, das dieselbe Folge vollständig bekommt, **meldet genau diese Fähigkeit**. **Warten fällt auch aus:** 12.1.1 ist die neueste Fassung. ▶ **Damit ist Weg (a) fällig — Preedit bauen; es wartet auf ein Ja** (§5 Nr. 10a). ▶ **Der Laptop trägt keinen Auftrag mehr** (§5d); ▶ **Windows ist dran: erst die Regression, dann Schritt 7** (§5e) — sie sitzt in derselben Naht
+**Stand: 2026-08-18 · Version 0.3.0 · net10.0 · SkiaSharp 3 · SQLite · Avalonia 12 · ✅ M1 erreicht · ✅ Phase 4 abgeschlossen (§4.28): Dokumentmodell, Übernahme, DOCX/Markdown/PDF/PNG gegen das Modell, Zeichner samt Diagrammen, Schriftkonzept — und die Anzeige im Linux-Kopf, **auf dem Laptop gegengeprüft** (§4.28, V2-37). ⏳ **Das Schreiben läuft** (§6): **Schritte 1 bis 6 stehen** — Stelle, Änderung, Verlauf, Trefferrechnung, **Tastatur und Maus** (§4.35, auf dem Laptop gegengeprüft: Umlaute, tote Tasten, der Cursor am Stift, kein verlorenes Zeichen) und **Schritt 6 ganz** (§4.36/§4.37): Formate, die drei Reiter Einfügen/Verweise/Tabelle — **und die Warnung**, wenn das Altformat noch führt (`TdFuehrung`). ✅ **Das Ribbon ist aufgeräumt** (§4.38) und **die Gruppen A und B stehen** (§4.39/§4.40): Listen, Vorlagen, Größenliste, Schriftart, Farben, Trennlinie, Kopf- und Fußzeile. ✅ **Neu am 2026-08-18: Schritt 6a, die Eingabe-Naht** (§4.41, V2-54) — `TdEingabe` in Core und ein `TextInputMethodClient` im Kopf; ein Cursorschritt ist dort genau **ein** Zeichen breit, sonst zeigte jeder Abstand hinter jedem Feld um eins daneben. ✅ **Und seit V2-57 steht Schritt 6b, das Zusammensetzen** (§4.43): `TdVorschau`, `SupportsPreedit => true`, der unfertige Text als Auflage an der Marke — **ohne das Modell anzufassen**. **823 Tests.** ✅ **Beide offenen Entscheidungen sind gefallen** (Nutzer, 2026-08-16): §5 Nr. 9 → **warnen statt sperren** (gebaut **und gesehen**, §4.37), §5 Nr. 10 → **`TextInputMethodClient`, nach Schritt 6** (gebaut, §4.41). ✅⚠ **Der Laptop hat am 2026-08-18 gemessen** (§4.41, V2-55, **769/769 grün**), und die Antwort ist zweigeteilt: **Die Bildschirmtastatur *schreibt* jetzt** — von Hand hervorgeholt kommt ihr Text im Dokument an, in V2-47 kam er nicht an; **die Naht aus V2-54 hat damit die Hälfte ihres Zwecks erreicht**. **Von selbst klappt sie nicht auf**, weil `Avalonia.X11` gar **keine `IInputPane`** hat (`TopLevel.InputPane` ist `null`, zur Laufzeit gemessen) — das behebt kein Kopfcode. **⚠ Dabei ist eine Regression aufgefallen: tote Tasten kommen seit V2-54 nicht mehr an** (`^`+`e` → nichts statt `ê`; Umlaute schon), eingekreist auf **IBus + `SupportsPreedit => false`** — §5 „Noch offen" **11**. ✅ **Neu am 2026-08-18 (V2-56, §4.42): die Ursache ist geklärt — am ausgelieferten Rücken nachgelesen** (`ilspycmd` gegen Avalonia 12.1.1), **kein Produktivcode angefasst**. **Der Befund kippt die bisherige Empfehlung:** Weg **(b) fällt aus**, denn `OnCommitText` reicht den `commit` **ohne jede Abfrage von `SupportsPreedit`** durch — die vermutete Lücke gibt es nicht; der Hebel ist, dass `SupportsPreedit` das **Fähigkeitswort an IBus** (`CapPreeditText`) bestimmt und damit, **wohin IBus das Zusammensetzen schickt** — und `gnome-text-editor`, das dieselbe Folge vollständig bekommt, **meldet genau diese Fähigkeit**. **Warten fällt auch aus:** 12.1.1 ist die neueste Fassung. ✅ **Und Weg (a) ist am selben Tag gebaut** (§4.43, V2-57): `TdVorschau` in Core, `SupportsPreedit => true`, der unfertige Text als **Auflage an der Marke** — **`TdDocument` wird nie angefasst**, damit greift §4.32 nicht; **20 Wächter, 823 Tests**, und die Windows-Gegenprobe (TSF) tippt zeichengenau. §5 Nr. **10a** ist damit erledigt. ⏳ **Offen ist allein die Wirkung** — sie kann nur der Laptop messen. ▶ **Der Laptop ist wieder dran** (§5d: `^`+`e` soll `ê` ergeben — **kommt es nicht, ist die Herleitung falsch**, und der nächste Griff ist `dbus-monitor` auf `CommitText`); ▶ **Windows macht mit Schritt 7 weiter** (§5e)
 
 > **📌 Dauerregeln des Nutzers — gelten immer, ohne Nachfragen:**
 >
@@ -394,7 +394,7 @@ Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — beh
 > **✅ Schritt 6 steht ganz, dazu die Gruppen A und B und Schritt 6a** (§4.36 bis §4.41,
 > V2-48 bis V2-54): Formate, die drei Reiter, das aufgeräumte Ribbon, Listen und Vorlagen,
 > Schriftart und Farben — und seit dem 2026-08-18 die **Eingabe-Naht** (`TextInputMethodClient`,
-> §4.41). **803 Tests.**
+> §4.41). **823 Tests.**
 >
 > **▶ Als Nächstes: alles auf Windows — der Laptop hat abgeliefert.** Sein Befund vom
 > 2026-08-18 (§4.41, V2-55) ist zweigeteilt. **Das Gute:** Die Bildschirmtastatur **schreibt**
@@ -447,10 +447,21 @@ Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — beh
 >   bestimmt das **Fähigkeitswort an IBus** (`CapPreeditText`) und damit, **wohin IBus das
 >   Zusammensetzen schickt**. Der Vergleich, der es entscheidet: `gnome-text-editor`
 >   bekommt dieselbe Folge vollständig — **und meldet genau diese Fähigkeit**.
->   **Damit ist Weg (a) fällig** (Preedit bauen), nach der Regel, die §5 Nr. 11 selbst
->   aufgestellt hat. **Warten fällt auch aus:** 12.1.1 ist die neueste Fassung.
->   ▶ **Das ist die nächste Bauarbeit — und sie wartet auf ein Ja** (§5 Nr. **10a** ist als
->   Entscheidung geführt, und §4.41 hat Preedit bewusst ausgelassen).
+>   **Damit war Weg (a) fällig** (Preedit bauen), nach der Regel, die §5 Nr. 11 selbst
+>   aufgestellt hat. **Warten fiel auch aus:** 12.1.1 ist die neueste Fassung.
+>   ✅ **Und (a) ist am selben Tag gebaut** (§4.43, V2-56, Nutzer-Entscheidung): `TdVorschau`
+>   in Core, `SupportsPreedit => true`, der unfertige Text als **Auflage an der Marke** —
+>   **`TdDocument` wird nie angefasst**, damit greift §4.32 nicht. **20 Wächter, 823 Tests**,
+>   und unter Windows ist die Gegenprobe gefahren, auf die es dabei ankam: Preedit
+>   einzuschalten schaltet den Windows-Weg auf **TSF** um, und getippt wird trotzdem
+>   zeichengenau (+15, +5, Strg+Z nimmt den Wortblock zurück).
+>   ⏳ **Was fehlt, ist die Wirkung — und die kann nur der Laptop messen** (§5d trägt den
+>   Auftrag). **Die Erwartung ist ausdrücklich widerlegbar formuliert:** `^`+`e` soll `ê`
+>   ergeben. **Kommt es nicht, ist die Herleitung aus §4.42 falsch**, und der nächste Griff
+>   steht schon fest (`dbus-monitor` auf `CommitText`).
+>   **Zwei Dinge hat hier niemand gesehen:** wie der unfertige Text aussieht (auf diesem
+>   Rechner ist keine ostasiatische Eingabemethode eingerichtet, also entsteht gar keiner)
+>   und ob die toten Tasten wiederkommen.
 > - **Die `PointerType`-Weiche aus §4.41 ist unter Linux nicht prüfbar** und bleibt allein
 >   unter Windows belegt — die Tastatur geht dort ja nie auf, wo sie es nicht soll.
 > - **Vor jedem Laptop-Auftrag die betroffene `.axaml` ansehen** — ob der Linux-Kopf
@@ -469,11 +480,11 @@ Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — beh
 **Tests laufen lassen:**
 
 ```powershell
-dotnet test -c Release        # Windows: beide Projekte, 803 Tests
+dotnet test -c Release        # Windows: beide Projekte, 823 Tests
 ```
 
 ```bash
-dotnet test tests/GonkNote.Core.Tests   # Linux: 769 Tests (nur Core — der WPF-Kopf baut dort nicht)
+dotnet test tests/GonkNote.Core.Tests   # Linux: 789 Tests (nur Core — der WPF-Kopf baut dort nicht)
 ```
 
 ---
@@ -5411,6 +5422,102 @@ gehört nicht in diese Runde — hier nur festgehalten, damit er nicht zweimal g
 
 ---
 
+### 4.43 Preedit — Schritt 6b, und die toten Tasten sollten damit wiederkommen
+
+**2026-08-18 unter Windows (V2-56).** `TdVorschau` in `Core/Text/TdEingabe.cs` neu,
+`SupportsPreedit` von `false` auf **`true`**, `SetPreeditText` und `VorschauMalen` in
+`TextDocView.Eingabemethode.cs`, drei Anschlussstellen — **20 neue Wächter**; Bau 0/0,
+**823 Tests** grün (vorher 803), am laufenden Programm gegengeprüft. Das ist Weg **(a)** aus
+§5 „Noch offen" 11, fällig geworden durch §4.42.
+
+#### Die Entscheidung, die §4.41 nicht gesehen hat: es ist Ansichtszustand
+
+§4.41 hat Preedit ausgelassen und dafür zwei Wege benannt, die beide schlecht waren: den
+unfertigen Text **ins Modell schreiben und wieder herausnehmen** — „genau der Griff, vor dem
+§4.32 warnt" — oder ihn **über den Text daneben malen**.
+
+> **Der zweite ist nicht der Notbehelf, für den §4.41 ihn gehalten hat, sondern der
+> richtige.** Unfertiger Text ist per Definition noch **nicht** Inhalt des Dokuments. Er
+> gehört nicht in `TdDocument`, steht in keiner Datei, kommt in keinen Export, taucht im
+> Verlauf nicht auf und macht das Dokument nicht schmutzig. **Damit wird `TdDocument` nie
+> angefasst — und §4.32 greift gar nicht erst.**
+
+Er steht deshalb in **einem Feld der Ansicht** (`_vorschau`) und wird in `OnPaint` **nach**
+den Blättern gemalt, an der Stelle, die `MarkeAufLeinwand` ohnehin schon rechnet. **Er nimmt
+am Umbruch nicht teil** — er hat keine Zeile, keinen Absatz und keine Stelle im Modell, und
+ein Umbruch je Tastendruck einer Eingabemethode wäre genau die Rechnung, die §4.35 gemessen
+und für teuer befunden hat.
+
+#### Was in Core steht, ist nur das Klemmen — und das ist die Stelle, an der es schiefgeht
+
+`TdVorschau.Aus` nimmt, was die Eingabemethode meldet, und macht es brauchbar. **Drei Dinge**,
+und das dritte ist der Grund, warum es kein `Math.Clamp` in einer Zeile ist:
+
+| | |
+|---|---|
+| `null` und `""` | beides heißt „nichts im Gange" — **der Kopf soll dafür nicht zwei Fragen stellen müssen**. Eine Eingabemethode meldet mal das eine, mal das andere, wenn sie abbricht |
+| Fehlende Marke | ans **Ende**. Dort steht sie beim Zusammensetzen fast immer; der Anfang wäre die unwahrscheinlichere Vermutung |
+| **Das Ersatzpaar** | Ein Emoji und ein seltenes CJK-Zeichen stehen in .NET als **zwei** UTF-16-Stellen. Eine Marke dazwischen ist keine Stelle, sondern ein **halbes Zeichen** — und `Text.AsSpan(0, Marke)` liefert darauf eine ungültige Zeichenkette, die Skia als leeren Kasten malt. Sie rückt auf den **Anfang** des Zeichens zurück und nicht vor: Der Anfang ist die Stelle, die der Nutzer meint |
+
+**Das sind genau die Zeichen, für die eine Eingabemethode überhaupt gebraucht wird** — die
+Wache sitzt also nicht am Rand des Falls, sondern in seiner Mitte. **Erprobt**, wie es
+§4.33 und §4.34 vorgemacht haben: Ohne die eine Zeile fallen **zwei** der zwanzig Wächter.
+
+#### Vier kleinere Entscheidungen, jede mit einem Grund
+
+| | |
+|---|---|
+| **Der fertige Text verwirft den unfertigen** | IBus schickt zwar meist eine leere Vorschau hinterher, aber **nicht verlässlich und nicht vor dem `commit`**. Ohne die Zeile in `Texteingabe` stünde die Silbe für einen Augenblick **doppelt** da: festgeschrieben im Absatz und als Auflage darüber |
+| **Die Schreibmarke des Dokuments blinkt solange nicht** | Sie stünde genau am Anfang des unfertigen Textes — **zwei Striche nebeneinander**, von denen einer blinkt und der andere nicht, und keiner sagt, wo das nächste Zeichen hinkommt |
+| **Unterstrichen** | Seit Windows 95 zeigt **jede** Eingabemethode unfertigen Text so. Ein eigener Einfall — Kasten, Farbe, Schattierung — wäre hier nur neu und nicht besser |
+| **Die Schrift ist die an der Marke** | aus `TdFormatEdit.Gemeinsam`, **derselben Quelle, aus der das Ribbon seine Knöpfe füllt**. Ein unfertiges Zeichen in anderer Schrift als das fertige daneben spränge beim Festschreiben um — und genau dann schaut der Nutzer hin |
+
+**`TdRenderer.CmProPunkt` ist dafür öffentlich geworden.** Der Kopf malt selbst und braucht
+dieselbe Umrechnung Punkt → Zentimeter; eine zweite Zahl im Kopf wäre eine zweite Wahrheit und
+ergäbe Schriftgrößen, die um den Faktor 2,8 danebenliegen.
+
+#### Am laufenden Programm gegengeprüft — und das war wieder die Gegenprobe, nicht der Zweck
+
+**Die Sichtprüfung hier prüft nicht die toten Tasten** (die gibt es unter Windows nicht zu
+sehen), **sondern ob `SupportsPreedit => true` den Windows-Weg zerstört.** Das ist die
+Regression, die diese Runde hätte verursachen können: Ein angemeldetes Eingabeziel läuft unter
+Windows über **TSF**, und Preedit einzuschalten ändert dort, was TSF mit getipptem Text macht.
+An einer Wegwerf-Datenbank durchgespielt (danach gelöscht, Dauerregel 4), Avalonia-Kopf:
+
+- `Hallo äöüß ÄÖÜ` getippt → **Zeichen: 14, exakt** — und auf dem Blatt steht es richtig.
+  **Umlaute unverändert.**
+- Neuer Absatz, `Zweiter Absatz 12345` → **35** (14 + 20 + der Absatzwechsel). Beide Absätze
+  stehen richtig auf dem Blatt.
+- `ABCDE` angehängt → **40, exakt +5**. **Kein Zeichen verloren, keines doppelt.**
+- **Strg+Z** → **30**, also **−10**: `12345ABCDE`. Das ist **nicht** der ganze Absatz und
+  genau richtig — §4.33 schneidet den Verlauf an der **Gestalt** der Änderung, und das
+  Leerzeichen davor ist ein Schnitt. **Der Verlauf trägt weiter.**
+- Die Schreibmarke wird gezeichnet und blinkt — die Änderung an `MarkeTakten` hat sie nicht
+  verschluckt.
+
+**Der WPF-Kopf ist nicht gegengeprüft worden, und das ist hier ausnahmsweise richtig:** Diese
+Runde ändert **nichts am Modell** — `TdVorschau` kommt additiv dazu, `CmProPunkt` ändert nur
+seine Sichtbarkeit, kein Feld, kein Format, kein Speicherweg. Es gibt nichts, was der
+WPF-Editor überleben müsste. *(Die 34 WPF-Wächter laufen mit und sind grün.)*
+
+#### ⚠ Was von hier aus nicht zu sehen war — und es ist beides Mal der Kern
+
+1. **Ob der unfertige Text richtig aussieht.** Auf diesem Rechner sind **nur `de-DE` und
+   `en-GB`** eingerichtet (nachgesehen, `Get-WinUserLanguageList`) — **ohne eine
+   ostasiatische Eingabemethode entsteht gar kein Preedit**, und `VorschauMalen` wird nie
+   gerufen. Die Rechnung dahinter halten die zwanzig Wächter; **das Bild hat noch niemand
+   gesehen.**
+2. **Ob die toten Tasten wiederkommen.** Das ist der Zweck der Runde und **kann nur der
+   Laptop sagen** — `SupportsPreedit` wirkt gegen IBus und nicht gegen eine Rechnung (§4.42).
+
+> **Beides steht als Auftrag in §5d.** Und die Erwartung ist ausdrücklich benannt, damit sie
+> widerlegbar ist: **`^`+`e` soll `ê` ergeben**, und während des Zusammensetzens soll ein
+> unterstrichenes `^` an der Marke stehen. **Kommt das `ê` nicht, ist die Herleitung aus §4.42
+> falsch** — dann ist nicht die Fähigkeit das Problem, sondern etwas dahinter, und der nächste
+> Griff ist ein `dbus-monitor` auf `CommitText`.
+
+---
+
 ## 5. Entscheidungen
 
 **Getroffen, alle umgesetzt:**
@@ -5665,7 +5772,12 @@ gehört nicht in diese Runde — hier nur festgehalten, damit er nicht zweimal g
 
     **Sie hat aber etwas gekostet, das vorher lief: siehe Punkt 11.**
 
-10a. ⚠ **Nicht mehr nur benannt, sondern teuer: das Zusammensetzen (Preedit).**
+10a. ✅ **Erledigt am 2026-08-18 (§4.43): das Zusammensetzen ist gebaut.**
+    `SupportsPreedit` meldet **`true`**, der unfertige Text steht als **Ansichtszustand** im
+    Kopf und wird an der Marke gemalt — nicht ins Modell geschrieben. Damit ist dieser Punkt
+    keine Auslassung mehr. *(Der Wortlaut von vorher bleibt darunter stehen, weil er die
+    Begründung trägt, warum es überhaupt teuer wurde.)*
+    ⚠ **Nicht mehr nur benannt, sondern teuer: das Zusammensetzen (Preedit).**
     `SupportsPreedit` meldet `false` (§4.41). Die Annahme dabei war, die Plattform zeige
     unfertigen Text in ihrem eigenen Fenster und liefere ihn fertig als `TextInput` nach —
     **unter Windows/TSF stimmt das, unter X11/IBus nicht.** Der Laptop hat es am 2026-08-18
@@ -5699,11 +5811,11 @@ gehört nicht in diese Runde — hier nur festgehalten, damit er nicht zweimal g
 
     **Drei Antworten waren denkbar — ✅ am 2026-08-18 sind zwei davon ausgeschieden** (§4.42,
     V2-56, am ausgelieferten Rücken nachgelesen):
-    (a) **Preedit bauen** — `SupportsPreedit => true`. ▶ **Der einzige verbliebene Weg.** Er
-    löst es an der Wurzel und schließt 10a mit; es ist genau die Runde, die §4.41 bewusst
-    nicht gemacht hat. **Der Einwand „berührt `TdDocument`" ist ausräumbar** — unfertiger
-    Text ist **Ansichtszustand** und gehört nicht ins Dokument; gezeichnet wird er als
-    Auflage an der Marke, und `TdDocument` wird nie angefasst. Damit greift §4.32 nicht.
+    (a) **Preedit bauen** — `SupportsPreedit => true`. ✅ **Am 2026-08-18 gebaut** (§4.43,
+    V2-56, **20 Wächter**, 823 Tests, unter Windows gegengeprüft). Der Einwand „berührt
+    `TdDocument`" hat sich aufgelöst: **unfertiger Text ist Ansichtszustand** und wird als
+    Auflage an der Marke gemalt — `TdDocument` wird nie angefasst, §4.32 greift nicht.
+    ⏳ **Ob es wirkt, ist noch nicht gemessen** — das kann nur der Laptop (§5d).
     (b) ~~**Das Fertige annehmen, ohne das Unfertige zu zeigen**~~ — ⛔ **fällt aus, weil es
     nichts zu schließen gibt.** `OnCommitText` reicht den `commit` **ohne jede Abfrage von
     `SupportsPreedit`** durch (§4.42). Die vermutete Lücke gibt es nicht. **Der Hebel liegt
@@ -5716,9 +5828,13 @@ gehört nicht in diese Runde — hier nur festgehalten, damit er nicht zweimal g
     **(d) Warten fällt auch aus:** **12.1.1 ist die neueste veröffentlichte Fassung**
     (2026-08-18 gegen nuget.org geprüft) — es gibt nichts, worauf sich warten ließe.
 
-    **Damit gilt die Regel, die dieser Punkt selbst aufgestellt hat: „wenn (b) nicht trägt,
-    ist (a) fällig."** ▶ **(a) ist fällig.** **Solange es nicht gebaut ist, gilt der Stand als
-    benannter Mangel:** tote Tasten funktionieren im Linux-Kopf nicht, Umlaute schon.
+    **Damit galt die Regel, die dieser Punkt selbst aufgestellt hat: „wenn (b) nicht trägt,
+    ist (a) fällig."** ✅ **(a) ist gebaut** (§4.43). ⏳ **Offen bleibt allein die Gegenprobe
+    am Gerät** — der Auftrag steht in §5d, mit einer ausdrücklich **widerlegbaren** Erwartung:
+    `^`+`e` soll `ê` ergeben. **Kommt es nicht, ist die Herleitung aus §4.42 falsch**, und der
+    nächste Griff ist ein `dbus-monitor` auf `CommitText`. **Bis dahin gilt der Stand
+    weiterhin als benannter Mangel:** tote Tasten sind im Linux-Kopf ungeprüft, Umlaute
+    laufen.
 
     **Nicht auf dem Laptop behoben** — `SupportsPreedit` steht in gemeinsamem Kopfcode und war
     in §4.41 ausdrücklich eine Entscheidung, nicht ein Versehen (§5d: hier wird nur behoben,
@@ -6193,24 +6309,49 @@ dotnet run --project src/GonkNote.Avalonia -- --db /tmp/gonk-test/gonknote.sqlit
 
 ---
 
-### ▶ Aktueller Auftrag — **keiner offen** (Stand 2026-08-18, nach Runde V2-55)
+### ▶ Aktueller Auftrag — **die toten Tasten gegenmessen** (Stand 2026-08-18, nach Runde V2-56)
 
-> **Der Laptop ist vorerst nicht mehr dran.** Der Auftrag „die Bildschirmtastatur" ist am
-> 2026-08-18 abgearbeitet; der Befund steht in **§4.41, „Was der Laptop gefunden hat"**.
+> **Der Laptop ist wieder dran, und diesmal mit einer Erwartung, die widerlegbar ist.**
+> Windows hat am 2026-08-18 die Ursache der Regression geklärt (**§4.42**, am ausgelieferten
+> Rücken nachgelesen) und daraufhin **Preedit gebaut** (**§4.43**, V2-56): `SupportsPreedit`
+> steht jetzt auf **`true`**. **§4.42 und §4.43 vorher lesen** — dort steht, warum.
 >
-> **Er hat zwei Dinge ergeben, und beide gehören nach Windows** — hier ist nichts mehr zu
-> messen, bevor dort entschieden ist:
+> **Warum nur der Laptop das kann:** `SupportsPreedit` wirkt gegen **IBus** und nicht gegen
+> eine Rechnung. Unter Windows gibt es weder tote Tasten noch (auf diesem Rechner) eine
+> Eingabemethode, die überhaupt einen unfertigen Text erzeugt.
 >
-> - **§5 „Noch offen" 11** — tote Tasten kommen seit V2-54 nicht mehr an (Regression,
->   Ursache eingekreist bis auf IBus/Preedit, drei Antworten mit Empfehlung).
-> - **§5 „Noch offen" 10** — die Bildschirmtastatur geht nicht auf, weil `Avalonia.X11`
->   **keine `IInputPane`** hat. Das ist keine Runde Arbeit, sondern eine Frage an den Rücken.
+> **Bau und Wächter zuerst, wie immer:** `dotnet build src/GonkNote.Core` und
+> `dotnet build src/GonkNote.Avalonia` je 0/0, `dotnet test tests/GonkNote.Core.Tests` →
+> **789** (vorher 769; die 20 neuen sind `EingabeVorschauTests`).
+>
+> #### Die Fragen, in dieser Reihenfolge
+>
+> | | Frage | Wie |
+> |---|---|---|
+> | **1** | **Kommt `ê` wieder an?** | Neues Textdokument, `Hallo` + `^`+`e` + `´`+`a` tippen. **Erwartet: `Halloêá`, Zeichenzähler 7.** Genau die Folge aus V2-55, damit die Zahlen vergleichbar sind |
+> | **2** | **Sind die Umlaute noch heil?** | `Hallo äöüß ÄÖÜ` → **14**. Das ist die Gegenprobe: Preedit darf den Weg, der lief, nicht kaputt machen |
+> | **3** | **Sieht der unfertige Text richtig aus?** | Während `^` gedrückt und `e` noch nicht: **an der Marke soll ein unterstrichenes `^` stehen** — in der Schrift des Textes daneben, nicht darüber oder daneben verrutscht. **Das hat noch nie jemand gesehen** (§4.43) |
+> | **4** | **Bleibt beim Festschreiben nichts stehen?** | Nach dem `e`: das `ê` steht **einmal** im Absatz, und die Auflage ist **weg**. Ein Rest wäre der Fall, für den `VorschauVerwerfen` in `Texteingabe` gebaut ist |
+> | **5** | **Tippt es sich noch flüssig?** | Ein längerer Absatz am Stück — kein verlorenes Zeichen, kein Hänger. Preedit läuft bei **jedem** Tastendruck durch |
+>
+> #### Wenn Frage 1 mit Nein zurückkommt
+>
+> **Dann ist die Herleitung aus §4.42 falsch, und das ist ein brauchbares Ergebnis — nicht
+> ein Fehlschlag.** Der nächste Griff steht dann schon fest und ist klein:
+> `dbus-monitor --session` mitlaufen lassen und nachsehen, **ob IBus beim Anschlag überhaupt
+> ein `CommitText` sendet**. Kommt keins, liegt es an IBus und nicht am Kopf; kommt eins,
+> liegt es zwischen Avalonia und uns. **Bitte in beiden Fällen die rohe Zeile mitschicken.**
+>
+> **Nichts hier beheben** — die Regel aus §5d gilt unverändert: hier wird nur behoben, was es
+> nur hier gibt. `SupportsPreedit` und `VorschauMalen` stehen in gemeinsamem Kopfcode.
 >
 > **Zwei Dinge brauchen weiterhin den Nutzer am Gerät**, beide seit Längerem: eine
 > **Xorg-Sitzung** als Vergleich (§5a „Offen" 2) und die **Druckschwelle unten**
-> (§5a „Offen" 3). Dazu neu ein **Zehn-Sekunden-Handgriff**: einmal mit **Stift oder Finger**
-> ins Blatt tippen und bestätigen, dass nichts aufklappt — synthetisieren lässt sich eine
-> Berührung mit `tools/linux` nicht (XTEST kennt nur Maus und Tastatur).
+> (§5a „Offen" 3).
+>
+> **Und was ausdrücklich *nicht* mehr zu messen ist:** ob die Bildschirmtastatur von selbst
+> aufklappt (§5 „Noch offen" 10 — `Avalonia.X11` hat keine `IInputPane`, das ist geklärt und
+> kein Kopfcode ändert daran etwas).
 
 ### Abgearbeitete Aufträge — nur die Kurzfassung
 
@@ -6249,19 +6390,20 @@ Entscheidungen aus §5 "Noch offen" 9 und 10 sind gefallen -- nicht noch
 einmal fragen.
 
 Zieh zuerst den Stand: git pull. Dann bauen und testen, bevor du etwas
-anfasst -- 0 Fehler, 0 Warnungen, 803 Tests.
+anfasst -- 0 Fehler, 0 Warnungen, 823 Tests.
 
 Womit anzufangen ist, steht in §5e unter "Dran ist" -- und die
 Reihenfolge hat sich am 2026-08-18 geaendert. ZUERST die Regression aus
 §5 "Noch offen" 11: tote Tasten kommen im Linux-Kopf seit V2-54 nicht
 mehr an. Sie sitzt in derselben Naht, die Schritt 7 benutzt. Die Ursache
-ist seit V2-56 geklaert (§4.42, am Ruecken nachgelesen): Weg (b) faellt
-aus -- der commit wird durchgereicht, es gibt dort keine Luecke. Uebrig
-bleibt Weg (a), Preedit bauen. DAS IST EINE ENTSCHEIDUNG (§5 Nr. 10a)
-und wartet auf ein Ja des Nutzers -- frag danach, bau es nicht ungefragt.
-Liegt das Ja vor: unfertiger Text ist Ansichtszustand, er gehoert als
-Auflage an die Marke und NICHT ins TdDocument (§4.32).
-DANACH Schritt 7, "Rtf verliert die
+ist seit V2-56 geklaert (§4.42) UND behoben (§4.43): Weg (b) fiel aus --
+der commit wird durchgereicht --, also ist Weg (a) gebaut worden, Preedit.
+Der unfertige Text ist Ansichtszustand und wird an der Marke gemalt; das
+TdDocument wird nie angefasst. NICHT NOCH EINMAL BAUEN.
+Was daran offen ist, ist allein die Gegenprobe am Geraet, und die traegt
+der Laptop (§5d). Kommt von dort ein Nein, steht der naechste Griff schon
+dort: dbus-monitor auf CommitText.
+DU MACHST DERWEIL MIT SCHRITT 7 WEITER, "Rtf verliert die
 Fuehrung": der eigentliche Zweck des ganzen Wegs und der Schritt, bei
 dem am meisten schiefgehen kann. Ein Fund liegt dafuer bereit (§4.37,
 Fund 2: der Weg durch den WPF-Editor setzt den Absatz auf Blocksatz).
@@ -6435,7 +6577,7 @@ Reiter „Layout" **stellt** Format und Ausrichtung, rechts gibt es eine **Einst
 ```powershell
 cd C:\Dev\Zed\gonk-note-V2
 dotnet build -c Release       # 0 Fehler, 0 Warnungen
-dotnet test -c Release        # beide Projekte, derzeit 803 Tests
+dotnet test -c Release        # beide Projekte, derzeit 823 Tests
 ```
 
 **Und danach am laufenden Programm**, mit einer **Kopie** der echten Datenbank (Dauerregel 4,
@@ -6810,9 +6952,26 @@ erst ab Schritt 4 wird es Kopfarbeit.
       **Der eine Satz, der alles trägt:** In `TdEingabe.Text` ist jeder Cursorschritt genau
       **ein** Zeichen breit (Feld, Bild und Diagramm bekommen U+FFFC) — sonst zeigte jeder
       Abstand, den eine Eingabemethode zurückreicht, hinter jedem Feld um eins daneben.
-      **Benannt ausgelassen:** das Zusammensetzen (`SupportsPreedit = false`, §5 „Noch offen" 10a).
-      **⏳ Am laufenden Programm ist nur die Gegenprobe gefallen** (Windows: TSF bricht das
-      Tippen nicht). **Ob die Bildschirmtastatur aufgeht, sagt der Laptop** — §5d.
+      **Benannt ausgelassen war** das Zusammensetzen (`SupportsPreedit = false`) — ✅ **seit
+      §4.43 nachgeholt, siehe Schritt 6b.**
+      **✅ Der Laptop hat geantwortet** (V2-55, §4.41): Die Bildschirmtastatur **klappt nicht
+      von selbst auf** (`Avalonia.X11` hat keine `IInputPane` — kein Kopfcode ändert das),
+      **schreibt aber, von Hand hervorgeholt**. Der halbe Zweck ist damit erreicht; für den
+      iPadOS-Kopf ist die Naht die Voraussetzung.
+
+- **✅ Schritt 6b — das Zusammensetzen (Preedit)** (§4.43, V2-57): `TdVorschau` in
+      `Core/Text/TdEingabe.cs`, `SupportsPreedit => true`, `SetPreeditText` und
+      `VorschauMalen` im Avalonia-Kopf. **20 Wächter.**
+      **Es ist die Behebung einer Regression und keine Kür:** `SupportsPreedit` ist unter
+      X11/IBus keine Anzeigefrage, sondern das **Fähigkeitswort an IBus** — mit `false` fielen
+      **tote Tasten still weg** (§4.42).
+      **Der eine Satz, der alles trägt:** Der unfertige Text ist **Ansichtszustand** und wird
+      an der Marke gemalt — **`TdDocument` wird nie angefasst**, damit greift §4.32 nicht.
+      In Core steht nur das Klemmen, und dort sitzt die eigentliche Wache: **eine Marke
+      zerschneidet kein Ersatzpaar**.
+      **⏳ Am laufenden Programm ist nur die Gegenprobe gefallen** (Windows: TSF tippt
+      zeichengenau weiter). **Ob die toten Tasten wiederkommen und wie der unfertige Text
+      aussieht, sagt der Laptop** — §5d.
 
 #### Was dem Linux-Editor noch fehlt — die vollständige Liste
 
@@ -8098,7 +8257,7 @@ cd C:\Dev\Zed\gonk-note-V2
 dotnet build -c Release      # 0 Fehler / 0 Warnungen
 dotnet build -c Debug        # schneller, ohne Self-Contained/win-x64
 
-dotnet test -c Release       # beide Testprojekte, 803 Tests (769 Core + 34 WPF)
+dotnet test -c Release       # beide Testprojekte, 823 Tests (789 Core + 34 WPF)
 
 # Golden-Files bewusst neu setzen (danach den Diff lesen, siehe §4.6)
 $env:GONK_SNAPSHOT_UPDATE=1; dotnet test tests\GonkNote.Core.Tests; $env:GONK_SNAPSHOT_UPDATE=$null
@@ -8185,6 +8344,7 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 
 | Runde | Datum | Was |
 |---|---|---|
+| V2-57 | 2026-08-18 | **Preedit gebaut — Schritt 6b, und die toten Tasten sollten damit wiederkommen** (§4.43; `TdVorschau` in Core, `SupportsPreedit` von `false` auf **`true`**, `SetPreeditText` und `VorschauMalen` im Avalonia-Kopf; **20 neue Wächter**, Bau 0/0, **823 Tests** grün = 789 Core + 34 WPF). Weg **(a)** aus §5 „Noch offen" 11, fällig geworden durch §4.42 — **Nutzer-Entscheidung am 2026-08-18**. **Die Entscheidung, die §4.41 nicht gesehen hat:** Der unfertige Text ist **Ansichtszustand**. §4.41 sah nur zwei Wege — ins Modell schreiben und wieder herausnehmen (**der Griff, vor dem §4.32 warnt**) oder darüber malen — und hielt den zweiten für einen Notbehelf. **Er ist der richtige:** Unfertiger Text ist per Definition noch nicht Inhalt, er steht in keiner Datei, kommt in keinen Export, taucht im Verlauf nicht auf. **`TdDocument` wird nie angefasst, §4.32 greift gar nicht erst.** Er steht in einem Feld der Ansicht und wird in `OnPaint` **nach** den Blättern an der Stelle gemalt, die `MarkeAufLeinwand` ohnehin rechnet — **am Umbruch nimmt er nicht teil** (einer je Tastendruck wäre genau die Rechnung, die §4.35 als teuer gemessen hat). **In Core steht nur das Klemmen, und das ist die Stelle, an der es schiefgeht:** `null` und `""` heißen beide „nichts im Gange" (eine Eingabemethode meldet mal das eine, mal das andere), eine fehlende Marke landet am **Ende** — **und die dritte Regel ist der Grund, warum es kein einzeiliges `Math.Clamp` ist: das Ersatzpaar.** Ein Emoji und ein seltenes CJK-Zeichen stehen als **zwei** UTF-16-Stellen da; eine Marke dazwischen ist ein **halbes Zeichen**, und `Text.AsSpan(0, Marke)` liefert darauf eine ungültige Zeichenkette, die Skia als leeren Kasten malt — **sie rückt auf den Anfang des Zeichens zurück und nicht vor**. **Das sind genau die Zeichen, für die eine Eingabemethode überhaupt gebraucht wird**, die Wache sitzt also in der Mitte des Falls und nicht an seinem Rand — **erprobt**: ohne die eine Zeile fallen **zwei** der zwanzig Wächter. **Vier kleinere Entscheidungen, jede mit Grund:** der fertige Text **verwirft** den unfertigen (IBus schickt zwar meist eine leere Vorschau nach, aber nicht verlässlich und **nicht vor dem `commit`** — sonst stünde die Silbe einen Augenblick **doppelt** da); die Schreibmarke des Dokuments blinkt solange **nicht** (sie stünde am Anfang des unfertigen Textes — **zwei Striche**, einer blinkend, keiner aussagekräftig); **unterstrichen**, weil das seit Windows 95 jede Eingabemethode so zeigt; und die Schrift ist die **an der Marke** (`TdFormatEdit.Gemeinsam`, dieselbe Quelle wie das Ribbon — sonst spränge das Zeichen beim Festschreiben um, und genau dann schaut der Nutzer hin). `TdRenderer.CmProPunkt` ist dafür **öffentlich** geworden; eine zweite Zahl im Kopf wäre eine zweite Wahrheit und ergäbe Schriftgrößen um den Faktor 2,8 daneben. **Am laufenden Programm gegengeprüft — und das war wieder die Gegenprobe und nicht der Zweck:** Ein angemeldetes Eingabeziel läuft unter Windows über **TSF**, und Preedit einzuschalten ändert dort, was mit getipptem Text passiert — **das ist die Regression, die diese Runde hätte verursachen können**. An einer Wegwerf-Datenbank durchgespielt (danach gelöscht, Dauerregel 4): `Hallo äöüß ÄÖÜ` → **14, exakt**; neuer Absatz `Zweiter Absatz 12345` → **35**; `ABCDE` angehängt → **40, exakt +5**; **Strg+Z → 30**, also **−10** (`12345ABCDE`) — **nicht der ganze Absatz, und genau richtig**, denn §4.33 schneidet den Verlauf an der Gestalt der Änderung und das Leerzeichen davor ist ein Schnitt. **Der WPF-Kopf ist ausnahmsweise nicht gegengeprüft, und das ist hier richtig:** diese Runde ändert **nichts am Modell** — `TdVorschau` kommt additiv dazu, `CmProPunkt` ändert nur seine Sichtbarkeit, kein Feld, kein Format, kein Speicherweg; es gibt nichts, was der WPF-Editor überleben müsste (seine 34 Wächter laufen mit und sind grün). **⚠ Zwei Dinge hat hier niemand gesehen, und es ist beide Male der Kern:** wie der unfertige Text **aussieht** — auf diesem Rechner sind nur `de-DE` und `en-GB` eingerichtet (nachgesehen), **ohne ostasiatische Eingabemethode entsteht gar kein Preedit** und `VorschauMalen` wird nie gerufen — und **ob die toten Tasten wiederkommen**; `SupportsPreedit` wirkt gegen IBus und nicht gegen eine Rechnung. **▶ Der Laptop ist wieder dran** (§5d trägt den Auftrag: fünf Fragen), **und die Erwartung ist ausdrücklich widerlegbar formuliert** — `^`+`e` soll `ê` ergeben und währenddessen ein unterstrichenes `^` an der Marke stehen. **Kommt das `ê` nicht, ist die Herleitung aus §4.42 falsch**, und der nächste Griff steht schon dort: `dbus-monitor` auf `CommitText`. §5 Nr. **10a** ist damit **erledigt**. **▶ Windows macht unterdessen mit Schritt 7 weiter** (§5e) |
 | V2-56 | 2026-08-18 | **Die toten Tasten erklärt — am Rücken nachgelesen, und der Befund kippt die Empfehlung** (§4.42; **kein Produktivcode angefasst**, Bau 0/0, **803 Tests** grün = 769 Core + 34 WPF). §5 „Noch offen" 11 sah Weg **(b)** vorn: prüfen, ob Avalonias IBus-Client einen `commit` auch bei `SupportsPreedit => false` durchreicht — „**sie ist am Rücken zu messen**". **Es war kein Laptop nötig:** der Rücken liegt als Paket vor. Mit `ilspycmd` gegen genau die gebundenen Fassungen zerlegt (`Avalonia.FreeDesktop`, `Avalonia.X11`, `Avalonia.Base` **12.1.1**). **Drei Befunde, und der erste erledigt (b):** **(1)** `IBusX11TextInputMethod.OnCommitText` ruft `FireCommit` **ohne jede Abfrage von `SupportsPreedit`** — einziger Wächter davor ist `_insideReset`; **der `commit` wird durchgereicht, die vermutete Lücke gibt es nicht.** **(2)** `SetCapabilitiesCore` baut das Fähigkeitswort als `CapFocus` und **nur bei `SupportsPreedit`** dazu `CapPreeditText` — **`SupportsPreedit` ist also keine Anzeigefrage, sondern bestimmt, was IBus über uns erfährt** und wohin IBus das Zusammensetzen schickt. **(3)** `OnUpdatePreedit`/`OnHidePreedit` sind **hart auf `client.SupportsPreedit` verriegelt** — bei `false` wirft **Avalonia selbst** jede Preedit-Meldung weg. **Der Weg eines Zeichens vollständig nachgelesen** (`ScheduleKeyInput` → `FilterIme` → `ProcessNextImeEvent` → `HandleEventAsync`): sobald ein Eingabeziel angemeldet ist, geht **jede** Taste zuerst an IBus, und meldet IBus „behandelt", wird das rohe Ereignis **samt seinem Text verworfen** — das Zeichen kann **nur noch** über `CommitText` zurückkommen. **Das erklärt beides zugleich:** warum es vor V2-54 lief (kein Ziel → `IsEnabled` falsch → die Taste ging an IBus vorbei) **und warum Umlaute bis heute laufen** (ein einzelnes Keysym, das IBus nicht für sich behält — eine tote Taste ist genau der Fall, den es behält). **Der entscheidende Vergleich:** `gnome-text-editor` bekommt dieselbe Folge auf demselben Gerät vollständig (V2-55) — **und GTKs IBus-Modul meldet genau `IBUS_CAP_PREEDIT_TEXT`**; nach den drei Gegenproben aus V2-55 ist das **der einzige verbliebene strukturelle Unterschied**. **Folge: (b) fällt aus** (nichts zu reparieren), **(c) fällt aus** (Tausch, nicht Fix), **Warten fällt aus** — **12.1.1 ist die neueste veröffentlichte Fassung**, gegen nuget.org geprüft. ▶ **(a) ist fällig** — Preedit bauen, nach der Regel, die §5 Nr. 11 selbst aufgestellt hat. **Der Einwand aus §4.41 („berührt `TdDocument`", §4.32) ist ausräumbar:** unfertiger Text ist **Ansichtszustand** und gehört als Auflage an die Marke, nicht ins Dokument. **Wartet auf ein Ja** (§5 Nr. **10a** ist als Entscheidung geführt). **Nebenbefund, nicht unserer:** `SetCapabilitiesCore` bekommt `supportsSurroundingText` und **benutzt es nicht** — `CapSurroundingText` wird nie gesetzt, obwohl der Kopf `SupportsSurroundingText => true` meldet; **ein Avalonia-Fehler**, er erklärt die fehlende Wortvervollständigung und ist **nicht** die Ursache der toten Tasten |
 | V2-55 | 2026-08-18 | **Laptop-Befund: die Bildschirmtastatur schreibt, klappt aber nicht auf — und V2-54 hat die toten Tasten gekostet** (§4.41, „Was der Laptop gefunden hat"; kein Produktivcode angefasst, ein Werkzeug dazu). Der Auftrag aus §5d abgearbeitet, Bau 0/0 in Core und im Avalonia-Kopf, **769/769 grün** — die im Auftrag genannte Zahl. **Die Antwort auf das Aufklappen ist nein, und sie hat zwei Belege, die sich nicht aufeinander stützen.** **(a)** Eine Wegwerf-Sonde (eigenes Avalonia-Programm in `/tmp`, dieselbe Fassung 12.1.1, danach gelöscht) meldet `TopLevel.InputPane` = **`null`**: **`Avalonia.X11` hat gar keine `IInputPane`** — `RaiseInputPaneActivationRequested` läuft ins Leere, **egal welcher Zeigertyp es auslöst**; in den Assemblies kommt das Wort `InputPane` in `Avalonia.X11` kein einziges Mal vor, in `Avalonia.Win32` über `IFrameworkInputPane` schon. **(b)** Der Augenschein direkt nebeneinander: dieselbe GNOME-Tastatur **klappt bei `gnome-text-editor` auf** und **verschwindet, sobald GonkNote den Fokus hat** — der Kopf ist ein XWayland-Client, GNOMEs Tastatur folgt `zwp_text_input_v3`. **✅ Frage 2 hat der Nutzer noch am selben Tag von Hand beantwortet, und sie fällt positiv aus: von Hand hervorgeholt SCHREIBT die Tastatur ins Dokument** — in V2-47 kam auch von Hand nichts an (§4.35, „nicht nur unsichtbar, sondern taub"). **Die Naht aus V2-54 hat also die Hälfte ihres Zwecks erreicht: taub ist die Tastatur nicht mehr, unsichtbar bleibt sie.** Frage 4 bleibt offen (sie richtet sich mangels `IInputPane` nicht an der Marke aus), **Frage 3 ist wertlos** — sie bleibt beim Mausklick zu, aber nur, weil sie bei keinem Zeigertyp aufklappt; **die `PointerType`-Weiche aus §4.41 ist unter Linux nicht prüfbar** und bleibt allein unter Windows belegt. **⚠ Der eigentliche Fund steckt in der vorsorglichen Frage 5:** **tote Tasten kommen seit V2-54 nicht mehr an.** `^`+`e` ergibt **nichts** statt `ê` — am 2026-08-16 war genau das noch gemessen und grün (§4.35). **Das Zeichen geht nicht falsch, es geht weg:** der Zeichenzähler zählt es nicht mit (`Hallo`+`^e`+`´a` → **5** statt 7), kein Ersatzzeichen, keine Meldung; **Umlaute sind nicht betroffen** (`Hallo äöüß ÄÖÜ` → exakt **14**), sie werden nicht zusammengesetzt. **Drei Gegenproben, damit es nicht wieder ein Werkzeugfehler ist wie in V2-47:** `gnome-text-editor` bekommt dieselbe Folge vollständig (`ZZZêá`) — Werkzeug und Plattform sind in Ordnung; der Stand **vor** V2-54 (`c4532fe`, in einem Wegwerf-Worktree gebaut) liefert `Halloêá`, `a25ef09` liefert `Hallo` — **es ist eine Regression von V2-54**; und dieselbe Binärdatei mit leerem `XMODIFIERS` liefert wieder `Halloêá` — **es ist IBus**. **Der Mechanismus stand schon in §4.41, nur mit dem falschen Vorzeichen:** Seit der Anmeldung als Eingabeziel setzt **IBus** zusammen und reicht das Ergebnis als **Preedit** heraus; `SupportsPreedit => false` bedient diesen Weg nicht. §4.41 hatte ausdrücklich notiert, `false` sei „kein Ausfall, sondern eine Ansage" — **unter Windows/TSF stimmt das, unter X11/IBus nicht**, und der Beleg dafür (V2-47) war **vor** der Anmeldung gemessen und konnte den neuen Weg gar nicht abdecken. **Der Kopf hat damit nicht „die Nachteile ohne den Zweck" eingehandelt, sondern den halben Zweck mit einem unbeabsichtigten Preis** — und das entscheidet die Abwägung: **die Anmeldung zurückzunehmen fällt aus**, es machte die Tastatur wieder taub. **Nicht hier behoben** (§5d: nur Linuxspezifisches; `SupportsPreedit` steht in gemeinsamem Kopfcode und war eine Entscheidung) — steht als **§5 „Noch offen" 11** mit drei Antworten und Empfehlung, §5 Nr. **10** und **10a** sind nachgezogen. **Drei Werkzeug-Funde, alle drei kosteten Zeit** (§7): **Vollbildaufnahmen unter Wayland gehen doch** — die Angabe „unbrauchbar" in §5d/§4.10 war **veraltet**, `org.freedesktop.portal.Screenshot` liefert den ganzen Bildschirm, es lief nur `xdg-desktop-portal-gnome` nicht (neu als **`tools/linux/wlschuss.sh`**; `org.gnome.Shell.Screenshot` und `Shell.Introspect` sind unter GNOME 50 dagegen gesperrt). **Ein Avalonia-Flyout ist ein eigenes X-Fenster** und fehlt auf `import -window` — der Klick auf „Neu" sah dreimal wie ein wirkungsloser Klick aus, das Menü war jedes Mal offen, nur unsichtbar. Und **zwei Koordinatensysteme im Faktor 1,6**: Wayland logisch 1920×1080, XWayland 3072×1728 — `zeiger` will Gerätepixel, der Portal-Schuss liefert logische. **Compose** wie in V2-47 ungeprüft, weil auf diesem Gerät keine eingerichtet ist (leere `xkb-options`, keine `~/.XCompose`) — notiert statt eingerichtet, wie der Auftrag verlangt. **▶ Der Laptop trägt keinen Auftrag mehr** (§5d); **▶ Windows ist dran, und die Regression geht VOR Schritt 7** — sie sitzt in derselben Naht (§5e) |
 | V2-54 | 2026-08-18 | **Die Eingabe-Naht — Schritt 6a, `TextInputMethodClient`** (§4.41). `Core/Text/TdEingabe.cs` neu, `Views/TextDocView.Eingabemethode.cs` neu, vier Anschlussstellen in `TextDocView.Eingabe.cs`; **16 Wächter**, **803 Tests** grün (vorher 787), Bau 0/0. **Damit ist §5 „Noch offen“ 10 gebaut** — die Nutzer-Entscheidung vom 2026-08-16 lautete (a) umsetzen, aber nach Schritt 6, und genau so ist es gelaufen. **Der Befund kam vom Laptop** (§4.35, V2-47): Ohne Hardware-Tastatur ist im Linux-Kopf nicht zu schreiben — GNOMEs Bildschirmtastatur erscheint nicht, und von Hand hervorgeholt kommt trotzdem nichts an; die Ursache war, dass sich `TextDocView` **nirgends als Eingabeziel anmeldet**. Jetzt beantwortet es Avalonias vier Fragen: welche Fläche den Text zeigt, wo die Marke darauf steht (`TdHit.Schreibmarke`, auf die Leinwand umgerechnet), was um sie herum steht und was davon ausgewählt ist. **Die eine Entscheidung, um die sich alles dreht: ein Cursorschritt ist genau ein Zeichen breit.** `TdCursor.Text` gilt das ausdrücklich **nicht** — ein Feld und ein Bild sind je einen Schritt breit und steuern keinen Klartext bei (§4.20, §4.21), und für den Klartext ist das richtig. **Für eine Eingabemethode wäre es verhängnisvoll:** Sie bekommt eine Zeichenkette und zwei Abstände darin und rechnet damit weiter („lösche zwei Zeichen vor der Marke“) — klaffen die Zählweisen auseinander, zeigt **jeder** Abstand hinter **jedem** Feld um eins daneben, und das Fehlerbild ist kein Absturz, sondern ein Zeichen an der falschen Stelle im Dokument des Nutzers. Deshalb bekommt jedes unteilbare Stück ein Zeichen: ein Zeilenumbruch sein `

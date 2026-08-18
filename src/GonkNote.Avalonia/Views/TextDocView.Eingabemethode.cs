@@ -1,9 +1,11 @@
+﻿using System;
 using Avalonia;
 using Avalonia.Input;
 using Avalonia.Input.TextInput;
 using Avalonia.Media;
 using GonkNote.Core.Rendering;
 using GonkNote.Core.Text;
+using SkiaSharp;
 
 namespace GonkNote.Views;
 
@@ -101,7 +103,14 @@ public partial class TextDocView
     /// <b>Ohne das trüge eine halb getippte Silbe in das nächste Dokument hinüber</b>, und die
     /// Eingabemethode setzte sie dort ab, wo sie nie angefangen wurde.
     /// </summary>
-    private void EingabemethodeZuruecksetzen() => _eingabeziel?.Zuruecksetzen();
+    private void EingabemethodeZuruecksetzen()
+    {
+        // **Beides, und in dieser Reihenfolge:** `RequestReset` sagt der Eingabemethode, dass
+        // sie von vorn anfangen soll — sie meldet daraufhin aber nicht zuverlässig eine leere
+        // Vorschau zurück. Ohne das Verwerfen bliebe die letzte Silbe auf dem Schirm stehen.
+        _eingabeziel?.Zuruecksetzen();
+        VorschauVerwerfen();
+    }
 
     /// <summary>
     /// Bittet die Plattform, die Bildschirmtastatur aufzuklappen. <b>Nur für Finger und
@@ -150,6 +159,117 @@ public partial class TextDocView
             marke.HoeheCm * massstab);
     }
 
+    // ==================== Der unfertige Text ====================
+
+    /// <summary>
+    /// Was die Eingabemethode gerade zusammensetzt — <b>Ansichtszustand und kein Inhalt</b>
+    /// (§4.43). Er steht in keiner Datei, kommt in keinen Export, taucht im Verlauf nicht auf
+    /// und macht das Dokument nicht schmutzig. <see cref="TdVorschau.Leer"/>, solange nichts
+    /// im Gange ist.
+    /// </summary>
+    private TdVorschau _vorschau = TdVorschau.Leer;
+
+    /// <summary>Ob gerade etwas zusammengesetzt wird.</summary>
+    private bool Setzt => !_vorschau.IstLeer;
+
+    /// <summary>
+    /// Nimmt den unfertigen Text an. <b>Zeichnet neu und sonst nichts</b> — kein Umbruch, kein
+    /// Verlaufsschritt, keine Änderung am Modell.
+    ///
+    /// <para>
+    /// <b>Der Vergleich davor ist nicht bloß Sparsamkeit.</b> IBus meldet denselben Stand
+    /// mehrfach — beim Anmelden, beim Wandern der Marke und nach jedem Tastendruck. Ohne ihn
+    /// stieße jede dieser Meldungen ein Bild an, und beim Tippen blinkte die Fläche.
+    /// </para>
+    /// </summary>
+    private void VorschauSetzen(TdVorschau neu)
+    {
+        if (neu == _vorschau) return;
+
+        _vorschau = neu;
+        Skia.InvalidateVisual();
+    }
+
+    /// <summary>
+    /// Wirft ein angefangenes Zusammensetzen weg — <b>ohne die Eingabemethode zu fragen</b>.
+    /// Gerufen, wenn der fertige Text ankommt (dann ist der unfertige verbraucht) und beim
+    /// Wechsel des Dokuments.
+    /// </summary>
+    private void VorschauVerwerfen() => VorschauSetzen(TdVorschau.Leer);
+
+    /// <summary>
+    /// Malt den unfertigen Text an die Marke — <b>der ganze sichtbare Teil von §4.43</b>.
+    /// Gerufen aus <see cref="OnPaint"/>, nach den Blättern und vor nichts.
+    ///
+    /// <para>
+    /// <b>Auf die Leinwand und nicht auf die Seite.</b> Der unfertige Text nimmt am Umbruch
+    /// nicht teil — er hat keine Zeile, keinen Absatz und keine Stelle im Modell. Er wird
+    /// deshalb dort hingemalt, wo die Marke <i>gerade</i> steht, in Flächenkoordinaten. <b>Das
+    /// ist genau die Rechnung, die <see cref="MarkeAufLeinwand"/> ohnehin macht</b>, und sie
+    /// wird hier ein zweites Mal benutzt statt ein zweites Mal geschrieben.
+    /// </para>
+    /// <para>
+    /// <b>Unterstrichen, weil es die einzige Sprache ist, die jeder kennt:</b> Seit Windows 95
+    /// zeigt jede Eingabemethode unfertigen Text mit einer Unterstreichung. Eine eigene
+    /// Erfindung — Kasten, Farbe, Schattierung — wäre hier nur neu und nicht besser.
+    /// </para>
+    /// <para>
+    /// <b>Die Schrift ist die an der Marke</b> (<see cref="TdFormatEdit.Gemeinsam"/>, dieselbe
+    /// Quelle, aus der das Ribbon seine Knöpfe füllt). Ein unfertiges Zeichen, das in einer
+    /// anderen Schrift dasteht als das fertige daneben, springt beim Festschreiben um — und
+    /// genau in dem Augenblick schaut der Nutzer hin.
+    /// </para>
+    /// </summary>
+    private void VorschauMalen(SKCanvas leinwand)
+    {
+        if (!Setzt || !Schreibbar) return;
+        if (MarkeAufLeinwand() is not { Width: > 0 } marke) return;
+
+        double massstab = TdRenderer.PixelProCm * _zoom;
+        var format = TdFormatEdit.Gemeinsam(_modell!, _auswahl).Aufgeloest();
+
+        using var schrift = WbFonts.Font(
+            format.FontFamily,
+            (float)(format.FontSize!.Value * TdRenderer.CmProPunkt * massstab),
+            format.Bold == true, format.Italic == true);
+
+        // Die Grundlinie: `marke` umfasst die ganze Zeilenhöhe, der Text sitzt darin auf seiner
+        // eigenen. `Metrics.Descent` ist der Weg von der Grundlinie zur Unterkante.
+        float x = (float)marke.X;
+        float unten = (float)(marke.Y + marke.Height);
+        float grundlinie = unten - schrift.Metrics.Descent;
+
+        using var farbe = new SKPaint
+        {
+            // Dieselbe Lesart wie im Zeichner: steht dort nichts Brauchbares, ist es schwarz.
+            Color = SKColor.TryParse(format.Color, out var c) ? c : SKColors.Black,
+            IsAntialias = true,
+        };
+
+        // **Erst den Untergrund, dann den Text.** Der unfertige Text steht über dem Papier und
+        // gegebenenfalls über schon gesetztem Text daneben; ohne Untergrund läsen sich beide
+        // ineinander.
+        float breite = schrift.MeasureText(_vorschau.Text);
+        using (var papier = new SKPaint { Color = TdRenderer.Papier })
+            leinwand.DrawRect(x, (float)marke.Y, breite, (float)marke.Height, papier);
+
+        leinwand.DrawText(_vorschau.Text, x, grundlinie, schrift, farbe);
+
+        using var strich = new SKPaint
+        {
+            Color = farbe.Color,
+            StrokeWidth = Math.Max(1f, (float)(massstab / 96)),
+            IsAntialias = true,
+        };
+        leinwand.DrawLine(x, unten - 1, x + breite, unten - 1, strich);
+
+        // Die Marke *innerhalb* des unfertigen Textes. Sie blinkt nicht: Was hier steht, ist
+        // ohnehin nur für einen Augenblick da, und ein zweiter Takt neben dem der Schreibmarke
+        // wäre Unruhe ohne Auskunft.
+        float vor = schrift.MeasureText(_vorschau.Text.AsSpan(0, _vorschau.Marke));
+        leinwand.DrawLine(x + vor, (float)marke.Y, x + vor, unten, strich);
+    }
+
     // ==================== Das Eingabeziel ====================
 
     /// <summary>
@@ -171,16 +291,47 @@ public partial class TextDocView
         public override Visual TextViewVisual => ansicht.Skia;
 
         /// <summary>
-        /// <b>Nein — und das ist eine benannte Auslassung, keine Lücke.</b> „Preedit" ist der
-        /// unfertige Text, den eine ostasiatische Eingabemethode zeigt, bevor er im Dokument
-        /// steht. Ihn hier anzuzeigen hieße, ihn ins Modell zu schreiben und wieder
-        /// herauszunehmen (der Griff, vor dem §4.32 warnt) oder ihn über den Text daneben zu
-        /// malen. <c>false</c> zu melden ist kein Ausfall: Die Plattform zeigt ihn dann in
-        /// ihrem eigenen Fenster, und der Text kommt fertig zusammengesetzt als
-        /// <c>TextInput</c> an — genau der Weg, den Umlaute und tote Tasten heute schon nehmen
-        /// (§4.35, V2-47). Die Begründung im Langen steht bei <see cref="TdEingabe"/>.
+        /// <b>Ja — seit §4.43, und das ist die Behebung einer Regression und keine Kür.</b>
+        ///
+        /// <para>
+        /// Bis dahin stand hier <c>false</c>, mit der Begründung, die Plattform zeige den
+        /// unfertigen Text selbst und liefere ihn fertig als <c>TextInput</c> nach (§4.41).
+        /// <b>Unter Windows/TSF stimmt das, unter X11/IBus nicht.</b> Dort ist diese
+        /// Eigenschaft <b>keine Anzeigefrage</b>: Avalonia baut daraus das Fähigkeitswort für
+        /// IBus (<c>CapPreeditText</c>) und verriegelt <c>OnUpdatePreedit</c> hart dagegen —
+        /// bei <c>false</c> erfährt IBus, dass wir kein Preedit können, und <b>tote Tasten
+        /// fielen still weg</b> (§4.42, am ausgelieferten Rücken nachgelesen; der Vergleich,
+        /// der es entschied: <c>gnome-text-editor</c> bekommt dieselbe Tastenfolge
+        /// vollständig — und meldet genau diese Fähigkeit).
+        /// </para>
+        /// <para>
+        /// <b>Der Einwand aus §4.41 ist damit nicht übergangen, sondern ausgeräumt:</b> Der
+        /// unfertige Text wird <b>nicht</b> ins Modell geschrieben. Er ist Ansichtszustand,
+        /// steht in <see cref="TextDocView._vorschau"/> und wird an der Marke auf die Leinwand
+        /// gemalt (<see cref="VorschauMalen"/>). <b><see cref="TdDocument"/> wird nie
+        /// angefasst</b> — der Griff, vor dem §4.32 warnt, kommt gar nicht vor.
+        /// </para>
         /// </summary>
-        public override bool SupportsPreedit => false;
+        public override bool SupportsPreedit => true;
+
+        /// <summary>
+        /// Der unfertige Text, wie die Eingabemethode ihn meldet.
+        ///
+        /// <para>
+        /// <b>Geklemmt wird in Core</b> (<see cref="TdVorschau.Aus"/>) und nicht hier: Die
+        /// Zahl kommt aus fremdem Code, und ein Abstand, der um eins danebenliegt, ist kein
+        /// Absturz, sondern ein halbes Zeichen auf dem Schirm. <b>Dieselbe Vorsicht wie beim
+        /// Rückweg der Auswahl</b> (§4.41).
+        /// </para>
+        /// <para>
+        /// <b>Es läuft ausdrücklich nicht über <see cref="Aendern"/>.</b> Ein unfertiger Text
+        /// ist kein Handgriff: Er gehört in keinen Verlaufsschritt, löst keinen Umbruch aus
+        /// und darf das Dokument nicht als geändert markieren. Neu gezeichnet wird trotzdem —
+        /// sonst stünde er erst da, wenn zufällig etwas anderes das Bild anstößt.
+        /// </para>
+        /// </summary>
+        public override void SetPreeditText(string? preeditText, int? cursorPos) =>
+            ansicht.VorschauSetzen(TdVorschau.Aus(preeditText, cursorPos));
 
         /// <summary>
         /// <b>Ja.</b> Ohne diese Auskunft weiß eine Bildschirmtastatur nicht, welches Wort

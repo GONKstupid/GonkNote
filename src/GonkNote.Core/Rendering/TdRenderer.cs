@@ -1,4 +1,4 @@
-using GonkNote.Core.Text;
+﻿using GonkNote.Core.Text;
 using SkiaSharp;
 
 namespace GonkNote.Core.Rendering;
@@ -71,7 +71,10 @@ public static class TdRenderer
     public const double PixelProCm = 96.0 / 2.54;
 
     /// <summary>Punkt → Zentimeter, für Linienstärken (ein Punkt ist 1/72 Zoll).</summary>
-    private const double CmProPunkt = 2.54 / 72.0;
+    // **Öffentlich seit §4.43:** Der Kopf malt den unfertigen Text einer Eingabemethode
+    // selbst und braucht dieselbe Umrechnung Punkt → Zentimeter. Eine zweite Zahl im Kopf
+    // wäre eine zweite Wahrheit — und Schriftgrößen, die um den Faktor 2,8 danebenliegen.
+    public const double CmProPunkt = 2.54 / 72.0;
 
     /// <summary>
     /// Die Farbe des Papiers. <b>Ein Dokument ist Papier</b> (§1) — es bleibt weiß, auch im

@@ -6579,7 +6579,8 @@ einmal fragen.
 Zieh zuerst den Stand: git pull. Dann bauen und testen, bevor du etwas
 anfasst -- 0 Fehler, 0 Warnungen, 823 Tests.
 
-Womit anzufangen ist, steht in §5e unter "Dran ist" -- und die
+Womit anzufangen ist, steht in §5e unter "Aktueller Auftrag" (datiert,
+nach Runde V2-59) und in "Dran ist" -- und die
 Reihenfolge hat sich am 2026-08-18 zweimal geaendert, zuletzt durch den
 Laptop-Befund V2-59. ZUERST die Regression aus §5 "Noch offen" 11: tote
 Tasten kommen im Linux-Kopf seit V2-54 nicht mehr an. Sie sitzt in
@@ -6620,6 +6621,117 @@ Laptop dran ist.
 
 Fang an.
 ```
+
+### ▶ Aktueller Auftrag — **den Tastenweg finden** (Stand 2026-08-18, nach Runde V2-59)
+
+> **Der Laptop hat am 2026-08-18 abgeliefert** (§4.43, „Was der Laptop gefunden hat", V2-59),
+> und der Befund ändert, womit diese Runde anfängt. **§4.43 und der Befundblock darunter sind
+> vorher zu lesen** — dort stehen die rohen Zeilen, um die es hier geht.
+>
+> **Die Lage in drei Sätzen.** Preedit ist gebaut und kommt bei IBus an — das
+> Fähigkeitswort ist gemessen (`SetCapabilities uint32 9`). **Die toten Tasten kommen trotzdem
+> nicht.** Der Grund liegt **eine Station vor** der Fähigkeit: Für die tote Taste und den
+> Buchstaben danach schickt der Kopf **gar keinen Tastendruck** an IBus, nur das Loslassen —
+> und dazwischen **einen Aufruf mit `keysym = 0` und `keycode = 0`**, den IBus mit **`true`**
+> beantwortet; genau danach verwirft Avalonia das rohe Ereignis **samt Text** (§4.42).
+
+#### ⛔ Drei Dinge, die ausdrücklich NICHT zu tun sind
+
+**Sie stehen zuerst, weil jede von ihnen nach der naheliegende Reaktion auf ein „wirkt nicht"
+aussieht — und alle drei wären falsch.**
+
+| | Warum nicht |
+|---|---|
+| **Preedit nicht noch einmal bauen** | Es **ist** gebaut (§4.43), 20 Wächter, und es **funktioniert**: das Fähigkeitswort kommt an, gemessen am Bus. Es ist nicht falsch gewesen, nur **nicht hinreichend** |
+| **`SupportsPreedit` nicht zurückbauen** | Es heilte nichts (die Ursache liegt davor) und **nähme die Vorschau wieder weg**, die der iPadOS-Kopf ohnehin braucht — `Avalonia.iOS` bringt die `IInputPane` mit, für die §4.41 die Naht gebaut hat |
+| **Keine `IInputPane` für X11 nachrüsten** | Arbeit am Avalonia-Rücken, nicht an dieser App (§5 „Noch offen" 10). Unter Linux bleibt es beim Hervorholen von Hand |
+
+#### Schritt 1 — **wer setzt den Aufruf mit `keysym = 0` ab?**
+
+**Das ist die ganze Frage dieser Runde.** Sie ist am **zerlegten Rücken** zu beantworten,
+genau wie §4.42 es vorgemacht hat — **dafür braucht es keinen Laptop und kein laufendes
+Linux**, und das ist der Grund, warum sie hier steht und nicht in §5d:
+
+```powershell
+# dieselbe Methode wie §4.42, gegen genau die gebundenen Fassungen (Avalonia 12.1.1)
+ilspycmd -o .\zerlegt\ $env:USERPROFILE\.nuget\packages\avalonia.x11\12.1.1\lib\net8.0\Avalonia.X11.dll
+ilspycmd -o .\zerlegt\ $env:USERPROFILE\.nuget\packages\avalonia.freedesktop\12.1.1\lib\net8.0\Avalonia.FreeDesktop.dll
+```
+
+**Die Kette, die §4.42 schon abgelaufen ist** und an der es jetzt genauer hinzusehen gilt:
+`X11Window.ScheduleKeyInput` → `FilterIme` → `ProcessNextImeEvent` → `HandleEventAsync` →
+`IBusX11TextInputMethod`. **Die Stelle, die gesucht wird, ist die, an der ein Tastenereignis
+ohne Keysym und ohne Keycode an `ProcessKeyEvent` weitergereicht wird.**
+
+**Die schärfste Frage zuerst, weil sie den Fehler einkreist, ohne ihn zu kennen:**
+
+> **Warum kommen die Drucke von `a`, `Entf` und `Umschalt` sauber an — und die der toten
+> Taste nicht?** Am Bus ist beides in derselben Minute mitgelesen: gewöhnliche Tasten liefern
+> Druck **und** Loslassen mit richtigem Keysym; ab der toten Taste fehlt **jeder** Druck.
+> **Der Unterschied zwischen diesen beiden Fällen ist der Fehler.**
+
+**Zwei Verdächtige, beide sind Vermutungen und als solche zu prüfen — nicht zu glauben:**
+
+1. **Die Warteschlange des IME-Wegs** (`ProcessNextImeEvent`, `HandleEventAsync`). Sie
+   entkoppelt Tastendruck und Antwort. **Wenn ein Ereignis darin verbraucht oder ersetzt
+   wird**, entstünde genau das beobachtete Bild: ein Aufruf ohne Inhalt, gefolgt von einem
+   verworfenen Zeichen.
+2. **Unsere vier Anschlussstellen aus §4.41** in `TextDocView.Eingabemethode.cs`. **Weniger
+   wahrscheinlich** — wir rufen IBus nicht selbst —, **aber nicht auszuschließen**: ein
+   `Reset`, ein Fokuswechsel oder ein leer gemeldetes Umfeld zur falschen Zeit kann den Rücken
+   dazu bringen, ein leeres Ereignis nachzuschieben. **Zuerst zu prüfen ist der Rücken**, weil
+   dort der Aufruf tatsächlich abgesetzt wird.
+
+#### Schritt 2 — **den Keycode-Versatz von 8 mitprüfen**
+
+Am Bus gemessen: Der Kopf meldet **49** und **26**, `gnome-text-editor` meldet **41** und
+**18**. Das ist der Abstand **X11-Keycode = evdev-Keycode + 8**; **IBus erwartet evdev**.
+
+**Als alleinige Ursache scheidet es aus** — die IBus-Engine entscheidet bei toten Tasten am
+Keysym, und der ist richtig. **Es steht aber in derselben Naht**, es ist billig zu prüfen, und
+wenn es fehlt, fehlt es auch für alles andere, was am Keycode hängt. **Nachsehen, ob
+`IBusX11TextInputMethod` die 8 abzieht** — und wenn nicht, **es hier nicht heimlich
+geradebiegen**, sondern als Befund festhalten: es wäre ein Fehler in Avalonia, wie der
+`CapSurroundingText`-Fund aus §4.42.
+
+#### Was mit dem Fund geschieht — drei Fälle, und nur einer ist Arbeit für diese Runde
+
+| Der Aufruf kommt aus … | Dann |
+|---|---|
+| **unserem Kopfcode** | **beheben, hier, sofort** — und der Laptop misst gegen. Das wäre der beste Ausgang: es wäre unser Fehler und damit unser Hebel |
+| **`Avalonia.X11`** | **nicht patchen, nicht umgehen, bevor es benannt ist.** Erst festhalten wie §4.42 es getan hat (Methodenname, Fassung, Zeile), dann entscheiden: Umgehung im Kopf, Meldung an Avalonia, oder als benannter Mangel stehen lassen. **Das ist eine Entscheidung des Nutzers und keine dieser Runde** |
+| **weder noch** (die Herleitung trägt nicht) | **Dann ist auch das ein Ergebnis** — festhalten, was ausgeschlossen ist, und den nächsten Griff benennen. **Nichts raten** |
+
+> **Die Grenze dieser Runde ist scharf und ist dieselbe wie in §4.42:** **Unter Windows ist das
+> Symptom nicht zu sehen** — es gibt hier weder tote Tasten noch IBus, hier läuft TSF.
+> **Was hier entsteht, ist eine Herleitung; ob sie trägt, sagt allein der Laptop.** §4.42 hat
+> genau so gearbeitet und lag **zur Hälfte richtig** — das Fähigkeitswort stimmte, die
+> Wirkung nicht. **Deshalb: die Erwartung wieder ausdrücklich widerlegbar formulieren**, mit
+> Zahlen, gegen die der Laptop messen kann.
+
+#### Danach — Schritt 7, und er ist der eigentliche Zweck
+
+**Erst wenn Schritt 1 abgeschlossen ist** (behoben, oder benannt und begründet zurückgestellt),
+geht es weiter mit **Schritt 7: `Rtf` verliert die Führung** (§6). Der Grund für die
+Reihenfolge steht unverändert: **die Regression sitzt in derselben Naht, die Schritt 7
+benutzt** — wer erst Schritt 7 baut, baut auf einem Eingabepfad weiter, an dem gerade Zeichen
+verschwinden. **Ein Fund liegt dafür bereit:** der Weg durch den WPF-Editor setzt den Absatz
+auf **Blocksatz** (§4.37, Fund 2).
+
+#### Bevor du anfängst, und bevor du fertig bist
+
+```powershell
+cd C:\Dev\Zed\gonk-note-V2
+git pull                      # der Laptop hat vorgelegt (V2-59)
+dotnet build -c Release       # 0 Fehler, 0 Warnungen
+dotnet test -c Release        # 823 Tests (789 Core + 34 WPF)
+```
+
+**Und zum Schluss, damit die Runde nicht auf halbem Weg endet:** Was der Laptop als Nächstes
+messen soll, **gehört nach §5d, bevor der Nutzer wechselt** (Dauerregel 3a) — mit den Zahlen
+aus V2-59 zum Vergleichen: `Halloêá` → **7**, `Hallo äöüß ÄÖÜ` → **14**, ein Absatz von
+**427** Zeichen → **427**. **Steht dort nichts, hat der Laptop nichts zu tun**, und der Fund
+dieser Runde bleibt ungeprüft liegen.
 
 ### ✅ Aufgeräumt ist — die drei Handgriffe sind erledigt (2026-08-11, V2-40)
 
@@ -6789,17 +6901,19 @@ sieht der andere Kopf, nachdem dieser gespeichert hat?*
 
 ### Wann der Laptop wieder dran ist
 
-**Nicht jetzt.** Er hat zuletzt am 2026-08-18 abgeliefert (V2-55, §4.41), **§5d trägt keinen
-Auftrag**, und auf dem Gerät steht nichts mehr offen, was nur er beantworten könnte — außer
-zwei alten Stift-Fragen (§5a „Offen" 2 und 3: eine Xorg-Sitzung als Vergleich und die
+**Nicht jetzt.** Er hat zuletzt am 2026-08-18 abgeliefert (**V2-59**, §4.43), **§5d trägt
+keinen Auftrag**, und auf dem Gerät steht nichts mehr offen, was nur er beantworten könnte —
+außer zwei alten Stift-Fragen (§5a „Offen" 2 und 3: eine Xorg-Sitzung als Vergleich und die
 Druckschwelle unten) und einer kleinen neuen: ob die von Hand hervorgeholte Tastatur die Marke
 **verdeckt**.
 
-**Fällig wird er wieder, sobald §5 „Noch offen" 11 gebaut ist** — ob die toten Tasten danach
-wirklich wieder ankommen, ist genau die Frage, die **nur dort** zu beantworten ist: Unter
-Windows läuft TSF und nicht IBus, und die Regression war unter Windows **nicht zu sehen**.
-**Das ist der Musterfall für §5b**, und er ist teuer gewesen: Der Fehler ist am 2026-08-18
-gebaut worden und wäre ohne den Laptop unbemerkt in Schritt 7 hineingelaufen.
+**Fällig wird er wieder, sobald am Tastenweg etwas geändert ist** (§5e, „Aktueller Auftrag") —
+ob die toten Tasten danach ankommen, ist die Frage, die **nur dort** zu beantworten ist: Unter
+Windows läuft TSF und nicht IBus, und die Regression ist hier **nicht zu sehen**.
+**Das ist der Musterfall für §5b**, und er ist zweimal teuer gewesen: Der Fehler ist am
+2026-08-18 gebaut worden und wäre ohne den Laptop unbemerkt in Schritt 7 hineingelaufen — und
+**die Reparatur desselben Tages hat ohne ihn wie eine Lösung ausgesehen**, obwohl sie keine
+war (§4.43: das Fähigkeitswort kam an, das Zeichen nicht).
 
 > **Die Lehre, die dabei angefallen ist, gilt über diesen Punkt hinaus:** §4.41 hat aus einer
 > Windows-Messung (V2-47) geschlossen, `SupportsPreedit => false` koste für lateinische Schrift
@@ -8631,6 +8745,7 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 
 | Runde | Datum | Was |
 |---|---|---|
+| V2-60 | 2026-08-18 | **Der Arbeitsauftrag für Windows ausgeschrieben** (§5e, „▶ Aktueller Auftrag — den Tastenweg finden"; **nur HANDOFF, kein Code angefasst**). §5e hatte bis hierher **keinen datierten Auftrag** — nur „Dran ist" und den Prompt; §5d hat so einen seit Langem, und der Unterschied ist beim Wechsel zwischen den Rechnern jedes Mal aufgefallen. **Der Auftrag steht jetzt in derselben Form wie der des Laptops:** Lage in drei Sätzen, **drei Dinge, die ausdrücklich nicht zu tun sind** (Preedit nicht noch einmal bauen, `SupportsPreedit` nicht zurückbauen, keine `IInputPane` nachrüsten — jede davon sieht wie die naheliegende Reaktion auf ein „wirkt nicht" aus und wäre falsch), **Schritt 1** mit den `ilspycmd`-Befehlen gegen **12.1.1** und der Kette `ScheduleKeyInput → FilterIme → ProcessNextImeEvent → HandleEventAsync → IBusX11TextInputMethod`, **Schritt 2** der Keycode-Versatz von 8, **drei Fälle für den Fund** (unser Code → sofort beheben; `Avalonia.X11` → erst benennen, nicht heimlich umgehen, dann entscheidet der Nutzer; trägt nicht → auch ein Ergebnis), **danach Schritt 7**. **Die schärfste Frage steht zuoberst und kreist den Fehler ein, ohne ihn zu kennen:** warum kommen die Drucke von `a`, `Entf` und `Umschalt` sauber an und die der toten Taste nicht? **Die Grenze ist scharf benannt:** unter Windows ist das Symptom nicht zu sehen (TSF statt IBus), **was hier entsteht, ist eine Herleitung — ob sie trägt, sagt allein der Laptop**; §4.42 hat genau so gearbeitet und lag **zur Hälfte** richtig, deshalb die Auflage, die Erwartung wieder **widerlegbar** zu formulieren, mit den Zahlen aus V2-59 zum Vergleichen (7 / 14 / 427). **Und der Schluss der Runde ist mit eingebaut:** was der Laptop danach messen soll, gehört nach §5d, **bevor** der Nutzer wechselt (Dauerregel 3a) — steht dort nichts, bleibt der Fund ungeprüft liegen. **„Wann der Laptop wieder dran ist" nachgezogen** (er hat mit V2-59 abgeliefert, nicht mehr V2-55) — samt der Lehre, die diese Runde dazugegeben hat: **die Reparatur hat ohne den Laptop wie eine Lösung ausgesehen**, obwohl das Fähigkeitswort ankam und das Zeichen nicht |
 | V2-59 | 2026-08-18 | **Laptop-Befund: `ê` kommt nicht — die Erwartung aus §4.43 ist widerlegt, und der `dbus-monitor` sagt auch, wo es klemmt** (§4.43, „Was der Laptop gefunden hat"; kein Produktivcode angefasst). Der Auftrag aus §5d abgearbeitet, Bau 0/0 in Core und im Avalonia-Kopf, **789/789 grün** — die im Auftrag genannte Zahl. **Frage 1 mit Nein:** `Hallo` + `^`+`e` + `´`+`a` → **`Hallo`, Zeichen 5** statt 7, **zahlengleich mit V2-55**; `SupportsPreedit => true` hat daran nichts geändert. **Frage 2 ✅** (`Hallo äöüß ÄÖÜ` → **14**), **Frage 5 ✅** (ein Absatz von **427** Zeichen → **427, exakt**, kein Hänger, ~78 Zeichen/s). **Fragen 3 und 4 sind gegenstandslos** — IBus schickt an unseren Kontext **überhaupt keine Vorschau**, also wird `VorschauMalen` nie gerufen; **wie der unfertige Text aussieht, hat weiterhin niemand gesehen.** **Erst die Gegenprobe, dann die Deutung** (Lehre aus V2-47/V2-55): `gnome-text-editor` bekommt dieselbe Folge mit demselben `zeiger` in derselben Sitzung **vollständig** (`ZZZêá`, frisches Fenster) — **Werkzeug und Plattform sind in Ordnung.** **⚠ Der eigentliche Fund kommt vom `dbus-monitor`**, und zwar auf dem **eigenen Bus des IBus-Daemons** (auf dem Sitzungsbus steht davon nichts): **`CommitText` 0 mal bei uns, 2 mal beim Nachbarn** — **derselbe Daemon, dieselbe Engine (`engine/simple/43`), dieselbe Sekunde**, also **liegt es nicht an IBus**, und der Umkehrschluss des Auftrags greift nicht. **✅ Die Herleitung aus §4.42 ist zur Hälfte bestätigt statt verworfen:** das Fähigkeitswort **kommt an** (`SetCapabilities uint32 9` = `CapPreeditText` + `CapFocus`) — **Punkt 2 der Tabelle ist damit gemessen**, (a) hat getan, was es sollte. **⚠ Der Fehler sitzt eine Station davor:** für die tote Taste und den Buchstaben danach schickt der Kopf **gar keinen Tastendruck** an IBus, nur das **Loslassen** — und dazwischen **einen Aufruf mit `keysym = 0` und `keycode = 0`**, den IBus mit **`true`** beantwortet; **genau danach verwirft Avalonia das rohe Ereignis samt Text** (§4.42). Der Nachbar schickt für dieselben zwei Tasten **vier saubere Aufrufe** und bekommt `UpdatePreeditText "^"` und `CommitText "ê"`. **Nebenbefund:** die Keycodes stehen um **8** daneben (X11 statt evdev) — als Ursache scheidet das aus, **steht aber in derselben Naht**; und der Nachbar meldet `41`, also zusätzlich `CapSurroundingText` — **derselbe Avalonia-Fehler, den §4.42 schon notiert hat**, jetzt von außen sichtbar. **Damit ist der Fund keine Verneinung, sondern eine Verschiebung: weg von der Fähigkeit, hin zum Tastenweg** — **(a) wird nicht zurückgebaut** (es heilte nichts und nähme die Vorschau weg, die iPadOS braucht), und ▶ **der nächste Griff gehört nach Windows**: nachsehen, **wer den Aufruf mit `keysym = 0` absetzt** — eine der vier Anschlussstellen aus §4.41 oder `Avalonia.X11` selbst, **am zerlegten Rücken zu lesen wie in §4.42**. **Zwei Werkzeugfunde:** XTEST läuft unter GNOME 50 über das **EI-Portal** (XWayland mit `-enable-ei-portal`) — der erste `zeiger`-Klick öffnet den Dialog „Entfernter Bildschirm", **der den Klick schluckt** und danach eine `RemoteDesktop`-Sitzung offen hält; und **`pkill -f dbus-monitor` bringt die eigene Shell um**. §5d trägt jetzt **keinen** Auftrag mehr — Windows ist am Zug |
 | V2-58 | 2026-08-18 | **Die Reihenfolge des Plans geändert — Veröffentlichung vorgezogen, iPadOS nachgestellt** (Nutzer-Entscheidung; §6-Kasten, §5-Tabelle, **`gonk-note-port-RM.MD` nachgezogen** — kein Code angefasst). **Vorher:** Phase 5 iPadOS → Phase 6 Veröffentlichung (beide Plattformen in einem Schritt). **Jetzt:** Phase 4.5 → **Phase 5 = aufräumen, prüfen, Repo öffentlich schalten, Flatpak/AppImage** → **Phase 6 = iPadOS samt App Store**. **Die Begründung ist eine Priorität und kein neuer Befund:** der **Linux-Port ist das Ziel des Projekts**, der iPad-Kopf ein Zusatz — es gibt keinen technischen Grund, eine fertige Linux-Fassung monatelang im privaten Repo liegen zu lassen, bis ein zweiter Port nachkommt. **Der Sache nach war das schon die Vorgabe:** die Roadmap hält im Vorgespräch „Linux priorisiert, iPad danach" fest — nur die Phasenfolge hat es für die *Veröffentlichung* nie abgebildet; **die Umstellung korrigiert also einen Widerspruch im Plan und führt keinen neuen ein.** **✅ iPadOS bleibt vollständig Teil des Projekts und desselben Repos**, nichts gestrichen, nichts ausgelagert. **Mitgewandert nach vorn:** die Aufräumrunde samt vollem Prüflauf, die Checkliste „Vor dem Öffentlich-Schalten", **Flatpak/Flathub und AppImage**, `.deb`/AUR, MIT-Lizenztext + `THIRD-PARTY-NOTICES.md`. **Nach hinten:** der ganze Apple-Teil (Developer Program, Nutrition Labels, Datenschutz-URL, Store-Review) — **ohne den iPad-Kopf hat er keinen Gegenstand**. **M1 und M2 behalten ihre Bedeutung, Phase 4.5 bleibt wo sie ist**; umnummeriert wurde nur dahinter: TestFlight war **M3** und ist **M4**, **M3 ist jetzt die Veröffentlichung** (genau eine Fundstelle im HANDOFF). **Im Zeitrahmen rückt die Veröffentlichung von ≈ 10–14 auf ≈ 8–12 Monate vor** und hängt nicht mehr am zweiten Port — das entschärft nebenbei das benannte Motivationsrisiko. **⚠ Zwei Folgen, die leicht untergehen und deshalb im Kasten stehen:** **(1)** die **History-Frage** (`git filter-repo` für `HANDOFF.md`) ist jetzt die **nächste Phase nach 4.5** und **noch nicht entschieden**; **(2)** beim Veröffentlichen beschreiben die vier mitgelieferten Dokumente **zwei** Köpfe statt drei — die dritte Ausgabe kommt mit Phase 6 in **beiden** Sprachfassungen nach (Dauerregel 1), und der iPad-Kopf entsteht dann in einem **öffentlichen** Repo. **Phase 4.5 wird nicht berührt — im Gegenteil:** ihr Grund Nr. 2 („vor dem iPad, sonst baut man die Werkzeuge zweimal") **wird stärker**, weil der iPad-Kopf weiter nach hinten rückt; dafür hängt jetzt **die Veröffentlichung unmittelbar an M2** |
 | V2-57 | 2026-08-18 | **Preedit gebaut — Schritt 6b, und die toten Tasten sollten damit wiederkommen** (§4.43; `TdVorschau` in Core, `SupportsPreedit` von `false` auf **`true`**, `SetPreeditText` und `VorschauMalen` im Avalonia-Kopf; **20 neue Wächter**, Bau 0/0, **823 Tests** grün = 789 Core + 34 WPF). Weg **(a)** aus §5 „Noch offen" 11, fällig geworden durch §4.42 — **Nutzer-Entscheidung am 2026-08-18**. **Die Entscheidung, die §4.41 nicht gesehen hat:** Der unfertige Text ist **Ansichtszustand**. §4.41 sah nur zwei Wege — ins Modell schreiben und wieder herausnehmen (**der Griff, vor dem §4.32 warnt**) oder darüber malen — und hielt den zweiten für einen Notbehelf. **Er ist der richtige:** Unfertiger Text ist per Definition noch nicht Inhalt, er steht in keiner Datei, kommt in keinen Export, taucht im Verlauf nicht auf. **`TdDocument` wird nie angefasst, §4.32 greift gar nicht erst.** Er steht in einem Feld der Ansicht und wird in `OnPaint` **nach** den Blättern an der Stelle gemalt, die `MarkeAufLeinwand` ohnehin rechnet — **am Umbruch nimmt er nicht teil** (einer je Tastendruck wäre genau die Rechnung, die §4.35 als teuer gemessen hat). **In Core steht nur das Klemmen, und das ist die Stelle, an der es schiefgeht:** `null` und `""` heißen beide „nichts im Gange" (eine Eingabemethode meldet mal das eine, mal das andere), eine fehlende Marke landet am **Ende** — **und die dritte Regel ist der Grund, warum es kein einzeiliges `Math.Clamp` ist: das Ersatzpaar.** Ein Emoji und ein seltenes CJK-Zeichen stehen als **zwei** UTF-16-Stellen da; eine Marke dazwischen ist ein **halbes Zeichen**, und `Text.AsSpan(0, Marke)` liefert darauf eine ungültige Zeichenkette, die Skia als leeren Kasten malt — **sie rückt auf den Anfang des Zeichens zurück und nicht vor**. **Das sind genau die Zeichen, für die eine Eingabemethode überhaupt gebraucht wird**, die Wache sitzt also in der Mitte des Falls und nicht an seinem Rand — **erprobt**: ohne die eine Zeile fallen **zwei** der zwanzig Wächter. **Vier kleinere Entscheidungen, jede mit Grund:** der fertige Text **verwirft** den unfertigen (IBus schickt zwar meist eine leere Vorschau nach, aber nicht verlässlich und **nicht vor dem `commit`** — sonst stünde die Silbe einen Augenblick **doppelt** da); die Schreibmarke des Dokuments blinkt solange **nicht** (sie stünde am Anfang des unfertigen Textes — **zwei Striche**, einer blinkend, keiner aussagekräftig); **unterstrichen**, weil das seit Windows 95 jede Eingabemethode so zeigt; und die Schrift ist die **an der Marke** (`TdFormatEdit.Gemeinsam`, dieselbe Quelle wie das Ribbon — sonst spränge das Zeichen beim Festschreiben um, und genau dann schaut der Nutzer hin). `TdRenderer.CmProPunkt` ist dafür **öffentlich** geworden; eine zweite Zahl im Kopf wäre eine zweite Wahrheit und ergäbe Schriftgrößen um den Faktor 2,8 daneben. **Am laufenden Programm gegengeprüft — und das war wieder die Gegenprobe und nicht der Zweck:** Ein angemeldetes Eingabeziel läuft unter Windows über **TSF**, und Preedit einzuschalten ändert dort, was mit getipptem Text passiert — **das ist die Regression, die diese Runde hätte verursachen können**. An einer Wegwerf-Datenbank durchgespielt (danach gelöscht, Dauerregel 4): `Hallo äöüß ÄÖÜ` → **14, exakt**; neuer Absatz `Zweiter Absatz 12345` → **35**; `ABCDE` angehängt → **40, exakt +5**; **Strg+Z → 30**, also **−10** (`12345ABCDE`) — **nicht der ganze Absatz, und genau richtig**, denn §4.33 schneidet den Verlauf an der Gestalt der Änderung und das Leerzeichen davor ist ein Schnitt. **Der WPF-Kopf ist ausnahmsweise nicht gegengeprüft, und das ist hier richtig:** diese Runde ändert **nichts am Modell** — `TdVorschau` kommt additiv dazu, `CmProPunkt` ändert nur seine Sichtbarkeit, kein Feld, kein Format, kein Speicherweg; es gibt nichts, was der WPF-Editor überleben müsste (seine 34 Wächter laufen mit und sind grün). **⚠ Zwei Dinge hat hier niemand gesehen, und es ist beide Male der Kern:** wie der unfertige Text **aussieht** — auf diesem Rechner sind nur `de-DE` und `en-GB` eingerichtet (nachgesehen), **ohne ostasiatische Eingabemethode entsteht gar kein Preedit** und `VorschauMalen` wird nie gerufen — und **ob die toten Tasten wiederkommen**; `SupportsPreedit` wirkt gegen IBus und nicht gegen eine Rechnung. **▶ Der Laptop ist wieder dran** (§5d trägt den Auftrag: fünf Fragen), **und die Erwartung ist ausdrücklich widerlegbar formuliert** — `^`+`e` soll `ê` ergeben und währenddessen ein unterstrichenes `^` an der Marke stehen. **Kommt das `ê` nicht, ist die Herleitung aus §4.42 falsch**, und der nächste Griff steht schon dort: `dbus-monitor` auf `CommitText`. §5 Nr. **10a** ist damit **erledigt**. **▶ Windows macht unterdessen mit Schritt 7 weiter** (§5e) |

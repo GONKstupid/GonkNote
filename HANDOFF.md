@@ -1,6 +1,6 @@
 ﻿# Gonk Note V2 — Projektübergabe
 
-**Stand: 2026-08-18 · Version 0.3.0 · net10.0 · SkiaSharp 3 · SQLite · Avalonia 12 · ✅ M1 erreicht · ✅ Phase 4 abgeschlossen (§4.28): Dokumentmodell, Übernahme, DOCX/Markdown/PDF/PNG gegen das Modell, Zeichner samt Diagrammen, Schriftkonzept — und die Anzeige im Linux-Kopf, **auf dem Laptop gegengeprüft** (§4.28, V2-37). ⏳ **Das Schreiben läuft** (§6): **Schritte 1 bis 6 stehen** — Stelle, Änderung, Verlauf, Trefferrechnung, **Tastatur und Maus** (§4.35, auf dem Laptop gegengeprüft: Umlaute, tote Tasten, der Cursor am Stift, kein verlorenes Zeichen) und **Schritt 6 ganz** (§4.36/§4.37): Formate, die drei Reiter Einfügen/Verweise/Tabelle — **und die Warnung**, wenn das Altformat noch führt (`TdFuehrung`). ✅ **Das Ribbon ist aufgeräumt** (§4.38) und **die Gruppen A und B stehen** (§4.39/§4.40): Listen, Vorlagen, Größenliste, Schriftart, Farben, Trennlinie, Kopf- und Fußzeile. ✅ **Neu am 2026-08-18: Schritt 6a, die Eingabe-Naht** (§4.41, V2-54) — `TdEingabe` in Core und ein `TextInputMethodClient` im Kopf; ein Cursorschritt ist dort genau **ein** Zeichen breit, sonst zeigte jeder Abstand hinter jedem Feld um eins daneben. **803 Tests.** ✅ **Beide offenen Entscheidungen sind gefallen** (Nutzer, 2026-08-16): §5 Nr. 9 → **warnen statt sperren** (gebaut **und gesehen**, §4.37), §5 Nr. 10 → **`TextInputMethodClient`, nach Schritt 6** (gebaut, §4.41). ⚠ **Der Laptop hat am 2026-08-18 gemessen** (§4.41, V2-55, **769/769 grün**) — und die Antwort ist **nein**: Die Bildschirmtastatur geht nicht auf, weil `Avalonia.X11` gar **keine `IInputPane`** hat (`TopLevel.InputPane` ist `null`); dieselbe Tastatur klappt bei `gnome-text-editor` auf und verschwindet, sobald GonkNote den Fokus hat. **Dabei ist eine Regression aufgefallen: tote Tasten kommen seit V2-54 nicht mehr an** (`^`+`e` → nichts statt `ê`; Umlaute schon), eingekreist auf **IBus + `SupportsPreedit => false`** — §5 „Noch offen" **11**, mit drei Antworten und Empfehlung. ▶ **Der Laptop trägt keinen Auftrag mehr** (§5d); ▶ **beides gehört nach Windows**, das ohnehin mit Schritt 7 weitermacht (§5e): `Rtf` verliert die Führung
+**Stand: 2026-08-18 · Version 0.3.0 · net10.0 · SkiaSharp 3 · SQLite · Avalonia 12 · ✅ M1 erreicht · ✅ Phase 4 abgeschlossen (§4.28): Dokumentmodell, Übernahme, DOCX/Markdown/PDF/PNG gegen das Modell, Zeichner samt Diagrammen, Schriftkonzept — und die Anzeige im Linux-Kopf, **auf dem Laptop gegengeprüft** (§4.28, V2-37). ⏳ **Das Schreiben läuft** (§6): **Schritte 1 bis 6 stehen** — Stelle, Änderung, Verlauf, Trefferrechnung, **Tastatur und Maus** (§4.35, auf dem Laptop gegengeprüft: Umlaute, tote Tasten, der Cursor am Stift, kein verlorenes Zeichen) und **Schritt 6 ganz** (§4.36/§4.37): Formate, die drei Reiter Einfügen/Verweise/Tabelle — **und die Warnung**, wenn das Altformat noch führt (`TdFuehrung`). ✅ **Das Ribbon ist aufgeräumt** (§4.38) und **die Gruppen A und B stehen** (§4.39/§4.40): Listen, Vorlagen, Größenliste, Schriftart, Farben, Trennlinie, Kopf- und Fußzeile. ✅ **Neu am 2026-08-18: Schritt 6a, die Eingabe-Naht** (§4.41, V2-54) — `TdEingabe` in Core und ein `TextInputMethodClient` im Kopf; ein Cursorschritt ist dort genau **ein** Zeichen breit, sonst zeigte jeder Abstand hinter jedem Feld um eins daneben. **803 Tests.** ✅ **Beide offenen Entscheidungen sind gefallen** (Nutzer, 2026-08-16): §5 Nr. 9 → **warnen statt sperren** (gebaut **und gesehen**, §4.37), §5 Nr. 10 → **`TextInputMethodClient`, nach Schritt 6** (gebaut, §4.41). ✅⚠ **Der Laptop hat am 2026-08-18 gemessen** (§4.41, V2-55, **769/769 grün**), und die Antwort ist zweigeteilt: **Die Bildschirmtastatur *schreibt* jetzt** — von Hand hervorgeholt kommt ihr Text im Dokument an, in V2-47 kam er nicht an; **die Naht aus V2-54 hat damit die Hälfte ihres Zwecks erreicht**. **Von selbst klappt sie nicht auf**, weil `Avalonia.X11` gar **keine `IInputPane`** hat (`TopLevel.InputPane` ist `null`, zur Laufzeit gemessen) — das behebt kein Kopfcode. **⚠ Dabei ist eine Regression aufgefallen: tote Tasten kommen seit V2-54 nicht mehr an** (`^`+`e` → nichts statt `ê`; Umlaute schon), eingekreist auf **IBus + `SupportsPreedit => false`** — §5 „Noch offen" **11**. ▶ **Der Laptop trägt keinen Auftrag mehr** (§5d); ▶ **Windows ist dran: erst die Regression, dann Schritt 7** (§5e) — sie sitzt in derselben Naht
 
 > **📌 Dauerregeln des Nutzers — gelten immer, ohne Nachfragen:**
 >
@@ -397,12 +397,17 @@ Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — beh
 > §4.41). **803 Tests.**
 >
 > **▶ Als Nächstes: alles auf Windows — der Laptop hat abgeliefert.** Sein Befund vom
-> 2026-08-18 (§4.41, V2-55) lautet: **die Bildschirmtastatur geht nicht auf**, weil
-> `Avalonia.X11` **keine `IInputPane`** hat — und **auf dem Weg dorthin ist eine Regression
-> aufgefallen: tote Tasten kommen seit V2-54 nicht mehr an** (§5 „Noch offen" **11**).
-> **Beides gehört nach Windows und ist dort zu entscheiden, bevor Schritt 7 läuft** — die
-> Regression sitzt in derselben Naht, die Schritt 7 benutzt. **Danach macht Windows mit
-> Schritt 7 weiter** (§5e): `Rtf` verliert die Führung, der eigentliche Zweck des ganzen Wegs.
+> 2026-08-18 (§4.41, V2-55) ist zweigeteilt. **Das Gute:** Die Bildschirmtastatur **schreibt**
+> jetzt, wenn man sie von Hand hervorholt — in V2-47 war sie *unsichtbar und taub*, **taub ist
+> sie nicht mehr**. **Das Offene:** Von selbst klappt sie nicht auf, weil `Avalonia.X11`
+> **keine `IInputPane`** hat; das behebt kein Kopfcode und ist **keine Arbeit für Windows**
+> (§5 „Noch offen" 10). **Das Dringende:** Der Preis dafür sind die **toten Tasten** — sie
+> kommen seit V2-54 nicht mehr an (§5 „Noch offen" **11**).
+>
+> **Die Regression geht VOR Schritt 7**, weil sie in derselben Naht sitzt, die Schritt 7
+> benutzt: Wer erst Schritt 7 baut, baut auf einem Eingabepfad weiter, an dem gerade Zeichen
+> verschwinden. **Danach macht Windows mit Schritt 7 weiter** (§5e): `Rtf` verliert die
+> Führung, der eigentliche Zweck des ganzen Wegs.
 > **Die Entscheidungen aus §5 Nr. 9 und 10 sind gefallen — nicht mehr nachfragen.**
 >
 > **Gearbeitet wird auf dem Windows-Rechner.** Nicht wegen der Werkzeuge, sondern wegen der
@@ -425,15 +430,19 @@ Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — beh
 >   Fassungen sagen dasselbe: der Pfad kommt zurück, das Format steht vorgewählt oben.
 > - **Wartet auf ein Ja:** die Aufwandsschätzung für **Phase 4.5 — 5–8 Wochen**, in
 >   `gonk-note-port-RM.MD` eingetragen, hergeleitet und **nicht gemessen** (§4.29).
-> - ⚠ **Gebaut, gesehen — und die Wirkung bleibt aus:** §5 „Noch offen" **10**. Die
->   Eingabe-Naht steht (§4.41) und rechnet richtig, **aber die Bildschirmtastatur geht unter
->   Linux trotzdem nicht auf**: `TopLevel.InputPane` ist unter `Avalonia.X11` **`null`**, am
->   2026-08-18 zur Laufzeit gemessen. **Das ist eine Frage an den Rücken, keine Runde
->   Arbeit** — warten, Wayland-Rücken, oder Linux ohne Bildschirmtastatur führen.
-> - ⚠ **Die eine Sache, die wirklich drängt:** §5 „Noch offen" **11** — **tote Tasten kommen
->   seit V2-54 nicht mehr an** (`^`+`e` → nichts statt `ê`, Umlaute unbetroffen). Mit drei
->   Gegenproben auf **IBus + `SupportsPreedit => false`** eingekreist; damit ist **Preedit**
->   (§5 Nr. **10a**) nicht mehr nur benannt ausgelassen, sondern hat einen Preis.
+> - ✅ **Gebaut, gesehen — und sie wirkt zur Hälfte:** §5 „Noch offen" **10**. Die Eingabe-Naht
+>   steht (§4.41), rechnet richtig, und **die Bildschirmtastatur schreibt jetzt**, wenn man sie
+>   von Hand hervorholt. **Aufklappen tut sie nicht:** `TopLevel.InputPane` ist unter
+>   `Avalonia.X11` **`null`**, am 2026-08-18 zur Laufzeit gemessen. **Das ist eine Frage an den
+>   Rücken, keine Runde Arbeit** — warten, oder Linux mit „von Hand hervorholen" führen und das
+>   in den Erste-Schritte-Text schreiben. **Für den iPadOS-Kopf ist die Naht die Voraussetzung**
+>   (`Avalonia.iOS` bringt eine `IInputPane` mit) — sie ist also nicht umsonst gebaut.
+> - ⚠ **Die eine Sache, die wirklich drängt, und sie geht vor Schritt 7:** §5 „Noch offen"
+>   **11** — **tote Tasten kommen seit V2-54 nicht mehr an** (`^`+`e` → nichts statt `ê`,
+>   Umlaute unbetroffen). Mit drei Gegenproben auf **IBus + `SupportsPreedit => false`**
+>   eingekreist; damit ist **Preedit** (§5 Nr. **10a**) nicht mehr nur benannt ausgelassen,
+>   sondern hat einen Preis. **Die Anmeldung zurückzunehmen fällt als Antwort aus** — es
+>   machte die Bildschirmtastatur wieder taub.
 > - **Die `PointerType`-Weiche aus §4.41 ist unter Linux nicht prüfbar** und bleibt allein
 >   unter Windows belegt — die Tastatur geht dort ja nie auf, wo sie es nicht soll.
 > - **Vor jedem Laptop-Auftrag die betroffene `.axaml` ansehen** — ob der Linux-Kopf
@@ -5167,9 +5176,14 @@ es sich auf Linux richtig an?" → Laptop), und der Auftrag steht in **§5d**.
 **Der Auftrag aus §5d abgearbeitet.** Bau 0/0 in Core und im Avalonia-Kopf, **769/769 grün** in
 `tests/GonkNote.Core.Tests` — genau die im Auftrag genannte Zahl. Kein Produktivcode angefasst.
 
-> **Das Ergebnis in einem Satz: die Bildschirmtastatur geht *nicht* auf — und auf dem Weg
-> dorthin ist eine Regression aufgefallen, die der Auftrag nicht erwartet hat, sondern nur
-> vorsorglich mitgefragt hatte (Frage 5).**
+> **Das Ergebnis in einem Satz: die Bildschirmtastatur klappt *nicht von selbst* auf — aber
+> von Hand hervorgeholt **schreibt sie**, und das ist neu. Auf dem Weg dorthin ist eine
+> Regression aufgefallen, die der Auftrag nicht erwartet hatte, sondern nur vorsorglich
+> mitgefragt (Frage 5).**
+>
+> **Die Naht aus V2-54 hat also die Hälfte ihres Zwecks erreicht.** In V2-47 war die Tastatur
+> *unsichtbar **und** taub* (§4.35). Taub ist sie nicht mehr — **unsichtbar bleibt sie**, und
+> das liegt nicht am Kopf, sondern am Rücken.
 
 ##### ⚠ Der Fund: tote Tasten kommen seit V2-54 nicht mehr an
 
@@ -5219,10 +5233,10 @@ Kopfcode, und ob Preedit gebaut wird, war in §4.41 ausdrücklich eine **Entsche
 
 | | Frage | Antwort |
 |---|---|---|
-| **1** | Tastatur bei Stift/Finger? | ⚠ **Nein — und sie kann es hier gar nicht.** Zwei unabhängige Belege unten |
-| **2** | Kommt ihr Text zeichengenau an? | **Nicht entscheidbar** — sie geht über dem Kopf nie auf, also lässt sich auf ihr nichts tippen |
-| **3** | Bleibt sie beim **Mausklick** zu? | **Ja, sie bleibt zu** — aber der Beweis ist wertlos: sie geht nie auf. **Die `PointerType`-Weiche aus §4.41 ist unter Linux nicht prüfbar** und bleibt allein unter Windows belegt |
-| **4** | Steht sie an der richtigen Stelle? | **Nicht entscheidbar**, aus demselben Grund. `CursorRectangle` ist hier unbenutzt |
+| **1** | Tastatur bei Stift/Finger? | ⚠ **Nein — und sie kann es hier gar nicht.** Zwei unabhängige Belege unten; **vom Nutzer am Gerät bestätigt** (mit Stift und mit Finger tippt sich nichts auf) |
+| **2** | Kommt ihr Text an? | ✅ **Ja — von Hand hervorgeholt schreibt sie ins Dokument.** **Vom Nutzer am Gerät geprüft** (2026-08-18), nicht fernsteuerbar und deshalb nicht von hier aus. **Das ist der Fortschritt der Runde:** In V2-47 kam auch von Hand **nichts** an (§4.35, „nicht nur unsichtbar, sondern taub") — **die Naht aus V2-54 hat genau das behoben** |
+| **3** | Bleibt sie beim **Mausklick** zu? | **Ja, sie bleibt zu** — aber der Beweis ist wertlos: sie klappt bei *keinem* Zeigertyp auf. **Die `PointerType`-Weiche aus §4.41 ist unter Linux nicht prüfbar** und bleibt allein unter Windows belegt |
+| **4** | Steht sie an der richtigen Stelle? | **Offen.** Sie klappt nicht selbst auf, also richtet sie sich auch nicht an der Marke aus; von Hand hervorgeholt sitzt sie dort, wo GNOME sie hinstellt. **`CursorRectangle` ist hier unbenutzt** — die Rechnung dahinter ist gebaut und durch Wächter gedeckt, aber unter Linux von nichts abgerufen |
 | **5** | Regression Umlaute/tote Tasten? | ⚠ **Umlaute ja, tote Tasten nein** — der Fund oben |
 
 ##### Warum die Tastatur nicht aufgeht — zwei Belege, die sich nicht auf einander stützen
@@ -5250,19 +5264,38 @@ Rücken — **`Avalonia.X11` enthält das Wort nicht ein einziges Mal.**
 - Klick in GonkNotes Blatt → **sie verschwindet sofort wieder.**
 
 **Der Kopf ist ein XWayland-Client**, und GNOMEs Tastatur folgt `zwp_text_input_v3`, also
-Wayland-Clients. **Die IBus-Anmeldung aus V2-54 erreicht sie nicht** — was sie erreicht, ist
-das Zusammensetzen, und das ist genau der Schaden oben. **Der Kopf hat sich die Nachteile der
-Anmeldung eingehandelt, ohne ihren Zweck zu bekommen.**
+Wayland-Clients. **Die IBus-Anmeldung aus V2-54 erreicht das *Aufklappen* nicht.** Was sie
+erreicht, ist zweierlei — und das eine ist der Zweck der Runde, das andere der Schaden:
 
-##### Was das für §5 Nr. 10 heißt
+- ✅ **Sie macht die Tastatur schreibfähig.** Von Hand hervorgeholt kommt ihr Text jetzt im
+  Dokument an; in V2-47 kam er nicht an. **Genau dafür war die Naht gebaut**, und dieser Teil
+  trägt.
+- ⚠ **Sie zieht das Zusammensetzen an sich** — und daran hängen die toten Tasten oben.
 
-**Die Naht ist gebaut und rechnet richtig** — die 16 Wächter stehen, Umlaute kommen
-zeichengenau an, unter Windows ist sie gegengeprüft. **Ihr Anlass ist damit trotzdem nicht
-erledigt:** ohne Hardware-Tastatur ist im Linux-Kopf weiterhin nicht zu schreiben. Für eine
-**Stylus-first**-App mit ausstehendem iPadOS-Kopf ist das die eigentliche offene Frage —
-dort wird `Avalonia.iOS` eine `IInputPane` mitbringen, unter Linux fehlt sie. **Das ist keine
-Sache des Kopfs, sondern des Rückens** (Avalonia 12.1.1) und keine Runde Arbeit, sondern eine
-Entscheidung: warten, Wayland-Rücken, oder Linux ohne Bildschirmtastatur führen.
+> **Der Kopf hat also nicht „die Nachteile ohne den Zweck" eingehandelt**, sondern **den halben
+> Zweck mit einem unbeabsichtigten Preis.** Das ist für die Entscheidung in §5 „Noch offen" 11
+> der Unterschied, auf den es ankommt: **die Anmeldung zurückzunehmen wäre nicht mehr
+> kostenlos** — es machte die Tastatur wieder taub.
+
+##### Was das für §5 Nr. 10 heißt — halb erledigt, und die bessere Hälfte
+
+**Die Naht ist gebaut, rechnet richtig und *wirkt*:** die 16 Wächter stehen, Umlaute kommen
+zeichengenau an, unter Windows ist sie gegengeprüft — **und auf diesem Gerät schreibt die
+Bildschirmtastatur jetzt, wo sie es vorher nicht tat.** Das war der Anlass von §5 Nr. 10, und
+dieser Teil ist eingelöst.
+
+**Was offen bleibt, ist das Aufklappen — und das ist eine Frage an den Rücken, nicht an den
+Kopf.** `Avalonia.X11` bringt keine `IInputPane` mit; kein Kopfcode ändert daran etwas. Der
+Nutzer muss die Tastatur also von Hand hervorholen, dann kann er schreiben.
+
+**Für die Stylus-first-Frage entschärft das den Punkt erheblich:** Auf dem **iPadOS**-Kopf
+bringt `Avalonia.iOS` eine `IInputPane` mit — dort greift dieselbe Naht ohne Zutun, und sie
+ist die **Voraussetzung** dafür, dass die Tastatur dort überhaupt schreiben könnte. **Was
+V2-54 gebaut hat, ist damit nicht umsonst, sondern unter Linux nur halb sichtbar.**
+
+**Die verbleibende Entscheidung ist klein geworden:** warten (bis Avalonia unter Linux eine
+`IInputPane` hat oder ein Wayland-Rücken kommt), oder Linux mit „von Hand hervorholen" führen
+und das in den Erste-Schritte-Text schreiben. **Eine Runde Arbeit ist es nicht.**
 
 ##### Nebenbei: drei Werkzeug-Funde, alle drei kosteten Zeit
 
@@ -5286,11 +5319,16 @@ Entscheidung: warten, Wayland-Rücken, oder Linux ohne Bildschirmtastatur führe
 `~/.XCompose` gibt es nicht. Wie der Auftrag verlangt: notiert statt eingerichtet. *(Die toten
 Tasten oben sind davon unabhängig — sie liegen auf der `de`-Belegung selbst.)*
 
-**Ein Handgriff für den Nutzer am Gerät, zehn Sekunden:** einmal mit **Stift oder Finger** ins
-Blatt tippen und schauen, ob wirklich nichts aufklappt. Beleg (a) sagt, dass es nicht kann;
-synthetisieren lässt sich eine Berührung mit `tools/linux` nicht (XTEST kennt nur Maus und
-Tastatur, §4.10). Dazu weiterhin die zwei alten Punkte: eine **Xorg-Sitzung** als Vergleich
-(§5a „Offen" 2) und die **Druckschwelle** (§5a „Offen" 3).
+✅ **Der Handgriff des Nutzers ist erfolgt** (2026-08-18, am Gerät, nicht fernsteuerbar):
+Mit **Stift und Finger** ins Blatt getippt — **es klappt nichts auf**, wie Beleg (a) es
+vorhersagt. **Von Hand hervorgeholt funktioniert sie aber**, das steht oben als Antwort auf
+Frage 2. *(Eine Berührung lässt sich mit `tools/linux` nicht synthetisieren — XTEST kennt nur
+Maus und Tastatur, §4.10; deshalb war das der eine Punkt, der Handarbeit blieb.)*
+
+**Was am Gerät weiterhin offen ist**, beides seit Längerem: eine **Xorg-Sitzung** als Vergleich
+(§5a „Offen" 2) und die **Druckschwelle** (§5a „Offen" 3). **Neu und klein:** ob die von Hand
+hervorgeholte Tastatur die Marke **verdeckt** — sie richtet sich mangels `IInputPane` nicht an
+ihr aus, und ob das im Alltag stört, sagt nur das Gerät.
 
 ---
 
@@ -5524,20 +5562,29 @@ Tastatur, §4.10). Dazu weiterhin die zwei alten Punkte: eine **Xorg-Sitzung** a
     gemessen. Die Ursache lag im Kopf und nicht im System: Es gab **kein
     `TextInputMethodClient`**.
 
-    **⚠ Der Laptop hat am 2026-08-18 gemessen — und der Anlass ist nicht erledigt** (§4.41,
-    „Was der Laptop gefunden hat", V2-55). **Die Naht rechnet richtig**, Umlaute kommen
-    zeichengenau an. **Die Bildschirmtastatur geht trotzdem nicht auf**, und zwar aus einem
-    Grund, den kein Kopfcode behebt: `TopLevel.InputPane` ist unter **`Avalonia.X11` `null`**
-    — der Rücken hat gar keine Eingabefläche, `RaiseInputPaneActivationRequested` läuft ins
-    Leere. Am laufenden Programm gegengeprüft: dieselbe Tastatur klappt bei
-    `gnome-text-editor` auf und verschwindet, sobald GonkNote den Fokus hat.
+    **✅ Der Laptop hat am 2026-08-18 gemessen, und der Nutzer hat den Rest von Hand geprüft**
+    (§4.41, „Was der Laptop gefunden hat", V2-55). **Der Anlass des Punktes ist eingelöst:**
+    In V2-47 war die Bildschirmtastatur *unsichtbar **und** taub* — **taub ist sie nicht
+    mehr.** Von Hand hervorgeholt **schreibt sie ins Dokument**; genau dafür war die Naht
+    gebaut, und dieser Teil trägt.
 
-    **Damit ist der Punkt gebaut, gesehen — und in seiner Wirkung offen.** Er wandert von
-    „gehört nach Windows" zu einer Frage an den Rücken: warten, ein Wayland-Rücken, oder
-    Linux ohne Bildschirmtastatur führen. **Für den iPadOS-Kopf ändert sich nichts** — dort
-    bringt `Avalonia.iOS` eine `IInputPane` mit, und die Naht ist die Voraussetzung dafür.
+    **⏳ Was offen bleibt, ist das Aufklappen — und das behebt kein Kopfcode.**
+    `TopLevel.InputPane` ist unter **`Avalonia.X11` `null`**: Der Rücken hat gar keine
+    Eingabefläche, `RaiseInputPaneActivationRequested` läuft ins Leere, **egal welcher
+    Zeigertyp es auslöst**. Am laufenden Programm gegengeprüft (dieselbe Tastatur klappt bei
+    `gnome-text-editor` auf und verschwindet, sobald GonkNote den Fokus hat) und vom Nutzer am
+    Gerät bestätigt (mit Stift und Finger tippt sich nichts auf).
 
-    **Und er hat etwas gekostet, das vorher lief: siehe Punkt 11.**
+    **Damit ist der Punkt gebaut, gesehen und in seiner Wirkung halb eingelöst.** Die
+    verbleibende Frage geht an den **Rücken**, nicht an den Kopf, und ist keine Runde Arbeit:
+    warten, bis Avalonia unter Linux eine `IInputPane` hat, oder **Linux mit „von Hand
+    hervorholen" führen** und das in den Erste-Schritte-Text schreiben.
+
+    **Für den iPadOS-Kopf ist die Naht die Voraussetzung** — dort bringt `Avalonia.iOS` eine
+    `IInputPane` mit, und dann greift dieselbe Rechnung ohne Zutun. **Was V2-54 gebaut hat,
+    ist also nicht umsonst, sondern unter Linux nur halb sichtbar.**
+
+    **Sie hat aber etwas gekostet, das vorher lief: siehe Punkt 11.**
 
 10a. ⚠ **Nicht mehr nur benannt, sondern teuer: das Zusammensetzen (Preedit).**
     `SupportsPreedit` meldet `false` (§4.41). Die Annahme dabei war, die Plattform zeige
@@ -5564,9 +5611,12 @@ Tastatur, §4.10). Dazu weiterhin die zwei alten Punkte: eine **Xorg-Sitzung** a
     **Der Mechanismus:** Vor V2-54 war die Textfläche kein Eingabeziel, X11 lieferte das
     fertige Zeichen direkt. Seit der Anmeldung setzt **IBus** zusammen und reicht das
     Ergebnis als **Preedit** heraus; `SupportsPreedit => false` bedient diesen Weg nicht, und
-    das Zeichen fällt still weg. **Der Kopf hat sich die Nachteile der Anmeldung eingehandelt,
-    ohne ihren Zweck zu bekommen** — die Bildschirmtastatur geht ja trotzdem nicht auf
-    (Punkt 10).
+    das Zeichen fällt still weg.
+
+    > **⚠ Wichtig für die Abwägung, und es hat sich am 2026-08-18 geändert:** Die Anmeldung
+    > ist **nicht** folgenlos geblieben — **sie hat die Bildschirmtastatur schreibfähig
+    > gemacht** (Punkt 10: von Hand hervorgeholt kommt ihr Text jetzt an, in V2-47 nicht).
+    > **Sie zurückzunehmen ist damit nicht mehr kostenlos.**
 
     **Drei Antworten sind denkbar:**
     (a) **Preedit bauen** — `SupportsPreedit => true` und den unfertigen Text anzeigen. Löst
@@ -5575,15 +5625,19 @@ Tastatur, §4.10). Dazu weiterhin die zwei alten Punkte: eine **Xorg-Sitzung** a
     (b) **Das Fertige annehmen, ohne das Unfertige zu zeigen** — prüfen, ob Avalonias
     IBus-Client ein `commit` auch bei `SupportsPreedit => false` durchreicht, und die Lücke
     dort schließen. Die kleinste Antwort, wenn sie trägt; sie ist am Rücken zu messen.
-    (c) **Die Anmeldung unter Linux zurücknehmen**, bis eine `IInputPane` da ist. Stellt den
-    Stand von V2-47 wieder her und kostet **nichts**, was heute funktioniert — die Naht
-    bringt unter X11 derzeit keinen Nutzen (Punkt 10). Nimmt aber die Gegenprobe weg, die
-    unter Windows schon gebaut ist.
+    (c) ~~**Die Anmeldung unter Linux zurücknehmen**~~ — **fällt aus.** Sie stellte zwar die
+    toten Tasten wieder her, machte aber die Bildschirmtastatur **wieder taub** und nähme
+    damit den einzigen Gewinn zurück, den V2-54 unter Linux tatsächlich gebracht hat. **Es
+    wäre ein Tausch, kein Fix.**
 
-    **Empfehlung: erst (b) messen, sonst (c) bis (a) an der Reihe ist.** **Nicht auf dem
-    Laptop behoben** — `SupportsPreedit` steht in gemeinsamem Kopfcode und war in §4.41
-    ausdrücklich eine Entscheidung, nicht ein Versehen (§5d: hier wird nur behoben, was es
-    nur hier gibt). Vermerkt 2026-08-18.
+    **Empfehlung: erst (b) messen — und wenn (b) nicht trägt, ist (a) fällig.** Der Tausch
+    (c) steht ausdrücklich nicht mehr zur Wahl. **Solange nichts davon gebaut ist, gilt der
+    Stand als benannter Mangel:** tote Tasten funktionieren im Linux-Kopf nicht, Umlaute
+    schon.
+
+    **Nicht auf dem Laptop behoben** — `SupportsPreedit` steht in gemeinsamem Kopfcode und war
+    in §4.41 ausdrücklich eine Entscheidung, nicht ein Versehen (§5d: hier wird nur behoben,
+    was es nur hier gibt). Vermerkt 2026-08-18.
 
     **Es ist keine Kleinigkeit und deshalb ausgelassen:** Ihn im Blatt anzuzeigen hieße
     entweder, ihn ins Modell zu schreiben und wieder herauszunehmen (der Griff, vor dem §4.32
@@ -6083,7 +6137,7 @@ dotnet run --project src/GonkNote.Avalonia -- --db /tmp/gonk-test/gonknote.sqlit
 
 | Auftrag | Datum | Ergebnis |
 |---|---|---|
-| **Die Bildschirmtastatur** — klappt sie bei Stift/Finger auf, kommt ihr Text zeichengenau an, bleibt sie beim *Mausklick* zu, sitzt sie an der Marke, und tippt die Hardware-Tastatur noch wie vorher? | 2026-08-18 (V2-55) | ⚠ **Zwei von fünf beantwortet, und eine Regression gefunden; 769/769 grün.** **Die Tastatur geht nicht auf** — `TopLevel.InputPane` ist unter `Avalonia.X11` **`null`** (mit einer Wegwerf-Sonde gemessen), und im Augenschein klappt dieselbe Tastatur bei `gnome-text-editor` auf und verschwindet, sobald GonkNote den Fokus hat. **Fragen 2 und 4 sind damit nicht entscheidbar, Frage 3 wertlos** — die `PointerType`-Weiche ist unter Linux nicht prüfbar. **⚠ Der Fund ist Frage 5:** tote Tasten kommen seit V2-54 **nicht mehr an** (`^`+`e` → nichts statt `ê`), Umlaute schon; eingekreist mit drei Gegenproben auf **IBus + `SupportsPreedit => false`** (§5 „Noch offen" **11**). **Drei Werkzeug-Funde:** Vollbildaufnahmen unter Wayland gehen **doch** (Portal, neu als `tools/linux/wlschuss.sh` — die Angabe „unbrauchbar" war veraltet), ein Avalonia-Flyout fehlt auf jeder X11-Fensteraufnahme, und Wayland/XWayland rechnen im Faktor **1,6** auseinander. Befund: **§4.41 „Was der Laptop gefunden hat"** |
+| **Die Bildschirmtastatur** — klappt sie bei Stift/Finger auf, kommt ihr Text zeichengenau an, bleibt sie beim *Mausklick* zu, sitzt sie an der Marke, und tippt die Hardware-Tastatur noch wie vorher? | 2026-08-18 (V2-55) | ⚠ **Drei von fünf beantwortet, eine Regression gefunden; 769/769 grün.** **Die Tastatur klappt nicht von selbst auf** — `TopLevel.InputPane` ist unter `Avalonia.X11` **`null`** (mit einer Wegwerf-Sonde gemessen), und im Augenschein klappt dieselbe Tastatur bei `gnome-text-editor` auf und verschwindet, sobald GonkNote den Fokus hat. **✅ Frage 2 hat der Nutzer von Hand beantwortet, und sie fällt positiv aus:** von Hand hervorgeholt **schreibt die Tastatur ins Dokument** — in V2-47 kam auch von Hand nichts an. **Die Naht wirkt also zur Hälfte: taub ist sie nicht mehr, unsichtbar bleibt sie.** Frage 4 bleibt offen, **Frage 3 ist wertlos** — die `PointerType`-Weiche ist unter Linux nicht prüfbar. **⚠ Der Fund ist Frage 5:** tote Tasten kommen seit V2-54 **nicht mehr an** (`^`+`e` → nichts statt `ê`), Umlaute schon; eingekreist mit drei Gegenproben auf **IBus + `SupportsPreedit => false`** (§5 „Noch offen" **11**). **Drei Werkzeug-Funde:** Vollbildaufnahmen unter Wayland gehen **doch** (Portal, neu als `tools/linux/wlschuss.sh` — die Angabe „unbrauchbar" war veraltet), ein Avalonia-Flyout fehlt auf jeder X11-Fensteraufnahme, und Wayland/XWayland rechnen im Faktor **1,6** auseinander. Befund: **§4.41 „Was der Laptop gefunden hat"** |
 | **Das Schreiben unter Linux** — Umlaute und tote Tasten, Compose, der Cursor am Stift, die Bildschirmtastatur, und läuft es flüssig? | 2026-08-16 (V2-47) | ✅ **Vier von fünf sauber; 662/662 grün.** Umlaute **und** tote Tasten kommen an (`^`+`e` → `ê`), der **Stift setzt die Marke und zieht eine Auswahl**, getippt wird flüssig — **kein Zeichen verloren, auch nicht in einem Dokument mit 32 Seiten** (85.691 → 85.792 exakt). Der Umbruch ist hier **schneller als unter Windows**; die 40-ms-Grenze fällt erst bei ~32 Seiten. **Compose:** ungeprüft, weil auf diesem Gerät keine eingerichtet ist. **Ein Fund:** ohne Hardware-Tastatur ist nicht zu schreiben — dem Kopf fehlt ein `TextInputMethodClient` (§5 „Noch offen" **10**, gehört nach Windows). **Ein Werkzeugfehler**, der wie ein Fehler der App aussah: `zeiger` tippte Latin-1-Zeichen gar nicht — behoben. **Zwei alte Punkte mit zu:** Dateidialog (§5 Nr. 7) und **zweites Stiftgerät** (§5 Nr. 1, MPP, **Druck kommt an**). Befund: **§4.35 „Was der Laptop gefunden hat"** |
 | **Der erste Augenschein des Textdokuments unter Linux** — steht Schrift auf dem Blatt, stimmt sie mit dem PDF überein, trägt das Rollen, trägt der Dateidialog? | 2026-08-11 (V2-37) | ✅ **Fragen 1, 3 und 5 sauber; 489/489 grün.** Anzeige vollständig (Formate, Aufzählung, Tabelle mit **einer** Kopfzeile, Diagramm, Kopf-/Fußzeile), Rollen und alle Zoomstufen tragen, der Portal-Dialog erscheint nicht hinter dem Fenster und **blockiert richtig**. **Ein Fund:** der Wortzwischenraum an einer Stückgrenze sitzt in der Anzeige falsch, im PDF nicht (§5 „Noch offen" 6). **Frage 4 blieb offen** — der Portal-Dialog ist nicht fernsteuerbar (§5 „Noch offen" 7). Befund: **§4.28 „Was der Laptop gefunden hat"** |
 | **Den PDF-Export gegenprüfen** — läuft er unter Linux, und bettet Skia die mitgelieferten Schriften wirklich ein? | 2026-08-11 (V2-34) | ✅ **Ja.** 18/18 und 479/479 grün, `emb yes` und CID TrueType bei allen fünf Schnitten, kein Systemname, kein `Type3`. **Ein Fund:** Skia bettet die ganze TTF ein statt eines Auszugs — rund 200 KB je Familie, aber **einmalig und nicht je Seite**. Befund: **§4.27 „Was der Laptop gefunden hat"**, offene Frage: §5 „Noch offen" 3 |
@@ -6112,11 +6166,15 @@ einmal fragen.
 Zieh zuerst den Stand: git pull. Dann bauen und testen, bevor du etwas
 anfasst -- 0 Fehler, 0 Warnungen, 803 Tests.
 
-Womit anzufangen ist, steht in §5e unter "Dran ist". Der Kern: Schritt 7,
-"Rtf verliert die Fuehrung" -- der eigentliche Zweck des ganzen Wegs und
-der Schritt, bei dem am meisten schiefgehen kann. Ein Fund liegt dafuer
-bereit (§4.37, Fund 2: der Weg durch den WPF-Editor setzt den Absatz auf
-Blocksatz).
+Womit anzufangen ist, steht in §5e unter "Dran ist" -- und die
+Reihenfolge hat sich am 2026-08-18 geaendert. ZUERST die Regression aus
+§5 "Noch offen" 11: tote Tasten kommen im Linux-Kopf seit V2-54 nicht
+mehr an. Sie sitzt in derselben Naht, die Schritt 7 benutzt, ist auf
+IBus + SupportsPreedit => false eingekreist und dort mit Weg (b) vor (a)
+ausformuliert -- (c) faellt aus. DANACH Schritt 7, "Rtf verliert die
+Fuehrung": der eigentliche Zweck des ganzen Wegs und der Schritt, bei
+dem am meisten schiefgehen kann. Ein Fund liegt dafuer bereit (§4.37,
+Fund 2: der Weg durch den WPF-Editor setzt den Absatz auf Blocksatz).
 
 Lies dazu §4.41 (was zuletzt gebaut wurde), §4.37 und §4.38 bis §4.40
 (Schritt 6 und die Gruppen A/B), §4.22 und §4.23 (warum Rtf fuehrt) und
@@ -6124,12 +6182,13 @@ Lies dazu §4.41 (was zuletzt gebaut wurde), §4.37 und §4.38 bis §4.40
 Fallen am Ende von §6.
 
 Der Laptop hat am 2026-08-18 abgeliefert (§4.41, "Was der Laptop
-gefunden hat", V2-55) -- LIES DAS ZUERST. Zwei Dinge daraus gehoeren
-hierher, und das erste geht VOR Schritt 7, weil es in derselben Naht
-sitzt: tote Tasten kommen seit V2-54 nicht mehr an (Regression, §5
-"Noch offen" 11), und die Bildschirmtastatur geht unter Linux gar nicht
-auf, weil Avalonia.X11 keine IInputPane hat (§5 "Noch offen" 10). Der
-Laptop traegt jetzt keinen Auftrag mehr.
+gefunden hat", V2-55) -- LIES DAS ZUERST. Kurzfassung: Die Naht aus
+V2-54 wirkt zur Haelfte. Die Bildschirmtastatur SCHREIBT jetzt, wenn man
+sie von Hand hervorholt (in V2-47 war sie taub) -- sie klappt nur nicht
+von selbst auf, weil Avalonia.X11 keine IInputPane hat, und das behebt
+kein Kopfcode (§5 "Noch offen" 10, keine Arbeit fuer dich). Was Arbeit
+fuer dich ist, ist der Preis dafuer: tote Tasten kommen seit V2-54 nicht
+mehr an (§5 "Noch offen" 11). Der Laptop traegt keinen Auftrag mehr.
 
 Arbeite auf Deutsch, halte das HANDOFF nach, und sag mir am Ende, ob der
 Laptop dran ist.
@@ -6221,16 +6280,36 @@ Reiter „Layout" **stellt** Format und Ausrichtung, rechts gibt es eine **Einst
    optimistisch.
    **⚠ Drei Dinge sind gebaut, aber nicht angeklickt worden:** Trennlinie, Kopf-/Fußzeile und
    die Hervorhebung. Sie stehen als erste Zeile der nächsten Sichtprüfung.
-3. ✅ **Schritt 6a ist gebaut** (§4.41, 2026-08-18): `TdEingabe` in Core, `Eingabeziel` im Kopf —
-   die Fläche meldet sich als Eingabeziel an und beantwortet Marke, Umfeld und Auswahl.
-   **⏳ Gesehen ist es nicht:** Ob die Bildschirmtastatur wirklich aufgeht, kann nur der
-   **Laptop** sagen — der Auftrag steht in §5d. Unter Windows ist nur die Gegenprobe gefallen
-   (TSF bricht das Tippen nicht).
-4. **▶ Schritt 7: `Rtf` verliert die Führung** — der einzige vollständige Ausweg aus §5 Nr. 9.
-   **Dabei liegt ein Fund bereit:** Der Weg durch den WPF-Editor setzt den Absatz auf
-   **Blocksatz** (§4.37, Fund 2).
-5. **Gruppe C** zusammen mit Phase 4.5 — Bilder, Diagramme, Infoboxen, Symbole, Beschriftungen,
+3. ✅ **Schritt 6a ist gebaut und gesehen** (§4.41, 2026-08-18): `TdEingabe` in Core,
+   `Eingabeziel` im Kopf — die Fläche meldet sich als Eingabeziel an und beantwortet Marke,
+   Umfeld und Auswahl. **Der Laptop hat am selben Tag gemessen** (V2-55): **Die Tastatur
+   schreibt jetzt** (von Hand hervorgeholt — in V2-47 war sie taub), **klappt aber nicht von
+   selbst auf**, weil `Avalonia.X11` keine `IInputPane` hat. **⚠ Und sie hat die toten Tasten
+   gekostet** — siehe Punkt 4.
+4. **▶ ZUERST: die Regression aus §5 „Noch offen" 11 — tote Tasten.** Sie ist am 2026-08-18
+   auf dem Laptop gemessen und mit drei Gegenproben auf **IBus + `SupportsPreedit => false`**
+   eingekreist. **Sie geht vor Schritt 7, weil sie in derselben Naht sitzt**, die Schritt 7
+   benutzt — wer erst Schritt 7 baut, baut auf einem Eingabepfad weiter, an dem gerade Zeichen
+   verschwinden. **Der Weg steht dort ausformuliert**: erst (b) messen (nimmt Avalonias
+   IBus-Client ein `commit` auch bei `SupportsPreedit => false` an?), sonst (a) Preedit bauen.
+   **(c) — die Anmeldung zurücknehmen — fällt aus**, es machte die Bildschirmtastatur wieder
+   taub.
+   **Der Fund ist unter Linux gemessen, aber die Naht ist gemeinsam** — was hier zu tun ist,
+   ist deshalb zuerst eine Messung am Rücken und dann eine kleine Änderung, keine Runde.
+5. **▶ DANACH: Schritt 7: `Rtf` verliert die Führung** — der einzige vollständige Ausweg aus
+   §5 Nr. 9 und der eigentliche Zweck des ganzen Wegs. **Dabei liegt ein Fund bereit:** Der Weg
+   durch den WPF-Editor setzt den Absatz auf **Blocksatz** (§4.37, Fund 2).
+6. **Gruppe C** zusammen mit Phase 4.5 — Bilder, Diagramme, Infoboxen, Symbole, Beschriftungen,
    Zellen verbinden.
+
+> **Zwei Dinge, die dabei *nicht* zu bauen sind, damit niemand sie anfängt:**
+> **(1) Keine `IInputPane` für X11 nachrüsten.** Das ist Arbeit am Avalonia-Rücken und nicht
+> an dieser App; unter Linux bleibt es beim Hervorholen von Hand, und das gehört in den
+> Erste-Schritte-Text statt in den Kopf (§5 „Noch offen" 10).
+> **(2) Die `PointerType`-Weiche nicht „reparieren".** Sie ist richtig und unter Windows
+> belegt — dass sie unter Linux wirkungslos ist, liegt an der fehlenden `IInputPane` und nicht
+> an ihr. **Sie ist unter Linux schlicht nicht prüfbar**, und ein Umbau dort wäre eine Änderung
+> ohne Messgerät.
 
 > **⚠ Beim Fernsteuern zu wissen:** Am 2026-08-17 haben die Skripte in `tools\` **zeitweise
 > keine Klicks zugestellt** — `schau.ps1` fotografierte richtig, der Zeiger bewegte sich
@@ -6250,8 +6329,10 @@ Reiter „Layout" **stellt** Format und Ausrichtung, rechts gibt es eine **Einst
 > und der Cursor **am Stift** sind beantwortet, Compose nur deshalb nicht, weil auf dem Gerät
 > keine eingerichtet ist (und das ist die Antwort, nicht eine Lücke). **Die Bildschirmtastatur
 > war damals die Ausnahme** — sie ging nicht auf, und daraus wurde §5 „Noch offen“ 10.
-> **▶ Seit dem 2026-08-18 trägt §5d wieder einen Auftrag:** Schritt 6a ist gebaut (§4.41),
-> und ob die Tastatur jetzt aufgeht, kann nur der Laptop sagen.
+> **▶ Am 2026-08-18 ist auch das gemessen** (V2-55, §4.41): Die Tastatur **schreibt** jetzt,
+> wenn man sie von Hand hervorholt — **aufklappen tut sie nicht**, dem X11-Rücken fehlt die
+> `IInputPane`. **⚠ Und die toten Tasten aus V2-47 gelten nicht mehr:** sie sind seit V2-54
+> weg (§5 „Noch offen" 11). **§5d trägt jetzt keinen Auftrag mehr.**
 
 > **Warum das Schreiben trotz seiner Core-Anteile hierher gehört und nicht auf den Laptop:**
 > nicht wegen der Werkzeuge, sondern wegen der **Gegenprobe**. Jede Änderung am Modell muss der
@@ -6273,16 +6354,25 @@ sieht der andere Kopf, nachdem dieser gespeichert hat?*
 
 ### Wann der Laptop wieder dran ist
 
-**Nicht jetzt.** Er hat Schritt 5 am 2026-08-16 abgearbeitet (V2-47), **§5d trägt keinen
-Auftrag**, und auf dem Gerät steht derzeit nichts mehr offen, was nur er beantworten könnte —
-außer zwei alten Stift-Fragen (§5a „Offen" 2 und 3: eine Xorg-Sitzung als Vergleich und die
-Druckschwelle unten).
+**Nicht jetzt.** Er hat zuletzt am 2026-08-18 abgeliefert (V2-55, §4.41), **§5d trägt keinen
+Auftrag**, und auf dem Gerät steht nichts mehr offen, was nur er beantworten könnte — außer
+zwei alten Stift-Fragen (§5a „Offen" 2 und 3: eine Xorg-Sitzung als Vergleich und die
+Druckschwelle unten) und einer kleinen neuen: ob die von Hand hervorgeholte Tastatur die Marke
+**verdeckt**.
 
-**Fällig wird er wieder mit Schritt 6**, sobald die drei Reiter im Linux-Ribbon stehen und sich
-Formate wirklich setzen lassen — **oder** sobald jemand `TextInputMethodClient` baut (§5 „Noch
-offen" 10), denn ob die Bildschirmtastatur danach wirklich aufgeht, ist erneut eine Frage, die
-nur dort zu beantworten ist. **Wenn es so weit ist, gehört der Auftrag nach §5d, bevor der
-Nutzer wechselt** (Dauerregel 3a).
+**Fällig wird er wieder, sobald §5 „Noch offen" 11 gebaut ist** — ob die toten Tasten danach
+wirklich wieder ankommen, ist genau die Frage, die **nur dort** zu beantworten ist: Unter
+Windows läuft TSF und nicht IBus, und die Regression war unter Windows **nicht zu sehen**.
+**Das ist der Musterfall für §5b**, und er ist teuer gewesen: Der Fehler ist am 2026-08-18
+gebaut worden und wäre ohne den Laptop unbemerkt in Schritt 7 hineingelaufen.
+
+> **Die Lehre, die dabei angefallen ist, gilt über diesen Punkt hinaus:** §4.41 hat aus einer
+> Windows-Messung (V2-47) geschlossen, `SupportsPreedit => false` koste für lateinische Schrift
+> nichts. **Die Messung stammte von *vor* der Änderung** und konnte den neuen Weg gar nicht
+> abdecken. **Wer einen Beleg zitiert, prüft, ob er den geänderten Pfad überhaupt berührt hat.**
+
+**Wenn es so weit ist, gehört der Auftrag nach §5d, bevor der Nutzer wechselt**
+(Dauerregel 3a).
 
 > **Zwei Punkte, die der Laptop mitgeschlossen hat und die hier nicht noch einmal zu suchen
 > sind:** der **Dateidialog** (§5 „Noch offen" 7 — jetzt in beiden Fassungen geprüft, Win32 wie
@@ -8005,7 +8095,7 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 
 | Runde | Datum | Was |
 |---|---|---|
-| V2-55 | 2026-08-18 | **Laptop-Befund: die Bildschirmtastatur geht nicht auf — und V2-54 hat die toten Tasten gekostet** (§4.41, „Was der Laptop gefunden hat"; kein Produktivcode angefasst, ein Werkzeug dazu). Der Auftrag aus §5d abgearbeitet, Bau 0/0 in Core und im Avalonia-Kopf, **769/769 grün** — die im Auftrag genannte Zahl. **Die Antwort auf die Kernfrage ist nein, und sie hat zwei Belege, die sich nicht aufeinander stützen.** **(a)** Eine Wegwerf-Sonde (eigenes Avalonia-Programm in `/tmp`, dieselbe Fassung 12.1.1, danach gelöscht) meldet `TopLevel.InputPane` = **`null`**: **`Avalonia.X11` hat gar keine `IInputPane`** — `RaiseInputPaneActivationRequested` läuft ins Leere, **egal welcher Zeigertyp es auslöst**; in den Assemblies kommt das Wort `InputPane` in `Avalonia.X11` kein einziges Mal vor, in `Avalonia.Win32` über `IFrameworkInputPane` schon. **(b)** Der Augenschein direkt nebeneinander: dieselbe GNOME-Tastatur **klappt bei `gnome-text-editor` auf** und **verschwindet, sobald GonkNote den Fokus hat** — der Kopf ist ein XWayland-Client, GNOMEs Tastatur folgt `zwp_text_input_v3`. **Damit sind Frage 2 und 4 des Auftrags nicht entscheidbar und Frage 3 wertlos:** sie bleibt beim Mausklick zu, aber nur, weil sie nie aufgeht — **die `PointerType`-Weiche aus §4.41 ist unter Linux nicht prüfbar** und bleibt allein unter Windows belegt. **⚠ Der eigentliche Fund steckt in der vorsorglichen Frage 5:** **tote Tasten kommen seit V2-54 nicht mehr an.** `^`+`e` ergibt **nichts** statt `ê` — am 2026-08-16 war genau das noch gemessen und grün (§4.35). **Das Zeichen geht nicht falsch, es geht weg:** der Zeichenzähler zählt es nicht mit (`Hallo`+`^e`+`´a` → **5** statt 7), kein Ersatzzeichen, keine Meldung; **Umlaute sind nicht betroffen** (`Hallo äöüß ÄÖÜ` → exakt **14**), sie werden nicht zusammengesetzt. **Drei Gegenproben, damit es nicht wieder ein Werkzeugfehler ist wie in V2-47:** `gnome-text-editor` bekommt dieselbe Folge vollständig (`ZZZêá`) — Werkzeug und Plattform sind in Ordnung; der Stand **vor** V2-54 (`c4532fe`, in einem Wegwerf-Worktree gebaut) liefert `Halloêá`, `a25ef09` liefert `Hallo` — **es ist eine Regression von V2-54**; und dieselbe Binärdatei mit leerem `XMODIFIERS` liefert wieder `Halloêá` — **es ist IBus**. **Der Mechanismus stand schon in §4.41, nur mit dem falschen Vorzeichen:** Seit der Anmeldung als Eingabeziel setzt **IBus** zusammen und reicht das Ergebnis als **Preedit** heraus; `SupportsPreedit => false` bedient diesen Weg nicht. §4.41 hatte ausdrücklich notiert, `false` sei „kein Ausfall, sondern eine Ansage" — **unter Windows/TSF stimmt das, unter X11/IBus nicht**, und der Beleg dafür (V2-47) war **vor** der Anmeldung gemessen und konnte den neuen Weg gar nicht abdecken. **Der Kopf hat sich die Nachteile der Anmeldung eingehandelt, ohne ihren Zweck zu bekommen. Nicht hier behoben** (§5d: nur Linuxspezifisches; `SupportsPreedit` steht in gemeinsamem Kopfcode und war eine Entscheidung) — steht als **§5 „Noch offen" 11** mit drei Antworten und Empfehlung, §5 Nr. **10** und **10a** sind nachgezogen. **Drei Werkzeug-Funde, alle drei kosteten Zeit** (§7): **Vollbildaufnahmen unter Wayland gehen doch** — die Angabe „unbrauchbar" in §5d/§4.10 war **veraltet**, `org.freedesktop.portal.Screenshot` liefert den ganzen Bildschirm, es lief nur `xdg-desktop-portal-gnome` nicht (neu als **`tools/linux/wlschuss.sh`**; `org.gnome.Shell.Screenshot` und `Shell.Introspect` sind unter GNOME 50 dagegen gesperrt). **Ein Avalonia-Flyout ist ein eigenes X-Fenster** und fehlt auf `import -window` — der Klick auf „Neu" sah dreimal wie ein wirkungsloser Klick aus, das Menü war jedes Mal offen, nur unsichtbar. Und **zwei Koordinatensysteme im Faktor 1,6**: Wayland logisch 1920×1080, XWayland 3072×1728 — `zeiger` will Gerätepixel, der Portal-Schuss liefert logische. **Compose** wie in V2-47 ungeprüft, weil auf diesem Gerät keine eingerichtet ist (leere `xkb-options`, keine `~/.XCompose`) — notiert statt eingerichtet, wie der Auftrag verlangt. **▶ Der Laptop trägt keinen Auftrag mehr** (§5d); **▶ beides gehört nach Windows** |
+| V2-55 | 2026-08-18 | **Laptop-Befund: die Bildschirmtastatur schreibt, klappt aber nicht auf — und V2-54 hat die toten Tasten gekostet** (§4.41, „Was der Laptop gefunden hat"; kein Produktivcode angefasst, ein Werkzeug dazu). Der Auftrag aus §5d abgearbeitet, Bau 0/0 in Core und im Avalonia-Kopf, **769/769 grün** — die im Auftrag genannte Zahl. **Die Antwort auf das Aufklappen ist nein, und sie hat zwei Belege, die sich nicht aufeinander stützen.** **(a)** Eine Wegwerf-Sonde (eigenes Avalonia-Programm in `/tmp`, dieselbe Fassung 12.1.1, danach gelöscht) meldet `TopLevel.InputPane` = **`null`**: **`Avalonia.X11` hat gar keine `IInputPane`** — `RaiseInputPaneActivationRequested` läuft ins Leere, **egal welcher Zeigertyp es auslöst**; in den Assemblies kommt das Wort `InputPane` in `Avalonia.X11` kein einziges Mal vor, in `Avalonia.Win32` über `IFrameworkInputPane` schon. **(b)** Der Augenschein direkt nebeneinander: dieselbe GNOME-Tastatur **klappt bei `gnome-text-editor` auf** und **verschwindet, sobald GonkNote den Fokus hat** — der Kopf ist ein XWayland-Client, GNOMEs Tastatur folgt `zwp_text_input_v3`. **✅ Frage 2 hat der Nutzer noch am selben Tag von Hand beantwortet, und sie fällt positiv aus: von Hand hervorgeholt SCHREIBT die Tastatur ins Dokument** — in V2-47 kam auch von Hand nichts an (§4.35, „nicht nur unsichtbar, sondern taub"). **Die Naht aus V2-54 hat also die Hälfte ihres Zwecks erreicht: taub ist die Tastatur nicht mehr, unsichtbar bleibt sie.** Frage 4 bleibt offen (sie richtet sich mangels `IInputPane` nicht an der Marke aus), **Frage 3 ist wertlos** — sie bleibt beim Mausklick zu, aber nur, weil sie bei keinem Zeigertyp aufklappt; **die `PointerType`-Weiche aus §4.41 ist unter Linux nicht prüfbar** und bleibt allein unter Windows belegt. **⚠ Der eigentliche Fund steckt in der vorsorglichen Frage 5:** **tote Tasten kommen seit V2-54 nicht mehr an.** `^`+`e` ergibt **nichts** statt `ê` — am 2026-08-16 war genau das noch gemessen und grün (§4.35). **Das Zeichen geht nicht falsch, es geht weg:** der Zeichenzähler zählt es nicht mit (`Hallo`+`^e`+`´a` → **5** statt 7), kein Ersatzzeichen, keine Meldung; **Umlaute sind nicht betroffen** (`Hallo äöüß ÄÖÜ` → exakt **14**), sie werden nicht zusammengesetzt. **Drei Gegenproben, damit es nicht wieder ein Werkzeugfehler ist wie in V2-47:** `gnome-text-editor` bekommt dieselbe Folge vollständig (`ZZZêá`) — Werkzeug und Plattform sind in Ordnung; der Stand **vor** V2-54 (`c4532fe`, in einem Wegwerf-Worktree gebaut) liefert `Halloêá`, `a25ef09` liefert `Hallo` — **es ist eine Regression von V2-54**; und dieselbe Binärdatei mit leerem `XMODIFIERS` liefert wieder `Halloêá` — **es ist IBus**. **Der Mechanismus stand schon in §4.41, nur mit dem falschen Vorzeichen:** Seit der Anmeldung als Eingabeziel setzt **IBus** zusammen und reicht das Ergebnis als **Preedit** heraus; `SupportsPreedit => false` bedient diesen Weg nicht. §4.41 hatte ausdrücklich notiert, `false` sei „kein Ausfall, sondern eine Ansage" — **unter Windows/TSF stimmt das, unter X11/IBus nicht**, und der Beleg dafür (V2-47) war **vor** der Anmeldung gemessen und konnte den neuen Weg gar nicht abdecken. **Der Kopf hat damit nicht „die Nachteile ohne den Zweck" eingehandelt, sondern den halben Zweck mit einem unbeabsichtigten Preis** — und das entscheidet die Abwägung: **die Anmeldung zurückzunehmen fällt aus**, es machte die Tastatur wieder taub. **Nicht hier behoben** (§5d: nur Linuxspezifisches; `SupportsPreedit` steht in gemeinsamem Kopfcode und war eine Entscheidung) — steht als **§5 „Noch offen" 11** mit drei Antworten und Empfehlung, §5 Nr. **10** und **10a** sind nachgezogen. **Drei Werkzeug-Funde, alle drei kosteten Zeit** (§7): **Vollbildaufnahmen unter Wayland gehen doch** — die Angabe „unbrauchbar" in §5d/§4.10 war **veraltet**, `org.freedesktop.portal.Screenshot` liefert den ganzen Bildschirm, es lief nur `xdg-desktop-portal-gnome` nicht (neu als **`tools/linux/wlschuss.sh`**; `org.gnome.Shell.Screenshot` und `Shell.Introspect` sind unter GNOME 50 dagegen gesperrt). **Ein Avalonia-Flyout ist ein eigenes X-Fenster** und fehlt auf `import -window` — der Klick auf „Neu" sah dreimal wie ein wirkungsloser Klick aus, das Menü war jedes Mal offen, nur unsichtbar. Und **zwei Koordinatensysteme im Faktor 1,6**: Wayland logisch 1920×1080, XWayland 3072×1728 — `zeiger` will Gerätepixel, der Portal-Schuss liefert logische. **Compose** wie in V2-47 ungeprüft, weil auf diesem Gerät keine eingerichtet ist (leere `xkb-options`, keine `~/.XCompose`) — notiert statt eingerichtet, wie der Auftrag verlangt. **▶ Der Laptop trägt keinen Auftrag mehr** (§5d); **▶ Windows ist dran, und die Regression geht VOR Schritt 7** — sie sitzt in derselben Naht (§5e) |
 | V2-54 | 2026-08-18 | **Die Eingabe-Naht — Schritt 6a, `TextInputMethodClient`** (§4.41). `Core/Text/TdEingabe.cs` neu, `Views/TextDocView.Eingabemethode.cs` neu, vier Anschlussstellen in `TextDocView.Eingabe.cs`; **16 Wächter**, **803 Tests** grün (vorher 787), Bau 0/0. **Damit ist §5 „Noch offen“ 10 gebaut** — die Nutzer-Entscheidung vom 2026-08-16 lautete (a) umsetzen, aber nach Schritt 6, und genau so ist es gelaufen. **Der Befund kam vom Laptop** (§4.35, V2-47): Ohne Hardware-Tastatur ist im Linux-Kopf nicht zu schreiben — GNOMEs Bildschirmtastatur erscheint nicht, und von Hand hervorgeholt kommt trotzdem nichts an; die Ursache war, dass sich `TextDocView` **nirgends als Eingabeziel anmeldet**. Jetzt beantwortet es Avalonias vier Fragen: welche Fläche den Text zeigt, wo die Marke darauf steht (`TdHit.Schreibmarke`, auf die Leinwand umgerechnet), was um sie herum steht und was davon ausgewählt ist. **Die eine Entscheidung, um die sich alles dreht: ein Cursorschritt ist genau ein Zeichen breit.** `TdCursor.Text` gilt das ausdrücklich **nicht** — ein Feld und ein Bild sind je einen Schritt breit und steuern keinen Klartext bei (§4.20, §4.21), und für den Klartext ist das richtig. **Für eine Eingabemethode wäre es verhängnisvoll:** Sie bekommt eine Zeichenkette und zwei Abstände darin und rechnet damit weiter („lösche zwei Zeichen vor der Marke“) — klaffen die Zählweisen auseinander, zeigt **jeder** Abstand hinter **jedem** Feld um eins daneben, und das Fehlerbild ist kein Absturz, sondern ein Zeichen an der falschen Stelle im Dokument des Nutzers. Deshalb bekommt jedes unteilbare Stück ein Zeichen: ein Zeilenumbruch sein `
 `, alles andere **U+FFFC** (nicht ein Leerzeichen — das ließe eine Wortvervollständigung über ein Bild hinweg trennen). Damit gilt `Text(absatz).Length == TdCursor.Laenge(absatz)`, `TdCursor.Linear` ist ohne Umrechnung schon der Abstand, **und ein Wächter hält die Gleichung an einem Absatz mit allen sechs Stücksorten fest**. **Drei kleinere Entscheidungen, je mit Wächter:** ein Absatz statt des Dokuments (bei 85.000 Zeichen wäre es eine volle Kopie **je Tastendruck**), `Start` ist immer der kleinere Abstand (`TdSelection` hält Anker und Spitze auseinander — unsortiert wäre die erste rückwärts gezogene Auswahl eine Ausnahme in fremdem Code), und eine Auswahl über mehrere Absätze wird auf den der Marke **beschnitten** — eine Auskunft und keine Änderung. **Benannt ausgelassen statt halb gebaut** (§4.28): das Zusammensetzen. `SupportsPreedit` meldet `false`, denn unfertigen Text im Blatt zu zeigen hieße entweder, ihn ins Modell zu schreiben und wieder herauszunehmen (**genau der Griff, vor dem §4.32 warnt**), oder ihn über den Text daneben zu malen; die Plattform zeigt ihn stattdessen in ihrem eigenen Fenster, und für lateinische Schrift kostet das nichts — Umlaute und tote Tasten nehmen den `TextInput`-Weg heute schon, gemessen (V2-47). Steht als §5 „Noch offen“ **10a**. **Finger und Stift holen die Bildschirmtastatur, die Maus nicht:** `RaiseInputPaneActivationRequested` läuft nur für `PointerType.Touch` und `Pen` — wer eine Maus benutzt, hat eine Tastatur danebenliegen und bekäme sonst bei jedem Klick ein halbes Fenster übers Blatt geschoben. **Die Sichtprüfung hier prüfte nicht die Tastatur, sondern die Gegenprobe dazu** — und das ist der Punkt: Ein angemeldetes Eingabeziel schaltet Avalonias Win32-Rücken auf **TSF** um, getippter Text nimmt danach einen anderen Weg. **Das ist die Regression, die diese Runde hätte verursachen können.** An einer Kopie der echten Datenbank durchgespielt (danach gelöscht, Dauerregel 4): tippen ins Fließtext-Ende **48 → 63 Zeichen, exakt +15**; tippen **in eine Tabellenzelle** 63 → 68, exakt +5, und der Text steht in der Zelle (der Fall, in dem ein falscher Absatzindex ihn in einen fremden Absatz säße — ein Zellenparagraph zählt in `TdCursor.Absaetze` mit); **Strg+A** über das ganze Dokument samt Pfeilen und Umschalt-Auswahl ohne Wurf und ohne Hänger — das ist der Weg, auf dem `Umfeld` seine Mehr-Absätze-Beschneidung bei **jeder** Meldung durchläuft. **⚠ Was von hier aus nicht zu sehen war, ist der Zweck der ganzen Runde:** ob die Bildschirmtastatur wirklich aufgeht. Unter Windows steht eine Tastatur daneben; **das kann nur der Laptop sagen**, und §5 Nr. 10 ist erst mit seinem Befund ganz zu. **▶ Der Laptop ist dran** (§5d trägt den Auftrag: fünf Fragen, darunter die leicht vergessene — bei einem *Mausklick* darf sie gerade **nicht** aufklappen). **▶ Windows macht unterdessen mit Schritt 7 weiter** |
 | V2-53 | 2026-08-17 | **Gruppe B — Schriftart, Farben, Trennlinie, Kopf- und Fußzeile** (§4.40). `Core/Text/TdTextfarben.cs` neu, `TdBlockEdit.Trennlinie` dazu, `Views/TextDocView.Farben.cs` im Kopf, dritter Abschnitt in der Einstellungsleiste; **9 Wächter**, **787 Tests** grün, Bau 0/0, am laufenden Programm gegengeprüft. **Die Naht für die Schriftartenliste war schon da:** §4.36 hatte sie ausgelassen, weil `IFontProvider` „das Schema und nicht den Bestand" liefert — `Fonts.Mitgeliefert` **ist** der Bestand, und zwar der richtige: Eine Liste der *System*schriften wäre sogar falsch, denn genau darum geht es in §4.26 (dasselbe Dokument soll überall gleich aussehen). **Die Farbtabelle steht diesmal von Anfang an in Core:** Bei Farben (§4.9), Schriften (§4.26), Symbolen (§4.31) und Vorlagen (§4.39) ist dieselbe Tabelle je einmal in zwei Köpfen entstanden und musste hinterher zusammengeführt werden — viermal; `TdTextfarben` steht deshalb **vor** dem zweiten Kopf dort, wo beide sie finden, mit denselben Tintenfarben wie die Zeichenfläche. **Zwei Funde, beide von der stillen Sorte.** (1) **Sieben doppelte Übersetzungsschlüssel, beinahe eingebaut:** Die Farbnamen hießen zuerst `Color.Auto`, `Color.Red` … — die gab es schon, für Ordnerfarben und Tinte. **Ein Wörterbuch-Initialisierer in Indexer-Schreibweise wirft dabei nicht, er überschreibt**: Der Kurzhinweis der Zeichenfläche wäre still von „Standard (Schwarz auf hellen, Weiß auf dunklen Seiten)" zu „Automatisch" geworden — kein Compilerfehler, kein roter Test. Umbenannt auf `Td.Color.*`, **und ein Wächter dazu, der den Quelltext liest** (`SprachtabellenTests`): kein Schlüssel zweimal, jeder deutsche hat ein englisches Gegenstück, keiner steht allein auf Englisch. Er **muss** den Text lesen — im Wörterbuch ist die Doppelung längst aufgelöst (dasselbe Muster wie die Ikonen-Wächter, §4.31); mit der Mutation wird er rot. **Und er leistet mehr als gedacht:** Dass jeder deutsche Schlüssel ein englisches Gegenstück hat, war bis heute niemandes Prüfung — `Loc` fällt still auf Deutsch zurück, und genau deshalb sieht man die Lücke nie. (2) **„Keine Farbe" heißt im Modell zweierlei, und das kostete einen Absturz:** Beim ersten Öffnen kam *„Invalid color string: ''."* — `TdCharFormat.Standard` setzt `Highlight = ""` („ausdrücklich keine"), während `null` „nichts dazu gesagt" heißt; ein aufgelöstes Format trägt den leeren String durch, und `Color.Parse("")` wirft. **Wer nur gegen `null` prüft, hat den halben Fall geprüft.** Kein Wächter konnte das sehen, diesmal nicht einmal im Prinzip: Der Fehler entsteht im Kopf beim Zeichnen eines Balkens, aus einem Wert, den Core völlig richtig liefert — **zum vierten Mal nach §4.28, §4.35 und §4.38 dieselbe Lehre**. **Gesehen:** Schriftart „Source Sans 3" in der Liste, das Farbflyout mit ✕ und sechs Kacheln, Aufzählung gesetzt („• wwq", Knopf gedrückt). **Nicht angeklickt und deshalb benannt:** Trennlinie, Kopf-/Fußzeile und Hervorhebung |

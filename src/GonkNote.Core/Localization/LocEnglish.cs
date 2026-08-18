@@ -1,4 +1,4 @@
-namespace GonkNote.Services;
+﻿namespace GonkNote.Services;
 
 /// <summary>
 /// Die englischen Texte. Gleiche Schlüssel wie <see cref="LocGerman"/>; was hier fehlt,
@@ -479,6 +479,28 @@ internal static class LocEnglish
         ["Ed.Link.Set"] = "Set",
         ["Ed.Table.NotInTable"] =
             "Put the caret inside a table — its tools appear here.",
+        // Gegenstuecke zu den Farbnamen in LocGerman (§4.40, `TdTextfarben`, siehe dort).
+        ["Td.Color.Auto"] = "Automatic",
+        ["Td.Color.None"] = "None",
+        ["Td.Color.Red"] = "Red",
+        ["Td.Color.Blue"] = "Blue",
+        ["Td.Color.Green"] = "Green",
+        ["Td.Color.Amber"] = "Amber",
+        ["Td.Color.Purple"] = "Purple",
+        ["Td.Color.Grey"] = "Grey",
+        ["Td.Color.Yellow"] = "Yellow",
+        ["Td.Color.Lime"] = "Lime",
+        ["Td.Color.Cyan"] = "Cyan",
+        ["Td.Color.Pink"] = "Pink",
+        ["Td.Color.Sky"] = "Sky blue",
+        ["Td.Color.Silver"] = "Silver",
+        // Gegenstuecke zu Kopf-/Fusszeile in LocGerman (§4.40, siehe dort).
+        ["Ed.HeaderFooter.Header"] = "Header",
+        ["Ed.HeaderFooter.Footer"] = "Footer",
+        ["Ed.HeaderFooter.SuppressFirst"] = "Omit on the first page",
+        ["Ed.HeaderFooter.Hint"] =
+            "{SEITE} and {SEITEN} are replaced with the page number and the page count when " +
+            "the document is laid out.",
         // Gegenstuecke zu Ed.Page.NoUndo und Ed.Spacing.Scope in LocGerman (§4.38, siehe dort).
         ["Ed.Page.NoUndo"] =
             "Margins and paper size apply to the whole section and are not part of the undo " +

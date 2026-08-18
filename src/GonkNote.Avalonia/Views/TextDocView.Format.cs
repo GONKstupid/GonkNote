@@ -1,4 +1,4 @@
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Interactivity;
 using GonkNote.Core.Text;
@@ -245,6 +245,7 @@ public partial class TextDocView
             // gar nicht angezeigt wird, darf nicht die Tabellenwerkzeuge des vorigen
             // stehenlassen.
             ListenNachziehen();
+            FarbenNachziehen(new TdCharFormat());
             ReiterNachziehen();
             SeiteNachziehen();
             return;
@@ -269,6 +270,7 @@ public partial class TextDocView
         SchalterBlock.IsChecked = absatz.Alignment == TdAlign.Justify;
 
         ListenNachziehen();
+        FarbenNachziehen(zeichen);
         ReiterNachziehen();
         SeiteNachziehen();
     }

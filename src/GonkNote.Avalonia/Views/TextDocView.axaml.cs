@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -136,9 +136,10 @@ public partial class TextDocView : UserControl
 
         EingabeAnhaengen();
 
-        // **Nach InitializeComponent und vor dem ersten Nachziehen:** Die beiden Auswahllisten
-        // entstehen aus Tabellen (§4.39) und nicht aus der XAML.
+        // **Nach InitializeComponent und vor dem ersten Nachziehen:** Die Auswahllisten und
+        // die Farbkacheln entstehen aus Tabellen (§4.39, §4.40) und nicht aus der XAML.
         ListenAufbauen();
+        FarbenAufbauen();
     }
 
     /// <summary>

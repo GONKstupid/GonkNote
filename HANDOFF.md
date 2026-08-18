@@ -90,7 +90,7 @@ Die Datei ist lang, und das bleibt sie: sie trägt die Begründungen, nicht nur 
 | **1** | Auftrag und die Entscheidungen dahinter | einmal, zum Verstehen des Ganzen |
 | **2** | Stand: Version, Testzahl, Meilensteine, welche Phase wo steht | „wo stehen wir?" |
 | **3** | Struktur der Solution, Faustregel Core ↔ Kopf | vor jeder neuen Datei |
-| **4** | **Warum es so ist, wie es ist** — eine Nummer je Runde (§4.1 – §4.39) | wenn eine Entscheidung fremd wirkt |
+| **4** | **Warum es so ist, wie es ist** — eine Nummer je Runde (§4.1 – §4.40) | wenn eine Entscheidung fremd wirkt |
 | **5** | **Entscheidungen** — getroffene als Tabelle, offene als Liste | **vor jeder Rückfrage an den Nutzer** |
 | **5a** | Stylus unter Linux: was gemessen wurde und was offen ist | bei allem, was am Stift hängt |
 | **5b** | Wann und wie auf den CachyOS-Laptop gewechselt wird | bevor man ihn anfasst |
@@ -438,7 +438,7 @@ Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — beh
 **Tests laufen lassen:**
 
 ```powershell
-dotnet test -c Release        # Windows: beide Projekte, 778 Tests
+dotnet test -c Release        # Windows: beide Projekte, 787 Tests
 ```
 
 ```bash
@@ -480,7 +480,7 @@ möglich) gelten unverändert weiter — siehe `gonk-note\HANDOFF.md` §1.
 | | |
 |---|---|
 | **Version** | 0.3.0 · `net10.0` · SkiaSharp 3.119.4 · Avalonia 12.1.1 · SQLite |
-| **Tests** | **778** — 744 in `GonkNote.Core.Tests` (Windows **und** Linux), 34 in `GonkNote.Wpf.Tests` (alles, was am `FlowDocument` hängt) |
+| **Tests** | **787** — 753 in `GonkNote.Core.Tests` (Windows **und** Linux), 34 in `GonkNote.Wpf.Tests` (alles, was am `FlowDocument` hängt) |
 | **Bau** | Debug und Release je 0 Fehler / 0 Warnungen; CI mit zwei Läufen (Windows, Ubuntu) |
 | **Meilensteine** | ✅ **M0** (Core baut auf Linux) · ✅ **M1** (Notizbuch und Whiteboard laufen unter Linux) · ⏳ **M2** (Funktionsgleichheit) — er hängt an Phase 4.5, nicht an Phase 4 |
 
@@ -4974,6 +4974,83 @@ einer Kopie der echten Datenbank, danach gelöscht.
 
 ---
 
+### 4.40 Gruppe B — Schriftart, Farben, Trennlinie, Kopf- und Fußzeile
+
+**2026-08-17 unter Windows (V2-53).** `Core/Text/TdTextfarben.cs` neu,
+`TdBlockEdit.Trennlinie` dazu, `Views/TextDocView.Farben.cs` im Kopf und ein dritter Abschnitt
+in der Einstellungsleiste — **9 neue Wächter**; Bau 0/0, **787 Tests** grün (vorher 778), am
+laufenden Programm gegengeprüft.
+
+#### Was jetzt geht
+
+| | |
+|---|---|
+| **Schriftart** | Eine Liste der **mitgelieferten** Familien, jeder Eintrag in seiner eigenen Schrift |
+| **Schriftfarbe** | Sieben Kacheln im Flyout; die erste nimmt die Farbe wieder **heraus** |
+| **Hervorhebung** | Sieben Kacheln; die erste ist „keine". Die zuletzt gewählte bleibt am Knopf |
+| **Trennlinie** | Im Reiter „Einfügen" — ein leerer Absatz mit Unterstrich |
+| **Kopf- und Fußzeile** | Dritter Abschnitt der Einstellungsleiste, samt „auf der ersten Seite weglassen" |
+
+#### Die Naht, die schon da war
+
+§4.36 hatte die Schriftartenliste ausgelassen, weil `IFontProvider` „das Schema und nicht den
+Bestand" liefert. **Das war zu kurz gedacht:** `Fonts.Mitgeliefert` ist der Bestand — und
+zwar **der richtige**. Eine Liste der *System*schriften wäre sogar falsch: Genau darum geht es
+in §4.26. Eine Systemschrift gibt es auf dem nächsten Rechner nicht, und dasselbe Dokument sähe
+dort anders aus; deshalb liefert die App ihre fünf Familien mit. **Die Liste zeigt sie, und nur
+sie.**
+
+#### Die Farbtabelle steht von Anfang an in Core
+
+Bei Farben (§4.9), Schriften (§4.26), Symbolen (§4.31) und Vorlagen (§4.39) ist dieselbe
+Tabelle je einmal in zwei Köpfen entstanden und musste hinterher zusammengeführt werden —
+**viermal**. `TdTextfarben` steht deshalb **vor** dem zweiten Kopf an der Stelle, an der beide
+sie finden. Die Tintenfarben sind dieselben wie auf der Zeichenfläche: Wer dort rot schreibt,
+sucht im Textdokument dasselbe Rot.
+
+#### Zwei Funde, und beide sind Fehler, die still bleiben
+
+**1. Sieben doppelte Übersetzungsschlüssel — beinahe eingebaut.** Die Farbnamen hießen zuerst
+`Color.Auto`, `Color.Red` und so weiter. **Die gab es schon** — für die Ordnerfarben und die
+Tinte der Zeichenfläche. Ein Wörterbuch-Initialisierer in Indexer-Schreibweise **wirft dabei
+nicht, er überschreibt**: Der Kurzhinweis der Zeichenfläche wäre still von „Standard (Schwarz
+auf hellen, Weiß auf dunklen Seiten)" zu „Automatisch" geworden. Kein Compilerfehler, kein
+roter Test.
+
+> **Umbenannt auf `Td.Color.*` — und ein Wächter dazu, der den Quelltext liest**
+> (`SprachtabellenTests`, vier Prüfungen): kein Schlüssel zweimal in derselben Tabelle, jeder
+> deutsche hat ein englisches Gegenstück, keiner steht nur auf Englisch. **Er muss den Text
+> lesen und nicht das Wörterbuch** — dort ist die Doppelung längst aufgelöst. Dasselbe Muster
+> wie die Ikonen-Wächter (§4.31). Mit der Mutation `Td.Color.Auto` → `Color.Auto` wird er rot.
+>
+> **Und er hat sofort mehr geleistet als gedacht:** Dass jeder deutsche Schlüssel ein
+> englisches Gegenstück hat, war bis heute niemandes Prüfung — `Loc` fällt still auf Deutsch
+> zurück (Dauerregel 1), und genau deshalb sieht man die Lücke nie.
+
+**2. „Keine Farbe" heißt im Modell zweierlei — und das kostete einen Absturz.** Beim ersten
+Öffnen nach dem Bau: *„Invalid color string: ''."* `TdCharFormat.Standard` setzt
+`Highlight = ""` — **ausdrücklich keine** —, während `null` „nichts dazu gesagt" heißt. Ein
+aufgelöstes Format trägt den leeren String durch, und `Color.Parse("")` wirft. **Wer nur gegen
+`null` prüft, hat den halben Fall geprüft.** Behoben mit einer Stelle, die beides kennt
+(`Pinsel`).
+
+> **Kein Wächter konnte das sehen**, und diesmal nicht einmal im Prinzip: Der Fehler entsteht
+> im Kopf beim Zeichnen eines Balkens, aus einem Wert, den Core völlig richtig liefert. **Zum
+> vierten Mal nach §4.28, §4.35 und §4.38 dieselbe Lehre — nur der Schirm findet das.**
+
+#### Am laufenden Programm gesehen
+
+Start-Reiter mit Vorlagenliste, F/K/U/S, **Schriftart „Source Sans 3"**, Größenliste, **Farb-
+und Markerbalken**, Ausrichtungen, **Aufzählung und Nummerierung**, Einzug · das
+**Schriftfarben-Flyout** mit ✕ und sechs Kacheln · **Aufzählung gesetzt** → „• wwq" mit Einzug,
+Knopf gedrückt. An einer Kopie der echten Datenbank, danach gelöscht (Dauerregel 4).
+
+**Nicht gesehen und deshalb benannt:** Trennlinie, Kopf-/Fußzeile und die Hervorhebung sind
+gebaut und gebaut-geprüft, aber nicht angeklickt worden — die drei stehen als erste Zeile der
+nächsten Sichtprüfung in §5e.
+
+---
+
 ## 5. Entscheidungen
 
 **Getroffen, alle umgesetzt:**
@@ -5757,7 +5834,7 @@ Haelfte: Formate lassen sich setzen (§4.36). Die zwei Entscheidungen aus
 §5 "Noch offen" 9 und 10 sind gefallen -- nicht noch einmal fragen.
 
 Zieh zuerst den Stand: git pull. Dann bauen und testen, bevor du etwas
-anfasst -- 0 Fehler, 0 Warnungen, 778 Tests.
+anfasst -- 0 Fehler, 0 Warnungen, 787 Tests.
 
 Womit anzufangen ist, steht in §5e unter "Dran ist". Der Kern: die
 Sichtpruefung von §4.36 steht aus, weil die Fernsteuer-Skripte in tools\
@@ -5852,10 +5929,13 @@ Reiter „Layout" **stellt** Format und Ausrichtung, rechts gibt es eine **Einst
 1. ✅ **Gruppe A ist erledigt** (§4.39, 2026-08-17): Aufzählung, Nummerierung,
    Überschriften-Vorlagen und die Schriftgrößenliste stehen — die Vorlagentabelle liegt in Core
    und wird von einem Wächter gegen die des WPF-Kopfs gehalten.
-2. **▶ Gruppe B** — Schriftart, Farbe/Hervorhebung, Trennlinie, Kopf-/Fußzeile, Wasserzeichen.
-   Jedes braucht eine kleine Ergänzung vorweg. **Nutzer-Entscheidung 2026-08-17: A, dann B,
-   dann weiter nach Plan.**
-3. **Schritt 6a: `TextInputMethodClient`** (§5 „Noch offen" 10, so entschieden). Danach ist der
+2. ✅ **Gruppe B ist erledigt** (§4.40, 2026-08-17): Schriftart, Schriftfarbe, Hervorhebung,
+   Trennlinie und Kopf-/Fußzeile stehen. **Das Wasserzeichen ist dabei nach C gewandert** — es
+   ist ein `TdImage` und braucht den Blob-Weg wie jedes Bild; die erste Einschätzung war zu
+   optimistisch.
+   **⚠ Drei Dinge sind gebaut, aber nicht angeklickt worden:** Trennlinie, Kopf-/Fußzeile und
+   die Hervorhebung. Sie stehen als erste Zeile der nächsten Sichtprüfung.
+3. **▶ Schritt 6a: `TextInputMethodClient`** (§5 „Noch offen" 10, so entschieden). Danach ist der
    **Laptop** fällig — ob die Bildschirmtastatur wirklich aufgeht, kann nur er sagen.
 4. **Schritt 7: `Rtf` verliert die Führung** — der einzige vollständige Ausweg aus §5 Nr. 9.
    **Dabei liegt ein Fund bereit:** Der Weg durch den WPF-Editor setzt den Absatz auf
@@ -5893,7 +5973,7 @@ Reiter „Layout" **stellt** Format und Ausrichtung, rechts gibt es eine **Einst
 ```powershell
 cd C:\Dev\Zed\gonk-note-V2
 dotnet build -c Release       # 0 Fehler, 0 Warnungen
-dotnet test -c Release        # beide Projekte, derzeit 778 Tests
+dotnet test -c Release        # beide Projekte, derzeit 787 Tests
 ```
 
 **Und danach am laufenden Programm**, mit einer **Kopie** der echten Datenbank (Dauerregel 4,
@@ -6269,11 +6349,11 @@ dem, was es kostet:
 | ✅ **A** | ~~Aufzählung und Nummerierung~~ | **Erledigt 2026-08-17 (§4.39)** — `TdListEdit.Umschalten`/`Ebene` |
 | ✅ **A** | ~~Überschriften-Vorlagen~~ | **Erledigt 2026-08-17 (§4.39)** — `TdStil` in Core, `TdListEdit.Vorlage`, Wächter gegen die WPF-Tabelle |
 | ✅ **A** | ~~Schriftgröße als Punktliste~~ | **Erledigt 2026-08-17 (§4.39)** |
-| **B** | **Schriftart wählen** | Eine Naht für den **Bestand** der Familien; `IFontProvider` liefert das Schema und nicht den Bestand (§4.26) |
-| **B** | **Schriftfarbe und Hervorhebung** | Einen Farbwähler im Avalonia-Kopf (den es für die Zeichenfläche schon gibt — er ist wiederzuverwenden) |
-| **B** | **Trennlinie** | `TdParaFormat.BottomBorder` steht seit §4.15; ein Absatz mit Linie und ohne Text. Reine Kopfarbeit |
-| **B** | **Kopf- und Fußzeile bearbeiten** | `TdPageSetup.HeaderText`/`FooterText` stehen; ein kleiner Dialog oder ein Abschnitt in der Seitenleiste |
-| **B** | **Hintergrundbild / Wasserzeichen** | `TdPageSetup.Watermark*` steht; braucht den Blob-Weg wie Bilder |
+| ✅ **B** | ~~Schriftart wählen~~ | **Erledigt 2026-08-17 (§4.40)** — die Naht war schon da: `Fonts.Mitgeliefert` **ist** der Bestand, und eine Liste der *System*schriften wäre sogar falsch (§4.26) |
+| ✅ **B** | ~~Schriftfarbe und Hervorhebung~~ | **Erledigt 2026-08-17 (§4.40)** — Kacheln aus `TdTextfarben` (Core) statt eines Farbrads, wie auf der Zeichenfläche |
+| ✅ **B** | ~~Trennlinie~~ | **Erledigt 2026-08-17 (§4.40)** — `TdBlockEdit.Trennlinie` |
+| ✅ **B** | ~~Kopf- und Fußzeile bearbeiten~~ | **Erledigt 2026-08-17 (§4.40)** — dritter Abschnitt der Einstellungsleiste |
+| **B→C** | **Hintergrundbild / Wasserzeichen** | `TdPageSetup.Watermark` ist ein `TdImage` und braucht damit **den Blob-Weg wie jedes Bild** — es gehört deshalb zu C und nicht zu B; die erste Einschätzung war zu optimistisch |
 | **C** | **Bilder einfügen** | Blob-Speicher **und** Dateidialog; `TdImage` steht seit §4.21 |
 | **C** | **Diagramme** | `TdChart` und der Zeichner stehen seit §4.25 — es fehlt der **Dialog** (WPF hat `ChartDialog`) |
 | **C** | **Infoboxen** | Im Modell nicht vorgesehen — im WPF-Kopf ein Absatz mit Rahmen und Füllung; zu entscheiden, ob es ein eigener Blocktyp wird |
@@ -7486,7 +7566,7 @@ cd C:\Dev\Zed\gonk-note-V2
 dotnet build -c Release      # 0 Fehler / 0 Warnungen
 dotnet build -c Debug        # schneller, ohne Self-Contained/win-x64
 
-dotnet test -c Release       # beide Testprojekte, 778 Tests
+dotnet test -c Release       # beide Testprojekte, 787 Tests
 
 # Golden-Files bewusst neu setzen (danach den Diff lesen, siehe §4.6)
 $env:GONK_SNAPSHOT_UPDATE=1; dotnet test tests\GonkNote.Core.Tests; $env:GONK_SNAPSHOT_UPDATE=$null
@@ -7573,6 +7653,7 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 
 | Runde | Datum | Was |
 |---|---|---|
+| V2-53 | 2026-08-17 | **Gruppe B — Schriftart, Farben, Trennlinie, Kopf- und Fußzeile** (§4.40). `Core/Text/TdTextfarben.cs` neu, `TdBlockEdit.Trennlinie` dazu, `Views/TextDocView.Farben.cs` im Kopf, dritter Abschnitt in der Einstellungsleiste; **9 Wächter**, **787 Tests** grün, Bau 0/0, am laufenden Programm gegengeprüft. **Die Naht für die Schriftartenliste war schon da:** §4.36 hatte sie ausgelassen, weil `IFontProvider` „das Schema und nicht den Bestand" liefert — `Fonts.Mitgeliefert` **ist** der Bestand, und zwar der richtige: Eine Liste der *System*schriften wäre sogar falsch, denn genau darum geht es in §4.26 (dasselbe Dokument soll überall gleich aussehen). **Die Farbtabelle steht diesmal von Anfang an in Core:** Bei Farben (§4.9), Schriften (§4.26), Symbolen (§4.31) und Vorlagen (§4.39) ist dieselbe Tabelle je einmal in zwei Köpfen entstanden und musste hinterher zusammengeführt werden — viermal; `TdTextfarben` steht deshalb **vor** dem zweiten Kopf dort, wo beide sie finden, mit denselben Tintenfarben wie die Zeichenfläche. **Zwei Funde, beide von der stillen Sorte.** (1) **Sieben doppelte Übersetzungsschlüssel, beinahe eingebaut:** Die Farbnamen hießen zuerst `Color.Auto`, `Color.Red` … — die gab es schon, für Ordnerfarben und Tinte. **Ein Wörterbuch-Initialisierer in Indexer-Schreibweise wirft dabei nicht, er überschreibt**: Der Kurzhinweis der Zeichenfläche wäre still von „Standard (Schwarz auf hellen, Weiß auf dunklen Seiten)" zu „Automatisch" geworden — kein Compilerfehler, kein roter Test. Umbenannt auf `Td.Color.*`, **und ein Wächter dazu, der den Quelltext liest** (`SprachtabellenTests`): kein Schlüssel zweimal, jeder deutsche hat ein englisches Gegenstück, keiner steht allein auf Englisch. Er **muss** den Text lesen — im Wörterbuch ist die Doppelung längst aufgelöst (dasselbe Muster wie die Ikonen-Wächter, §4.31); mit der Mutation wird er rot. **Und er leistet mehr als gedacht:** Dass jeder deutsche Schlüssel ein englisches Gegenstück hat, war bis heute niemandes Prüfung — `Loc` fällt still auf Deutsch zurück, und genau deshalb sieht man die Lücke nie. (2) **„Keine Farbe" heißt im Modell zweierlei, und das kostete einen Absturz:** Beim ersten Öffnen kam *„Invalid color string: ''."* — `TdCharFormat.Standard` setzt `Highlight = ""` („ausdrücklich keine"), während `null` „nichts dazu gesagt" heißt; ein aufgelöstes Format trägt den leeren String durch, und `Color.Parse("")` wirft. **Wer nur gegen `null` prüft, hat den halben Fall geprüft.** Kein Wächter konnte das sehen, diesmal nicht einmal im Prinzip: Der Fehler entsteht im Kopf beim Zeichnen eines Balkens, aus einem Wert, den Core völlig richtig liefert — **zum vierten Mal nach §4.28, §4.35 und §4.38 dieselbe Lehre**. **Gesehen:** Schriftart „Source Sans 3" in der Liste, das Farbflyout mit ✕ und sechs Kacheln, Aufzählung gesetzt („• wwq", Knopf gedrückt). **Nicht angeklickt und deshalb benannt:** Trennlinie, Kopf-/Fußzeile und Hervorhebung |
 | V2-52 | 2026-08-17 | **Gruppe A — Listen, Vorlagen und die Größenliste** (§4.39). `Core/Text/TdStil.cs` und `Core/Text/TdListEdit.cs` neu, `TdFormatEdit.Absatzweise` dazu, `Views/TextDocView.Listen.cs` im Kopf; **24 Wächter**, **778 Tests** grün, Bau 0/0, am laufenden Programm gegengeprüft. **Die Vorlagentabelle wandert nach Core — zum vierten Mal dieselbe Lage nach Farben (§4.9), Schriften (§4.26) und Symbolen (§4.31):** Der WPF-Kopf führte die zehn Absatzvorlagen in `TextStyles.All`, der Linux-Kopf hatte sie gar nicht. Jetzt steht sie in `TdStil.Alle`, **und ein Wächter im WPF-Testprojekt hält beide Zeile für Zeile aneinander** (`VorlagentabelleTests`) — dieselbe Lösung wie §4.9 für die Farben, statt eines Umbaus im laufenden WPF-Kopf. **Erkannt wird eine Vorlage an ihren Werten und nicht an einem gespeicherten Namen:** Ein Name am Absatz wäre eine zweite Wahrheit — wer die Größe von Hand ändert, hätte danach eine „Überschrift 1", die keine ist. **`TdFormatEdit.Absatz` bekommt einen allgemeinen Bruder:** Eine Vorlage setzt drei Dinge auf einmal (Absatzformat, Zeichenformat des Absatzes, Listenzugehörigkeit), und drei Handgriffe daraus zu machen hieße drei Verlaufsschritte für einen Klick (§4.33) — ein Strg+Z ließe die halbe Vorlage stehen. **Die Stücke stehen absichtlich nicht im Träger:** Wer sie ändern will, nimmt `Zeichen`, wo sie kopiert statt umgestellt werden (§4.32). **Vier Entscheidungen bei den Listen:** alle berührten Absätze kommen in **eine** Liste (wer drei markiert und nummeriert, will 1, 2, 3 — nicht dreimal die 1); Definitionen werden **wiederverwendet** (§4.17 sagt „zwei Listen dürfen sich keine Kennung teilen" — die Umkehrung gilt auch); eine Definition **bleibt im Dokument**, auch wenn die Liste aufgehoben wird (sie im Verlauf zu führen hieße, neben dem Blocktausch eine zweite Mechanik zu bauen); und der **Einzugknopf ändert in einer Liste die Ebene** statt Zentimeter — Words Verhalten, und das richtige, denn die Marke wechselt mit. **Eine Vorlage hebt die Listenzugehörigkeit auf, „Standard" nicht** — sie ist das, worauf man landet, wenn man eine Überschrift zurücknimmt. **Die Gliederungsebene wird mitgesetzt**, sonst sähe eine Überschrift wie eine aus und stünde nicht im Inhaltsverzeichnis (§4.20). **Die Schriftgröße bekommt eine Liste** statt der toten Anzeige; die Stufenknöpfe bleiben, und die Leiter steht weiterhin nur einmal (§4.13). **Beide Auswahllisten entstehen im Code** und werden bei jedem Sprachwechsel neu gebaut — die Falle aus §7. **Gesehen:** zehn Vorlagen auf Deutsch, „Überschrift 1" gesetzt → der Absatz wird groß, fett und blau, die Liste zeigt „Überschrift 1", die Größe 28, der F-Knopf ist gedrückt; Aufzählung eingeschaltet → der Punkt steht davor. **Was dabei richtig ist, obwohl es wie ein Fehler aussieht:** Bei einem Bestandsdokument mit 11 pt ist die Vorlagenliste **leer** — keine der zehn passt (der Körper misst 15 pt); das ist die dritte Antwort aus §4.36 an neuer Stelle, und der WPF-Kopf verhält sich genauso |
 | V2-51 | 2026-08-17 | **Das Ribbon aufgeräumt — und die Liste nachgetragen, die gefehlt hat** (§4.38, auf Nutzerwunsch). Bau 0/0, **754 Tests** grün, alle sechs Umbauten **am laufenden Programm gegengeprüft** (Kopie der echten Daten, danach gelöscht). **Der Anstoß war eine Frage, und die ehrliche Antwort darauf ist unbequem:** Der Nutzer fragte, ob siebzehn Dinge (Überschriften-Vorlagen, Schriftart, Punktgröße, Hervorhebung, Farbe, Nummerierung, Aufzählung, Bilder, Infoboxen, Trennlinien, Symbole, Diagramme, Kopf-/Fußzeile, Seitenformat, Ränder, Hintergrundbilder, Beschriftungen) noch kommen oder vergessen wurden. **Ein Teil stand benannt in §4.36/§4.37, der größere Teil stand nirgends** — fachlich war nichts davon vergessen (es steht alles im WPF-Kopf und gehört damit zu M2), aber ohne Liste ist der Unterschied zwischen „bewusst offen" und „übersehen" nur im Kopf dessen, der sie gelassen hat. **Die vollständige Liste steht jetzt in §6**, nach Aufwand in A/B/C sortiert. **Sechs Umbauten:** Zoom, Seitenbreite, Ganze Seite und die Wort-/Zeichenzählung sind aus dem Reiter „Start" in die **untere Leiste** gewandert (sie waren Einstellungen zwischen Werkzeugen — der Reiter, der Text formatiert, trug drei Knöpfe, die den Text nicht anfassen); die **Tabellengröße** steht im Flyout statt dauerhaft in der Leiste; die **Word-Hinweise** stehen hinter einem **„i"** und erscheinen bei Schweben *und* Klick; der Reiter **„Layout" stellt jetzt** Papierformat und Ausrichtung, statt sie nur abzulesen; rechts gibt es eine **Einstellungsleiste** mit den Abschnitten Ränder und Absätze; und die **rechte Maustaste** öffnet in einer Tabelle deren sieben Befehle — **außerhalb öffnet sie gar nichts** und setzt nur die Marke. **Zwei Entscheidungen dabei:** Der Rechtsklick setzt die Marke **nur außerhalb der Auswahl** (drin meint er sie — die Erwartung aus jedem Textprogramm; ohne den ersten Teil zeigte das Menü Befehle für die zuletzt besuchte Zelle, ohne den zweiten verlöre jeder Rechtsklick die Auswahl). Und **Seitenränder und Papierformat stehen nicht im Verlauf** — sie sitzen am `TdSection` und nicht in einer Blockliste, `TdChange` tauscht Blöcke (§4.32); ein eigener Verlaufsweg wäre eine zweite Mechanik. **Die Grenze wird benannt statt versteckt** (`Ed.Page.NoUndo`), sonst findet der Nutzer sie genau dann, wenn er sie rückgängig machen will. Absatzabstände laufen dagegen über `TdFormatEdit.Absatz` und liegen im Verlauf. **Eine Ikone im WPF-Kopf korrigiert:** Er nahm für „Inhaltsverzeichnis einfügen" dasselbe `List` wie für die Aufzählung — genau der Fehler, den §4.31 aufgeräumt hat („ein Symbol je Bedeutung"), hier stehengeblieben; **der Linux-Kopf hatte es richtig** (`Outline`), angeglichen wurde deshalb Windows. **Der Fund der Runde ist derselbe zum dritten Mal:** `NumericUpDown` zeigt seinen Wert nicht, wenn er zu schmal ist — die zwei Spinner-Knöpfe fressen die Breite, und **das Feld sieht leer aus, obwohl der Wert da ist**. Erst im Reiter „Einfügen" (§4.37), dann **erneut in der neuen Seitenleiste**, wo vier Felder in zwei Spalten standen. Behoben (Ränder untereinander, Leiste 280 statt 248) und jedes Mal nachgesehen. **Der Zusatz zur alten Lehre: Es genügt nicht, einen Fund zu beheben — man muss danach suchen, wo derselbe Fehler noch einmal steht. Die zweite Stelle entstand in derselben Runde wie die Behebung der ersten** |
 | V2-50 | 2026-08-17 | **Die Sichtprüfung von §4.36 und §4.37 nachgeholt — in beiden Köpfen, an einer Kopie der echten Daten** (§4.37, „Die Sichtprüfung ist nachgeholt"; danach gelöscht, Dauerregel 4). **Zuerst das Werkzeug:** Die Skripte in `tools\` stellten **wieder Klicks zu**, ohne dass an ihnen etwas geändert wurde — der Befund aus V2-48/49 war **vorübergehend**, und genau das steht jetzt in §7, damit ihn niemand für dauerhaft hält. **Geprüft wurde die ganze Kette und nicht die Knöpfe einzeln:** fünf Reiter schalten um; „F" macht ein per Doppelklick gewähltes Wort fett und **zeigt sich danach gedrückt**; die Größenanzeige liest **11** ab; ein hier angelegtes Dokument bekommt **keinen** Warnstreifen; eine eingefügte Tabelle entsteht als 2×2 und **die Marke steht in der ersten Zelle** (die Regel aus §4.37, am Schirm belegt); der Reiter „Tabelle" zeigt ohne Marke darin nur seinen Satz und mit Marke seine sieben Knöpfe; aus 2×2 wird per Zeile und Spalte ein 3×3; ein Verweis lässt sich setzen, und beim Herausklicken wird das Feld leer und „Setzen"/„Entfernen" grau, beim Hineinklicken **steht das Ziel wieder da**. **Die eigentliche Gegenprobe geht auf:** Dasselbe Dokument im **WPF-Editor** geöffnet zeigt die vom Linux-Kopf angelegte **3×3-Tabelle**, „Hallo" **fett** und den Verweis **blau unterstrichen** — Tabelle, Zeichenformat und Verweis stehen also wirklich im Modell, und der andere Kopf liest sie. Danach dort gespeichert und zurückgewechselt: **der Warnstreifen steht** („Windows edition leads — Anything written here is lost as soon as this document is saved in the Windows edition"), und er war vorher nicht da. **§5 „Noch offen" 9 ist damit nicht nur gebaut, sondern gesehen.** **Zwei Funde, die nur der Schirm liefern konnte:** (1) Die zwei `NumericUpDown` zeigten ihren **Wert nicht** — bei `Width="86"` fressen die Spinner-Knöpfe die Breite; **am Bild sahen die Felder leer aus**, und dass sie ihren Wert trotzdem hatten, hat erst die eingefügte Tabelle gezeigt (sie kam als 2×2 heraus). Auf 130 verbreitert und **nachgesehen**. Kein Wächter kann das sehen — die Zahl war ja richtig; derselbe Satz wie in §4.28 und §4.35. (2) ⚠ **Der Weg durch den WPF-Editor setzt den Absatz auf Blocksatz** — vorher war „linksbündig" gedrückt, danach „Blocksatz"; die Übernahme `Rtf → Model` schreibt also eine Ausrichtung ins Modell, die vorher nicht dastand. **Nicht in dieser Runde entstanden und nicht hier behoben** — es ist Arbeit an der Übernahme und gehört zu **Schritt 7**, wo es jetzt vermerkt ist. **▶ Dran ist Schritt 6a (`TextInputMethodClient`), danach ist der Laptop fällig** |

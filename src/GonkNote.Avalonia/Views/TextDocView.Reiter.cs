@@ -1,4 +1,4 @@
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -43,6 +43,17 @@ public partial class TextDocView
     {
         if (!Schreibbar) return;
         Aendern(TdEdit.Zeilenumbruch(_modell!, _auswahl));
+    }
+
+    /// <summary>
+    /// Eine waagerechte Trennlinie (§4.40) — <b>ein leerer Absatz mit Unterstrich</b>; die
+    /// Begründung, warum es kein eigener Blocktyp ist, steht bei
+    /// <see cref="TdBlockEdit.Trennlinie"/>.
+    /// </summary>
+    private void Trennlinie_Click(object? s, RoutedEventArgs e)
+    {
+        if (!Schreibbar) return;
+        Aendern(TdBlockEdit.Trennlinie(_modell!, _auswahl));
     }
 
     private void TabelleEinfuegen_Click(object? s, RoutedEventArgs e)

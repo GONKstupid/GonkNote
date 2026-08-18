@@ -1,4 +1,4 @@
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Interactivity;
 using GonkNote.Core.Text;
@@ -41,6 +41,7 @@ public partial class TextDocView
 
     private void Raender_Click(object? s, RoutedEventArgs e) => Abschnitt("Ränder");
     private void Abstaende_Click(object? s, RoutedEventArgs e) => Abschnitt("Abstände");
+    private void KopfFuss_Click(object? s, RoutedEventArgs e) => Abschnitt("KopfFuss");
 
     private void EinstellungenZu_Click(object? s, RoutedEventArgs e)
     {
@@ -60,11 +61,13 @@ public partial class TextDocView
         Einstellungen.IsVisible = _abschnitt is not null;
         AbschnittRaender.IsVisible = _abschnitt == "Ränder";
         AbschnittAbstaende.IsVisible = _abschnitt == "Abstände";
+        AbschnittKopfFuss.IsVisible = _abschnitt == "KopfFuss";
 
         EinstellungenTitel.Text = _abschnitt switch
         {
             "Ränder" => Loc.T("Ed.Layout.Margins"),
             "Abstände" => Loc.T("Ed.Paragraphs"),
+            "KopfFuss" => Loc.T("Ed.HeaderFooter"),
             _ => "",
         };
 
@@ -165,6 +168,51 @@ public partial class TextDocView
         Aendern(TdFormatEdit.Absatz(_modell!, _auswahl, f => f.LineSpacing = wert));
     }
 
+    // ==================== Kopf- und Fußzeile ====================
+
+    /// <summary>
+    /// Übernimmt Kopf- und Fußzeile. <b>Beim Verlassen des Feldes und bei Eingabe</b> — nicht
+    /// bei jedem Tastendruck: Jeder Buchstabe löste sonst einen vollen Umbruch aus (§4.35), und
+    /// zwar den teuersten, weil Kopf- und Fußzeile auf **jeder** Seite stehen.
+    /// </summary>
+    private void KopfFuss_Geaendert(object? sender, RoutedEventArgs e) => KopfFussUebernehmen();
+
+    private void KopfFuss_Taste(object? sender, Avalonia.Input.KeyEventArgs e)
+    {
+        if (e.Key is not (Avalonia.Input.Key.Enter or Avalonia.Input.Key.Return)) return;
+
+        KopfFussUebernehmen();
+        e.Handled = true;
+    }
+
+    private void KopfFussUebernehmen()
+    {
+        if (_fuellt || !Schreibbar) return;
+        if (Abschnitt() is not { } abschnitt) return;
+
+        string kopf = KopfzeileFeld.Text ?? "";
+        string fuss = FusszeileFeld.Text ?? "";
+
+        if (abschnitt.Page.HeaderText == kopf && abschnitt.Page.FooterText == fuss) return;
+
+        abschnitt.Page.HeaderText = kopf;
+        abschnitt.Page.FooterText = fuss;
+
+        SeiteGeaendert();
+    }
+
+    private void ErsteSeiteOhne_Geaendert(object? sender, RoutedEventArgs e)
+    {
+        if (_fuellt || !Schreibbar) return;
+        if (Abschnitt() is not { } abschnitt) return;
+
+        bool ohne = ErsteSeiteOhne.IsChecked == true;
+        if (abschnitt.Page.SuppressOnFirstPage == ohne) return;
+
+        abschnitt.Page.SuppressOnFirstPage = ohne;
+        SeiteGeaendert();
+    }
+
     // ==================== Nachziehen ====================
 
     /// <summary>
@@ -224,6 +272,13 @@ public partial class TextDocView
 
             SchalterHoch2.IsChecked = !seite.IstQuerformat;
             SchalterQuer.IsChecked = seite.IstQuerformat;
+
+            // **Nicht überschreiben, während der Nutzer tippt** — dieselbe Vorsorge wie beim
+            // Verweisziel (§4.37): Ein Umbruch mitten in der Eingabe nähme ihm sonst den Satz
+            // aus der Hand.
+            if (!KopfzeileFeld.IsFocused) KopfzeileFeld.Text = seite.HeaderText;
+            if (!FusszeileFeld.IsFocused) FusszeileFeld.Text = seite.FooterText;
+            ErsteSeiteOhne.IsChecked = seite.SuppressOnFirstPage;
 
             RandLinks.Value = (decimal)seite.MarginLeftCm;
             RandOben.Value = (decimal)seite.MarginTopCm;

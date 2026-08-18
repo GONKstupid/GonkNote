@@ -1,4 +1,4 @@
-namespace GonkNote.Services;
+﻿namespace GonkNote.Services;
 
 /// <summary>
 /// Die deutschen Texte – die Vorlage. Was hier steht, ist die Wahrheit; die englische
@@ -501,6 +501,30 @@ internal static class LocGerman
         // ausgegraute Fläche aus §4.28 in groß (HANDOFF §4.37).
         ["Ed.Table.NotInTable"] =
             "Setz die Schreibmarke in eine Tabelle — dann stehen hier ihre Werkzeuge.",
+        // ---- Farbnamen für Schrift und Hervorhebung (HANDOFF §4.40, `TdTextfarben`) ----
+        // Sie stehen in einer Tabelle in Core; hier sind nur die Namen. „Automatisch" und
+        // „Keine" tragen kein Hex — sie nehmen die Abweichung heraus, statt eine Farbe zu setzen.
+        ["Td.Color.Auto"] = "Automatisch",
+        ["Td.Color.None"] = "Keine",
+        ["Td.Color.Red"] = "Rot",
+        ["Td.Color.Blue"] = "Blau",
+        ["Td.Color.Green"] = "Grün",
+        ["Td.Color.Amber"] = "Bernstein",
+        ["Td.Color.Purple"] = "Violett",
+        ["Td.Color.Grey"] = "Grau",
+        ["Td.Color.Yellow"] = "Gelb",
+        ["Td.Color.Lime"] = "Limette",
+        ["Td.Color.Cyan"] = "Türkis",
+        ["Td.Color.Pink"] = "Rosa",
+        ["Td.Color.Sky"] = "Himmelblau",
+        ["Td.Color.Silver"] = "Silber",
+        // Kopf- und Fußzeile in der Einstellungs-Seitenleiste (§4.40).
+        ["Ed.HeaderFooter.Header"] = "Kopfzeile",
+        ["Ed.HeaderFooter.Footer"] = "Fußzeile",
+        ["Ed.HeaderFooter.SuppressFirst"] = "Auf der ersten Seite weglassen",
+        ["Ed.HeaderFooter.Hint"] =
+            "{SEITE} und {SEITEN} werden beim Umbruch durch die Seitenzahl und die " +
+            "Seitenanzahl ersetzt.",
         // Zwei Sätze in der Einstellungs-Seitenleiste, die eine Grenze benennen, statt sie
         // den Nutzer suchen zu lassen (HANDOFF §4.38).
         ["Ed.Page.NoUndo"] =

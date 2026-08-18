@@ -78,6 +78,33 @@ public static class TdBlockEdit
         Einfuegen(doc, auswahl, new TdPageBreak());
 
     /// <summary>
+    /// Eine waagerechte Trennlinie — <b>ein leerer Absatz mit Unterstrich</b>
+    /// (<see cref="TdParaFormat.BottomBorder"/>).
+    ///
+    /// <para>
+    /// <b>Kein eigener Blocktyp, und das ist dieselbe Entscheidung wie beim Listenpunkt</b>
+    /// (§4.17): Word kennt eine Trennlinie ebenfalls als Absatzrahmen, DOCX schreibt sie als
+    /// <c>w:pBdr</c>, und der Umbruch zeichnet sie seit §4.15. Ein Blocktyp dafür müsste durch
+    /// jeden Export, jeden Umbruch und jede Trefferrechnung eigens hindurch — für eine Linie,
+    /// die es als Absatzformat schon gibt.
+    /// </para>
+    /// <para>
+    /// <b>Die Linie steht *unter* dem leeren Absatz</b>, nicht unter dem Text davor: Sonst
+    /// gehörte sie dem Absatz darüber und verschwände, wenn jemand dort die Formatierung
+    /// zurücksetzt.
+    /// </para>
+    /// </summary>
+    public static TdChange? Trennlinie(TdDocument doc, TdSelection auswahl)
+    {
+        var linie = new TdParagraph
+        {
+            Format = { BottomBorder = new TdBorder(1, "#D4DEEA") },
+        };
+
+        return Einfuegen(doc, auswahl, linie);
+    }
+
+    /// <summary>
     /// Eine leere Tabelle mit <paramref name="zeilen"/> × <paramref name="spalten"/> Zellen.
     ///
     /// <para>

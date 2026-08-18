@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using GonkNote.Core.Text;
 
 namespace GonkNote.Core.Tests;
@@ -188,6 +188,26 @@ public sealed class EinfuegenTests
 
         var mitte = TdCursor.AbsatzAn(doc, 1)!;
         Assert.Equal(TdFieldKind.TableOfContents, mitte.Inlines.OfType<TdField>().Single().Kind);
+    }
+
+    /// <summary>
+    /// <b>Die Trennlinie ist ein Absatz mit Unterstrich und kein eigener Blocktyp</b> (§4.40).
+    /// Geprüft wird beides: dass sie als Absatz entsteht **und** dass die Linie wirklich daran
+    /// hängt — ein Absatz ohne Rahmen wäre eine unsichtbare Leerzeile, und das sähe aus wie
+    /// „der Knopf tut nichts".
+    /// </summary>
+    [Fact]
+    public void Eine_Trennlinie_ist_ein_Absatz_mit_Unterstrich()
+    {
+        var doc = Dok(Text("abcdef"));
+
+        TdBlockEdit.Trennlinie(doc, Bei(doc, 0, 3))!.Anwenden();
+
+        Assert.Equal("¶(abc)¶()¶(def)", Umriss(doc));
+
+        var linie = TdCursor.AbsatzAn(doc, 1)!;
+        Assert.NotNull(linie.Format.BottomBorder);
+        Assert.True(linie.Format.BottomBorder!.Value.Sichtbar);
     }
 
     /// <summary>Jede Zelle bekommt einen Absatz — sonst hätte der Cursor darin keinen Ort.</summary>

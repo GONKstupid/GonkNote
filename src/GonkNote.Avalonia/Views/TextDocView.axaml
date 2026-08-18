@@ -104,11 +104,18 @@
 
                     <Border Classes="trenner"/>
 
-                    <!-- Schriftgröße.
-                         **Nur größer und kleiner, keine Schriftartenliste.** Die Liste bräuchte
-                         die verfügbaren Familien, und die Naht dafür gibt es nicht
-                         (`IFontProvider` liefert das Schema, nicht den Bestand, §4.26). Ein
-                         Auswahlfeld mit drei Namen darin wäre genau der halbe Knopf aus §4.28. -->
+                    <!-- Schriftart (§4.40). **Die Liste zeigt die mitgelieferten Familien und
+                         nicht die des Systems**, und das ist genau der Punkt aus §4.26: Eine
+                         Systemschrift gibt es auf dem nächsten Rechner nicht, und dasselbe
+                         Dokument sähe dort anders aus. `Fonts.Mitgeliefert` ist deshalb der
+                         richtige Bestand — die Naht, die §4.36 hier noch vermisst hat, war
+                         bereits da. Die Einträge entstehen im Code, weil sie aus der Tabelle
+                         kommen. -->
+                    <ComboBox x:Name="SchriftWahl" Width="170" VerticalAlignment="Center"
+                              FontSize="12" SelectionChanged="Schrift_Gewechselt"
+                              ToolTip.Tip="{loc:T Ed.Font}"/>
+
+                    <!-- Schriftgröße. -->
                     <Button Classes="flach symbol" Click="Kleiner_Click" ToolTip.Tip="{loc:T Ed.FontShrink}">
                         <views:Symbol Icon="FontShrink" Stroke="{DynamicResource Brush.Text}"/>
                     </Button>
@@ -121,6 +128,42 @@
                               ToolTip.Tip="{loc:T Ed.FontSize}"/>
                     <Button Classes="flach symbol" Click="Groesser_Click" ToolTip.Tip="{loc:T Ed.FontGrow}">
                         <views:Symbol Icon="FontGrow" Stroke="{DynamicResource Brush.Text}"/>
+                    </Button>
+
+                    <Border Classes="trenner"/>
+
+                    <!-- Schriftfarbe und Hervorhebung (§4.40). **Kacheln statt Farbrad**, wie
+                         auf der Zeichenfläche: Die Tabelle steht in Core (`TdTextfarben`), und
+                         die Tintenfarben sind dieselben — wer auf dem Whiteboard rot schreibt,
+                         sucht im Textdokument dasselbe Rot. Der erste Eintrag nimmt die Farbe
+                         wieder **heraus**, statt Schwarz bzw. Weiß hineinzuschreiben. -->
+                    <Button x:Name="KnopfSchriftfarbe" Classes="ribbonknopf"
+                            ToolTip.Tip="{loc:T Ed.TextColor.Pick}">
+                        <StackPanel Orientation="Vertical" Spacing="1">
+                            <TextBlock Text="A" FontWeight="SemiBold" FontSize="13"
+                                       HorizontalAlignment="Center"/>
+                            <Border x:Name="SchriftfarbeBalken" Height="3" Width="16"
+                                    CornerRadius="1" Background="{DynamicResource Brush.Text}"/>
+                        </StackPanel>
+                        <Button.Flyout>
+                            <Flyout Placement="BottomEdgeAlignedLeft">
+                                <WrapPanel x:Name="SchriftfarbenFeld" Width="196"/>
+                            </Flyout>
+                        </Button.Flyout>
+                    </Button>
+                    <Button x:Name="KnopfHervorhebung" Classes="ribbonknopf"
+                            ToolTip.Tip="{loc:T Ed.Highlight.Pick}">
+                        <StackPanel Orientation="Vertical" Spacing="1">
+                            <views:Symbol Icon="Highlighter" Size="13"
+                                          Stroke="{DynamicResource Brush.Text}"/>
+                            <Border x:Name="HervorhebungBalken" Height="3" Width="16"
+                                    CornerRadius="1" Background="#FDE047"/>
+                        </StackPanel>
+                        <Button.Flyout>
+                            <Flyout Placement="BottomEdgeAlignedLeft">
+                                <WrapPanel x:Name="HervorhebungFeld" Width="196"/>
+                            </Flyout>
+                        </Button.Flyout>
                     </Button>
 
                     <Border Classes="trenner"/>
@@ -206,6 +249,11 @@
                     <Button Classes="ribbonknopf" Click="Zeilenumbruch_Click"
                             ToolTip.Tip="{loc:T Ed.Break.Line.Tip}">
                         <TextBlock Text="{loc:T Ed.Break.Line}" VerticalAlignment="Center"/>
+                    </Button>
+                    <!-- Trennlinie (§4.40) — ein leerer Absatz mit Unterstrich, kein eigener
+                         Blocktyp; die Begründung steht bei `TdBlockEdit.Trennlinie`. -->
+                    <Button Classes="ribbonknopf" Click="Trennlinie_Click">
+                        <TextBlock Text="{loc:T Ed.Rule}" VerticalAlignment="Center"/>
                     </Button>
 
                     <Border Classes="trenner"/>
@@ -321,13 +369,18 @@
 
                     <Border Classes="trenner"/>
 
-                    <!-- Kopf- und Fußzeile bleiben vorerst eine **Auskunft** und kein Knopf:
-                         Sie zu bearbeiten braucht einen eigenen Weg, den es noch nicht gibt
-                         (§6). Was dasteht, erklärt den Umbruch, den man daneben sieht. -->
-                    <StackPanel VerticalAlignment="Center">
-                        <TextBlock Classes="feldname" Text="{loc:T Ed.HeaderFooter}"/>
-                        <TextBlock x:Name="FeldKopfFuss" Classes="feldwert"/>
-                    </StackPanel>
+                    <!-- **Aus der Auskunft ist mit §4.40 ein Knopf geworden.** Was dasteht,
+                         sagt weiterhin, was gilt — jetzt lässt es sich auch stellen. -->
+                    <Button Classes="ribbonknopf" Click="KopfFuss_Click"
+                            ToolTip.Tip="{loc:T Ed.HeaderFooter}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <views:Symbol Icon="TextDocument" Stroke="{DynamicResource Brush.Text}"/>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Classes="feldname" Text="{loc:T Ed.HeaderFooter}"/>
+                                <TextBlock x:Name="FeldKopfFuss" Classes="feldwert"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Button>
                 </WrapPanel>
 
                 <!-- ============ Reiter „Verweise" ============ -->
@@ -570,6 +623,24 @@
                             <TextBlock Classes="feldname" Text="{loc:T Ed.Spacing.Unit}"/>
                             <TextBlock Classes="feldname" TextWrapping="Wrap"
                                        Text="{loc:T Ed.Spacing.Scope}"/>
+                        </StackPanel>
+
+                        <!-- Kopf- und Fußzeile (§4.40). Sie gehören zum Abschnitt wie die
+                             Ränder und stehen deshalb ebenso wenig im Verlauf. -->
+                        <StackPanel x:Name="AbschnittKopfFuss" IsVisible="False" Spacing="6">
+                            <TextBlock Classes="feldname" Text="{loc:T Ed.HeaderFooter.Header}"/>
+                            <TextBox x:Name="KopfzeileFeld" FontSize="12"
+                                     LostFocus="KopfFuss_Geaendert" KeyDown="KopfFuss_Taste"/>
+                            <TextBlock Classes="feldname" Text="{loc:T Ed.HeaderFooter.Footer}"/>
+                            <TextBox x:Name="FusszeileFeld" FontSize="12"
+                                     LostFocus="KopfFuss_Geaendert" KeyDown="KopfFuss_Taste"/>
+                            <CheckBox x:Name="ErsteSeiteOhne" FontSize="12"
+                                      Content="{loc:T Ed.HeaderFooter.SuppressFirst}"
+                                      IsCheckedChanged="ErsteSeiteOhne_Geaendert"/>
+                            <TextBlock Classes="feldname" TextWrapping="Wrap"
+                                       Text="{loc:T Ed.HeaderFooter.Hint}"/>
+                            <TextBlock Classes="feldname" TextWrapping="Wrap"
+                                       Text="{loc:T Ed.Page.NoUndo}"/>
                         </StackPanel>
                     </StackPanel>
                 </ScrollViewer>

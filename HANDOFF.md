@@ -430,6 +430,16 @@ Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — beh
 >   Fassungen sagen dasselbe: der Pfad kommt zurück, das Format steht vorgewählt oben.
 > - **Wartet auf ein Ja:** die Aufwandsschätzung für **Phase 4.5 — 5–8 Wochen**, in
 >   `gonk-note-port-RM.MD` eingetragen, hergeleitet und **nicht gemessen** (§4.29).
+> - ✅ **Neu entschieden am 2026-08-18 (Nutzer): die Veröffentlichung ist vorgezogen, iPadOS
+>   nachgestellt.** Neue Folge: Phase 4.5 → **Phase 5 = aufräumen, Repo öffentlich schalten,
+>   Flatpak/AppImage** → **Phase 6 = iPadOS**. **Der Linux-Port ist das Ziel des Projekts**,
+>   der iPad-Kopf ein Zusatz — und er **bleibt vollständig Teil desselben Projekts und
+>   Repos**. **M1 und M2 unverändert**, dahinter umnummeriert: **M3 = veröffentlicht,
+>   M4 = TestFlight**. Begründung, was mitgewandert ist und zwei leicht übersehene Folgen
+>   stehen im Kasten in **§6**; **`gonk-note-port-RM.MD` ist nachgezogen**.
+>   ⚠ **Die Folge, die am ehesten untergeht:** Die Frage, ob `HANDOFF.md` per
+>   `git filter-repo` aus der Vorgeschichte fliegt, ist damit **die nächste Phase nach 4.5**
+>   und nicht mehr weit weg — **und sie ist noch nicht entschieden**.
 > - ✅ **Gebaut, gesehen — und sie wirkt zur Hälfte:** §5 „Noch offen" **10**. Die Eingabe-Naht
 >   steht (§4.41), rechnet richtig, und **die Bildschirmtastatur schreibt jetzt**, wenn man sie
 >   von Hand hervorholt. **Aufklappen tut sie nicht:** `TopLevel.InputPane` ist unter
@@ -721,7 +731,7 @@ verwechselt oder versehentlich mitgebaut werden. `GonkNote.StylusProbe` ist zus�
 zentralen Paketverwaltung ausgeklinkt (`ManagePackageVersionsCentrally=false`), damit seine
 Avalonia-Version nicht die Versionswahl für Phase 3 vorwegnimmt.
 
-**Noch nicht angelegt:** `src/GonkNote.iOS` (Phase 5). Bewusst — leere Projekte, die nicht
+**Noch nicht angelegt:** `src/GonkNote.iOS` (**Phase 6** — seit dem 2026-08-18 nachgestellt, §6). Bewusst — leere Projekte, die nicht
 bauen, sind nur Ballast; sie entstehen, wenn ihre Phase beginnt.
 
 **Faustregel:** Nach Phase 2 darf in den Plattform-Köpfen *nur noch* stehen, was Pixel
@@ -5524,6 +5534,7 @@ WPF-Editor überleben müsste. *(Die 34 WPF-Wächter laufen mit und sind grün.)
 
 | Frage | Entscheidung |
 |---|---|
+| **Wann geht das Repo öffentlich — vor oder nach dem iPad-Kopf?** | **Vorher** (Nutzer, 2026-08-18). Die Veröffentlichung ist **vorgezogen**, iPadOS **nachgestellt**: Phase 4.5 → **Phase 5 Aufräumen + öffentlich gehen + Flatpak/AppImage** → **Phase 6 iPadOS**. Der Linux-Port ist das Ziel des Projekts, der iPad-Kopf ein Zusatz — eine fertige Linux-Fassung soll nicht auf einen zweiten Port warten. **iPadOS bleibt Teil desselben Projekts und Repos**, nichts ist gestrichen. **M1/M2 unverändert**, dahinter umnummeriert: **M3 = veröffentlicht, M4 = TestFlight**. Begründung und Folgen im Kasten in §6; **`gonk-note-port-RM.MD` ist nachgezogen** |
 | Ziel-Framework | **`net10.0`** statt `net9.0` — LTS bis Nov 2028 (§4.3) |
 | SkiaSharp | **3.119.4 + Svg.Skia 5.1.1**, vorgezogen vor Phase 1 (§4.4) |
 | Remote | **<https://github.com/GONKstupid/GonkNote>**, privat, vom Nutzer angelegt. Branch `main`, alles gepusht |
@@ -7055,24 +7066,31 @@ Avalonia-Kopf:
 | **Bedienung** | **Langdruck auf den Größenregler → Zahlenblock**, Schnellaktionen-Menü auf der Fläche, **die Reihenfolge der Werkzeugleiste** wie im Windows-Kopf |
 | **Dienste** | Texterkennung (OCR) und Rechtschreibprüfung — **die zwei Ausnahmen**: sie brauchen Gegenstücke zu den Windows-Diensten (`IOcrEngine`, `ISpellChecker` stehen seit Phase 2), das ist eigene Arbeit und keine reine Portierung |
 
-**Wann: zwischen Phase 4 und Phase 5.** Begründung, in dieser Reihenfolge:
+**Wann: direkt nach Phase 4 — und damit vor allem anderen.** Begründung, in dieser
+Reihenfolge:
 
 1. **Erst die Engine, dann die Werkzeuge.** Textdokumente waren unter Linux ausgegraut — das
    war das größere Loch, und es blockierte zusätzlich Import/Export (§4.1).
    **✅ Eingelöst mit §4.28** (2026-08-11): die Engine steht, Textdokumente werden angezeigt,
    importiert und exportiert. Damit ist dieser Grund abgearbeitet und Phase 4.5 **an der
    Reihe** — es sei denn, das Schreiben im Linux-Kopf wird vorgezogen (§5 „Noch offen" 2).
-2. **Vor dem iPad, nicht danach.** Phase 5 baut den dritten Kopf auf derselben
-   Avalonia-Grundlage. Wer die Werkzeuge erst danach baut, baut sie **zweimal** — einmal für
-   Linux, einmal für iPadOS. Davor gebaut, bekommt der iPad-Kopf sie fast geschenkt (nur der
-   UI-Umbau bleibt, Roadmap Phase 5).
-3. **M2 wird damit wieder wahr.** Er wandert ans Ende von Phase 4.5 statt ans Ende von
-   Phase 4.
+2. **Vor dem iPad, nicht danach.** Der iPad-Kopf (seit dem 2026-08-18 **Phase 6**) baut den
+   dritten Kopf auf derselben Avalonia-Grundlage. Wer die Werkzeuge erst danach baut, baut sie
+   **zweimal** — einmal für Linux, einmal für iPadOS. Davor gebaut, bekommt der iPad-Kopf sie
+   fast geschenkt (nur der UI-Umbau bleibt). **Die Umstellung der Reihenfolge verstärkt das
+   Argument**, sie widerspricht ihm nicht: Der iPad-Kopf rückt weiter nach hinten.
+3. **Neu seit dem 2026-08-18: M2 ist die Eintrittskarte zur Veröffentlichung.** Seit der
+   Umstellung hängt **Phase 5 (öffentlich gehen)** unmittelbar an dieser Phase hier. **Was hier
+   fehlt, fehlt am Tag der Veröffentlichung** — das ist der Unterschied zu vorher, wo noch ein
+   ganzer iPad-Port dazwischenlag.
+4. **M2 wird damit wieder wahr.** Er wandert ans Ende von Phase 4.5 statt ans Ende von
+   Phase 4. **Daran hat die Umstellung vom 2026-08-18 nichts geändert** — M1 und M2 behalten
+   ihre Bedeutung; umnummeriert wurde nur dahinter (M3 = veröffentlicht, M4 = TestFlight).
 
-> **Nicht vergessen:** Das ist eine Ergänzung zu `gonk-note-port-RM.MD`, nicht daraus
-> abgeleitet — dieselbe Lage wie bei den eigenen Farbschemata unten. **Wer die Roadmap-Datei
-> auf dem Desktop pflegt, sollte Phase 4.5 dort nachtragen und M2 verschieben**, sonst steht
-> beides nur hier.
+> **✅ Nachgetragen:** Das war eine Ergänzung zu `gonk-note-port-RM.MD` und nicht daraus
+> abgeleitet — dieselbe Lage wie bei den eigenen Farbschemata unten. **Die Roadmap-Datei kennt
+> Phase 4.5 und M2 seit dem 2026-08-11** (Nachtrag dort oben) und die neue Phasenfolge seit dem
+> **2026-08-18**. **Beide Dateien sagen jetzt dasselbe.**
 
 ### Der Rest (Roadmap §5)
 
@@ -7081,15 +7099,65 @@ Avalonia-Kopf:
 | 3 | Avalonia-Shell für Linux — **fertig** | 6–8 W. | ✅ **M1 erreicht** — Notizbuch + Whiteboard laufen unter Linux, Textdokumente ausgegraut |
 | 4 | Eigene Dokument-Engine in `Core/Text/` — **Modell fertig (6 von 6), es fehlt das Umverdrahten** | 8–12 W. | ~~M2~~ — Textdokumente laufen unter Linux |
 | **4.5** | **Die fehlenden Werkzeuge des Linux-Kopfs** (Formen, Lineal/Geodreieck, Textfelder, Sticker, Notizzettel, Bild-/PDF-Import, Zahlenblock, Schnellaktionen, Werkzeugleisten-Anordnung, Drehen/Skalieren) — **neu eingeschoben, siehe oben** | offen | **M2** — Funktionsgleichheit Linux ↔ Windows |
-| 5 | iPadOS-Head, Apple Pencil, PDFKit/Vision, AOT-Härtung | 6–10 W. | **M3** — TestFlight-Build |
-| 6 | **Aufräumen (neu, siehe unten)**, dann Flatpak/AppImage, App Store | 2–4 W. + Aufräumen | Veröffentlichung |
+| **5** | **Aufräumen, dann das Repo öffentlich schalten, dann Flatpak/AppImage** — siehe unten | 3–5 W. | **M3 — veröffentlicht** (Linux + Windows) |
+| **6** | **iPadOS-Head**, Apple Pencil, PDFKit/Vision, AOT-Härtung, App Store | 7–12 W. | **M4** — TestFlight-Build |
 
-#### Neu in Phase 6: aufräumen, dann prüfen, dann erst veröffentlichen
+> ### ▶ Die Reihenfolge ist am 2026-08-18 geändert worden — Nutzer-Entscheidung
+>
+> **Vorher:** Phase 5 iPadOS → Phase 6 Veröffentlichung (beide Plattformen in einem Schritt).
+> **Jetzt:** Phase 5 **Veröffentlichung Linux/Windows** → Phase 6 **iPadOS**.
+>
+> **Die Begründung ist eine Priorität und kein neuer Befund:** Der **Linux-Port ist das Ziel
+> des Projekts**, der iPad-Kopf ist ein Zusatz. Es gibt keinen technischen Grund, eine fertige
+> Linux-Fassung mehrere Monate im privaten Repo liegen zu lassen, bis ein zweiter Port
+> nachkommt.
+>
+> **Der Sache nach war das schon die Vorgabe.** `gonk-note-port-RM.MD` hält im Vorgespräch
+> fest: „Reihenfolge: gemeinsame Basis zuerst, **Linux priorisiert, iPad danach**". Nur die
+> Phasenfolge hat das für die *Veröffentlichung* nie abgebildet — **diese Umstellung korrigiert
+> also einen Widerspruch im Plan** und führt keinen neuen ein.
+>
+> **✅ iPadOS bleibt vollständig Teil des Projekts und desselben Repos.** Nichts ist
+> gestrichen, nichts ausgelagert. Es ist nur nicht mehr das, was die Linux-Fassung aufhält.
+>
+> **Was mitgewandert ist** — „alles, was mit dem Öffentlich-Gehen zusammenhängt":
+>
+> | | |
+> |---|---|
+> | **Nach vorn, in Phase 5** | Die Aufräumrunde samt vollständigem Prüflauf, die Checkliste „Vor dem Öffentlich-Schalten des Repos", **Flatpak/Flathub und AppImage**, `.deb`/AUR, MIT-Lizenztext + `THIRD-PARTY-NOTICES.md` |
+> | **Nach hinten, mit Phase 6** | Der ganze Apple-Teil: Developer Program (99 $/Jahr), Privacy Nutrition Labels, Datenschutzerklärung-URL, App-Store-Review. **Ohne den iPad-Kopf haben sie keinen Gegenstand** |
+> | **Unverändert** | **M1** und **M2** behalten ihre Bedeutung. Phase **4.5** bleibt, wo sie ist |
+>
+> **Umnummeriert:** Der TestFlight-Build hieß **M3** und heißt jetzt **M4**; **M3** ist die
+> Veröffentlichung. *(Es gab genau eine Stelle im HANDOFF, die M3 nannte — die Tabelle hier.)*
+>
+> **⚠ Zwei Folgen, die leicht untergehen und deshalb hier stehen:**
+>
+> 1. **Die History-Frage rückt näher.** Ob `HANDOFF.md` per `git filter-repo` aus der
+>    Vorgeschichte entfernt wird, war bisher zwei Phasen weit weg und ist jetzt die **nächste
+>    Phase nach 4.5**. Sie steht unten in „Vor dem Öffentlich-Schalten" und ist **noch nicht
+>    entschieden**.
+> 2. **Bei der Veröffentlichung beschreiben die vier Dokumente zwei Köpfe, nicht drei.**
+>    README und Erste-Schritte-Text sagen dann „Windows + Linux"; mit Phase 6 kommt eine dritte
+>    Ausgabe dazu, in **beiden** Sprachfassungen (Dauerregel 1). **Keine zusätzliche Arbeit,
+>    nur spätere** — und der iPad-Kopf entsteht dann in einem **öffentlichen** Repo, wird also
+>    von Anfang an mitgelesen.
+>
+> **Phase 4.5 wird davon nicht berührt — im Gegenteil.** Ihr Grund Nr. 2 lautet „vor dem iPad,
+> nicht danach: wer die Werkzeuge erst danach baut, baut sie **zweimal**". Der iPad-Kopf rückt
+> weiter nach hinten, **das Argument wird also stärker und nicht schwächer**.
 
-**Nutzer-Entscheidung 2026-08-05.** Vor dem Öffentlich-Schalten wird der Code **einmal
-durchgeputzt**, und **danach** läuft die Prüfung noch einmal vollständig — erst dann geht das
-Projekt hinaus. Die Reihenfolge ist der Punkt: aufräumen, prüfen, veröffentlichen. Wer nach
-dem Aufräumen nicht mehr prüft, veröffentlicht einen Stand, den nie jemand gesehen hat.
+#### Phase 5 — aufräumen, dann prüfen, dann erst veröffentlichen
+
+**Nutzer-Entscheidung 2026-08-05** *(die Phase hieß damals 6 und lag hinter iPadOS — seit dem
+2026-08-18 ist sie Phase 5 und liegt davor; siehe den Kasten oben)*. Vor dem
+Öffentlich-Schalten wird der Code **einmal durchgeputzt**, und **danach** läuft die Prüfung
+noch einmal vollständig — erst dann geht das Projekt hinaus. Die Reihenfolge ist der Punkt:
+aufräumen, prüfen, veröffentlichen. Wer nach dem Aufräumen nicht mehr prüft, veröffentlicht
+einen Stand, den nie jemand gesehen hat.
+
+**Voraussetzung ist M2** — Funktionsgleichheit Linux ↔ Windows (Ende Phase 4.5). Vorher hat
+Veröffentlichen keinen Sinn: Was hinausgeht, soll auf Linux können, was es auf Windows kann.
 
 **Was dabei ansteht** (die Liste ergibt sich aus dem, was die Phasen bewusst stehen gelassen
 haben — sie ist beim Aufräumen zu ergänzen, nicht abzuarbeiten wie ein Vertrag):
@@ -7110,8 +7178,16 @@ haben — sie ist beim Aufräumen zu ergänzen, nicht abzuarbeiten wie ein Vertr
 > Aufräumen ist die Sorte Änderung, die nichts kaputt machen soll — und genau deshalb prüft
 > sie niemand nach.
 
-> **Nicht vergessen:** Auch das ist eine Ergänzung zu `gonk-note-port-RM.MD` und nicht daraus
-> abgeleitet — **wer die Roadmap-Datei auf dem Desktop pflegt, sollte es dort nachtragen.**
+**Und danach erst die Auslieferung** (Roadmap §5, Phase 5.3): **Flatpak/Flathub** als
+Hauptweg — im Manifest `fontconfig`, `freetype` und ggf. `libtesseract` deklarieren, **sonst
+rendert SkiaSharp keine Schrift** —, **AppImage** als zweiter, abhängigkeitsfreier Kanal,
+`.deb`/AUR optional. Dazu MIT-Lizenztext und `THIRD-PARTY-NOTICES.md` im Info-Dialog (die
+Apache-2.0 von Tesseract verlangt das ohnehin).
+
+> **✅ Nachgetragen:** Das war eine Ergänzung zu `gonk-note-port-RM.MD` und nicht daraus
+> abgeleitet — **am 2026-08-18 ist die Roadmap-Datei nachgezogen worden** (Phase 5 dort neu
+> gefasst, Phasen getauscht, Zeitrahmen und Risikotabelle angepasst). **Beide Dateien sagen
+> jetzt dasselbe.**
 
 > **M1 ist ein gültiger Ausstiegspunkt.** Phase 4 ist die, an der Projekte sterben — dort
 > strikt in der Reihenfolge Absätze/Zeichenformate → Seitenumbruch → Listen → Tabellen →
@@ -7202,8 +7278,14 @@ Vollständig in `gonk-note\HANDOFF.md` §5. Die Punkte, die für die Portierung 
 
 ### Vor dem Öffentlich-Schalten des Repos
 
+> **▶ Das ist seit dem 2026-08-18 Phase 5 und damit die Phase direkt nach 4.5** — vorher lag
+> es hinter iPadOS (Nutzer-Entscheidung, Begründung im Kasten in §6). **Die Liste ist damit
+> nicht mehr weit weg**, und der zweite Punkt ist der einzige darin, der eine echte
+> Entscheidung verlangt.
+
 Erst abarbeiten, **dann** in den GitHub-Einstellungen auf „public" stellen. Vorher nicht —
-die Reihenfolge lässt sich nicht nachholen.
+die Reihenfolge lässt sich nicht nachholen. **Und davor steht das Aufräumen samt vollständigem
+Prüflauf** (§6, Phase 5) — nicht danach.
 
 - [ ] **`HANDOFF.md` wieder ausschließen:** Zeile `HANDOFF.md` in `.gitignore` zurückholen
       (der Kommentar dort erklärt, warum sie fehlt), `git rm --cached HANDOFF.md`, commit.
@@ -8344,6 +8426,7 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 
 | Runde | Datum | Was |
 |---|---|---|
+| V2-58 | 2026-08-18 | **Die Reihenfolge des Plans geändert — Veröffentlichung vorgezogen, iPadOS nachgestellt** (Nutzer-Entscheidung; §6-Kasten, §5-Tabelle, **`gonk-note-port-RM.MD` nachgezogen** — kein Code angefasst). **Vorher:** Phase 5 iPadOS → Phase 6 Veröffentlichung (beide Plattformen in einem Schritt). **Jetzt:** Phase 4.5 → **Phase 5 = aufräumen, prüfen, Repo öffentlich schalten, Flatpak/AppImage** → **Phase 6 = iPadOS samt App Store**. **Die Begründung ist eine Priorität und kein neuer Befund:** der **Linux-Port ist das Ziel des Projekts**, der iPad-Kopf ein Zusatz — es gibt keinen technischen Grund, eine fertige Linux-Fassung monatelang im privaten Repo liegen zu lassen, bis ein zweiter Port nachkommt. **Der Sache nach war das schon die Vorgabe:** die Roadmap hält im Vorgespräch „Linux priorisiert, iPad danach" fest — nur die Phasenfolge hat es für die *Veröffentlichung* nie abgebildet; **die Umstellung korrigiert also einen Widerspruch im Plan und führt keinen neuen ein.** **✅ iPadOS bleibt vollständig Teil des Projekts und desselben Repos**, nichts gestrichen, nichts ausgelagert. **Mitgewandert nach vorn:** die Aufräumrunde samt vollem Prüflauf, die Checkliste „Vor dem Öffentlich-Schalten", **Flatpak/Flathub und AppImage**, `.deb`/AUR, MIT-Lizenztext + `THIRD-PARTY-NOTICES.md`. **Nach hinten:** der ganze Apple-Teil (Developer Program, Nutrition Labels, Datenschutz-URL, Store-Review) — **ohne den iPad-Kopf hat er keinen Gegenstand**. **M1 und M2 behalten ihre Bedeutung, Phase 4.5 bleibt wo sie ist**; umnummeriert wurde nur dahinter: TestFlight war **M3** und ist **M4**, **M3 ist jetzt die Veröffentlichung** (genau eine Fundstelle im HANDOFF). **Im Zeitrahmen rückt die Veröffentlichung von ≈ 10–14 auf ≈ 8–12 Monate vor** und hängt nicht mehr am zweiten Port — das entschärft nebenbei das benannte Motivationsrisiko. **⚠ Zwei Folgen, die leicht untergehen und deshalb im Kasten stehen:** **(1)** die **History-Frage** (`git filter-repo` für `HANDOFF.md`) ist jetzt die **nächste Phase nach 4.5** und **noch nicht entschieden**; **(2)** beim Veröffentlichen beschreiben die vier mitgelieferten Dokumente **zwei** Köpfe statt drei — die dritte Ausgabe kommt mit Phase 6 in **beiden** Sprachfassungen nach (Dauerregel 1), und der iPad-Kopf entsteht dann in einem **öffentlichen** Repo. **Phase 4.5 wird nicht berührt — im Gegenteil:** ihr Grund Nr. 2 („vor dem iPad, sonst baut man die Werkzeuge zweimal") **wird stärker**, weil der iPad-Kopf weiter nach hinten rückt; dafür hängt jetzt **die Veröffentlichung unmittelbar an M2** |
 | V2-57 | 2026-08-18 | **Preedit gebaut — Schritt 6b, und die toten Tasten sollten damit wiederkommen** (§4.43; `TdVorschau` in Core, `SupportsPreedit` von `false` auf **`true`**, `SetPreeditText` und `VorschauMalen` im Avalonia-Kopf; **20 neue Wächter**, Bau 0/0, **823 Tests** grün = 789 Core + 34 WPF). Weg **(a)** aus §5 „Noch offen" 11, fällig geworden durch §4.42 — **Nutzer-Entscheidung am 2026-08-18**. **Die Entscheidung, die §4.41 nicht gesehen hat:** Der unfertige Text ist **Ansichtszustand**. §4.41 sah nur zwei Wege — ins Modell schreiben und wieder herausnehmen (**der Griff, vor dem §4.32 warnt**) oder darüber malen — und hielt den zweiten für einen Notbehelf. **Er ist der richtige:** Unfertiger Text ist per Definition noch nicht Inhalt, er steht in keiner Datei, kommt in keinen Export, taucht im Verlauf nicht auf. **`TdDocument` wird nie angefasst, §4.32 greift gar nicht erst.** Er steht in einem Feld der Ansicht und wird in `OnPaint` **nach** den Blättern an der Stelle gemalt, die `MarkeAufLeinwand` ohnehin rechnet — **am Umbruch nimmt er nicht teil** (einer je Tastendruck wäre genau die Rechnung, die §4.35 als teuer gemessen hat). **In Core steht nur das Klemmen, und das ist die Stelle, an der es schiefgeht:** `null` und `""` heißen beide „nichts im Gange" (eine Eingabemethode meldet mal das eine, mal das andere), eine fehlende Marke landet am **Ende** — **und die dritte Regel ist der Grund, warum es kein einzeiliges `Math.Clamp` ist: das Ersatzpaar.** Ein Emoji und ein seltenes CJK-Zeichen stehen als **zwei** UTF-16-Stellen da; eine Marke dazwischen ist ein **halbes Zeichen**, und `Text.AsSpan(0, Marke)` liefert darauf eine ungültige Zeichenkette, die Skia als leeren Kasten malt — **sie rückt auf den Anfang des Zeichens zurück und nicht vor**. **Das sind genau die Zeichen, für die eine Eingabemethode überhaupt gebraucht wird**, die Wache sitzt also in der Mitte des Falls und nicht an seinem Rand — **erprobt**: ohne die eine Zeile fallen **zwei** der zwanzig Wächter. **Vier kleinere Entscheidungen, jede mit Grund:** der fertige Text **verwirft** den unfertigen (IBus schickt zwar meist eine leere Vorschau nach, aber nicht verlässlich und **nicht vor dem `commit`** — sonst stünde die Silbe einen Augenblick **doppelt** da); die Schreibmarke des Dokuments blinkt solange **nicht** (sie stünde am Anfang des unfertigen Textes — **zwei Striche**, einer blinkend, keiner aussagekräftig); **unterstrichen**, weil das seit Windows 95 jede Eingabemethode so zeigt; und die Schrift ist die **an der Marke** (`TdFormatEdit.Gemeinsam`, dieselbe Quelle wie das Ribbon — sonst spränge das Zeichen beim Festschreiben um, und genau dann schaut der Nutzer hin). `TdRenderer.CmProPunkt` ist dafür **öffentlich** geworden; eine zweite Zahl im Kopf wäre eine zweite Wahrheit und ergäbe Schriftgrößen um den Faktor 2,8 daneben. **Am laufenden Programm gegengeprüft — und das war wieder die Gegenprobe und nicht der Zweck:** Ein angemeldetes Eingabeziel läuft unter Windows über **TSF**, und Preedit einzuschalten ändert dort, was mit getipptem Text passiert — **das ist die Regression, die diese Runde hätte verursachen können**. An einer Wegwerf-Datenbank durchgespielt (danach gelöscht, Dauerregel 4): `Hallo äöüß ÄÖÜ` → **14, exakt**; neuer Absatz `Zweiter Absatz 12345` → **35**; `ABCDE` angehängt → **40, exakt +5**; **Strg+Z → 30**, also **−10** (`12345ABCDE`) — **nicht der ganze Absatz, und genau richtig**, denn §4.33 schneidet den Verlauf an der Gestalt der Änderung und das Leerzeichen davor ist ein Schnitt. **Der WPF-Kopf ist ausnahmsweise nicht gegengeprüft, und das ist hier richtig:** diese Runde ändert **nichts am Modell** — `TdVorschau` kommt additiv dazu, `CmProPunkt` ändert nur seine Sichtbarkeit, kein Feld, kein Format, kein Speicherweg; es gibt nichts, was der WPF-Editor überleben müsste (seine 34 Wächter laufen mit und sind grün). **⚠ Zwei Dinge hat hier niemand gesehen, und es ist beide Male der Kern:** wie der unfertige Text **aussieht** — auf diesem Rechner sind nur `de-DE` und `en-GB` eingerichtet (nachgesehen), **ohne ostasiatische Eingabemethode entsteht gar kein Preedit** und `VorschauMalen` wird nie gerufen — und **ob die toten Tasten wiederkommen**; `SupportsPreedit` wirkt gegen IBus und nicht gegen eine Rechnung. **▶ Der Laptop ist wieder dran** (§5d trägt den Auftrag: fünf Fragen), **und die Erwartung ist ausdrücklich widerlegbar formuliert** — `^`+`e` soll `ê` ergeben und währenddessen ein unterstrichenes `^` an der Marke stehen. **Kommt das `ê` nicht, ist die Herleitung aus §4.42 falsch**, und der nächste Griff steht schon dort: `dbus-monitor` auf `CommitText`. §5 Nr. **10a** ist damit **erledigt**. **▶ Windows macht unterdessen mit Schritt 7 weiter** (§5e) |
 | V2-56 | 2026-08-18 | **Die toten Tasten erklärt — am Rücken nachgelesen, und der Befund kippt die Empfehlung** (§4.42; **kein Produktivcode angefasst**, Bau 0/0, **803 Tests** grün = 769 Core + 34 WPF). §5 „Noch offen" 11 sah Weg **(b)** vorn: prüfen, ob Avalonias IBus-Client einen `commit` auch bei `SupportsPreedit => false` durchreicht — „**sie ist am Rücken zu messen**". **Es war kein Laptop nötig:** der Rücken liegt als Paket vor. Mit `ilspycmd` gegen genau die gebundenen Fassungen zerlegt (`Avalonia.FreeDesktop`, `Avalonia.X11`, `Avalonia.Base` **12.1.1**). **Drei Befunde, und der erste erledigt (b):** **(1)** `IBusX11TextInputMethod.OnCommitText` ruft `FireCommit` **ohne jede Abfrage von `SupportsPreedit`** — einziger Wächter davor ist `_insideReset`; **der `commit` wird durchgereicht, die vermutete Lücke gibt es nicht.** **(2)** `SetCapabilitiesCore` baut das Fähigkeitswort als `CapFocus` und **nur bei `SupportsPreedit`** dazu `CapPreeditText` — **`SupportsPreedit` ist also keine Anzeigefrage, sondern bestimmt, was IBus über uns erfährt** und wohin IBus das Zusammensetzen schickt. **(3)** `OnUpdatePreedit`/`OnHidePreedit` sind **hart auf `client.SupportsPreedit` verriegelt** — bei `false` wirft **Avalonia selbst** jede Preedit-Meldung weg. **Der Weg eines Zeichens vollständig nachgelesen** (`ScheduleKeyInput` → `FilterIme` → `ProcessNextImeEvent` → `HandleEventAsync`): sobald ein Eingabeziel angemeldet ist, geht **jede** Taste zuerst an IBus, und meldet IBus „behandelt", wird das rohe Ereignis **samt seinem Text verworfen** — das Zeichen kann **nur noch** über `CommitText` zurückkommen. **Das erklärt beides zugleich:** warum es vor V2-54 lief (kein Ziel → `IsEnabled` falsch → die Taste ging an IBus vorbei) **und warum Umlaute bis heute laufen** (ein einzelnes Keysym, das IBus nicht für sich behält — eine tote Taste ist genau der Fall, den es behält). **Der entscheidende Vergleich:** `gnome-text-editor` bekommt dieselbe Folge auf demselben Gerät vollständig (V2-55) — **und GTKs IBus-Modul meldet genau `IBUS_CAP_PREEDIT_TEXT`**; nach den drei Gegenproben aus V2-55 ist das **der einzige verbliebene strukturelle Unterschied**. **Folge: (b) fällt aus** (nichts zu reparieren), **(c) fällt aus** (Tausch, nicht Fix), **Warten fällt aus** — **12.1.1 ist die neueste veröffentlichte Fassung**, gegen nuget.org geprüft. ▶ **(a) ist fällig** — Preedit bauen, nach der Regel, die §5 Nr. 11 selbst aufgestellt hat. **Der Einwand aus §4.41 („berührt `TdDocument`", §4.32) ist ausräumbar:** unfertiger Text ist **Ansichtszustand** und gehört als Auflage an die Marke, nicht ins Dokument. **Wartet auf ein Ja** (§5 Nr. **10a** ist als Entscheidung geführt). **Nebenbefund, nicht unserer:** `SetCapabilitiesCore` bekommt `supportsSurroundingText` und **benutzt es nicht** — `CapSurroundingText` wird nie gesetzt, obwohl der Kopf `SupportsSurroundingText => true` meldet; **ein Avalonia-Fehler**, er erklärt die fehlende Wortvervollständigung und ist **nicht** die Ursache der toten Tasten |
 | V2-55 | 2026-08-18 | **Laptop-Befund: die Bildschirmtastatur schreibt, klappt aber nicht auf — und V2-54 hat die toten Tasten gekostet** (§4.41, „Was der Laptop gefunden hat"; kein Produktivcode angefasst, ein Werkzeug dazu). Der Auftrag aus §5d abgearbeitet, Bau 0/0 in Core und im Avalonia-Kopf, **769/769 grün** — die im Auftrag genannte Zahl. **Die Antwort auf das Aufklappen ist nein, und sie hat zwei Belege, die sich nicht aufeinander stützen.** **(a)** Eine Wegwerf-Sonde (eigenes Avalonia-Programm in `/tmp`, dieselbe Fassung 12.1.1, danach gelöscht) meldet `TopLevel.InputPane` = **`null`**: **`Avalonia.X11` hat gar keine `IInputPane`** — `RaiseInputPaneActivationRequested` läuft ins Leere, **egal welcher Zeigertyp es auslöst**; in den Assemblies kommt das Wort `InputPane` in `Avalonia.X11` kein einziges Mal vor, in `Avalonia.Win32` über `IFrameworkInputPane` schon. **(b)** Der Augenschein direkt nebeneinander: dieselbe GNOME-Tastatur **klappt bei `gnome-text-editor` auf** und **verschwindet, sobald GonkNote den Fokus hat** — der Kopf ist ein XWayland-Client, GNOMEs Tastatur folgt `zwp_text_input_v3`. **✅ Frage 2 hat der Nutzer noch am selben Tag von Hand beantwortet, und sie fällt positiv aus: von Hand hervorgeholt SCHREIBT die Tastatur ins Dokument** — in V2-47 kam auch von Hand nichts an (§4.35, „nicht nur unsichtbar, sondern taub"). **Die Naht aus V2-54 hat also die Hälfte ihres Zwecks erreicht: taub ist die Tastatur nicht mehr, unsichtbar bleibt sie.** Frage 4 bleibt offen (sie richtet sich mangels `IInputPane` nicht an der Marke aus), **Frage 3 ist wertlos** — sie bleibt beim Mausklick zu, aber nur, weil sie bei keinem Zeigertyp aufklappt; **die `PointerType`-Weiche aus §4.41 ist unter Linux nicht prüfbar** und bleibt allein unter Windows belegt. **⚠ Der eigentliche Fund steckt in der vorsorglichen Frage 5:** **tote Tasten kommen seit V2-54 nicht mehr an.** `^`+`e` ergibt **nichts** statt `ê` — am 2026-08-16 war genau das noch gemessen und grün (§4.35). **Das Zeichen geht nicht falsch, es geht weg:** der Zeichenzähler zählt es nicht mit (`Hallo`+`^e`+`´a` → **5** statt 7), kein Ersatzzeichen, keine Meldung; **Umlaute sind nicht betroffen** (`Hallo äöüß ÄÖÜ` → exakt **14**), sie werden nicht zusammengesetzt. **Drei Gegenproben, damit es nicht wieder ein Werkzeugfehler ist wie in V2-47:** `gnome-text-editor` bekommt dieselbe Folge vollständig (`ZZZêá`) — Werkzeug und Plattform sind in Ordnung; der Stand **vor** V2-54 (`c4532fe`, in einem Wegwerf-Worktree gebaut) liefert `Halloêá`, `a25ef09` liefert `Hallo` — **es ist eine Regression von V2-54**; und dieselbe Binärdatei mit leerem `XMODIFIERS` liefert wieder `Halloêá` — **es ist IBus**. **Der Mechanismus stand schon in §4.41, nur mit dem falschen Vorzeichen:** Seit der Anmeldung als Eingabeziel setzt **IBus** zusammen und reicht das Ergebnis als **Preedit** heraus; `SupportsPreedit => false` bedient diesen Weg nicht. §4.41 hatte ausdrücklich notiert, `false` sei „kein Ausfall, sondern eine Ansage" — **unter Windows/TSF stimmt das, unter X11/IBus nicht**, und der Beleg dafür (V2-47) war **vor** der Anmeldung gemessen und konnte den neuen Weg gar nicht abdecken. **Der Kopf hat damit nicht „die Nachteile ohne den Zweck" eingehandelt, sondern den halben Zweck mit einem unbeabsichtigten Preis** — und das entscheidet die Abwägung: **die Anmeldung zurückzunehmen fällt aus**, es machte die Tastatur wieder taub. **Nicht hier behoben** (§5d: nur Linuxspezifisches; `SupportsPreedit` steht in gemeinsamem Kopfcode und war eine Entscheidung) — steht als **§5 „Noch offen" 11** mit drei Antworten und Empfehlung, §5 Nr. **10** und **10a** sind nachgezogen. **Drei Werkzeug-Funde, alle drei kosteten Zeit** (§7): **Vollbildaufnahmen unter Wayland gehen doch** — die Angabe „unbrauchbar" in §5d/§4.10 war **veraltet**, `org.freedesktop.portal.Screenshot` liefert den ganzen Bildschirm, es lief nur `xdg-desktop-portal-gnome` nicht (neu als **`tools/linux/wlschuss.sh`**; `org.gnome.Shell.Screenshot` und `Shell.Introspect` sind unter GNOME 50 dagegen gesperrt). **Ein Avalonia-Flyout ist ein eigenes X-Fenster** und fehlt auf `import -window` — der Klick auf „Neu" sah dreimal wie ein wirkungsloser Klick aus, das Menü war jedes Mal offen, nur unsichtbar. Und **zwei Koordinatensysteme im Faktor 1,6**: Wayland logisch 1920×1080, XWayland 3072×1728 — `zeiger` will Gerätepixel, der Portal-Schuss liefert logische. **Compose** wie in V2-47 ungeprüft, weil auf diesem Gerät keine eingerichtet ist (leere `xkb-options`, keine `~/.XCompose`) — notiert statt eingerichtet, wie der Auftrag verlangt. **▶ Der Laptop trägt keinen Auftrag mehr** (§5d); **▶ Windows ist dran, und die Regression geht VOR Schritt 7** — sie sitzt in derselben Naht (§5e) |

@@ -102,6 +102,10 @@ public partial class TextDocView
         Skia.PointerReleased += Zeiger_Losgelassen;
         Skia.KeyDown += Taste;
         Skia.TextInput += Texteingabe;
+
+        // Schritt 6a: Die Fläche meldet sich als **Eingabeziel** an — sonst hat eine
+        // Bildschirmtastatur nichts, woran sie andocken könnte (§5 „Noch offen" 10).
+        EingabemethodeAnhaengen();
     }
 
     /// <summary>
@@ -121,6 +125,10 @@ public partial class TextDocView
 
         _spalte = null;
         _zieht = false;
+
+        // **Ein angefangenes Zusammensetzen gehört dem alten Dokument** (Schritt 6a): Eine halb
+        // getippte Silbe säße sonst gleich im nächsten.
+        EingabemethodeZuruecksetzen();
 
         // Was daran hängt, zieht der Umbruch danach nach — er läuft ohnehin gleich.
         MarkierungNeu();
@@ -174,6 +182,14 @@ public partial class TextDocView
         _zieht = e.ClickCount == 1;
 
         MarkeVersetzt();
+
+        // **Finger und Stift holen die Bildschirmtastatur, die Maus nicht** (Schritt 6a). Wer
+        // ein Gerät in der Hand hält und hineintippt, hat keine andere; wer eine Maus benutzt,
+        // hat eine danebenliegen — und bekäme sonst bei jedem Klick ein halbes Fenster über das
+        // Blatt geschoben. **Nach `MarkeVersetzt` und nicht davor:** Die Plattform fragt beim
+        // Aufklappen sofort, wo die Marke steht, und das soll dann schon die neue Stelle sein.
+        if (punkt.Pointer.Type is PointerType.Touch or PointerType.Pen) TastaturAnfordern();
+
         e.Handled = true;
     }
 
@@ -610,6 +626,12 @@ public partial class TextDocView
         // Seit Schritt 6 hängt daran ein vierter: Die Formatknöpfe zeigen, was **an der
         // Auswahl** gilt — sie bewegen sich also mit ihr und nicht mit dem Text.
         RibbonNachziehen();
+
+        // Und seit Schritt 6a ein fünfter: Die Eingabemethode führt die Bildschirmtastatur an
+        // der Marke nach und liest den Text um sie herum. **Hier und nicht in `Aendern`** —
+        // dieselbe Begründung wie oben: nach einem Klick ist die Auskunft genauso falsch
+        // geworden wie nach einem Tastendruck.
+        EingabemethodeNachziehen();
     }
 
     /// <summary>Rechnet Auswahl und Marke für den Zeichner neu.</summary>

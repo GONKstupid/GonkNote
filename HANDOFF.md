@@ -1,6 +1,6 @@
 ﻿# Gonk Note V2 — Projektübergabe
 
-**Stand: 2026-08-19 · Version 0.3.0 · net10.0 · SkiaSharp 3 · SQLite · Avalonia 12 · ✅ M1 erreicht · ✅ Phase 4 abgeschlossen (§4.28): Dokumentmodell, Übernahme, DOCX/Markdown/PDF/PNG gegen das Modell, Zeichner samt Diagrammen, Schriftkonzept — und die Anzeige im Linux-Kopf, **auf dem Laptop gegengeprüft** (§4.28, V2-37). ⏳ **Das Schreiben läuft** (§6): **Schritte 1 bis 6 stehen** — Stelle, Änderung, Verlauf, Trefferrechnung, **Tastatur und Maus** (§4.35, auf dem Laptop gegengeprüft: Umlaute, tote Tasten, der Cursor am Stift, kein verlorenes Zeichen) und **Schritt 6 ganz** (§4.36/§4.37): Formate, die drei Reiter Einfügen/Verweise/Tabelle — **und die Warnung**, wenn das Altformat noch führt (`TdFuehrung`). ✅ **Das Ribbon ist aufgeräumt** (§4.38) und **die Gruppen A und B stehen** (§4.39/§4.40): Listen, Vorlagen, Größenliste, Schriftart, Farben, Trennlinie, Kopf- und Fußzeile. ✅ **Neu am 2026-08-18: Schritt 6a, die Eingabe-Naht** (§4.41, V2-54) — `TdEingabe` in Core und ein `TextInputMethodClient` im Kopf; ein Cursorschritt ist dort genau **ein** Zeichen breit, sonst zeigte jeder Abstand hinter jedem Feld um eins daneben. ✅ **Und seit V2-57 steht Schritt 6b, das Zusammensetzen** (§4.43): `TdVorschau`, `SupportsPreedit => true`, der unfertige Text als Auflage an der Marke — **ohne das Modell anzufassen**. **823 Tests.** ✅ **Beide offenen Entscheidungen sind gefallen** (Nutzer, 2026-08-16): §5 Nr. 9 → **warnen statt sperren** (gebaut **und gesehen**, §4.37), §5 Nr. 10 → **`TextInputMethodClient`, nach Schritt 6** (gebaut, §4.41). ✅⚠ **Der Laptop hat am 2026-08-18 gemessen** (§4.41, V2-55, **769/769 grün**), und die Antwort ist zweigeteilt: **Die Bildschirmtastatur *schreibt* jetzt** — von Hand hervorgeholt kommt ihr Text im Dokument an, in V2-47 kam er nicht an; **die Naht aus V2-54 hat damit die Hälfte ihres Zwecks erreicht**. **Von selbst klappt sie nicht auf**, weil `Avalonia.X11` gar **keine `IInputPane`** hat (`TopLevel.InputPane` ist `null`, zur Laufzeit gemessen) — das behebt kein Kopfcode. **⚠ Dabei ist eine Regression aufgefallen: tote Tasten kommen seit V2-54 nicht mehr an** (`^`+`e` → nichts statt `ê`; Umlaute schon), eingekreist auf **IBus + `SupportsPreedit => false`** — §5 „Noch offen" **11**. ✅ **Neu am 2026-08-18 (V2-56, §4.42): die Ursache ist geklärt — am ausgelieferten Rücken nachgelesen** (`ilspycmd` gegen Avalonia 12.1.1), **kein Produktivcode angefasst**. **Der Befund kippt die bisherige Empfehlung:** Weg **(b) fällt aus**, denn `OnCommitText` reicht den `commit` **ohne jede Abfrage von `SupportsPreedit`** durch — die vermutete Lücke gibt es nicht; der Hebel ist, dass `SupportsPreedit` das **Fähigkeitswort an IBus** (`CapPreeditText`) bestimmt und damit, **wohin IBus das Zusammensetzen schickt** — und `gnome-text-editor`, das dieselbe Folge vollständig bekommt, **meldet genau diese Fähigkeit**. **Warten fällt auch aus:** 12.1.1 ist die neueste Fassung. ✅ **Und Weg (a) ist am selben Tag gebaut** (§4.43, V2-57): `TdVorschau` in Core, `SupportsPreedit => true`, der unfertige Text als **Auflage an der Marke** — **`TdDocument` wird nie angefasst**, damit greift §4.32 nicht; **20 Wächter, 823 Tests**, und die Windows-Gegenprobe (TSF) tippt zeichengenau. §5 Nr. **10a** ist damit erledigt. ⛔ **Und am 2026-08-18 hat der Laptop gemessen (V2-59, §4.43, 789/789 grün): es wirkt nicht.** `^`+`e` ergibt weiterhin **nichts** (Zähler **5** statt 7, zahlengleich mit V2-55); Umlaute **14**, ein Absatz von **427** Zeichen kommt **exakt** an. **Der `dbus-monitor` verschiebt die Ursache, statt sie nur zu verneinen:** **`CommitText` 0 mal bei uns, 2 mal bei `gnome-text-editor`** — derselbe Daemon, dieselbe Sekunde, **es liegt also nicht an IBus**; ✅ **das Fähigkeitswort kommt an** (`SetCapabilities uint32 9`), **§4.42 Punkt 2 ist gemessen**; **⚠ der Fehler sitzt davor** — der Kopf schickt für die tote Taste **gar keinen Tastendruck**, nur das Loslassen, und dazwischen **einen Aufruf mit `keysym = 0`/`keycode = 0`, den IBus mit `true` beantwortet** — genau danach verwirft Avalonia das rohe Ereignis. **(a) wird nicht zurückgebaut, es war nur nicht hinreichend.** ✅ **Am 2026-08-19 hat Windows den Tastenweg am zerlegten Rücken abgelaufen** (§4.44, V2-61; Avalonia 12.1.1, **kein Produktivcode angefasst**, **823 Tests** grün): **Der `0/0/0`-Aufruf kommt aus Avalonias eigenem dbus-Client, gespeist von einem Phantom-`KeyPress` mit `keycode = 0` aus dem X-Strom**; der echte Druck der toten Taste verschwindet zwischen `XNextEvent` und dem ersten Avalonia-Code. **Unser Kopf und die Warteschlange sind ausgeschlossen**; als Avalonia-Befunde festgehalten: der **Keycode-Versatz um 8** und das fehlende **`LockMask`**-Bit. **Upstream ist AvaloniaUI/Avalonia#18596 exakt dieses Symptom — geschlossen ohne Fix.** **Was mit dem benannten Fund geschieht, entscheidet der Nutzer.** ▶ **Der Laptop ist dran** (§5d: zwei Messungen — `xtrace` um GonkNote, `xev` als Kontrolle —, beide mit widerlegbarer Erwartung), **dann Schritt 7**
+**Stand: 2026-08-19 · Version 0.3.0 · net10.0 · SkiaSharp 3 · SQLite · Avalonia 12 · ✅ M1 erreicht · ✅ Phase 4 abgeschlossen (§4.28): Dokumentmodell, Übernahme, DOCX/Markdown/PDF/PNG gegen das Modell, Zeichner samt Diagrammen, Schriftkonzept — und die Anzeige im Linux-Kopf, **auf dem Laptop gegengeprüft** (§4.28, V2-37). ⏳ **Das Schreiben läuft** (§6): **Schritte 1 bis 6 stehen** — Stelle, Änderung, Verlauf, Trefferrechnung, **Tastatur und Maus** (§4.35, auf dem Laptop gegengeprüft: Umlaute, tote Tasten, der Cursor am Stift, kein verlorenes Zeichen) und **Schritt 6 ganz** (§4.36/§4.37): Formate, die drei Reiter Einfügen/Verweise/Tabelle — **und die Warnung**, wenn das Altformat noch führt (`TdFuehrung`). ✅ **Das Ribbon ist aufgeräumt** (§4.38) und **die Gruppen A und B stehen** (§4.39/§4.40): Listen, Vorlagen, Größenliste, Schriftart, Farben, Trennlinie, Kopf- und Fußzeile. ✅ **Neu am 2026-08-18: Schritt 6a, die Eingabe-Naht** (§4.41, V2-54) — `TdEingabe` in Core und ein `TextInputMethodClient` im Kopf; ein Cursorschritt ist dort genau **ein** Zeichen breit, sonst zeigte jeder Abstand hinter jedem Feld um eins daneben. ✅ **Und seit V2-57 steht Schritt 6b, das Zusammensetzen** (§4.43): `TdVorschau`, `SupportsPreedit => true`, der unfertige Text als Auflage an der Marke — **ohne das Modell anzufassen**. **823 Tests.** ✅ **Beide offenen Entscheidungen sind gefallen** (Nutzer, 2026-08-16): §5 Nr. 9 → **warnen statt sperren** (gebaut **und gesehen**, §4.37), §5 Nr. 10 → **`TextInputMethodClient`, nach Schritt 6** (gebaut, §4.41). ✅⚠ **Der Laptop hat am 2026-08-18 gemessen** (§4.41, V2-55, **769/769 grün**), und die Antwort ist zweigeteilt: **Die Bildschirmtastatur *schreibt* jetzt** — von Hand hervorgeholt kommt ihr Text im Dokument an, in V2-47 kam er nicht an; **die Naht aus V2-54 hat damit die Hälfte ihres Zwecks erreicht**. **Von selbst klappt sie nicht auf**, weil `Avalonia.X11` gar **keine `IInputPane`** hat (`TopLevel.InputPane` ist `null`, zur Laufzeit gemessen) — das behebt kein Kopfcode. **⚠ Dabei ist eine Regression aufgefallen: tote Tasten kommen seit V2-54 nicht mehr an** (`^`+`e` → nichts statt `ê`; Umlaute schon), eingekreist auf **IBus + `SupportsPreedit => false`** — §5 „Noch offen" **11**. ✅ **Neu am 2026-08-18 (V2-56, §4.42): die Ursache ist geklärt — am ausgelieferten Rücken nachgelesen** (`ilspycmd` gegen Avalonia 12.1.1), **kein Produktivcode angefasst**. **Der Befund kippt die bisherige Empfehlung:** Weg **(b) fällt aus**, denn `OnCommitText` reicht den `commit` **ohne jede Abfrage von `SupportsPreedit`** durch — die vermutete Lücke gibt es nicht; der Hebel ist, dass `SupportsPreedit` das **Fähigkeitswort an IBus** (`CapPreeditText`) bestimmt und damit, **wohin IBus das Zusammensetzen schickt** — und `gnome-text-editor`, das dieselbe Folge vollständig bekommt, **meldet genau diese Fähigkeit**. **Warten fällt auch aus:** 12.1.1 ist die neueste Fassung. ✅ **Und Weg (a) ist am selben Tag gebaut** (§4.43, V2-57): `TdVorschau` in Core, `SupportsPreedit => true`, der unfertige Text als **Auflage an der Marke** — **`TdDocument` wird nie angefasst**, damit greift §4.32 nicht; **20 Wächter, 823 Tests**, und die Windows-Gegenprobe (TSF) tippt zeichengenau. §5 Nr. **10a** ist damit erledigt. ⛔ **Und am 2026-08-18 hat der Laptop gemessen (V2-59, §4.43, 789/789 grün): es wirkt nicht.** `^`+`e` ergibt weiterhin **nichts** (Zähler **5** statt 7, zahlengleich mit V2-55); Umlaute **14**, ein Absatz von **427** Zeichen kommt **exakt** an. **Der `dbus-monitor` verschiebt die Ursache, statt sie nur zu verneinen:** **`CommitText` 0 mal bei uns, 2 mal bei `gnome-text-editor`** — derselbe Daemon, dieselbe Sekunde, **es liegt also nicht an IBus**; ✅ **das Fähigkeitswort kommt an** (`SetCapabilities uint32 9`), **§4.42 Punkt 2 ist gemessen**; **⚠ der Fehler sitzt davor** — der Kopf schickt für die tote Taste **gar keinen Tastendruck**, nur das Loslassen, und dazwischen **einen Aufruf mit `keysym = 0`/`keycode = 0`, den IBus mit `true` beantwortet** — genau danach verwirft Avalonia das rohe Ereignis. **(a) wird nicht zurückgebaut, es war nur nicht hinreichend.** ✅ **Am 2026-08-19 hat Windows den Tastenweg am zerlegten Rücken abgelaufen** (§4.44, V2-61; Avalonia 12.1.1, **kein Produktivcode angefasst**, **823 Tests** grün): **Der `0/0/0`-Aufruf kommt aus Avalonias eigenem dbus-Client, gespeist von einem Phantom-`KeyPress` mit `keycode = 0` aus dem X-Strom**; der echte Druck der toten Taste verschwindet zwischen `XNextEvent` und dem ersten Avalonia-Code. **Unser Kopf und die Warteschlange sind ausgeschlossen**; als Avalonia-Befunde festgehalten: der **Keycode-Versatz um 8** und das fehlende **`LockMask`**-Bit. **Upstream ist AvaloniaUI/Avalonia#18596 exakt dieses Symptom — geschlossen ohne Fix.** **Was mit dem benannten Fund geschieht, entscheidet der Nutzer.** ✅ **Und am 2026-08-19 hat der Laptop beide Messungen gefahren** (§4.44 „Was der Laptop gefunden hat", V2-62; **kein Produktivcode angefasst**, Bau 0/0, **789/789 grün**, von Hand getippt): **Die Leitspur ist widerlegt — der Druck kommt an** (`KeyPress keycode 49` **3 mal**, `keycode 26` **5 mal**, je mit Loslassen), und **ein `keycode 0` steht nirgends auf der Leitung**, weder bei GonkNote noch bei `xev` — **XWayland und ein fremder `XSendEvent`-Client scheiden damit beide aus**, und **das Verschwinden sitzt im Prozess**: `XFilterEvent` **filtert sehr wohl**. ✅ **Das `keycode = 0` ist kein Phantom, sondern der Bote** — libX11 verschluckt die beteiligten Drucke und legt das **fertige Zeichen** nach, `XmbLookupString` liefert dort `(c3 aa) "ê"`; **mit `XMODIFIERS=@im=none` gegengeprüft** (Avalonias eigene Einstellung), **4 mal `ecircumflex`** — **der Zusammensetzer ist Xlibs lokale Eingabemethode**, nicht `ibus-x11` und nicht IBus. **Die Kette schließt sich damit:** Avalonia lässt filtern, holt aber nie ab — `LookupKey(keycode)` statt `XmbLookupString`, und bei `keycode = 0` fällt das Zeichen heraus. **§5 „Noch offen" 11 ist aufgeklärt**, **§5d trägt keinen Auftrag mehr**, und offen ist nur noch **die Entscheidung des Nutzers** (umgehen / melden / stehen lassen). ▶ **Schritt 7 ist dran** (§5e, unter Windows)
 
 > **📌 Dauerregeln des Nutzers — gelten immer, ohne Nachfragen:**
 >
@@ -296,7 +296,7 @@ angezeigt, importiert (DOCX) und in alle vier Formate exportiert. **Damit ist Ph
 abgeschlossen.** Der Anschluss hat sofort einen Fehler gezeigt, den vier Runden lang kein
 Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — behoben.
 
-### ▶ Hier geht es weiter (Stand 2026-08-19, nach Runde V2-61)
+### ▶ Hier geht es weiter (Stand 2026-08-19, nach Runde V2-62)
 
 > **✅ Phase 4 ist abgeschlossen** (§4.28) und **auf dem Laptop gegengeprüft** (§4.28, „Was der
 > Laptop gefunden hat"): die Anzeige trägt, ihr Umbruch stimmt mit dem PDF überein, Rollen und
@@ -447,6 +447,34 @@ Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — beh
 > Laptop**, sie stehen in **§5d**. **Erst wenn beides da ist, ist Schritt 1 abgeschlossen —
 > dann ist Schritt 7 dran.**
 >
+> **✅ Und der Laptop hat am 2026-08-19 die zwei Messungen nachgeliefert** (§4.44 „Was der
+> Laptop gefunden hat", V2-62; **kein Produktivcode angefasst**, Bau 0/0, **789/789 grün**,
+> von Hand getippt): **Die Leitspur aus §4.44 ist widerlegt — der Druck kommt an.** Auf
+> GonkNotes Leitung liegen `KeyPress keycode 49` **3 mal** und `keycode 26` **5 mal**, je mit
+> Loslassen; **ein `keycode 0` steht nirgends auf der Leitung**, weder bei GonkNote noch bei
+> `xev`. **Damit scheiden XWayland und ein fremder `XSendEvent`-Client beide aus**, und der
+> zweite Ausgang der Tabelle ist gemessen: **das Verschwinden sitzt im Prozess.**
+> **`XFilterEvent` filtert sehr wohl** (in `xev` mit `True` belegt — auch das gegen die
+> Herleitung in §4.44). ✅ **Und das `keycode = 0` ist kein Phantom, sondern der Bote:**
+> libX11 verschluckt die beteiligten Drucke und legt das **fertige Zeichen** als Ereignis
+> nach — `XmbLookupString` liefert dort `(c3 aa) "ê"`. **Mit `XMODIFIERS=@im=none`
+> gegengeprüft**, also in Avalonias eigener Einstellung: identisch, **4 mal `ecircumflex`**
+> — **der Zusammensetzer ist Xlibs lokale Eingabemethode**, nicht `ibus-x11` und nicht IBus.
+> **Damit schließt sich die Kette:** Avalonia lässt filtern, holt aber nie ab —
+> `HandleKeyEvent` bestimmt den Keysym über `LookupKey(keycode)`, und bei `keycode = 0` fällt
+> genau das Zeichen heraus, das im Ereignis steckt. **Der Weg, auf dem `xev` sein `ê` abholt
+> (`XmbLookupString`), wird nie gegangen.** **Zwei alte Fragen fallen nebenbei:** warum
+> Umlaute heil sind (einzelnes Keysym, `XFilterEvent` gibt `False`) und warum es vor V2-54
+> lief (ohne Eingabeziel wertete der Kopf das rohe Ereignis selbst aus und fragte IBus gar
+> nicht).
+>
+> **▶ Damit ist Schritt 1 abgeschlossen und §5d trägt keinen Auftrag mehr.** Offen ist nur
+> noch **eine Entscheidung des Nutzers**, was mit dem benannten Avalonia-Fund geschieht:
+> **im Kopf umgehen**, **an Avalonia melden** (#18596 ist geschlossen, **dieser Befund ist
+> neu**) oder **als benannten Mangel stehen lassen**. **Keine der drei blockiert Schritt 7 —
+> und Schritt 7 ist jetzt dran** (§5e, unter Windows): `Rtf` verliert die Führung, der
+> eigentliche Zweck des ganzen Wegs.
+>
 > **Gearbeitet wird auf dem Windows-Rechner.** Nicht wegen der Werkzeuge, sondern wegen der
 > Gegenprobe — jede Änderung am Modell muss der WPF-Editor überleben, und beide Köpfe
 > nebeneinander an derselben Datenbank gibt es nur dort (§5b). **Diese Runde ist der Beleg
@@ -512,6 +540,15 @@ Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — beh
 >   mit `keysym = 0`/`keycode = 0`, den IBus mit `true` beantwortet.** **Der Fehler sitzt
 >   davor, im Tastenweg.** **(a) wird nicht zurückgebaut** — es war nicht falsch, nur nicht
 >   hinreichend.
+>   ✅ **Und am 2026-08-19 ist die Ursache gemessen** (§4.44 „Was der Laptop gefunden hat",
+>   V2-62): **Der Druck kommt beim X11-Client an**, ein **`keycode 0` steht nie auf der
+>   Leitung**, `XFilterEvent` **filtert sehr wohl** — und das `keycode = 0` ist **kein
+>   Phantom, sondern der Bote**: libX11 verschluckt die beteiligten Drucke und legt das
+>   fertige Zeichen nach, `XmbLookupString` liefert dort `"ê"`. **Mit `@im=none`
+>   gegengeprüft.** **Avalonias Fehler: es lässt filtern und holt nie ab**
+>   (`LookupKey(keycode)` statt `XmbLookupString`). **Der Punkt ist damit aufgeklärt und
+>   wartet nur noch auf eine Entscheidung** — umgehen, melden oder stehen lassen; **keine
+>   davon blockiert Schritt 7.**
 >   **Und eines hat weiterhin niemand gesehen:** wie der unfertige Text aussieht. Unter Windows
 >   entsteht mangels Eingabemethode gar keiner, und unter Linux schickt IBus an unseren Kontext
 >   **überhaupt keine Vorschau** — `VorschauMalen` ist bis heute nie gerufen worden.
@@ -5830,6 +5867,154 @@ der Druck verschwindet und *wer* das Phantom einspeist, kann nur der Laptop bean
 Die zwei Messungen dafür stehen in **§5d** — mit widerlegbaren Erwartungen, wie die Runde
 es aufgegeben hat.
 
+#### Was der Laptop gefunden hat (2026-08-19, V2-62, CachyOS, GNOME **50.3** Wayland, IBus 1.5.34)
+
+**Der Auftrag aus §5d abgearbeitet.** Bau 0/0 in Core und im Avalonia-Kopf, **789/789 grün**
+in `tests/GonkNote.Core.Tests` — genau die im Auftrag genannte Zahl. **Kein Produktivcode
+angefasst.** Von Hand getippt, nicht mit dem `zeiger`, wie der Auftrag es verlangt.
+
+> **Das Ergebnis in einem Satz: Der Druck kommt an — und das `keycode = 0` ist kein Phantom,
+> sondern das Fahrzeug, mit dem die Eingabemethode das fertige Zeichen zurückgibt.**
+>
+> **Damit ist die Leitspur aus §4.44 widerlegt** (der Druck erreiche den X11-Client gar
+> nicht) **und die zweite Zeile der Auftragstabelle gemessen: das Verschwinden sitzt im
+> Prozess.** Der `0/0/0`-Aufruf entsteht **in libX11**, im selben Prozess, **nach** dem
+> Filtern — und Avalonia liest das Ersatzereignis über den **Keycode** statt über die
+> Eingabemethode und wirft dabei genau das Zeichen weg, das darin steckt.
+
+##### Messung 1 — `xtrace` um GonkNote: der Druck ist da
+
+Auf GonkNotes Leitung, über die ganze Tippfolge gezählt:
+
+| Keycode | Taste | `KeyPress` | `KeyRelease` |
+|---|---|---|---|
+| **49** | `dead_circumflex` | **3** | **3** |
+| **26** | `e` | **5** | **5** |
+| 38 | `a` | 1 | 1 |
+| 22 | Rücktaste | 2 | 2 |
+| 64 | `Alt_L` | 1 | — |
+| **0** | — | **0** | **0** |
+
+**Der erste Ausgang der Auftragstabelle ist damit widerlegt:** Die Drucke **49** und **26**
+kommen beim Client an, mit den erwarteten Keycodes. **Und der vierte fällt ebenfalls:** ein
+`KeyPress` mit `keycode 0` steht **nirgends auf der Leitung** — weder mit `send_event = 1`
+noch mit `0`. **Es ist also weder XWayland noch ein fremder Client.**
+
+##### Der `dbus-monitor` daneben, dieselbe Sekunde — und hier verschwindet der Druck
+
+Mitgelesen wieder auf dem **eigenen Bus des IBus-Daemons**. GonkNote ist `InputContext_21`
+(Client-Name `Avalonia Application`, Sender `:1.2`). Was der Kopf für `^`+`e` absetzt:
+
+```
+LOSLASSEN  keyval=65106  keycode=49     (dead_circumflex)
+DRUCK      keyval=0      keycode=0      <-- der 0/0/0-Aufruf
+LOSLASSEN  keyval=101    keycode=26     (e)
+```
+
+**Der Befund aus V2-59 ist damit reproduziert** — und er bekommt seine Gegenprobe gleich mit:
+`a` (Keycode 38) geht mit **Druck und Loslassen** sauber durch, und ein **einzeln** getipptes
+`e` ebenso (`DRUCK keyval=101 keycode=26`). **Nur Tasten, die an einer Zusammensetzung
+teilnehmen, verlieren ihren Druck.** Die Leitung trug ihn, der Bus sieht ihn nicht — **also
+liegt zwischen beidem die Station, und im Prozess gibt es dort nur eine: `XFilterEvent`.**
+
+##### Messung 2 — `xev` zeigt, was aus dem verschluckten Druck wird
+
+Dieselbe Tastenfolge in einem zweiten Client, und `xev` schreibt mit, was Xlib daraus macht:
+
+```
+KeyPress keycode 49 (keysym 0xfe52, dead_circumflex)   XFilterEvent: True    <-- verschluckt
+KeyPress keycode 26 (keysym 0x65, e)                   XFilterEvent: True    <-- verschluckt
+KeyPress keycode 0  (keysym 0xea, ecircumflex)         XFilterEvent: False
+        XLookupString  gives 0 bytes:
+        XmbLookupString gives 2 bytes: (c3 aa) "ê"                           <-- hier ist es
+```
+
+**`XFilterEvent` filtert also sehr wohl** — die Herleitung in §4.44 („dürfte nach Avalonias
+eigener Startlogik gar nicht filtern, denn das XIC wird unter IBus nie fokussiert") ist an
+diesem Punkt **durch Messung widerlegt.** Und das `keycode 0`-Ereignis steht **auch auf
+`xev`s Leitung nicht** (0 mal in `xtrace xev`): **es entsteht im Prozess, in libX11, als
+Ersatz für die zwei verschluckten Drucke.** Kein Phantom, sondern ein Bote.
+
+##### Die Zusatzmessung, die den Mechanismus festnagelt — `xev` mit `@im=none`
+
+Weil Avalonia Xlib laut §4.44 mit **`@im=none`** fährt, ist derselbe `xev` ein zweites Mal
+mit `XMODIFIERS=@im=none` gelaufen — **also in genau der Einstellung des Kopfes.** Ergebnis
+**identisch**: `XFilterEvent: True` auf der toten Taste, **kein `keycode 0` auf der Leitung**,
+und im Prozess **13** Ereignisse mit `keycode 0`, davon **4 mal `ecircumflex`** mit
+`XmbLookupString gives 2 bytes: (c3 aa) "ê"`.
+
+**Damit ist der Zusammensetzer benannt: es ist Xlibs eigene lokale Eingabemethode**, nicht
+`ibus-x11` und nicht IBus. Sie liest die Compose-Tabelle des Gebietsschemas (`de_DE.UTF-8`),
+verschluckt die beteiligten Drucke und legt das Ergebnis als Ereignis mit `keycode = 0` in
+die Warteschlange — abzuholen **über `XmbLookupString`, nicht über den Keycode.**
+
+##### Warum der Kopf es trotzdem verliert — die Kette schließt sich
+
+Mit §4.44 (Tabelle, Schritt 3) zusammengelesen ist der Weg jetzt lückenlos:
+
+1. `XFilterEvent` (X11, Z. 740) verschluckt den echten Druck der toten Taste. **Gemessen.**
+2. libX11 legt das Ergebnis als `KeyPress` mit `keycode = 0` nach. **Gemessen.**
+3. `HandleKeyEvent` (Z. 13175–13183) bestimmt den Keysym über **`LookupKey(ev.KeyEvent.keycode)`**
+   — also über den Keycode. Bei `keycode = 0` kommt **Keysym 0** heraus. **Aus §4.44.**
+4. `HandleKeyCore` schickt `ProcessKeyEvent(0, 0, 0)`, IBus antwortet `true`, Avalonia
+   verwirft das rohe Ereignis. **Aus §4.42/§4.44, am Bus bestätigt.**
+
+> **Der Fehler ist damit ein anderer als vermutet, und er ist kleiner:** Avalonia lässt
+> libX11 filtern, holt das Gefilterte aber nie ab. Es sitzt zwischen zwei Welten — es nimmt
+> das Verschlucken der lokalen Eingabemethode hin und rechnet die Zusammensetzung zugleich
+> IBus über dbus zu. **Der Weg, auf dem `xev` sein `ê` abholt (`XmbLookupString`), wird nie
+> gegangen.**
+
+**Warum die Umlaute nie betroffen waren, fällt als Nebenprodukt heraus:** `ä` ist ein
+einzelnes Keysym, `XFilterEvent` gibt dort `False`, der Druck geht heil an IBus. **Und warum
+es vor V2-54 lief:** ohne Eingabeziel hat der Kopf das rohe Ereignis selbst ausgewertet und
+IBus gar nicht gefragt — der `true`-Antwort, die es heute verwirft, ist er nie begegnet.
+
+##### Was daraus für die Entscheidung folgt — benannt, nicht gebaut
+
+**Hier wurde nichts geändert** (§5d: nur beheben, was es nur hier gibt; der Fund sitzt in
+`Avalonia.X11` und trifft jeden Linux-Kopf). Zwei Wege sind jetzt sauber unterscheidbar, und
+**welcher gegangen wird, entscheidet der Nutzer:**
+
+- **Im Kopf umgehen:** das Ereignis mit `keycode = 0` erkennen und den Text über die
+  Eingabemethode abholen, statt ihn über den Keycode zu erraten. **Klein und örtlich**, aber
+  es liegt in `Avalonia.X11` und nicht bei uns — von unserer Seite ginge es nur als eigener
+  X11-Zugriff am Kopf vorbei.
+- **Melden:** AvaloniaUI/Avalonia#18596 ist geschlossen, aber **dieser Befund ist neu** — die
+  bisherige Meldung nannte nur das Symptom. Hier stehen Station, Mechanismus und die
+  Gegenprobe mit `@im=none`.
+
+**Was der Befund ausdrücklich nicht ändert:** `SupportsPreedit => true` bleibt richtig (§4.43)
+— es steht neben der Ursache, nicht auf ihr. **Und `TdVorschau` ist weiterhin ungesehen:**
+IBus schickt an unseren Kontext keine Vorschau, weil es die Zusammensetzung gar nicht macht.
+
+##### Zwei Werkzeugfunde, beide teuer, wenn man sie nicht kennt
+
+1. **`xtrace` gibt es auf Arch/CachyOS nicht als Paket** — der Befehl aus dem Auftrag
+   (`pacman -S xtrace`) greift daneben. **`/usr/bin/xtrace` existiert zwar, ist aber glibcs
+   Bibliotheks-Tracer** und hat mit X11 nichts zu tun; er meldet sich mit „Unable to find
+   'all.proto'". Der X11-Protokoll-Tracer liegt nur im AUR und wird dort wegen genau dieses
+   Konflikts als **`x11trace`** installiert. **Hier gebaut statt installiert:** Quelle 1.4.0
+   von `deb.debian.org`, Prüfsumme gegen den AUR-PKGBUILD, `--prefix=/tmp/xtrace-inst` —
+   **nichts im System, nichts im Repo.** Zwei Fallen dabei: ohne eigenes Präfix findet er
+   seine `.proto`-Dateien nicht, und **`-n` ist Pflicht**, sonst bricht er unter Wayland an
+   `xauth remove` ab (es gibt keine `~/.Xauthority`, mutter fährt eine eigene).
+2. **`setxkbmap -query` lügt unter XWayland.** Es meldet `layout: us`, und
+   `_XKB_RULES_NAMES` am Wurzelfenster sagt dasselbe. **Der tatsächliche Keymap ist
+   deutsch:** `xkbcomp -xkb :0` liefert `xkb_symbols "pc_de_de_2_inet(evdev)"` mit
+   `key <TLDE> = dead_circumflex`. **Das ist unmittelbar wichtig**, weil
+   AvaloniaUI/Avalonia#18596 als Erstes genau `setxkbmap -query` sehen wollte — die Auskunft
+   hätte in die Irre geführt. **Wer den Keymap wissen will, fragt `xkbcomp`.**
+
+**Die Protokolle liegen in `/tmp/gonk-messung-v2-62/`** (`gonk-xtrace.txt`,
+`gonk-xev*.txt`, `gonk-dbus.txt`) — **nicht eingecheckt**, sie sind mit den Befehlen oben
+wiederherstellbar.
+
+**Offen geblieben und weiterhin nur mit dem Nutzer am Gerät zu klären:** die **Xorg-Sitzung**
+als Vergleich (§5a „Offen" 2) und die **Druckschwelle unten** (§5a „Offen" 3). **Compose** ist
+auf diesem Gerät nach wie vor nicht eingerichtet — die lokale Eingabemethode von Xlib
+komponiert hier über die Compose-Tabelle des Gebietsschemas, nicht über eine eigene.
+
 ---
 
 ## 5. Entscheidungen
@@ -6201,6 +6386,42 @@ es aufgegeben hat.
     lassen), entscheidet der Nutzer** — bis dahin ist nichts zu patchen. Die letzte offene
     Frage (warum der Druck verschwindet, wer das Phantom einspeist) klären **zwei Messungen
     in §5d**; danach ist der Weg frei für Schritt 7.
+
+    **▶ ✅ Stand nach der Laptop-Runde 2026-08-19 (V2-62, §4.44 „Was der Laptop gefunden
+    hat"): die Ursache ist gemessen, und sie liegt eine Station anders als vermutet.**
+    789/789 grün, kein Produktivcode angefasst, von Hand getippt.
+    - ⛔ **Die Leitspur aus §4.44 ist widerlegt:** Der Druck der toten Taste **erreicht den
+      X11-Client** — `xtrace` zeigt `KeyPress keycode 49` **3 mal** und `keycode 26`
+      **5 mal**, jeweils mit Loslassen.
+    - ⛔ **Und es gibt kein Phantom aus dem X-Strom:** ein `KeyPress` mit `keycode 0` steht
+      **nirgends auf der Leitung**, weder bei GonkNote noch bei `xev` — damit fallen sowohl
+      XWayland als auch ein fremder `XSendEvent`-Client aus.
+    - ✅ **Gemessen ist die zweite Zeile der Auftragstabelle: das Verschwinden sitzt im
+      Prozess.** `XFilterEvent` **filtert sehr wohl** (in `xev` mit `True` belegt) — auch das
+      widerlegt eine Herleitung aus §4.44.
+    - ✅ **Das `keycode = 0` ist kein Defekt, sondern der Bote:** libX11 verschluckt die
+      beteiligten Drucke und legt das **fertige Zeichen** als Ereignis mit `keycode = 0`
+      nach; `XmbLookupString` liefert dort `(c3 aa) "ê"`. **Mit `XMODIFIERS=@im=none`
+      gegengeprüft** — also in genau der Einstellung, mit der Avalonia fährt: identisches
+      Bild, **4 mal `ecircumflex`**. **Der Zusammensetzer ist Xlibs lokale Eingabemethode**,
+      nicht `ibus-x11` und nicht IBus.
+    - ⚠ **Der Fehler des Kopfes ist damit benannt und kleiner als gedacht:** Avalonia lässt
+      libX11 filtern, holt das Gefilterte aber nie ab — `HandleKeyEvent` bestimmt den Keysym
+      über `LookupKey(keycode)`, und bei `keycode = 0` fällt genau das Zeichen heraus, das im
+      Ereignis steckt. **Den Weg, auf dem `xev` sein `ê` abholt (`XmbLookupString`), geht der
+      Kopf nie.**
+    - **Nebenprodukt, das zwei alte Fragen mit schließt:** Umlaute sind heil, weil `ä` ein
+      einzelnes Keysym ist und `XFilterEvent` dort `False` gibt; und vor V2-54 lief es, weil
+      der Kopf ohne Eingabeziel das rohe Ereignis selbst auswertete und IBus gar nicht
+      fragte.
+
+    **▶ Damit ist der Punkt vollständig aufgeklärt und wartet nur noch auf eine
+    Entscheidung** (Nutzer): **im Kopf umgehen** (das `keycode = 0`-Ereignis erkennen und den
+    Text über die Eingabemethode abholen — klein, liegt aber in `Avalonia.X11` und ginge von
+    unserer Seite nur als eigener X11-Zugriff am Kopf vorbei) **oder melden**
+    (AvaloniaUI/Avalonia#18596 ist geschlossen, **dieser Befund ist aber neu** — die
+    Meldung dort nannte nur das Symptom) **oder als benannten Mangel stehen lassen**.
+    **Nichts davon blockiert Schritt 7.**
 
     **Es ist keine Kleinigkeit und deshalb ausgelassen:** Ihn im Blatt anzuzeigen hieße
     entweder, ihn ins Modell zu schreiben und wieder herauszunehmen (der Griff, vor dem §4.32
@@ -6671,74 +6892,26 @@ dotnet run --project src/GonkNote.Avalonia -- --db /tmp/gonk-test/gonknote.sqlit
 
 ---
 
-### ▶ Aktueller Auftrag — **zwei Messungen am Tastenweg: erreicht der Druck den X11-Client, und wer speist das Phantom ein?** (Stand 2026-08-19, nach Runde V2-61)
+### ▶ Aktueller Auftrag — **keiner. §5d trägt zurzeit nichts.** (Stand 2026-08-19, nach Runde V2-62)
 
-> **Windows hat die Aufgabe aus V2-60 am zerlegten Rücken beantwortet** (§4.44 — **zuerst
-> lesen**, dort stehen die Kette und die Zeilen). Kurzfassung: **Unser Kopf setzt den
-> `0/0/0`-Aufruf nicht ab, und Avalonia erfindet ihn auch nicht** — Avalonias dbus-Client
-> reicht nur weiter, was als XEvent ankommt. Der echte Druck der toten Taste verschwindet
-> **vor oder beim ersten Glied** dieser Kette, und ein Phantom-`KeyPress` mit `keycode = 0`
-> taucht stattdessen im dbus-Monitor auf. **Wo beides geschieht, kann nur dieses Gerät
-> beantworten.** Am Produktivcode hat sich nichts geändert — die Zähler aus V2-59 gelten
-> unverändert (`Halloêá` → **5** statt 7, `Hallo äöüß ÄÖÜ` → **14**, ein Absatz → **427**);
-> es geht also nicht ums Zählen, sondern um den Weg der Ereignisse. **Von Hand tippen, nicht
-> mit dem `zeiger`** — gemessen wird der echte Weg.
+> **Die zwei Messungen aus V2-61 sind abgearbeitet** (§4.44 „Was der Laptop gefunden hat",
+> 2026-08-19, V2-62): der Druck der toten Taste **kommt beim X11-Client an**, ein `keycode 0`
+> steht **nie auf der Leitung**, und das Verschwinden sitzt **im Prozess** — libX11
+> verschluckt die beteiligten Drucke und legt das fertige Zeichen als Ereignis mit
+> `keycode = 0` nach, das Avalonia über den Keycode ausliest und dabei wegwirft. **Mit
+> `XMODIFIERS=@im=none` gegengeprüft**, also in Avalonias eigener Einstellung.
 >
-> **Vorbereitung (einmalig, falls fehlend):** `sudo pacman -S --needed xtrace xorg-xev`
-> (`sudo` über den Skill, siehe die Tabelle oben). Dazu einmal `setxkbmap -query` ausgeben
-> und den Befund mitschicken — genau die Auskunft, die AvaloniaUI/Avalonia#18596 als Erstes
-> wollte.
-
-#### Messung 1 — `xtrace` um GonkNote (die entscheidende)
-
-`xtrace` legt sich als Stellvertreter zwischen Client und Server (der Client bekommt ein
-anderes `DISPLAY` gezeigt) — die Eingabe läuft wie immer, nur protokolliert. GonkNote so
-starten und **von Hand** `a`, dann `^`, dann `e` tippen:
-
-```bash
-xtrace dotnet run --project src/GonkNote.Avalonia -- --db /tmp/gonk-test/gonknote.sqlite 2>&1 | tee /tmp/gonk-xtrace.txt
-```
-
-Danach im Protokoll die Tastenereignisse der Sequenz suchen. **Vier mögliche Ausgänge —
-jeder benennt eine Quelle, und jeder ist ein Ergebnis:**
-
-| Befund im Protokoll | Was das bedeutet |
-|---|---|
-| **Weder** ein `KeyPress` mit `keycode 49` **noch** einer mit `26` kommt beim Client an (nur die Loslass-Ereignisse) | Der Druck geht **vor oder in XWayland** verloren (mutter/IBus versorgt Wayland-native Clients und hält den Druck von X11-Clients fern). **Avalonia, libX11 und unser Kopf sind entlastet — im Kopf ist nichts zu heilen**; die Sache wird ein benannter Plattformmangel |
-| Die Drucke **kommen an** (49 und 26 sichtbar), tauchen aber im dbus-Monitor **nie** auf | Das Verschwinden sitzt **im Prozess** — die einzige Station dort ist `XFilterEvent` auf der none-IM, und die dürfte nach §4.44 eigentlich nicht filtern. Dann läge ein libX11-Befund vor |
-| Ein `KeyPress` mit `keycode 0` kommt an, **`send_event = 1`** | Ein **anderer X-Client** speist das Phantom per `XSendEvent` ein — Quelle benannt |
-| Ein `KeyPress` mit `keycode 0` kommt an, **`send_event = 0`** — oder **gar keins**, während der dbus-Monitor den `0/0/0`-Aufruf zeigt | Der **Server** (XWayland) erzeugt es, bzw. es entsteht **in libX11** (einzige Station zwischen `XNextEvent` und Avalonias Code) |
-
-Optional läuft derselbe `dbus-monitor` aus V2-59 parallel (die Befehle stehen in §4.43) —
-er ordnet zu, was das Protokoll zeigt.
-
-#### Messung 2 — `xev` als Kontrolle mit einem zweiten Client
-
-`xev -event keyboard` starten, das Fenster fokussieren, **von Hand** tippen: `a` (Kontrolle),
-dann `^`, dann `e`. Erwartung bei einem heilen Weg: für jede Taste `KeyPress` **und**
-`KeyRelease`.
-
-- Zeigt `xev` für `^` und das `e` danach **nur `KeyRelease`**, ist das dasselbe Bild wie am
-  Bus (V2-59), eine Station weiter vorn — und es stützt den ersten Ausgang von Messung 1.
-- Zeigt `xev` **beides**, während GonkNotes Strom die Drucke nicht trägt, ist das ebenfalls
-  ein Ergebnis — dann unterscheiden sich die beiden Clients, und der Unterschied ist die
-  Spur.
-- **Vorsicht bei der Deutung:** ob `xev` seinerseits `XFilterEvent` ruft, ist auf dem Gerät
-  zu prüfen (im Zweifel `xtrace xev` — die Leitung lügt nie). Die Draht-Wahrheit liefert
-  Messung 1, `xev` ist die Kontrolle.
-
-**Die Erwartung ist widerlegbar formuliert, mit Zahlen:** Auf einem heilen Weg tragen
-`xtrace` und `xev` für `^` und `e` je zwei Ereignisse mit den Keycodes **49** und **26**
-(evdev **41** und **18**, falls das Werkzeug evdev zählt) — und nirgends taucht ein
-`KeyPress` mit `keycode 0` auf. **Jede Abweichung davon benennt die Station.**
-
-**Unverändert daneben, brauchen weiterhin den Nutzer am Gerät:** eine **Xorg-Sitzung** als
-Vergleich (§5a „Offen“ 2 — hier wäre sie zusätzlich eine Gegenprobe: kommt dort `^`+`e` zum
-`ê`, ist die Wayland-Schicht die Differenz) und die **Druckschwelle unten** (§5a „Offen“ 3).
-**Compose** ist hier nach wie vor nicht eingerichtet.
-
-**Und was ausdrücklich *nicht* mehr zu messen ist:** ob die Bildschirmtastatur von selbst
-aufklappt (§5 „Noch offen“ 10 — `Avalonia.X11` hat keine `IInputPane`, das ist geklärt).
+> **Damit ist §5 „Noch offen" 11 aufgeklärt.** Was daraus wird (Umgehung, Meldung, benannter
+> Mangel), **entscheidet der Nutzer** — und was danach gebaut wird, gehört nach Windows
+> (§5e, Schritt 7). **Auf dem Laptop ist nichts offen, das ohne den Nutzer am Gerät ginge.**
+>
+> **Was weiterhin auf den Nutzer am Gerät wartet, nicht auf einen Auftrag:** eine
+> **Xorg-Sitzung** als Vergleich (§5a „Offen" 2) und die **Druckschwelle unten**
+> (§5a „Offen" 3). **Compose** ist hier nach wie vor nicht eingerichtet.
+>
+> **Und was ausdrücklich *nicht* mehr zu messen ist:** ob die Bildschirmtastatur von selbst
+> aufklappt (§5 „Noch offen" 10 — `Avalonia.X11` hat keine `IInputPane`, das ist geklärt),
+> und ob der Druck den X11-Client erreicht (V2-62 — er tut es).
 
 ### Abgearbeitete Aufträge — nur die Kurzfassung
 
@@ -6750,6 +6923,7 @@ aufklappt (§5 „Noch offen“ 10 — `Avalonia.X11` hat keine `IInputPane`, da
 
 | Auftrag | Datum | Ergebnis |
 |---|---|---|
+| **Zwei Messungen am Tastenweg** — erreicht der Druck den X11-Client, und wer speist das Phantom mit `keycode = 0` ein? | 2026-08-19 (V2-62) | ✅ **Beide beantwortet, und die Leitspur aus §4.44 ist widerlegt; 789/789 grün, kein Produktivcode angefasst.** **Der Druck kommt an:** `xtrace` zeigt `KeyPress keycode 49` **3 mal** und `keycode 26` **5 mal**, je mit Loslassen. **Ein `keycode 0` steht nirgends auf der Leitung** — weder bei GonkNote noch bei `xev`, also **weder XWayland noch ein fremder `XSendEvent`-Client**. **Gemessen ist Zeile 2 der Tabelle: das Verschwinden sitzt im Prozess** — `XFilterEvent` **filtert sehr wohl** (in `xev` mit `True` belegt, auch das gegen §4.44). ✅ **Und das `keycode = 0` ist kein Phantom, sondern der Bote:** libX11 verschluckt die beteiligten Drucke und legt das fertige Zeichen nach — `XmbLookupString` liefert dort `(c3 aa) "ê"`. **Mit `XMODIFIERS=@im=none` gegengeprüft** (Avalonias eigene Einstellung): identisch, **4 mal `ecircumflex`** — der Zusammensetzer ist **Xlibs lokale Eingabemethode**. **Der Fehler des Kopfes:** er lässt filtern, holt aber nie ab (`LookupKey(keycode)` statt `XmbLookupString`). **Am dbus bestätigt:** für die tote Taste nur `LOSLASSEN` plus `DRUCK 0/0/0`, während `a` und ein einzelnes `e` sauber durchgehen. **Zwei Werkzeugfunde:** `xtrace` gibt es auf Arch **nicht** als Paket (`/usr/bin/xtrace` ist glibcs Tracer; der X11-Tracer heißt im AUR `x11trace`), und **`setxkbmap -query` lügt unter XWayland** (`us` statt `de` — `xkbcomp` fragen). Befund: **§4.44 „Was der Laptop gefunden hat"** |
 | **Die toten Tasten gegenmessen** — kommt `ê` mit `SupportsPreedit => true` wieder an, sind die Umlaute heil, sieht der unfertige Text richtig aus, bleibt beim Festschreiben nichts stehen, tippt es sich flüssig? | 2026-08-18 (V2-59) | ⛔ **Nein — die Erwartung ist widerlegt, und der Grund ist gemessen; 789/789 grün.** `^`+`e` ergibt weiterhin **nichts** (Zähler **5** statt 7, zahlengleich mit V2-55). **Umlaute heil** (**14**), **flüssig** (ein Absatz von **427** Zeichen kommt **exakt** an). **Fragen 3 und 4 sind gegenstandslos** — IBus schickt an unseren Kontext **gar keine Vorschau**, also wird `VorschauMalen` nie gerufen; **das Bild hat immer noch niemand gesehen.** **⚠ Der Fund kommt vom `dbus-monitor`** (auf dem **eigenen Bus des IBus-Daemons**, nicht dem Sitzungsbus): **`CommitText` 0 mal bei uns, 2 mal bei `gnome-text-editor`** — derselbe Daemon, dieselbe Engine, dieselbe Sekunde, **es liegt also nicht an IBus**. ✅ **Das Fähigkeitswort kommt an** (`SetCapabilities uint32 9` = `CapPreeditText`+`CapFocus`) — **§4.42 Punkt 2 ist damit gemessen**. **⚠ Der Fehler sitzt davor:** für die tote Taste und den Buchstaben danach schickt der Kopf **keinen Tastendruck**, nur das Loslassen — und dazwischen **einen Aufruf mit `keysym = 0`/`keycode = 0`, den IBus mit `true` beantwortet**; genau danach verwirft Avalonia das rohe Ereignis (§4.42). **Nebenbei:** Keycodes um **8** daneben (X11 statt evdev). **Werkzeugfund:** XTEST läuft unter GNOME 50 über das **EI-Portal** — der erste Klick öffnet „Entfernter Bildschirm" und **wird geschluckt**. Befund: **§4.43 „Was der Laptop gefunden hat"** |
 | **Die Bildschirmtastatur** — klappt sie bei Stift/Finger auf, kommt ihr Text zeichengenau an, bleibt sie beim *Mausklick* zu, sitzt sie an der Marke, und tippt die Hardware-Tastatur noch wie vorher? | 2026-08-18 (V2-55) | ⚠ **Drei von fünf beantwortet, eine Regression gefunden; 769/769 grün.** **Die Tastatur klappt nicht von selbst auf** — `TopLevel.InputPane` ist unter `Avalonia.X11` **`null`** (mit einer Wegwerf-Sonde gemessen), und im Augenschein klappt dieselbe Tastatur bei `gnome-text-editor` auf und verschwindet, sobald GonkNote den Fokus hat. **✅ Frage 2 hat der Nutzer von Hand beantwortet, und sie fällt positiv aus:** von Hand hervorgeholt **schreibt die Tastatur ins Dokument** — in V2-47 kam auch von Hand nichts an. **Die Naht wirkt also zur Hälfte: taub ist sie nicht mehr, unsichtbar bleibt sie.** Frage 4 bleibt offen, **Frage 3 ist wertlos** — die `PointerType`-Weiche ist unter Linux nicht prüfbar. **⚠ Der Fund ist Frage 5:** tote Tasten kommen seit V2-54 **nicht mehr an** (`^`+`e` → nichts statt `ê`), Umlaute schon; eingekreist mit drei Gegenproben auf **IBus + `SupportsPreedit => false`** (§5 „Noch offen" **11**). **Drei Werkzeug-Funde:** Vollbildaufnahmen unter Wayland gehen **doch** (Portal, neu als `tools/linux/wlschuss.sh` — die Angabe „unbrauchbar" war veraltet), ein Avalonia-Flyout fehlt auf jeder X11-Fensteraufnahme, und Wayland/XWayland rechnen im Faktor **1,6** auseinander. Befund: **§4.41 „Was der Laptop gefunden hat"** |
 | **Das Schreiben unter Linux** — Umlaute und tote Tasten, Compose, der Cursor am Stift, die Bildschirmtastatur, und läuft es flüssig? | 2026-08-16 (V2-47) | ✅ **Vier von fünf sauber; 662/662 grün.** Umlaute **und** tote Tasten kommen an (`^`+`e` → `ê`), der **Stift setzt die Marke und zieht eine Auswahl**, getippt wird flüssig — **kein Zeichen verloren, auch nicht in einem Dokument mit 32 Seiten** (85.691 → 85.792 exakt). Der Umbruch ist hier **schneller als unter Windows**; die 40-ms-Grenze fällt erst bei ~32 Seiten. **Compose:** ungeprüft, weil auf diesem Gerät keine eingerichtet ist. **Ein Fund:** ohne Hardware-Tastatur ist nicht zu schreiben — dem Kopf fehlt ein `TextInputMethodClient` (§5 „Noch offen" **10**, gehört nach Windows). **Ein Werkzeugfehler**, der wie ein Fehler der App aussah: `zeiger` tippte Latin-1-Zeichen gar nicht — behoben. **Zwei alte Punkte mit zu:** Dateidialog (§5 Nr. 7) und **zweites Stiftgerät** (§5 Nr. 1, MPP, **Druck kommt an**). Befund: **§4.35 „Was der Laptop gefunden hat"** |
@@ -6813,17 +6987,29 @@ Laptop dran ist.
 Fang an.
 ```
 
-### ▶ Aktueller Auftrag — **beantwortet (§4.44) — es warten die Laptop-Messung (§5d) und eine Entscheidung des Nutzers** (Stand 2026-08-19, nach Runde V2-61)
+### ▶ Aktueller Auftrag — **Schritt 7. Der Tastenweg ist zu Ende gemessen, es fehlt nur noch eine Entscheidung** (Stand 2026-08-19, nach Runde V2-62)
 
-> **✅ Dieser Auftrag ist abgearbeitet — die Antwort steht in §4.44 (V2-61).** Der
-> `0/0/0`-Aufruf wird von Avalonias eigenem dbus-Client abgesetzt, gespeist von einem
-> Phantom-`KeyPress` mit `keycode = 0` aus dem X-Strom; **unser Kopf und die Warteschlange
-> sind ausgeschlossen**, der Keycode-Versatz von 8 ist als Avalonia-Befund festgehalten.
-> **Zweierlei steht aus, und beides ist keine Windows-Arbeit:** die zwei Messungen in **§5d**
-> (nur der Laptop) und die **Entscheidung des Nutzers**, was mit dem benannten Avalonia-Fund
-> geschieht (Umgehung im Kopf, Meldung an Avalonia oder stehen lassen — die drei Fälle
-> unten). **Erst wenn beides da ist, ist Schritt 1 abgeschlossen — dann ist Schritt 7 dran**
-> (§6). Darunter steht der Wortlaut des abgearbeiteten Auftrags.
+> **✅ Schritt 1 ist abgeschlossen.** Der Windows-Teil steht in §4.44 (V2-61), **die zwei
+> Messungen des Laptops sind am 2026-08-19 nachgekommen** (§4.44 „Was der Laptop gefunden
+> hat", V2-62) — **und sie haben die Leitspur umgedreht.**
+>
+> **Was jetzt gilt:** Der Druck der toten Taste **erreicht den X11-Client** (`keycode 49`,
+> 3 mal, mit Loslassen), **ein `keycode 0` steht nie auf der Leitung** — es gibt also **kein
+> Phantom aus dem X-Strom**, weder von XWayland noch von einem fremden Client. Das
+> Verschwinden sitzt **im Prozess**: `XFilterEvent` verschluckt die beteiligten Drucke
+> (gemessen, gegen die Herleitung in §4.44), und **libX11 legt das fertige Zeichen als
+> Ereignis mit `keycode = 0` nach** — `XmbLookupString` liefert dort `"ê"`. **Avalonias
+> Fehler ist, dass es dieses Ereignis über `LookupKey(keycode)` ausliest** und damit genau
+> das Zeichen wegwirft, das darin steckt. **Mit `XMODIFIERS=@im=none` gegengeprüft**, also in
+> Avalonias eigener Einstellung.
+>
+> **Damit ist §5 „Noch offen" 11 aufgeklärt und §5d trägt keinen Auftrag mehr.** Es steht nur
+> noch **die Entscheidung des Nutzers** aus, was mit dem benannten Avalonia-Fund geschieht:
+> **im Kopf umgehen** (das `keycode = 0`-Ereignis erkennen und den Text über die
+> Eingabemethode abholen — klein, liegt aber in `Avalonia.X11`), **melden**
+> (AvaloniaUI/Avalonia#18596 ist geschlossen, **dieser Befund ist neu**) oder **als benannten
+> Mangel stehen lassen**. **Keine der drei Antworten blockiert Schritt 7** — deshalb ist
+> Schritt 7 jetzt dran (§6). Darunter steht der Wortlaut des abgearbeiteten Auftrags.
 
 > **Der Laptop hat am 2026-08-18 abgeliefert** (§4.43, „Was der Laptop gefunden hat", V2-59),
 > und der Befund ändert, womit diese Runde anfängt. **§4.43 und der Befundblock darunter sind
@@ -8164,6 +8350,34 @@ weil sie bei der Portierung direkt zuschlagen:
   Zeiger ausweitet, bekommt bei **jedem Mausklick** ein halbes Fenster über das Blatt
   geschoben — und es fällt niemandem als Fehler auf, weil es ja „funktioniert".
 
+**Neu aus V2-62 — Messwerkzeuge unter Wayland/XWayland**
+
+- **`setxkbmap -query` lügt unter XWayland, und `_XKB_RULES_NAMES` lügt mit.** Beide meldeten
+  auf dem Laptop `layout: us`, während der tatsächlich geladene Keymap **deutsch** ist —
+  `xkbcomp -xkb :0 -` zeigt `xkb_symbols "pc_de_de_2_inet(evdev)"` mit
+  `key <TLDE> = dead_circumflex`. **Wer den Keymap wissen will, fragt `xkbcomp`, nicht
+  `setxkbmap`.** Das ist nicht akademisch: AvaloniaUI/Avalonia#18596 wollte als Erstes genau
+  diese Auskunft sehen, und sie hätte die Fehlersuche in die falsche Richtung geschickt.
+- **`xtrace` heißt auf Arch/CachyOS nicht `xtrace`.** `/usr/bin/xtrace` **existiert**, gehört
+  aber zu **glibc** und ist ein Bibliotheks-Tracer — mit X11 hat er nichts zu tun. Er meldet
+  sich mit `Unable to find 'all.proto' in search path!`, was wie ein fehlendes Paket aussieht
+  und keines ist. Der **X11-Protokoll-Tracer** liegt nur im AUR und wird dort wegen genau
+  dieses Konflikts als **`x11trace`** installiert. Ohne AUR-Helfer: Quelle 1.4.0 von
+  `deb.debian.org` holen, Prüfsumme gegen den AUR-`PKGBUILD` halten, mit **eigenem Präfix**
+  bauen (`--prefix=/tmp/…`) — **ohne Präfix findet er seine `.proto`-Dateien nicht**, weil er
+  ausschließlich in seinem `PKGDATADIR` sucht. **Und `-n` ist unter Wayland Pflicht**: sonst
+  bricht er beim Start an `xauth remove` ab, denn es gibt keine `~/.Xauthority` — mutter fährt
+  eine eigene unter `/run/user/…/.mutter-Xwaylandauth.*`.
+- **`pkill -f <Muster>` bringt die eigene Shell um, wenn das Muster im eigenen Befehl steht.**
+  In V2-59 traf es `dbus-monitor`, in V2-62 `pkill -f "GonkNote.Avalonia"` — die Befehlszeile
+  der Shell enthält das Muster, und der Aufruf killt sich selbst (Exit 144, kein Hinweis
+  worauf). **Der Ausweg ist der Klammer-Trick:** `pkill -f "[G]onkNote[.]Avalonia"` — der
+  reguläre Ausdruck trifft den Prozess, aber nicht die eigene Befehlszeile, in der ja die
+  Klammern stehen. **Gilt für `pgrep` genauso.**
+- **`xev` schreibt in seine Standardausgabe, nicht auf den Schirm.** Wer sein Fenster
+  anklickt und tippt, sieht **nichts** und hält die Messung für gescheitert — die Ereignisse
+  stehen in der Datei, in die umgeleitet wurde. **Ein leerer Schirm ist hier kein Befund.**
+
 **Neu aus Phase 4 — die Anzeige als Prüfmittel**
 
 - **Eine Anzeige findet, was ein Textvergleich nicht sehen kann** (§4.28). Der Fehler mit der
@@ -8946,6 +9160,7 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 
 | Runde | Datum | Was |
 |---|---|---|
+| V2-62 | 2026-08-19 | **Der Tastenweg auf dem Gerät gemessen — der Druck kommt an, und das Phantom ist keines** (§4.44 „Was der Laptop gefunden hat"; **kein Produktivcode angefasst**, Bau 0/0, **789/789 grün** in `tests/GonkNote.Core.Tests`). Die zwei Aufträge aus §5d (V2-61) abgearbeitet, **von Hand getippt**, mit `xtrace` (X11-Protokoll), `xev` und `dbus-monitor` nebeneinander. **Die Antwort in einem Satz: die Leitspur aus §4.44 ist widerlegt — der Druck der toten Taste erreicht den X11-Client, und das `keycode = 0` ist kein Phantom, sondern das Fahrzeug, mit dem die Eingabemethode das fertige Zeichen zurückgibt.** Auf GonkNotes Leitung liegen `KeyPress keycode 49` **3 mal** und `keycode 26` **5 mal**, je mit Loslassen; **ein `keycode 0` steht nirgends auf der Leitung** — weder bei GonkNote noch bei `xev` —, womit **XWayland und ein fremder `XSendEvent`-Client beide ausscheiden** (Ausgang 1, 3 und 4 der Auftragstabelle fallen, **Ausgang 2 ist gemessen: das Verschwinden sitzt im Prozess**). `XFilterEvent` **filtert sehr wohl** (`xev`: `True` auf der toten Taste) — auch das gegen die Herleitung in §4.44. **Der Bote:** libX11 verschluckt die beteiligten Drucke und legt das Ergebnis als `KeyPress` mit `keycode = 0` nach, `XmbLookupString` liefert dort `(c3 aa) "ê"`. **Mit `XMODIFIERS=@im=none` gegengeprüft** — Avalonias eigene Einstellung —, identisches Bild, **4 mal `ecircumflex`**: **der Zusammensetzer ist Xlibs lokale Eingabemethode**, nicht `ibus-x11` und nicht IBus. **Damit schließt sich die Kette aus §4.44:** Avalonia lässt filtern, holt aber nie ab — `HandleKeyEvent` bestimmt den Keysym über `LookupKey(keycode)`, bei `keycode = 0` kommt 0 heraus, und `ProcessKeyEvent(0,0,0)` wird von IBus mit `true` beantwortet. **Am dbus bestätigt** (`InputContext_21`, Client `Avalonia Application`): für die tote Taste nur `LOSLASSEN` plus `DRUCK 0/0/0`, während `a` und ein **einzeln** getipptes `e` mit Druck und Loslassen sauber durchgehen — **nur wer an einer Zusammensetzung teilnimmt, verliert seinen Druck.** **Zwei alte Fragen fallen als Nebenprodukt:** warum Umlaute heil sind (einzelnes Keysym, `XFilterEvent` gibt `False`) und warum es vor V2-54 lief (ohne Eingabeziel wertete der Kopf das rohe Ereignis selbst aus und fragte IBus gar nicht). **§5 „Noch offen" 11 ist aufgeklärt** und wartet nur noch auf eine **Entscheidung des Nutzers** (umgehen / melden / stehen lassen) — **keine davon blockiert Schritt 7**, der damit dran ist (§5e). **Zwei Werkzeugfunde:** `xtrace` gibt es auf Arch/CachyOS **nicht als Paket** — `/usr/bin/xtrace` ist **glibcs** Bibliotheks-Tracer, der X11-Tracer liegt nur im AUR und heißt dort wegen genau dieses Konflikts **`x11trace`** (hier aus der Debian-Quelle nach `/tmp` gebaut; ohne eigenes Präfix findet er seine `.proto`-Dateien nicht, und `-n` ist unter Wayland Pflicht) — und **`setxkbmap -query` lügt unter XWayland** (`layout: us`, ebenso `_XKB_RULES_NAMES`, während `xkbcomp` `pc_de_de_2_inet(evdev)` mit `key <TLDE> = dead_circumflex` zeigt): **genau die Auskunft, die AvaloniaUI/Avalonia#18596 als Erstes sehen wollte, hätte in die Irre geführt** |
 | V2-61 | 2026-08-19 | **Die Tastenweg-Frage am zerlegten Rücken beantwortet — und unser Kopf ist es nicht** (§4.44; **kein Produktivcode angefasst**, Bau 0/0, **823 Tests** grün = 789 Core + 34 WPF). Der Auftrag aus §5e (V2-60) abgearbeitet mit `ilspycmd` gegen die gebundenen Fassungen **Avalonia 12.1.1** (`Avalonia.X11`, `Avalonia.FreeDesktop`; die Zerlegung liegt in `zerlegt/`, **nicht eingecheckt** — mit einem Befehl reproduzierbar, §4.44). **Die Antwort in einem Satz:** Der `0/0/0`-Aufruf wird von **Avalonias eigenem dbus-Client** abgesetzt — `IBusX11TextInputMethod.HandleKeyCore` ist die einzige Stelle, die `ProcessKeyEvent` ruft —, **aber gespeist wird er von einem `KeyPress`-XEvent mit `keycode = 0` aus dem X-Strom**; jedes Glied der Kette (`DispatchX11Events` Z. 740 → `OnEvent` → `HandleKeyEvent` → `ScheduleKeyInput`/`FilterIme` → `ProcessNextImeEvent` → `HandleKeyCore`) reicht Keysym und Keycode **unverändert** weiter, keines kann das Phantom erfinden. **Ausgeschlossen:** unsere vier Anschlussstellen (§4.41) — sie setzen keine Tastenereignisse ab — und die Warteschlange. **Der echte Druck der toten Taste verschwindet zwischen `XNextEvent` und dem ersten Avalonia-Code**; die einzige Weiche dort ist `XFilterEvent` — doch nach Avalonias eigener Startlogik (`DetectAndRegister()` wahr → `useXim` falsch → `@im=none`) dürfte sie nichts filtern, und das XIC wird **nie fokussiert** (`XSetICFocus` steht nur in `XimInputMethod`, das unter IBus nie gebaut wird, Z. 13116–13121). **Damit bleibt genau eine Frage, die nur das Gerät beantwortet: erreicht der Druck den X11-Client überhaupt, und kommt das Phantom über die Leitung** — zwei Messungen in **§5d** (`xtrace` um GonkNote, `xev` als Kontrolle), jede mit widerlegbarer Erwartung. **Schritt 2 des Auftrags bestätigt:** `HandleKeyCore` reicht den **X11-Keycode unverändert** an IBus, die −8 auf evdev bleiben aus — ein Avalonia-Fehler in der Familie des `CapSurroundingText`-Funds aus §4.42, als Ursache ausgeschieden (die Engine entscheidet am Keysym), **nicht geradegebogen**; ebenso fehlt **`LockMask`** in der Modifier-Maske (erklärt Nebenbefund 3 aus V2-59). **Upstream belegt:** AvaloniaUI/Avalonia#18596 ist exakt dieses Symptom (11.2.6), vom Melder **ohne Fix geschlossen**; SubtitleEdit#13351 löste dieselbe Baustelle über `EnableIme` — für uns gegenstandslos (12.1.1 setzt es vor, und der dbus-Weg läuft gemessen). **Was mit dem benannten Fund geschieht (Umgehung, Meldung, stehen lassen), entscheidet der Nutzer.** ▶ **Der Laptop ist dran** (§5d trägt zwei Messungen), danach ist der Weg frei für **Schritt 7** |
 | V2-60 | 2026-08-18 | **Der Arbeitsauftrag für Windows ausgeschrieben** (§5e, „▶ Aktueller Auftrag — den Tastenweg finden"; **nur HANDOFF, kein Code angefasst**). §5e hatte bis hierher **keinen datierten Auftrag** — nur „Dran ist" und den Prompt; §5d hat so einen seit Langem, und der Unterschied ist beim Wechsel zwischen den Rechnern jedes Mal aufgefallen. **Der Auftrag steht jetzt in derselben Form wie der des Laptops:** Lage in drei Sätzen, **drei Dinge, die ausdrücklich nicht zu tun sind** (Preedit nicht noch einmal bauen, `SupportsPreedit` nicht zurückbauen, keine `IInputPane` nachrüsten — jede davon sieht wie die naheliegende Reaktion auf ein „wirkt nicht" aus und wäre falsch), **Schritt 1** mit den `ilspycmd`-Befehlen gegen **12.1.1** und der Kette `ScheduleKeyInput → FilterIme → ProcessNextImeEvent → HandleEventAsync → IBusX11TextInputMethod`, **Schritt 2** der Keycode-Versatz von 8, **drei Fälle für den Fund** (unser Code → sofort beheben; `Avalonia.X11` → erst benennen, nicht heimlich umgehen, dann entscheidet der Nutzer; trägt nicht → auch ein Ergebnis), **danach Schritt 7**. **Die schärfste Frage steht zuoberst und kreist den Fehler ein, ohne ihn zu kennen:** warum kommen die Drucke von `a`, `Entf` und `Umschalt` sauber an und die der toten Taste nicht? **Die Grenze ist scharf benannt:** unter Windows ist das Symptom nicht zu sehen (TSF statt IBus), **was hier entsteht, ist eine Herleitung — ob sie trägt, sagt allein der Laptop**; §4.42 hat genau so gearbeitet und lag **zur Hälfte** richtig, deshalb die Auflage, die Erwartung wieder **widerlegbar** zu formulieren, mit den Zahlen aus V2-59 zum Vergleichen (7 / 14 / 427). **Und der Schluss der Runde ist mit eingebaut:** was der Laptop danach messen soll, gehört nach §5d, **bevor** der Nutzer wechselt (Dauerregel 3a) — steht dort nichts, bleibt der Fund ungeprüft liegen. **„Wann der Laptop wieder dran ist" nachgezogen** (er hat mit V2-59 abgeliefert, nicht mehr V2-55) — samt der Lehre, die diese Runde dazugegeben hat: **die Reparatur hat ohne den Laptop wie eine Lösung ausgesehen**, obwohl das Fähigkeitswort ankam und das Zeichen nicht |
 | V2-59 | 2026-08-18 | **Laptop-Befund: `ê` kommt nicht — die Erwartung aus §4.43 ist widerlegt, und der `dbus-monitor` sagt auch, wo es klemmt** (§4.43, „Was der Laptop gefunden hat"; kein Produktivcode angefasst). Der Auftrag aus §5d abgearbeitet, Bau 0/0 in Core und im Avalonia-Kopf, **789/789 grün** — die im Auftrag genannte Zahl. **Frage 1 mit Nein:** `Hallo` + `^`+`e` + `´`+`a` → **`Hallo`, Zeichen 5** statt 7, **zahlengleich mit V2-55**; `SupportsPreedit => true` hat daran nichts geändert. **Frage 2 ✅** (`Hallo äöüß ÄÖÜ` → **14**), **Frage 5 ✅** (ein Absatz von **427** Zeichen → **427, exakt**, kein Hänger, ~78 Zeichen/s). **Fragen 3 und 4 sind gegenstandslos** — IBus schickt an unseren Kontext **überhaupt keine Vorschau**, also wird `VorschauMalen` nie gerufen; **wie der unfertige Text aussieht, hat weiterhin niemand gesehen.** **Erst die Gegenprobe, dann die Deutung** (Lehre aus V2-47/V2-55): `gnome-text-editor` bekommt dieselbe Folge mit demselben `zeiger` in derselben Sitzung **vollständig** (`ZZZêá`, frisches Fenster) — **Werkzeug und Plattform sind in Ordnung.** **⚠ Der eigentliche Fund kommt vom `dbus-monitor`**, und zwar auf dem **eigenen Bus des IBus-Daemons** (auf dem Sitzungsbus steht davon nichts): **`CommitText` 0 mal bei uns, 2 mal beim Nachbarn** — **derselbe Daemon, dieselbe Engine (`engine/simple/43`), dieselbe Sekunde**, also **liegt es nicht an IBus**, und der Umkehrschluss des Auftrags greift nicht. **✅ Die Herleitung aus §4.42 ist zur Hälfte bestätigt statt verworfen:** das Fähigkeitswort **kommt an** (`SetCapabilities uint32 9` = `CapPreeditText` + `CapFocus`) — **Punkt 2 der Tabelle ist damit gemessen**, (a) hat getan, was es sollte. **⚠ Der Fehler sitzt eine Station davor:** für die tote Taste und den Buchstaben danach schickt der Kopf **gar keinen Tastendruck** an IBus, nur das **Loslassen** — und dazwischen **einen Aufruf mit `keysym = 0` und `keycode = 0`**, den IBus mit **`true`** beantwortet; **genau danach verwirft Avalonia das rohe Ereignis samt Text** (§4.42). Der Nachbar schickt für dieselben zwei Tasten **vier saubere Aufrufe** und bekommt `UpdatePreeditText "^"` und `CommitText "ê"`. **Nebenbefund:** die Keycodes stehen um **8** daneben (X11 statt evdev) — als Ursache scheidet das aus, **steht aber in derselben Naht**; und der Nachbar meldet `41`, also zusätzlich `CapSurroundingText` — **derselbe Avalonia-Fehler, den §4.42 schon notiert hat**, jetzt von außen sichtbar. **Damit ist der Fund keine Verneinung, sondern eine Verschiebung: weg von der Fähigkeit, hin zum Tastenweg** — **(a) wird nicht zurückgebaut** (es heilte nichts und nähme die Vorschau weg, die iPadOS braucht), und ▶ **der nächste Griff gehört nach Windows**: nachsehen, **wer den Aufruf mit `keysym = 0` absetzt** — eine der vier Anschlussstellen aus §4.41 oder `Avalonia.X11` selbst, **am zerlegten Rücken zu lesen wie in §4.42**. **Zwei Werkzeugfunde:** XTEST läuft unter GNOME 50 über das **EI-Portal** (XWayland mit `-enable-ei-portal`) — der erste `zeiger`-Klick öffnet den Dialog „Entfernter Bildschirm", **der den Klick schluckt** und danach eine `RemoteDesktop`-Sitzung offen hält; und **`pkill -f dbus-monitor` bringt die eigene Shell um**. §5d trägt jetzt **keinen** Auftrag mehr — Windows ist am Zug |

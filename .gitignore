@@ -8,6 +8,10 @@ TestAssets/
 # wandert das Arbeitsprotokoll mit (Windows <-> Linux-Laptop). Vor dem Oeffentlich-
 # Schalten muss es wieder raus -- Checkliste in HANDOFF.md, Abschnitt 6.
 
+# Zerlegte Avalonia-Assemblies (ilspycmd, HANDOFF §4.42/§4.44) -- Scratch-Ablage,
+# mit einem Befehl reproduzierbar, deshalb nicht im Repo
+zerlegt/
+
 # Testdatenbanken und deren Blob-Ordner (z. B. aus "--db X.db"); echte Daten liegen in %APPDATA%
 *.db
 *.db-log

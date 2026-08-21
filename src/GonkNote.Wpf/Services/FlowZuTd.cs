@@ -38,8 +38,27 @@ public static class FlowZuTd
     private const double CmProPixel = 2.54 / 96.0;
     private const double PunktProPixel = 72.0 / 96.0;
 
-    private static double Cm(double px) => px * CmProPixel;
-    private static double Pt(double px) => px * PunktProPixel;
+    /// <summary>
+    /// <b>Auf zehn Nanometer gerundet — und das ist keine Kosmetik</b> (HANDOFF §4.45).
+    ///
+    /// <para>
+    /// Jedes Maß läuft auf dem Weg ins Altformat und zurück durch Zentimeter → Pixel →
+    /// Zentimeter, und diese Rechnung trifft sich nicht immer wieder selbst: aus 4 wird
+    /// 3,9999999999999996, daraus beim nächsten Mal etwas anderes. <b>Solange <c>Rtf</c>
+    /// führte, war das Rauschen folgenlos</b> — mit Schritt 7 läuft die Rundreise bei
+    /// <i>jedem</i> Speichern, und dann wandert eine Spaltenbreite über Wochen langsam davon
+    /// und ein Wächter auf Gleichheit kann nie grün sein.
+    /// </para>
+    /// <para>
+    /// <b>Sechs Nachkommastellen in Zentimetern sind zehn Nanometer.</b> Das ist rund ein
+    /// Zehntausendstel dessen, was der feinste Drucker auflöst — es geht also nichts verloren,
+    /// was jemals jemand sehen könnte, und die Rundreise wird zur Wiederholung ihrer selbst.
+    /// </para>
+    /// </summary>
+    private static double Cm(double px) => Math.Round(px * CmProPixel, 6);
+
+    /// <inheritdoc cref="Cm"/>
+    private static double Pt(double px) => Math.Round(px * PunktProPixel, 6);
 
     /// <summary>
     /// Wandelt Inhalt **und** Seiteneinrichtung um.
@@ -265,6 +284,9 @@ public static class FlowZuTd
 
         if (Lokal(p, Paragraph.TextIndentProperty) is double einzug) f.FirstLineIndentCm = Cm(einzug);
 
+        // Weiter unten steht der Rest; abgeräumt wird erst ganz am Ende, wenn alles beisammen
+        // ist — siehe `AufAbweichungenKuerzen` am Ende dieser Methode.
+
         // Der Editor setzt den Zeilenabstand als `FontSize * Faktor` (TextEditorView.Format) —
         // die Rechnung geht deshalb glatt zurück und muss nicht geschätzt werden.
         if (Lokal(p, Block.LineHeightProperty) is double hoehe && !double.IsNaN(hoehe) && p.FontSize > 0)
@@ -301,8 +323,61 @@ public static class FlowZuTd
             f.ExcludeFromToc = true;
         }
 
+        return AufAbweichungenKuerzen(f);
+    }
+
+    /// <summary>
+    /// <b>Was dem aufgelösten Standard entspricht, wird wieder <c>null</c></b> — die genaue
+    /// Umkehrung von <c>TdZuFlow.AbsatzformatSetzen</c> (HANDOFF §4.45).
+    ///
+    /// <para>
+    /// <b>Warum das nötig ist:</b> Seit der Weg nach WPF die Kaskade <i>auflöst</i>, trägt dort
+    /// jeder Absatz einen örtlichen Wert — auch der, an dem im Modell nie etwas stand. Ohne
+    /// diesen Schritt käme jeder davon als ausdrücklich gesetzt zurück, und aus „nicht gesetzt"
+    /// (§4.14) würde bei der ersten Rundreise eine festgeschriebene Zahl. Der Absatz sähe danach
+    /// gleich aus und verlöre trotzdem etwas: Er folgte einer späteren Änderung des
+    /// Dokumentstandards nicht mehr.
+    /// </para>
+    /// <para>
+    /// <b>Es ist kein Sparen an Bytes, sondern das Wiederherstellen einer Bedeutung.</b>
+    /// Deshalb steht es hier und nicht im Serialisierer: Der weiß nicht, ob eine 8 dasteht,
+    /// weil jemand sie gesetzt hat.
+    /// </para>
+    /// </summary>
+    private static TdParaFormat AufAbweichungenKuerzen(TdParaFormat f)
+    {
+        var norm = TdParaFormat.Standard;
+
+        if (f.Alignment == norm.Alignment) f.Alignment = null;
+        if (Gleich(f.LeftIndentCm, norm.LeftIndentCm)) f.LeftIndentCm = null;
+        if (Gleich(f.RightIndentCm, norm.RightIndentCm)) f.RightIndentCm = null;
+        if (Gleich(f.FirstLineIndentCm, norm.FirstLineIndentCm)) f.FirstLineIndentCm = null;
+        if (Gleich(f.SpaceBeforePt, norm.SpaceBeforePt)) f.SpaceBeforePt = null;
+        if (Gleich(f.SpaceAfterPt, norm.SpaceAfterPt)) f.SpaceAfterPt = null;
+        if (Gleich(f.LineSpacing, norm.LineSpacing)) f.LineSpacing = null;
+        if (f.OutlineLevel == norm.OutlineLevel) f.OutlineLevel = null;
+        if (f.ExcludeFromToc == norm.ExcludeFromToc) f.ExcludeFromToc = null;
+        if (f.KeepWithNext == norm.KeepWithNext) f.KeepWithNext = null;
+        if (f.PageBreakBefore == norm.PageBreakBefore) f.PageBreakBefore = null;
+        if (f.BottomBorder is { Sichtbar: false }) f.BottomBorder = null;
+
         return f;
     }
+
+    /// <summary>
+    /// Zwei Maße gelten als gleich, wenn sie es <b>auf dem Papier</b> sind.
+    ///
+    /// <para>
+    /// <b>Ein genauer Vergleich wäre hier falsch, nicht nur streng.</b> Jeder Wert läuft über
+    /// die Umrechnung Zentimeter → Pixel → Zentimeter, und die trifft sich nicht immer wieder
+    /// selbst: aus 4 wird 3,9999999999999996. Wer darauf mit <c>==</c> prüft, bekommt bei jeder
+    /// Rundreise eine neue Abweichung, die keine ist — und das Modell wächst um Werte, die
+    /// niemand gesetzt hat. Die Schranke ist bewusst grob: 1/1000 Punkt ist rund ein
+    /// Hundertstel Haaresbreite.
+    /// </para>
+    /// </summary>
+    private static bool Gleich(double? a, double? b) =>
+        a is { } x && b is { } y && Math.Abs(x - y) < 0.001;
 
     /// <summary>
     /// Ein Absatz, der als oberste Überschrift gesetzt wird, ohne im Verzeichnis zu stehen:

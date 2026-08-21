@@ -187,8 +187,12 @@ public static class TdZuFlow
                     offen.Add((ebene, neu));
                 }
 
+                // **Der Abstand des Punktes bleibt der seines Absatzes** (§4.45). Hier stand
+                // bis dahin ein festes `Thickness(0, 1, 0, 1)` — es sah in der Liste enger aus
+                // und schrieb dem Modell auf dem Rückweg still `0,75 pt` vor Abstand und
+                // `0,75 pt` danach ein, wo der Nutzer nie etwas gesetzt hatte. Ein Listenpunkt
+                // ist ein Absatz (§4.17); er hat den Abstand, den sein Format ergibt.
                 var absatz = AbsatzUmwandeln(punkt, zustand);
-                absatz.Margin = new Thickness(0, 1, 0, 1);
                 offen[^1].Liste.ListItems.Add(new ListItem(absatz));
                 continue;
             }
@@ -259,39 +263,61 @@ public static class TdZuFlow
     {
         var absatz = new Paragraph();
 
-        AbsatzformatSetzen(absatz, p.Format);
+        AbsatzformatSetzen(absatz, p.Format.Over(zustand.Doc.DefaultParaFormat));
         ZeichenformatSetzen(absatz, p.CharFormat);
 
         foreach (var inline in p.Inlines) StueckUmwandeln(inline, absatz.Inlines, zustand);
         return absatz;
     }
 
+    /// <summary>
+    /// <b>Die Kaskade wird hier aufgelöst und nicht durch Null ersetzt</b> — das ist die eine
+    /// Regel, an der dieser Weg vorher gescheitert ist (HANDOFF §4.45).
+    ///
+    /// <para>
+    /// <b>Der Fehler, den es behebt:</b> Ein Feld von <see cref="TdParaFormat"/> ist
+    /// <c>null</c>, solange es <i>nicht gesetzt</i> ist — es gilt dann der Wert aus
+    /// <see cref="TdParaFormat.Standard"/>, und der ist bei <c>SpaceAfterPt</c> eben
+    /// <b>8</b> und nicht 0. Wer hier <c>f.SpaceAfterPt ?? 0</c> schreibt, zeigt jedes vom
+    /// Linux-Kopf angelegte Dokument mit **aneinandergeklebten Absätzen** — und weil
+    /// <see cref="FlowZuTd"/> die so gesetzten Werte als örtlich gesetzt zurückliest, steht
+    /// die Null danach **fest im Modell**. Dasselbe bei der Ausrichtung: nicht gesetzt heißt
+    /// linksbündig, ein <c>FlowDocument</c> steht aber von Haus aus auf <c>Justify</c>.
+    /// </para>
+    /// <para>
+    /// <b>Der Preis ist beabsichtigt:</b> Nach dieser Auflösung steht an jedem Absatz ein
+    /// örtlicher Wert. Den Weg zurück muss <see cref="FlowZuTd"/> deshalb genau umkehren — es
+    /// schreibt nur, was vom aufgelösten Standard <i>abweicht</i>. Die beiden Stellen sind
+    /// Umkehrungen voneinander; wer eine ändert, muss die andere mitziehen.
+    /// </para>
+    /// </summary>
     private static void AbsatzformatSetzen(Paragraph absatz, TdParaFormat f)
     {
-        if (f.Alignment is { } aus)
-            absatz.TextAlignment = aus switch
-            {
-                TdAlign.Center => TextAlignment.Center,
-                TdAlign.Right => TextAlignment.Right,
-                TdAlign.Justify => TextAlignment.Justify,
-                _ => TextAlignment.Left,
-            };
+        var auf = f.Aufgeloest();
+
+        absatz.TextAlignment = auf.Alignment switch
+        {
+            TdAlign.Center => TextAlignment.Center,
+            TdAlign.Right => TextAlignment.Right,
+            TdAlign.Justify => TextAlignment.Justify,
+            _ => TextAlignment.Left,
+        };
 
         // **Einzüge und Abstände sitzen im Altformat alle im Margin** — die Einzüge in
         // Pixeln, die Abstände in Punkt umgerechnet. Genau diese Aufteilung liest
         // FlowZuTd zurück.
         absatz.Margin = new Thickness(
-            Px(f.LeftIndentCm ?? 0), PxAusPt(f.SpaceBeforePt ?? 0),
-            Px(f.RightIndentCm ?? 0), PxAusPt(f.SpaceAfterPt ?? 0));
+            Px(auf.LeftIndentCm!.Value), PxAusPt(auf.SpaceBeforePt!.Value),
+            Px(auf.RightIndentCm!.Value), PxAusPt(auf.SpaceAfterPt!.Value));
 
-        if (f.FirstLineIndentCm is { } erste) absatz.TextIndent = Px(erste);
-        if (f.KeepWithNext is { } halten) absatz.KeepWithNext = halten;
-        if (f.PageBreakBefore is { } umbruch) absatz.BreakPageBefore = umbruch;
+        absatz.TextIndent = Px(auf.FirstLineIndentCm!.Value);
+        absatz.KeepWithNext = auf.KeepWithNext!.Value;
+        absatz.BreakPageBefore = auf.PageBreakBefore!.Value;
 
         // Der Zeilenabstand steht im Altformat als absolute Höhe. `FontSize` ist hier noch die
         // geerbte — deshalb wird er erst in ZeichenformatSetzen endgültig gerechnet.
-        if (f.LineSpacing is { } zeile && Math.Abs(zeile - 1) > 0.001)
-            absatz.LineHeight = absatz.FontSize * zeile;
+        if (Math.Abs(auf.LineSpacing!.Value - 1) > 0.001)
+            absatz.LineHeight = absatz.FontSize * auf.LineSpacing.Value;
 
         // Die Trennlinie: im Modell eine Angabe am Absatz, im FlowDocument ein Rahmen an
         // seinem unteren Ende. Der Blockbehälter des Editors bleibt lesbar (FlowZuTd kennt
@@ -348,11 +374,17 @@ public static class TdZuFlow
     /// </summary>
     private static Table TabelleUmwandeln(TdTable t, Zustand zustand)
     {
+        // **Der Rahmen kommt aus dem Modell und nicht aus einer festen Vorgabe** (§4.45). Er
+        // stand hier bis dahin auf Grau/0,5 px — und weil FlowZuTd ihn zurückliest, wurde aus
+        // einer schwarzen 0,5-pt-Linie auf dem Rückweg still eine graue 0,375-pt-Linie. Der
+        // Fehler war unsichtbar, solange `Rtf` führte, und wäre mit Schritt 7 in jedem
+        // gespeicherten Dokument gelandet.
+        var aussen = t.Format.Top;
         var tabelle = new Table
         {
             CellSpacing = 0,
-            BorderBrush = Brushes.Gray,
-            BorderThickness = new Thickness(0.5),
+            BorderBrush = new SolidColorBrush(Farbe(aussen.Color) ?? Colors.Black),
+            BorderThickness = new Thickness(PxAusPt(aussen.WidthPt)),
             Margin = new Thickness(0, 6, 0, 6),
         };
 
@@ -364,6 +396,8 @@ public static class TdZuFlow
 
         var gruppe = new TableRowGroup();
         tabelle.RowGroups.Add(gruppe);
+
+        var innen = t.Format.InsideH;
 
         // Je Rasterspalte die Startzelle eines noch offenen senkrechten Verbunds.
         var offen = new Dictionary<int, TableCell>();
@@ -386,11 +420,16 @@ public static class TdZuFlow
                     continue;
                 }
 
+                // Innenlinie und Zellabstand ebenso aus dem Modell. `FlowZuTd` liest beides an
+                // der **ersten** Zelle ab (`RahmenUebernehmen`, `ZellabstandUebernehmen`) —
+                // hier stehen sie deshalb an jeder, damit die erste kein Sonderfall ist.
                 var tc = new TableCell
                 {
-                    BorderBrush = Brushes.Gray,
-                    BorderThickness = new Thickness(0.5),
-                    Padding = new Thickness(6, 3, 6, 3),
+                    BorderBrush = new SolidColorBrush(Farbe(innen.Color) ?? Colors.Black),
+                    BorderThickness = new Thickness(PxAusPt(innen.WidthPt)),
+                    Padding = new Thickness(
+                        Px(t.Format.CellPaddingLeftCm), Px(t.Format.CellPaddingTopCm),
+                        Px(t.Format.CellPaddingRightCm), Px(t.Format.CellPaddingBottomCm)),
                 };
                 if (spannweite > 1) tc.ColumnSpan = spannweite;
                 if (Farbe(zelle.Shading) is { } fuellung) tc.Background = new SolidColorBrush(fuellung);

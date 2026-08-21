@@ -212,7 +212,10 @@ public sealed class ListenUndVorlagenTests
         TdListEdit.Vorlage(doc, Bei(doc, 0, 0), TdStil.ZurEbene(1)!.Value)!.Anwenden();
 
         var absatz = Absatz(doc, 0);
-        Assert.Equal(28, absatz.CharFormat.FontSize);
+
+        // 21 pt und nicht 28: Die Tabelle stand bis §4.46 in geräteunabhängigen Pixeln und
+        // war als Punkt beschriftet. Dieselbe Größe auf dem Papier, richtig benannt.
+        Assert.Equal(21, absatz.CharFormat.FontSize);
         Assert.True(absatz.CharFormat.Bold);
         Assert.Null(((TdRun)absatz.Inlines[0]).Format.FontSize);
     }

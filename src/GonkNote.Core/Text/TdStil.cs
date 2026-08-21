@@ -46,20 +46,61 @@ public readonly record struct TdStil(
     /// </summary>
     public static IReadOnlyList<TdStil> Alle { get; } =
     [
-        new("Standard", "Style.Normal", KoerperPt, false, false, null, 0, 0, 2, 6, 0),
+        new("Standard", "Style.Normal", KoerperPt, false, false, null, 0, 0, 1.5, 4.5, 0),
         new("Kein Abstand", "Style.NoSpacing", KoerperPt, false, false, null, 0, 0, 0, 0, 0),
-        new("Überschrift 1", "Style.Heading1", 28, true, false, "#2563EB", 0, 0, 16, 8, 1),
-        new("Überschrift 2", "Style.Heading2", 22, true, false, "#14B8A6", 0, 0, 12, 6, 2),
-        new("Überschrift 3", "Style.Heading3", 18, true, false, "#8B5CF6", 0, 0, 10, 4, 3),
-        new("Überschrift 4", "Style.Heading4", 16, true, true, "#EC4899", 0, 0, 8, 4, 4),
-        new("Titel", "Style.Title", 34, true, false, null, 0, 0, 6, 12, 0),
-        new("Zitat", "Style.Quote", KoerperPt, false, true, "#6B7A99", 1, 1, 8, 8, 0),
-        new("Kopfzeile", "Style.Header", 12, false, false, "#6B7A99", 0, 0, 2, 2, 0),
-        new("Fußzeile", "Style.Footer", 12, false, false, "#6B7A99", 0, 0, 2, 2, 0),
+        new("Überschrift 1", "Style.Heading1", 21, true, false, "#2563EB", 0, 0, 12, 6, 1),
+        new("Überschrift 2", "Style.Heading2", 16.5, true, false, "#14B8A6", 0, 0, 9, 4.5, 2),
+        new("Überschrift 3", "Style.Heading3", 13.5, true, false, "#8B5CF6", 0, 0, 7.5, 3, 3),
+        new("Überschrift 4", "Style.Heading4", 12, true, true, "#EC4899", 0, 0, 6, 3, 4),
+        new("Titel", "Style.Title", 25.5, true, false, null, 0, 0, 4.5, 9, 0),
+        new("Zitat", "Style.Quote", KoerperPt, false, true, "#6B7A99", ZitatEinzugCm, ZitatEinzugCm, 6, 6, 0),
+        new("Kopfzeile", "Style.Header", 9, false, false, "#6B7A99", 0, 0, 1.5, 1.5, 0),
+        new("Fußzeile", "Style.Footer", 9, false, false, "#6B7A99", 0, 0, 1.5, 1.5, 0),
     ];
 
-    /// <summary>Die Größe des Fließtextes in Punkt — dieselbe Zahl wie <c>TextStyles.BodySize</c>.</summary>
-    public const double KoerperPt = 15;
+    /// <summary>
+    /// Der Einzug des Zitats: <b>28 geräteunabhängige Pixel</b>, in Zentimetern.
+    ///
+    /// <para>
+    /// <b>Die krumme Zahl ist der Punkt und kein Versehen</b> (HANDOFF §4.46). Hier stand
+    /// <c>1</c> — eine gerundete Fassung derselben 28, und damit ein Einzug, der sich um
+    /// einen Viertelmillimeter von dem des WPF-Kopfs unterschied. Rund und falsch ist an
+    /// dieser Stelle schlechter als krumm und gleich: Die beiden Köpfe sollen dasselbe
+    /// Schriftbild zeigen, nicht ein ähnliches.
+    /// </para>
+    /// </summary>
+    private const double ZitatEinzugCm = 28 * 2.54 / 96.0;
+
+    /// <summary>
+    /// Die Größe des Fließtextes <b>in Punkt</b> — <c>TextStyles.BodySize</c> sind 15
+    /// geräteunabhängige Pixel, und das sind <b>11,25 pt</b>.
+    ///
+    /// <para>
+    /// <b>Hier stand <c>15</c>, und das war der Fehler, aus dem alle anderen folgten</b>
+    /// (HANDOFF §4.46). Die Zahl ist beim Anlegen dieser Tabelle (§4.39) aus
+    /// <c>TextStyles.BodySize</c> abgeschrieben und dabei von <b>Pixeln</b> auf <b>Punkt</b>
+    /// umetikettiert worden — bei 96 dpi ist ein Punkt aber <b>1,333</b> Pixel, nicht einer.
+    /// Damit war jede Vorlage dieses Kopfes um ein Drittel größer als dieselbe Vorlage im
+    /// WPF-Kopf.
+    /// </para>
+    /// <para>
+    /// <b>Der Beweis stand im eigenen Kopf und nicht im Vergleich mit dem anderen:</b> Ein
+    /// unberührter Absatz wird über <see cref="TdCharFormat.Standard"/> gesetzt und ist
+    /// <b>11 pt</b> groß. Die Vorlage „Standard" machte ihn auf <b>15 pt</b> — <b>„Standard"
+    /// anzuwenden vergrößerte den Text um ein Drittel</b>, obwohl es die Vorlage ist, die
+    /// nichts ändern sollte.
+    /// </para>
+    /// <para>
+    /// <b>Warum 11,25 und nicht 11</b> — also nicht die Vorgabe des Dateiformats: Der WPF-Kopf
+    /// ist hier die Quelle, und 15 Pixel sind nun einmal 11,25 pt. <c>TdCharFormat.Standard</c>
+    /// bleibt bei <b>11</b>, denn das ist die Vorgabe des <i>Formats</i> und keine Vorlage —
+    /// sie zu verschieben änderte, wie jedes gespeicherte Dokument ohne eigene Größe gesetzt
+    /// wird (§4.14). Der Rest von einem Viertelpunkt liegt weit innerhalb der Schranke von
+    /// <see cref="Passt"/>: Ein unberührter Absatz wird als „Standard" wiedererkannt, und
+    /// genau so soll es sein.
+    /// </para>
+    /// </summary>
+    public const double KoerperPt = 11.25;
 
     /// <summary>Die Vorlage „Standard" — die, auf die „Formatierung zurücksetzen" führt.</summary>
     public static TdStil Standard => Alle[0];

@@ -246,25 +246,27 @@ public sealed class RundreiseTests
     });
 
     /// <summary>
-    /// <b>⚠ Benannte Lücke 3: die Gliederungsebene wird geraten und nicht getragen.</b>
+    /// <b>✅ Die Gliederungsebene überlebt die Rundreise — seit §4.46, und ohne einen einzigen
+    /// Träger.</b>
     ///
     /// <para>
-    /// <c>FlowZuTd</c> erkennt sie an der <b>Schriftgröße</b> zurück (§4.22, „die eine Stelle,
-    /// an der Raten richtig ist"). Das war richtig, solange <i>einmal</i> bei der Übernahme
-    /// geraten wurde — <b>mit Schritt 7 wird bei jedem Speichern geraten</b>, und eine von Hand
-    /// verkleinerte Überschrift verliert ihre Ebene und damit ihren Eintrag im
-    /// Inhaltsverzeichnis.
+    /// <b>Hier stand bis zum 2026-08-21 die dritte benannte Lücke</b>, und sie hat sich
+    /// geschlossen, ohne dass jemand sie angefasst hätte. <c>FlowZuTd</c> erkennt die Ebene an
+    /// der <b>Schriftgröße</b> zurück (§4.22, „die eine Stelle, an der Raten richtig ist") —
+    /// und das ging fehl, weil <c>TdStil</c> seine Größen in <b>Punkt</b> führte, die aus
+    /// <c>TextStyles</c> abgeschriebenen Zahlen aber <b>Pixel</b> waren: Eine Überschrift 1 aus
+    /// dem Linux-Kopf kam mit 28 pt = 37,33 px an, und <c>TextStyles.HeadingLevel</c> hielt sie
+    /// gegen seine eigene 28. Sie passte nie.
     /// </para>
     /// <para>
-    /// <b>Und die Größen der beiden Köpfe treffen sich nicht:</b> <c>TdStil</c> führt sie in
-    /// <b>Punkt</b>, <c>TextStyles</c> in geräteunabhängigen <b>Pixeln</b> — dieselbe Zahl,
-    /// zwei Maße, ein Verhältnis von 4:3. Deshalb erkennt <c>TextStyles.HeadingLevel</c> eine
-    /// Überschrift aus dem Linux-Kopf nicht wieder. <b>Das ist ein eigener Befund und keine
-    /// Folge dieser Runde</b> — er steht im HANDOFF (§4.45) und wartet auf eine Entscheidung.
+    /// <b>Seit die Einheit stimmt, sind es 21 pt = 28 px, und sie passt genau.</b> Das ist der
+    /// Beleg für den Satz aus §4.46: <b>Die Lücke war keine Eigenschaft des
+    /// <c>FlowDocument</c>, sondern ein Zahlendreher</b> — sie sah nur so aus wie die beiden
+    /// anderen.
     /// </para>
     /// </summary>
     [Fact]
-    public void Noch_offen_Die_Gliederungsebene_ueberlebt_die_Rundreise_nicht() => Sta.Run(() =>
+    public void Die_Gliederungsebene_ueberlebt_die_Rundreise() => Sta.Run(() =>
     {
         using var werkbank = new Referenzdokument.Werkbank("rundreise-ebene");
 
@@ -279,6 +281,34 @@ public sealed class RundreiseTests
         var zurueck = Rundreise(quelle, werkbank).Paragraphs().First();
 
         Assert.Equal("Kapitel eins", zurueck.PlainText());
-        Assert.Null(zurueck.Format.OutlineLevel);
+        Assert.Equal(1, zurueck.Format.OutlineLevel);
+    });
+
+    /// <summary>
+    /// <b>Und die Größe kommt dabei unverändert zurück</b> — die andere Hälfte des Wächters
+    /// darüber.
+    ///
+    /// <para>
+    /// Ohne ihn bliebe offen, ob die Ebene nur deshalb wiedererkannt wird, weil die Größe auf
+    /// dem Weg zufällig auf einen Vorlagenwert gerutscht ist. <b>21 pt gehen hinein und
+    /// 21 pt kommen heraus</b>, über 28 geräteunabhängige Pixel in der Mitte.
+    /// </para>
+    /// </summary>
+    [Fact]
+    public void Eine_Ueberschrift_behaelt_ihre_Groesse() => Sta.Run(() =>
+    {
+        using var werkbank = new Referenzdokument.Werkbank("rundreise-groesse");
+
+        var quelle = Eingeboren();
+        var h1 = TdStil.ZurEbene(1)!.Value;
+        var ueberschrift = new TdParagraph("Kapitel eins");
+        ueberschrift.Format.OutlineLevel = 1;
+        ueberschrift.CharFormat.Bold = h1.Bold;
+        ueberschrift.CharFormat.FontSize = h1.SizePt;
+        quelle.Sections[0].Blocks.Insert(0, ueberschrift);
+
+        var zurueck = Rundreise(quelle, werkbank).Paragraphs().First();
+
+        Assert.Equal(h1.SizePt, zurueck.CharFormat.FontSize!.Value, 6);
     });
 }

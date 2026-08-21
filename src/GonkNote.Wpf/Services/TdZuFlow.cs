@@ -47,6 +47,50 @@ namespace GonkNote.Services;
 /// </summary>
 public static class TdZuFlow
 {
+    /// <summary>
+    /// <b>Den Inhalt eines frisch gebauten Dokuments in ein bestehendes übernehmen — ohne den
+    /// Umweg über ein <c>XamlPackage</c></b> (HANDOFF §4.47). Das Gegenstück zu
+    /// <see cref="Umwandeln"/>: <i>so kommt das Ergebnis in den Editor.</i>
+    ///
+    /// <para>
+    /// <b>Der Umweg stand bis zum 2026-08-21 in <c>TextEditorView.AusModell</c>, und seine
+    /// Begründung war richtig:</b> Ein ausgetauschtes <c>Document</c> nähme dem
+    /// <c>RichTextBox</c> seine Stile und alle Ereignisverdrahtungen mit. <b>Nur folgt daraus
+    /// nicht das Paket, sondern dieses Umhängen:</b> Das <c>Document</c> bleibt dasselbe
+    /// Objekt, ausgetauscht wird sein <b>Inhalt</b>.
+    /// </para>
+    /// <para>
+    /// <b>Warum das mehr ist als eine gesparte Umwandlung.</b> Ein <c>XamlPackage</c> speichert
+    /// nur die Eigenschaften, die es kennt — <b>ein Träger am Element (<c>Tag</c> wie
+    /// <c>ToolTip</c>) kommt als <c>null</c> zurück</b> (§4.45, gemessen). Es ist damit der
+    /// Weg, auf dem alles verlorengeht, was ein <c>FlowDocument</c> nicht selbst kennt: heute
+    /// das <b>Diagramm</b> und das <b>Feld</b> (§4.45, die zwei verbliebenen Lücken).
+    /// <b>Ohne Paket überlebt ein Träger, weil ihn niemand serialisiert.</b>
+    /// </para>
+    /// <para>
+    /// <b>Ein Block hat genau einen Elternteil</b> — deshalb wird er erst aus der Quelle
+    /// genommen und dann angehängt, nicht umgekehrt. Die Quelle ist ein Wegwerf-Dokument aus
+    /// <see cref="Umwandeln"/> und darf leer zurückbleiben; <b>bei einem Dokument, das der
+    /// Nutzer gerade sieht, wäre genau dieser Griff der Fehler aus §4.22.</b>
+    /// </para>
+    /// </summary>
+    public static void InhaltUebernehmen(FlowDocument quelle, FlowDocument ziel)
+    {
+        // Die Grundschrift steht am Dokument und nicht an den Absätzen (§4.14): Sie muss
+        // mitkommen, sonst erbt jeder Absatz die Vorgabe des Steuerelements statt der des
+        // Dokuments — und der Umbruch sähe anders aus als der Export.
+        ziel.FontFamily = quelle.FontFamily;
+        ziel.FontSize = quelle.FontSize;
+        ziel.Foreground = quelle.Foreground;
+
+        ziel.Blocks.Clear();
+        while (quelle.Blocks.FirstBlock is { } block)
+        {
+            quelle.Blocks.Remove(block);
+            ziel.Blocks.Add(block);
+        }
+    }
+
     // WPF rechnet in geräteunabhängigen Pixeln: 96 auf ein Zoll.
     private const double PixelProCm = 96.0 / 2.54;
     private const double PixelProPunkt = 96.0 / 72.0;

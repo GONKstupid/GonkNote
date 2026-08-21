@@ -113,7 +113,7 @@ public partial class TextEditorView : UserControl
                 range.Load(ms, isPackage ? DataFormats.XamlPackage : DataFormats.Rtf);
                 DocumentImages.Attach(Editor.Document, App.Db.Blobs);
             }
-            else if (!AusModell(range))
+            else if (!AusModell())
             {
                 range.Text = "";
             }
@@ -155,22 +155,18 @@ public partial class TextEditorView : UserControl
     /// </para>
     /// </summary>
     /// <returns><c>false</c>, wenn auch das Modell leer ist — dann bleibt es beim leeren Blatt.</returns>
-    private bool AusModell(TextRange range)
+    private bool AusModell()
     {
         if (_vm == null || TdFormatIo.Lesen(_vm.Doc.Model) is not { } modell) return false;
 
-        // Der Umweg über das XamlPackage statt eines direkten `Editor.Document = flow`:
-        // derselbe Weg, den auch der Import nimmt (WpfDocumentIo). Ein ausgetauschtes
-        // Document nähme dem RichTextBox seine Stile und alle Ereignisverdrahtungen mit.
         var flow = TdZuFlow.Umwandeln(modell, App.Db.Blobs, _vm.Doc);   // samt Seiteneinrichtung
+        TdZuFlow.InhaltUebernehmen(flow, Editor.Document);
 
-        using var ms = new MemoryStream();
-        using (DocumentImages.Detach(flow, App.Db.Blobs))
-            new TextRange(flow.ContentStart, flow.ContentEnd).Save(ms, DataFormats.XamlPackage);
-
-        ms.Position = 0;
-        range.Load(ms, DataFormats.XamlPackage);
-        DocumentImages.Attach(Editor.Document, App.Db.Blobs);
+        // **`DocumentImages.Attach` steht hier nicht mehr**, und das ist kein Vergessen:
+        // Es übersetzt einen Blob-Verweis aus dem `ToolTip` in das `Tag` — nötig **nach dem
+        // Laden eines Pakets**, denn nur der ToolTip übersteht ein XamlPackage. Auf diesem Weg
+        // gibt es kein Paket, und `TdZuFlow.BildUmwandeln` setzt das `Tag` gleich selbst.
+        // Wächter: `Ein_Bild_behaelt_seinen_Blob_Verweis`.
         return true;
     }
 

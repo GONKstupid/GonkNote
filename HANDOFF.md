@@ -1,6 +1,6 @@
 ﻿# Gonk Note V2 — Projektübergabe
 
-**Stand: 2026-08-21 · Version 0.3.0 · net10.0 · SkiaSharp 3 · SQLite · Avalonia 12 · ✅ M1 erreicht · ✅ Phase 4 abgeschlossen (§4.28): Dokumentmodell, Übernahme, DOCX/Markdown/PDF/PNG gegen das Modell, Zeichner samt Diagrammen, Schriftkonzept — und die Anzeige im Linux-Kopf, **auf dem Laptop gegengeprüft** (§4.28, V2-37). ⏳ **Das Schreiben läuft** (§6): **Schritte 1 bis 6 stehen** — Stelle, Änderung, Verlauf, Trefferrechnung, **Tastatur und Maus** (§4.35, auf dem Laptop gegengeprüft: Umlaute, tote Tasten, der Cursor am Stift, kein verlorenes Zeichen) und **Schritt 6 ganz** (§4.36/§4.37): Formate, die drei Reiter Einfügen/Verweise/Tabelle — **und die Warnung**, wenn das Altformat noch führt (`TdFuehrung`). ✅ **Das Ribbon ist aufgeräumt** (§4.38) und **die Gruppen A und B stehen** (§4.39/§4.40): Listen, Vorlagen, Größenliste, Schriftart, Farben, Trennlinie, Kopf- und Fußzeile. ✅ **Neu am 2026-08-18: Schritt 6a, die Eingabe-Naht** (§4.41, V2-54) — `TdEingabe` in Core und ein `TextInputMethodClient` im Kopf; ein Cursorschritt ist dort genau **ein** Zeichen breit, sonst zeigte jeder Abstand hinter jedem Feld um eins daneben. ✅ **Und seit V2-57 steht Schritt 6b, das Zusammensetzen** (§4.43): `TdVorschau`, `SupportsPreedit => true`, der unfertige Text als Auflage an der Marke — **ohne das Modell anzufassen**. **823 Tests.** ✅ **Beide offenen Entscheidungen sind gefallen** (Nutzer, 2026-08-16): §5 Nr. 9 → **warnen statt sperren** (gebaut **und gesehen**, §4.37), §5 Nr. 10 → **`TextInputMethodClient`, nach Schritt 6** (gebaut, §4.41). ✅⚠ **Der Laptop hat am 2026-08-18 gemessen** (§4.41, V2-55, **769/769 grün**), und die Antwort ist zweigeteilt: **Die Bildschirmtastatur *schreibt* jetzt** — von Hand hervorgeholt kommt ihr Text im Dokument an, in V2-47 kam er nicht an; **die Naht aus V2-54 hat damit die Hälfte ihres Zwecks erreicht**. **Von selbst klappt sie nicht auf**, weil `Avalonia.X11` gar **keine `IInputPane`** hat (`TopLevel.InputPane` ist `null`, zur Laufzeit gemessen) — das behebt kein Kopfcode. **⚠ Dabei ist eine Regression aufgefallen: tote Tasten kommen seit V2-54 nicht mehr an** (`^`+`e` → nichts statt `ê`; Umlaute schon), eingekreist auf **IBus + `SupportsPreedit => false`** — §5 „Noch offen" **11**. ✅ **Neu am 2026-08-18 (V2-56, §4.42): die Ursache ist geklärt — am ausgelieferten Rücken nachgelesen** (`ilspycmd` gegen Avalonia 12.1.1), **kein Produktivcode angefasst**. **Der Befund kippt die bisherige Empfehlung:** Weg **(b) fällt aus**, denn `OnCommitText` reicht den `commit` **ohne jede Abfrage von `SupportsPreedit`** durch — die vermutete Lücke gibt es nicht; der Hebel ist, dass `SupportsPreedit` das **Fähigkeitswort an IBus** (`CapPreeditText`) bestimmt und damit, **wohin IBus das Zusammensetzen schickt** — und `gnome-text-editor`, das dieselbe Folge vollständig bekommt, **meldet genau diese Fähigkeit**. **Warten fällt auch aus:** 12.1.1 ist die neueste Fassung. ✅ **Und Weg (a) ist am selben Tag gebaut** (§4.43, V2-57): `TdVorschau` in Core, `SupportsPreedit => true`, der unfertige Text als **Auflage an der Marke** — **`TdDocument` wird nie angefasst**, damit greift §4.32 nicht; **20 Wächter, 823 Tests**, und die Windows-Gegenprobe (TSF) tippt zeichengenau. §5 Nr. **10a** ist damit erledigt. ⛔ **Und am 2026-08-18 hat der Laptop gemessen (V2-59, §4.43, 789/789 grün): es wirkt nicht.** `^`+`e` ergibt weiterhin **nichts** (Zähler **5** statt 7, zahlengleich mit V2-55); Umlaute **14**, ein Absatz von **427** Zeichen kommt **exakt** an. **Der `dbus-monitor` verschiebt die Ursache, statt sie nur zu verneinen:** **`CommitText` 0 mal bei uns, 2 mal bei `gnome-text-editor`** — derselbe Daemon, dieselbe Sekunde, **es liegt also nicht an IBus**; ✅ **das Fähigkeitswort kommt an** (`SetCapabilities uint32 9`), **§4.42 Punkt 2 ist gemessen**; **⚠ der Fehler sitzt davor** — der Kopf schickt für die tote Taste **gar keinen Tastendruck**, nur das Loslassen, und dazwischen **einen Aufruf mit `keysym = 0`/`keycode = 0`, den IBus mit `true` beantwortet** — genau danach verwirft Avalonia das rohe Ereignis. **(a) wird nicht zurückgebaut, es war nur nicht hinreichend.** ✅ **Am 2026-08-19 hat Windows den Tastenweg am zerlegten Rücken abgelaufen** (§4.44, V2-61; Avalonia 12.1.1, **kein Produktivcode angefasst**, **823 Tests** grün): **Der `0/0/0`-Aufruf kommt aus Avalonias eigenem dbus-Client, gespeist von einem Phantom-`KeyPress` mit `keycode = 0` aus dem X-Strom**; der echte Druck der toten Taste verschwindet zwischen `XNextEvent` und dem ersten Avalonia-Code. **Unser Kopf und die Warteschlange sind ausgeschlossen**; als Avalonia-Befunde festgehalten: der **Keycode-Versatz um 8** und das fehlende **`LockMask`**-Bit. **Upstream ist AvaloniaUI/Avalonia#18596 exakt dieses Symptom — geschlossen ohne Fix.** **Was mit dem benannten Fund geschieht, entscheidet der Nutzer.** ✅ **Und am 2026-08-19 hat der Laptop beide Messungen gefahren** (§4.44 „Was der Laptop gefunden hat", V2-62; **kein Produktivcode angefasst**, Bau 0/0, **789/789 grün**, von Hand getippt): **Die Leitspur ist widerlegt — der Druck kommt an** (`KeyPress keycode 49` **3 mal**, `keycode 26` **5 mal**, je mit Loslassen), und **ein `keycode 0` steht nirgends auf der Leitung**, weder bei GonkNote noch bei `xev` — **XWayland und ein fremder `XSendEvent`-Client scheiden damit beide aus**, und **das Verschwinden sitzt im Prozess**: `XFilterEvent` **filtert sehr wohl**. ✅ **Das `keycode = 0` ist kein Phantom, sondern der Bote** — libX11 verschluckt die beteiligten Drucke und legt das **fertige Zeichen** nach, `XmbLookupString` liefert dort `(c3 aa) "ê"`; **mit `XMODIFIERS=@im=none` gegengeprüft** (Avalonias eigene Einstellung), **4 mal `ecircumflex`** — **der Zusammensetzer ist Xlibs lokale Eingabemethode**, nicht `ibus-x11` und nicht IBus. **Die Kette schließt sich damit:** Avalonia lässt filtern, holt aber nie ab — `LookupKey(keycode)` statt `XmbLookupString`, und bei `keycode = 0` fällt das Zeichen heraus. **§5 „Noch offen" 11 ist aufgeklärt**, **§5d trägt keinen Auftrag mehr**, und offen ist nur noch **die Entscheidung des Nutzers** (umgehen / melden / stehen lassen). ✅ **Und am 2026-08-21 ist der Weg dicht gemacht, den Schritt 7 gehen wird** (§4.45, V2-63; Schritt **6c**, nur `TdZuFlow` und `FlowZuTd` angefasst, Führung unverändert, Bau 0/0, **832 Tests** = 789 Core + 43 WPF, **9 neue Wächter**). **Die Frage, die nie jemand gestellt hatte:** Schritt 7 dreht die Führung auf die Kette `Modell → FlowDocument → Modell` — **kehrt sie sich selbst um?** Gemessen an einem Modell, wie der **Linux-Kopf** es anlegt: **nein, siebenfach.** **Der Kern ist ein `?? 0`** — `TdZuFlow` hat die Kaskade aus §4.14 nicht aufgelöst, sondern durch Null ersetzt, und `TdParaFormat.Standard.SpaceAfterPt` ist **8**; dazu stand die Ausrichtung auf **Blocksatz**, weil ein `FlowDocument` von Haus aus so steht (Fund 2 aus §4.37, hier an der Wurzel behoben). Behoben sind auch Tabellenrahmen, Zellabstand, Spaltenbreite, der Abstand des Listenpunkts und `DefaultParaFormat`; **der Wächter, auf den es ankommt, vergleicht Byte für Byte: zweimal speichern ändert nichts mehr.** ⚠ **Und der Verlust wartet nicht auf Schritt 7 — er läuft seit §4.23:** `Migrate` wird bei jedem Speichern gerufen, also verliert ein unter Linux oder aus DOCX importiertes Dokument **heute schon beim ersten Speichern im WPF-Editor** seine Tabellenrahmen, seine Abstände, **sein Diagramm und seine Felder**. **Drei Lücken bleiben, mit eigenen Wächtern** (Diagramm, Feld, Gliederungsebene) — **gemessen unmöglich zu schließen, solange der Weg über das `XamlPackage` läuft** (`Tag` und `ToolTip` überleben es nicht; nur ein `ToolTip` an einem `Image` tut es). ✅ **Und am 2026-08-21 ist die erste der drei Folgerunden gefahren: Punkt und Pixel** (§4.46, V2-64; Schritt **6d**, Bau 0/0, **835 Tests**, **3 neue Wächter**, einer **umgedreht**). **Sie hat unterwegs die Richtung gewechselt:** Entschieden war „den WPF-Kopf anheben", **aber die Deutung dahinter war ungeprüft** — `TextStyles.BodySize` ist als **DIP** dokumentiert, `TdStil.KoerperPt` als **Punkt** mit dem Kommentar „dieselbe Zahl wie", und `TdCharFormat.Standard.FontSize` ist **11 pt** = 15 DIP. **Der WPF-Kopf stimmte längst mit der Vorgabe des Dateiformats überein; `TdStil` war die Kopie, die in §4.39 umetikettiert wurde** — belegt ohne jeden Vergleich der Köpfe: Die Vorlage „Standard" machte einen unberührten Absatz um ein Drittel **größer**. **Umgedreht (Nutzer): `TdStil` ist verkleinert**, alle Zahlen mal 0,75 (Überschrift 1: **21 pt**), Abstände und Zitat-Einzug ebenso; `TdCharFormat.Standard` bleibt bei 11, denn das ist die Vorgabe des *Formats* (§4.14). **⚠ `VorlagentabelleTests` war grün und hat nichts geprüft** — er verglich die Zahlen und nicht die Größen; er rechnet jetzt um, und ein zweiter Wächter hält fest, **warum** dort ein Faktor steht. ✅ **Und eine der drei Lücken aus §4.45 hat sich dabei von selbst geschlossen:** Die **Gliederungsebene** überlebt die Rundreise wieder (21 pt = 28 px, und `HeadingLevel` hält gegen genau diese 28) — **sie war kein Mangel des `FlowDocument`, sondern derselbe Zahlendreher. Es sind noch zwei** (Diagramm und Feld). ✅ **In beiden Köpfen am Schirm belegt:** im Linux-Kopf ändert „Standard" die Größe eines unberührten Absatzes nicht mehr, im WPF-Kopf steht für dieselbe Überschrift **28** im Ribbon und **„Überschrift 1" ist in der Galerie markiert** (vorher 37,33 und keine). **Die Lehre:** Eine Entscheidung, die auf einer **ungeprüften Deutung** des Befunds steht, ist selbst ungeprüft — auch dann, wenn der Befund stimmt. ▶ **Es bleiben zwei Runden:** (2) der **Ladeweg** (§5 „Noch offen" 12), (3) **Schritt 7** (§5e)
+**Stand: 2026-08-22 · Version 0.3.0 · net10.0 · SkiaSharp 3 · SQLite · Avalonia 12 · ✅ M1 erreicht · ✅ Phase 4 abgeschlossen (§4.28): Dokumentmodell, Übernahme, DOCX/Markdown/PDF/PNG gegen das Modell, Zeichner samt Diagrammen, Schriftkonzept — und die Anzeige im Linux-Kopf, **auf dem Laptop gegengeprüft** (§4.28, V2-37). ⏳ **Das Schreiben läuft** (§6): **Schritte 1 bis 6 stehen** — Stelle, Änderung, Verlauf, Trefferrechnung, **Tastatur und Maus** (§4.35, auf dem Laptop gegengeprüft: Umlaute, tote Tasten, der Cursor am Stift, kein verlorenes Zeichen) und **Schritt 6 ganz** (§4.36/§4.37): Formate, die drei Reiter Einfügen/Verweise/Tabelle — **und die Warnung**, wenn das Altformat noch führt (`TdFuehrung`). ✅ **Das Ribbon ist aufgeräumt** (§4.38) und **die Gruppen A und B stehen** (§4.39/§4.40): Listen, Vorlagen, Größenliste, Schriftart, Farben, Trennlinie, Kopf- und Fußzeile. ✅ **Neu am 2026-08-18: Schritt 6a, die Eingabe-Naht** (§4.41, V2-54) — `TdEingabe` in Core und ein `TextInputMethodClient` im Kopf; ein Cursorschritt ist dort genau **ein** Zeichen breit, sonst zeigte jeder Abstand hinter jedem Feld um eins daneben. ✅ **Und seit V2-57 steht Schritt 6b, das Zusammensetzen** (§4.43): `TdVorschau`, `SupportsPreedit => true`, der unfertige Text als Auflage an der Marke — **ohne das Modell anzufassen**. **823 Tests.** ✅ **Beide offenen Entscheidungen sind gefallen** (Nutzer, 2026-08-16): §5 Nr. 9 → **warnen statt sperren** (gebaut **und gesehen**, §4.37), §5 Nr. 10 → **`TextInputMethodClient`, nach Schritt 6** (gebaut, §4.41). ✅⚠ **Der Laptop hat am 2026-08-18 gemessen** (§4.41, V2-55, **769/769 grün**), und die Antwort ist zweigeteilt: **Die Bildschirmtastatur *schreibt* jetzt** — von Hand hervorgeholt kommt ihr Text im Dokument an, in V2-47 kam er nicht an; **die Naht aus V2-54 hat damit die Hälfte ihres Zwecks erreicht**. **Von selbst klappt sie nicht auf**, weil `Avalonia.X11` gar **keine `IInputPane`** hat (`TopLevel.InputPane` ist `null`, zur Laufzeit gemessen) — das behebt kein Kopfcode. **⚠ Dabei ist eine Regression aufgefallen: tote Tasten kommen seit V2-54 nicht mehr an** (`^`+`e` → nichts statt `ê`; Umlaute schon), eingekreist auf **IBus + `SupportsPreedit => false`** — §5 „Noch offen" **11**. ✅ **Neu am 2026-08-18 (V2-56, §4.42): die Ursache ist geklärt — am ausgelieferten Rücken nachgelesen** (`ilspycmd` gegen Avalonia 12.1.1), **kein Produktivcode angefasst**. **Der Befund kippt die bisherige Empfehlung:** Weg **(b) fällt aus**, denn `OnCommitText` reicht den `commit` **ohne jede Abfrage von `SupportsPreedit`** durch — die vermutete Lücke gibt es nicht; der Hebel ist, dass `SupportsPreedit` das **Fähigkeitswort an IBus** (`CapPreeditText`) bestimmt und damit, **wohin IBus das Zusammensetzen schickt** — und `gnome-text-editor`, das dieselbe Folge vollständig bekommt, **meldet genau diese Fähigkeit**. **Warten fällt auch aus:** 12.1.1 ist die neueste Fassung. ✅ **Und Weg (a) ist am selben Tag gebaut** (§4.43, V2-57): `TdVorschau` in Core, `SupportsPreedit => true`, der unfertige Text als **Auflage an der Marke** — **`TdDocument` wird nie angefasst**, damit greift §4.32 nicht; **20 Wächter, 823 Tests**, und die Windows-Gegenprobe (TSF) tippt zeichengenau. §5 Nr. **10a** ist damit erledigt. ⛔ **Und am 2026-08-18 hat der Laptop gemessen (V2-59, §4.43, 789/789 grün): es wirkt nicht.** `^`+`e` ergibt weiterhin **nichts** (Zähler **5** statt 7, zahlengleich mit V2-55); Umlaute **14**, ein Absatz von **427** Zeichen kommt **exakt** an. **Der `dbus-monitor` verschiebt die Ursache, statt sie nur zu verneinen:** **`CommitText` 0 mal bei uns, 2 mal bei `gnome-text-editor`** — derselbe Daemon, dieselbe Sekunde, **es liegt also nicht an IBus**; ✅ **das Fähigkeitswort kommt an** (`SetCapabilities uint32 9`), **§4.42 Punkt 2 ist gemessen**; **⚠ der Fehler sitzt davor** — der Kopf schickt für die tote Taste **gar keinen Tastendruck**, nur das Loslassen, und dazwischen **einen Aufruf mit `keysym = 0`/`keycode = 0`, den IBus mit `true` beantwortet** — genau danach verwirft Avalonia das rohe Ereignis. **(a) wird nicht zurückgebaut, es war nur nicht hinreichend.** ✅ **Am 2026-08-19 hat Windows den Tastenweg am zerlegten Rücken abgelaufen** (§4.44, V2-61; Avalonia 12.1.1, **kein Produktivcode angefasst**, **823 Tests** grün): **Der `0/0/0`-Aufruf kommt aus Avalonias eigenem dbus-Client, gespeist von einem Phantom-`KeyPress` mit `keycode = 0` aus dem X-Strom**; der echte Druck der toten Taste verschwindet zwischen `XNextEvent` und dem ersten Avalonia-Code. **Unser Kopf und die Warteschlange sind ausgeschlossen**; als Avalonia-Befunde festgehalten: der **Keycode-Versatz um 8** und das fehlende **`LockMask`**-Bit. **Upstream ist AvaloniaUI/Avalonia#18596 exakt dieses Symptom — geschlossen ohne Fix.** **Was mit dem benannten Fund geschieht, entscheidet der Nutzer.** ✅ **Und am 2026-08-19 hat der Laptop beide Messungen gefahren** (§4.44 „Was der Laptop gefunden hat", V2-62; **kein Produktivcode angefasst**, Bau 0/0, **789/789 grün**, von Hand getippt): **Die Leitspur ist widerlegt — der Druck kommt an** (`KeyPress keycode 49` **3 mal**, `keycode 26` **5 mal**, je mit Loslassen), und **ein `keycode 0` steht nirgends auf der Leitung**, weder bei GonkNote noch bei `xev` — **XWayland und ein fremder `XSendEvent`-Client scheiden damit beide aus**, und **das Verschwinden sitzt im Prozess**: `XFilterEvent` **filtert sehr wohl**. ✅ **Das `keycode = 0` ist kein Phantom, sondern der Bote** — libX11 verschluckt die beteiligten Drucke und legt das **fertige Zeichen** nach, `XmbLookupString` liefert dort `(c3 aa) "ê"`; **mit `XMODIFIERS=@im=none` gegengeprüft** (Avalonias eigene Einstellung), **4 mal `ecircumflex`** — **der Zusammensetzer ist Xlibs lokale Eingabemethode**, nicht `ibus-x11` und nicht IBus. **Die Kette schließt sich damit:** Avalonia lässt filtern, holt aber nie ab — `LookupKey(keycode)` statt `XmbLookupString`, und bei `keycode = 0` fällt das Zeichen heraus. **§5 „Noch offen" 11 ist aufgeklärt**, **§5d trägt keinen Auftrag mehr**, und offen ist nur noch **die Entscheidung des Nutzers** (umgehen / melden / stehen lassen). ✅ **Und am 2026-08-21 ist der Weg dicht gemacht, den Schritt 7 gehen wird** (§4.45, V2-63; Schritt **6c**, nur `TdZuFlow` und `FlowZuTd` angefasst, Führung unverändert, Bau 0/0, **832 Tests** = 789 Core + 43 WPF, **9 neue Wächter**). **Die Frage, die nie jemand gestellt hatte:** Schritt 7 dreht die Führung auf die Kette `Modell → FlowDocument → Modell` — **kehrt sie sich selbst um?** Gemessen an einem Modell, wie der **Linux-Kopf** es anlegt: **nein, siebenfach.** **Der Kern ist ein `?? 0`** — `TdZuFlow` hat die Kaskade aus §4.14 nicht aufgelöst, sondern durch Null ersetzt, und `TdParaFormat.Standard.SpaceAfterPt` ist **8**; dazu stand die Ausrichtung auf **Blocksatz**, weil ein `FlowDocument` von Haus aus so steht (Fund 2 aus §4.37, hier an der Wurzel behoben). Behoben sind auch Tabellenrahmen, Zellabstand, Spaltenbreite, der Abstand des Listenpunkts und `DefaultParaFormat`; **der Wächter, auf den es ankommt, vergleicht Byte für Byte: zweimal speichern ändert nichts mehr.** ⚠ **Und der Verlust wartet nicht auf Schritt 7 — er läuft seit §4.23:** `Migrate` wird bei jedem Speichern gerufen, also verliert ein unter Linux oder aus DOCX importiertes Dokument **heute schon beim ersten Speichern im WPF-Editor** seine Tabellenrahmen, seine Abstände, **sein Diagramm und seine Felder**. **Drei Lücken bleiben, mit eigenen Wächtern** (Diagramm, Feld, Gliederungsebene) — **gemessen unmöglich zu schließen, solange der Weg über das `XamlPackage` läuft** (`Tag` und `ToolTip` überleben es nicht; nur ein `ToolTip` an einem `Image` tut es). ✅ **Und am 2026-08-21 ist die erste der drei Folgerunden gefahren: Punkt und Pixel** (§4.46, V2-64; Schritt **6d**, Bau 0/0, **835 Tests**, **3 neue Wächter**, einer **umgedreht**). **Sie hat unterwegs die Richtung gewechselt:** Entschieden war „den WPF-Kopf anheben", **aber die Deutung dahinter war ungeprüft** — `TextStyles.BodySize` ist als **DIP** dokumentiert, `TdStil.KoerperPt` als **Punkt** mit dem Kommentar „dieselbe Zahl wie", und `TdCharFormat.Standard.FontSize` ist **11 pt** = 15 DIP. **Der WPF-Kopf stimmte längst mit der Vorgabe des Dateiformats überein; `TdStil` war die Kopie, die in §4.39 umetikettiert wurde** — belegt ohne jeden Vergleich der Köpfe: Die Vorlage „Standard" machte einen unberührten Absatz um ein Drittel **größer**. **Umgedreht (Nutzer): `TdStil` ist verkleinert**, alle Zahlen mal 0,75 (Überschrift 1: **21 pt**), Abstände und Zitat-Einzug ebenso; `TdCharFormat.Standard` bleibt bei 11, denn das ist die Vorgabe des *Formats* (§4.14). **⚠ `VorlagentabelleTests` war grün und hat nichts geprüft** — er verglich die Zahlen und nicht die Größen; er rechnet jetzt um, und ein zweiter Wächter hält fest, **warum** dort ein Faktor steht. ✅ **Und eine der drei Lücken aus §4.45 hat sich dabei von selbst geschlossen:** Die **Gliederungsebene** überlebt die Rundreise wieder (21 pt = 28 px, und `HeadingLevel` hält gegen genau diese 28) — **sie war kein Mangel des `FlowDocument`, sondern derselbe Zahlendreher. Es sind noch zwei** (Diagramm und Feld). ✅ **In beiden Köpfen am Schirm belegt:** im Linux-Kopf ändert „Standard" die Größe eines unberührten Absatzes nicht mehr, im WPF-Kopf steht für dieselbe Überschrift **28** im Ribbon und **„Überschrift 1" ist in der Galerie markiert** (vorher 37,33 und keine). **Die Lehre:** Eine Entscheidung, die auf einer **ungeprüften Deutung** des Befunds steht, ist selbst ungeprüft — auch dann, wenn der Befund stimmt. ✅ **Und am 2026-08-22 ist Runde ② gefahren: der Ladeweg** (§4.47, V2-65; Schritt **6e**, Bau 0/0, **840 Tests**, **5 neue Wächter**, Führung unverändert). `AusModell` lädt **direkt** statt über ein `XamlPackage`; die Übernahme steht als `TdZuFlow.InhaltUebernehmen` neben `Umwandeln`. **Und wieder hat die Auflage „erst messen" den Entwurf umgeworfen:** WPF **kopiert** ein `Tag` beim Teilen eines Absatzes **und** eines Laufs auf **beide** Hälften — ein Träger dort wäre nach einem Tastendruck doppelt vorhanden und damit **schlimmer als die Lücke, die er schließen sollte**; **übrig bleibt der `InlineUIContainer`**, unteilbar und derselbe Ort, an dem `DocumentImages` seit jeher trägt. **Ein Fund nebenbei, der nicht gesucht war:** Das Paket schiebt die Schrift des **Dokuments** als **örtlichen Wert** auf **jeden Absatz** — derselbe Fehler wie §4.45 an anderer Stelle, **mit Schritt 7 wäre er in jedes Dokument gewandert**; der direkte Weg räumt ihn mit weg. ⏳ **Die Träger für Diagramm und Feld sind bewusst nicht gebaut** — sie überleben jetzt das Laden, aber nicht das Speichern, und gehören damit zu Schritt 7. ⚠ **Benannter Nebenbefund:** Die Schriftliste des WPF-Kopfs zeigt nur **Systemschriften** und kann die Grundschrift eines Dokuments aus dem Modell gar nicht anzeigen (§5 „Noch offen" **14**). ▶ **Damit ist nur noch eines offen, und es ist der Zweck des ganzen Wegs: Schritt 7** (§5e)
 
 > **📌 Dauerregeln des Nutzers — gelten immer, ohne Nachfragen:**
 >
@@ -296,7 +296,7 @@ angezeigt, importiert (DOCX) und in alle vier Formate exportiert. **Damit ist Ph
 abgeschlossen.** Der Anschluss hat sofort einen Fehler gezeigt, den vier Runden lang kein
 Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — behoben.
 
-### ▶ Hier geht es weiter (Stand 2026-08-21, nach Runde V2-64)
+### ▶ Hier geht es weiter (Stand 2026-08-22, nach Runde V2-65)
 
 > **✅ Phase 4 ist abgeschlossen** (§4.28) und **auf dem Laptop gegengeprüft** (§4.28, „Was der
 > Laptop gefunden hat"): die Anzeige trägt, ihr Umbruch stimmt mit dem PDF überein, Rollen und
@@ -567,6 +567,47 @@ Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — beh
 >
 > **▶ Es bleiben zwei Runden: (2) der Ladeweg** (§5 „Noch offen" 12, jetzt für **zwei** Lücken
 > statt drei), **dann Schritt 7.**
+>
+> **✅ Und Runde ② ist am 2026-08-22 gefahren** (§4.47, V2-65; Schritt **6e**, Bau 0/0,
+> **840 Tests**, 5 neue Wächter, **Führung unverändert**).
+>
+> **Die Auflage lautete „erst messen, dann bauen" — und die Messung hat den Entwurf
+> umgeworfen, bevor eine Zeile davon stand.** Gefragt war, ob ein von WPF geteilter Absatz den
+> Träger des alten erbt. **Die Antwort:** `Paragraph.Tag` **wird kopiert**, `Run.Tag` ebenso —
+> **beide Hälften tragen ihn.** Ein Träger dort wäre nach **einem einzigen Tastendruck**
+> doppelt vorhanden: aus einem Diagramm würden zwei, aus einer Überschrift zwei. **Das ist
+> schlimmer als die Lücke, die er schließen sollte** — was verschwindet, sieht man; was sich
+> verdoppelt, findet man erst im Inhaltsverzeichnis.
+>
+> **Übrig bleibt der `InlineUIContainer`**, und das ist keine Notlösung, sondern der passende
+> Ort: Ein Diagramm und ein Feld sind **unteilbare, nicht-textliche Dinge**. `DocumentImages`
+> führt seinen Blob-Verweis seit jeher dort, und §4.45 hatte schon gemessen, dass ausgerechnet
+> dieser Träger als einziger ein `XamlPackage` übersteht — **zwei unabhängige Messungen zeigen
+> auf dieselbe Stelle.**
+>
+> **Gebaut ist der Weg:** `AusModell` lädt direkt (`Modell → FlowDocument → Blöcke umhängen`)
+> statt über ein Paket; die Übernahme steht als `TdZuFlow.InhaltUebernehmen` neben
+> `Umwandeln`. **Die alte Begründung im Code war richtig und trug trotzdem nicht** — ein
+> *ausgetauschtes* `Document` nähme dem `RichTextBox` Stile und Verdrahtung mit, **nur folgt
+> daraus nicht das Paket**: Es genügt, das `Document` zu behalten und seinen **Inhalt** zu
+> ersetzen. Ein richtiger Grund war an einen falschen Schluss gebunden.
+>
+> **✅ Ein Fund, der gar nicht gesucht war:** `TextRange.Save`/`Load` schiebt die Schrift des
+> **Dokuments** als **örtlichen Wert** auf **jeden Absatz** hinunter. Sichtbar ist das nicht —
+> und genau deshalb ist es gefährlich: `FlowZuTd` liest örtliche Werte und schriebe danach in
+> *jedem* Absatz eine `FontFamily` ins Modell. **Derselbe Fehler wie §4.45, an anderer Stelle;
+> mit Schritt 7 wäre er in jedes Dokument gewandert.** Der direkte Weg räumt ihn mit weg.
+>
+> **⏳ Die Träger für Diagramm und Feld sind bewusst nicht gebaut.** Sie überleben jetzt das
+> *Laden*, aber `FlushToModel` schreibt beim Speichern weiter ein Paket nach `Rtf`. **Ein
+> Träger, der eine Sitzung überlebt und das Speichern nicht, wäre eine Lücke mit mehr Code
+> drumherum** — sie gehören zu Schritt 7.
+>
+> **⚠ Benannter Nebenbefund:** Die Schriftliste des WPF-Kopfs führt nur **Systemschriften** und
+> kann „Source Sans 3" — die Grundschrift jedes Dokuments aus dem Modell — gar nicht anzeigen.
+> Der Linux-Kopf macht es richtig (§4.40). **§5 „Noch offen" 14.**
+>
+> **▶ Damit ist nur noch eines offen, und es ist der Zweck des ganzen Wegs: Schritt 7.**
 >
 > **Gearbeitet wird auf dem Windows-Rechner.** Nicht wegen der Werkzeuge, sondern wegen der
 > Gegenprobe — jede Änderung am Modell muss der WPF-Editor überleben, und beide Köpfe
@@ -6444,6 +6485,130 @@ Fall steht es hier und nicht in einer stillen Lücke.
 
 ---
 
+### 4.47 Der Ladeweg — das Modell geht direkt in den Editor
+
+Umgesetzt am 2026-08-22 unter Windows. Runde ② der drei aus V2-63, Nutzer-Entscheidung
+§5 „Noch offen" 12. **Sie ändert die Führung nicht** — `Rtf` führt weiter; sie ändert nur, wie
+ein Dokument aus dem Modell in den Editor kommt.
+
+#### Der Auftrag lautete: erst messen, dann bauen
+
+Die Auflage stand seit V2-63 fest, und sie hat sich gelohnt — **die Messung hat den Entwurf
+umgeworfen, bevor eine Zeile davon gebaut war.**
+
+Gefragt war: **Erbt ein von WPF geteilter Absatz den Träger des alten?** Gemessen an einem
+laufenden `RichTextBox` mit Fokus (ohne Fenster geht es nicht — Editierbefehle brauchen eines):
+
+| Träger | Beim Teilen | |
+|---|---|---|
+| `Paragraph.Tag` | **wird kopiert** — beide Hälften tragen ihn | ⛔ |
+| `Run.Tag` | **wird kopiert** — beide Hälften tragen ihn | ⛔ |
+| `InlineUIContainer` | **bleibt einer** — unteilbar | ✅ |
+
+> **Ein Träger an Absatz oder Lauf ist damit unbrauchbar.** Ein einziger Tastendruck in der
+> Mitte macht aus einem Diagramm zwei und aus einer Überschrift zwei Überschriften. Das ist
+> **schlimmer als die Lücke**, die er schließen sollte: Was verschwindet, sieht man; was sich
+> verdoppelt, findet man erst im Inhaltsverzeichnis.
+>
+> **Was bleibt, ist der `InlineUIContainer`** — und das ist keine Notlösung, sondern der
+> passende Ort: Ein Diagramm und ein Feld sind **unteilbare, nicht-textliche Dinge**, genau
+> das, was ein `InlineUIContainer` ist. `DocumentImages` trägt seinen Blob-Verweis seit jeher
+> dort (an einem `Image`), und §4.45 hatte schon gemessen, dass ausgerechnet dieser Träger als
+> einziger ein `XamlPackage` übersteht. **Zwei unabhängige Messungen zeigen auf dieselbe
+> Stelle.**
+
+**Der zweite Teil der Messung galt dem Weg selbst:** Das `Document` bleibt dasselbe Objekt,
+seine Blöcke werden umgehängt, und **danach lässt sich weitertippen** — alle drei geprüft.
+
+#### Was gebaut wurde
+
+`TextEditorView.AusModell` hat den Umweg über das `XamlPackage` verloren:
+
+```
+vorher:  Modell → FlowDocument → XamlPackage-Bytes → TextRange.Load → Editor
+jetzt:   Modell → FlowDocument → Blöcke umhängen  → Editor
+```
+
+Die Übernahme steht als `TdZuFlow.InhaltUebernehmen` **neben** `Umwandeln` — dort gehört sie
+hin, denn sie ist dessen Gegenstück („*und so kommt das Ergebnis in den Editor*"), und dort ist
+sie prüfbar, ohne ein Fenster zu bauen.
+
+**Die alte Begründung war richtig und trug trotzdem nicht.** Im Code stand: *„Ein
+ausgetauschtes `Document` nähme dem `RichTextBox` seine Stile und alle Ereignisverdrahtungen
+mit."* Das stimmt — **nur folgt daraus nicht das Paket.** Es genügt, das `Document` zu behalten
+und seinen **Inhalt** zu ersetzen. Der Satz hat einen richtigen Grund an einen falschen Schluss
+gebunden, und deshalb stand der Umweg dort zwei Runden lang unbefragt.
+
+**`DocumentImages.Attach` ist dabei entfallen**, und das ist kein Vergessen: Es übersetzt einen
+Blob-Verweis aus dem `ToolTip` in das `Tag` — nötig **nach dem Laden eines Pakets**, denn nur
+der ToolTip übersteht eines. Ohne Paket gibt es nichts zu übersetzen; `TdZuFlow.BildUmwandeln`
+setzt das `Tag` selbst. **Eigener Wächter**, damit die gestrichene Zeile keine Vermutung ist.
+
+#### Der Fund, der nicht gesucht war: das Paket zerstört die Kaskade
+
+**Beim Nachmessen einer Nebensache aufgefallen** — die Schriftliste des Editors zeigte nach dem
+Umbau etwas anderes an als vorher, und die Frage war, ob der neue Weg die Schrift verändert.
+**Er tut es nicht.** Aber die Messung hat etwas anderes gezeigt:
+
+| Weg | Dokument | wirksam am Absatz | **örtlich am Absatz** |
+|---|---|---|---|
+| **(a) über das Paket** | Segoe UI | Source Sans 3 | **gesetzt** |
+| **(b) direkt** | Source Sans 3 | Source Sans 3 | **nichts** |
+
+**Dasselbe Schriftbild, verschiedene Struktur.** `TextRange.Save`/`Load` schiebt die Schrift des
+Dokuments als **örtlichen Wert** auf jeden Absatz hinunter. Sichtbar ist das nicht — und genau
+deshalb ist es gefährlich: **`FlowZuTd.ZeichenformatVon` liest örtliche Werte**, und schriebe
+danach in *jedem* Absatz eine `FontFamily` ins Modell, wo vorher keine stand.
+
+> **Es ist derselbe Fehler wie in §4.45** — aus „nicht gesetzt" wird „gesetzt" —, nur an einer
+> anderen Stelle und ohne dass jemand ihn gesucht hätte. **Solange `Rtf` führt, ist er
+> folgenlos; mit Schritt 7 wäre er in jedes Dokument gewandert.** Der direkte Weg räumt ihn
+> nebenbei mit weg, und ein Wächter hält das fest.
+
+#### Was diese Runde noch nicht tut
+
+**Die Träger für Diagramm und Feld sind nicht gebaut**, und das ist Absicht. Sie überleben zwar
+jetzt das *Laden* — aber `FlushToModel` schreibt beim Speichern weiterhin ein `XamlPackage`
+nach `Rtf`, und dort sterben sie. **Ein Träger, der eine Sitzung überlebt und das Speichern
+nicht, wäre eine Lücke mit mehr Code drumherum.** Sie gehören deshalb zu **Schritt 7**, wo
+`Rtf` die Führung verliert und das Paket ganz aus dem Speicherweg fällt — dann, und erst dann,
+tragen sie.
+
+**Diese Runde legt den Weg, auf dem sie tragen können.**
+
+#### Ein benannter Nebenbefund: die Schriftliste des WPF-Kopfs
+
+`FontCombo.ItemsSource` ist `Fonts.SystemFontFamilies` — **nur Systemschriften.** Die fünf
+mitgelieferten Familien (§4.26) stehen nicht darin, und „Source Sans 3" ist die Grundschrift
+jedes Dokuments aus dem Modell. **Die Liste kann die Schrift des Dokuments also gar nicht
+anzeigen**, egal auf welchem Weg es geladen wurde.
+
+**Der Linux-Kopf macht es richtig** (§4.40: „`Fonts.Mitgeliefert` **ist** der Bestand, und eine
+Liste der *System*schriften wäre sogar falsch"). **Der WPF-Kopf ist an dieser Stelle nie
+nachgezogen worden.** Kein Datenverlust, keine Blockade — aber eine Liste, die etwas anderes
+behauptet als das Blatt darunter. Vermerkt als §5 „Noch offen" **14**.
+
+> **Ausdrücklich offen geblieben:** Ob und wie sich die Anzeige dieser Liste mit dieser Runde
+> geändert hat, ist **nicht** geklärt. Gemessen ist, dass beide Ladewege dieselbe Schrift
+> liefern (`GetPropertyValue` gibt auf beiden „Source Sans 3") — die Anzeige hängt also nicht
+> am Ladeweg. **Eine Vermutung darüber steht hier bewusst nicht**, sie wäre genau die
+> ungeprüfte Deutung, vor der §4.46 warnt.
+
+#### Stand
+
+**5 neue Wächter** in `ModellRueckfallTests`, Bau **0 Fehler / 0 Warnungen**, **840 Tests**
+grün (789 Core + 51 WPF). **Angefasst sind zwei Dateien** — `TdZuFlow` (die neue Übernahme)
+und `TextEditorView` (`AusModell`); an `TextDoc`, am Speicherformat und an der **Führung** ist
+nichts geändert.
+
+**In beiden Köpfen am laufenden Programm gesehen** (Wegwerf-Datenbank, danach gelöscht): Ein im
+Linux-Kopf angelegtes Dokument mit Überschrift und Fließtext kommt im WPF-Kopf über genau
+diesen neuen Weg an — Überschrift blau und fett, **28** in der Größenanzeige, **„Überschrift 1"
+in der Galerie markiert**, Fließtext darunter. Das ist derselbe Anblick wie vor dem Umbau, und
+das ist hier das Ziel: **Der Ladeweg soll sich ändern, das Blatt nicht.**
+
+---
+
 ## 5. Entscheidungen
 
 **Getroffen, alle umgesetzt:**
@@ -6856,10 +7021,27 @@ Fall steht es hier und nicht in einer stillen Lücke.
     — sie wird fällig, wenn jemand die App in einer Schrift benutzen will, die zusammengesetzt
     wird.
 
-12. ✅ **Entschieden am 2026-08-21 (Nutzer): (b) das Modell geht direkt in den
-    `RichTextBox` — und zwar als eigene Runde VOR Schritt 7.** Damit sind die Lücken aus
-    §4.45 schließbar — **seit §4.46 sind es zwei** (Diagramm und Feld; die dritte war ein
-    Zahlendreher und ist mit ihm gegangen). **Nicht mehr nachfragen.**
+12. ✅ **Erledigt am 2026-08-22 (§4.47).** Entschieden am 2026-08-21 (Nutzer): **(b) das
+    Modell geht direkt in den `RichTextBox`**, als eigene Runde vor Schritt 7 — und genau so
+    ist es gelaufen. `TextEditorView.AusModell` hat den Umweg über das `XamlPackage` verloren,
+    die Übernahme steht als `TdZuFlow.InhaltUebernehmen` neben `Umwandeln`. **5 Wächter,
+    840 Tests**, Führung unverändert.
+
+    **Die Auflage „erst messen, dann bauen" hat den Entwurf umgeworfen, bevor eine Zeile davon
+    stand:** WPF **kopiert** ein `Tag` beim Teilen eines Absatzes **und** eines Laufs auf beide
+    Hälften — ein Träger dort wäre nach einem Tastendruck doppelt vorhanden, **schlimmer als
+    die Lücke, die er schließen sollte**. Übrig bleibt der **`InlineUIContainer`**: unteilbar,
+    und derselbe Ort, an dem `DocumentImages` seinen Blob-Verweis seit jeher führt.
+
+    **✅ Und ein Fund, der nicht gesucht war:** Das Paket schiebt die Schrift des Dokuments als
+    **örtlichen Wert** auf jeden Absatz — derselbe Fehler wie §4.45, an anderer Stelle. Mit
+    Schritt 7 wäre er in jedes Dokument gewandert; der direkte Weg räumt ihn mit weg.
+
+    ⏳ **Die Träger selbst sind noch nicht gebaut, und das ist Absicht:** Sie überleben jetzt
+    das *Laden*, aber `FlushToModel` schreibt beim Speichern weiter ein Paket nach `Rtf`. Sie
+    gehören zu **Schritt 7**, wo das Paket ganz aus dem Speicherweg fällt.
+
+    **Die Herleitung, die zu dieser Entscheidung geführt hat** (§4.45, §4.47):
 
     **Was daraus folgt, in der Reihenfolge:** erst der Ladeweg (eigene Runde), dann Schritt 7.
     Der Grund für die Trennung ist derselbe wie bei §4.45: Wer die Führung umdreht und
@@ -6950,6 +7132,26 @@ Fall steht es hier und nicht in einer stillen Lücke.
     **Sie war keine Eigenschaft des `FlowDocument`, sondern ein Zahlendreher** — es sind noch
     **zwei** (Diagramm und Feld).
 
+
+14. ⚠ **Die Schriftliste des WPF-Kopfs zeigt nur Systemschriften.** Benannter Nebenbefund
+    aus §4.47, **nicht dort entstanden**.
+
+    `FontCombo.ItemsSource` ist `Fonts.SystemFontFamilies`. Die fünf **mitgelieferten**
+    Familien (§4.26) stehen nicht darin — und „Source Sans 3" ist die Grundschrift jedes
+    Dokuments aus dem Modell. **Die Liste kann die Schrift des Dokuments also gar nicht
+    anzeigen.**
+
+    **Der Linux-Kopf macht es richtig** (§4.40: „`Fonts.Mitgeliefert` **ist** der Bestand, und
+    eine Liste der *System*schriften wäre sogar falsch"). **Der WPF-Kopf ist nie nachgezogen
+    worden.** Kein Datenverlust und keine Blockade — aber eine Liste, die etwas anderes
+    behauptet als das Blatt darunter.
+
+    **Zu entscheiden ist, ob der WPF-Kopf dieselbe Quelle bekommt** (dann verschwinden die
+    Systemschriften aus der Liste — wer heute eine davon gewählt hat, findet sie nicht mehr),
+    **ob beide Listen zusammengeführt werden** (mitgeliefert oben, System darunter) oder ob es
+    **als benannter Unterschied stehen bleibt**. **Empfehlung: zusammenführen** — der Bestand
+    zuerst, das System danach; ein Dokument soll die Schrift zeigen können, in der es gesetzt
+    ist, ohne dass ein bestehendes unlesbar wird.
 
 **Beantwortet und hier nur noch als Verweis** — der volle Wortlaut stand bis zum 2026-08-11
 darunter und wurde von niemandem mehr gelesen; was gilt, steht in der Tabelle oben:
@@ -7474,7 +7676,7 @@ Entscheidungen aus §5 "Noch offen" 9 und 10 sind gefallen -- nicht noch
 einmal fragen.
 
 Zieh zuerst den Stand: git pull. Dann bauen und testen, bevor du etwas
-anfasst -- 0 Fehler, 0 Warnungen, 835 Tests.
+anfasst -- 0 Fehler, 0 Warnungen, 840 Tests.
 
 DIE ENTSCHEIDUNGEN 12 UND 13 SIND AM 2026-08-21 GEFALLEN -- NICHT NOCH
 EINMAL FRAGEN. Daraus stehen DREI RUNDEN in dieser Reihenfolge:
@@ -7486,22 +7688,27 @@ EINMAL FRAGEN. Daraus stehen DREI RUNDEN in dieser Reihenfolge:
      Luecke aus §4.45 (Gliederungsebene) hat sich von selbst
      geschlossen. ES SIND NOCH ZWEI: Diagramm und Feld.
 
- (2) DER LADEWEG (§5 "Noch offen" 12). Das Modell geht DIREKT in den
-     RichTextBox statt ueber das XamlPackage. Dann steht im Speicherweg
-     gar kein Paket mehr, ein Traeger lebt nur im Arbeitsspeicher und
-     ueberlebt -- damit werden Diagramm, Feld und Gliederungsebene
-     schliessbar. EIGENE RUNDE, nicht Teil von Schritt 7. Die Warnung
-     steht schon im Code (TextEditorView.AusModell): ein
-     ausgetauschtes Document naehme dem RichTextBox seine Stile und
-     alle Ereignisverdrahtungen mit -- also die BLOECKE umhaengen, nicht
-     das Dokument. UND ZU MESSEN, NICHT ANZUNEHMEN: Erbt ein von WPF
-     geteilter Absatz den Traeger des alten? Das waere eine
-     verdoppelte Gliederungsebene und fiele erst im
-     Inhaltsverzeichnis auf.
+ (2) ERLEDIGT am 2026-08-22 (§4.47, V2-65): AusModell laedt direkt
+     statt ueber ein XamlPackage, die Uebernahme steht als
+     TdZuFlow.InhaltUebernehmen neben Umwandeln. Die Messung hat den
+     Entwurf umgeworfen: WPF KOPIERT ein Tag beim Teilen eines
+     Absatzes UND eines Laufs auf beide Haelften -- ein Traeger dort
+     waere nach einem Tastendruck doppelt. UEBRIG BLEIBT DER
+     InlineUIContainer (unteilbar). Nebenbefund: das Paket schiebt die
+     Dokumentschrift als oertlichen Wert auf jeden Absatz -- derselbe
+     Fehler wie §4.45; der direkte Weg raeumt ihn mit weg.
+     DIE TRAEGER SELBST SIND NICHT GEBAUT -- sie gehoeren zu (3).
 
- (3) SCHRITT 7 -- Rtf verliert die Fuehrung (§6). Erst danach, und
-     dann mit der Gegenprobe in BEIDEN Koepfen an einer Kopie der
-     echten Datenbank (Dauerregel 4).
+ (3) SCHRITT 7 -- Rtf verliert die Fuehrung (§6). DAS IST JETZT DRAN.
+     Der Editor liest UND schreibt das Modell; Rtf wird NIE
+     ueberschrieben (§4.22), und mit ihm faellt das XamlPackage aus dem
+     Speicherweg -- erst dann tragen die Traeger. Zu bauen: FlushToModel
+     gegen das Modell (ueber FlowZuTd), TdFuehrung umgedreht, Migrate
+     auf die EINMALIGE Uebernahme beschraenkt (sonst ueberschreibt es
+     beim naechsten Speichern, was der Nutzer gerade getippt hat), die
+     Warnung im Linux-Kopf entfaellt, und die zwei Traeger fuer
+     Diagramm und Feld als InlineUIContainer. Gegenprobe in BEIDEN
+     Koepfen an einer Kopie der echten Datenbank (Dauerregel 4).
 
 DIE LEHRE AUS RUNDE (1), UND SIE GILT FUER (2) GENAUSO: Eine
 Entscheidung, die auf einer UNGEPRUEFTEN DEUTUNG des Befunds steht, ist
@@ -7538,7 +7745,7 @@ Laptop dran ist.
 Fang an.
 ```
 
-### ▶ Aktueller Auftrag — **der Ladeweg, dann Schritt 7** (Stand 2026-08-21, nach Runde V2-64)
+### ▶ Aktueller Auftrag — **Schritt 7** (Stand 2026-08-22, nach Runde V2-65)
 
 > **✅ Schritt 6c ist erledigt: die Rundreise ist dicht** (§4.45, V2-63; Bau 0/0, **832 Tests**,
 > 9 neue Wächter, **nur `TdZuFlow` und `FlowZuTd` angefasst**, Führung unverändert).
@@ -7570,8 +7777,33 @@ Fang an.
 > Eigenschaft des `FlowDocument`, sondern derselbe Zahlendreher. **Es sind noch zwei**
 > (Diagramm und Feld).
 >
-> **▶ Damit stehen noch zwei Runden:**
+> **✅ Und Runde ② ist am 2026-08-22 erledigt** (§4.47, V2-65; Bau 0/0, **840 Tests**,
+> 5 neue Wächter, Führung unverändert). **Die Auflage „erst messen, dann bauen" hat den
+> Entwurf umgeworfen, bevor eine Zeile davon stand:** WPF **kopiert** ein `Tag` beim Teilen
+> eines Absatzes **und** eines Laufs auf **beide** Hälften — ein Träger dort wäre nach einem
+> Tastendruck doppelt vorhanden und damit **schlimmer als die Lücke, die er schließen
+> sollte**. **Übrig bleibt der `InlineUIContainer`**: unteilbar, und derselbe Ort, an dem
+> `DocumentImages` seinen Blob-Verweis seit jeher führt. **Der Ladeweg ist gebaut**, die
+> Träger selbst gehören zu Schritt 7 — sie überlebten sonst das Laden und nicht das Speichern.
 >
+> **▶ Damit ist nur noch eines offen — und es ist der Zweck des ganzen Wegs:**
+>
+> **③ Schritt 7 — `Rtf` verliert die Führung** (§6). Der Editor liest **und schreibt** das
+> Modell, `Rtf` wird **nie überschrieben** (§4.22), und mit ihm fällt das `XamlPackage` aus
+> dem Speicherweg — **erst dann tragen die Träger.** Zu bauen sind: `FlushToModel` gegen das
+> Modell (über `FlowZuTd`), `TdFuehrung` umgedreht, `Migrate` auf die **einmalige** Übernahme
+> beschränkt (sonst überschreibt es beim nächsten Speichern, was der Nutzer gerade getippt
+> hat), die **Warnung im Linux-Kopf** entfällt, und die zwei Träger für **Diagramm** und
+> **Feld**. **Gegenprobe in beiden Köpfen an einer Kopie der echten Datenbank** (Dauerregel 4).
+>
+> **Die Lehre aus ① und ②, und sie gilt hier am meisten:** Eine Entscheidung, die auf einer
+> **ungeprüften Deutung** steht, ist selbst ungeprüft — **auch dann, wenn der Befund stimmt.**
+> Beide Runden haben ihren Entwurf beim Messen verloren.
+>
+> Der Wortlaut der davor abgearbeiteten Aufträge steht darunter.
+
+#### Abgearbeitet — die drei Runden aus V2-63
+
 > **② Der Ladeweg** (§5 „Noch offen" 12). Das Modell geht **direkt** in den `RichTextBox`
 > statt über das `XamlPackage`. **Eigene Runde und nicht Teil von Schritt 7** — wer die
 > Führung umdreht und gleichzeitig den Ladeweg umbaut, hat bei einem Fehler zwei Verdächtige.
@@ -8344,6 +8576,20 @@ dem, was es kostet:
       ✅ **In beiden Köpfen am laufenden Programm gesehen** — im Linux-Kopf ändert „Standard"
       die Größe eines unberührten Absatzes nicht mehr, im WPF-Kopf steht für dieselbe
       Überschrift **28** im Ribbon und **„Überschrift 1" ist in der Galerie markiert**.
+
+- [x] **6e. Der Ladeweg.** ✅ **Erledigt 2026-08-22 (§4.47).** `AusModell` lädt direkt statt
+      über ein `XamlPackage`; die Übernahme steht als `TdZuFlow.InhaltUebernehmen` neben
+      `Umwandeln`. **5 Wächter, 840 Tests**, Führung unverändert.
+      **Die Auflage „erst messen" hat den Entwurf umgeworfen:** WPF **kopiert** ein `Tag` beim
+      Teilen eines Absatzes **und** eines Laufs auf beide Hälften — ein Träger dort wäre nach
+      einem Tastendruck doppelt und damit **schlimmer als die Lücke**. Übrig bleibt der
+      **`InlineUIContainer`**, unteilbar und derselbe Ort, an dem `DocumentImages` seit jeher
+      trägt.
+      **Ein Fund nebenbei:** Das Paket schiebt die Dokumentschrift als **örtlichen Wert** auf
+      jeden Absatz — derselbe Fehler wie §4.45, an anderer Stelle; mit Schritt 7 wäre er in
+      jedes Dokument gewandert.
+      ⏳ **Die Träger selbst gehören zu Schritt 7**, wo das Paket aus dem Speicherweg fällt —
+      vorher überlebten sie das Laden und nicht das Speichern.
 
 - [ ] **7. `Rtf` verliert die Führung.** Der WPF-Editor liest aus dem Modell statt aus dem
       `XamlPackage`. **Das ist der eigentliche Zweck des ganzen Wegs** (§5) — und der Schritt,
@@ -9828,6 +10074,7 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 
 | Runde | Datum | Was |
 |---|---|---|
+| V2-65 | 2026-08-22 | **Der Ladeweg — das Modell geht direkt in den Editor** (§4.47; Runde ② der drei aus V2-63, Nutzer-Entscheidung §5 „Noch offen" **12**; **zwei Dateien angefasst**, an `TextDoc`, am Speicherformat und an der **Führung** nichts geändert; Bau 0/0, **840 Tests** grün = 789 Core + 51 WPF, **5 neue Wächter**). **Die Auflage aus V2-63 lautete „erst messen, dann bauen" — und die Messung hat den Entwurf umgeworfen, bevor eine Zeile davon stand.** Gefragt war, ob ein von WPF geteilter Absatz den Träger des alten erbt; gemessen an einem laufenden `RichTextBox` mit Fokus (ohne Fenster geht es nicht, Editierbefehle brauchen eines). **Die Antwort:** `Paragraph.Tag` **wird beim Teilen kopiert**, `Run.Tag` ebenso — **beide Hälften tragen ihn**. **Ein Träger an Absatz oder Lauf ist damit unbrauchbar:** Ein einziger Tastendruck in der Mitte macht aus einem Diagramm zwei und aus einer Überschrift zwei — **schlimmer als die Lücke, die er schließen sollte**, denn was verschwindet sieht man, was sich verdoppelt findet man erst im Inhaltsverzeichnis. **Übrig bleibt der `InlineUIContainer`**, und das ist keine Notlösung, sondern der passende Ort: Ein Diagramm und ein Feld sind unteilbare, nicht-textliche Dinge — genau das, was ein `InlineUIContainer` ist; `DocumentImages` führt seinen Blob-Verweis seit jeher dort, und §4.45 hatte schon gemessen, dass ausgerechnet dieser Träger als einziger ein `XamlPackage` übersteht. **Zwei unabhängige Messungen zeigen auf dieselbe Stelle.** **Gebaut ist der Weg selbst:** `TextEditorView.AusModell` hat den Umweg über das Paket verloren (`Modell → FlowDocument → Blöcke umhängen → Editor` statt über XamlPackage-Bytes), und die Übernahme steht als **`TdZuFlow.InhaltUebernehmen`** neben `Umwandeln` — dort gehört sie hin, denn sie ist dessen Gegenstück, und dort ist sie prüfbar, ohne ein Fenster zu bauen. **Die alte Begründung war richtig und trug trotzdem nicht:** Im Code stand, ein ausgetauschtes `Document` nähme dem `RichTextBox` seine Stile und alle Ereignisverdrahtungen mit — das stimmt, **nur folgt daraus nicht das Paket**; es genügt, das `Document` zu behalten und seinen **Inhalt** zu ersetzen (gemessen: dasselbe Objekt, Träger überleben, tippen geht danach weiter). **Ein richtiger Grund war an einen falschen Schluss gebunden, und deshalb stand der Umweg zwei Runden lang unbefragt.** **`DocumentImages.Attach` ist entfallen** und das ist kein Vergessen — es übersetzt einen Verweis aus dem `ToolTip` ins `Tag`, nötig nur nach dem Laden eines Pakets; `TdZuFlow.BildUmwandeln` setzt das `Tag` selbst (eigener Wächter, damit die gestrichene Zeile keine Vermutung ist). **✅ Und ein Fund, der gar nicht gesucht war — beim Nachmessen einer Nebensache aufgefallen: das Paket zerstört die Kaskade.** `TextRange.Save`/`Load` schiebt die Schrift des **Dokuments** als **örtlichen Wert** auf **jeden Absatz** hinunter (gemessen: über das Paket steht sie örtlich am Absatz, direkt steht dort nichts und sie wird geerbt — dasselbe Schriftbild, verschiedene Struktur). **Sichtbar ist das nicht, und genau deshalb ist es gefährlich:** `FlowZuTd.ZeichenformatVon` liest örtliche Werte und schriebe danach in *jedem* Absatz eine `FontFamily` ins Modell, wo vorher keine stand. **Es ist derselbe Fehler wie in §4.45** — aus „nicht gesetzt" wird „gesetzt" —, an anderer Stelle und ohne dass jemand ihn gesucht hätte; **solange `Rtf` führt folgenlos, mit Schritt 7 wäre er in jedes Dokument gewandert.** Der direkte Weg räumt ihn nebenbei mit weg, Wächter dafür. **⏳ Was die Runde ausdrücklich nicht tut: die Träger für Diagramm und Feld sind nicht gebaut.** Sie überleben jetzt das *Laden*, aber `FlushToModel` schreibt beim Speichern weiter ein Paket nach `Rtf`, und dort sterben sie — **ein Träger, der eine Sitzung überlebt und das Speichern nicht, wäre eine Lücke mit mehr Code drumherum.** Sie gehören zu **Schritt 7**, wo das Paket ganz aus dem Speicherweg fällt; **diese Runde legt den Weg, auf dem sie tragen können.** **⚠ Benannter Nebenbefund, nicht aus dieser Runde:** `FontCombo.ItemsSource` ist `Fonts.SystemFontFamilies` — **nur Systemschriften**; die fünf mitgelieferten Familien (§4.26) stehen nicht darin, und „Source Sans 3" ist die Grundschrift jedes Dokuments aus dem Modell. **Die Liste kann die Schrift des Dokuments gar nicht anzeigen.** Der Linux-Kopf macht es richtig (§4.40), der WPF-Kopf ist nie nachgezogen worden — §5 „Noch offen" **14**. **Ausdrücklich offen geblieben und nicht gedeutet:** ob sich die Anzeige dieser Liste mit dieser Runde geändert hat, ist **nicht** geklärt; gemessen ist nur, dass **beide Ladewege dieselbe Schrift liefern** (`GetPropertyValue` gibt auf beiden „Source Sans 3"), die Anzeige also nicht am Ladeweg hängt — **eine Vermutung darüber steht bewusst nicht da, sie wäre genau die ungeprüfte Deutung, vor der §4.46 warnt.** **✅ In beiden Köpfen am laufenden Programm gesehen** (Wegwerf-Datenbank, danach gelöscht): Ein im Linux-Kopf angelegtes Dokument mit Überschrift und Fließtext kommt im WPF-Kopf über genau den neuen Weg an — Überschrift blau und fett, **28** in der Größenanzeige, **„Überschrift 1" in der Galerie markiert**. **Derselbe Anblick wie vor dem Umbau, und das ist hier das Ziel: Der Ladeweg soll sich ändern, das Blatt nicht.** ▶ **Als Nächstes Schritt 7** (§5e) — `Rtf` verliert die Führung, und mit ihm fällt das Paket aus dem Speicherweg. **Der Laptop ist nicht dran** |
 | V2-64 | 2026-08-21 | **Punkt und Pixel — die Vorlagentabelle stand in zwei Maßen** (§4.46; Schritt **6d** des Arbeitsplans, Bau 0/0, **835 Tests** grün = 789 Core + 46 WPF, **3 neue Wächter**, **einer umgedreht**). Runde ① der drei aus V2-63 — **und sie hat unterwegs die Richtung gewechselt.** **Entschieden war „den WPF-Kopf anheben, Punkt gewinnt"**, auf Grundlage des Befunds aus §4.45 mit einer **Deutung, die nicht geprüft war**: dass der WPF-Kopf die Überschriften um ein Drittel zu klein zeige. **Beim Bauen ist die Deutung an drei Belegen zusammengebrochen, die alle schon dastanden:** `TextStyles.BodySize = 15` ist ausdrücklich als **DIP** dokumentiert, `TdStil.KoerperPt = 15` als **Punkt** — mit dem Kommentar „*dieselbe Zahl wie `TextStyles.BodySize`*", also dem Geständnis, das niemand als eines gelesen hat —, und `TdCharFormat.Standard.FontSize` ist **11 pt**, was 15 DIP entspricht. **Der WPF-Kopf und die Vorgabe des Dateiformats stimmten längst überein; `TdStil` war die Kopie, die in §4.39 von Pixeln auf Punkt umetikettiert wurde.** **Und der eigentliche Beweis brauchte den Vergleich der Köpfe gar nicht:** Ein unberührter Absatz wird über `TdCharFormat.Standard` mit 11 pt gesetzt, die Vorlage „Standard" machte ihn auf 15 — **die Vorlage, die nichts ändern soll, vergrößerte den Text um ein Drittel**, und niemand hat je hingesehen. **Daraufhin zurückgenommen und umgedreht (Nutzer): `TdStil` wird verkleinert.** Alle Zahlen mal **0,75** — Körper **11,25**, Überschrift 1 **21**, 2 **16,5**, 3 **13,5**, 4 **12**, Titel **25,5**, Kopf-/Fußzeile **9** —, die **Abstände ebenso** (sie stammen aus demselben Abschreiben, `TextStyles.Margin` ist ein Rand in Pixeln), und der **Einzug des Zitats** auf `28 × 2,54 / 96`: Dort stand `1` cm, eine gerundete Fassung derselben 28 Pixel — **rund und falsch ist an dieser Stelle schlechter als krumm und gleich.** **`TdCharFormat.Standard.FontSize` bleibt bei 11** und ist ausdrücklich nicht mitgezogen: Das ist die Vorgabe des **Formats** und keine Vorlage, sie zu verschieben änderte, wie jedes gespeicherte Dokument ohne eigene Größe gesetzt wird (§4.14); der Rest von einem Viertelpunkt liegt weit innerhalb der Schranke von `TdStil.Passt`, **ein unberührter Absatz wird jetzt als „Standard" wiedererkannt**. **⚠ Der Wächter war grün und hat nichts geprüft:** `VorlagentabelleTests` verglich seit §4.39 die **Zahlen** und nicht die **Größen** — er war grün, während „Überschrift 1" im einen Kopf 28 pt und im anderen 21 pt groß war, **also genau in dem Zustand, den er laut seinem eigenen Kommentar verhindern sollte**; über den Abständen stand dort wörtlich „bei 96 dpi ist beides dieselbe Zahl", und das ist falsch (1 pt = 1,333 px). **Er rechnet jetzt um, die Einzüge sind nicht mehr ausgenommen** („eine Umrechnung wäre eine dritte Wahrheit" hieß in Wahrheit: hier wird nicht hingesehen), **und ein zweiter Wächter hält fest, warum dort ein Faktor steht** — sonst kürzt ihn beim nächsten Aufräumen jemand heraus und er ist wieder grün und wieder blind. **✅ Und eine der drei Lücken aus §4.45 hat sich dabei von selbst geschlossen — das war nicht der Zweck der Runde und ist ihr bestes Ergebnis:** Die **Gliederungsebene** überlebt die Rundreise wieder. `FlowZuTd` erkennt sie an der Schriftgröße zurück, und das ging fehl, weil eine Überschrift 1 aus dem Linux-Kopf mit 28 pt = **37,33 px** ankam, während `TextStyles.HeadingLevel` sie gegen seine eigene **28** hielt — seit die Einheit stimmt, sind es 21 pt = **28 px**, und sie passt. Der Wächter, der den Verlust festhielt, ist **umgedreht**. **Damit ist belegt, was §4.45 nicht sehen konnte: die dritte Lücke war keine Eigenschaft des `FlowDocument`, sondern ein Zahlendreher — sie sah nur aus wie die beiden anderen. Es sind noch zwei** (Diagramm und Feld). **✅ In beiden Köpfen am laufenden Programm geprüft, und das war hier keine Formsache, sondern der Zweck** (was ein Schriftbild tut, sagt kein Wächter — §4.31, §4.37; an einer Wegwerf-Datenbank, danach gelöscht, Dauerregel 4). **Im Linux-Kopf:** ein unberührter Absatz zeigt in der Vorlagenliste **„Standard"** (vorher passte auf ihn **gar keine** Vorlage), „Überschrift 1" setzt blau/fett/größer — und **„Standard" auf den Fließtext ändert die Größe nicht mehr**, was die eigentliche Probe war. **Dann dasselbe Dokument im WPF-Kopf** (über `TextDoc.Model` und `TdZuFlow`, denn `Rtf` ist bei einem Linux-Dokument leer): **die Größenanzeige im Ribbon steht auf 28** — dem WPF-Wert für Überschrift 1, **vorher stünde dort 37,33** — und **die Vorlagen-Galerie hat „Überschrift 1" markiert**, vorher war keine markiert. **Ein Bild, das beide Hälften belegt:** dass die Größen sich treffen, und dass die Lücke wirklich zu ist. **Die Golden-Files haben sich nicht bewegt** und das ist die richtige Antwort — sie messen Exporte aus Modellen, die ihre Größen selbst mitbringen, keine davon kommt aus `TdStil` (§4.26). **Was die Runde ausdrücklich nicht tut:** bestehende Dokumente nachziehen. Eine Überschrift, die der Linux-Kopf vor heute angelegt hat, steht weiter bei 28 pt und ist dann eine Überschrift mit eigener Größe — **laut §4.22 enthält die echte Datenbank kein einziges Textdokument mit Inhalt**, es ist also nichts betroffen, was es wirklich gibt. **Die Lehre der Runde, und sie ist die eigentliche:** **Eine Entscheidung, die auf einer ungeprüften Deutung des Befunds steht, ist selbst ungeprüft — auch dann, wenn der Befund stimmt.** Der Befund aus §4.45 war richtig; die Erklärung dazu war es nicht. ▶ **Als Nächstes Runde ②, der Ladeweg** (§5 „Noch offen" 12), **danach Schritt 7** (§5e). **Der Laptop ist nicht dran** |
 | V2-63 | 2026-08-21 | **Die Rundreise dicht gemacht — der Weg, den Schritt 7 gehen wird** (§4.45; Schritt **6c** des Arbeitsplans, **nur `TdZuFlow` und `FlowZuTd` angefasst**, an `TextDoc`, am Speicherformat und an der Führung **nichts** geändert; Bau 0/0, **832 Tests** grün = 789 Core + 43 WPF, **9 neue Wächter** in `RundreiseTests`). **Der Anlass ist eine Frage, die nie jemand gestellt hatte:** Schritt 7 dreht die Führung auf die Kette `Modell → FlowDocument → Modell`, die dann bei **jedem** Speichern läuft — **kehrt dieser Weg sich selbst um?** Gemessen wurde an einem Modell, wie der **Linux-Kopf** es anlegt, und ausdrücklich nicht am `Referenzdokument`: Das ist selbst schon `FlowZuTd`-Ausgabe und misst deshalb die **zweite** Rundreise — der gefährliche Fall ist die **erste**. **Die Antwort war nein, siebenfach:** Absatzabstand, Ausrichtung, beide Einzüge, Tabellenrahmen, Zellabstand, Spaltenbreite und der Abstand des Listenpunkts kamen verändert zurück. **Der Kern ist ein `?? 0`:** `TdZuFlow` hat die Kaskade aus §4.14 nicht **aufgelöst**, sondern durch **Null ersetzt** — und `TdParaFormat.Standard.SpaceAfterPt` ist **8** und nicht 0. Das ergibt zwei Fehler, die wie einer aussehen, **und nur der zweite ist teuer**: eine falsche Anzeige (Linux-Dokumente standen im WPF-Editor mit aneinandergeklebten Absätzen) und, weil `FlowZuTd` einen so gesetzten Wert als *örtlich gesetzt* zurückliest, eine falsche **Datei** — **ein falsch angezeigter Wert repariert sich, ein festgeschriebener nicht.** Ebenso die Ausrichtung: ein `FlowDocument` steht von Haus aus auf `Justify`, und damit ist Fund 2 aus §4.37 an seiner Wurzel behoben. **Gebaut sind zwei Stellen, die einander umkehren** — `AbsatzformatSetzen` löst die Kaskade auf, `AufAbweichungenKuerzen` kürzt wieder auf Abweichungen, mit der Auflage an beiden, dass wer die eine ändert die andere mitzieht. Dazu: **Tabellenrahmen und Zellabstand kommen aus `t.Format`** statt aus festem Grau/0,5 px (die Innenlinie steht an *jeder* Zelle, weil `FlowZuTd` sie an der *ersten* abliest — sonst wäre die erste ein Sonderfall), **der Listenpunkt behält seinen eigenen Abstand** (dort stand ein festes `Thickness(0,1,0,1)`, damit die Liste enger aussieht, und es schrieb dem Modell 0,75 pt davor und danach ein), **`Cm`/`Pt` runden auf zehn Nanometer** (ohne das wandert eine Spaltenbreite bei jedem Speichern weiter und kein Wächter auf Gleichheit kann je grün sein) und **`doc.DefaultParaFormat` wird endlich beachtet** — der DOCX-Import setzt ihn und er wurde bis hierher schlicht übergangen. **⚠ Der erste Nebenbefund wiegt schwerer als die Runde selbst: der Verlust wartet nicht auf Schritt 7, er läuft seit §4.23.** `Migrate` wird bei **jedem** Speichern gerufen — ein unter Linux oder aus DOCX importiertes Dokument verliert **heute schon beim ersten Speichern im WPF-Editor** Tabellenrahmen, Absatzabstände, **sein Diagramm und seine Felder**. §4.21 hatte belegt, dass ein Diagramm den Weg DOCX → Modell → DOCX übersteht; **den Weg durch den Editor übersteht es nicht.** **Drei Lücken bleiben und bekommen eigene Wächter** (§4.19, damit sie absichtlich verschwinden statt still): Diagramm, Feld und Gliederungsebene. **Sie sind kein Fleiß, sondern gemessen unmöglich, solange der Weg über das `XamlPackage` läuft:** `Tag` und `ToolTip` an `Run` und `Paragraph` kommen als `null` zurück, **nur ein `ToolTip` an einem `Image` übersteht das Paket** — genau deshalb trägt `DocumentImages` ihn dort und nirgends sonst. **Der Ausweg ist benannt und nicht gebaut** (§5 „Noch offen" **12**): Sobald `Rtf` nicht mehr geschrieben wird, gibt es im Speicherweg gar kein Paket mehr, und ein Träger im Arbeitsspeicher überlebt, weil ihn niemand serialisiert. **⚠ Zweiter Nebenbefund, größer als die Runde und nicht aus ihr:** **`TdStil` führt die Schriftgrößen in Punkt, `TextStyles` in geräteunabhängigen Pixeln** — dieselben Zahlen, **4:3 auseinander**. „Überschrift 1" ist im Linux-Kopf 28 pt, im WPF-Kopf 28 px ≈ 21 pt; `TdStil.KoerperPt` ist 15, `TdCharFormat.Standard.FontSize` ist 11. **`VorlagentabelleTests` ist grün, weil er die Zahlen vergleicht und nicht die Größen** — und sein eigener Kommentar nennt genau den Zustand, den er verhindern sollte: „dasselbe Dokument in zwei Schriftbildern, je nachdem, welcher Kopf die Überschrift gesetzt hat". Die Zeile „bei 96 dpi ist beides dieselbe Zahl" über den Abständen ist die Stelle, an der die Verwechslung festgeschrieben wurde — 1 pt sind bei 96 dpi **1,333** px. **Es ist auch der Grund, warum die dritte Lücke so hart zuschlägt:** `TextStyles.HeadingLevel` misst 37,33 px gegen seine eigene 28 und erkennt eine Überschrift aus dem Linux-Kopf deshalb **nie** wieder. **Nicht behoben, und mit Absicht nicht** — es ändert die Schriftgröße jeder Überschrift in jedem Bestandsdokument, und in welche Richtung ist eine Entscheidung des Nutzers (§5 „Noch offen" **13**). **Am laufenden Programm ist nichts geprüft worden, und das ist hier richtig:** Die Führung ist unverändert, auf dem Schirm gibt es nichts zu sehen, was vorher anders war — sichtbar wird das alles erst mit Schritt 7, **und dann ist die Gegenprobe in beiden Köpfen fällig** (§4.37 hat gezeigt, was nur der Schirm liefert). ▶ **Zwei Entscheidungen stehen an** (§5 Nr. 12 und 13), **danach Schritt 7** (§5e). **Der Laptop ist nicht dran** |
 | V2-62 | 2026-08-19 | **Der Tastenweg auf dem Gerät gemessen — der Druck kommt an, und das Phantom ist keines** (§4.44 „Was der Laptop gefunden hat"; **kein Produktivcode angefasst**, Bau 0/0, **789/789 grün** in `tests/GonkNote.Core.Tests`). Die zwei Aufträge aus §5d (V2-61) abgearbeitet, **von Hand getippt**, mit `xtrace` (X11-Protokoll), `xev` und `dbus-monitor` nebeneinander. **Die Antwort in einem Satz: die Leitspur aus §4.44 ist widerlegt — der Druck der toten Taste erreicht den X11-Client, und das `keycode = 0` ist kein Phantom, sondern das Fahrzeug, mit dem die Eingabemethode das fertige Zeichen zurückgibt.** Auf GonkNotes Leitung liegen `KeyPress keycode 49` **3 mal** und `keycode 26` **5 mal**, je mit Loslassen; **ein `keycode 0` steht nirgends auf der Leitung** — weder bei GonkNote noch bei `xev` —, womit **XWayland und ein fremder `XSendEvent`-Client beide ausscheiden** (Ausgang 1, 3 und 4 der Auftragstabelle fallen, **Ausgang 2 ist gemessen: das Verschwinden sitzt im Prozess**). `XFilterEvent` **filtert sehr wohl** (`xev`: `True` auf der toten Taste) — auch das gegen die Herleitung in §4.44. **Der Bote:** libX11 verschluckt die beteiligten Drucke und legt das Ergebnis als `KeyPress` mit `keycode = 0` nach, `XmbLookupString` liefert dort `(c3 aa) "ê"`. **Mit `XMODIFIERS=@im=none` gegengeprüft** — Avalonias eigene Einstellung —, identisches Bild, **4 mal `ecircumflex`**: **der Zusammensetzer ist Xlibs lokale Eingabemethode**, nicht `ibus-x11` und nicht IBus. **Damit schließt sich die Kette aus §4.44:** Avalonia lässt filtern, holt aber nie ab — `HandleKeyEvent` bestimmt den Keysym über `LookupKey(keycode)`, bei `keycode = 0` kommt 0 heraus, und `ProcessKeyEvent(0,0,0)` wird von IBus mit `true` beantwortet. **Am dbus bestätigt** (`InputContext_21`, Client `Avalonia Application`): für die tote Taste nur `LOSLASSEN` plus `DRUCK 0/0/0`, während `a` und ein **einzeln** getipptes `e` mit Druck und Loslassen sauber durchgehen — **nur wer an einer Zusammensetzung teilnimmt, verliert seinen Druck.** **Zwei alte Fragen fallen als Nebenprodukt:** warum Umlaute heil sind (einzelnes Keysym, `XFilterEvent` gibt `False`) und warum es vor V2-54 lief (ohne Eingabeziel wertete der Kopf das rohe Ereignis selbst aus und fragte IBus gar nicht). **§5 „Noch offen" 11 ist aufgeklärt** und wartet nur noch auf eine **Entscheidung des Nutzers** (umgehen / melden / stehen lassen) — **keine davon blockiert Schritt 7**, der damit dran ist (§5e). **Zwei Werkzeugfunde:** `xtrace` gibt es auf Arch/CachyOS **nicht als Paket** — `/usr/bin/xtrace` ist **glibcs** Bibliotheks-Tracer, der X11-Tracer liegt nur im AUR und heißt dort wegen genau dieses Konflikts **`x11trace`** (hier aus der Debian-Quelle nach `/tmp` gebaut; ohne eigenes Präfix findet er seine `.proto`-Dateien nicht, und `-n` ist unter Wayland Pflicht) — und **`setxkbmap -query` lügt unter XWayland** (`layout: us`, ebenso `_XKB_RULES_NAMES`, während `xkbcomp` `pc_de_de_2_inet(evdev)` mit `key <TLDE> = dead_circumflex` zeigt): **genau die Auskunft, die AvaloniaUI/Avalonia#18596 als Erstes sehen wollte, hätte in die Irre geführt** |

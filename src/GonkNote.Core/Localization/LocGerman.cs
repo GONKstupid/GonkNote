@@ -460,6 +460,9 @@ internal static class LocGerman
             "Format übernommen — anzeigen lässt es sich hier deshalb noch nicht. " +
             "Der Inhalt ist unverändert gespeichert. Einmal in der Windows-Fassung öffnen " +
             "und speichern, danach steht es auch hier.",
+        // Steht im WPF-Editor in einem Inhaltsverzeichnis ohne Überschriften — sonst
+        // hätte der Behälter keine Höhe und das Feld wäre da, aber unauffindbar (§4.49).
+        ["Td.Toc.Empty"] = "Inhaltsverzeichnis — noch keine Überschriften im Dokument",
         ["Ed.ViewOnly"] = "Nur Ansicht",
         ["Ed.ViewOnly.Tip"] =
             "Der Linux-Kopf zeigt das Dokument, geschrieben wird bis auf Weiteres in der " +

@@ -445,6 +445,9 @@ internal static class LocEnglish
             "built-in format yet, so it cannot be shown here. Its contents are stored " +
             "unchanged. Open and save it once in the Windows edition and it will appear here " +
             "as well.",
+        // Shown inside a table of contents with no headings yet — otherwise the
+        // container would have no height and the field would be there but unfindable.
+        ["Td.Toc.Empty"] = "Table of contents — no headings in this document yet",
         ["Ed.ViewOnly"] = "View only",
         ["Ed.ViewOnly.Tip"] =
             "The Linux edition shows the document; writing happens in the Windows edition " +

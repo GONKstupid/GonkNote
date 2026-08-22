@@ -292,15 +292,64 @@ public static class TdZuFlow
             yield break;
         }
 
+        yield return VerzeichnisUmwandeln(feld, zustand);
+    }
+
+    /// <summary>
+    /// <b>Das Inhaltsverzeichnis als <see cref="BlockUIContainer"/> mit dem Feld als Auflage</b>
+    /// (HANDOFF §4.49).
+    ///
+    /// <para>
+    /// <b>Warum es einen Träger auf Blockebene braucht und nicht denselben wie die anderen
+    /// Felder:</b> Ein Verzeichnis steht nicht <i>in</i> einer Zeile, es <i>ist</i> mehrere.
+    /// Bis §4.49 wurde es hier in gewöhnliche Absätze aufgefaltet — sichtbar richtig, und auf
+    /// dem Rückweg **eingefrorener Text**: `FlowZuTd` erkannte sie nur wieder, wenn ein Absatz
+    /// mit dem Wort „Inhaltsverzeichnis" davorstand, den der WPF-Editor selbst erzeugt, der
+    /// Linux-Kopf aber nie. **Ein im Linux-Kopf eingefügtes Verzeichnis überlebte das erste
+    /// Speichern unter Windows nicht** — gemessen, §4.49.
+    /// </para>
+    /// <para>
+    /// <b>Und der Behälter ist nicht nur sicher, sondern richtig:</b> Die Einträge sind
+    /// <i>gerechnet</i> (§4.20) — sie gehören dem Feld und nicht dem Nutzer. Dass sich nicht
+    /// mehr hineinschreiben lässt, ist die Wahrheit über ein Verzeichnis; vorher konnte man
+    /// einen Eintrag ändern, und beim nächsten Umbruch war die Änderung weg oder, schlimmer,
+    /// sie blieb und stimmte nicht mehr.
+    /// </para>
+    /// </summary>
+    private static BlockUIContainer VerzeichnisUmwandeln(TdField feld, Zustand zustand)
+    {
+        var grund = zustand.Doc.DefaultCharFormat.Aufgeloest();
+        var liste = new StackPanel();
+
         foreach (var eintrag in TdToc.Eintraege(zustand.Doc, null, feld.Argument))
         {
-            yield return new Paragraph(new Run(eintrag.Text))
+            liste.Children.Add(new TextBlock
             {
+                Text = eintrag.Text,
+                FontFamily = new FontFamily(grund.FontFamily!),
                 FontSize = TextStyles.TocEntrySize,
                 FontWeight = eintrag.Level == 1 ? FontWeights.SemiBold : FontWeights.Normal,
+                Foreground = new SolidColorBrush(TextStyles.InkLight),
                 Margin = new Thickness((eintrag.Level - 1) * 18, 0, 0, 2),
-            };
+            });
         }
+
+        // **Ein leeres Verzeichnis bleibt sichtbar.** Ohne Überschriften im Dokument hätte der
+        // Behälter keine Höhe — das Feld wäre da, aber unauffindbar, und der Nutzer hielte es
+        // für nicht eingefügt.
+        if (liste.Children.Count == 0)
+        {
+            liste.Children.Add(new TextBlock
+            {
+                Text = Loc.T("Td.Toc.Empty"),
+                FontFamily = new FontFamily(grund.FontFamily!),
+                FontSize = TextStyles.TocEntrySize,
+                FontStyle = FontStyles.Italic,
+                Foreground = new SolidColorBrush(Colors.Gray),
+            });
+        }
+
+        return new BlockUIContainer(liste) { Tag = feld };
     }
 
     private static Paragraph AbsatzUmwandeln(TdParagraph p, Zustand zustand)
@@ -542,16 +591,13 @@ public static class TdZuFlow
                 ziel.Add(new InlineUIContainer(element));
                 break;
 
-            // Ein Feld hat im Editor kein Gegenstück. Sein Platzhalter ist das, was der Editor
-            // an dieser Stelle ohnehin zeigt — und was FlowZuTd nicht wieder zu einem Feld
-            // macht: das kann erst der Editor, der Felder kennt.
+            // **Ein Feld reist als Auflage mit** (§4.49). Bis dahin stand hier ein gewöhnlicher
+            // `Run` mit dem Platzhaltertext — und FlowZuTd machte daraus keinen Feld mehr,
+            // sondern Text. **Aus einer Seitenzahl, die sich rechnet, wurde Text, der
+            // stehenbleibt**, und zwar bei jedem Speichern im WPF-Editor.
             case TdField feld when TdField.PlatzhalterVonArt(feld.Kind) is { } platzhalter:
-            {
-                var run = new Run(platzhalter);
-                ZeichenformatSetzen(run, feld.Format);
-                ziel.Add(run);
+                ziel.Add(FeldUmwandeln(feld, platzhalter, zustand));
                 break;
-            }
         }
     }
 
@@ -561,6 +607,57 @@ public static class TdZuFlow
     /// <b>Fehlt der Blob, fällt dieses eine Bild weg</b> und nicht das Dokument: das ist eine
     /// unvollständige Sicherung und kein Programmierfehler (Dauerregel 4).
     /// </summary>
+    /// <summary>
+    /// <b>Ein Feld als <see cref="InlineUIContainer"/> mit dem Feld selbst als Auflage</b>
+    /// (HANDOFF §4.49).
+    ///
+    /// <para>
+    /// <b>Warum genau hier und nirgends sonst.</b> Am 2026-08-22 gemessen (§4.47): WPF
+    /// <b>kopiert</b> ein <c>Tag</c> beim Teilen eines Absatzes <i>und</i> eines Laufs auf
+    /// <b>beide</b> Hälften. Ein Träger dort wäre nach <b>einem</b> Tastendruck in der Mitte
+    /// doppelt vorhanden — aus einer Seitenzahl würden zwei. <b>Das wäre schlimmer als die
+    /// Lücke, die er schließen soll:</b> Was verschwindet, sieht man; was sich verdoppelt,
+    /// merkt man erst, wenn die Zahlen nicht mehr stimmen. <b>Ein
+    /// <see cref="InlineUIContainer"/> ist unteilbar</b> — und er ist derselbe Ort, an dem
+    /// <c>DocumentImages</c> seinen Blob-Verweis seit jeher führt.
+    /// </para>
+    /// <para>
+    /// <b>Und er ist nicht nur der sichere, sondern der richtige Ort:</b> Ein Feld ist kein
+    /// Text, sondern eine Stelle, an der etwas <i>gerechnet</i> wird. Dass der Nutzer nicht
+    /// hineintippen kann, ist keine Einschränkung des Trägers, sondern die Wahrheit über das
+    /// Feld — vorher konnte er das <c>{SEITE}</c> zu <c>{SEIT}</c> machen, und niemand hat es
+    /// gemerkt.
+    /// </para>
+    /// <para>
+    /// <b>Die Schrift muss von Hand gesetzt werden</b>, und das ist der Preis: Ein
+    /// <see cref="UIElement"/> erbt keine <c>TextElement</c>-Eigenschaften. Ohne das stünde das
+    /// Feld in der Vorgabeschrift des Steuerelements mitten in einem Absatz in Source Sans —
+    /// sichtbar falsch, und zwar genau an der Stelle, auf die jemand schaut.
+    /// </para>
+    /// </summary>
+    private static InlineUIContainer FeldUmwandeln(TdField feld, string platzhalter, Zustand zustand)
+    {
+        var auf = feld.Format.Over(zustand.Doc.DefaultCharFormat).Aufgeloest();
+
+        var anzeige = new TextBlock
+        {
+            Text = platzhalter,
+            FontFamily = new FontFamily(auf.FontFamily!),
+            FontSize = PxAusPt(auf.FontSize!.Value),
+            FontWeight = auf.Bold == true ? FontWeights.Bold : FontWeights.Normal,
+            FontStyle = auf.Italic == true ? FontStyles.Italic : FontStyles.Normal,
+            Foreground = new SolidColorBrush(Farbe(auf.Color) ?? Colors.Black),
+        };
+
+        // `Baseline` und nicht die Vorgabe `Bottom`: Sonst hinge das Feld unter der Zeile und
+        // schöbe sie auseinander — sichtbar bei jeder Seitenzahl mitten im Satz.
+        return new InlineUIContainer(anzeige)
+        {
+            Tag = feld,
+            BaselineAlignment = BaselineAlignment.Baseline,
+        };
+    }
+
     private static Image? BildUmwandeln(TdImage bild, Zustand zustand)
     {
         if (zustand.Blobs.Read(bild.BlobId) is not { } bytes) return null;

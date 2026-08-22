@@ -221,16 +221,63 @@ public sealed class RundreiseTests
     });
 
     /// <summary>
-    /// <b>⚠ Benannte Lücke 2: ein Feld wird zu seinem Platzhaltertext.</b> Der Editor kennt
-    /// keine Felder, also steht dort <c>{SEITE}</c> als gewöhnlicher Text — und genau als
-    /// solcher kommt es zurück. <b>Aus einer Seitenzahl, die sich rechnet, wird Text, der
-    /// stehenbleibt.</b>
-    /// <inheritdoc cref="Noch_offen_Ein_Diagramm_geht_auf_der_Rundreise_verloren" path="/summary/para[2]"/>
+    /// <b>✅ Jede Feldart überlebt die Rundreise — seit §4.49.</b>
+    ///
+    /// <para>
+    /// <b>Hier stand die zweite benannte Lücke</b>, und sie war die einzige, die ein Nutzer
+    /// heute wirklich auslösen konnte: Der Linux-Kopf kann alle fünf Feldarten einfügen. Ein
+    /// Feld wurde beim Weg durch den WPF-Editor zu einem gewöhnlichen <c>Run</c> mit seinem
+    /// Platzhaltertext — <b>aus einer Seitenzahl, die sich rechnet, wurde Text, der
+    /// stehenbleibt</b>, still und dauerhaft.
+    /// </para>
+    /// <para>
+    /// <b>Alle fünf Arten, und nicht nur eine.</b> Der frühere Wächter prüfte
+    /// <c>PageNumber</c>; gemessen wurde erst beim Bauen, dass <c>TableOfContents</c> einen
+    /// **anderen** Weg nimmt (Blockebene statt Stück) und deshalb auch einen anderen Träger
+    /// braucht. Ein Wächter über eine Art hätte die vier anderen nicht gedeckt.
+    /// </para>
+    /// </summary>
+    [Theory]
+    [InlineData(TdFieldKind.PageNumber)]
+    [InlineData(TdFieldKind.PageCount)]
+    [InlineData(TdFieldKind.Date)]
+    [InlineData(TdFieldKind.Title)]
+    [InlineData(TdFieldKind.TableOfContents)]
+    public void Ein_Feld_ueberlebt_die_Rundreise(TdFieldKind art) => Sta.Run(() =>
+    {
+        using var werkbank = new Referenzdokument.Werkbank($"rundreise-feld-{art}");
+
+        var quelle = Eingeboren();
+
+        // Eine Überschrift, damit ein Inhaltsverzeichnis überhaupt Einträge hätte — sonst
+        // prüfte der Fall nur den leeren Behälter.
+        var h1 = new TdParagraph("Kapitel eins");
+        h1.Format.OutlineLevel = 1;
+        h1.CharFormat.Bold = true;
+        h1.CharFormat.FontSize = TdStil.ZurEbene(1)!.Value.SizePt;
+        quelle.Sections[0].Blocks.Insert(0, h1);
+
+        quelle.Sections[0].Blocks.Add(new TdParagraph(new TdInline[]
+        {
+            new TdField { Kind = art },
+        }));
+
+        var felder = Rundreise(quelle, werkbank).Blocks()
+            .OfType<TdParagraph>().SelectMany(p => p.Inlines).OfType<TdField>().ToList();
+
+        var feld = Assert.Single(felder);
+        Assert.Equal(art, feld.Kind);
+    });
+
+    /// <summary>
+    /// <b>Und der Platzhaltertext bleibt nicht als Text zurück.</b> Die andere Hälfte des
+    /// Wächters darüber: Käme das Feld <i>und</i> sein <c>{SEITE}</c> zurück, stünde die
+    /// Seitenzahl zweimal da — einmal gerechnet und einmal eingefroren.
     /// </summary>
     [Fact]
-    public void Noch_offen_Ein_Feld_wird_zu_Text() => Sta.Run(() =>
+    public void Der_Platzhalter_bleibt_nicht_als_Text_stehen() => Sta.Run(() =>
     {
-        using var werkbank = new Referenzdokument.Werkbank("rundreise-feld");
+        using var werkbank = new Referenzdokument.Werkbank("rundreise-feld-text");
 
         var quelle = Eingeboren();
         quelle.Sections[0].Blocks.Add(new TdParagraph(new TdInline[]
@@ -238,11 +285,9 @@ public sealed class RundreiseTests
             new TdField { Kind = TdFieldKind.PageNumber },
         }));
 
-        var stuecke = Rundreise(quelle, werkbank).Blocks()
-            .OfType<TdParagraph>().SelectMany(p => p.Inlines).ToList();
+        string text = TdMarkdown.Schreiben(Rundreise(quelle, werkbank));
 
-        Assert.Empty(stuecke.OfType<TdField>());
-        Assert.Contains(stuecke.OfType<TdRun>(), r => r.Text.Contains("{SEITE}"));
+        Assert.DoesNotContain("{SEITE}", text);
     });
 
     /// <summary>

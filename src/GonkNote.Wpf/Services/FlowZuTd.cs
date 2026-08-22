@@ -191,6 +191,20 @@ public static class FlowZuTd
                 break;
             }
 
+            // **Der Behälter mit Auflage steht vor allem anderen** (§4.49): Ein
+            // `BlockUIContainer`, der ein Feld trägt, *ist* das Feld — das Verzeichnis darin
+            // ist nur seine Anzeige und gehört dem Feld, nicht dem Nutzer (§4.20).
+            case BlockUIContainer behaelter when behaelter.Tag is TdField feld:
+                zustand.ImVerzeichnis = false;
+                ziel.Add(new TdParagraph([
+                    new TdField(feld.Kind)
+                    {
+                        Argument = feld.Argument,
+                        Format = feld.Format.Kopie(),
+                    },
+                ]));
+                break;
+
             case Section s:
                 // Ein `Section` im FlowDocument ist eine bloße Klammer und keine
                 // Seiteneinrichtung — es gibt im Altformat nur **eine** davon (§4.15).
@@ -620,12 +634,32 @@ public static class FlowZuTd
                     break;
 
                 case InlineUIContainer behaelter:
+                {
+                    // **Die Auflage steht vor dem Inhalt** (§4.49): Ein Behälter, der ein Feld
+                    // trägt, *ist* das Feld — was darin steht, ist nur seine Anzeige. Wer erst
+                    // den Inhalt ansieht, findet dort einen `TextBlock` und keine Grafik, und
+                    // das Feld fiele still heraus.
+                    if (behaelter.Tag is TdField feld)
+                    {
+                        // **Kopiert und nicht durchgereicht.** Dasselbe Feld läge sonst im
+                        // alten und im neuen Modell — und §4.32 verlangt, dass Stücke ersetzt
+                        // und nicht verändert werden, sonst ändert ein späterer Griff die
+                        // Sicherung des Verlaufs mit.
+                        ziel.Add(new TdField(feld.Kind)
+                        {
+                            Argument = feld.Argument,
+                            Format = feld.Format.Kopie(),
+                        });
+                        break;
+                    }
+
                     if (GrafikAus(behaelter.Child, zustand) is { } grafik)
                     {
                         grafik.Format = geerbt.Kopie();
                         ziel.Add(grafik);
                     }
                     break;
+                }
             }
         }
     }

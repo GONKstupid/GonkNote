@@ -7868,10 +7868,17 @@ dotnet run --project src/GonkNote.Avalonia -- --db /tmp/gonk-test/gonknote.sqlit
 Du laeufst auf dem Windows-Rechner. Das Repo liegt in C:\Dev\Zed\gonk-note-V2.
 
 Lies dort HANDOFF.md, Abschnitt 5e ("Auftrag fuer den Windows-Rechner").
-Die Schritte 1 bis 6 des Schreibens stehen, dazu die Gruppen A und B und
-Schritt 6a (Eingabe-Naht, §4.41) und Schritt 6b (Preedit, §4.43). Die zwei
-Entscheidungen aus §5 "Noch offen" 9 und 10 sind gefallen -- nicht noch
-einmal fragen.
+
+DAS SCHREIBEN IST FERTIG -- Schritte 1 bis 7 stehen, dazu die Gruppen A
+und B, die Eingabe-Naht (6a, §4.41), Preedit (6b, §4.43), die dichte
+Rundreise (6c, §4.45), die Schriftgroessen (6d, §4.46) und der Ladeweg
+(6e, §4.47). SCHRITT 7 IST GEFAHREN (§4.48, V2-66): Rtf fuehrt nicht
+mehr, der WPF-Editor liest UND schreibt das Modell.
+
+ALLE ENTSCHEIDUNGEN AUS §5 "Noch offen" 9, 10, 11, 12 UND 13 SIND
+GEFALLEN -- NICHT NOCH EINMAL FRAGEN. Offen sind nur 3 (PDF-Groesse),
+6 (Wortzwischenraum), 10 (Bildschirmtastatur, X11-Sache) und 14 (die
+Schriftliste des WPF-Kopfs).
 
 Zieh zuerst den Stand: git pull. Dann bauen und testen, bevor du etwas
 anfasst -- 0 Fehler, 0 Warnungen, 837 Tests.
@@ -7919,10 +7926,11 @@ EINMAL FRAGEN. Daraus stehen DREI RUNDEN in dieser Reihenfolge:
      RundreiseTests UMDREHEN, die den Verlust heute festhalten.
      Gegenprobe in BEIDEN Koepfen (Dauerregel 4).
 
-DIE LEHRE AUS RUNDE (1), UND SIE GILT FUER (2) GENAUSO: Eine
+DIE LEHRE AUS (1) UND (2), UND SIE GILT FUER (4) GENAUSO: Eine
 Entscheidung, die auf einer UNGEPRUEFTEN DEUTUNG des Befunds steht, ist
-selbst ungeprueft -- auch dann, wenn der Befund stimmt. Erst messen,
-dann bauen.
+selbst ungeprueft -- auch dann, wenn der Befund stimmt. Beide Runden
+haben ihren Entwurf beim Messen verloren, und beide Male war der Befund
+richtig und die Erklaerung dazu falsch. ERST MESSEN, DANN BAUEN.
 
 Die Tastenweg-Frage aus §5 "Noch offen" 11 ist ABGESCHLOSSEN und
 BEANTWORTET (§4.44, V2-61 und V2-62) -- sie blockiert nichts mehr;
@@ -7935,18 +7943,23 @@ ein Phantom gibt es nicht, unser Kopf ist es nicht. Upstream ist
 AvaloniaUI/Avalonia#18596 genau dieses Symptom -- geschlossen ohne Fix.
 §5d traegt keinen Auftrag mehr, der Laptop ist NICHT dran.
 
-DANACH SCHRITT 7, "Rtf verliert die Fuehrung" (§6): der eigentliche
-Zweck des ganzen Wegs und der Schritt, bei dem am meisten schiefgehen
-kann. Fund 2 aus §4.37 (der Weg durch den WPF-Editor setzt den Absatz
-auf Blocksatz) ist mit §4.45 an seiner Wurzel behoben und steht nicht
-mehr aus.
+NACH (4) IST PHASE 4.5 DRAN (§6): die fehlenden Werkzeuge des
+Linux-Kopfs. Die Schaetzung dafuer (5-8 Wochen) ist hergeleitet und
+NICHT gemessen und wartet auf ein Ja des Nutzers.
 
-Lies dazu §4.45 (die Rundreise -- was sie verlor, was behoben ist und
-welche drei Luecken bleiben), §4.22 und §4.23 (warum Rtf fuehrt und was
-Migrate bei jedem Speichern tut), §4.28 (wie der Kopf gebaut ist) und
-§4.44 (der Tastenweg, abgeschlossen), dazu §7 -- vor allem den Abschnitt
-"Die Naht zwischen Modell und FlowDocument" -- und die Fallen am Ende
-von §6.
+Lies in dieser Reihenfolge: §4.48 (Schritt 7 -- wer jetzt fuehrt und
+warum Migrate nur noch einmal laeuft), §4.47 (der Ladeweg und die
+Traeger-Messung -- die Grundlage fuer (4)), §4.45 (die Rundreise: was
+sie verlor, was behoben ist, welche ZWEI Luecken bleiben), §4.22 (die
+Uebernahme und warum Rtf nie ueberschrieben wird) und §4.28 (wie der
+Linux-Kopf gebaut ist). Dazu §7 -- vor allem "Die Naht zwischen Modell
+und FlowDocument" -- und die Fallen am Ende von §6.
+
+ACHTUNG BEIM LESEN AELTERER ABSCHNITTE: §4.23 sagt, Migrate laufe bei
+JEDEM Speichern, und §5 Nr. 9 nennt Antwort (d) ausdruecklich falsch.
+Beides galt, solange Rtf fuehrte; seit §4.48 gilt das Gegenteil. Die
+Abschnitte sind Chronik und nicht Vorschrift -- was gilt, steht in §5e
+und im obersten Chronik-Eintrag.
 
 Arbeite auf Deutsch, halte das HANDOFF nach, und sag mir am Ende, ob der
 Laptop dran ist.

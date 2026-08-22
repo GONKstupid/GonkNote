@@ -131,6 +131,9 @@ public sealed class TdChartSeries
         Name = name;
         Values.AddRange(werte);
     }
+
+    /// <summary>Eine eigenständige Reihe mit denselben Werten — <b>eine eigene Liste</b>.</summary>
+    public TdChartSeries Kopie() => new(Name) { Values = [.. Values] };
 }
 
 /// <summary>
@@ -254,4 +257,35 @@ public sealed class TdChart : TdGraphic
 
     /// <summary>Die längste Reihe — so viele Kategorien braucht das Diagramm.</summary>
     public int Punktzahl() => Series.Count == 0 ? 0 : Series.Max(r => r.Values.Count);
+
+    /// <summary>
+    /// <b>Ein eigenständiges Diagramm mit demselben Inhalt</b> (HANDOFF §4.50).
+    ///
+    /// <para>
+    /// <b>Wozu:</b> Ein Diagramm reist durch den WPF-Editor als Auflage an seinem Träger
+    /// (§4.49). Auf dem Rückweg darf <b>nicht dasselbe Objekt</b> ins neue Modell wandern —
+    /// es läge sonst im alten und im neuen zugleich, und §4.32 verlangt, dass Stücke
+    /// <b>ersetzt</b> und nicht verändert werden: Ein späterer Griff änderte sonst die
+    /// Sicherung des Verlaufs mit.
+    /// </para>
+    /// <para>
+    /// <b>Die Listen werden mitkopiert und nicht geteilt.</b> Eine geteilte
+    /// <see cref="Series"/>-Liste wäre genau derselbe Fehler eine Ebene tiefer, und er fiele
+    /// erst auf, wenn jemand rückgängig macht.
+    /// </para>
+    /// <para>
+    /// <b>Diese Methode ist die Stelle, an der eine neue Eigenschaft vergessen werden kann</b>
+    /// — deshalb hält der Wächter <c>Die_Kopie_eines_Diagramms_ist_gleich</c> sie gegen die
+    /// gespeicherte Fassung und nicht gegen eine Aufzählung von Hand.
+    /// </para>
+    /// </summary>
+    public TdChart Kopie() => new(Kind, WidthCm, HeightCm)
+    {
+        Title = Title,
+        AltText = AltText,
+        Format = Format.Kopie(),
+        Categories = [.. Categories],
+        Palette = [.. Palette],
+        Series = [.. Series.Select(reihe => reihe.Kopie())],
+    };
 }

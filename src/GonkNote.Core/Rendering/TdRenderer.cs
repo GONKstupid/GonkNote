@@ -375,14 +375,53 @@ public static class TdRenderer
             Px(grafik.HeightCm, massstab));
 
         if (grafik is TdImage bild && BildZeichnen(leinwand, bild, kasten, kontext)) return;
-        if (grafik is TdChart diagramm && DiagrammZeichnen(leinwand, diagramm, kasten, massstab)) return;
 
-        // **Der benannte Platzhalter.** Für ein Bild bedeutet er „der Blob fehlt" — eine
-        // unvollständige Sicherung und kein Programmierfehler (Dauerregel 4). Für ein Diagramm
-        // heißt er: aus diesen Zahlen gibt es kein Bild (keine Reihen, ein Kuchen aus lauter
-        // Nullen, ein Netz mit zwei Kategorien — <see cref="TdChartPlan.IstLeer"/>). Beides sieht
-        // man dem Kasten an, und beides wäre als Leerstelle nicht zu bemerken.
+        // **Ein Diagramm geht über den öffentlichen Einstieg** und nicht direkt auf
+        // `DiagrammZeichnen`: Sonst stünde die Entscheidung „Bild oder Platzhalter" an zwei
+        // Stellen, und die Anzeige im Editor könnte still von der gedruckten Seite abweichen.
+        if (grafik is TdChart diagramm) { Diagramm(leinwand, diagramm, kasten, massstab); return; }
+
+        // **Der benannte Platzhalter** — hier nur noch für ein Bild, dessen Blob fehlt: eine
+        // unvollständige Sicherung und kein Programmierfehler (Dauerregel 4). Er wäre als
+        // Leerstelle nicht zu bemerken.
         PlatzhalterZeichnen(leinwand, kasten, Platzhaltertext(grafik), massstab);
+    }
+
+    /// <summary>
+    /// <b>Ein Diagramm in seinen Kasten — der öffentliche Einstieg</b> (HANDOFF §4.50).
+    ///
+    /// <para>
+    /// <b>Wozu er da ist:</b> Der WPF-Editor kennt keine Diagramme; er braucht ein <i>Bild</i>,
+    /// um eines anzuzeigen und als Träger durch die Rundreise zu bringen (§4.49). Bis hierher
+    /// war <c>DiagrammZeichnen</c> privat, und deshalb war die letzte Lücke aus §4.45 nicht zu
+    /// schließen: <b>Ein Diagramm verschwand beim Speichern im WPF-Editor ganz</b>, samt seiner
+    /// Zahlen.
+    /// </para>
+    /// <para>
+    /// <b>Er zeichnet und rechnet nicht, wie alles hier</b> (§4.24) — und er zeichnet
+    /// <i>immer</i> etwas: Gibt es aus den Zahlen kein Bild (keine Reihen, ein Kuchen aus
+    /// lauter Nullen, ein Netz mit zwei Kategorien — <see cref="TdChartPlan.IstLeer"/>), bleibt
+    /// der Platzhalterkasten stehen. <b>Ein Rückgabewert wäre hier die falsche Antwort:</b> Der
+    /// Aufrufer müsste den Platzhalter dann selbst nachbauen, und zwei Platzhalter sind zwei
+    /// Wahrheiten. Ein Kasten sagt „hier fehlt etwas", eine Leerstelle sagt „hier war nie
+    /// etwas" (§7).
+    /// </para>
+    /// </summary>
+    /// <param name="kasten">
+    /// Wohin, in Pixeln der Leinwand. Wer nur das Diagramm für sich zeichnet, nimmt
+    /// <c>SKRect.Create(0, 0, …)</c> aus <see cref="TdGraphic.WidthCm"/> und
+    /// <see cref="TdGraphic.HeightCm"/> mal <paramref name="massstab"/>.
+    /// </param>
+    /// <param name="massstab">
+    /// Pixel je Zentimeter — dieselbe Bedeutung wie bei <see cref="Seite"/>. Für eine Anzeige,
+    /// die auch beim Vergrößern scharf bleibt, steht hier ein Vielfaches von
+    /// <see cref="PixelProCm"/>.
+    /// </param>
+    public static void Diagramm(
+        SKCanvas leinwand, TdChart diagramm, SKRect kasten, double massstab = PixelProCm)
+    {
+        if (DiagrammZeichnen(leinwand, diagramm, kasten, massstab)) return;
+        PlatzhalterZeichnen(leinwand, kasten, Platzhaltertext(diagramm), massstab);
     }
 
     private static bool BildZeichnen(SKCanvas leinwand, TdImage bild, SKRect kasten, TdRenderContext kontext)

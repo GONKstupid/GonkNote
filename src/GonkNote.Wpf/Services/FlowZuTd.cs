@@ -653,6 +653,19 @@ public static class FlowZuTd
                         break;
                     }
 
+                    // **Und dasselbe für ein Diagramm** (§4.50) — mit einem Grund mehr, warum
+                    // die Auflage vorn steht: Darunter liegt ein `Image`, und `GrafikAus`
+                    // machte daraus ein `TdImage` samt einem **neuen Blob** (`Adopt`). Aus den
+                    // Zahlen würden Pixel, und zwar bei jedem Speichern eine Kopie mehr — genau
+                    // der Fehler, den §4.21 am alten Editor benannt hat.
+                    if (behaelter.Tag is TdChart diagramm)
+                    {
+                        var kopie = diagramm.Kopie();
+                        kopie.Format = geerbt.Kopie();
+                        ziel.Add(kopie);
+                        break;
+                    }
+
                     if (GrafikAus(behaelter.Child, zustand) is { } grafik)
                     {
                         grafik.Format = geerbt.Kopie();

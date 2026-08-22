@@ -1,10 +1,14 @@
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using GonkNote.Core.Models;
 using GonkNote.Core.Services;
+using GonkNote.Core.Rendering;
 using GonkNote.Core.Text;
+using SkiaSharp;
 
 namespace GonkNote.Services;
 
@@ -27,23 +31,29 @@ namespace GonkNote.Services;
 /// </para>
 ///
 /// <para>
-/// <b>Was dabei nicht ankommt, steht hier und nicht in einer stillen Lücke</b> (§7):
+/// <b>Hier standen bis §4.49 die zwei benannten Lücken aus §4.45 — beide sind zu:</b>
 /// </para>
 /// <list type="bullet">
 ///   <item>
-///     <b>Ein Diagramm.</b> Das <c>FlowDocument</c> kann nur Bilder, und aus einem
-///     <see cref="TdChart"/> ein Bild zu machen ist Sache des Zeichners („gezeichnet wird noch
-///     nichts", §4.21). Es überlebt im Modell bis zum nächsten Speichern — danach führt wieder
-///     <c>Rtf</c>. <b>Vorher ging es schon beim Import verloren</b>, der alte
-///     <c>DocxImporter</c> kannte <c>c:chart</c> gar nicht.
+///     <b>Ein Feld</b> reist seit §4.49 als <see cref="InlineUIContainer"/> mit dem
+///     <see cref="TdField"/> als <c>Tag</c>, das Inhaltsverzeichnis als
+///     <c>BlockUIContainer</c>. Vorher wurde es zu seinem Platzhaltertext (<c>{SEITE}</c> …)
+///     bzw. zu eingefrorenen Einträgen — <b>aus einer Stelle, an der gerechnet wird, wurde
+///     Text, der stehenblieb.</b>
 ///   </item>
 ///   <item>
-///     <b>Ein Feld</b> wird zu seinem Platzhaltertext (<c>{SEITE}</c> …) bzw. — beim
-///     Inhaltsverzeichnis — zu den gerechneten Einträgen, genau in der Form, in der der Editor
-///     sie selbst erzeugt. Der Editor kennt keine Felder; ein Platzhalter ist das, was er
-///     stattdessen zeigt.
+///     <b>Ein Diagramm</b> reist seit §4.50 auf demselben Träger, nur mit einem Bild statt
+///     eines <c>TextBlock</c> darin — gezeichnet von <see cref="TdRenderer.Diagramm"/>.
+///     Vorher gab es hier <b>gar keinen Zweig</b>: Es fiel still heraus und war nach dem
+///     ersten Speichern weg, samt seiner Zahlen.
 ///   </item>
 /// </list>
+/// <para>
+/// <b>Was der Editor weiterhin nicht kann, ist rechnen:</b> Er zeigt <c>{SEITE}</c> und ein
+/// Verzeichnis ohne Seitenzahlen, weil er keine Seiten umbricht. <b>Das ist keine Lücke im
+/// Weg hierher</b> — im Modell steht das Feld, und der Linux-Kopf rechnet es wieder aus
+/// (am laufenden Programm belegt, §4.49).
+/// </para>
 /// </summary>
 public static class TdZuFlow
 {
@@ -97,6 +107,13 @@ public static class TdZuFlow
 
     private static double Px(double cm) => cm * PixelProCm;
     private static double PxAusPt(double pt) => pt * PixelProPunkt;
+
+    /// <summary>
+    /// Wie fein ein Diagramm gerastert wird — Vielfaches der Anzeigegröße (§4.50). Zwei ist
+    /// derselbe Wert, mit dem der PNG-Export rastert (<c>PdfExporter</c>), und der Grund ist
+    /// dort wie hier derselbe: Strichzeichnung mit Beschriftung.
+    /// </summary>
+    private const double Feinheit = 2.0;
 
     /// <summary>
     /// Wandelt Inhalt **und** Seiteneinrichtung um.
@@ -591,6 +608,13 @@ public static class TdZuFlow
                 ziel.Add(new InlineUIContainer(element));
                 break;
 
+            // **Ein Diagramm reist wie ein Feld als Auflage mit** (§4.50). Bis dahin stand hier
+            // gar kein Zweig: Ein Diagramm fiel beim Umwandeln **still heraus** und war nach
+            // dem ersten Speichern im WPF-Editor weg — samt seiner Zahlen (§4.45).
+            case TdChart diagramm:
+                ziel.Add(new InlineUIContainer(DiagrammUmwandeln(diagramm)) { Tag = diagramm });
+                break;
+
             // **Ein Feld reist als Auflage mit** (§4.49). Bis dahin stand hier ein gewöhnlicher
             // `Run` mit dem Platzhaltertext — und FlowZuTd machte daraus keinen Feld mehr,
             // sondern Text. **Aus einer Seitenzahl, die sich rechnet, wurde Text, der
@@ -678,6 +702,71 @@ public static class TdZuFlow
         // wäre dasselbe Bild ein zweites Mal im Speicher.
         element.Tag = new BlobRef(bild.BlobId, bild.Extension);
         return element;
+    }
+
+    /// <summary>
+    /// <b>Ein Diagramm als Bild</b> (HANDOFF §4.50) — gezeichnet von
+    /// <see cref="TdRenderer.Diagramm"/>, also von **demselben** Zeichner, der die Seite und
+    /// das PDF malt.
+    ///
+    /// <para>
+    /// <b>Das Bild ist die Anzeige und nicht der Inhalt.</b> Der Inhalt sind die Zahlen, und
+    /// die reisen als <c>Tag</c> am <see cref="InlineUIContainer"/> mit (§4.49). Wer das
+    /// verwechselt, baut den Fehler nach, der §4.21 benannt hat: Der frühere Editor rasterte
+    /// ein Diagramm beim Einfügen zu einer Bitmap und **warf die Zahlen weg** — aus einem
+    /// Pixelbild lassen sie sich nicht zurückholen.
+    /// </para>
+    /// <para>
+    /// <b>Warum <see cref="Feinheit"/> und nicht 1:1:</b> Ein Diagramm ist Strichzeichnung mit
+    /// Beschriftung. Bei einfacher Auflösung sähe es beim Vergrößern des Editors ausgefranst
+    /// aus — und zwar genau dann, wenn jemand hinschaut, weil ihm etwas daran auffiel.
+    /// </para>
+    /// <para>
+    /// <b>Es gibt keinen Rückgabewert <c>null</c></b>, anders als bei
+    /// <see cref="BildUmwandeln"/>: Ein Bild ohne Blob ist eine unvollständige Sicherung, ein
+    /// Diagramm dagegen trägt seine Zahlen bei sich. Gibt es aus ihnen kein Bild, zeichnet der
+    /// Zeichner selbst den Platzhalterkasten — <b>ein Diagramm darf nicht verschwinden, nur
+    /// weil es gerade nichts darzustellen hat.</b>
+    /// </para>
+    /// </summary>
+    private static Image DiagrammUmwandeln(TdChart diagramm)
+    {
+        double breite = Px(diagramm.WidthCm);
+        double hoehe = Px(diagramm.HeightCm);
+
+        var info = new SKImageInfo(
+            Math.Max(1, (int)Math.Round(breite * Feinheit)),
+            Math.Max(1, (int)Math.Round(hoehe * Feinheit)));
+
+        using var flaeche = SKSurface.Create(info);
+        // Der Kasten ist die ganze Fläche; der Maßstab ist die Bildschirmvorgabe mal Feinheit,
+        // damit Linienstärken und Beschriftung mitwachsen (TdRenderer rechnet aus Zentimetern).
+        TdRenderer.Diagramm(
+            flaeche.Canvas, diagramm,
+            SKRect.Create(0, 0, info.Width, info.Height),
+            TdRenderer.PixelProCm * Feinheit);
+
+        using var abbild = flaeche.Snapshot();
+        using var daten = abbild.Encode(SKEncodedImageFormat.Png, 100);
+
+        var quelle = new BitmapImage();
+        quelle.BeginInit();
+        quelle.CacheOption = BitmapCacheOption.OnLoad;
+        quelle.StreamSource = new MemoryStream(daten.ToArray());
+        quelle.EndInit();
+        quelle.Freeze();
+
+        return new Image
+        {
+            Source = quelle,
+            Width = breite,
+            Height = hoehe,
+            Stretch = Stretch.Uniform,
+        };
+        // **Kein `Tag`**, und das ist der Unterschied zu einem Bild: Ein `BlobRef` hier hieße
+        // „diese Pixel gehören in den Blob-Speicher" — `DocumentImages.UsedBlobs` und
+        // `Adopt` gehen genau danach. Die gerechnete Anzeige eines Diagramms gehört dort
+        // nicht hin; sie entsteht bei jedem Laden neu.
     }
 
     /// <summary>„#RRGGBB" als Farbe — oder <c>null</c>, wenn dort nichts Brauchbares steht.</summary>

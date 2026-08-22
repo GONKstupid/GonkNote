@@ -25,7 +25,10 @@ namespace GonkNote.Wpf.Tests;
 /// </para>
 /// <para>
 /// <b>Die drei benannten Lücken stehen am Ende dieser Datei</b> — als Wächter und nicht als
-/// Fußnote, damit sie nicht still verschwinden (§4.19).
+/// Fußnote, damit sie nicht still verschwinden (§4.19). <b>Alle drei sind inzwischen zu:</b>
+/// die Gliederungsebene nebenbei (§4.46), das Feld in §4.49, das Diagramm in §4.50. <b>Die
+/// Wächter sind umgedreht und nicht gelöscht</b> — sie sind jetzt die Stelle, an der es
+/// auffiele, wenn eine Lücke zurückkäme.
 /// </para>
 /// </summary>
 public sealed class RundreiseTests
@@ -188,36 +191,124 @@ public sealed class RundreiseTests
         Assert.Equal(TdFormatIo.Schreiben(eins), TdFormatIo.Schreiben(zwei));
     });
 
-    // ==================== Die drei benannten Lücken ====================
+    // ==================== Die drei benannten Lücken — alle drei zu ====================
 
     /// <summary>
-    /// <b>⚠ Benannte Lücke 1: ein Diagramm überlebt die Rundreise nicht.</b>
+    /// <b>✅ Ein Diagramm überlebt die Rundreise — seit §4.50.</b>
     ///
     /// <para>
-    /// Das <c>FlowDocument</c> kennt nur Bilder, und der Träger, an dem ein Diagramm hängen
-    /// könnte, überlebt das <c>XamlPackage</c> nicht (gemessen, §4.45: <c>Tag</c> und
-    /// <c>ToolTip</c> an <c>Run</c> und <c>Paragraph</c> kommen als <c>null</c> zurück; nur ein
-    /// <c>ToolTip</c> an einem <c>Image</c> übersteht es — genau deshalb trägt
-    /// <c>DocumentImages</c> ihn dort und nirgends sonst).
+    /// <b>Hier stand die letzte der drei benannten Lücken</b>, und sie war die stillste:
+    /// <see cref="TdZuFlow"/> hatte für ein Diagramm <b>gar keinen Zweig</b>. Es fiel beim
+    /// Umwandeln heraus und war nach dem ersten Speichern im WPF-Editor weg — <b>samt seiner
+    /// Zahlen</b>, und das ist der Unterschied zum Feld: Ein Feld hinterließ wenigstens seinen
+    /// Platzhaltertext, ein Diagramm hinterließ nichts.
     /// </para>
     /// <para>
-    /// <b>Dieser Wächter hält den Verlust fest, damit er nicht still verschwindet</b> (§4.19).
-    /// <b>Wer die Lücke schließt, dreht ihn um</b> — er ist die Stelle, an der es auffällt.
+    /// <b>Warum sie erst jetzt zu schließen war:</b> Der Träger, an dem ein Diagramm hängen
+    /// kann, überlebte das <c>XamlPackage</c> nicht (§4.45, gemessen). Seit §4.47 lädt der
+    /// Editor ohne Paket und seit §4.48 schreibt er auch ohne — <b>erst damit übersteht eine
+    /// Auflage im Arbeitsspeicher eine volle Runde aus Speichern und Öffnen.</b> Der Träger
+    /// ist derselbe wie beim Feld (§4.47: <c>Tag</c> an Absatz und Lauf wird beim Teilen
+    /// <b>kopiert</b>, ein <see cref="System.Windows.Documents.InlineUIContainer"/> ist
+    /// unteilbar).
+    /// </para>
+    /// <para>
+    /// <b>Geprüft wird der Inhalt und nicht die Anwesenheit.</b> Ein Diagramm, das als leerer
+    /// Kasten zurückkommt, wäre hier sonst grün — und genau das war der alte Zustand des
+    /// Editors: Er rasterte beim Einfügen zu einer Bitmap und warf die Zahlen weg (§4.21).
     /// </para>
     /// </summary>
     [Fact]
-    public void Noch_offen_Ein_Diagramm_geht_auf_der_Rundreise_verloren() => Sta.Run(() =>
+    public void Ein_Diagramm_ueberlebt_die_Rundreise() => Sta.Run(() =>
     {
         using var werkbank = new Referenzdokument.Werkbank("rundreise-diagramm");
 
         var quelle = Eingeboren();
-        quelle.Sections[0].Blocks.Add(new TdParagraph(new TdInline[]
+        var diagramm = new TdChart(TdChartKind.Column, 8, 5)
         {
-            new TdChart { Title = "Noten", WidthCm = 8, HeightCm = 5 },
-        }));
+            Title = "Noten",
+            Categories = { "Mathe", "Deutsch" },
+            Palette = { "#112233", "#445566" },
+            AltText = "Notenverteilung",
+        };
+        diagramm.Series.Add(new TdChartSeries("Halbjahr", 2, 3));
+        quelle.Sections[0].Blocks.Add(new TdParagraph(new TdInline[] { diagramm }));
 
-        Assert.Empty(Rundreise(quelle, werkbank).Blocks()
+        var zurueck = Assert.Single(Rundreise(quelle, werkbank).Blocks()
             .OfType<TdParagraph>().SelectMany(p => p.Inlines).OfType<TdChart>());
+
+        Assert.Equal(TdChartKind.Column, zurueck.Kind);
+        Assert.Equal("Noten", zurueck.Title);
+        Assert.Equal("Notenverteilung", zurueck.AltText);
+        Assert.Equal(8, zurueck.WidthCm);
+        Assert.Equal(5, zurueck.HeightCm);
+        Assert.Equal(["Mathe", "Deutsch"], zurueck.Categories);
+        Assert.Equal(["#112233", "#445566"], zurueck.Palette);
+        Assert.Equal("Halbjahr", Assert.Single(zurueck.Series).Name);
+        Assert.Equal([2, 3], Assert.Single(zurueck.Series).Values);
+    });
+
+    /// <summary>
+    /// <b>Aus dem Diagramm wird kein Bild — und kein Blob</b> (§4.50).
+    ///
+    /// <para>
+    /// <b>Das ist der Wächter für den einen Griff, an dem diese Runde scheitern konnte.</b>
+    /// Unter der Auflage liegt ein <c>Image</c> mit der gezeichneten Anzeige. Fragt
+    /// <see cref="FlowZuTd"/> erst den <i>Inhalt</i> des Behälters und dann die Auflage, so
+    /// findet es dieses Bild — und <c>DocumentImages.Adopt</c> legt die Pixel als <b>neuen
+    /// Blob</b> ab. Aus den Zahlen würden Pixel, und bei jedem Speichern läge eine Kopie mehr
+    /// im Speicher.
+    /// </para>
+    /// <para>
+    /// <b>Es ist derselbe Fehler, den §4.21 am alten Editor benannt hat</b>, nur an neuer
+    /// Stelle — und er sähe auf dem Schirm völlig richtig aus. Deshalb prüft dieser Wächter
+    /// nicht das Bild, sondern <b>den Blob-Speicher</b>.
+    /// </para>
+    /// </summary>
+    [Fact]
+    public void Ein_Diagramm_wird_nicht_zu_einem_Bild_und_legt_keinen_Blob_an() => Sta.Run(() =>
+    {
+        using var werkbank = new Referenzdokument.Werkbank("rundreise-diagramm-blob");
+
+        var quelle = Eingeboren();
+        var diagramm = new TdChart(TdChartKind.Column, 8, 5) { Title = "Noten" };
+        diagramm.Series.Add(new TdChartSeries("Halbjahr", 2, 3));
+        quelle.Sections[0].Blocks.Add(new TdParagraph(new TdInline[] { diagramm }));
+
+        int vorher = werkbank.Blobs.All().Count();
+        var zurueck = Rundreise(quelle, werkbank);
+
+        Assert.Empty(zurueck.Blocks().OfType<TdParagraph>()
+            .SelectMany(p => p.Inlines).OfType<TdImage>());
+        Assert.Equal(vorher, werkbank.Blobs.All().Count());
+    });
+
+    /// <summary>
+    /// <b>Die Auflage wird kopiert und nicht durchgereicht</b> (§4.32, wie beim Feld in §4.49).
+    ///
+    /// <para>
+    /// Läge dasselbe <see cref="TdChart"/> im alten <b>und</b> im neuen Modell, änderte ein
+    /// späterer Griff — eine neue Reihe, eine andere Farbe — die Sicherung des Verlaufs mit.
+    /// <b>Der Fehler fiele erst beim Rückgängigmachen auf</b>, und dann als „das Rückgängig
+    /// funktioniert nicht" und nicht als das, was er ist.
+    /// </para>
+    /// </summary>
+    [Fact]
+    public void Ein_Diagramm_kommt_als_eigenes_Stueck_zurueck() => Sta.Run(() =>
+    {
+        using var werkbank = new Referenzdokument.Werkbank("rundreise-diagramm-kopie");
+
+        var quelle = Eingeboren();
+        var diagramm = new TdChart(TdChartKind.Column, 8, 5) { Title = "Noten" };
+        diagramm.Series.Add(new TdChartSeries("Halbjahr", 2, 3));
+        quelle.Sections[0].Blocks.Add(new TdParagraph(new TdInline[] { diagramm }));
+
+        var zurueck = Assert.Single(Rundreise(quelle, werkbank).Blocks()
+            .OfType<TdParagraph>().SelectMany(p => p.Inlines).OfType<TdChart>());
+
+        Assert.NotSame(diagramm, zurueck);
+        Assert.NotSame(diagramm.Series, zurueck.Series);
+        Assert.NotSame(diagramm.Series[0].Values, zurueck.Series[0].Values);
     });
 
     /// <summary>

@@ -567,4 +567,71 @@ public sealed class DiagrammTests
         Assert.True(plan.Flaeche.HeightCm > 0, "Die Zeichenfläche hat keine Höhe.");
         Assert.All(plan.Flaechen, f => Assert.True(f.Kasten.WidthCm > 0 && f.Kasten.HeightCm >= 0));
     }
+
+    // ==================== Die Kopie (§4.50) ====================
+
+    /// <summary>
+    /// <b>Eine Kopie ist gleich — und wird gegen die gespeicherte Fassung geprüft, nicht gegen
+    /// eine Aufzählung von Hand</b> (HANDOFF §4.50).
+    ///
+    /// <para>
+    /// <b>Wozu es <see cref="TdChart.Kopie"/> überhaupt gibt:</b> Ein Diagramm reist durch den
+    /// WPF-Editor als Auflage an seinem Träger (§4.49) und muss auf dem Rückweg <b>ersetzt und
+    /// nicht durchgereicht</b> werden — dasselbe Objekt läge sonst im alten und im neuen
+    /// Modell, und ein späterer Griff änderte die Sicherung des Verlaufs mit (§4.32).
+    /// </para>
+    /// <para>
+    /// <b>Warum der Vergleich über <see cref="TdFormatIo"/> läuft:</b> Eine Kopiermethode ist
+    /// die klassische Stelle, an der eine <i>später hinzugekommene</i> Eigenschaft vergessen
+    /// wird — und der Verlust wäre still. Ein Wächter, der die Felder einzeln aufzählt, hätte
+    /// dieselbe Lücke wie die Methode, die er bewacht: <b>Wer das eine vergisst, vergisst auch
+    /// das andere.</b> Die gespeicherte Fassung kennt jedes Feld, das im Dokument landet.
+    /// </para>
+    /// </summary>
+    [Fact]
+    public void Die_Kopie_eines_Diagramms_ist_gleich()
+    {
+        var d = new TdChart(TdChartKind.Bar, widthCm: 9, heightCm: 6)
+        {
+            Title = "Noten",
+            AltText = "Verteilung",
+            Categories = { "Mathe", "Deutsch" },
+            Palette = { "#112233", "#445566" },
+            Format = { Bold = true, FontSize = 13 },
+        };
+        d.Series.Add(new TdChartSeries("Halbjahr", 2, 3));
+
+        Assert.Equal(Gespeichert(d), Gespeichert(d.Kopie()));
+    }
+
+    /// <summary>
+    /// <b>Und die Kopie teilt keine Liste.</b> Eine geteilte <see cref="TdChart.Series"/>-Liste
+    /// wäre derselbe Fehler eine Ebene tiefer — <b>und er fiele erst beim Rückgängigmachen
+    /// auf</b>, dann aber als „das Rückgängig funktioniert nicht".
+    /// </summary>
+    [Fact]
+    public void Die_Kopie_eines_Diagramms_teilt_keine_Liste()
+    {
+        var d = new TdChart(TdChartKind.Column, 9, 6) { Categories = { "Mathe" }, Palette = { "#112233" } };
+        d.Series.Add(new TdChartSeries("Halbjahr", 2, 3));
+
+        var kopie = d.Kopie();
+        kopie.Categories.Add("Deutsch");
+        kopie.Palette.Add("#778899");
+        kopie.Series[0].Values.Add(4);
+        kopie.Series.Add(new TdChartSeries("Zweites", 1));
+
+        Assert.Single(d.Categories);
+        Assert.Single(d.Palette);
+        Assert.Single(d.Series);
+        Assert.Equal([2, 3], d.Series[0].Values);
+    }
+
+    /// <summary>Das Diagramm als gespeichertes Dokument — der Vergleich, der jedes Feld kennt.</summary>
+    private static byte[] Gespeichert(TdChart diagramm)
+    {
+        var doc = new TdDocument();
+        doc.Sections.Add(new TdSection(new TdParagraph(new TdInline[] { diagramm })));
+        return TdFormatIo.Schreiben(doc);
+    }
 }

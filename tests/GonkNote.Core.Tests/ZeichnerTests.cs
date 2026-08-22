@@ -733,5 +733,109 @@ public sealed class ZeichnerTests
         Assert.Equal(SKColors.White, Ohne_Alpha(bmp.GetPixel(50, 30)));
     }
 
+    // ==================== Der öffentliche Einstieg für ein Diagramm (§4.50) ====================
+
+    /// <summary>Zeichnet ein Diagramm für sich allein — genau der Weg, den der WPF-Kopf nimmt.</summary>
+    private static SKBitmap MalenDiagramm(TdChart diagramm, double massstab)
+    {
+        int breite = (int)Math.Ceiling(diagramm.WidthCm * massstab);
+        int hoehe = (int)Math.Ceiling(diagramm.HeightCm * massstab);
+
+        var bmp = new SKBitmap(new SKImageInfo(breite, hoehe, SKColorType.Rgba8888, SKAlphaType.Premul));
+        using (var leinwand = new SKCanvas(bmp))
+        {
+            leinwand.Clear(SKColors.White);
+            TdRenderer.Diagramm(leinwand, diagramm, SKRect.Create(0, 0, breite, hoehe), massstab);
+        }
+        return bmp;
+    }
+
+    private static TdChart Saeulen(double breite = 8, double hoehe = 5)
+    {
+        var d = new TdChart(TdChartKind.Column, breite, hoehe) { Title = "Noten" };
+        d.Series.Add(new TdChartSeries("Halbjahr", 2, 3, 1));
+        return d;
+    }
+
+    /// <summary>
+    /// <b>Der öffentliche Einstieg zeichnet, und zwar in den übergebenen Kasten</b>
+    /// (HANDOFF §4.50).
+    ///
+    /// <para>
+    /// <b>Wozu es ihn gibt:</b> Bis §4.50 war <c>DiagrammZeichnen</c> privat, und deshalb war
+    /// die letzte Lücke aus §4.45 nicht zu schließen — der WPF-Editor kennt keine Diagramme
+    /// und braucht ein <i>Bild</i>, um eines anzuzeigen und als Auflage durch die Rundreise zu
+    /// bringen.
+    /// </para>
+    /// </summary>
+    [Fact]
+    public void Der_oeffentliche_Einstieg_zeichnet_ein_Diagramm()
+    {
+        using var bmp = MalenDiagramm(Saeulen(), massstab: 40);
+        var tinte = TinteKasten(bmp);
+
+        Assert.False(tinte.IsEmpty, "Es wurde nichts gezeichnet.");
+
+        // Es füllt seinen Kasten aus und sitzt nicht in einer Ecke: Ein Diagramm, das sich auf
+        // ein Viertel der Fläche zurückzieht, wäre hier sonst grün.
+        Assert.True(tinte.Width > bmp.Width / 2, $"Zu schmal: {tinte.Width} von {bmp.Width}.");
+        Assert.True(tinte.Height > bmp.Height / 2, $"Zu flach: {tinte.Height} von {bmp.Height}.");
+    }
+
+    /// <summary>
+    /// <b>Ein Diagramm ohne Zahlen bleibt ein Kasten und wird nicht zu nichts</b> (§7).
+    ///
+    /// <para>
+    /// <b>Deshalb hat der Einstieg keinen Rückgabewert</b> (§4.50): Müsste der Aufrufer den
+    /// Platzhalter selbst nachbauen, gäbe es zwei davon und damit zwei Wahrheiten. <b>Ein
+    /// Kasten sagt „hier fehlt etwas", eine Leerstelle sagt „hier war nie etwas"</b> — und im
+    /// Editor wäre das der Unterschied zwischen „das Diagramm rechnet gerade nichts aus" und
+    /// „das Diagramm ist weg".
+    /// </para>
+    /// </summary>
+    [Fact]
+    public void Ein_Diagramm_ohne_Zahlen_bleibt_ein_Kasten()
+    {
+        var leer = new TdChart(TdChartKind.Column, 8, 5);   // keine Reihen
+        using var bmp = MalenDiagramm(leer, massstab: 40);
+        var tinte = TinteKasten(bmp);
+
+        Assert.False(tinte.IsEmpty, "Der Platzhalter fehlt — das Diagramm wäre unauffindbar.");
+
+        // Der gestrichelte Rahmen läuft um die ganze Fläche, nicht um einen Teil davon.
+        Assert.True(tinte.Left <= 2 && tinte.Top <= 2, $"Rahmen sitzt nicht oben links: {tinte}.");
+        Assert.True(
+            tinte.Right >= bmp.Width - 3 && tinte.Bottom >= bmp.Height - 3,
+            $"Rahmen reicht nicht bis unten rechts: {tinte} bei {bmp.Width}x{bmp.Height}.");
+    }
+
+    /// <summary>
+    /// <b>Der Maßstab wirkt, und deshalb darf der Kopf feiner rastern.</b>
+    ///
+    /// <para>
+    /// Der WPF-Kopf zeichnet mit dem Doppelten der Anzeigegröße (<c>TdZuFlow.Feinheit</c>),
+    /// damit ein Diagramm beim Vergrößern des Editors nicht ausfranst. <b>Das setzt voraus,
+    /// dass der Zeichner den Maßstab überall durchreicht</b> — Linienstärken und Beschriftung
+    /// eingeschlossen. Ein Zeichner, der nur die Geometrie skaliert, lieferte bei doppelter
+    /// Auflösung haarfeine Linien und eine winzige Schrift.
+    /// </para>
+    /// </summary>
+    [Fact]
+    public void Der_Massstab_wirkt_auf_das_ganze_Diagramm()
+    {
+        using var klein = MalenDiagramm(Saeulen(), massstab: 30);
+        using var gross = MalenDiagramm(Saeulen(), massstab: 60);
+
+        double anteilKlein = (double)FarbigeIm(klein, 0, 0, klein.Width, klein.Height)
+            / (klein.Width * klein.Height);
+        double anteilGross = (double)FarbigeIm(gross, 0, 0, gross.Width, gross.Height)
+            / (gross.Width * gross.Height);
+
+        // Der **Anteil** bleibt ungefähr gleich, wenn alles mitwächst. Skalierte nur die
+        // Geometrie, fiele er bei doppelter Auflösung deutlich ab (Striche und Schrift blieben
+        // gleich dick bzw. gleich groß in Pixeln).
+        Assert.InRange(anteilGross, anteilKlein * 0.75, anteilKlein * 1.25);
+    }
+
     private static SKColor Ohne_Alpha(SKColor farbe) => new(farbe.Red, farbe.Green, farbe.Blue);
 }

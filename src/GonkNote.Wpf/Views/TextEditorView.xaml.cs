@@ -103,20 +103,14 @@ public partial class TextEditorView : UserControl
         _loading = true;
         try
         {
-            var range = new TextRange(Editor.Document.ContentStart, Editor.Document.ContentEnd);
-            var bytes = _vm.Doc.Rtf;
-            if (bytes.Length > 2)
-            {
-                using var ms = new MemoryStream(bytes);
-                // XamlPackage ist ein ZIP ("PK"), alles andere ist historisches RTF
-                bool isPackage = bytes[0] == 0x50 && bytes[1] == 0x4B;
-                range.Load(ms, isPackage ? DataFormats.XamlPackage : DataFormats.Rtf);
-                DocumentImages.Attach(Editor.Document, App.Db.Blobs);
-            }
-            else if (!AusModell())
-            {
-                range.Text = "";
-            }
+            // **Das Modell führt — seit Schritt 7** (§4.48). Bis dahin stand hier das
+            // Altformat zuerst, und `AusModell` war der Rückfall für den einen Fall, den es
+            // erst seit dem Linux-Import gab. **Jetzt ist es umgekehrt**, und das Altformat
+            // ist der Rückfall: Es kommt nur noch zum Zug, wenn das Modell leer ist — also
+            // wenn die einmalige Übernahme (§4.22) noch aussteht oder **fehlgeschlagen** ist.
+            // Genau dann ist es richtig: Der Nutzer sieht sein Dokument, statt eines leeren
+            // Blattes.
+            if (!AusModell()) AusAltformat();
 
             TextStyles.NormalizeInk(Editor.Document, CurrentInk());
             LoadSettingsToUi();
@@ -170,18 +164,75 @@ public partial class TextEditorView : UserControl
         return true;
     }
 
+    /// <summary>
+    /// <b>Der Rückfall auf das Altformat</b> — seit Schritt 7 die Ausnahme und nicht mehr der
+    /// Normalfall (§4.48).
+    ///
+    /// <para>
+    /// <b>Es gibt ihn noch, und zwar für genau einen Fall:</b> Das Modell ist leer, weil die
+    /// einmalige Übernahme (§4.22) aussteht oder <b>fehlgeschlagen</b> ist. Dann steht der
+    /// Inhalt nur im Altfeld, und ihn nicht zu zeigen hieße, ein volles Dokument als leeres
+    /// Blatt anzuzeigen — <b>der teuerste Fehler dieser Art</b>, weil er nach gelöschtem
+    /// Inhalt aussieht und nicht nach einer fehlenden Funktion (§4.28).
+    /// </para>
+    /// <para>
+    /// <b>Geschrieben wird von hier aus trotzdem nichts zurück.</b> <c>Rtf</c> wird seit
+    /// Schritt 7 nie mehr überschrieben (§4.22) — was der Nutzer hier tippt, geht beim
+    /// Speichern ins <b>Modell</b>, und beim nächsten Öffnen führt es. Der Rückfall heilt sich
+    /// also von selbst, sobald einmal gespeichert wurde.
+    /// </para>
+    /// </summary>
+    private void AusAltformat()
+    {
+        var range = new TextRange(Editor.Document.ContentStart, Editor.Document.ContentEnd);
+        var bytes = _vm!.Doc.Rtf;
+
+        if (bytes.Length <= 2)
+        {
+            range.Text = "";
+            return;
+        }
+
+        using var ms = new MemoryStream(bytes);
+        // XamlPackage ist ein ZIP ("PK"), alles andere ist historisches RTF
+        bool istPaket = bytes[0] == 0x50 && bytes[1] == 0x4B;
+        range.Load(ms, istPaket ? DataFormats.XamlPackage : DataFormats.Rtf);
+
+        // Hier **schon**: Aus einem Paket kommt der Blob-Verweis im `ToolTip` an und muss ins
+        // `Tag` übersetzt werden. Auf dem Weg über das Modell entfällt das (siehe `AusModell`).
+        DocumentImages.Attach(Editor.Document, App.Db.Blobs);
+    }
+
+    /// <summary>
+    /// <b>Schritt 7: Der Editor schreibt das Modell — und <c>Rtf</c> nie wieder</b> (§4.48).
+    ///
+    /// <para>
+    /// <b>Das ist der eigentliche Zweck des ganzen Wegs</b> (§5). Vorher stand hier
+    /// <c>_vm.Doc.Rtf = ms.ToArray()</c> — ein <c>XamlPackage</c> —, und
+    /// <c>WpfDocumentIo.Migrate</c> baute daraus bei jedem Speichern das Modell neu. **Wer
+    /// unter Linux geschrieben hatte, verlor seine Arbeit beim nächsten Speichern unter
+    /// Windows, still** (§5 „Noch offen" 9). Jetzt schreibt dieser Kopf dasselbe Feld wie
+    /// jener: <see cref="TextTabViewModel.Modell"/>.
+    /// </para>
+    /// <para>
+    /// <b><c>Rtf</c> wird nicht überschrieben — und das ist keine Nachlässigkeit, sondern die
+    /// Regel aus §4.22.</b> Das Altfeld bleibt stehen, wie es war: als unangetastete Sicherung
+    /// dessen, was vor der Übernahme dastand. Eine misslungene Übernahme ist damit kein
+    /// Datenverlust, sondern ein Versuch, der beim nächsten Öffnen wiederholt wird.
+    /// </para>
+    /// <para>
+    /// <b>Warum über <see cref="TextTabViewModel.Modell"/> und nicht direkt nach
+    /// <c>Doc.Model</c>:</b> Damit beide Köpfe **denselben** Weg nehmen. <c>Save</c> ruft
+    /// <c>Mitschreiben</c> (die Übernahme) und danach <c>ModellMitschreiben</c> (das
+    /// Geschriebene) — <b>die Reihenfolge steht seit §4.23 fest und ist genau für diesen Tag
+    /// so gewählt worden.</b> Zwei Wege in dasselbe Feld wären die Falle aus §4.13.
+    /// </para>
+    /// </summary>
     private void FlushToModel()
     {
         if (_vm == null) return;
-        var range = new TextRange(Editor.Document.ContentStart, Editor.Document.ContentEnd);
-        using var ms = new MemoryStream();
 
-        // Bilder bleiben draußen: im Paket steht nur ein Verweis auf das Original im
-        // Blob-Speicher (siehe DocumentImages). Das using stellt sie danach wieder her.
-        using (DocumentImages.Detach(Editor.Document, App.Db.Blobs))
-            range.Save(ms, DataFormats.XamlPackage);
-
-        _vm.Doc.Rtf = ms.ToArray();
+        _vm.Modell = FlowZuTd.Umwandeln(_vm.Doc, Editor.Document, App.Db.Blobs);
         _vm.Doc.Images = DocumentImages.UsedBlobs(Editor.Document).ToList();
     }
 

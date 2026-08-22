@@ -4,15 +4,30 @@ using GonkNote.Core.Text;
 namespace GonkNote.Core.Tests;
 
 /// <summary>
-/// <see cref="TdFuehrung"/> — „wer voll ist, führt" (HANDOFF §4.22, §4.23) und die Warnung,
-/// die daran hängt (§5 „Noch offen" 9).
+/// <see cref="TdFuehrung"/> — <b>seit Schritt 7 (§4.48) nur noch eine Frage: steht die
+/// einmalige Übernahme aus?</b>
 ///
 /// <para>
-/// <b>Wofür diese Wächter da sind.</b> Die Regel ist ein Zweizeiler, aber sie entscheidet, ob
-/// eine Warnung erscheint, die vor stillem Datenverlust schützt — und der einzige Weg, sie
-/// falsch zu bekommen, ist der naheliegende: „warnen, wenn <c>Model</c> leer ist". Das wäre
-/// genau verkehrt herum. Ein Dokument mit <i>beiden</i> Feldern gefüllt ist der gefährliche
-/// Fall; ein Dokument mit leerem <c>Model</c> zeigt der Linux-Kopf gar nicht erst an.
+/// <b>Was hier gestanden hat und warum es weg ist.</b> Bis §4.48 trug diese Datei fünf weitere
+/// Wächter über <c>AltformatFuehrt</c> — „wer voll ist, führt" (§4.22, §4.23) — und über die
+/// Warnung, die im Linux-Kopf daran hing (§5 „Noch offen" 9). <b>Mit Schritt 7 führt das
+/// Modell, in beiden Köpfen.</b> Der WPF-Editor liest und schreibt dasselbe Feld wie der
+/// Linux-Kopf, also gibt es nichts mehr, wovor zu warnen wäre — und die Funktion ist gelöscht
+/// statt auf <c>false</c> gesetzt: <b>Eine Funktion, die immer <c>false</c> zurückgibt, sähe
+/// nach einer offenen Frage aus und würde eines Tages wieder geglaubt.</b>
+/// </para>
+/// <para>
+/// <b>Die verbliebene Frage ist eine andere, und es gibt sie weiter.</b> Ein Dokument aus der
+/// Windows-Zeit trägt seinen Inhalt nur im Altfeld, bis er <b>einmal</b> übernommen ist. Der
+/// Linux-Kopf kann das nicht (RTF und XamlPackage liest nur WPF, §4.22) und muss es wissen,
+/// bevor er ein leeres Blatt zeigt.
+/// </para>
+/// <para>
+/// <b>Der einzige Weg, sie falsch zu bekommen, ist der naheliegende:</b> sie mit „das Altfeld
+/// ist gefüllt" zu verwechseln. Nach der Übernahme ist es das weiterhin — <b>zu übernehmen
+/// gibt es dann aber nichts mehr</b>, und wer es doch täte, überschriebe das Modell bei jedem
+/// Öffnen mit dem Stand von damals. Genau dieser Unterschied hat den Linux-Kopf schon einmal
+/// eine falsche Auskunft gekostet (§4.29, §5 „Noch offen" 8).
 /// </para>
 /// <para>
 /// <b>Kein Kopf und keine Datenbank.</b> Die Regel liest zwei Feldlängen — sie läuft deshalb
@@ -27,66 +42,30 @@ public sealed class FuehrungTests
     private static TextDoc Dok(byte[] rtf, byte[] model) =>
         new() { Id = Guid.NewGuid(), Rtf = rtf, Model = model };
 
-    // ==================== Wer führt ====================
-
     /// <summary>
-    /// <b>Der Fall, für den die Warnung gebaut wurde.</b> Ein übernommenes Bestandsdokument hat
-    /// beide Felder gefüllt — und trotzdem führt das Altformat, denn der WPF-Editor liest und
-    /// schreibt weiter daraus (§4.22). Wer hier <c>false</c> lieferte, ließe die Warnung
-    /// ausgerechnet bei jedem echten Dokument schweigen.
+    /// <b>Das Bestandsdokument beim ersten Öffnen</b> — der einzige Fall, der übernommen wird.
     /// </summary>
-    [Fact]
-    public void BeideGefuellt_AltformatFuehrtTrotzdem()
-    {
-        Assert.True(TdFuehrung.AltformatFuehrt(Dok(Etwas, Etwas)));
-    }
-
-    /// <summary>Ein Bestandsdokument vor der Übernahme: das Altformat führt, unbestritten.</summary>
-    [Fact]
-    public void NurAltformat_Fuehrt()
-    {
-        Assert.True(TdFuehrung.AltformatFuehrt(Dok(Etwas, [])));
-    }
-
-    /// <summary>
-    /// Ein Dokument, das in dieser Fassung entstanden ist (<c>DatabaseService.GetText</c>, §4.32):
-    /// Es hat nie ein Altformat gehabt, also gibt es nichts zu führen — <b>und genau hier ist im
-    /// Linux-Kopf gefahrlos zu schreiben.</b>
-    /// </summary>
-    [Fact]
-    public void NurModell_NiemandFuehrt()
-    {
-        Assert.False(TdFuehrung.AltformatFuehrt(Dok([], Etwas)));
-    }
-
-    /// <summary>Ein leeres Dokument warnt nicht — es gibt nichts, was etwas überschreiben könnte.</summary>
-    [Fact]
-    public void Leer_KeineWarnung()
-    {
-        Assert.False(TdFuehrung.AltformatFuehrt(Dok([], [])));
-    }
-
-    // ==================== Was noch zu übernehmen ist ====================
-
-    /// <summary>
-    /// <b>Die zwei Fragen sind nicht dieselbe.</b> Nach der Übernahme führt das Altformat
-    /// weiter — aber zu übernehmen gibt es nichts mehr. Fielen beide zusammen, liefe die
-    /// Übernahme bei jedem Öffnen erneut und überschriebe das Modell mit dem Stand von damals.
-    /// </summary>
-    [Fact]
-    public void BeideGefuellt_UebernahmeStehtNichtMehrAus()
-    {
-        var doc = Dok(Etwas, Etwas);
-
-        Assert.True(TdFuehrung.AltformatFuehrt(doc));
-        Assert.False(TdFuehrung.UebernahmeStehtAus(doc));
-    }
-
-    /// <summary>Das Bestandsdokument beim ersten Öffnen — der einzige Fall, der übernommen wird.</summary>
     [Fact]
     public void NurAltformat_UebernahmeStehtAus()
     {
         Assert.True(TdFuehrung.UebernahmeStehtAus(Dok(Etwas, [])));
+    }
+
+    /// <summary>
+    /// <b>Beide Felder gefüllt heißt: schon übernommen.</b> Das Altfeld bleibt stehen — es wird
+    /// nie überschrieben (§4.22) —, aber es ist ab hier eine Sicherung und keine Quelle.
+    ///
+    /// <para>
+    /// <b>Der Wächter, an dem der teuerste Fehler dieser Stelle hängt.</b> Liefe die Übernahme
+    /// hier noch einmal, schriebe sie den Stand von damals über alles, was seither getippt
+    /// wurde — und zwar bei <b>jedem</b> Speichern, seit der Editor selbst ins Modell schreibt
+    /// (§4.48).
+    /// </para>
+    /// </summary>
+    [Fact]
+    public void BeideGefuellt_UebernahmeStehtNichtMehrAus()
+    {
+        Assert.False(TdFuehrung.UebernahmeStehtAus(Dok(Etwas, Etwas)));
     }
 
     /// <summary>

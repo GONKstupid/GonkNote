@@ -150,9 +150,28 @@ public sealed class WpfDocumentIo : IDocumentIo
     /// </summary>
     public bool CanMigrate => true;
 
+    /// <summary>
+    /// <b>Seit Schritt 7 die <i>einmalige</i> Übernahme — und nur noch sie</b> (§4.48).
+    ///
+    /// <para>
+    /// <b>Hier stand <see cref="TdFuehrung.AltformatFuehrt"/>, und das hieß: bei jedem
+    /// Speichern.</b> Das war richtig, solange <c>Rtf</c> führte (§4.23, „die Nebenwirkung ist
+    /// erwünscht" — der Umwandler lief oft und Fehler fielen auf, solange sie nicht schaden
+    /// konnten). <b>Mit Schritt 7 wäre daraus der Datenverlust selbst geworden:</b> Der Editor
+    /// schreibt jetzt in <see cref="TextDoc.Model"/>, und ein Übernehmen aus dem <i>alten</i>
+    /// <c>Rtf</c> überschriebe unmittelbar danach genau das, was der Nutzer eben getippt hat.
+    /// </para>
+    /// <para>
+    /// <b>Es ist die Antwort (d) aus §5 „Noch offen" 9 — die damals ausdrücklich falsch war.</b>
+    /// „Nicht übernehmen, wenn <c>Model</c> schon gefüllt ist" hieß damals: der Umwandler liefe
+    /// nie mehr. Heute läuft er bei jedem Speichern an anderer Stelle — in
+    /// <c>TextEditorView.FlushToModel</c> —, und der Einwand ist damit gegenstandslos.
+    /// <b>Dieselbe Zeile, zwei verschiedene Bedeutungen, je nachdem, wer führt.</b>
+    /// </para>
+    /// </summary>
     public MigrationResult Migrate(TextDoc doc)
     {
-        if (!TdFuehrung.AltformatFuehrt(doc)) return new MigrationResult(false);
+        if (!TdFuehrung.UebernahmeStehtAus(doc)) return new MigrationResult(false);
 
         try
         {

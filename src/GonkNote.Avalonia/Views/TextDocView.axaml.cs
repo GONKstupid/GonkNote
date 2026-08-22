@@ -180,12 +180,10 @@ public partial class TextDocView : UserControl
         Seitenleiste.IsVisible = _modell != null;
         KnopfExport.IsEnabled = _modell != null;
 
-        // **Nur zusammen mit einem angezeigten Dokument** (§5 „Noch offen" 9): Steht der
-        // Übernahme-Hinweis da, ist ohnehin nichts zu sehen und nichts zu schreiben — zwei
-        // Hinweise übereinander, von denen einer vor einer Gefahr warnt, die es gerade gar
-        // nicht gibt, machen beide unglaubwürdig.
-        HinweisRtfFuehrt.IsVisible =
-            _modell != null && _vm != null && TdFuehrung.AltformatFuehrt(_vm.Doc);
+        // **Der Warnstreifen „Windows-Fassung führt" ist mit Schritt 7 entfallen** (§4.48):
+        // Der WPF-Editor liest und schreibt seit dem dasselbe Feld wie dieser Kopf, also gibt
+        // es nichts mehr, wovor zu warnen wäre. Ein Hinweis, der vor einer Gefahr warnt, die
+        // es nicht gibt, kostet die Glaubwürdigkeit der Hinweise, die bleiben.
 
         if (_modell == null || _vm == null)
         {

@@ -15,30 +15,27 @@ namespace GonkNote.Core.Text;
 /// Führung umdreht (§6), ist genau das die Stelle, die sich ändert, und keine andere.
 /// </para>
 /// <para>
-/// <b>Der Anlass ist ein gemessener Datenverlust</b> (§5 „Noch offen" 9): Wer ein Dokument mit
-/// gefülltem <see cref="TextDoc.Rtf"/> im Linux-Kopf beschreibt, schreibt in
-/// <see cref="TextDoc.Model"/> — und der WPF-Editor schreibt es beim nächsten Speichern
-/// bedingungslos aus <see cref="TextDoc.Rtf"/> neu. Die Arbeit ist dann still weg.
-/// <see cref="AltformatFuehrt"/> ist die Frage, die der Linux-Kopf stellen muss, bevor er so
-/// tut, als sei Schreiben hier gefahrlos.
+/// <b>✅ Seit Schritt 7 führt das Modell, und zwar in beiden Köpfen</b> (§4.48). Damit ist die
+/// Frage „wer führt?" beantwortet und <c>AltformatFuehrt</c> <b>gelöscht</b> — samt der Warnung
+/// im Linux-Kopf, die es getragen hat. <b>Eine Funktion, die immer <c>false</c> zurückgibt,
+/// wäre schlechter als keine:</b> Sie sähe nach einer offenen Frage aus und würde eines Tages
+/// wieder geglaubt.
+/// </para>
+/// <para>
+/// <b>Der Anlass war ein gemessener Datenverlust</b> (§5 „Noch offen" 9): Wer ein Dokument mit
+/// gefülltem <see cref="TextDoc.Rtf"/> im Linux-Kopf beschrieb, schrieb in
+/// <see cref="TextDoc.Model"/> — und der WPF-Editor schrieb es beim nächsten Speichern
+/// bedingungslos aus <see cref="TextDoc.Rtf"/> neu. **Das ist mit §4.48 an der Wurzel
+/// behoben**: Der WPF-Editor liest und schreibt jetzt dasselbe Feld.
+/// </para>
+/// <para>
+/// <b>Was bleibt, ist <see cref="UebernahmeStehtAus"/></b> — und das ist eine andere Frage,
+/// die es weiter gibt: Ein Dokument aus der Windows-Zeit trägt seinen Inhalt nur im Altfeld,
+/// bis er **einmal** übernommen ist. Der Linux-Kopf kann das nicht und muss es wissen.
 /// </para>
 /// </summary>
 public static class TdFuehrung
 {
-    /// <summary>
-    /// <b>Führt das Altformat?</b> Dann zeigt und schreibt der WPF-Editor aus
-    /// <see cref="TextDoc.Rtf"/>, und was ein anderer Kopf in <see cref="TextDoc.Model"/>
-    /// geschrieben hat, überlebt dessen nächstes Speichern nicht.
-    ///
-    /// <para>
-    /// <b>Es zählt allein das Altfeld und nicht der Vergleich beider.</b> Ein übernommenes
-    /// Dokument hat <i>beide</i> Felder gefüllt — und genau das ist der gefährliche Fall, nicht
-    /// der harmlose. Wer hier „nur wenn <c>Model</c> leer ist" schriebe, bekäme eine Warnung,
-    /// die ausgerechnet dann schweigt, wenn sie gebraucht wird.
-    /// </para>
-    /// </summary>
-    public static bool AltformatFuehrt(TextDoc doc) => doc.Rtf.Length > 0;
-
     /// <summary>
     /// <b>Steht die einmalige Übernahme noch aus?</b> Also: es gibt etwas zu übernehmen
     /// (<see cref="TextDoc.Rtf"/> ist gefüllt) und es ist noch nicht geschehen

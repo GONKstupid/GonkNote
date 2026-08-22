@@ -497,38 +497,6 @@
                 </WrapPanel>
 
                 <!-- ============ Die Warnung, wenn das Altformat noch führt ============ -->
-                <!-- HANDOFF §5 „Noch offen" 9, Nutzer-Entscheidung 2026-08-16: **warnen, nicht
-                     sperren.** Ein Dokument, das der WPF-Editor schon einmal beschrieben hat,
-                     hat ein gefülltes `Rtf` — und das führt. Was hier hineingeschrieben wird,
-                     landet in `Model` und wird drüben beim nächsten Speichern bedingungslos aus
-                     `Rtf` überschrieben. Der Ausweg ist Schritt 7 (§6); bis dahin steht hier
-                     wenigstens, was passiert.
-
-                     **Sie sitzt unter den Leisten und nicht in der Reiterzeile**, also
-                     unmittelbar über dem Blatt: dort steht sie im Blick dessen, der schreibt,
-                     und sie wandert nicht mit dem gewählten Reiter weg.
-
-                     Der Streifen links in Pink ist dieselbe Farbe, die `MessageWindow` einer
-                     Warnung gibt (`DialogSeverity.Warning` → `ThemeColor.Pink`) — die App hat
-                     keine zweite Warnfarbe, und eine dritte hier zu erfinden hieße, dieselbe
-                     Sache an zwei Orten verschieden auszusehen. -->
-                <Border x:Name="HinweisRtfFuehrt" IsVisible="False"
-                        Background="{DynamicResource Brush.CardBg}"
-                        BorderBrush="{DynamicResource Brush.Pink}"
-                        BorderThickness="3,0,0,0"
-                        Padding="10,6" Margin="8,0,8,8"
-                        ToolTip.Tip="{loc:T Td.RtfLeads.Tip}">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <views:Symbol Icon="Warning" VerticalAlignment="Center"
-                                      Stroke="{DynamicResource Brush.Pink}"/>
-                        <TextBlock Text="{loc:T Td.RtfLeads}" VerticalAlignment="Center"
-                                   FontSize="12" FontWeight="SemiBold"
-                                   Foreground="{DynamicResource Brush.Text}"/>
-                        <TextBlock Text="{loc:T Td.RtfLeads.Text}" VerticalAlignment="Center"
-                                   FontSize="12" TextWrapping="Wrap"
-                                   Foreground="{DynamicResource Brush.TextMuted}"/>
-                    </StackPanel>
-                </Border>
             </StackPanel>
         </Border>
 

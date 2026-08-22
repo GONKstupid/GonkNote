@@ -119,29 +119,76 @@ public sealed class ModellRueckfallTests
     }
 
     /// <summary>
-    /// <b>Solange <c>Rtf</c> etwas enthält, führt <c>Rtf</c>.</b> Der Rückfall kehrt die
-    /// Reihenfolge nicht um (§5) — er greift nur, wo es sonst gar nichts zu lesen gäbe. Ein
-    /// Bestandsdokument trägt in <c>Model</c> den Stand der letzten Übernahme; würde daraus
-    /// gelesen, verschwände jede Änderung seit dem letzten Speichern.
+    /// <b>⛔→✅ Umgedreht mit Schritt 7 (§4.48): Das Modell führt, auch wenn das Altfeld voll
+    /// ist.</b>
+    ///
+    /// <para>
+    /// <b>Hier stand bis zum 2026-08-22 das Gegenteil</b> — „solange <c>Rtf</c> etwas enthält,
+    /// führt <c>Rtf</c>" —, und der Wächter hat es festgehalten, wie es sein sollte. <b>Das war
+    /// die Regel, die den Datenverlust aus §5 „Noch offen" 9 getragen hat:</b> Ein Dokument,
+    /// das schon einmal im WPF-Editor beschrieben wurde, hat ein gefülltes Altfeld — wer es
+    /// danach im Linux-Kopf bearbeitete, schrieb ins Modell, und der WPF-Editor zeigte beim
+    /// nächsten Öffnen den alten Stand.
+    /// </para>
+    /// <para>
+    /// <b>Jetzt gewinnt das Modell, und das Altfeld wird nur noch gelesen, wenn es sonst nichts
+    /// zu lesen gäbe</b> — also wenn die einmalige Übernahme aussteht oder fehlgeschlagen ist.
+    /// Der Wächter prüft dieselbe Lage wie vorher und erwartet die andere Antwort; das ist der
+    /// Sinn eines umgedrehten Wächters.
+    /// </para>
     /// </summary>
     [Fact]
-    public void Das_Altfeld_fuehrt_weiter_wenn_es_belegt_ist() => Sta.Run(() =>
+    public void Das_Modell_fuehrt_auch_bei_vollem_Altfeld() => Sta.Run(() =>
     {
         using var werkbank = new Referenzdokument.Werkbank("rueckfall-vorrang");
 
         var doc = WieVomLinuxImport(Modell());
         doc.Rtf = AlsPaket("Aus dem Altformat");
 
-        // Dieselbe Bedingung wie im Editor: mehr als zwei Bytes im Altfeld → Altformat.
+        // Die Lage, um die es geht: **beide** Felder sind gefüllt.
         Assert.True(doc.Rtf.Length > 2);
+        Assert.NotEmpty(doc.Model);
 
-        var flow = new FlowDocument();
-        var ziel = new TextRange(flow.ContentStart, flow.ContentEnd);
-        using (var strom = new MemoryStream(doc.Rtf))
-            ziel.Load(strom, DataFormats.XamlPackage);
+        // Derselbe Weg, den `TextEditorView.LoadFromModel` nimmt: erst das Modell.
+        var gelesen = TdFormatIo.Lesen(doc.Model);
+        Assert.NotNull(gelesen);
 
-        Assert.Contains("Aus dem Altformat", ziel.Text);
-        Assert.DoesNotContain("Rhabarberkuchen", ziel.Text);
+        var ziel = new FlowDocument();
+        TdZuFlow.InhaltUebernehmen(TdZuFlow.Umwandeln(gelesen, werkbank.Blobs, doc), ziel);
+        string text = new TextRange(ziel.ContentStart, ziel.ContentEnd).Text;
+
+        Assert.Contains("Rhabarberkuchen", text);
+        Assert.DoesNotContain("Aus dem Altformat", text);
+    });
+
+    /// <summary>
+    /// <b>Und das Altfeld bleibt dabei unangetastet</b> — die Regel aus §4.22, die Schritt 7
+    /// gerade <i>nicht</i> aufhebt.
+    ///
+    /// <para>
+    /// <b>Es ist der Unterschied zwischen „führt nicht mehr" und „ist weg".</b> Das Altfeld
+    /// bleibt als Sicherung dessen stehen, was vor der Übernahme dastand — eine misslungene
+    /// Übernahme ist damit kein Datenverlust, sondern ein Versuch, der beim nächsten Öffnen
+    /// wiederholt wird. Wer beim Umdrehen der Führung auch noch aufräumte, nähme genau diese
+    /// Sicherung weg, und zwar unwiederbringlich.
+    /// </para>
+    /// </summary>
+    [Fact]
+    public void Das_Altfeld_wird_nicht_angetastet() => Sta.Run(() =>
+    {
+        using var werkbank = new Referenzdokument.Werkbank("rueckfall-altfeld");
+
+        var doc = WieVomLinuxImport(Modell());
+        var vorher = AlsPaket("Aus dem Altformat");
+        doc.Rtf = vorher;
+
+        // Der Weg, den der Editor beim Speichern nimmt (FlushToModel): aus dem Blatt wird ein
+        // Modell — und `Rtf` kommt darin gar nicht vor.
+        var flow = TdZuFlow.Umwandeln(TdFormatIo.Lesen(doc.Model)!, werkbank.Blobs, doc);
+        var neu = FlowZuTd.Umwandeln(doc, flow, werkbank.Blobs);
+        doc.Model = TdFormatIo.Schreiben(neu);
+
+        Assert.Equal(vorher, doc.Rtf);
     });
 
     private static byte[] AlsPaket(string text)

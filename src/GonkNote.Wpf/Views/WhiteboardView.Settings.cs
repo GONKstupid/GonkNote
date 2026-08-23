@@ -4,6 +4,7 @@ using System.Windows.Media;
 using System.Windows;
 using GonkNote.Core.Models;
 using GonkNote.Core.Services;
+using GonkNote.Core.Theming;
 using GonkNote.Services;
 using SkiaSharp;
 
@@ -156,20 +157,18 @@ public partial class WhiteboardView
     private string _textFont = "Segoe UI";
 
     /// <summary>
-    /// Sorgt für lesbaren Text: bei zu geringem Helligkeitskontrast zum Hintergrund
-    /// kippt die Textfarbe auf Schwarz bzw. Weiß.
+    /// Sorgt für lesbaren Text: bei zu geringem Helligkeitskontrast zum Hintergrund kippt die
+    /// Textfarbe auf Schwarz bzw. Weiß.
+    /// <para>
+    /// <b>Gerechnet wird seit Phase 4.5 in <see cref="HexColor.MitGenugKontrast"/></b> —
+    /// dieselbe Luminanz-Formel wie bei der Zettelschrift, und der Linux-Kopf braucht sie
+    /// genauso.
+    /// </para>
     /// </summary>
-    private static string EnsureReadableTextColor(string textHex, string? bgHex)
-    {
-        if (bgHex == null) return textHex;
-        var t = ParseColor(textHex);
-        var b = ParseColor(bgHex);
-        if (b.Alpha < 96) return textHex; // fast transparent → Seite bestimmt den Kontrast
-
-        static double Lum(SKColor c) => 0.2126 * c.Red + 0.7152 * c.Green + 0.0722 * c.Blue;
-        if (Math.Abs(Lum(t) - Lum(b)) >= 80) return textHex;
-        return Lum(b) > 127 ? "#FF000000" : "#FFFFFFFF";
-    }
+    private static string EnsureReadableTextColor(string textHex, string? bgHex) =>
+        HexColor.Parse(textHex, HexColor.Black)
+                .MitGenugKontrast(bgHex is null ? null : HexColor.Parse(bgHex, HexColor.Black))
+                .ToString();
 
     /// <summary>Wendet eine Stiländerung auf das gerade bearbeitete bzw. einzeln ausgewählte Textfeld an.</summary>
     private void ApplyToActiveText(Action<TextElement> apply)

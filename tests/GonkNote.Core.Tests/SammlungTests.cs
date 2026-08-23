@@ -134,6 +134,52 @@ public sealed class SammlungTests
         Assert.Equal(erwartet, schrift.ToString());
     }
 
+    // ---------- Gewählte Schriftfarbe: nur überstimmen, wenn sie unlesbar wäre ----------
+
+    /// <summary>
+    /// Ein Textfeld erbt die Tintenfarbe des Nutzers. <b>Die soll er behalten</b>, solange man
+    /// sie sieht — <c>MitGenugKontrast</c> bestimmt keine Farbe, es überstimmt nur eine
+    /// unlesbare.
+    /// </summary>
+    [Fact]
+    public void Eine_gut_lesbare_Farbe_bleibt_stehen()
+    {
+        var rot = HexColor.Parse("#FFE11D48", HexColor.Black);
+        var weiss = HexColor.Parse("#FFFFFFFF", HexColor.Black);
+        Assert.Equal(rot, rot.MitGenugKontrast(weiss));
+    }
+
+    [Theory]
+    [InlineData("#FFEEEEEE", "#FFFFFFFF", "#000000")]   // fast weiß auf weiß → Schwarz
+    [InlineData("#FF222222", "#FF000000", "#FFFFFF")]   // fast schwarz auf schwarz → Weiß
+    public void Eine_unlesbare_Farbe_wird_ueberstimmt(string text, string grund, string erwartet)
+    {
+        var ist = HexColor.Parse(text, HexColor.Black)
+                          .MitGenugKontrast(HexColor.Parse(grund, HexColor.Black));
+        Assert.Equal(erwartet, ist.ToString());
+    }
+
+    /// <summary>
+    /// <b>Ein fast durchsichtiger Grund zählt nicht.</b> Dann bestimmt die Seite darunter den
+    /// Kontrast, und über die weiß diese Rechnung nichts — lieber die Wahl des Nutzers stehen
+    /// lassen als gegen einen Grund korrigieren, der gar nicht deckt.
+    /// </summary>
+    [Fact]
+    public void Ein_fast_durchsichtiger_Grund_ueberstimmt_nichts()
+    {
+        var hell = HexColor.Parse("#FFEEEEEE", HexColor.Black);
+        var kaumWeiss = HexColor.Parse("#40FFFFFF", HexColor.Black);   // Alpha 0x40 < 96
+        Assert.Equal(hell, hell.MitGenugKontrast(kaumWeiss));
+    }
+
+    /// <summary>Ohne Hintergrund gibt es nichts zu vergleichen.</summary>
+    [Fact]
+    public void Ohne_Grund_bleibt_die_Farbe_unveraendert()
+    {
+        var farbe = HexColor.Parse("#FFEEEEEE", HexColor.Black);
+        Assert.Equal(farbe, farbe.MitGenugKontrast(null));
+    }
+
     /// <summary>Grün wiegt am schwersten, Blau am leichtesten — so sieht das Auge, nicht der Rechner.</summary>
     [Fact]
     public void Die_Helligkeit_wiegt_die_Kanaele_verschieden()

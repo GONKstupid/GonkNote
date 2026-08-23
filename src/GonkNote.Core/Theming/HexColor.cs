@@ -173,4 +173,34 @@ public readonly record struct HexColor(byte A, byte R, byte G, byte B)
     public HexColor LesbareSchrift() => Luminanz > 140
         ? new HexColor(0xFF, 0x1F, 0x29, 0x37)    // fast schwarz
         : new HexColor(0xFF, 0xF9, 0xFA, 0xFB);   // fast weiß
+
+    /// <summary>Ab diesem Helligkeitsunterschied gilt Schrift auf Grund als lesbar.</summary>
+    private const double KontrastSchwelle = 80;
+
+    /// <summary>
+    /// Diese Farbe als Schrift auf <paramref name="grund"/> — <b>unverändert, solange sie sich
+    /// genug abhebt</b>, sonst durch Schwarz oder Weiß ersetzt.
+    ///
+    /// <para>
+    /// <b>Der Unterschied zu <see cref="LesbareSchrift"/>:</b> dort wird die Schriftfarbe
+    /// <em>bestimmt</em>, hier wird eine <em>gewählte</em> nur dann überstimmt, wenn sie
+    /// unlesbar wäre. Ein Textfeld erbt die Tintenfarbe des Nutzers, und die soll er behalten,
+    /// solange man sie sieht.
+    /// </para>
+    /// <para>
+    /// <b>Ein fast durchsichtiger Grund zählt nicht</b> (<paramref name="grund"/> mit
+    /// Alpha &lt; 96): dann bestimmt die Seite darunter den Kontrast, und über die weiß diese
+    /// Rechnung nichts. Lieber die Wahl des Nutzers stehen lassen als gegen einen Grund
+    /// korrigieren, der gar nicht deckt.
+    /// </para>
+    /// </summary>
+    public HexColor MitGenugKontrast(HexColor? grund)
+    {
+        if (grund is not { } g || g.A < 96) return this;
+        if (Math.Abs(Luminanz - g.Luminanz) >= KontrastSchwelle) return this;
+
+        return g.Luminanz > 127
+            ? new HexColor(0xFF, 0, 0, 0)
+            : new HexColor(0xFF, 0xFF, 0xFF, 0xFF);
+    }
 }

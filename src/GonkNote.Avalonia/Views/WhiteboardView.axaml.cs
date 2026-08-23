@@ -653,6 +653,17 @@ public partial class WhiteboardView : UserControl
     private void OnKeyDown(object? sender, KeyEventArgs e)
     {
         if (_vm == null) return;
+
+        // **Während einer Beschriftung hält dieser Handler still** — und das ist am
+        // laufenden Programm gemessen, nicht vermutet: er hängt am `Tunnel` (siehe
+        // AddHandler oben) und läuft damit **vor** dem Eingabefeld, egal wo der Fokus
+        // liegt. Ohne diese Zeile wurde aus einem getippten „Hallo" ein Werkzeugwechsel
+        // („H" schaltet die Hand ein), und im Textfeld stand nichts.
+        //
+        // Der Tunnel ist für die Zeichenfläche richtig — sie soll die Tasten sicher
+        // bekommen. Nur solange getippt wird, gehört das Feld davor.
+        if (EditFeld.IsVisible) return;
+
         bool strg = e.KeyModifiers.HasFlag(KeyModifiers.Control);
 
         if (strg)

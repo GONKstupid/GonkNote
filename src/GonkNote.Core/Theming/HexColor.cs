@@ -152,4 +152,25 @@ public readonly record struct HexColor(byte A, byte R, byte G, byte B)
 
     /// <summary>Dieselbe Farbe mit einem anderen Alpha-Anteil.</summary>
     public HexColor WithAlpha(byte a) => this with { A = a };
+
+    /// <summary>
+    /// Die relative Helligkeit nach der üblichen Gewichtung (0 = schwarz, 255 = weiß). Grün
+    /// zählt am meisten, Blau am wenigsten — das Auge sieht es so, nicht der Rechner.
+    /// </summary>
+    public double Luminanz => 0.2126 * R + 0.7152 * G + 0.0722 * B;
+
+    /// <summary>
+    /// Eine Schriftfarbe, die auf dieser Farbe lesbar ist: dunkel auf hellem Grund, hell auf
+    /// dunklem.
+    /// <para>
+    /// <b>Warum das hier steht und nicht im Kopf:</b> Ein Notizzettel bekommt seine Textfarbe
+    /// beim Anlegen, und sie wandert mit ihm in die Datei. Rechneten beide Köpfe das getrennt,
+    /// bekäme derselbe gelbe Zettel je nach Kopf eine andere Schriftfarbe — und man sähe es
+    /// erst, wenn jemand die Datei auf dem anderen Rechner öffnet. Bis Phase 4.5 lag die
+    /// Formel privat im WPF-Kopf (<c>ReadableStickyTextColor</c>).
+    /// </para>
+    /// </summary>
+    public HexColor LesbareSchrift() => Luminanz > 140
+        ? new HexColor(0xFF, 0x1F, 0x29, 0x37)    // fast schwarz
+        : new HexColor(0xFF, 0xF9, 0xFA, 0xFB);   // fast weiß
 }

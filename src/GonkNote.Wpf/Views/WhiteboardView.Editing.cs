@@ -4,6 +4,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using GonkNote.Core.Models;
 using GonkNote.Core.Rendering;
+using GonkNote.Core.Theming;
 using GonkNote.Core.Services;
 using SkiaSharp;
 
@@ -174,11 +175,12 @@ public partial class WhiteboardView
         Skia.InvalidateVisual();
     }
 
-    /// <summary>Dunkler oder heller Text je nach Helligkeit der Zettelfarbe.</summary>
-    private static string ReadableStickyTextColor(string bgHex)
-    {
-        var b = ParseColor(bgHex);
-        double lum = 0.2126 * b.Red + 0.7152 * b.Green + 0.0722 * b.Blue;
-        return lum > 140 ? "#FF1F2937" : "#FFF9FAFB";
-    }
+    /// <summary>
+    /// Dunkler oder heller Text je nach Helligkeit der Zettelfarbe. <b>Gerechnet wird seit
+    /// Phase 4.5 in <see cref="HexColor.LesbareSchrift"/></b> — die Farbe wandert mit dem
+    /// Zettel in die Datei, und zwei Fassungen gäben demselben Zettel je nach Kopf eine
+    /// andere Schriftfarbe.
+    /// </summary>
+    private static string ReadableStickyTextColor(string bgHex) =>
+        HexColor.Parse(bgHex, HexColor.Black).LesbareSchrift().ToString();
 }

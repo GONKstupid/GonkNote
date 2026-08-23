@@ -3,6 +3,8 @@ using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 using System.Windows.Media;
 using System.Windows;
+using GonkNote.Core.Platform;
+using GonkNote.Core.Services;
 using GonkNote.Services;
 
 namespace GonkNote.Views;
@@ -18,17 +20,20 @@ public partial class WhiteboardView
 {
     private bool _coverPresetsLoaded;
 
-    /// <summary>Mitgelieferte Vorlagen (neben der Exe).</summary>
-    private static string BaseCoverDir => Path.Combine(AppContext.BaseDirectory, "Assets", "Covers");
+    // Beide Ordner kommen seit Phase 4.5 aus AppPaths (Core) statt aus
+    // AppContext.BaseDirectory und Environment.SpecialFolder.ApplicationData. Der zweite
+    // war eine **Windows-Festlegung** an einer Stelle, die für alle Köpfe gelten soll —
+    // derselbe Fehler wie bei den Stickern nebenan, und deshalb hier mit behoben.
 
-    /// <summary>Eigene Vorlagen des Nutzers (persistiert).</summary>
+    /// <summary>Mitgelieferte Vorlagen (neben der Exe).</summary>
+    private static string BaseCoverDir => Path.Combine(AppPaths.AppSubfolder("Assets"), "Covers");
+
+    /// <summary>Eigene Vorlagen des Nutzers (im Datenordner, wird angelegt wenn er fehlt).</summary>
     private static string UserCoverDir
     {
         get
         {
-            string dir = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "GonkNote", "Covers");
+            string dir = AppPaths.DataSubfolder("Covers");
             Directory.CreateDirectory(dir);
             return dir;
         }
@@ -90,11 +95,13 @@ public partial class WhiteboardView
         }
     }
 
-    private static List<string> CoverFiles(string dir) =>
-        Directory.EnumerateFiles(dir)
-            .Where(f => StickerExts.Contains(Path.GetExtension(f).ToLowerInvariant()))
-            .OrderBy(f => f, StringComparer.OrdinalIgnoreCase)
-            .ToList();
+    /// <summary>
+    /// Die Cover-Vorlagen eines Ordners. <b>Welche Dateien zählen, steht seit Phase 4.5 in
+    /// <see cref="Bildsammlung"/></b> — die Liste hieß hier <c>StickerExts</c> und lag in
+    /// <c>WhiteboardView.Stickers.cs</c>: sie gehört weder den Stickern noch den Covern,
+    /// sondern beiden.
+    /// </summary>
+    private static List<string> CoverFiles(string dir) => Bildsammlung.Dateien(dir);
 
     private Button MakeCoverThumb(string file)
     {

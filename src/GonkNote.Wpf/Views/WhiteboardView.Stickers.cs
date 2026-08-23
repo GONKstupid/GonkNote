@@ -20,24 +20,11 @@ public partial class WhiteboardView
 {
     private bool _stickersLoaded;
 
-    private static readonly string[] StickerExts = { ".png", ".jpg", ".jpeg", ".webp" };
-
-    /// <summary>Ordner der Basis-Sticker (neben der Exe).</summary>
-    private static string BaseStickerDir =>
-        Path.Combine(AppContext.BaseDirectory, "Assets", "Stickers");
-
-    /// <summary>Ordner der eigenen Sticker des Nutzers (persistiert).</summary>
-    private static string UserStickerDir
-    {
-        get
-        {
-            string dir = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "GonkNote", "Stickers");
-            Directory.CreateDirectory(dir);
-            return dir;
-        }
-    }
+    // Wo die Sticker liegen und was als einer zählt, steht seit Phase 4.5 in
+    // StickerLibrary (Core). Hier stand der Nutzerordner **von Hand** aus
+    // Environment.SpecialFolder.ApplicationData zusammengesetzt — eine Windows-Festlegung
+    // mitten in einer Regel, die für alle Köpfe gelten soll. AppPaths weiß seit Phase 2,
+    // wo der Datenordner liegt; der Kopf muss es nicht wissen, er muss fragen.
 
     private void EnsureStickersLoaded()
     {
@@ -50,13 +37,7 @@ public partial class WhiteboardView
     {
         StickerGrid.Children.Clear();
 
-        var files = new List<string>();
-        foreach (var dir in new[] { BaseStickerDir, UserStickerDir })
-        {
-            if (!Directory.Exists(dir)) continue;
-            files.AddRange(Directory.EnumerateFiles(dir)
-                .Where(f => StickerExts.Contains(Path.GetExtension(f).ToLowerInvariant())));
-        }
+        var files = StickerLibrary.Alle();
 
         if (files.Count == 0)
         {
@@ -193,13 +174,13 @@ public partial class WhiteboardView
         {
             try
             {
-                string dest = Path.Combine(UserStickerDir, Path.GetFileName(src));
+                string dest = Path.Combine(StickerLibrary.UserFolder, Path.GetFileName(src));
                 // Namenskollision vermeiden
                 int n = 1;
                 while (File.Exists(dest))
                 {
                     string stem = Path.GetFileNameWithoutExtension(src);
-                    dest = Path.Combine(UserStickerDir, $"{stem}_{n++}{Path.GetExtension(src)}");
+                    dest = Path.Combine(StickerLibrary.UserFolder, $"{stem}_{n++}{Path.GetExtension(src)}");
                 }
                 File.Copy(src, dest);
                 added++;

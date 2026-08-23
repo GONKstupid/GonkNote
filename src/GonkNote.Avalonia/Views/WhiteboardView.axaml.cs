@@ -91,6 +91,23 @@ public partial class WhiteboardView : UserControl
     private float _rotStartDeg;       // Drehung des Elements beim Anfassen
     private float _rotStartPointer;   // Zeigerwinkel beim Anfassen
 
+    // ---- Formen (Phase 4.5) ----
+    private ShapeKind _form = ShapeKind.Rectangle;
+    private SKPoint _formStart, _formJetzt;
+    private bool _formAktiv;
+    private bool _fuellungAn;
+    private bool _umschaltGedrueckt;
+    private HexColor _fuellfarbe = new(0xFF, 0x14, 0xB8, 0xA6);   // dasselbe Türkis wie drüben
+    private double _fuellDeckkraft = 0.4;
+
+    /// <summary>
+    /// Die Knöpfe der fünf Formen. <b>Sie stehen bewusst nicht in <see cref="ToolButtons"/></b>:
+    /// dort gilt „genau einer ist gedrückt", und die fünf teilen sich <em>ein</em> Werkzeug —
+    /// wer sie mit hineinnähme, könnte die Form nicht wechseln, ohne das Werkzeug zu verlieren.
+    /// </summary>
+    private ToggleButton[] FormButtons =>
+        [BtnFormLinie, BtnFormPfeil, BtnFormRechteck, BtnFormEllipse, BtnFormDreieck];
+
     private ToggleButton[] ToolButtons =>
         [BtnPen, BtnPencil, BtnHighlighter, BtnEraser, BtnLasso, BtnMove, BtnPan];
 
@@ -224,24 +241,127 @@ public partial class WhiteboardView : UserControl
         SetTool(Enum.Parse<ToolType>((string)btn.Tag!));
     }
 
+    /// <summary>
+    /// Eine der fünf Formen wurde gewählt. Sie schalten alle dasselbe Werkzeug ein und
+    /// unterscheiden sich nur in der Art — deshalb ein eigenes Ereignis und eine eigene
+    /// Gruppe (siehe <see cref="FormButtons"/>).
+    /// </summary>
+    private void Form_Gewaehlt(object? sender, RoutedEventArgs e)
+    {
+        if (_suppressToolEvents || sender is not ToggleButton btn) return;
+
+        if (btn.IsChecked != true)
+        {
+            // Wie bei den Werkzeugen: der aktive Knopf lässt sich nicht abwählen, solange
+            // das Formen-Werkzeug läuft — sonst stünde ein Werkzeug ohne Form da.
+            if (_tool == ToolType.Shape && FormButtons.All(b => b.IsChecked != true))
+            {
+                _suppressToolEvents = true;
+                btn.IsChecked = true;
+                _suppressToolEvents = false;
+            }
+            return;
+        }
+
+        _suppressToolEvents = true;
+        foreach (var b in FormButtons)
+            if (b != btn) b.IsChecked = false;
+        foreach (var b in ToolButtons) b.IsChecked = false;
+        _suppressToolEvents = false;
+
+        _form = Enum.Parse<ShapeKind>((string)btn.Tag!);
+        SetTool(ToolType.Shape);
+    }
+
     private void SetTool(ToolType tool)
     {
         // Die Auswahl bleibt nur bei den Auswahl-Werkzeugen stehen.
         if (tool != ToolType.Lasso && tool != ToolType.Move) ClearSelection();
 
+        // Ein anderes Werkzeug hebt die Formenwahl auf — die fünf Knöpfe hängen an
+        // ToolType.Shape und dürfen nicht gedrückt bleiben, wenn er nicht mehr gilt.
+        if (tool != ToolType.Shape)
+        {
+            _suppressToolEvents = true;
+            foreach (var b in FormButtons) b.IsChecked = false;
+            _suppressToolEvents = false;
+        }
+
         _tool = tool;
         _eraserVisible = false;
         SyncSizeControls();
+
+        // Die Formen-Einstellungen erscheinen nur mit dem Werkzeug. Ist die Leiste zu,
+        // klappt sie auf — sonst wäre die Füllfarbe hinter einem Knopf versteckt, den
+        // niemand in dem Moment drückt (dieselbe Regel wie im WPF-Kopf).
+        //
+        // **Und dann gespiegelt.** Wer die Leiste aufklappt, ohne EinstellungenSpiegeln zu
+        // rufen, bekommt sie mit lauter leeren Umschaltern — kein Muster, kein Farbton, kein
+        // Format markiert. Das steht seit Phase 3 in Einstellungen_Click und ist hier beim
+        // zweiten Aufklappweg prompt wieder passiert (am laufenden Programm gesehen).
+        FormenBereich.IsVisible = tool == ToolType.Shape;
+        if (tool == ToolType.Shape && !EinstellungenLeiste.IsVisible)
+        {
+            EinstellungenLeiste.IsVisible = true;
+            EinstellungenSpiegeln();
+        }
 
         Skia.Cursor = new Cursor(tool switch
         {
             ToolType.Eraser => StandardCursorType.Cross,
             ToolType.Pan => StandardCursorType.Hand,
             ToolType.Lasso => StandardCursorType.Cross,
+            ToolType.Shape => StandardCursorType.Cross,
             _ => StandardCursorType.Arrow,
         });
         Neuzeichnen();
     }
+
+    // ==================== Füllung ====================
+
+    /// <summary>Die Füllfarbe für neue Formen — <c>null</c>, wenn nicht gefüllt wird.</summary>
+    private string? AktuelleFuellung() => _fuellungAn
+        ? _fuellfarbe.WithAlpha((byte)Math.Round(_fuellDeckkraft * 255)).ToString()
+        : null;
+
+    private void Fuellung_Umgeschaltet(object? sender, RoutedEventArgs e)
+    {
+        _fuellungAn = FuellungAn.IsChecked == true;
+        FuellvorschauNachfuehren();
+    }
+
+    private void Deckkraft_Geaendert(object? sender, AvaloniaPropertyChangedEventArgs e)
+    {
+        if (e.Property != RangeBase.ValueProperty) return;
+        _fuellDeckkraft = FuellungDeckkraft.Value / 100.0;
+        DeckkraftAnzeige.Text = $"{Math.Round(FuellungDeckkraft.Value)} %";
+        FuellvorschauNachfuehren();
+    }
+
+    /// <summary>
+    /// Öffnet den Farbwähler für die Füllung. <b>Ohne Deckkraft</b> — die steht als eigener
+    /// Regler daneben, und zwei Stellen für dieselbe Zahl wären zwei Wahrheiten.
+    /// </summary>
+    private void Fuellfarbe_Click(object? sender, RoutedEventArgs e)
+    {
+        if (ColorPickerWindow.Waehlen(TopLevel.GetTopLevel(this) as Window,
+                _fuellfarbe.WithAlpha(0xFF), mitDeckkraft: false) is not { } gewaehlt)
+            return;
+
+        _fuellfarbe = gewaehlt;
+
+        // Eine Farbe zu wählen heißt, sie benutzen zu wollen — genau wie drüben.
+        _fuellungAn = true;
+        _suppressToolEvents = true;
+        FuellungAn.IsChecked = true;
+        _suppressToolEvents = false;
+
+        FuellvorschauNachfuehren();
+    }
+
+    private void FuellvorschauNachfuehren() =>
+        FuellungVorschau.Background =
+            _fuellfarbe.WithAlpha((byte)Math.Round(_fuellDeckkraft * 255)).ToBrush();
 
     private void Color_Changed(object? sender, RoutedEventArgs e)
     {

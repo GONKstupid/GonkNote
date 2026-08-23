@@ -187,6 +187,15 @@ public static class AppIcons
         [AppIcon.TextTool] = new("M12 4v16 M4 7V5a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v2 M9 20h6", 24),
         // Formen-Stift  (lucide/pen-tool)
         [AppIcon.ShapePen] = new("M15.707 21.293a1 1 0 0 1-1.414 0l-1.586-1.586a1 1 0 0 1 0-1.414l5.586-5.586a1 1 0 0 1 1.414 0l1.586 1.586a1 1 0 0 1 0 1.414z M0,0 m18 13-1.375-6.874a1 1 0 0 0-.746-.776L3.235 2.028a1 1 0 0 0-1.207 1.207L5.35 15.879a1 1 0 0 0 .776.746L13 18 M0,0 m2.3 2.3 7.286 7.286 M9,11 a2,2 0 1,0 4,0 a2,2 0 1,0 -4,0", 24),
+        // Die fünf Formen -- eigene Formen (Phase 4.5). Sie zeigen genau das, was sie
+        // anlegen; ein Symbolsatz hat dafür nichts Besseres. Alle im 24er-Raster, mit
+        // demselben Rand wie die Lucide-Formen daneben, damit sie in der Leiste nicht
+        // größer oder kleiner wirken als ihre Nachbarn.
+        [AppIcon.ShapeLine] = new("M4,20 L20,4", 24),
+        [AppIcon.ShapeArrow] = new("M4,20 L20,4 M13,4 H20 V11", 24),
+        [AppIcon.ShapeRect] = new("M4,6 H20 V18 H4 Z", 24),
+        [AppIcon.ShapeEllipse] = new("M2,12 a10,7 0 1,0 20,0 a10,7 0 1,0 -20,0", 24),
+        [AppIcon.ShapeTriangle] = new("M12,4 L21,19 H3 Z", 24),
         // Notizzettel  (lucide/sticky-note)
         [AppIcon.StickyNote] = new("M21 9a2.4 2.4 0 0 0-.706-1.706l-3.588-3.588A2.4 2.4 0 0 0 15 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2z M15 3v5a1 1 0 0 0 1 1h5", 24),
         // Sticker  (lucide/sticker)

@@ -15,24 +15,8 @@
          Schachbrett hinter den durchscheinenden Flächen ist ein gekacheltes Bild aus zwei
          Rechtecken, kein Zeichen. -->
 
-    <Window.Resources>
-        <!-- Schachbrett für alles, was durchscheinen kann — das Gegenstück zu CheckerBrush
-             in Themes/Styles.xaml des WPF-Kopfs.
-
-             **DestinationRect braucht die Einheit `px` ausdrücklich**: ohne sie rechnet
-             Avalonia den Wert als Anteil der Fläche (0..1), und aus einer 12-Pixel-Kachel
-             würde eine, die zwölfmal so groß ist wie das Feld — man sähe ein einziges
-             graues Viertel und hielte es für einen Farbfehler. -->
-        <DrawingBrush x:Key="Schachbrett" TileMode="Tile"
-                      SourceRect="0,0,12,12" DestinationRect="0,0,12,12px">
-            <DrawingBrush.Drawing>
-                <DrawingGroup>
-                    <GeometryDrawing Brush="#FFFFFFFF" Geometry="M0,0 H12 V12 H0 Z"/>
-                    <GeometryDrawing Brush="#FFD4D4D8" Geometry="M0,0 H6 V6 H0 Z M6,6 H12 V12 H6 Z"/>
-                </DrawingGroup>
-            </DrawingBrush.Drawing>
-        </DrawingBrush>
-    </Window.Resources>
+    <!-- Das Schachbrett hinter den durchscheinenden Flächen steht als „Schachbrett" in
+         Themes/Styles.axaml — die Füllvorschau im Whiteboard braucht dasselbe. -->
 
     <StackPanel Margin="16">
         <Grid ColumnDefinitions="*,Auto">

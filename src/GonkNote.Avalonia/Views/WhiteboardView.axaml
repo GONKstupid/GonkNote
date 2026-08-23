@@ -61,6 +61,32 @@
 
                     <Border Classes="trenner"/>
 
+                    <!-- Die fünf Formen (Phase 4.5). Tag = der ShapeKind-Name; sie teilen
+                         sich ein eigenes Ereignis, weil alle fünf dasselbe Werkzeug
+                         einschalten und sich nur in der Art unterscheiden. -->
+                    <ToggleButton x:Name="BtnFormRechteck" Classes="werkzeug" Tag="Rectangle"
+                                  IsCheckedChanged="Form_Gewaehlt" ToolTip.Tip="{loc:T Tool.Shape.Rect}">
+                        <views:Symbol Icon="ShapeRect" Stroke="{DynamicResource Brush.Text}"/>
+                    </ToggleButton>
+                    <ToggleButton x:Name="BtnFormLinie" Classes="werkzeug" Tag="Line"
+                                  IsCheckedChanged="Form_Gewaehlt" ToolTip.Tip="{loc:T Tool.Shape.Line}">
+                        <views:Symbol Icon="ShapeLine" Stroke="{DynamicResource Brush.Text}"/>
+                    </ToggleButton>
+                    <ToggleButton x:Name="BtnFormPfeil" Classes="werkzeug" Tag="Arrow"
+                                  IsCheckedChanged="Form_Gewaehlt" ToolTip.Tip="{loc:T Tool.Shape.Arrow}">
+                        <views:Symbol Icon="ShapeArrow" Stroke="{DynamicResource Brush.Text}"/>
+                    </ToggleButton>
+                    <ToggleButton x:Name="BtnFormEllipse" Classes="werkzeug" Tag="Ellipse"
+                                  IsCheckedChanged="Form_Gewaehlt" ToolTip.Tip="{loc:T Tool.Shape.Ellipse}">
+                        <views:Symbol Icon="ShapeEllipse" Stroke="{DynamicResource Brush.Text}"/>
+                    </ToggleButton>
+                    <ToggleButton x:Name="BtnFormDreieck" Classes="werkzeug" Tag="Triangle"
+                                  IsCheckedChanged="Form_Gewaehlt" ToolTip.Tip="{loc:T Tool.Shape.Triangle}">
+                        <views:Symbol Icon="ShapeTriangle" Stroke="{DynamicResource Brush.Text}"/>
+                    </ToggleButton>
+
+                    <Border Classes="trenner"/>
+
                     <ToggleButton x:Name="BtnLasso" Classes="werkzeug" Tag="Lasso"
                                   IsCheckedChanged="Tool_Changed" ToolTip.Tip="{loc:T Tool.Lasso}">
                         <views:Symbol Icon="Lasso"
@@ -256,6 +282,50 @@
                         <TextBlock x:Name="CoverHinweis" IsVisible="False" TextWrapping="Wrap"
                                    FontSize="11" Foreground="{DynamicResource Brush.TextMuted}"
                                    Text="{loc:T Settings.Page.CoverHint}"/>
+
+                        <!-- ==================== Formen ==================== -->
+                        <!-- Neu in Phase 4.5. Die Sektion erscheint nur, solange das
+                             Formen-Werkzeug aktiv ist — dieselbe Regel wie drüben, wo sie in
+                             einem Expander sitzt: eine Füllfarbe ohne Form daneben ist eine
+                             Einstellung ohne Gegenstand. -->
+                        <StackPanel x:Name="FormenBereich" IsVisible="False" Margin="0,18,0,0">
+                            <TextBlock Text="{loc:T Settings.Shapes}" FontWeight="SemiBold" FontSize="14"
+                                       Margin="0,0,0,6" Foreground="{DynamicResource Brush.Text}"/>
+                            <TextBlock Text="{loc:T Settings.Shapes.Hint}" TextWrapping="Wrap" FontSize="11"
+                                       Margin="0,0,0,8" Foreground="{DynamicResource Brush.TextMuted}"/>
+
+                            <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,0,0,8">
+                                <!-- Der Schalter trägt die Vorschau: er zeigt, was er
+                                     einschaltet. Das Schachbrett dahinter macht die
+                                     Deckkraft sichtbar. -->
+                                <ToggleButton x:Name="FuellungAn" Classes="werkzeug"
+                                              ToolTip.Tip="{loc:T Settings.Shapes.FillToggle}"
+                                              IsCheckedChanged="Fuellung_Umgeschaltet">
+                                    <Border Width="16" Height="16" CornerRadius="3" ClipToBounds="True"
+                                            Background="{StaticResource Schachbrett}">
+                                        <Border x:Name="FuellungVorschau"/>
+                                    </Border>
+                                </ToggleButton>
+                                <Button Classes="flach symbol" Click="Fuellfarbe_Click"
+                                        ToolTip.Tip="{loc:T Settings.Shapes.FillColor}">
+                                    <views:Symbol Icon="Palette" Stroke="{DynamicResource Brush.Text}"/>
+                                </Button>
+                                <TextBlock Text="{loc:T Settings.Shapes.Fill}" VerticalAlignment="Center"
+                                           Margin="6,0,0,0" Foreground="{DynamicResource Brush.Text}"/>
+                            </StackPanel>
+
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                <TextBlock Text="{loc:T Settings.Shapes.Opacity}" VerticalAlignment="Center"
+                                           Margin="0,0,6,0" FontSize="11"
+                                           Foreground="{DynamicResource Brush.TextMuted}"/>
+                                <Slider x:Name="FuellungDeckkraft" Width="110" Minimum="0" Maximum="100" Value="40"
+                                        VerticalAlignment="Center"
+                                        PropertyChanged="Deckkraft_Geaendert"/>
+                                <TextBlock x:Name="DeckkraftAnzeige" Text="40 %" Width="38" VerticalAlignment="Center"
+                                           Margin="4,0,0,0" FontSize="11"
+                                           Foreground="{DynamicResource Brush.TextMuted}"/>
+                            </StackPanel>
+                        </StackPanel>
 
                     </StackPanel>
                 </ScrollViewer>

@@ -98,16 +98,24 @@
                     <!-- Formen (F): klappbare Gruppe wie die Stifte; Standard Rechteck sichtbar,
                          Rest erscheint, sobald das Formen-Werkzeug aktiv ist. Weitere Optionen
                          (Füllung/Deckkraft) in der Einstellungs-Seitenleiste. -->
-                    <ToggleButton x:Name="BtnShapeRect" Style="{StaticResource ToolButton}" FontFamily="Segoe UI"
-                                  Content="▭" ToolTip="{loc:T Tool.Shape.Rect}" Checked="ShapeTool_Checked" Tag="Rectangle"/>
-                    <ToggleButton x:Name="BtnShapeLine" Style="{StaticResource ToolButton}" FontFamily="Segoe UI"
-                                  Content="╱" ToolTip="{loc:T Tool.Shape.Line}" Checked="ShapeTool_Checked" Tag="Line"/>
-                    <ToggleButton x:Name="BtnShapeArrow" Style="{StaticResource ToolButton}" FontFamily="Segoe UI"
-                                  Content="→" ToolTip="{loc:T Tool.Shape.Arrow}" Checked="ShapeTool_Checked" Tag="Arrow"/>
-                    <ToggleButton x:Name="BtnShapeEllipse" Style="{StaticResource ToolButton}" FontFamily="Segoe UI"
-                                  Content="◯" ToolTip="{loc:T Tool.Shape.Ellipse}" Checked="ShapeTool_Checked" Tag="Ellipse"/>
-                    <ToggleButton x:Name="BtnShapeTriangle" Style="{StaticResource ToolButton}" FontFamily="Segoe UI"
-                                  Content="△" ToolTip="{loc:T Tool.Shape.Triangle}" Checked="ShapeTool_Checked" Tag="Triangle"/>
+                    <!-- Seit Phase 4.5 aus dem Symbolsatz (§4.31) statt als Unicode-Zeichen
+                         in „Segoe UI": diese Schrift gibt es unter Linux nicht, und der
+                         Linux-Kopf bekommt dieselben Knöpfe. -->
+                    <ToggleButton x:Name="BtnShapeRect" Style="{StaticResource ToolButton}"
+                                  Content="{views:Icon ShapeRect}"
+                                  ToolTip="{loc:T Tool.Shape.Rect}" Checked="ShapeTool_Checked" Tag="Rectangle"/>
+                    <ToggleButton x:Name="BtnShapeLine" Style="{StaticResource ToolButton}"
+                                  Content="{views:Icon ShapeLine}"
+                                  ToolTip="{loc:T Tool.Shape.Line}" Checked="ShapeTool_Checked" Tag="Line"/>
+                    <ToggleButton x:Name="BtnShapeArrow" Style="{StaticResource ToolButton}"
+                                  Content="{views:Icon ShapeArrow}"
+                                  ToolTip="{loc:T Tool.Shape.Arrow}" Checked="ShapeTool_Checked" Tag="Arrow"/>
+                    <ToggleButton x:Name="BtnShapeEllipse" Style="{StaticResource ToolButton}"
+                                  Content="{views:Icon ShapeEllipse}"
+                                  ToolTip="{loc:T Tool.Shape.Ellipse}" Checked="ShapeTool_Checked" Tag="Ellipse"/>
+                    <ToggleButton x:Name="BtnShapeTriangle" Style="{StaticResource ToolButton}"
+                                  Content="{views:Icon ShapeTriangle}"
+                                  ToolTip="{loc:T Tool.Shape.Triangle}" Checked="ShapeTool_Checked" Tag="Triangle"/>
 
                     <ToggleButton x:Name="BtnChart" Style="{StaticResource ToolButton}" Content="{views:Icon Chart}"
                                   AutomationProperties.Name="{loc:T Tool.Chart}"

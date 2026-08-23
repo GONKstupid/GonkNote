@@ -138,6 +138,28 @@ public enum AppIcon
     /// <summary>Formen-Stift.</summary>
     ShapePen,
 
+    // ---- Die fünf Formen ----------------------------------------------------------------
+    //
+    // Neu in Phase 4.5. Der WPF-Kopf zeigte hier bis dahin **Unicode-Zeichen** (▭ ╱ → ◯ △)
+    // mit `FontFamily="Segoe UI"` — genau das, was §4.31 abgeschafft hat: unter Linux gibt es
+    // diese Schrift nicht, jedes davon wäre ein leeres Kästchen gewesen. Eigene Formen, denn
+    // ein Werkzeugsymbol für „Rechteck" ist ein Rechteck; da hat kein Satz etwas Besseres.
+
+    /// <summary>Form: Gerade. <b>Eigene Form.</b></summary>
+    ShapeLine,
+
+    /// <summary>Form: Pfeil. <b>Eigene Form.</b></summary>
+    ShapeArrow,
+
+    /// <summary>Form: Rechteck. <b>Eigene Form.</b></summary>
+    ShapeRect,
+
+    /// <summary>Form: Ellipse. <b>Eigene Form.</b></summary>
+    ShapeEllipse,
+
+    /// <summary>Form: Dreieck. <b>Eigene Form.</b></summary>
+    ShapeTriangle,
+
     /// <summary>Notizzettel.</summary>
     StickyNote,
 

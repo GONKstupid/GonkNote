@@ -435,6 +435,7 @@ public partial class WhiteboardView
         DrawActiveStroke(leinwand);
 
         var akzent = ThemeSk(ThemeColor.Accent);
+        DrawFormVorschau(leinwand);
         DrawLassoPath(leinwand, akzent);
         DrawSelectionFrame(leinwand, akzent);
         DrawEraserCursor(leinwand);
@@ -467,6 +468,19 @@ public partial class WhiteboardView
     /// <summary>Der Textmarker ist breit — sonst markiert er nichts.</summary>
     private float AktiveStrichbreite() =>
         AktiveStrichart() == StrokeKind.Highlighter ? Math.Max(_width * 5f, 10f) : _width;
+
+    /// <summary>
+    /// Die Form, die gerade aufgezogen wird. Gezeichnet mit <see cref="WbRenderer.DrawShape"/>
+    /// aus demselben Bauplan wie das fertige Element (<c>FormJetzt</c>) — <b>die Vorschau ist
+    /// deshalb keine Nachahmung, sondern dasselbe Bild</b>, und die Form kann beim Loslassen
+    /// nicht springen.
+    /// </summary>
+    private void DrawFormVorschau(SKCanvas leinwand)
+    {
+        if (!_formAktiv) return;
+        var form = FormJetzt();
+        WbRenderer.DrawShape(leinwand, form, form.Color, form.StrokeWidth);
+    }
 
     private void DrawLassoPath(SKCanvas leinwand, SKColor akzent)
     {

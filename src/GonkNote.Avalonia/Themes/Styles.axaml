@@ -74,6 +74,25 @@
         <!-- Ribbon des Textdokuments (§4.28). Export = Blatt mit Pfeil heraus, Seitenbreite
              und Ganze Seite = ein Blatt mit Pfeilen in die Richtung, die eingepasst wird. -->
 
+        <!-- ==== Schachbrett (Phase 4.5) =====================================
+             Hinter allem, was durchscheinen kann — Füllvorschau, Farbwähler. Das
+             Gegenstück heißt CheckerBrush und steht in Themes/Styles.xaml des WPF-Kopfs.
+
+             **Die Maße stehen ohne Einheit, und das ist gemessen und nicht geraten.**
+             Avalonia liest jeden Wert als `double`; ein Suffix wie `px` wirft zur Laufzeit
+             eine FormatException, die der Bau nicht sieht (XAML-Attribute werden erst beim
+             Laden geparst). Ohne Suffix gilt `RelativeUnit.Absolute` — also Pixel, und
+             genau das ist hier gewollt. Ein `%` an den Werten wäre der relative Fall. -->
+        <DrawingBrush x:Key="Schachbrett" TileMode="Tile"
+                      SourceRect="0,0,12,12" DestinationRect="0,0,12,12">
+            <DrawingBrush.Drawing>
+                <DrawingGroup>
+                    <GeometryDrawing Brush="#FFFFFFFF" Geometry="M0,0 H12 V12 H0 Z"/>
+                    <GeometryDrawing Brush="#FFD4D4D8" Geometry="M0,0 H6 V6 H0 Z M6,6 H12 V12 H6 Z"/>
+                </DrawingGroup>
+            </DrawingBrush.Drawing>
+        </DrawingBrush>
+
     </Styles.Resources>
 
     <!-- ==== Knöpfe ==================================================================== -->

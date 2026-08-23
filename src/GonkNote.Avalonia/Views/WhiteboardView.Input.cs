@@ -35,7 +35,7 @@ public partial class WhiteboardView
     /// </summary>
     private bool InputInProgress =>
         _drawing || _eraseSteps != null || _lassoPts != null || _movingSelection
-        || _scalingSelection || _rotatingEl != null;
+        || _scalingSelection || _rotatingEl != null || _formAktiv;
 
     /// <summary>Das Radiergummi-Ende des Stifts schlägt das gewählte Werkzeug.</summary>
     private ToolType EffectiveTool => _stylusInverted ? ToolType.Eraser : _tool;
@@ -222,6 +222,11 @@ public partial class WhiteboardView
         // sechzig — wer nur `GetCurrentPoint` nimmt, wirft den Großteil der 4096
         // Druckstufen weg und bekommt einen eckigen Strich mit Treppen in der Breite
         // (HANDOFF §5a, ausdrücklich für diesen Brocken notiert).
+        // Die Umschalttaste macht eine Form quadratisch. Sie wird hier bei jeder Bewegung
+        // gelesen und nicht beim Anfassen gemerkt, damit man sie mitten im Zug noch drücken
+        // oder loslassen kann.
+        _umschaltGedrueckt = e.KeyModifiers.HasFlag(KeyModifiers.Shift);
+
         foreach (var p in e.GetIntermediatePoints(Skia))
             MoveInput(ToCanvas(p.Position), Lage(p.Properties, art));
 
@@ -380,6 +385,11 @@ public partial class WhiteboardView
                 if (BeginHandleDrag(c)) break;
                 BeginMoveOrSelect(c);
                 break;
+
+            case ToolType.Shape:
+                _formAktiv = true;
+                _formStart = _formJetzt = c;
+                break;
         }
         Neuzeichnen();
     }
@@ -512,10 +522,32 @@ public partial class WhiteboardView
                 _moveLast = c;
                 break;
 
+            case ToolType.Shape:
+                if (!_formAktiv) return;
+                _formJetzt = MitUmschalt(_formStart, c);
+                break;
+
             default:
                 return;
         }
         Neuzeichnen();
+    }
+
+    /// <summary>
+    /// Mit gehaltener Umschalttaste wird die Form quadratisch bzw. der Strich diagonal —
+    /// dieselbe Regel wie im WPF-Kopf (dort <c>Constrain</c>).
+    /// <para>
+    /// <b>Die Taste wird beim Ziehen gelesen und nicht beim Anfassen</b>, damit man sie
+    /// mitten im Zug noch drücken oder loslassen kann.
+    /// </para>
+    /// </summary>
+    private SKPoint MitUmschalt(SKPoint start, SKPoint jetzt)
+    {
+        if (!_umschaltGedrueckt) return jetzt;
+
+        float dx = jetzt.X - start.X, dy = jetzt.Y - start.Y;
+        float m = Math.Max(Math.Abs(dx), Math.Abs(dy));
+        return new SKPoint(start.X + Math.Sign(dx) * m, start.Y + Math.Sign(dy) * m);
     }
 
     /// <summary>
@@ -606,6 +638,12 @@ public partial class WhiteboardView
                 }
                 _movingSelection = false;
                 break;
+
+            case ToolType.Shape:
+                if (!_formAktiv) break;
+                _formAktiv = false;
+                FormAblegen();
+                break;
         }
 
         _drawing = false;
@@ -647,6 +685,39 @@ public partial class WhiteboardView
             MarkDirty();
         }
         return true;
+    }
+
+    /// <summary>
+    /// Die aufgezogene Form, wie sie gerade aussieht. <b>Ein Bauplan an einer Stelle</b> —
+    /// die Vorschau beim Ziehen und das fertige Element müssen aus denselben Werten
+    /// entstehen, sonst springt die Form im Augenblick des Loslassens.
+    /// </summary>
+    private ShapeElement FormJetzt() => new()
+    {
+        Shape = _form,
+        X1 = _formStart.X, Y1 = _formStart.Y,
+        X2 = _formJetzt.X, Y2 = _formJetzt.Y,
+        Color = CurrentInkHex(),
+        StrokeWidth = _width,
+        Fill = AktuelleFuellung(),
+    };
+
+    /// <summary>
+    /// Legt die aufgezogene Form ab. <b>Zu kleine Züge fallen weg</b> — ein Klick ohne
+    /// Ziehen ist beim Formen-Werkzeug keine Form, sondern ein Vertipper, und ein
+    /// Ein-Pixel-Rechteck ließe sich hinterher nicht mehr anfassen.
+    /// </summary>
+    private void FormAblegen()
+    {
+        if (_page == null || _vm == null) return;
+
+        float dx = _formJetzt.X - _formStart.X, dy = _formJetzt.Y - _formStart.Y;
+        if (dx * dx + dy * dy < 9f / (Zoom * Zoom)) return;
+
+        var form = FormJetzt();
+        _page.Elements.Add(form);
+        _vm.Undo.Push(_page, new AddElementsAction([form]));
+        MarkDirty();
     }
 
     private void CommitStroke()

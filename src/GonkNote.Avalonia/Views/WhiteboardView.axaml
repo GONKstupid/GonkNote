@@ -403,9 +403,14 @@
                  `IsHitTestVisible="False"` wäre der falsche Weg: das schlägt auf die Kinder
                  durch, und dann ließe sich der Text nicht mehr mit der Maus markieren. -->
             <Canvas x:Name="Ueberlagerung" Background="{x:Null}">
+                <!-- KeyDown wird im Code-Behind mit `Tunnel` angehängt und NICHT hier: als
+                     gewöhnliches (Bubble-)Ereignis kommt der Handler erst, nachdem der
+                     TextBox die Taste schon verarbeitet hat — Strg+Eingabe stand dann als
+                     Zeichen im Text, bevor die Bearbeitung abschloss. Am laufenden Programm
+                     gesehen. -->
                 <TextBox x:Name="EditFeld" IsVisible="False" AcceptsReturn="True"
                          MinWidth="60" BorderThickness="1"
-                         KeyDown="EditFeld_Taste" LostFocus="EditFeld_Verlassen"/>
+                         LostFocus="EditFeld_Verlassen"/>
             </Canvas>
         </Panel>
 

@@ -178,6 +178,11 @@ public partial class WhiteboardView : UserControl
 
         DataContextChanged += OnDataContextChanged;
         AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel);
+
+        // Auch am Eingabefeld im Tunnel: als gewöhnliches Ereignis käme der Handler erst,
+        // nachdem der TextBox die Taste verarbeitet hat — Strg+Eingabe stand dann als
+        // Zeichen im Text, bevor die Bearbeitung abschloss (am laufenden Programm gesehen).
+        EditFeld.AddHandler(KeyDownEvent, EditFeld_Taste, RoutingStrategies.Tunnel);
         AddHandler(KeyUpEvent, OnKeyUp, RoutingStrategies.Tunnel);
 
         SyncSizeControls();

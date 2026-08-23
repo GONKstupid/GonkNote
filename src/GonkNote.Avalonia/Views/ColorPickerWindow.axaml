@@ -1,0 +1,143 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="clr-namespace:GonkNote.Services"
+        x:Class="GonkNote.Views.ColorPickerWindow"
+        Title="{loc:T ColorPicker.Title}" Width="420" SizeToContent="Height"
+        WindowStartupLocation="CenterOwner" CanResize="False"
+        ShowInTaskbar="False"
+        Background="{DynamicResource Brush.WindowBg}"
+        Foreground="{DynamicResource Brush.Text}">
+
+    <!-- Das Gegenstück zu ColorPickerDialog im WPF-Kopf (Phase 4.5). Gerechnet wird in
+         HexColor (Core) — hier steht nur die Oberfläche.
+
+         **Kein Symbol aus einer Icon-Schrift**, wie überall im Linux-Kopf (§4.31): das
+         Schachbrett hinter den durchscheinenden Flächen ist ein gekacheltes Bild aus zwei
+         Rechtecken, kein Zeichen. -->
+
+    <Window.Resources>
+        <!-- Schachbrett für alles, was durchscheinen kann — das Gegenstück zu CheckerBrush
+             in Themes/Styles.xaml des WPF-Kopfs.
+
+             **DestinationRect braucht die Einheit `px` ausdrücklich**: ohne sie rechnet
+             Avalonia den Wert als Anteil der Fläche (0..1), und aus einer 12-Pixel-Kachel
+             würde eine, die zwölfmal so groß ist wie das Feld — man sähe ein einziges
+             graues Viertel und hielte es für einen Farbfehler. -->
+        <DrawingBrush x:Key="Schachbrett" TileMode="Tile"
+                      SourceRect="0,0,12,12" DestinationRect="0,0,12,12px">
+            <DrawingBrush.Drawing>
+                <DrawingGroup>
+                    <GeometryDrawing Brush="#FFFFFFFF" Geometry="M0,0 H12 V12 H0 Z"/>
+                    <GeometryDrawing Brush="#FFD4D4D8" Geometry="M0,0 H6 V6 H0 Z M6,6 H12 V12 H6 Z"/>
+                </DrawingGroup>
+            </DrawingBrush.Drawing>
+        </DrawingBrush>
+    </Window.Resources>
+
+    <StackPanel Margin="16">
+        <Grid ColumnDefinitions="*,Auto">
+
+            <!-- Sättigung (waagerecht) und Helligkeit (senkrecht) -->
+            <Border x:Name="SvFlaeche" Grid.Column="0" Height="240" CornerRadius="8"
+                    ClipToBounds="True"
+                    PointerPressed="SvFlaeche_Gedrueckt" PointerMoved="SvFlaeche_Bewegt"
+                    PointerReleased="Flaeche_Losgelassen">
+                <!-- Der Grundton wird im Code gesetzt (Nachfuehren): Avalonia legt für
+                     x:Name an einem Pinsel kein Feld an, anders als WPF. -->
+                <Panel>
+                    <Border>
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                                <GradientStop Color="White" Offset="0"/>
+                                <GradientStop Color="Transparent" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
+                    </Border>
+                    <Border>
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                                <GradientStop Color="Transparent" Offset="0"/>
+                                <GradientStop Color="Black" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
+                    </Border>
+                    <Canvas>
+                        <!-- Zwei Ringe statt eines Schattens: Avalonia hat keinen
+                             DropShadowEffect auf einer Form, und ein weißer Ring allein
+                             verschwindet auf hellem Grund. -->
+                        <Ellipse x:Name="SvGriffAussen" Width="16" Height="16"
+                                 Stroke="#80000000" StrokeThickness="3"
+                                 IsHitTestVisible="False"/>
+                        <Ellipse x:Name="SvGriff" Width="14" Height="14"
+                                 Stroke="White" StrokeThickness="2"
+                                 IsHitTestVisible="False"/>
+                    </Canvas>
+                </Panel>
+            </Border>
+
+            <!-- Farbton -->
+            <Border x:Name="FarbtonFlaeche" Grid.Column="1" Width="22" Height="240" Margin="12,0,0,0"
+                    CornerRadius="6" ClipToBounds="True"
+                    PointerPressed="Farbton_Gedrueckt" PointerMoved="Farbton_Bewegt"
+                    PointerReleased="Flaeche_Losgelassen">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                        <GradientStop Color="#FF0000" Offset="0"/>
+                        <GradientStop Color="#FFFF00" Offset="0.167"/>
+                        <GradientStop Color="#00FF00" Offset="0.333"/>
+                        <GradientStop Color="#00FFFF" Offset="0.5"/>
+                        <GradientStop Color="#0000FF" Offset="0.667"/>
+                        <GradientStop Color="#FF00FF" Offset="0.833"/>
+                        <GradientStop Color="#FF0000" Offset="1"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+                <Canvas>
+                    <Border x:Name="FarbtonGriff" Width="22" Height="6"
+                            BorderBrush="White" BorderThickness="2" CornerRadius="3"
+                            IsHitTestVisible="False"/>
+                </Canvas>
+            </Border>
+        </Grid>
+
+        <!-- Deckkraft -->
+        <DockPanel x:Name="DeckkraftZeile" Margin="0,14,0,0">
+            <TextBlock Text="{loc:T Ed.Opacity}" DockPanel.Dock="Left" VerticalAlignment="Center" Width="70"
+                       Foreground="{DynamicResource Brush.TextMuted}"/>
+            <TextBlock x:Name="DeckkraftWert" DockPanel.Dock="Right" VerticalAlignment="Center" Width="44"
+                       TextAlignment="Right" Text="100 %"
+                       Foreground="{DynamicResource Brush.TextMuted}"/>
+            <Border x:Name="DeckkraftFlaeche" Height="18" CornerRadius="6" Margin="0,0,8,0"
+                    Background="{StaticResource Schachbrett}" ClipToBounds="True"
+                    PointerPressed="Deckkraft_Gedrueckt" PointerMoved="Deckkraft_Bewegt"
+                    PointerReleased="Flaeche_Losgelassen">
+                <Panel>
+                    <!-- Der Verlauf wird im Code gesetzt, aus demselben Grund wie oben. -->
+                    <Border x:Name="DeckkraftVerlauf" CornerRadius="6"/>
+                    <Canvas>
+                        <Border x:Name="DeckkraftGriff" Width="6" Height="18"
+                                BorderBrush="White" BorderThickness="2" CornerRadius="3"
+                                IsHitTestVisible="False"/>
+                    </Canvas>
+                </Panel>
+            </Border>
+        </DockPanel>
+
+        <!-- Hex und Vorschau -->
+        <DockPanel Margin="0,14,0,0">
+            <Border DockPanel.Dock="Right" Width="64" Height="30" CornerRadius="6"
+                    Background="{StaticResource Schachbrett}" ClipToBounds="True">
+                <Border x:Name="Vorschau" CornerRadius="6"/>
+            </Border>
+            <TextBlock Text="{loc:T ColorPicker.Hex}" VerticalAlignment="Center" Width="70"
+                       Foreground="{DynamicResource Brush.TextMuted}"/>
+            <TextBox x:Name="HexFeld" VerticalAlignment="Center" Margin="0,0,10,0"
+                     KeyDown="HexFeld_Taste" LostFocus="HexFeld_Verlassen"/>
+        </DockPanel>
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0" Spacing="8">
+            <Button Content="{loc:T Dlg.Cancel}" MinWidth="90" IsCancel="True" Click="Abbrechen_Click"/>
+            <Button Content="{loc:T Dlg.Apply}" MinWidth="110" IsDefault="True" Click="Uebernehmen_Click"
+                    Classes="akzent"/>
+        </StackPanel>
+    </StackPanel>
+</Window>

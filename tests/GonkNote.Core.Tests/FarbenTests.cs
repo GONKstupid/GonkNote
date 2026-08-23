@@ -125,4 +125,94 @@ public class FarbenTests
         // Zeichenketten ist das der Unterschied zwischen Suchen und Finden.
         Assert.Contains("Accent", ex.Message);
     }
+
+    // ---------- Farbton, Sättigung, Helligkeit (Phase 4.5, für den Farbwähler) ----------
+
+    [Theory]
+    [InlineData("#FF0000", 0, 1, 1)]        // Rot
+    [InlineData("#00FF00", 120, 1, 1)]      // Grün
+    [InlineData("#0000FF", 240, 1, 1)]      // Blau
+    [InlineData("#FFFF00", 60, 1, 1)]       // Gelb
+    [InlineData("#00FFFF", 180, 1, 1)]      // Cyan
+    [InlineData("#FF00FF", 300, 1, 1)]      // Magenta
+    [InlineData("#FFFFFF", 0, 0, 1)]        // Weiß — Farbton unbestimmt, gemeldet als 0
+    [InlineData("#000000", 0, 0, 0)]        // Schwarz
+    [InlineData("#808080", 0, 0, 0.50196)]  // Grau
+    public void Die_Grundfarben_zerfallen_richtig(string hex, double h, double s, double v)
+    {
+        var (ist_h, ist_s, ist_v) = HexColor.Parse(hex, HexColor.Black).ToHsv();
+        Assert.Equal(h, ist_h, 3);
+        Assert.Equal(s, ist_s, 3);
+        Assert.Equal(v, ist_v, 3);
+    }
+
+    /// <summary>
+    /// <b>Der Wächter, auf den es ankommt.</b> Ein Farbwähler zerlegt beim Öffnen und setzt
+    /// beim Ziehen wieder zusammen — kommt dabei nicht dieselbe Farbe heraus, wandert sie bei
+    /// jedem Öffnen ein Stück, und niemand sieht es an einer einzelnen Runde.
+    /// <para>Geprüft über alle 4.096 Farben des 16er-Rasters, nicht an drei Beispielen.</para>
+    /// </summary>
+    [Fact]
+    public void Zerlegen_und_zusammensetzen_ergibt_dieselbe_Farbe()
+    {
+        for (int r = 0; r < 256; r += 17)
+            for (int g = 0; g < 256; g += 17)
+                for (int b = 0; b < 256; b += 17)
+                {
+                    var vorher = new HexColor(0xFF, (byte)r, (byte)g, (byte)b);
+                    var (h, s, v) = vorher.ToHsv();
+                    Assert.Equal(vorher, HexColor.FromHsv(h, s, v));
+                }
+    }
+
+    [Fact]
+    public void Der_Alphaanteil_ueberlebt_die_Zerlegung_nicht_und_wird_mitgegeben()
+    {
+        var mit = new HexColor(0x80, 0x25, 0x63, 0xEB);
+        var (h, s, v) = mit.ToHsv();
+
+        // ToHsv sagt nichts über Alpha — FromHsv ohne Angabe liefert deckend.
+        Assert.Equal(0xFF, HexColor.FromHsv(h, s, v).A);
+        Assert.Equal(mit, HexColor.FromHsv(h, s, v, 0x80));
+    }
+
+    /// <summary>
+    /// Der Aufrufer ist ein Mauszeiger auf einer Fläche, und der darf über den Rand hinaus.
+    /// Zurechtgestutzt statt abgelehnt — eine Ausnahme mitten im Ziehen wäre unbrauchbar.
+    /// </summary>
+    [Theory]
+    [InlineData(-90, 0.5, 0.5)]
+    [InlineData(450, 0.5, 0.5)]
+    [InlineData(0, -1, 0.5)]
+    [InlineData(0, 2, 0.5)]
+    [InlineData(0, 0.5, -1)]
+    [InlineData(0, 0.5, 2)]
+    public void Werte_ausserhalb_des_Bereichs_werden_zurechtgestutzt(double h, double s, double v)
+    {
+        var farbe = HexColor.FromHsv(h, s, v);   // wirft nicht
+        Assert.Equal(0xFF, farbe.A);
+    }
+
+    [Fact]
+    public void Ein_negativer_und_ein_ueberdrehter_Winkel_treffen_dieselbe_Farbe()
+    {
+        Assert.Equal(HexColor.FromHsv(30, 1, 1), HexColor.FromHsv(390, 1, 1));
+        Assert.Equal(HexColor.FromHsv(30, 1, 1), HexColor.FromHsv(-330, 1, 1));
+    }
+
+    /// <summary>Bei 360° darf nicht Magenta herauskommen, sondern Rot — der Zweig muss umlaufen.</summary>
+    [Fact]
+    public void Der_volle_Kreis_endet_wieder_bei_Rot()
+    {
+        Assert.Equal(HexColor.FromHsv(0, 1, 1), HexColor.FromHsv(360, 1, 1));
+        Assert.Equal(new HexColor(0xFF, 0xFF, 0, 0), HexColor.FromHsv(360, 1, 1));
+    }
+
+    [Fact]
+    public void Der_Alphaanteil_laesst_sich_einzeln_wechseln()
+    {
+        var c = HexColor.Parse("#2563EB", HexColor.Black);
+        Assert.Equal(new HexColor(0x80, 0x25, 0x63, 0xEB), c.WithAlpha(0x80));
+        Assert.Equal("#802563EB", c.WithAlpha(0x80).ToString());
+    }
 }

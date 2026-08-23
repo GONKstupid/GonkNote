@@ -2,10 +2,25 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using GonkNote.Core.Theming;
 
 namespace GonkNote.Views;
 
-/// <summary>HSV-Farbwähler mit Hex-Eingabe und optionaler Deckkraft.</summary>
+/// <summary>
+/// HSV-Farbwähler mit Hex-Eingabe und optionaler Deckkraft.
+/// <para>
+/// <b>Gerechnet wird seit Phase 4.5 in <see cref="HexColor"/></b> — Zerlegen, Zusammensetzen,
+/// Lesen und Schreiben der Hex-Schreibweise. Hier bleibt die Oberfläche: die Flächen, das
+/// Ziehen, die Verläufe. Der Grund ist derselbe wie bei den Griffen in §4.51: der Linux-Kopf
+/// bekommt denselben Wähler, und zwei Fassungen derselben Arithmetik driften auseinander.
+/// </para>
+/// <para>
+/// <b>Eine benannte Änderung dabei:</b> das Hex-Feld nahm über <c>ColorConverter</c> auch
+/// Farb<b>namen</b> an („Red", „CornflowerBlue"). Das tut es nicht mehr — es ist ein
+/// Hex-Feld, es zeigt immer <c>#RRGGBB</c>, und ein Extra, das nur einer der beiden Köpfe
+/// kann, ist gegen M2.
+/// </para>
+/// </summary>
 public partial class ColorPickerDialog : Window
 {
     private double _h;      // 0..360
@@ -22,10 +37,16 @@ public partial class ColorPickerDialog : Window
         InitializeComponent();
         if (!allowAlpha) AlphaRow.Visibility = Visibility.Collapsed;
 
-        (_h, _s, _v) = RgbToHsv(initial.R, initial.G, initial.B);
+        (_h, _s, _v) = Hex(initial).ToHsv();
         _a = allowAlpha ? initial.A : (byte)255;
         Loaded += (_, _) => UpdateUi();
     }
+
+    // ---- Übersetzung zwischen Core und WPF ----
+
+    private static HexColor Hex(Color c) => new(c.A, c.R, c.G, c.B);
+
+    private static Color Wpf(HexColor c) => Color.FromArgb(c.A, c.R, c.G, c.B);
 
     /// <summary>Zeigt den Dialog an; null bei Abbruch.</summary>
     public static Color? Pick(Window? owner, Color initial, bool allowAlpha = true)
@@ -34,16 +55,11 @@ public partial class ColorPickerDialog : Window
         return dlg.ShowDialog() == true ? dlg.SelectedColor : null;
     }
 
-    private Color CurrentColor()
-    {
-        var (r, g, b) = HsvToRgb(_h, _s, _v);
-        return Color.FromArgb(_a, r, g, b);
-    }
+    private Color CurrentColor() => Wpf(HexColor.FromHsv(_h, _s, _v, _a));
 
     private void UpdateUi()
     {
-        var (hr, hg, hb) = HsvToRgb(_h, 1, 1);
-        HueBrush.Color = Color.FromRgb(hr, hg, hb);
+        HueBrush.Color = Wpf(HexColor.FromHsv(_h, 1, 1));
 
         Canvas.SetLeft(SvThumb, _s * SvArea.ActualWidth - 7);
         Canvas.SetTop(SvThumb, (1 - _v) * SvArea.ActualHeight - 7);
@@ -56,8 +72,9 @@ public partial class ColorPickerDialog : Window
         AlphaLabel.Text = $"{Math.Round(_a / 255.0 * 100)} %";
         Preview.Background = new SolidColorBrush(c);
 
-        if (!_updatingHex)
-            HexBox.Text = _a == 255 ? $"#{c.R:X2}{c.G:X2}{c.B:X2}" : $"#{c.A:X2}{c.R:X2}{c.G:X2}{c.B:X2}";
+        // HexColor.ToString() liefert genau diese zwei Formen: #RRGGBB, und #AARRGGBB nur
+        // dann, wenn die Farbe nicht deckend ist.
+        if (!_updatingHex) HexBox.Text = Hex(c).ToString();
     }
 
     // ---- Eingabeflächen ----
@@ -132,23 +149,23 @@ public partial class ColorPickerDialog : Window
 
     private void HexBox_LostFocus(object s, KeyboardFocusChangedEventArgs e) => TryParseHex();
 
+    /// <summary>
+    /// Übernimmt die getippte Farbe. Bei Unsinn wird stillschweigend zurückgesetzt statt
+    /// gemeckert — der Nutzer sieht sofort, dass sich nichts bewegt hat.
+    /// </summary>
     private void TryParseHex()
     {
-        var text = HexBox.Text.Trim();
-        if (!text.StartsWith('#')) text = "#" + text;
-        try
+        if (!HexColor.TryParse(HexBox.Text, out var c))
         {
-            var c = (Color)ColorConverter.ConvertFromString(text);
-            (_h, _s, _v) = RgbToHsv(c.R, c.G, c.B);
-            if (AlphaRow.Visibility == Visibility.Visible) _a = c.A;
-            _updatingHex = true;
-            UpdateUi();
-            _updatingHex = false;
+            UpdateUi();   // ungültig → zurücksetzen
+            return;
         }
-        catch
-        {
-            UpdateUi(); // ungültig → zurücksetzen
-        }
+
+        (_h, _s, _v) = c.ToHsv();
+        if (AlphaRow.Visibility == Visibility.Visible) _a = c.A;
+        _updatingHex = true;
+        UpdateUi();
+        _updatingHex = false;
     }
 
     private void Ok_Click(object s, RoutedEventArgs e)
@@ -157,38 +174,6 @@ public partial class ColorPickerDialog : Window
         DialogResult = true;
     }
 
-    // ---- HSV-Mathematik ----
-
-    private static (double H, double S, double V) RgbToHsv(byte r, byte g, byte b)
-    {
-        double rf = r / 255.0, gf = g / 255.0, bf = b / 255.0;
-        double max = Math.Max(rf, Math.Max(gf, bf)), min = Math.Min(rf, Math.Min(gf, bf));
-        double d = max - min;
-        double h = 0;
-        if (d > 0)
-        {
-            if (max == rf) h = 60 * (((gf - bf) / d) % 6);
-            else if (max == gf) h = 60 * ((bf - rf) / d + 2);
-            else h = 60 * ((rf - gf) / d + 4);
-        }
-        if (h < 0) h += 360;
-        return (h, max == 0 ? 0 : d / max, max);
-    }
-
-    private static (byte R, byte G, byte B) HsvToRgb(double h, double s, double v)
-    {
-        double c = v * s;
-        double x = c * (1 - Math.Abs(h / 60 % 2 - 1));
-        double m = v - c;
-        var (rf, gf, bf) = ((int)(h / 60) % 6) switch
-        {
-            0 => (c, x, 0.0),
-            1 => (x, c, 0.0),
-            2 => (0.0, c, x),
-            3 => (0.0, x, c),
-            4 => (x, 0.0, c),
-            _ => (c, 0.0, x),
-        };
-        return ((byte)Math.Round((rf + m) * 255), (byte)Math.Round((gf + m) * 255), (byte)Math.Round((bf + m) * 255));
-    }
+    // Die HSV-Mathematik stand bis Phase 4.5 hier. Sie steht jetzt in HexColor (Core) —
+    // siehe den Kopfkommentar.
 }

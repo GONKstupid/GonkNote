@@ -82,4 +82,74 @@ public readonly record struct HexColor(byte A, byte R, byte G, byte B)
     public override string ToString() => A == 0xFF
         ? $"#{R:X2}{G:X2}{B:X2}"
         : $"#{A:X2}{R:X2}{G:X2}{B:X2}";
+
+    // ==================== Farbton, Sättigung, Helligkeit ====================
+    //
+    // Für den Farbwähler (Phase 4.5). Ein Wähler zeigt nicht vier Bytes, sondern eine
+    // Farbfläche, einen Farbtonstreifen und einen Deckkraftregler — das sind H, S, V und A.
+    // Die Umrechnung ist reine Arithmetik und gehört deshalb hierher und nicht in einen
+    // Kopf: bis Phase 4.5 stand sie privat im WPF-Dialog, und der Linux-Kopf hätte sie
+    // abschreiben müssen.
+
+    /// <summary>
+    /// Zerlegt die Farbe in Farbton (0–360°), Sättigung und Helligkeit (je 0–1). Der
+    /// Alpha-Anteil bleibt außen vor — er ist keine Eigenschaft des Farbtons.
+    /// <para>
+    /// <b>Bei Grau ist der Farbton nicht bestimmt</b> und wird als 0 gemeldet. Ein Wähler
+    /// darf deshalb <b>H, S und V als eigenen Zustand halten</b> und nicht bei jeder
+    /// Bewegung aus der Farbe zurückrechnen — sonst springt der Farbtonzeiger auf Rot,
+    /// sobald der Nutzer die Sättigung auf null zieht.
+    /// </para>
+    /// </summary>
+    public (double H, double S, double V) ToHsv()
+    {
+        double r = R / 255.0, g = G / 255.0, b = B / 255.0;
+        double max = Math.Max(r, Math.Max(g, b)), min = Math.Min(r, Math.Min(g, b));
+        double d = max - min;
+
+        double h = 0;
+        if (d > 0)
+        {
+            if (max == r) h = 60 * (((g - b) / d) % 6);
+            else if (max == g) h = 60 * ((b - r) / d + 2);
+            else h = 60 * ((r - g) / d + 4);
+        }
+        if (h < 0) h += 360;
+
+        return (h, max == 0 ? 0 : d / max, max);
+    }
+
+    /// <summary>
+    /// Baut eine Farbe aus Farbton (0–360°), Sättigung und Helligkeit (je 0–1) sowie einem
+    /// Alpha-Anteil. Werte außerhalb ihrer Bereiche werden zurechtgestutzt statt abgelehnt —
+    /// der Aufrufer ist ein Mauszeiger auf einer Fläche, und der darf über den Rand hinaus.
+    /// </summary>
+    public static HexColor FromHsv(double h, double s, double v, byte a = 0xFF)
+    {
+        h = ((h % 360) + 360) % 360;   // auch negative Winkel landen im Bereich
+        s = Math.Clamp(s, 0, 1);
+        v = Math.Clamp(v, 0, 1);
+
+        double c = v * s;
+        double x = c * (1 - Math.Abs(h / 60 % 2 - 1));
+        double m = v - c;
+
+        var (r, g, b) = ((int)(h / 60) % 6) switch
+        {
+            0 => (c, x, 0.0),
+            1 => (x, c, 0.0),
+            2 => (0.0, c, x),
+            3 => (0.0, x, c),
+            4 => (x, 0.0, c),
+            _ => (c, 0.0, x),
+        };
+
+        return new HexColor(a,
+            (byte)Math.Round((r + m) * 255),
+            (byte)Math.Round((g + m) * 255),
+            (byte)Math.Round((b + m) * 255));
+    }
+
+    /// <summary>Dieselbe Farbe mit einem anderen Alpha-Anteil.</summary>
+    public HexColor WithAlpha(byte a) => this with { A = a };
 }

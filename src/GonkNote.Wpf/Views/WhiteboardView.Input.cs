@@ -321,33 +321,35 @@ public partial class WhiteboardView
     /// </summary>
     private void BeginSelectionDrag(SKPoint c)
     {
-        if (_selection.Count == 1)
+        var single = SingleSelected;
+
+        // Der Drehpunkt hängt davon ab, was ausgewählt ist: bei einem Element sein
+        // Mittelpunkt (es dreht sich um sich selbst), bei mehreren die obere linke Ecke des
+        // Kastens (die Gruppe wächst nach unten rechts).
+        switch (ProbeHandles(c))
         {
-            var el = _selection.First();
-            var handles = SingleHandles(el);
-            var bounds = ElementBounds(el);
-            var center = new SKPoint(bounds.MidX, bounds.MidY);
-
-            if (NearHandle(c, handles.Rotate)) BeginRotate(el, center, c);
-            else if (NearHandle(c, handles.Scale)) BeginScale(center, c);
-            else if (SelectionContains(c)) BeginMove(c);
-            else BeginSelectOrLasso(c);
-            return;
+            case WbHandles.Grab.Rotate when single != null:
+                BeginRotate(single, WbHandles.Center(single), c);
+                return;
+            case WbHandles.Grab.Scale:
+                BeginScale(single != null
+                    ? WbHandles.Center(single)
+                    : new SKPoint(_selectionBounds.Left, _selectionBounds.Top), c);
+                return;
+            case WbHandles.Grab.Move:
+                BeginMove(c);
+                return;
+            default:
+                BeginSelectOrLasso(c);
+                return;
         }
-
-        if (_selection.Count > 1 && HitSelectionScaleHandle(c))
-            BeginScale(new SKPoint(_selectionBounds.Left, _selectionBounds.Top), c);
-        else if (_selection.Count > 1 && InflatedSelectionBounds().Contains(c))
-            BeginMove(c);
-        else
-            BeginSelectOrLasso(c);
     }
 
     private void BeginRotate(WbElement el, SKPoint center, SKPoint c)
     {
         _rotatingEl = el;
         _rotStartDeg = el.Rotation;
-        _rotStartPointer = AngleDeg(center, c);
+        _rotStartPointer = WbHandles.AngleDeg(center, c);
     }
 
     private void BeginScale(SKPoint pivot, SKPoint c)
@@ -440,12 +442,9 @@ public partial class WhiteboardView
             case ToolType.Move:
                 if (_rotatingEl != null)
                 {
-                    var b = ElementBounds(_rotatingEl);
-                    var ctr = new SKPoint(b.MidX, b.MidY);
-                    float deg = _rotStartDeg + (AngleDeg(ctr, c) - _rotStartPointer);
-                    // an 15°-Schritten einrasten, wenn nah dran
-                    float snapped = MathF.Round(deg / 15f) * 15f;
-                    _rotatingEl.Rotation = MathF.Abs(deg - snapped) <= 3f ? snapped : deg;
+                    // Einrasten auf 15°-Schritte inbegriffen — die Rechnung steht in Core.
+                    _rotatingEl.Rotation = WbHandles.RotationFromDrag(
+                        WbHandles.Center(_rotatingEl), c, _rotStartDeg, _rotStartPointer);
                 }
                 else if (_scalingSelection)
                 {

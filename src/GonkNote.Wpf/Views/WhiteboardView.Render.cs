@@ -460,62 +460,13 @@ public partial class WhiteboardView
     /// <summary>
     /// Auswahlrahmen mit Griffen: bei einem einzelnen Element dreht der Rahmen mit und trägt
     /// Dreh- und Skalier-Griff, bei mehreren gibt es einen achsenparallelen Kasten.
+    /// <para>
+    /// <b>Gezeichnet wird seit Phase 4.5 in <see cref="WbSelectionRenderer"/></b> — dieselben
+    /// Pixel für beide Köpfe. Hier bleibt nur, woher Farbe und Zoom kommen.
+    /// </para>
     /// </summary>
-    private void DrawSelectionFrame(SKCanvas canvas, SKColor accent)
-    {
-        if (_selection.Count == 0) return;
-
-        using var fill = new SKPaint { Color = accent.WithAlpha(18) };
-        using var stroke = new SKPaint
-        {
-            Color = accent, Style = SKPaintStyle.Stroke, StrokeWidth = 1.4f / Zoom, IsAntialias = true,
-            PathEffect = SKPathEffect.CreateDash(new[] { 6f / Zoom, 4f / Zoom }, 0),
-        };
-        using var handleFill = new SKPaint { Color = accent, IsAntialias = true };
-        using var handleRing = new SKPaint
-        {
-            Color = SKColors.White, Style = SKPaintStyle.Stroke, StrokeWidth = 1.4f / Zoom, IsAntialias = true,
-        };
-        float hs = 6f / Zoom;
-
-        void Handle(SKPoint p, bool circle)
-        {
-            if (circle) { canvas.DrawCircle(p, hs, handleFill); canvas.DrawCircle(p, hs, handleRing); }
-            else
-            {
-                var r = SKRect.Create(p.X - hs, p.Y - hs, hs * 2, hs * 2);
-                canvas.DrawRect(r, handleFill); canvas.DrawRect(r, handleRing);
-            }
-        }
-
-        if (_selection.Count > 1)
-        {
-            var b = InflatedSelectionBounds();
-            canvas.DrawRect(b, fill);
-            canvas.DrawRect(b, stroke);
-            Handle(new SKPoint(b.Right, b.Bottom), circle: false);
-            return;
-        }
-
-        var h = SingleHandles(_selection.First());
-        using (var box = new SKPath())
-        {
-            box.MoveTo(h.TL); box.LineTo(h.TR); box.LineTo(h.BR); box.LineTo(h.BL); box.Close();
-            canvas.DrawPath(box, fill);
-            canvas.DrawPath(box, stroke);
-        }
-
-        // Linie zum Dreh-Griff
-        var topMid = new SKPoint((h.TL.X + h.TR.X) / 2f, (h.TL.Y + h.TR.Y) / 2f);
-        using (var line = new SKPaint
-               {
-                   Color = accent, Style = SKPaintStyle.Stroke, StrokeWidth = 1.4f / Zoom, IsAntialias = true,
-               })
-            canvas.DrawLine(topMid, h.Rotate, line);
-
-        Handle(h.Rotate, circle: true);   // Drehen = Kreis
-        Handle(h.Scale, circle: false);   // Skalieren = Quadrat
-    }
+    private void DrawSelectionFrame(SKCanvas canvas, SKColor accent) =>
+        WbSelectionRenderer.Draw(canvas, SingleSelected, _selectionBounds, _selection.Count, accent, Zoom);
 
     /// <summary>Radierer statt Mauszeiger: ein Ring in der eingestellten Größe.</summary>
     private void DrawEraserCursor(SKCanvas canvas)

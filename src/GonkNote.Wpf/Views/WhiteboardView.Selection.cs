@@ -12,65 +12,33 @@ namespace GonkNote.Views;
 /// <para>
 /// <b>Die Geometrie steht seit Phase 3 in <see cref="WbHit"/>.</b> Bis dahin lag sie hier
 /// privat und ein zweites Mal im Linux-Kopf — zwei Fassungen derselben Formel driften
-/// auseinander, ohne dass es auffällt (HANDOFF §4.10). Was hier bleibt, hängt am
-/// Steuerelement: <c>Zoom</c> für die Toleranzen, <c>_page</c> und <c>_selection</c> für
-/// den Zustand, die Griffe für die Darstellung. Gerechnet wird in Core.
+/// auseinander, ohne dass es auffällt (HANDOFF §4.10).
+/// </para>
+/// <para>
+/// <b>Seit Phase 4.5 gilt das auch für die Griffe</b> (<see cref="WbHandles"/>). Hier stand
+/// bis dahin, sie blieben im Kopf, weil sie „am Steuerelement hängen" — <b>das traf nicht
+/// zu</b>: gerechnet wurde mit <c>ElementBounds</c>, <c>WbHit.Rotate</c> und <c>Rotation</c>,
+/// alles aus Core, plus <c>Zoom</c>. Und <c>Zoom</c> ist eine Zahl. Aufgefallen ist es, als
+/// der Linux-Kopf in Phase 4.5 Drehen und Skalieren bekommen sollte — er hätte die Formeln
+/// sonst abgeschrieben.
+/// </para>
+/// <para>
+/// <b>Was hier wirklich bleibt:</b> der Zustand (<c>_page</c>, <c>_selection</c>, was gerade
+/// gezogen wird), die Zeigerereignisse und die Undo-Aktionen. Gerechnet wird in Core,
+/// gezeichnet in <see cref="WbSelectionRenderer"/>.
 /// </para>
 /// </summary>
 public partial class WhiteboardView
 {
-    /// <summary>Skalier-Griff unten rechts an der (aufgeblähten) Auswahl-Umrandung.</summary>
-    private bool HitSelectionScaleHandle(SKPoint c)
-    {
-        var b = InflatedSelectionBounds();
-        float r = 12f / Zoom;
-        float dx = c.X - b.Right, dy = c.Y - b.Bottom;
-        return dx * dx + dy * dy <= r * r;
-    }
+    /// <summary>
+    /// Das einzelne ausgewählte Element — oder <c>null</c>, wenn es keines oder mehrere sind.
+    /// So fragen Weiche und Zeichner in Core danach (<see cref="WbHandles.Probe"/>).
+    /// </summary>
+    private WbElement? SingleSelected => _selection.Count == 1 ? _selection.First() : null;
 
-    // ---------- Griffe für Einzelauswahl (mitgedreht) ----------
-
-    /// <summary>Dreh-Griff (oben) und Skalier-Griff (unten rechts) eines einzelnen Elements, mitgedreht.</summary>
-    private (SKPoint Rotate, SKPoint Scale, SKPoint TL, SKPoint TR, SKPoint BR, SKPoint BL) SingleHandles(WbElement el)
-    {
-        var b = ElementBounds(el);
-        var ctr = new SKPoint(b.MidX, b.MidY);
-        float pad = 10f / Zoom;
-        var tl = new SKPoint(b.Left - pad, b.Top - pad);
-        var tr = new SKPoint(b.Right + pad, b.Top - pad);
-        var br = new SKPoint(b.Right + pad, b.Bottom + pad);
-        var bl = new SKPoint(b.Left - pad, b.Bottom + pad);
-        var rot = new SKPoint(b.MidX, b.Top - pad - 28f / Zoom);
-        float d = el.Rotation;
-        return (WbHit.Rotate(rot, ctr, d), WbHit.Rotate(br, ctr, d),
-                WbHit.Rotate(tl, ctr, d), WbHit.Rotate(tr, ctr, d),
-                WbHit.Rotate(br, ctr, d), WbHit.Rotate(bl, ctr, d));
-    }
-
-    private bool NearHandle(SKPoint c, SKPoint handle)
-    {
-        float r = 13f / Zoom;
-        float dx = c.X - handle.X, dy = c.Y - handle.Y;
-        return dx * dx + dy * dy <= r * r;
-    }
-
-    private static float AngleDeg(SKPoint from, SKPoint to) =>
-        MathF.Atan2(to.Y - from.Y, to.X - from.X) * 180f / MathF.PI;
-
-    /// <summary>Ist der Zeiger „innerhalb" der (ggf. gedrehten) Auswahl → zum Verschieben?</summary>
-    private bool SelectionContains(SKPoint c)
-    {
-        if (_selection.Count == 1)
-        {
-            var el = _selection.First();
-            var b = ElementBounds(el);
-            var ctr = new SKPoint(b.MidX, b.MidY);
-            var local = WbHit.Rotate(c, ctr, -el.Rotation);   // Zeiger in den ungedrehten Raum bringen
-            b.Inflate(10f / Zoom, 10f / Zoom);
-            return b.Contains(local);
-        }
-        return InflatedSelectionBounds().Contains(c);
-    }
+    /// <summary>Was der Zeiger an der Auswahl anfasst. Gerechnet wird in <see cref="WbHandles"/>.</summary>
+    private WbHandles.Grab ProbeHandles(SKPoint c) =>
+        WbHandles.Probe(SingleSelected, _selectionBounds, _selection.Count, c, Zoom);
 
     /// <summary>Verschieben-Werkzeug: Objekt direkt greifen; Lasso: neue Umkreisung beginnen.</summary>
     private void BeginSelectOrLasso(SKPoint c)
@@ -126,12 +94,7 @@ public partial class WhiteboardView
         Skia.InvalidateVisual();
     }
 
-    private SKRect InflatedSelectionBounds()
-    {
-        var b = _selectionBounds;
-        b.Inflate(12f / Zoom, 12f / Zoom);
-        return b;
-    }
+    private SKRect InflatedSelectionBounds() => WbHandles.InflatedBounds(_selectionBounds, Zoom);
 
     /// <summary>
     /// Was das Lasso eingefangen hat. Die Regel „nur ~vollständig (≥ 95 %) Umschlossenes

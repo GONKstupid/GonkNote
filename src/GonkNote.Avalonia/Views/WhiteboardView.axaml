@@ -61,6 +61,20 @@
 
                     <Border Classes="trenner"/>
 
+                    <!-- Textfeld und Notizzettel (Phase 4.5). Beide gehören zu den
+                         Werkzeugen mit „genau einer ist gedrückt" und stehen deshalb in
+                         ToolButtons — anders als die fünf Formen, die sich eines teilen. -->
+                    <ToggleButton x:Name="BtnText" Classes="werkzeug" Tag="Text"
+                                  IsCheckedChanged="Tool_Changed" ToolTip.Tip="{loc:T Tool.Text}">
+                        <views:Symbol Icon="TextTool" Stroke="{DynamicResource Brush.Text}"/>
+                    </ToggleButton>
+                    <ToggleButton x:Name="BtnZettel" Classes="werkzeug" Tag="Sticky"
+                                  IsCheckedChanged="Tool_Changed" ToolTip.Tip="{loc:T Tool.Sticky}">
+                        <views:Symbol Icon="StickyNote" Stroke="{DynamicResource Brush.Text}"/>
+                    </ToggleButton>
+
+                    <Border Classes="trenner"/>
+
                     <!-- Die fünf Formen (Phase 4.5). Tag = der ShapeKind-Name; sie teilen
                          sich ein eigenes Ereignis, weil alle fünf dasselbe Werkzeug
                          einschalten und sich nur in der Art unterscheiden. -->
@@ -327,6 +341,45 @@
                             </StackPanel>
                         </StackPanel>
 
+                        <!-- ==================== Textfeld ==================== -->
+                        <StackPanel x:Name="TextBereich" IsVisible="False" Margin="0,18,0,0">
+                            <TextBlock Text="{loc:T Settings.Text}" FontWeight="SemiBold" FontSize="14"
+                                       Margin="0,0,0,6" Foreground="{DynamicResource Brush.Text}"/>
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                <!-- Der Schalter trägt die Vorschau, wie bei der Formfüllung. -->
+                                <ToggleButton x:Name="TextGrundAn" Classes="werkzeug"
+                                              ToolTip.Tip="{loc:T Settings.Text.BgTip}"
+                                              IsCheckedChanged="TextGrund_Umgeschaltet">
+                                    <Border Width="16" Height="16" CornerRadius="3" ClipToBounds="True"
+                                            Background="{StaticResource Schachbrett}">
+                                        <Border x:Name="TextGrundVorschau"/>
+                                    </Border>
+                                </ToggleButton>
+                                <Button Classes="flach symbol" Click="TextGrundfarbe_Click"
+                                        ToolTip.Tip="{loc:T Settings.Text.BgTip}">
+                                    <views:Symbol Icon="Palette" Stroke="{DynamicResource Brush.Text}"/>
+                                </Button>
+                                <TextBlock Text="{loc:T Settings.Text.Bg}" VerticalAlignment="Center"
+                                           Margin="6,0,0,0" Foreground="{DynamicResource Brush.Text}"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!-- ==================== Notizzettel ==================== -->
+                        <StackPanel x:Name="ZettelBereich" IsVisible="False" Margin="0,18,0,0">
+                            <TextBlock Text="{loc:T Settings.Sticky}" FontWeight="SemiBold" FontSize="14"
+                                       Margin="0,0,0,6" Foreground="{DynamicResource Brush.Text}"/>
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                <Border x:Name="ZettelVorschau" Width="26" Height="26" CornerRadius="4"
+                                        BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1"/>
+                                <Button Classes="flach symbol" Click="Zettelfarbe_Click"
+                                        ToolTip.Tip="{loc:T Settings.Sticky.CustomColor}">
+                                    <views:Symbol Icon="Palette" Stroke="{DynamicResource Brush.Text}"/>
+                                </Button>
+                                <TextBlock Text="{loc:T Settings.Sticky.Color}" VerticalAlignment="Center"
+                                           Margin="6,0,0,0" Foreground="{DynamicResource Brush.Text}"/>
+                            </StackPanel>
+                        </StackPanel>
+
                     </StackPanel>
                 </ScrollViewer>
             </DockPanel>
@@ -334,7 +387,27 @@
 
         <!-- ==================== Die Fläche ==================== -->
         <!-- ClipToBounds, damit ein Strich am Rand nicht über die Werkzeugleiste läuft. -->
-        <views:SkiaCanvas x:Name="Skia" ClipToBounds="True"/>
+        <Panel ClipToBounds="True">
+            <views:SkiaCanvas x:Name="Skia"/>
+
+            <!-- Die Überlagerung fürs Tippen (Phase 4.5). Textfelder und Notizzettel werden
+                 nicht auf der Skia-Fläche bearbeitet, sondern in einem echten Eingabefeld
+                 darüber — nur so gibt es Marke, Auswahl, Zwischenablage und die
+                 Eingabemethode für Umlaute und tote Tasten geschenkt. Dasselbe Verfahren wie
+                 im WPF-Kopf (WhiteboardView.xaml, „Overlay").
+
+                 **Der Canvas hat bewusst KEINEN Hintergrund** (`{x:Null}`, nicht
+                 `Transparent`): er liegt über der ganzen Fläche, und mit Hintergrund finge er
+                 jeden Zeigerdruck ab — es ließe sich kein Strich mehr zeichnen. Ohne
+                 Hintergrund ist nur anfassbar, was darin steht, also das Eingabefeld.
+                 `IsHitTestVisible="False"` wäre der falsche Weg: das schlägt auf die Kinder
+                 durch, und dann ließe sich der Text nicht mehr mit der Maus markieren. -->
+            <Canvas x:Name="Ueberlagerung" Background="{x:Null}">
+                <TextBox x:Name="EditFeld" IsVisible="False" AcceptsReturn="True"
+                         MinWidth="60" BorderThickness="1"
+                         KeyDown="EditFeld_Taste" LostFocus="EditFeld_Verlassen"/>
+            </Canvas>
+        </Panel>
 
     </DockPanel>
 </UserControl>

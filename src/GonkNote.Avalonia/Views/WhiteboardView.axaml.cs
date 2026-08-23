@@ -108,8 +108,25 @@ public partial class WhiteboardView : UserControl
     private ToggleButton[] FormButtons =>
         [BtnFormLinie, BtnFormPfeil, BtnFormRechteck, BtnFormEllipse, BtnFormDreieck];
 
+    // ---- Textfeld und Notizzettel (Phase 4.5) ----
+    private TextElement? _bearbeiteterText;
+    private StickyNoteElement? _bearbeiteterZettel;
+    private bool _bearbeitungIstNeu;
+    private string _bearbeitungVorher = "";
+    private bool _bearbeitungVerwerfen;
+
+    /// <summary>Vorgabe-Hintergrund neuer Textfelder; <c>null</c> = durchsichtig.</summary>
+    private string? _textGrundHex;
+    private HexColor _zettelfarbe = new(0xFF, 0xFD, 0xE6, 0x8A);   // dasselbe Gelb wie drüben
+
     private ToggleButton[] ToolButtons =>
-        [BtnPen, BtnPencil, BtnHighlighter, BtnEraser, BtnLasso, BtnMove, BtnPan];
+        [BtnPen, BtnPencil, BtnHighlighter, BtnEraser, BtnLasso, BtnMove, BtnPan, BtnText, BtnZettel];
+
+    /// <summary>
+    /// Der umgekehrte Weg zu <see cref="ToCanvas"/>: von der Zeichenfläche auf den Schirm.
+    /// Gebraucht, um das Eingabefeld über das Element zu legen, das es bearbeitet.
+    /// </summary>
+    private Point ToScreen(SKPoint p) => new(p.X * Zoom + PanX, p.Y * Zoom + PanY);
 
     public WhiteboardView()
     {
@@ -275,6 +292,11 @@ public partial class WhiteboardView : UserControl
 
     private void SetTool(ToolType tool)
     {
+        // Eine offene Beschriftung gehört abgeschlossen, bevor das Werkzeug wechselt —
+        // sonst bliebe das Eingabefeld über einer Fläche stehen, auf der man schon wieder
+        // zeichnet, und sein Inhalt käme nie im Element an.
+        BearbeitungAbschliessen();
+
         // Die Auswahl bleibt nur bei den Auswahl-Werkzeugen stehen.
         if (tool != ToolType.Lasso && tool != ToolType.Move) ClearSelection();
 
@@ -300,7 +322,11 @@ public partial class WhiteboardView : UserControl
         // Format markiert. Das steht seit Phase 3 in Einstellungen_Click und ist hier beim
         // zweiten Aufklappweg prompt wieder passiert (am laufenden Programm gesehen).
         FormenBereich.IsVisible = tool == ToolType.Shape;
-        if (tool == ToolType.Shape && !EinstellungenLeiste.IsVisible)
+        TextBereich.IsVisible = tool == ToolType.Text;
+        ZettelBereich.IsVisible = tool == ToolType.Sticky;
+
+        bool eigeneSektion = tool is ToolType.Shape or ToolType.Text or ToolType.Sticky;
+        if (eigeneSektion && !EinstellungenLeiste.IsVisible)
         {
             EinstellungenLeiste.IsVisible = true;
             EinstellungenSpiegeln();

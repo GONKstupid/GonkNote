@@ -239,6 +239,16 @@ public partial class WhiteboardView
         {
             var b = WbRenderer.ElementBounds(el);
             if (!b.IsEmpty && !sichtbar.IntersectsWith(b)) continue;
+
+            // Wird gerade beschriftet? Dann steht der Text im Eingabefeld darüber, und ihn
+            // hier zusätzlich zu malen ergäbe ihn doppelt — beim Zettel bleibt die Karte
+            // trotzdem stehen, sonst verschwände sie unter dem Feld.
+            if (WirdBearbeitet(el))
+            {
+                if (el is StickyNoteElement zettel) WbRenderer.DrawStickyCard(leinwand, zettel);
+                continue;
+            }
+
             WbRenderer.DrawElement(leinwand, el);
         }
     }

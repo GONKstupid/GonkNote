@@ -390,6 +390,14 @@ public partial class WhiteboardView
                 _formAktiv = true;
                 _formStart = _formJetzt = c;
                 break;
+
+            case ToolType.Text:
+                BeginTextInput(c);
+                break;
+
+            case ToolType.Sticky:
+                BeginStickyInput(c);
+                break;
         }
         Neuzeichnen();
     }

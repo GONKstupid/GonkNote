@@ -50,6 +50,13 @@ public partial class WhiteboardView
     {
         if (_vm == null || _page == null || !EinstellungenLeiste.IsVisible) return;
 
+        // Die Vorschauflächen der Werkzeug-Sektionen (Phase 4.5). Sie hängen nicht an der
+        // Seite, sondern am gewählten Werkzeug — spiegeln muss man sie trotzdem hier, sonst
+        // gehen sie leer auf. Genau das ist in §4.53 an der zweiten Aufklappstelle passiert.
+        FuellvorschauNachfuehren();
+        TextGrundVorschauNachfuehren();
+        ZettelVorschauNachfuehren();
+
         _stummeEinstellungen = true;
 
         (_page.Background switch

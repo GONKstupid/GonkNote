@@ -24,6 +24,17 @@ namespace GonkNote.Views;
 /// selbstgezeichneten Fläche alles Eigenbau; §4.41 bis §4.44 zeigen, wie viel daran hängt.
 /// </para>
 /// <para>
+/// <para>
+/// <b>⚠ OFFEN und am laufenden Programm gesehen:</b> Die hier gesetzten
+/// <c>Background</c>/<c>Foreground</c> kommen <b>nicht an</b> — das Feld ist beim Tippen
+/// schwarz mit heller Schrift, auch über einem gelben Notizzettel. Im WPF-Kopf trägt
+/// dieselbe Zuweisung. <b>Die Ursache ist nicht gemessen</b>; der naheliegende Verdacht ist
+/// das Fluent-Theme, das dem <c>TextBox</c> im Zustand <c>:focus</c> eigene Pinsel aus seinem
+/// Template gibt — <b>aber das ist eine Deutung und keine Messung</b>, und sie gehört geprüft,
+/// bevor jemand daraufhin einen Style schreibt. Der Text kommt richtig im Element an; es ist
+/// ein Schönheitsfehler beim Bearbeiten, kein Datenverlust.
+/// </para>
+/// <para>
 /// <b>Was hier bewusst geteilt ist:</b> Beide Werkzeuge benutzen <b>dasselbe</b> Eingabefeld.
 /// Zwei Felder hießen zwei Stellen, an denen der Fokus verlorengehen kann — und
 /// <c>BearbeitungAbschliessen</c> müsste beide kennen. Dafür setzt der Zettel ein paar

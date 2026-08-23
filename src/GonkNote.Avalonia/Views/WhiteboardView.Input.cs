@@ -25,9 +25,17 @@ public partial class WhiteboardView
     /// <summary>
     /// Läuft gerade eine Aktion, die jede Zeigerbewegung braucht? Wenn nicht, ist die
     /// Bewegung bloßes Schweben über der Fläche.
+    /// <para>
+    /// <b>Wer hier einen Zug vergisst, bekommt keinen Fehler, sondern gar nichts.</b> Das
+    /// Drehen und Skalieren aus Phase 4.5 stand zuerst nicht in dieser Liste: der Griff
+    /// wurde erkannt, der Zustand gesetzt — und jede folgende Bewegung galt als Schweben,
+    /// also passierte nichts. Es baute mit 0 Fehlern, die Wächter blieben grün, und am
+    /// laufenden Programm bewegte sich das Element keinen Pixel.
+    /// </para>
     /// </summary>
     private bool InputInProgress =>
-        _drawing || _eraseSteps != null || _lassoPts != null || _movingSelection;
+        _drawing || _eraseSteps != null || _lassoPts != null || _movingSelection
+        || _scalingSelection || _rotatingEl != null;
 
     /// <summary>Das Radiergummi-Ende des Stifts schlägt das gewählte Werkzeug.</summary>
     private ToolType EffectiveTool => _stylusInverted ? ToolType.Eraser : _tool;
@@ -360,16 +368,65 @@ public partial class WhiteboardView
                 EraseAt(c);
                 break;
 
+            // Beide Auswahl-Werkzeuge müssen zuerst die Griffe fragen: wer eine Auswahl hat
+            // und den Drehgriff anfasst, will drehen — auch mit dem Lasso in der Hand.
             case ToolType.Lasso:
+                if (BeginHandleDrag(c)) break;
                 ClearSelection();
                 _lassoPts = [c];
                 break;
 
             case ToolType.Move:
+                if (BeginHandleDrag(c)) break;
                 BeginMoveOrSelect(c);
                 break;
         }
         Neuzeichnen();
+    }
+
+    /// <summary>
+    /// Drehen und Skalieren, seit Phase 4.5. Liefert <c>true</c>, wenn ein Griff angefasst
+    /// wurde — dann ist der Zug vergeben und der Aufrufer tut nichts weiter.
+    /// <para>
+    /// <b>Die Weiche steht in <see cref="WbHandles.Probe"/></b>, damit die Reihenfolge in
+    /// beiden Köpfen dieselbe ist: der Drehgriff hängt außerhalb des Rahmens, der Skaliergriff
+    /// sitzt auf der Ecke und ragt hinein — wer erst auf „innerhalb" prüft, verschluckt ihn.
+    /// </para>
+    /// <para>
+    /// <b>Verschieben behandelt diese Methode nicht.</b> Der Linux-Kopf verschiebt seit
+    /// Phase 3 in <see cref="BeginMoveOrSelect"/>, und der greift zusätzlich ein Element auf,
+    /// das noch gar nicht ausgewählt ist. Diese Unterscheidung geht verloren, wenn man beides
+    /// zusammenlegt.
+    /// </para>
+    /// </summary>
+    private bool BeginHandleDrag(SKPoint c)
+    {
+        if (_selection.Count == 0) return false;
+
+        var einzeln = SingleSelected;
+        switch (ProbeHandles(c))
+        {
+            case WbHandles.Grab.Rotate when einzeln != null:
+                _rotatingEl = einzeln;
+                _rotStartDeg = einzeln.Rotation;
+                _rotStartPointer = WbHandles.AngleDeg(WbHandles.Center(einzeln), c);
+                return true;
+
+            // Der Drehpunkt hängt davon ab, was ausgewählt ist: bei einem Element sein
+            // Mittelpunkt (es dreht sich um sich selbst), bei mehreren die obere linke Ecke
+            // des Kastens (die Gruppe wächst nach unten rechts). Genauso im WPF-Kopf.
+            case WbHandles.Grab.Scale:
+                _scalingSelection = true;
+                _scalePivot = einzeln != null
+                    ? WbHandles.Center(einzeln)
+                    : new SKPoint(_selectionBounds.Left, _selectionBounds.Top);
+                _scaleStartDist = Math.Max(1f, SKPoint.Distance(_scalePivot, c));
+                _scaleAccum = 1f;
+                return true;
+
+            default:
+                return false;
+        }
     }
 
     /// <summary>
@@ -441,10 +498,12 @@ public partial class WhiteboardView
                 break;
 
             case ToolType.Lasso:
+                if (DragHandle(c)) break;
                 _lassoPts?.Add(c);
                 break;
 
             case ToolType.Move:
+                if (DragHandle(c)) break;
                 if (!_movingSelection) return;
                 float mx = c.X - _moveLast.X, my = c.Y - _moveLast.Y;
                 foreach (var el in _selection) el.Translate(mx, my);
@@ -459,6 +518,34 @@ public partial class WhiteboardView
         Neuzeichnen();
     }
 
+    /// <summary>
+    /// Das Ziehen an einem Griff. Liefert <c>true</c>, wenn gerade gedreht oder skaliert
+    /// wird — dann ist die Bewegung vergeben.
+    /// </summary>
+    private bool DragHandle(SKPoint c)
+    {
+        if (_rotatingEl != null)
+        {
+            // Einrasten auf 15°-Schritte inbegriffen — die Rechnung steht in Core.
+            _rotatingEl.Rotation = WbHandles.RotationFromDrag(
+                WbHandles.Center(_rotatingEl), c, _rotStartDeg, _rotStartPointer);
+            return true;
+        }
+
+        if (!_scalingSelection) return false;
+
+        float dist = SKPoint.Distance(_scalePivot, c);
+        float target = Math.Max(0.05f, dist / _scaleStartDist);   // Gesamtfaktor seit Anfassen
+        float step = target / _scaleAccum;                        // relativer Schritt
+        if (step > 0.001f && MathF.Abs(step - 1f) > 0.0001f)
+        {
+            foreach (var el in _selection) el.Scale(step, _scalePivot.X, _scalePivot.Y);
+            _scaleAccum = target;
+            ComputeSelectionBounds();
+        }
+        return true;
+    }
+
     private void HoverInput(SKPoint c)
     {
         if (EffectiveTool != ToolType.Eraser) return;
@@ -470,6 +557,17 @@ public partial class WhiteboardView
     private void EndInput()
     {
         if (_page == null || _vm == null) return;
+
+        // Zuerst die Griffe — sie greifen bei beiden Auswahl-Werkzeugen, und ein
+        // abgeschlossenes Drehen darf nicht als Lasso-Ende gedeutet werden.
+        if (EndHandleDrag())
+        {
+            _drawing = false;
+            _activePoints = null;
+            InhaltVerwerfen();
+            Neuzeichnen();
+            return;
+        }
 
         switch (EffectiveTool)
         {
@@ -514,6 +612,41 @@ public partial class WhiteboardView
         _activePoints = null;
         InhaltVerwerfen();
         Neuzeichnen();
+    }
+
+    /// <summary>
+    /// Schließt ein Drehen oder Skalieren ab und legt es auf den Verlaufsstapel. Liefert
+    /// <c>true</c>, wenn einer der beiden Züge lief.
+    /// <para>
+    /// <b>Die Schwellen sind kein Beiwerk:</b> ein Klick auf einen Griff ohne Bewegung darf
+    /// keinen Verlaufseintrag erzeugen — sonst nimmt das erste Rückgängig scheinbar nichts
+    /// zurück, und der Nutzer drückt es ein zweites Mal.
+    /// </para>
+    /// </summary>
+    private bool EndHandleDrag()
+    {
+        if (_rotatingEl != null)
+        {
+            var el = _rotatingEl;
+            _rotatingEl = null;
+            if (Math.Abs(el.Rotation - _rotStartDeg) > 0.01f)
+            {
+                _vm!.Undo.Push(_page!, new RotateElementAction(el, _rotStartDeg, el.Rotation));
+                MarkDirty();
+            }
+            return true;
+        }
+
+        if (!_scalingSelection) return false;
+
+        _scalingSelection = false;
+        if (Math.Abs(_scaleAccum - 1f) > 0.0001f)
+        {
+            _vm!.Undo.Push(_page!,
+                new ScaleElementsAction(_selection, _scaleAccum, _scalePivot.X, _scalePivot.Y));
+            MarkDirty();
+        }
+        return true;
     }
 
     private void CommitStroke()

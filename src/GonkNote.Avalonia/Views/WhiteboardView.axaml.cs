@@ -77,6 +77,20 @@ public partial class WhiteboardView : UserControl
     private SKPoint _moveLast;
     private float _movedX, _movedY;
 
+    // Skalieren (Phase 4.5). Gerechnet wird der GESAMTfaktor seit dem Anfassen; der Schritt
+    // ergibt sich daraus. Wer stattdessen je Mausbewegung einen kleinen Faktor anwendet,
+    // sammelt Rundungsfehler ein, und das Element schrumpft beim Hin- und Herziehen.
+    private bool _scalingSelection;
+    private SKPoint _scalePivot;
+    private float _scaleStartDist;    // Abstand Pivot→Zeiger beim Anfassen
+    private float _scaleAccum;        // bereits angewandter Gesamtfaktor
+
+    // Drehen (Phase 4.5). Nur bei Einzelauswahl — der Kasten mehrerer Elemente ist
+    // achsenparallel und hat deshalb keinen Drehgriff.
+    private WbElement? _rotatingEl;
+    private float _rotStartDeg;       // Drehung des Elements beim Anfassen
+    private float _rotStartPointer;   // Zeigerwinkel beim Anfassen
+
     private ToggleButton[] ToolButtons =>
         [BtnPen, BtnPencil, BtnHighlighter, BtnEraser, BtnLasso, BtnMove, BtnPan];
 
@@ -381,17 +395,24 @@ public partial class WhiteboardView : UserControl
     {
         _selection.Clear();
         _movingSelection = false;
+        _scalingSelection = false;
+        _rotatingEl = null;
         Neuzeichnen();
     }
 
-    private SKRect InflatedSelectionBounds()
-    {
-        var b = _selectionBounds;
-        b.Inflate(12f / Zoom, 12f / Zoom);
-        return b;
-    }
+    private SKRect InflatedSelectionBounds() => WbHandles.InflatedBounds(_selectionBounds, Zoom);
 
     private void ComputeSelectionBounds() => _selectionBounds = WbHit.Bounds(_selection);
+
+    /// <summary>
+    /// Das einzelne ausgewählte Element — oder <c>null</c>, wenn es keines oder mehrere sind.
+    /// So fragen Weiche und Zeichner in Core danach (<see cref="WbHandles.Probe"/>).
+    /// </summary>
+    private WbElement? SingleSelected => _selection.Count == 1 ? _selection.First() : null;
+
+    /// <summary>Was der Zeiger an der Auswahl anfasst. Gerechnet wird in <see cref="WbHandles"/>.</summary>
+    private WbHandles.Grab ProbeHandles(SKPoint c) =>
+        WbHandles.Probe(SingleSelected, _selectionBounds, _selection.Count, c, Zoom);
 
     private void SelectAll()
     {

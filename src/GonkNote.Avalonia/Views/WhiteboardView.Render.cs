@@ -491,26 +491,18 @@ public partial class WhiteboardView
     }
 
     /// <summary>
-    /// Auswahlrahmen. Für M1 ein achsenparalleler Kasten — Dreh- und Skaliergriffe hängen
-    /// an Werkzeugen, die es hier noch nicht gibt.
+    /// Auswahlrahmen mit Griffen. <b>Bis Phase 4.5 stand hier ein achsenparalleler Kasten</b>
+    /// und der Kommentar „Dreh- und Skaliergriffe hängen an Werkzeugen, die es hier noch nicht
+    /// gibt". Die Werkzeuge gibt es jetzt.
+    /// <para>
+    /// <b>Gezeichnet wird in <see cref="WbSelectionRenderer"/></b> — dieselben Pixel wie im
+    /// WPF-Kopf, und nicht nur ungefähr dieselben. Der Kasten, der hier stand, war schon
+    /// Zeile für Zeile die Abschrift des dortigen (Alpha 18, 1.4/Zoom, Strichelung 6/4); die
+    /// Griffe hätten die dritte Fassung derselben Zahlen ergeben.
+    /// </para>
     /// </summary>
-    private void DrawSelectionFrame(SKCanvas leinwand, SKColor akzent)
-    {
-        if (_selection.Count == 0) return;
-
-        var b = InflatedSelectionBounds();
-        using var flaeche = new SKPaint { Color = akzent.WithAlpha(18) };
-        using var rand = new SKPaint
-        {
-            Color = akzent,
-            Style = SKPaintStyle.Stroke,
-            StrokeWidth = 1.4f / Zoom,
-            IsAntialias = true,
-            PathEffect = SKPathEffect.CreateDash([6f / Zoom, 4f / Zoom], 0),
-        };
-        leinwand.DrawRect(b, flaeche);
-        leinwand.DrawRect(b, rand);
-    }
+    private void DrawSelectionFrame(SKCanvas leinwand, SKColor akzent) =>
+        WbSelectionRenderer.Draw(leinwand, SingleSelected, _selectionBounds, _selection.Count, akzent, Zoom);
 
     /// <summary>Radierer statt Zeiger: ein Ring in der eingestellten Größe.</summary>
     private void DrawEraserCursor(SKCanvas leinwand)

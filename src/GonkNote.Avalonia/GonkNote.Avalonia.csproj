@@ -64,11 +64,28 @@
        `avares://GonkNote.Avalonia/Assets/...`; `Link` bestimmt diesen Pfad, genauso wie
        er beim WPF-Kopf den `pack://`-Namen bestimmt (HANDOFF §7 „Wurzel-Dateien").
 
-       Geodreieck-SVGs, Cover-Vorlagen und die OCR-Sprachdaten stehen bewusst **nicht**
-       hier: die zugehörigen Werkzeuge gibt es im Linux-Kopf nicht, und eine Datei
-       mitzuschleppen, die niemand liest, verschleiert nur, was der Kopf wirklich kann. -->
+       Cover-Vorlagen und die OCR-Sprachdaten stehen bewusst **nicht** hier: die zugehörigen
+       Werkzeuge gibt es im Linux-Kopf nicht, und eine Datei mitzuschleppen, die niemand
+       liest, verschleiert nur, was der Kopf wirklich kann.
+
+       **Die Geodreieck-SVGs standen bis Phase 4.5 aus demselben Grund nicht hier — und das
+       war richtig, bis der Linux-Kopf ein Geodreieck bekam** (§4.60). Ohne sie greift der
+       Eigenbau in `WbAidRenderer`: maßgleich, aber **ohne Skalen und ohne Winkelbogen**.
+       Am laufenden Programm gesehen — der Bau war grün, und beide Köpfe zeigten dasselbe
+       Werkzeug in zwei verschiedenen Gestalten. *Ein Kommentar, der eine Voraussetzung
+       nennt, wird zur Falle, sobald sie sich ändert.*
+
+       **`Content` und nicht `AvaloniaResource`:** `WbAidRenderer` liest die Datei über
+       `File.OpenRead` aus `AppPaths.AppSubfolder("Assets")`, also aus dem Ausgabeordner
+       neben der Exe — genau wie der WPF-Kopf. Als eingebettete Ressource läge sie in der
+       DLL, wo kein `File.Exists` sie findet, und der Eigenbau bliebe still stehen. -->
   <ItemGroup>
     <AvaloniaResource Include="..\..\Assets\gonk-note-Icon.png" Link="Assets\gonk-note-Icon.png" />
+
+    <Content Include="..\..\Assets\Geodreieck-Light.svg" Link="Assets\Geodreieck-Light.svg"
+             CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\Assets\Geodreieck-Dark.svg" Link="Assets\Geodreieck-Dark.svg"
+             CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <!-- Die vier mitgelieferten Dokumente. Sie erscheinen unter „Hilfe → Erste Schritte" und

@@ -449,6 +449,9 @@ public partial class WhiteboardView
         DrawLassoPath(leinwand, akzent);
         DrawSelectionFrame(leinwand, akzent);
         DrawEraserCursor(leinwand);
+
+        // Die Zeichenhilfe zuletzt: sie liegt über allem, wie ein echtes Lineal auf dem Blatt.
+        HilfeZeichnen(leinwand);
     }
 
     /// <summary>Der Strich, der gerade gezogen wird — noch nicht im Dokument.</summary>

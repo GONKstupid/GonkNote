@@ -35,7 +35,8 @@ public partial class WhiteboardView
     /// </summary>
     private bool InputInProgress =>
         _drawing || _eraseSteps != null || _lassoPts != null || _movingSelection
-        || _scalingSelection || _rotatingEl != null || _formAktiv;
+        || _scalingSelection || _rotatingEl != null || _formAktiv
+        || _hilfeZug != HilfeZug.Keiner;
 
     /// <summary>Das Radiergummi-Ende des Stifts schlägt das gewählte Werkzeug.</summary>
     private ToolType EffectiveTool => _stylusInverted ? ToolType.Eraser : _tool;
@@ -357,6 +358,16 @@ public partial class WhiteboardView
     {
         if (_page == null || _vm == null) return;
 
+        // **Die Zeichenhilfe fragt vor jedem Werkzeug.** Wer das Lineal anfasst, will es
+        // schieben oder drehen — und nicht darauf zeichnen. Erst wenn sie den Zug nicht
+        // nimmt, kommt das Werkzeug dran.
+        if (HilfeZugBeginnen(c)) { Neuzeichnen(); return; }
+
+        // Danach: klebt ein beginnender Strich an einer Kante? Nur hier bestimmt, nicht bei
+        // jeder Bewegung (sonst spränge er mitten im Zug auf eine andere Kante).
+        HilfeEinrastenPruefen(c);
+        c = HilfeEinrasten(c);
+
         switch (EffectiveTool)
         {
             case ToolType.Pen:
@@ -478,6 +489,12 @@ public partial class WhiteboardView
     {
         if (_page == null) return;
 
+        // Ein laufender Hilfe-Zug hat Vorrang — er wurde in BeginInput vergeben.
+        if (_hilfeZug != HilfeZug.Keiner) { HilfeZugFortsetzen(c); return; }
+
+        // Klebt der Strich an einer Kante, wird jeder Punkt darauf gezogen.
+        c = HilfeEinrasten(c);
+
         switch (EffectiveTool)
         {
             case ToolType.Pen:
@@ -597,6 +614,14 @@ public partial class WhiteboardView
     private void EndInput()
     {
         if (_page == null || _vm == null) return;
+
+        // Das Einrasten gilt nur für den einen Strich — der nächste sucht sich seine Kante
+        // neu. Vor allen anderen Abschlüssen zurücksetzen, damit es auch dann fällt, wenn
+        // einer davon vorzeitig aussteigt.
+        _hilfeKante = null;
+
+        // Ein Hilfe-Zug ist mit dem Loslassen zu Ende und hat mit dem Werkzeug nichts zu tun.
+        if (HilfeZugBeenden()) return;
 
         // Zuerst die Griffe — sie greifen bei beiden Auswahl-Werkzeugen, und ein
         // abgeschlossenes Drehen darf nicht als Lasso-Ende gedeutet werden.

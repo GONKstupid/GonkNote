@@ -712,6 +712,15 @@ public partial class WhiteboardView : UserControl
                 return;
         }
 
+        // Die Zeichenhilfen haben eigene Kürzel und stehen deshalb vor der Werkzeugtabelle:
+        // sie schalten kein Werkzeug um, sondern legen etwas auf die Fläche. Dieselben
+        // Buchstaben wie im WPF-Kopf.
+        switch (e.Key)
+        {
+            case Key.R: HilfeSetzen(Zeichenhilfe.Lineal); e.Handled = true; return;
+            case Key.D: HilfeSetzen(Zeichenhilfe.Geodreieck); e.Handled = true; return;
+        }
+
         // Werkzeug-Kürzel — dieselben Buchstaben wie im WPF-Kopf.
         ToggleButton? btn = e.Key switch
         {

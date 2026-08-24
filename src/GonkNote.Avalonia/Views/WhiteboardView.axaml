@@ -77,6 +77,20 @@
                         <views:Symbol Icon="Sticker" Stroke="{DynamicResource Brush.Text}"/>
                     </ToggleButton>
 
+                    <!-- Lineal und Geodreieck (Phase 4.5). **Sie stehen bewusst nicht in
+                         ToolButtons**: dort gilt „genau einer ist gedrückt", und eine
+                         Zeichenhilfe ist kein Werkzeug — sie liegt auf der Seite, während
+                         man mit dem Stift daran entlangfährt. Wer sie mit hineinnähme,
+                         verlöre beim Einschalten des Lineals seinen Stift. -->
+                    <ToggleButton x:Name="BtnLineal" Classes="werkzeug"
+                                  Click="Lineal_Click" ToolTip.Tip="{loc:T Tool.Ruler.Tip}">
+                        <views:Symbol Icon="Ruler" Stroke="{DynamicResource Brush.Text}"/>
+                    </ToggleButton>
+                    <ToggleButton x:Name="BtnGeodreieck" Classes="werkzeug"
+                                  Click="Geodreieck_Click" ToolTip.Tip="{loc:T Tool.SetSquare.Tip}">
+                        <views:Symbol Icon="SetSquare" Stroke="{DynamicResource Brush.Text}"/>
+                    </ToggleButton>
+
                     <Border Classes="trenner"/>
 
                     <!-- Die fünf Formen (Phase 4.5). Tag = der ShapeKind-Name; sie teilen

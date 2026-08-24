@@ -24,15 +24,12 @@ namespace GonkNote.Views;
 /// selbstgezeichneten Fläche alles Eigenbau; §4.41 bis §4.44 zeigen, wie viel daran hängt.
 /// </para>
 /// <para>
-/// <para>
-/// <b>⚠ OFFEN und am laufenden Programm gesehen:</b> Die hier gesetzten
-/// <c>Background</c>/<c>Foreground</c> kommen <b>nicht an</b> — das Feld ist beim Tippen
-/// schwarz mit heller Schrift, auch über einem gelben Notizzettel. Im WPF-Kopf trägt
-/// dieselbe Zuweisung. <b>Die Ursache ist nicht gemessen</b>; der naheliegende Verdacht ist
-/// das Fluent-Theme, das dem <c>TextBox</c> im Zustand <c>:focus</c> eigene Pinsel aus seinem
-/// Template gibt — <b>aber das ist eine Deutung und keine Messung</b>, und sie gehört geprüft,
-/// bevor jemand daraufhin einen Style schreibt. Der Text kommt richtig im Element an; es ist
-/// ein Schönheitsfehler beim Bearbeiten, kein Datenverlust.
+/// <b>Der Farbfehler beim Bearbeiten ist gemessen und behoben</b> (§4.55): der Hintergrund
+/// kam nicht an, weil Fluent ihn <b>am Border im Template</b> setzt und nicht am
+/// <c>TextBox</c>. Wo das steht und warum die Behebung über die Ressourcen läuft, sagt
+/// <see cref="FeldfarbenSetzen"/>. <b>Die Schrift kam immer an</b> — „schwarz mit heller
+/// Schrift" war eine Fehlbeobachtung; sie war unsere eigene dunkle Farbe auf schwarzem
+/// Grund.
 /// </para>
 /// <para>
 /// <b>Was hier bewusst geteilt ist:</b> Beide Werkzeuge benutzen <b>dasselbe</b> Eingabefeld.
@@ -120,10 +117,11 @@ public partial class WhiteboardView
         EditFeld.VerticalContentAlignment = VerticalAlignment.Center;
 
         EditFeld.FontSize = Math.Max(8, el.FontSize * Zoom);
-        EditFeld.Background = el.Background is { } grund
-            ? HexColor.Parse(grund, HexColor.Black).ToBrush()
-            : new SolidColorBrush(Color.FromArgb(230, 255, 255, 255));
-        EditFeld.Foreground = HexColor.Parse(el.Color, HexColor.Black).ToBrush();
+        FeldfarbenSetzen(
+            el.Background is { } grund
+                ? HexColor.Parse(grund, HexColor.Black).ToBrush()
+                : new SolidColorBrush(Color.FromArgb(230, 255, 255, 255)),
+            HexColor.Parse(el.Color, HexColor.Black).ToBrush());
         EditFeld.Text = el.Text;
 
         FeldZeigen();
@@ -146,11 +144,48 @@ public partial class WhiteboardView
         EditFeld.VerticalContentAlignment = VerticalAlignment.Top;
 
         EditFeld.FontSize = Math.Max(8, el.FontSize * Zoom);
-        EditFeld.Background = HexColor.Parse(el.Color, HexColor.Black).ToBrush();
-        EditFeld.Foreground = HexColor.Parse(el.TextColor, HexColor.Black).ToBrush();
+        FeldfarbenSetzen(
+            HexColor.Parse(el.Color, HexColor.Black).ToBrush(),
+            HexColor.Parse(el.TextColor, HexColor.Black).ToBrush());
         EditFeld.Text = el.Text;
 
         FeldZeigen();
+    }
+
+    /// <summary>
+    /// Gibt dem Eingabefeld seine Farben — und zwar so, dass sie auch ankommen.
+    ///
+    /// <para>
+    /// <b>Warum das mehr ist als zwei Zuweisungen.</b> <c>Foreground</c> trägt als gesetzter
+    /// Wert; <c>Background</c> tut es <b>nicht</b>, und das ist am ausgelieferten Theme
+    /// nachgelesen (<c>Avalonia.Themes.Fluent</c> 12.1.1, zerlegt wie in §4.42): Fluent setzt
+    /// den Hintergrund nicht am <c>TextBox</c>, sondern <b>am Border im Template</b> —
+    /// <c>TextBox:focus /template/ Border#PART_BorderElement</c> auf
+    /// <c>TextControlBackgroundFocused</c>, dieselbe Stelle noch einmal für
+    /// <c>:pointerover</c>. Dort ist unser Wert nicht gesetzt, also gewinnt der Setter des
+    /// Themes, und im dunklen Erscheinungsbild ist das ein fast schwarzer Pinsel. Am
+    /// laufenden Programm gemessen: über einem gelben Zettel stand ein schwarzes Feld mit
+    /// unserer dunklen Schrift darin — <b>der Text war richtig, nur unlesbar</b>.
+    /// </para>
+    /// <para>
+    /// <b>Warum über die Ressourcen und nicht über einen eigenen Style.</b> Die drei
+    /// <c>TextControlBackground…</c>-Schlüssel sind die Stellschraube, die das Theme selbst
+    /// vorsieht; wer sie am Feld überschreibt, muss nichts über Selektoren und ihre Vorränge
+    /// annehmen. Und dass der Lookup vom Border aus hier oben ankommt, ist ebenfalls
+    /// nachgelesen und nicht vermutet: <c>TemplatedControl.ApplyTemplate</c> hängt das
+    /// Template als <b>logisches</b> Kind ein (<c>SetParent(this)</c>).
+    /// </para>
+    /// </summary>
+    private void FeldfarbenSetzen(IBrush grund, IBrush schrift)
+    {
+        EditFeld.Background = grund;
+        EditFeld.Foreground = schrift;
+
+        // Alle drei Zustände, in denen ein Feld beim Beschriften steht: ruhend, unter dem
+        // Zeiger, mit Fokus. Fehlte einer, bliebe genau der eine Zustand schwarz.
+        EditFeld.Resources["TextControlBackground"] = grund;
+        EditFeld.Resources["TextControlBackgroundPointerOver"] = grund;
+        EditFeld.Resources["TextControlBackgroundFocused"] = grund;
     }
 
     /// <summary>

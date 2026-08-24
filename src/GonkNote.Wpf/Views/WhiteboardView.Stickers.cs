@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 using System.Windows.Media;
 using System.Windows;
+using GonkNote.Core.Editing;
 using GonkNote.Core.Models;
 using GonkNote.Core.Services;
 using GonkNote.Services;
@@ -41,9 +42,12 @@ public partial class WhiteboardView
 
         if (files.Count == 0)
         {
+            // Der Text stand hier bis Phase 4.5 **fest auf Deutsch** — in einer App, die
+            // zwei Sprachen führt (Dauerregel 1). Aufgefallen beim Portieren, weil der
+            // Linux-Kopf denselben Hinweis braucht und ihn übersetzt haben wollte.
             StickerGrid.Children.Add(new TextBlock
             {
-                Text = "Noch keine Sticker. Über „Sticker hinzufügen“ eigene Bilder ergänzen.",
+                Text = Loc.T("Settings.Sticker.Empty"),
                 Foreground = (Brush)FindResource("Brush.TextMuted"),
                 TextWrapping = TextWrapping.Wrap,
                 Width = 230,
@@ -94,25 +98,23 @@ public partial class WhiteboardView
         if (_page == null || _vm == null) return;
         try
         {
-            var raw = File.ReadAllBytes(file);
-            var prepared = Path.GetExtension(file).Equals(".svg", StringComparison.OrdinalIgnoreCase)
-                ? RasterizeSvg(raw)
-                : PrepareRaster(raw);
-            if (prepared is not { } img) return;
+            // **Kein SVG-Zweig mehr.** Er stand hier bis Phase 4.5 und konnte seit §4.54
+            // nicht mehr laufen: was als Sticker zählt, sagt Bildsammlung.Endungen, und
+            // dort steht SVG bewusst nicht — eine Vektordatei gehört vor dem Einfügen
+            // gerastert, und das an der Stelle, die die Zielgröße kennt.
+            if (PrepareRaster(File.ReadAllBytes(file)) is not { } img) return;
 
-            // Sticker in vernünftiger Größe (lange Kante ~160 px) mittig einfügen
-            float target = 160f;
-            float scale = Math.Min(1f, target / Math.Max(img.W, img.H));
-            float dw = img.W * scale, dh = img.H * scale;
-            var at = ViewCenter();
-            float x = at.X - dw / 2f, y = at.Y - dh / 2f;
-            if (!_page.IsInfinite)
+            // Wo der Sticker landet und wie groß er wird, rechnet seit Phase 4.5 Core
+            // (WbEinfuegen.FuerSticker) — sonst käme derselbe Sticker im Linux-Kopf anders
+            // groß an, und das steht dann so in der Datei.
+            var kasten = WbEinfuegen.FuerSticker(img.W, img.H, ViewCenter(), _page);
+
+            var el = new ImageElement
             {
-                x = Math.Clamp(x, 0, Math.Max(0, _page.Width - dw));
-                y = Math.Clamp(y, 0, Math.Max(0, _page.Height - dh));
-            }
-
-            var el = new ImageElement { X = x, Y = y, Width = dw, Height = dh, Data = img.Data };
+                X = kasten.Left, Y = kasten.Top,
+                Width = kasten.Width, Height = kasten.Height,
+                Data = img.Data,
+            };
             _page.Elements.Add(el);
             _vm.Undo.Push(_page, new AddElementsAction(new WbElement[] { el }));
             MarkDirty();
@@ -161,10 +163,12 @@ public partial class WhiteboardView
 
     private void AddSticker_Click(object sender, RoutedEventArgs e)
     {
+        // Titel und Filter kamen bis Phase 4.5 **fest auf Deutsch** aus dem Code; die
+        // Schlüssel dafür gab es längst bzw. sind mit dem Linux-Kopf dazugekommen.
         var dlg = new OpenFileDialog
         {
-            Title = "Sticker zur Sammlung hinzufügen",
-            Filter = "Bilder (*.png;*.jpg;*.jpeg;*.webp)|*.png;*.jpg;*.jpeg;*.webp|Alle Dateien (*.*)|*.*",
+            Title = Loc.T("Settings.Sticker.Add"),
+            Filter = $"{Loc.T("Filter.Images")}|*.png;*.jpg;*.jpeg;*.webp|{Loc.T("Filter.AllFiles")}|*.*",
             Multiselect = true,
         };
         if (dlg.ShowDialog(Window.GetWindow(this)) != true) return;

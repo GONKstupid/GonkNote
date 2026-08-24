@@ -107,6 +107,7 @@ internal static class LocEnglish
         ["Filter.AllFiles"] = "All files (*.*)",
         ["Filter.Pdf"] = "PDF document (*.pdf)",
         ["Filter.Png"] = "PNG image(s) (*.png)",
+        ["Filter.Images"] = "Images (*.png;*.jpg;*.jpeg;*.webp)",
 
         // ---- Whiteboard / notebook ----
         ["Tool.Hand"] = "Hand",
@@ -191,6 +192,7 @@ internal static class LocEnglish
         ["Settings.Sticky.Hint"] = "Tap the sheet to place a note, then tap it to write. Move/scale it with the move or lasso tool.",
         ["Settings.Sticker.Hint"] = "A click inserts the sticker in the middle of the sheet. Then place and scale it with the move tool (V).",
         ["Settings.Sticker.Add"] = "Add sticker",
+        ["Settings.Sticker.Empty"] = "No stickers yet. Use “Add sticker” to add your own images.",
         ["Settings.Cover"] = "Cover",
         ["Settings.Cover.Gradient"] = "Gradient",
         ["Settings.Cover.StartColor"] = "Choose start colour",

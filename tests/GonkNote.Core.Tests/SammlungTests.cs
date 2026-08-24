@@ -1,5 +1,8 @@
+using GonkNote.Core.Editing;
+using GonkNote.Core.Models;
 using GonkNote.Core.Services;
 using GonkNote.Core.Theming;
+using SkiaSharp;
 
 namespace GonkNote.Core.Tests;
 
@@ -194,5 +197,105 @@ public sealed class SammlungTests
         // Reines Grün ist hell genug für dunkle Schrift, reines Blau nicht.
         Assert.Equal("#1F2937", HexColor.Parse("#00FF00", HexColor.Black).LesbareSchrift().ToString());
         Assert.Equal("#F9FAFB", HexColor.Parse("#0000FF", HexColor.Black).LesbareSchrift().ToString());
+    }
+    // ==================== Wo ein Sticker landet ====================
+    //
+    // WbEinfuegen.FuerSticker lag bis Phase 4.5 privat im WPF-Kopf. Sie steht jetzt in Core,
+    // weil ihr Ergebnis IN DIE DATEI wandert: ein Sticker, der unter Linux anders groß
+    // ankommt als unter Windows, ist kein Anzeigeunterschied, sondern ein Datenunterschied.
+
+    private static WbPage Blatt(float breite = 800, float hoehe = 600) =>
+        new() { Width = breite, Height = hoehe };
+
+    /// <summary>
+    /// Die unendliche Fläche wird nicht gesetzt, sondern <b>gerechnet</b>: <c>IsInfinite</c>
+    /// ist „keine Breite oder keine Höhe". Ein Blatt ohne Maße <em>ist</em> die endlose Fläche.
+    /// </summary>
+    private static WbPage Endlos() => new() { Width = 0, Height = 0 };
+
+    /// <summary>Ein großes Bild wird auf die lange Kante heruntergerechnet, das Seitenverhältnis bleibt.</summary>
+    [Fact]
+    public void Grosse_Sticker_werden_auf_die_lange_Kante_gebracht()
+    {
+        var k = WbEinfuegen.FuerSticker(800, 400, new SKPoint(400, 300), Blatt());
+
+        Assert.Equal(160f, k.Width, 3);
+        Assert.Equal(80f, k.Height, 3);
+    }
+
+    /// <summary>
+    /// <b>Nie hinaufgerechnet.</b> Ein kleines Bild auf 160 zu ziehen macht es nur unscharf —
+    /// und der Nutzer sähe einen Sticker, den er so nie ausgewählt hat.
+    /// </summary>
+    [Fact]
+    public void Kleine_Sticker_bleiben_klein()
+    {
+        var k = WbEinfuegen.FuerSticker(32, 16, new SKPoint(400, 300), Blatt());
+
+        Assert.Equal(32f, k.Width, 3);
+        Assert.Equal(16f, k.Height, 3);
+    }
+
+    /// <summary>Der Sticker sitzt um den übergebenen Punkt herum und nicht mit der Ecke darauf.</summary>
+    [Fact]
+    public void Der_Sticker_wird_um_den_Punkt_zentriert()
+    {
+        var k = WbEinfuegen.FuerSticker(100, 60, new SKPoint(400, 300), Blatt());
+
+        Assert.Equal(400f, k.MidX, 3);
+        Assert.Equal(300f, k.MidY, 3);
+    }
+
+    /// <summary>
+    /// Am Rand einer endlichen Seite wird geschoben, nicht beschnitten: ein Sticker, der halb
+    /// neben dem Blatt liegt, wäre auf jedem Ausdruck halb weg.
+    /// </summary>
+    [Fact]
+    public void Am_Blattrand_rueckt_der_Sticker_auf_die_Seite()
+    {
+        var k = WbEinfuegen.FuerSticker(100, 100, new SKPoint(795, 595), Blatt());
+
+        Assert.Equal(700f, k.Left, 3);
+        Assert.Equal(500f, k.Top, 3);
+        Assert.Equal(800f, k.Right, 3);
+        Assert.Equal(600f, k.Bottom, 3);
+    }
+
+    /// <summary>Auf der unendlichen Fläche gibt es keinen Rand, an den man rücken könnte.</summary>
+    [Fact]
+    public void Auf_der_endlosen_Flaeche_wird_nicht_geschoben()
+    {
+        var k = WbEinfuegen.FuerSticker(100, 100, new SKPoint(-500, -500), Endlos());
+
+        Assert.Equal(-550f, k.Left, 3);
+        Assert.Equal(-550f, k.Top, 3);
+    }
+
+    /// <summary>
+    /// Ein Bild, das größer ist als die Seite, sitzt in der Ecke und ragt hinaus — es wird
+    /// <b>nicht</b> geklemmt. Ohne das <c>Math.Max(0, …)</c> in der Rechnung stünde die untere
+    /// Grenze über der oberen, und <c>Math.Clamp</c> wirft dann.
+    /// </summary>
+    [Fact]
+    public void Ein_Sticker_groesser_als_die_Seite_wirft_nicht()
+    {
+        var k = WbEinfuegen.FuerSticker(400, 400, new SKPoint(50, 50), Blatt(100, 100));
+
+        Assert.Equal(0f, k.Left, 3);
+        Assert.Equal(0f, k.Top, 3);
+        Assert.Equal(160f, k.Width, 3);
+    }
+
+    /// <summary>
+    /// Ein Bild ohne Maße gäbe eine Division durch null und danach ein Element ohne Fläche —
+    /// unsichtbar, unanklickbar, und nur über Rückgängig wieder loszuwerden.
+    /// </summary>
+    [Fact]
+    public void Ein_Bild_ohne_Masse_ergibt_trotzdem_eine_Flaeche()
+    {
+        var k = WbEinfuegen.FuerSticker(0, 0, new SKPoint(400, 300), Blatt());
+
+        Assert.True(k.Width > 0, "Ein Sticker ohne Breite wäre nicht mehr anfassbar.");
+        Assert.True(k.Height > 0, "Ein Sticker ohne Höhe wäre nicht mehr anfassbar.");
     }
 }

@@ -110,6 +110,7 @@ internal static class LocGerman
         ["Filter.AllFiles"] = "Alle Dateien (*.*)",
         ["Filter.Pdf"] = "PDF-Dokument (*.pdf)",
         ["Filter.Png"] = "PNG-Bild(er) (*.png)",
+        ["Filter.Images"] = "Bilder (*.png;*.jpg;*.jpeg;*.webp)",
 
         // ---- Whiteboard / Notizbuch ----
         ["Tool.Hand"] = "Hand",
@@ -197,6 +198,7 @@ internal static class LocGerman
         ["Settings.Sticky.Hint"] = "Zum Setzen aufs Blatt tippen, dann tippen zum Beschriften. Verschieben/Skalieren mit dem Verschieben- oder Lasso-Werkzeug.",
         ["Settings.Sticker.Hint"] = "Klick fügt den Sticker mittig aufs Blatt ein. Danach mit dem Verschieben-Werkzeug (V) platzieren und skalieren.",
         ["Settings.Sticker.Add"] = "Sticker hinzufügen",
+        ["Settings.Sticker.Empty"] = "Noch keine Sticker. Über „Sticker hinzufügen“ eigene Bilder ergänzen.",
         ["Settings.Cover"] = "Cover",
         ["Settings.Cover.Gradient"] = "Farbverlauf",
         ["Settings.Cover.StartColor"] = "Startfarbe wählen",

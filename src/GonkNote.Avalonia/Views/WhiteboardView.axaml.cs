@@ -120,7 +120,8 @@ public partial class WhiteboardView : UserControl
     private HexColor _zettelfarbe = new(0xFF, 0xFD, 0xE6, 0x8A);   // dasselbe Gelb wie drüben
 
     private ToggleButton[] ToolButtons =>
-        [BtnPen, BtnPencil, BtnHighlighter, BtnEraser, BtnLasso, BtnMove, BtnPan, BtnText, BtnZettel];
+        [BtnPen, BtnPencil, BtnHighlighter, BtnEraser, BtnLasso, BtnMove, BtnPan,
+         BtnText, BtnZettel, BtnSticker];
 
     /// <summary>
     /// Der umgekehrte Weg zu <see cref="ToCanvas"/>: von der Zeichenfläche auf den Schirm.
@@ -329,8 +330,14 @@ public partial class WhiteboardView : UserControl
         FormenBereich.IsVisible = tool == ToolType.Shape;
         TextBereich.IsVisible = tool == ToolType.Text;
         ZettelBereich.IsVisible = tool == ToolType.Sticky;
+        StickerBereich.IsVisible = tool == ToolType.Sticker;
 
-        bool eigeneSektion = tool is ToolType.Shape or ToolType.Text or ToolType.Sticky;
+        // Die Sammlung wird erst gelesen, wenn jemand sie sehen will — sie liegt auf der
+        // Platte, und beim Start braucht sie niemand.
+        if (tool == ToolType.Sticker) StickerSicherstellen();
+
+        bool eigeneSektion = tool is ToolType.Shape or ToolType.Text or ToolType.Sticky
+                                  or ToolType.Sticker;
         if (eigeneSektion && !EinstellungenLeiste.IsVisible)
         {
             EinstellungenLeiste.IsVisible = true;

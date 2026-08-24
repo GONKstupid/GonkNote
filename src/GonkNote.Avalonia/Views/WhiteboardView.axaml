@@ -72,6 +72,10 @@
                                   IsCheckedChanged="Tool_Changed" ToolTip.Tip="{loc:T Tool.Sticky}">
                         <views:Symbol Icon="StickyNote" Stroke="{DynamicResource Brush.Text}"/>
                     </ToggleButton>
+                    <ToggleButton x:Name="BtnSticker" Classes="werkzeug" Tag="Sticker"
+                                  IsCheckedChanged="Tool_Changed" ToolTip.Tip="{loc:T Tool.Sticker}">
+                        <views:Symbol Icon="Sticker" Stroke="{DynamicResource Brush.Text}"/>
+                    </ToggleButton>
 
                     <Border Classes="trenner"/>
 
@@ -378,6 +382,41 @@
                                 <TextBlock Text="{loc:T Settings.Sticky.Color}" VerticalAlignment="Center"
                                            Margin="6,0,0,0" Foreground="{DynamicResource Brush.Text}"/>
                             </StackPanel>
+                        </StackPanel>
+
+                        <!-- ==================== Sticker ==================== -->
+                        <!-- Die Sammlung ist die Bedienung: ein Sticker wird nicht auf die
+                             Fläche gezogen, sondern durch Klick auf seine Kachel eingefügt —
+                             genau wie drüben. Deshalb steht hier ein Kachelraster und kein
+                             Farbwähler. -->
+                        <StackPanel x:Name="StickerBereich" IsVisible="False" Margin="0,18,0,0">
+                            <TextBlock Text="{loc:T Tool.Sticker}" FontWeight="SemiBold" FontSize="14"
+                                       Margin="0,0,0,6" Foreground="{DynamicResource Brush.Text}"/>
+                            <TextBlock Text="{loc:T Settings.Sticker.Hint}" TextWrapping="Wrap" FontSize="11"
+                                       Margin="0,0,0,8" Foreground="{DynamicResource Brush.TextMuted}"/>
+
+                            <!-- Der Hinweis für die leere Sammlung steht **im XAML** und wird
+                                 nur ein- und ausgeblendet: im Code erzeugt, müsste er bei
+                                 jedem Neuladen mit seiner Farbe und seinem Umbruch von Hand
+                                 aufgebaut werden. -->
+                            <TextBlock x:Name="StickerLeerHinweis" IsVisible="False" TextWrapping="Wrap"
+                                       FontSize="11" Margin="0,0,0,8"
+                                       Foreground="{DynamicResource Brush.TextMuted}"
+                                       Text="{loc:T Settings.Sticker.Empty}"/>
+
+                            <ScrollViewer MaxHeight="300" VerticalScrollBarVisibility="Auto">
+                                <WrapPanel x:Name="StickerRaster"/>
+                            </ScrollViewer>
+
+                            <Button Classes="flach" HorizontalAlignment="Left" Margin="0,8,0,0"
+                                    Click="StickerHinzufuegen_Click">
+                                <StackPanel Orientation="Horizontal">
+                                    <views:Symbol Icon="Plus" VerticalAlignment="Center"
+                                                  Stroke="{DynamicResource Brush.Text}"/>
+                                    <TextBlock Text="{loc:T Settings.Sticker.Add}" Margin="6,0,0,0"
+                                               Foreground="{DynamicResource Brush.Text}"/>
+                                </StackPanel>
+                            </Button>
                         </StackPanel>
 
                     </StackPanel>

@@ -166,6 +166,15 @@
 
                     <Border Classes="trenner"/>
 
+                    <!-- Einfügen (Phase 4.5). Steht bewusst NICHT in ToolButtons: er schaltet
+                         kein Werkzeug ein, sondern öffnet einen Dialog — gedrückt stehen
+                         bleiben würde er zu Unrecht. Dieselbe Stelle wie im WPF-Kopf. -->
+                    <Button x:Name="BtnEinfuegen" Classes="flach symbol"
+                            Click="DateiEinfuegen_Click" ToolTip.Tip="{loc:T Wb.InsertFile.Tip}">
+                        <views:Symbol Icon="Image"
+                              Stroke="{DynamicResource Brush.Text}"/>
+                    </Button>
+
                     <Button x:Name="BtnEinstellungen" Classes="flach symbol"
                             Click="Einstellungen_Click" ToolTip.Tip="{loc:T Wb.Settings.PageTip}">
                         <views:Symbol Icon="Settings"
@@ -451,6 +460,27 @@
                          MinWidth="60" BorderThickness="1"
                          LostFocus="EditFeld_Verlassen"/>
             </Canvas>
+
+            <!-- Die Wartesperre beim Einfügen (Phase 4.5). Sie hat **Hintergrund und liegt
+                 über allem**, und das ist der Zweck: ein PDF wird im Hintergrund gerendert,
+                 und solange das läuft, soll auf der Fläche nichts anderes passieren — sonst
+                 zeichnet jemand auf eine Seite, die gleich durch die eingefügten Blätter
+                 verdeckt wird. Der WPF-Kopf hat dasselbe (WhiteboardView.xaml, „BusyOverlay").
+
+                 Der Fortschritt steht **im Text** und nicht im Balken: die Renderdauer je
+                 Seite schwankt stark, ein Balken sprünge dann vor und zurück. -->
+            <Border x:Name="WarteSperre" IsVisible="False" Background="#66000000">
+                <Border Background="{DynamicResource Brush.CardBg}" CornerRadius="10" Padding="26,20"
+                        HorizontalAlignment="Center" VerticalAlignment="Center"
+                        BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1">
+                    <StackPanel>
+                        <ProgressBar x:Name="WarteBalken" Width="240" Height="6" IsIndeterminate="True"/>
+                        <TextBlock x:Name="WarteText" Margin="0,12,0,0" HorizontalAlignment="Center"
+                                   Text="{loc:T Busy.Importing}"
+                                   Foreground="{DynamicResource Brush.Text}"/>
+                    </StackPanel>
+                </Border>
+            </Border>
         </Panel>
 
     </DockPanel>

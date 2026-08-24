@@ -1,0 +1,42 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="clr-namespace:GonkNote.Services"
+        x:Class="GonkNote.Views.SeitenwahlWindow"
+        Width="760" Height="560" MinWidth="520" MinHeight="380"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        Background="{DynamicResource Brush.WindowBg}"
+        Foreground="{DynamicResource Brush.Text}">
+
+    <!-- Das Gegenstück zu FileInsertDialog im WPF-Kopf (Phase 4.5, §4.58): welche Seiten
+         eines PDF oder DOCX eingefügt werden sollen.
+
+         **Die Vorschaubilder sind schon da, wenn dieses Fenster aufgeht.** Sie werden vorher
+         in kleiner Auflösung gerendert (PdfImporter.ThumbnailLongSide) — rund siebzigmal
+         billiger als eine volle Seite, und das macht die Auswahl auch bei hundert Seiten
+         erträglich. Die gewählten Seiten werden danach erst groß gerendert. -->
+
+    <DockPanel Margin="14">
+
+        <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="4">
+                <Button Classes="flach" Content="{loc:T Dlg.All}" Click="AlleWaehlen_Click"/>
+                <Button Classes="flach" Content="{loc:T Dlg.None}" Click="KeineWaehlen_Click"/>
+            </StackPanel>
+            <TextBlock x:Name="InfoText" VerticalAlignment="Center"
+                       Foreground="{DynamicResource Brush.TextMuted}"/>
+        </DockPanel>
+
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"
+                    HorizontalAlignment="Right" Margin="0,12,0,0" Spacing="8">
+            <Button Classes="flach" Content="{loc:T Dlg.Cancel}" MinWidth="90"
+                    Click="Abbrechen_Click"/>
+            <Button x:Name="OkKnopf" Classes="akzent" MinWidth="130" Click="Ok_Click"/>
+        </StackPanel>
+
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <WrapPanel x:Name="KachelFlaeche"/>
+        </ScrollViewer>
+
+    </DockPanel>
+</Window>

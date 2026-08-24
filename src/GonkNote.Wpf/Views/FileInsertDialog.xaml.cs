@@ -23,7 +23,7 @@ public partial class FileInsertDialog : Window
     public FileInsertDialog(string fileName, IReadOnlyList<PdfImporter.PdfPageImage> pages)
     {
         InitializeComponent();
-        Title = $"Seiten auswählen – {fileName}";
+        Title = Loc.T("Dialog.ChoosePages", fileName);
         InfoText.Text = Loc.T("Msg.PagesHint", pages.Count);
 
         for (int i = 0; i < pages.Count; i++)

@@ -111,6 +111,8 @@ internal static class LocGerman
         ["Filter.Pdf"] = "PDF-Dokument (*.pdf)",
         ["Filter.Png"] = "PNG-Bild(er) (*.png)",
         ["Filter.Images"] = "Bilder (*.png;*.jpg;*.jpeg;*.webp)",
+        ["Filter.ImagesImport"] = "Bilder (*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.webp;*.svg)",
+        ["Filter.InsertAll"] = "Bilder, PDF & Word",
 
         // ---- Whiteboard / Notizbuch ----
         ["Tool.Hand"] = "Hand",
@@ -683,6 +685,7 @@ internal static class LocGerman
         ["Msg.OcrFailed"] = "Texterkennung fehlgeschlagen:\n{0}",
         ["Msg.StickerFailed"] = "Sticker konnte nicht eingefügt werden:\n{0}",
         ["Msg.PageN"] = "Seite {0}",
+        ["Dialog.ChoosePages"] = "Seiten auswählen – {0}",
         ["Msg.PagesHint"] = "{0} Seiten · Klick auf eine Seite wählt sie an/ab",
         ["Msg.InsertOnePage"] = "1 Seite einfügen",
         ["Msg.InsertPages"] = "{0} Seiten einfügen",

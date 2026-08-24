@@ -22,6 +22,30 @@ public static class Bildsammlung
     /// <summary>Was als Bildvorlage zählt.</summary>
     public static readonly string[] Endungen = [".png", ".jpg", ".jpeg", ".webp"];
 
+    /// <summary>
+    /// Was sich als Bild <b>einfügen</b> lässt — mehr als <see cref="Endungen"/>.
+    ///
+    /// <para>
+    /// <b>Warum zwei Listen, und warum das kein Versehen ist.</b> <see cref="Endungen"/>
+    /// beantwortet „was liest die App aus einem <em>Sammlungsordner</em>" — dort sollen keine
+    /// Vektordateien liegen, weil beim Lesen des Ordners niemand die Zielgröße kennt. Diese
+    /// Liste beantwortet „was darf der Nutzer <em>auswählen</em>": da ist SVG willkommen (sie
+    /// wird beim Einfügen gerastert, <see cref="Rendering.WbImagePrep.ForSvg"/>), und
+    /// <c>bmp</c>/<c>gif</c> ebenso — sie kommen aus Fremdprogrammen und aus dem Netz.
+    /// </para>
+    /// <para>
+    /// Bis Phase 4.5 lag sie als <c>ImageExtensions</c> privat im WPF-Kopf. Der Linux-Kopf
+    /// braucht dieselbe, sonst nimmt er beim Ziehen und Einfügen andere Dateien an als
+    /// Windows — und das merkt niemand, bis jemand eine <c>.bmp</c> nicht loswird.
+    /// </para>
+    /// </summary>
+    public static readonly string[] ImportEndungen =
+        [".png", ".jpg", ".jpeg", ".bmp", ".gif", ".webp", ".svg"];
+
+    /// <summary>Lässt sich diese Datei als Bild einfügen? Groß-/Kleinschreibung egal.</summary>
+    public static bool IstEinfuegbar(string pfad) =>
+        ImportEndungen.Contains(Path.GetExtension(pfad), StringComparer.OrdinalIgnoreCase);
+
     /// <summary>Hat die Datei eine angenommene Endung? Groß-/Kleinschreibung egal.</summary>
     public static bool IstBild(string pfad) =>
         Endungen.Contains(Path.GetExtension(pfad), StringComparer.OrdinalIgnoreCase);

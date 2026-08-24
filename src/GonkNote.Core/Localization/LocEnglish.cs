@@ -108,6 +108,8 @@ internal static class LocEnglish
         ["Filter.Pdf"] = "PDF document (*.pdf)",
         ["Filter.Png"] = "PNG image(s) (*.png)",
         ["Filter.Images"] = "Images (*.png;*.jpg;*.jpeg;*.webp)",
+        ["Filter.ImagesImport"] = "Images (*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.webp;*.svg)",
+        ["Filter.InsertAll"] = "Images, PDF & Word",
 
         // ---- Whiteboard / notebook ----
         ["Tool.Hand"] = "Hand",
@@ -638,6 +640,7 @@ internal static class LocEnglish
         ["Msg.OcrFailed"] = "Text recognition failed:\n{0}",
         ["Msg.StickerFailed"] = "The sticker could not be inserted:\n{0}",
         ["Msg.PageN"] = "Page {0}",
+        ["Dialog.ChoosePages"] = "Choose pages – {0}",
         ["Msg.PagesHint"] = "{0} pages · click a page to select/deselect it",
         ["Msg.InsertOnePage"] = "Insert 1 page",
         ["Msg.InsertPages"] = "Insert {0} pages",

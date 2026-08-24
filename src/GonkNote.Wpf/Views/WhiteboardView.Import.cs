@@ -19,7 +19,11 @@ public partial class WhiteboardView
 {
     // ==================== Bilder einfügen ====================
 
-    private static readonly string[] ImageExtensions = { ".png", ".jpg", ".jpeg", ".bmp", ".gif", ".webp", ".svg" };
+    /// <summary>
+    /// Was sich einfügen lässt, steht seit Phase 4.5 in <see cref="Bildsammlung.ImportEndungen"/>
+    /// — der Linux-Kopf braucht dieselbe Liste, sonst nimmt er andere Dateien an als Windows.
+    /// </summary>
+    private static readonly string[] ImageExtensions = Bildsammlung.ImportEndungen;
     /// <summary>Eine Wahrheit dafür: die Grenze steht in Core, hier steht nur der kurze Name.</summary>
     private const int MaxImportDim = WbImagePrep.MaxImportDim;
 
@@ -38,15 +42,18 @@ public partial class WhiteboardView
     /// <summary>Ein Import-Button für alle Formate: Bilder direkt, PDF/DOCX seitenweise mit Vorschau.</summary>
     private async void InsertFile_Click(object sender, RoutedEventArgs e)
     {
+        // Titel und Filter standen bis Phase 4.5 **fest auf Deutsch** im Code — in einer App
+        // mit zwei Sprachtabellen (Dauerregel 1). Aufgefallen beim Portieren des Imports in
+        // den Linux-Kopf, genau wie bei den Stickern (§4.56).
+        string bilder = string.Join(";", ImageExtensions.Select(e => "*" + e));
         var dlg = new Microsoft.Win32.OpenFileDialog
         {
-            Title = "Datei einfügen",
-            Filter = "Bilder, PDF & Word (*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.webp;*.svg;*.pdf;*.docx)"
-                   + "|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.webp;*.svg;*.pdf;*.docx"
-                   + "|PDF-Dokumente (*.pdf)|*.pdf"
-                   + "|Word-Dokumente (*.docx)|*.docx"
-                   + "|Bilder (*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.webp;*.svg)|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.webp;*.svg"
-                   + "|Alle Dateien (*.*)|*.*",
+            Title = Loc.T("Wb.InsertFile"),
+            Filter = $"{Loc.T("Filter.InsertAll")}|{bilder};*.pdf;*.docx"
+                   + $"|{Loc.T("Filter.Pdf")}|*.pdf"
+                   + $"|{Loc.T("Filter.Word")}|*.docx"
+                   + $"|{Loc.T("Filter.ImagesImport")}|{bilder}"
+                   + $"|{Loc.T("Filter.AllFiles")}|*.*",
             Multiselect = true,
         };
         if (dlg.ShowDialog(Window.GetWindow(this)) != true) return;

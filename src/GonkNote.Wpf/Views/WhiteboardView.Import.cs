@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Windows;
 using System.Windows.Media.Imaging;
+using GonkNote.Core.Editing;
 using GonkNote.Core.Models;
 using GonkNote.Services;
 using GonkNote.Core.Rendering;
@@ -101,62 +102,35 @@ public partial class WhiteboardView
     private static (byte[] Data, float W, float H)? PrepareRaster(byte[] raw) =>
         WbImagePrep.ForImport(raw) is { } p ? (p.Data, p.Width, p.Height) : null;
 
-    /// <summary>SVG wird beim Import gerastert (2x für scharfes Zoomen), Ergebnis ist PNG; Anzeigegröße bleibt die SVG-Größe.</summary>
-    private static (byte[] Data, float W, float H)? RasterizeSvg(byte[] raw)
-    {
-        using var svg = new Svg.Skia.SKSvg();
-        using var ms = new MemoryStream(raw);
-        if (svg.Load(ms) == null || svg.Picture == null) return null;
-
-        var bounds = svg.Picture.CullRect;
-        if (bounds.Width < 1 || bounds.Height < 1) return null;
-        float scale = Math.Min(2f, MaxImportDim / Math.Max(bounds.Width, bounds.Height));
-        int w = Math.Max(1, (int)(bounds.Width * scale));
-        int h = Math.Max(1, (int)(bounds.Height * scale));
-
-        using var surface = SKSurface.Create(new SKImageInfo(w, h, SKColorType.Rgba8888, SKAlphaType.Premul));
-        if (surface == null) return null;
-        surface.Canvas.Clear(SKColors.Transparent);
-        surface.Canvas.Scale(scale);
-        surface.Canvas.Translate(-bounds.Left, -bounds.Top);
-        surface.Canvas.DrawPicture(svg.Picture);
-        using var img = surface.Snapshot();
-        using var data = img.Encode(SKEncodedImageFormat.Png, 100);
-        return (data.ToArray(), bounds.Width, bounds.Height);
-    }
+    /// <summary>
+    /// SVG wird beim Import gerastert; die Rechnung steht seit Phase 4.5 in
+    /// <see cref="WbImagePrep.ForSvg"/> — sie ist reines SkiaSharp, und <c>Svg.Skia</c> war
+    /// schon immer ein Core-Paket. Hier bleibt nur die Umformung auf die Maße, mit denen die
+    /// Platzierung rechnet.
+    /// </summary>
+    private static (byte[] Data, float W, float H)? RasterizeSvg(byte[] raw) =>
+        WbImagePrep.ForSvg(raw) is { } p ? (p.Data, p.Width, p.Height) : null;
 
     private void PlaceImages(List<(byte[] Data, float W, float H)> images, SKPoint at)
     {
         if (_page == null || _vm == null) return;
 
-        // Maximale Anzeigegröße: in Seite bzw. Sichtbereich einpassen
-        float maxW, maxH;
-        if (_page.IsInfinite)
-        {
-            maxW = Math.Max(64f, (float)CanvasHost.ActualWidth * 0.6f / Zoom);
-            maxH = Math.Max(64f, (float)CanvasHost.ActualHeight * 0.6f / Zoom);
-        }
-        else
-        {
-            maxW = _page.Width * 0.7f;
-            maxH = _page.Height * 0.7f;
-        }
+        // Wohin und wie groß, rechnet seit Phase 4.5 Core (WbEinfuegen.FuerBilder) — das
+        // Ergebnis wandert in die Datei, und zwei Fassungen gäben demselben Bild je nach Kopf
+        // eine andere Größe. Der Sichtbereich geht in Zeichenflächen-Einheiten hinein, also
+        // durch den Zoom geteilt; die Fläche selbst kennt Core nicht.
+        var kaesten = WbEinfuegen.FuerBilder(
+            images.Select(im => (im.W, im.H)).ToList(), at, _page,
+            (float)CanvasHost.ActualWidth / Zoom, (float)CanvasHost.ActualHeight / Zoom);
 
         var added = new List<WbElement>();
-        int i = 0;
-        foreach (var (data, w, h) in images)
+        for (int i = 0; i < images.Count; i++)
         {
-            float scale = Math.Min(1f, Math.Min(maxW / Math.Max(1f, w), maxH / Math.Max(1f, h)));
-            float dw = w * scale, dh = h * scale;
-            float x = at.X - dw / 2f + i * 24f;
-            float y = at.Y - dh / 2f + i * 24f;
-            if (!_page.IsInfinite)
+            var k = kaesten[i];
+            added.Add(new ImageElement
             {
-                x = Math.Clamp(x, 0, Math.Max(0, _page.Width - dw));
-                y = Math.Clamp(y, 0, Math.Max(0, _page.Height - dh));
-            }
-            added.Add(new ImageElement { X = x, Y = y, Width = dw, Height = dh, Data = data });
-            i++;
+                X = k.Left, Y = k.Top, Width = k.Width, Height = k.Height, Data = images[i].Data,
+            });
         }
 
         _page.Elements.AddRange(added);
@@ -390,13 +364,8 @@ public partial class WhiteboardView
     private void HideBusy() => BusyOverlay.Visibility = Visibility.Collapsed;
 
     /// <summary>Anzeigemaße einer PDF-Seite: lange Kante = A4-Höhe, Seitenverhältnis bleibt.</summary>
-    private static (float W, float H) PdfDisplaySize(PdfImporter.PdfPageImage pg)
-    {
-        const float longSide = WhiteboardDoc.A4Height;
-        return pg.Height >= pg.Width
-            ? (longSide * pg.Width / pg.Height, longSide)
-            : (longSide, longSide * pg.Height / pg.Width);
-    }
+    private static (float W, float H) PdfDisplaySize(PdfImporter.PdfPageImage pg) =>
+        WbEinfuegen.SeitenAnzeigegroesse(pg.Width, pg.Height);
 
     /// <summary>Notizbuch: jede PDF-Seite wird eine neue Seite hinter der Ankerseite.</summary>
     private void InsertPdfIntoNotebook(List<PdfImporter.PdfPageImage> pages, WbPage anchor, WhiteboardTabViewModel vm)
@@ -430,33 +399,21 @@ public partial class WhiteboardView
     /// <summary>Whiteboard: PDF-Seiten zweispaltig (s1 s2 / s3 s4 …) als Bild-Elemente.</summary>
     private void InsertPdfIntoWhiteboard(List<PdfImporter.PdfPageImage> pages, WbPage anchor, WhiteboardTabViewModel vm)
     {
-        const float gap = 28f;
-        var sizes = pages.Select(PdfDisplaySize).ToList();
-        float colW = sizes.Max(s => s.W);
-
         // Startpunkt: sichtbarer Mittelpunkt, wenn das Dokument noch angezeigt wird
         SKPoint at = _vm == vm && _page == anchor ? ViewCenter() : new SKPoint(0, 0);
-        float leftX = at.X - colW - gap / 2f;
+
+        // Das zweispaltige Raster rechnet seit Phase 4.5 Core (WbEinfuegen.SeitenRaster).
+        var masse = pages.Select(PdfDisplaySize).ToList();
+        var kaesten = WbEinfuegen.SeitenRaster(masse, at);
 
         var added = new List<WbElement>();
-        float y = at.Y;
-        for (int i = 0; i < pages.Count; i += 2)
+        for (int i = 0; i < pages.Count; i++)
         {
-            float rowH = sizes[i].H;
-            if (i + 1 < pages.Count) rowH = Math.Max(rowH, sizes[i + 1].H);
-
+            var k = kaesten[i];
             added.Add(new ImageElement
             {
-                X = leftX, Y = y, Width = sizes[i].W, Height = sizes[i].H, Data = pages[i].Data,
+                X = k.Left, Y = k.Top, Width = k.Width, Height = k.Height, Data = pages[i].Data,
             });
-            if (i + 1 < pages.Count)
-                added.Add(new ImageElement
-                {
-                    X = leftX + colW + gap, Y = y,
-                    Width = sizes[i + 1].W, Height = sizes[i + 1].H, Data = pages[i + 1].Data,
-                });
-
-            y += rowH + gap;
         }
 
         anchor.Elements.AddRange(added);

@@ -110,6 +110,90 @@ public static class WbImagePrep
     }
 
     /// <summary>
+    /// Kleinste Kantenlänge, die eine SVG haben muss, um als Bild angenommen zu werden.
+    /// <b>Sie ist gemessen und nicht gewählt:</b> für eine SVG mit leerer <c>viewBox</c> gibt
+    /// <c>Svg.Skia</c> eine Zeichnung von <b>1×1</b> Punkt zurück — nicht <c>null</c>, und die
+    /// Prüfung <c>&lt; 1</c> greift dabei nicht. Alles darunter wäre auf der Fläche ohnehin
+    /// unsichtbar und nicht anzufassen.
+    /// </summary>
+    public const float MindestSvgKante = 2f;
+
+    /// <summary>
+    /// Rastert eine SVG-Datei für die Aufnahme: Ergebnis sind PNG-Bytes, <b>die Maße sind
+    /// aber die der SVG-Zeichnung</b> und nicht die des Rasters.
+    ///
+    /// <para>
+    /// <b>Warum doppelt gerastert wird.</b> Ein Vektorbild wird auf der Fläche gezoomt; mit
+    /// der Anzeigegröße gerastert wäre es beim ersten Hineinzoomen unscharf. Der Faktor ist
+    /// auf <b>2</b> gedeckelt und zusätzlich durch <see cref="MaxImportDim"/> begrenzt —
+    /// eine SVG mit 4000 Punkten Kantenlänge soll kein 8000er-Raster ergeben.
+    /// </para>
+    /// <para>
+    /// <b>Warum das hier steht und nicht im Kopf.</b> Es ist reines SkiaSharp plus
+    /// <c>Svg.Skia</c>, und <c>Svg.Skia</c> ist seit jeher ein <b>Core</b>-Paket — der
+    /// WPF-Kopf hatte diese Methode trotzdem privat (<c>WhiteboardView.Import.cs</c>,
+    /// <c>RasterizeSvg</c>). Beim Portieren des Imports in den Linux-Kopf wäre sie sonst ein
+    /// zweites Mal entstanden; dasselbe Muster wie <see cref="ForImport"/> in Phase 2.
+    /// </para>
+    /// <para>
+    /// <b>⚠ <c>null</c> heißt „keine brauchbare SVG" — und dass diese Zusage hält, kostet
+    /// zwei Vorkehrungen, die beide gemessen sind:</b>
+    /// </para>
+    /// <list type="number">
+    /// <item><description>
+    /// <b>Eine Datei, die gar kein XML ist, lässt <c>Svg.Skia</c> eine
+    /// <c>XmlException</c> werfen</b> — es liefert kein <c>null</c>. Der WPF-Kopf hat das nie
+    /// gemerkt, weil sein Aufrufer ohnehin alles fängt; wer die Methode neu benutzt, erbte
+    /// diese Pflicht, ohne dass es irgendwo stünde. <b>Sie wird hier gefangen.</b>
+    /// </description></item>
+    /// <item><description>
+    /// <b>Eine SVG mit leerer <c>viewBox</c> ergibt eine Zeichnung von 1×1 Punkt</b>, und die
+    /// Prüfung <c>&lt; 1</c> — die der WPF-Kopf seit jeher hatte — greift dabei nicht: die
+    /// Datei landete als <b>unsichtbares Ein-Pixel-Element</b> auf der Fläche, nicht zu sehen,
+    /// nicht anzuklicken, ohne jede Meldung. Der Nutzer sieht „es passiert nichts". Dagegen
+    /// steht <see cref="MindestSvgKante"/>.
+    /// </description></item>
+    /// </list>
+    /// </summary>
+    public static (byte[] Data, float Width, float Height)? ForSvg(byte[] raw)
+    {
+        using var svg = new Svg.Skia.SKSvg();
+        using var strom = new MemoryStream(raw);
+        try
+        {
+            if (svg.Load(strom) == null || svg.Picture == null) return null;
+        }
+        catch
+        {
+            // Kein XML, kaputtes XML, fremdes Format — für den Aufrufer ist das alles
+            // dasselbe: „diese Datei nicht". Eine Ausnahme brächte ihm keine Auskunft, die er
+            // anders behandeln könnte.
+            return null;
+        }
+
+        var masse = svg.Picture.CullRect;
+        if (masse.Width < MindestSvgKante || masse.Height < MindestSvgKante) return null;
+
+        float faktor = Math.Min(2f, MaxImportDim / Math.Max(masse.Width, masse.Height));
+        int breite = Math.Max(1, (int)(masse.Width * faktor));
+        int hoehe = Math.Max(1, (int)(masse.Height * faktor));
+
+        using var flaeche = SKSurface.Create(new SKImageInfo(breite, hoehe, SKColorType.Rgba8888, SKAlphaType.Premul));
+        if (flaeche == null) return null;
+
+        flaeche.Canvas.Clear(SKColors.Transparent);
+        flaeche.Canvas.Scale(faktor);
+        // Eine SVG muss nicht bei (0,0) anfangen; ohne die Verschiebung bliebe links und oben
+        // ein Rand stehen und rechts würde abgeschnitten.
+        flaeche.Canvas.Translate(-masse.Left, -masse.Top);
+        flaeche.Canvas.DrawPicture(svg.Picture);
+
+        using var bild = flaeche.Snapshot();
+        using var daten = bild.Encode(SKEncodedImageFormat.Png, 100);
+        return (daten.ToArray(), masse.Width, masse.Height);
+    }
+
+    /// <summary>
     /// Hat das Bild durchsichtige Stellen? Wird abgetastet statt vollständig geprüft — bei
     /// einem 4000er-Bild wären das 16 Millionen Einzelabfragen für eine Ja/Nein-Frage.
     /// </summary>

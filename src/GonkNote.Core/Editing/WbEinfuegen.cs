@@ -64,4 +64,138 @@ public static class WbEinfuegen
 
         return SKRect.Create(x, y, breite, hoehe);
     }
+
+    // ==================== Bilder aus Dateien, Zwischenablage, Texterkennung ====================
+
+    /// <summary>Abstand zwischen zwei kaskadierten Bildern, und zwischen PDF-Seiten.</summary>
+    public const float Abstand = 28f;
+
+    /// <summary>Der Versatz, um den jedes weitere Bild eines Stapels verschoben wird.</summary>
+    private const float Kaskade = 24f;
+
+    /// <summary>
+    /// Rechnet Lage und Größe für einen <b>Stapel eingefügter Bilder</b>: jedes wird in den
+    /// erlaubten Rahmen eingepasst (nie vergrößert), um <paramref name="mitte"/> zentriert und
+    /// gegenüber dem vorigen um <see cref="Kaskade"/> versetzt.
+    ///
+    /// <para>
+    /// <b>Der Versatz ist der Punkt.</b> Ohne ihn lägen fünf gleichzeitig eingefügte Bilder
+    /// exakt übereinander, und der Nutzer sähe eines — er müsste vier davon blind
+    /// wegziehen, um zu merken, dass sie da sind.
+    /// </para>
+    /// <para>
+    /// <b>Das ist bewusst nicht <see cref="FuerSticker"/>.</b> Ein Sticker kommt klein und
+    /// immer gleich groß, weil man ihn als Marke danebensetzt; ein eingefügtes Bild soll so
+    /// groß sein, wie der Platz hergibt. Zwei Bedürfnisse, zwei Rechnungen.
+    /// </para>
+    /// </summary>
+    /// <param name="masse">Pixelmaße der vorbereiteten Bilder, in Einfügereihenfolge.</param>
+    /// <param name="mitte">Wohin zentriert wird (Zeichenflächen-Einheiten).</param>
+    /// <param name="seite">Die Seite — endlich oder unendlich.</param>
+    /// <param name="sichtBreite">Sichtbare Breite in Zeichenflächen-Einheiten; zählt nur auf der unendlichen Fläche.</param>
+    /// <param name="sichtHoehe">Sichtbare Höhe, ebenso.</param>
+    public static List<SKRect> FuerBilder(
+        IReadOnlyList<(float Breite, float Hoehe)> masse,
+        SKPoint mitte, WbPage seite, float sichtBreite, float sichtHoehe)
+    {
+        // Auf der unendlichen Fläche gibt es kein Blatt, an dem man sich messen könnte —
+        // dort begrenzt der Sichtbereich, damit ein eingefügtes Bild nicht sofort über den
+        // Rand hinausläuft. Die 64 fangen den Fall, dass das Fenster noch keine Größe hat.
+        float maxB, maxH;
+        if (seite.IsInfinite)
+        {
+            maxB = Math.Max(64f, sichtBreite * 0.6f);
+            maxH = Math.Max(64f, sichtHoehe * 0.6f);
+        }
+        else
+        {
+            maxB = seite.Width * 0.7f;
+            maxH = seite.Height * 0.7f;
+        }
+
+        var kaesten = new List<SKRect>(masse.Count);
+        for (int i = 0; i < masse.Count; i++)
+        {
+            float qb = Math.Max(1f, masse[i].Breite);
+            float qh = Math.Max(1f, masse[i].Hoehe);
+
+            float faktor = Math.Min(1f, Math.Min(maxB / qb, maxH / qh));
+            float breite = qb * faktor, hoehe = qh * faktor;
+
+            float x = mitte.X - breite / 2f + i * Kaskade;
+            float y = mitte.Y - hoehe / 2f + i * Kaskade;
+            if (!seite.IsInfinite)
+            {
+                x = Math.Clamp(x, 0, Math.Max(0, seite.Width - breite));
+                y = Math.Clamp(y, 0, Math.Max(0, seite.Height - hoehe));
+            }
+
+            kaesten.Add(SKRect.Create(x, y, breite, hoehe));
+        }
+        return kaesten;
+    }
+
+    // ==================== PDF- und DOCX-Seiten ====================
+
+    /// <summary>
+    /// Anzeigemaße einer gerenderten Seite: <b>die lange Kante wird zur A4-Höhe</b>, das
+    /// Seitenverhältnis bleibt.
+    ///
+    /// <para>
+    /// <b>Warum nicht die Pixelmaße.</b> Sie hängen an der Renderauflösung — dieselbe PDF-Seite
+    /// käme je nach Einstellung unterschiedlich groß auf die Fläche, und das stünde dann so in
+    /// der Datei. Eine A4-Seite soll wie eine A4-Seite daliegen, egal wie fein sie gerastert
+    /// wurde. Querformat wird mit erkannt: dort ist die <em>Breite</em> die lange Kante.
+    /// </para>
+    /// </summary>
+    public static (float Breite, float Hoehe) SeitenAnzeigegroesse(float pixelBreite, float pixelHoehe)
+    {
+        const float langeKante = WhiteboardDoc.A4Height;
+        float pb = Math.Max(1f, pixelBreite), ph = Math.Max(1f, pixelHoehe);
+
+        return ph >= pb
+            ? (langeKante * pb / ph, langeKante)
+            : (langeKante, langeKante * ph / pb);
+    }
+
+    /// <summary>
+    /// Legt gerenderte Seiten <b>zweispaltig</b> auf die unendliche Fläche: Seite 1 und 2
+    /// nebeneinander, 3 und 4 darunter, und so fort.
+    ///
+    /// <para>
+    /// <b>Warum zwei Spalten und nicht eine Reihe.</b> Ein zwanzigseitiges PDF in einer Reihe
+    /// wäre zwanzig Blatt breit — man müsste waagerecht durch die halbe Fläche fahren, um das
+    /// Ende zu sehen. Zwei Spalten lesen sich wie ein aufgeschlagenes Buch.
+    /// </para>
+    /// <para>
+    /// <b>Die Zeilenhöhe richtet sich nach der höheren der beiden Seiten</b> — sonst liefe eine
+    /// Querformat-Seite in die Zeile darunter.
+    /// </para>
+    /// </summary>
+    /// <param name="masse">Anzeigemaße der Seiten, in Reihenfolge (siehe <see cref="SeitenAnzeigegroesse"/>).</param>
+    /// <param name="obenLinks">Bezugspunkt: die Mitte der Sicht, um die das Raster gelegt wird.</param>
+    public static List<SKRect> SeitenRaster(IReadOnlyList<(float Breite, float Hoehe)> masse, SKPoint obenLinks)
+    {
+        var kaesten = new List<SKRect>(masse.Count);
+        if (masse.Count == 0) return kaesten;
+
+        float spaltenBreite = masse.Max(m => m.Breite);
+        float linkeSpalte = obenLinks.X - spaltenBreite - Abstand / 2f;
+        float y = obenLinks.Y;
+
+        for (int i = 0; i < masse.Count; i += 2)
+        {
+            float zeilenHoehe = masse[i].Hoehe;
+            if (i + 1 < masse.Count) zeilenHoehe = Math.Max(zeilenHoehe, masse[i + 1].Hoehe);
+
+            kaesten.Add(SKRect.Create(linkeSpalte, y, masse[i].Breite, masse[i].Hoehe));
+            if (i + 1 < masse.Count)
+                kaesten.Add(SKRect.Create(
+                    linkeSpalte + spaltenBreite + Abstand, y,
+                    masse[i + 1].Breite, masse[i + 1].Hoehe));
+
+            y += zeilenHoehe + Abstand;
+        }
+        return kaesten;
+    }
 }

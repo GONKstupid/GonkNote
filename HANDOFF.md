@@ -8541,7 +8541,7 @@ dotnet run --project src/GonkNote.Avalonia -- --db /tmp/gonk-test/gonknote.sqlit
 
 ---
 
-### ▶ Aktueller Auftrag — **keiner. §5d trägt zurzeit nichts.** (Stand 2026-08-19, nach Runde V2-62)
+### ▶ Aktueller Auftrag — **keiner. §5d trägt zurzeit nichts** — ein Punkt ist vorgemerkt (Stand 2026-08-24, nach Runde V2-77)
 
 > **Die zwei Messungen aus V2-61 sind abgearbeitet** (§4.44 „Was der Laptop gefunden hat",
 > 2026-08-19, V2-62): der Druck der toten Taste **kommt beim X11-Client an**, ein `keycode 0`
@@ -8561,6 +8561,21 @@ dotnet run --project src/GonkNote.Avalonia -- --db /tmp/gonk-test/gonknote.sqlit
 > **Und was ausdrücklich *nicht* mehr zu messen ist:** ob die Bildschirmtastatur von selbst
 > aufklappt (§5 „Noch offen" 10 — `Avalonia.X11` hat keine `IInputPane`, das ist geklärt),
 > und ob der Druck den X11-Client erreicht (V2-62 — er tut es).
+>
+> **⏳ Vorgemerkt, aber noch kein Auftrag — der Augenschein von Phase 4.5 auf dem Gerät**
+> (Stand 2026-08-24, nach §4.55). Der Linux-Kopf hat seit §4.51 vier neue Bedienungen
+> bekommen, **alle unter Windows gebaut und dort gesehen** (§5b — das ist der Normalfall und
+> richtig so). **Was Windows nicht zeigen kann, ist die Eingabe-Naht:** das Beschriftungsfeld
+> aus §4.55 ist ein gewöhnlicher `TextBox` über der Zeichenfläche, und **unter Linux hat noch
+> nie jemand hineingetippt.** Zu erwarten ist nach §4.44: **Umlaute kommen an, tote Tasten
+> nicht** — der Fehler sitzt in Avalonias X11-Weg und trifft damit **jedes** Control, nicht
+> nur den Texteditor. **Das wäre die Bestätigung derselben Wurzel und keine neue Baustelle.**
+> Wirklich offen sind drei kleinere Fragen: sitzt das Feld unter Linux **an der richtigen
+> Stelle** (die Fläche rechnet mit `ToScreen`, und Wayland/XWayland rechnen im Faktor 1,6
+> auseinander, V2-55), **bekommt es den Fokus**, und **stimmen die Farben** — der Fund aus
+> §4.55 hängt am Fluent-Theme und nicht an der Plattform, aber gesehen ist er nur unter
+> Windows. **Dieser Punkt wartet, bis Stück 2 zu ist** (die Sticker fehlen noch); ihn vorher
+> zu fahren hieße, dieselbe Runde zweimal zu fahren.
 
 ### Abgearbeitete Aufträge — nur die Kurzfassung
 

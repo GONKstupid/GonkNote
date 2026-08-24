@@ -539,7 +539,7 @@ public partial class WhiteboardView
 
         _drawing = false;
         _activePoints = null;
-        _rulerSnapActive = false;
+        _aidSnap = null;
         Skia.InvalidateVisual();
 
         if (freshSelect) ShowQuickMenuForSelection();

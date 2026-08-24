@@ -132,4 +132,134 @@ public static class WbAidRenderer
         };
         canvas.DrawPath(path, edge);
     }
+
+    // ==================== Das Lineal und die Griffe (Phase 4.5, §4.59) ====================
+    //
+    // Bis dahin zeichnete der WPF-Kopf beides selbst (WhiteboardView.Aids.cs). Es ist reines
+    // SkiaSharp, und der Linux-Kopf braucht dasselbe Bild — zwei Fassungen hießen ein Lineal,
+    // dessen cm-Striche je Kopf woanders sitzen. Die Geometrie dazu steht in
+    // Editing/WbZeichenhilfe.cs.
+
+    /// <summary>
+    /// Zeichnet die aktive Zeichenhilfe vollständig: Körper, Skala, Dreh-Griff — und beim
+    /// Drehen die Gradzahl.
+    ///
+    /// <para>
+    /// <b>Das Geodreieck zeichnet sich selbst</b> (aus seiner SVG, samt Aufdruck); für das
+    /// Lineal entsteht das Bild hier. Der Dreh-Griff ist bei beiden derselbe.
+    /// </para>
+    /// </summary>
+    /// <param name="akzent">Die Akzentfarbe des Kopfs — sie kommt von außen, weil Core keine Themes kennt.</param>
+    /// <param name="dreht">Ob gerade gedreht wird; nur dann steht die Gradzahl daneben.</param>
+    public static void DrawAid(SKCanvas canvas, Editing.Zeichenhilfe art, SKPoint mitte,
+                               float winkelGrad, float zoom, bool dark, SKColor akzent, bool dreht)
+    {
+        if (art == Editing.Zeichenhilfe.Keine) return;
+
+        if (art == Editing.Zeichenhilfe.Geodreieck)
+            DrawSetSquare(canvas, mitte, winkelGrad, zoom, dark);
+        else
+            DrawRuler(canvas, mitte, winkelGrad, zoom, akzent);
+
+        DrawAidHandle(canvas, art, mitte, winkelGrad, zoom, akzent);
+        if (dreht) DrawAidAngle(canvas, art, mitte, winkelGrad, zoom);
+    }
+
+    /// <summary>Der Linealkörper mit cm-Skala an der oberen Längskante.</summary>
+    public static void DrawRuler(SKCanvas canvas, SKPoint mitte, float winkelGrad, float zoom, SKColor akzent)
+    {
+        var eck = Editing.WbZeichenhilfe.UmrissWelt(Editing.Zeichenhilfe.Lineal, mitte, winkelGrad);
+
+        using (var pfad = new SKPath())
+        {
+            pfad.MoveTo(eck[0]);
+            for (int i = 1; i < eck.Length; i++) pfad.LineTo(eck[i]);
+            pfad.Close();
+
+            // Halbdurchsichtig: man muss sehen, was unter dem Lineal liegt — sonst legt man
+            // es blind über den Strich, den man treffen will.
+            using var fuellung = new SKPaint { Color = new SKColor(30, 41, 59, 40), IsAntialias = true };
+            canvas.DrawPath(pfad, fuellung);
+            using var kante = new SKPaint
+            {
+                Color = akzent, Style = SKPaintStyle.Stroke,
+                StrokeWidth = 1.5f / zoom, IsAntialias = true,
+            };
+            canvas.DrawPath(pfad, kante);
+        }
+
+        DrawCmScale(canvas, mitte, winkelGrad, zoom, akzent,
+                    Editing.WbZeichenhilfe.LinealHalbBreite,
+                    Editing.WbZeichenhilfe.LinealLaenge / 2f);
+    }
+
+    /// <summary>
+    /// Die cm-Skala entlang einer Kante, Striche nach innen. <b>Jeder fünfte ist länger</b> —
+    /// ohne diese Markierung zählt niemand über zehn Zentimeter hinweg richtig.
+    /// </summary>
+    public static void DrawCmScale(SKCanvas canvas, SKPoint mitte, float winkelGrad, float zoom,
+                                   SKColor akzent, float kanteV, float halbeLaenge)
+    {
+        using var strich = new SKPaint
+        {
+            Color = akzent.WithAlpha(210), Style = SKPaintStyle.Stroke,
+            StrokeWidth = 1f / zoom, IsAntialias = true,
+        };
+
+        int k = 0;
+        for (float u = 0; u <= halbeLaenge; u += PxPerCm, k++)
+        {
+            float laenge = k % 5 == 0 ? 9f : 5f;
+            canvas.DrawLine(Editing.WbZeichenhilfe.Punkt(mitte, winkelGrad, u, kanteV),
+                            Editing.WbZeichenhilfe.Punkt(mitte, winkelGrad, u, kanteV - laenge), strich);
+            if (u > 0)
+                canvas.DrawLine(Editing.WbZeichenhilfe.Punkt(mitte, winkelGrad, -u, kanteV),
+                                Editing.WbZeichenhilfe.Punkt(mitte, winkelGrad, -u, kanteV - laenge), strich);
+        }
+    }
+
+    /// <summary>Der Dreh-Griff: gefüllter Punkt mit weißem Ring, damit er auf jedem Grund sichtbar ist.</summary>
+    public static void DrawAidHandle(SKCanvas canvas, Editing.Zeichenhilfe art, SKPoint mitte,
+                                     float winkelGrad, float zoom, SKColor akzent)
+    {
+        var g = Editing.WbZeichenhilfe.Griffmitte(art, mitte, winkelGrad, zoom);
+
+        using (var fuellung = new SKPaint { Color = akzent, IsAntialias = true })
+            canvas.DrawCircle(g, 6f / zoom, fuellung);
+        using var ring = new SKPaint
+        {
+            Color = SKColors.White, Style = SKPaintStyle.Stroke,
+            StrokeWidth = 1.4f / zoom, IsAntialias = true,
+        };
+        canvas.DrawCircle(g, 6f / zoom, ring);
+    }
+
+    /// <summary>
+    /// Die Gradzahl beim Drehen — auf der <b>anderen</b> Seite der Achse als der Griff, damit
+    /// die Hand sie nicht verdeckt.
+    /// </summary>
+    public static void DrawAidAngle(SKCanvas canvas, Editing.Zeichenhilfe art, SKPoint mitte,
+                                    float winkelGrad, float zoom)
+    {
+        var (_, quer) = Editing.WbZeichenhilfe.Achsen(winkelGrad);
+        string text = $"{Editing.WbZeichenhilfe.Anzeigewinkel(winkelGrad):0}°";
+
+        float schrift = 15f / zoom;
+        float abstand = (art == Editing.Zeichenhilfe.Geodreieck
+                            ? Editing.WbZeichenhilfe.GeoHalbeHypotenuse * 0.5f
+                            : Editing.WbZeichenhilfe.LinealHalbBreite) + 30f / zoom;
+        var pos = new SKPoint(mitte.X - quer.X * abstand, mitte.Y - quer.Y * abstand);
+
+        using var farbe = new SKPaint { Color = SKColors.White, IsAntialias = true };
+        using var satz = new SKFont(WbFonts.Bold, schrift);
+        float breite = satz.MeasureText(text);
+        float randX = 9f / zoom, randY = 6f / zoom;
+
+        var kasten = new SKRect(pos.X - breite / 2f - randX, pos.Y - schrift / 2f - randY,
+                                pos.X + breite / 2f + randX, pos.Y + schrift / 2f + randY);
+        using (var grund = new SKPaint { Color = new SKColor(23, 32, 51, 235), IsAntialias = true })
+            canvas.DrawRoundRect(kasten, 6f / zoom, 6f / zoom, grund);
+
+        canvas.DrawText(text, pos.X, pos.Y + schrift * 0.35f, SKTextAlign.Center, satz, farbe);
+    }
 }

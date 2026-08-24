@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
+using GonkNote.Core.Editing;
 using GonkNote.Core.Models;
 using GonkNote.Services;
 using GonkNote.Core.Services;
@@ -85,17 +86,15 @@ public partial class WhiteboardView : UserControl
     private string _stickyColorHex = "#FFFEF08A";
 
     // Zeichenhilfen: Lineal & Geodreieck (transient, werden nicht gespeichert)
-    private enum DrawAid { None, Ruler, SetSquare }
     private enum RulerDrag { None, Move, Rotate }
-    private DrawAid _aid = DrawAid.None;
+    private Zeichenhilfe _aid = Zeichenhilfe.Keine;
     private bool _aidPlaced;
     private SKPoint _aidCenter;
     private float _aidAngleDeg;
     private RulerDrag _rulerDrag;
     private SKPoint _rulerDragLast;
     // Einrasten eines Strichs auf eine Kante der aktiven Zeichenhilfe
-    private bool _rulerSnapActive;
-    private SKPoint _rulerSnapE0, _rulerSnapDir;
+    private WbZeichenhilfe.Einrastkante? _aidSnap;
 
     // Maße in Canvas-Einheiten (96 DPI): 1 cm ≈ 37,8 px
     private const float RulerLength = 680f;
@@ -146,7 +145,7 @@ public partial class WhiteboardView : UserControl
 
     // Zeichenhilfen-Gruppe (Lineal/Geodreieck): eingeklappt ist nur die zuletzt benutzte sichtbar
     private ToggleButton[] AidButtons => new[] { BtnRuler, BtnSetSquare };
-    private DrawAid _lastAid = DrawAid.Ruler;
+    private Zeichenhilfe _lastAid = Zeichenhilfe.Lineal;
     private bool _aidGroupExpanded;
 
     public WhiteboardView()
@@ -629,8 +628,8 @@ public partial class WhiteboardView : UserControl
 
         if (ctrl) return;
 
-        if (e.Key == Key.R) { SetAid(DrawAid.Ruler); e.Handled = true; return; }
-        if (e.Key == Key.D) { SetAid(DrawAid.SetSquare); e.Handled = true; return; }
+        if (e.Key == Key.R) { SetAid(Zeichenhilfe.Lineal); e.Handled = true; return; }
+        if (e.Key == Key.D) { SetAid(Zeichenhilfe.Geodreieck); e.Handled = true; return; }
 
         ToggleButton? btn = e.Key switch
         {

@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Media;
+using GonkNote.Core.Editing;
 using GonkNote.Core.Models;
 using GonkNote.Core.Rendering;
 using GonkNote.Services;
@@ -396,7 +397,7 @@ public partial class WhiteboardView
         DrawEraserCursor(canvas);
 
         // Zeichenhilfe zuletzt (liegt über allem)
-        if (_aid != DrawAid.None) DrawActiveAid(canvas);
+        if (_aid != Zeichenhilfe.Keine) DrawActiveAid(canvas);
     }
 
     /// <summary>Der Strich, der gerade gezogen wird (noch nicht im Dokument).</summary>

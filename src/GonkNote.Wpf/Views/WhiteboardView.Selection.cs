@@ -1,5 +1,5 @@
-using GonkNote.Core.Models;
 using GonkNote.Core.Editing;
+using GonkNote.Core.Models;
 using GonkNote.Core.Rendering;
 using GonkNote.Core.Services;
 using SkiaSharp;
@@ -130,8 +130,8 @@ public partial class WhiteboardView
     private void DuplicateSelection()
     {
         if (_page == null || _vm == null || _selection.Count == 0) return;
-        var clones = _selection.Select(CloneElement).ToList();
-        foreach (var cl in clones) cl.Translate(18, 18);
+        var clones = WbKlon.Klonen(_selection);
+        WbKlon.Platzieren(clones, null);
         _page.Elements.AddRange(clones);
         _vm.Undo.Push(_page, new AddElementsAction(clones));
 
@@ -149,7 +149,7 @@ public partial class WhiteboardView
     {
         if (_selection.Count == 0) return;
         _clipboard.Clear();
-        _clipboard.AddRange(_selection.Select(CloneElement));
+        _clipboard.AddRange(WbKlon.Klonen(_selection));
     }
 
     private void CutSelection()
@@ -163,25 +163,10 @@ public partial class WhiteboardView
     private void PasteClipboard(SKPoint? at)
     {
         if (_page == null || _vm == null || _clipboard.Count == 0) return;
-        var clones = _clipboard.Select(CloneElement).ToList();
-
-        if (at is { } target)
-        {
-            // Mittelpunkt der kopierten Gruppe auf den Zielpunkt legen
-            bool first = true;
-            SKRect b = SKRect.Empty;
-            foreach (var cl in clones)
-            {
-                var eb = ElementBounds(cl);
-                if (first) { b = eb; first = false; } else b = SKRect.Union(b, eb);
-            }
-            float dx = target.X - b.MidX, dy = target.Y - b.MidY;
-            foreach (var cl in clones) cl.Translate(dx, dy);
-        }
-        else
-        {
-            foreach (var cl in clones) cl.Translate(18, 18);
-        }
+        // Klonen und Platzieren rechnet Core (§4.61): mit Zielpunkt kommt die Mitte der
+        // Gruppe darauf, ohne Zielpunkt rückt sie schräg weg.
+        var clones = WbKlon.Klonen(_clipboard);
+        WbKlon.Platzieren(clones, at);
 
         _page.Elements.AddRange(clones);
         _vm.Undo.Push(_page, new AddElementsAction(clones));

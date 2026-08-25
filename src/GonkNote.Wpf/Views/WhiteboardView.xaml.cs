@@ -125,12 +125,22 @@ public partial class WhiteboardView : UserControl
         _ => BtnShapeRect,
     };
 
-    private void SetShapeGroupExpanded(bool expanded)
+    private void SetShapeGroupExpanded(bool expanded) =>
+        GruppeKlappen(ShapeButtons, ShapeButtonFor(_lastShape), expanded, out _shapeGroupExpanded);
+
+    /// <summary>
+    /// Klappt eine Gruppe der Werkzeugleiste auf oder zu: aufgeklappt sind alle Knöpfe zu
+    /// sehen, eingeklappt bleibt nur der <paramref name="vertreter"/> stehen — der zuletzt
+    /// benutzte. Die Regel steht in <see cref="WbLeiste.IstSichtbar"/>, damit der Linux-Kopf
+    /// dieselbe bekommt; bis V2-83 stand sie hier viermal nebeneinander (§4.61).
+    /// </summary>
+    private static void GruppeKlappen(
+        IEnumerable<ToggleButton> knoepfe, ToggleButton vertreter, bool aufgeklappt, out bool merker)
     {
-        _shapeGroupExpanded = expanded;
-        var rep = ShapeButtonFor(_lastShape);
-        foreach (var b in ShapeButtons)
-            b.Visibility = expanded || b == rep ? Visibility.Visible : Visibility.Collapsed;
+        merker = aufgeklappt;
+        foreach (var b in knoepfe)
+            b.Visibility = WbLeiste.IstSichtbar(b, vertreter, aufgeklappt)
+                ? Visibility.Visible : Visibility.Collapsed;
     }
     private ToggleButton[] PenButtons => new[] { BtnPen, BtnSmoothPen, BtnPencil, BtnHighlighter };
 
@@ -278,8 +288,7 @@ public partial class WhiteboardView : UserControl
         }
     }
 
-    private static bool IsPenTool(ToolType t) =>
-        t is ToolType.Pen or ToolType.SmoothPen or ToolType.Pencil or ToolType.Highlighter;
+    private static bool IsPenTool(ToolType t) => WbLeiste.IstStift(t);
 
     private ToggleButton PenButtonFor(ToolType t) => t switch
     {
@@ -289,25 +298,15 @@ public partial class WhiteboardView : UserControl
         _ => BtnPen,
     };
 
-    private void SetPenGroupExpanded(bool expanded)
-    {
-        _penGroupExpanded = expanded;
-        var rep = PenButtonFor(_lastPen);
-        foreach (var b in PenButtons)
-            b.Visibility = expanded || b == rep ? Visibility.Visible : Visibility.Collapsed;
-    }
+    private void SetPenGroupExpanded(bool expanded) =>
+        GruppeKlappen(PenButtons, PenButtonFor(_lastPen), expanded, out _penGroupExpanded);
 
-    private static bool IsSelectTool(ToolType t) => t is ToolType.Lasso or ToolType.Move;
+    private static bool IsSelectTool(ToolType t) => WbLeiste.IstAuswahl(t);
 
     private ToggleButton SelectButtonFor(ToolType t) => t == ToolType.Move ? BtnMove : BtnLasso;
 
-    private void SetSelectGroupExpanded(bool expanded)
-    {
-        _selectGroupExpanded = expanded;
-        var rep = SelectButtonFor(_lastSelect);
-        foreach (var b in SelectButtons)
-            b.Visibility = expanded || b == rep ? Visibility.Visible : Visibility.Collapsed;
-    }
+    private void SetSelectGroupExpanded(bool expanded) =>
+        GruppeKlappen(SelectButtons, SelectButtonFor(_lastSelect), expanded, out _selectGroupExpanded);
 
     private void SetTool(ToolType tool)
     {

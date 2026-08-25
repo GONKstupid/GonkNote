@@ -1,6 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
+using GonkNote.Core.Editing;
 using GonkNote.Core.Models;
 using GonkNote.Services;
 using SkiaSharp;
@@ -112,7 +113,8 @@ public partial class WhiteboardView
 
         // RightTap + synthetische rechte Maustaste beim Stift entprellen
         int now = Environment.TickCount;
-        if (QuickMenu.Visibility == Visibility.Visible && now - _quickShownTick < 250) return;
+        if (QuickMenu.Visibility == Visibility.Visible &&
+            now - _quickShownTick < WbSchnellaktionen.Entprellzeit.TotalMilliseconds) return;
 
         _contextCanvasPos = ToCanvas(screen);
 
@@ -131,7 +133,8 @@ public partial class WhiteboardView
         PrepareQuickMenu();
         QuickMenu.Visibility = Visibility.Visible;
         QuickMenu.UpdateLayout();
-        PlaceQuickMenu(screen.X - QuickMenu.ActualWidth / 2, screen.Y + 12);
+        var ecke = WbSchnellaktionen.AmZeiger(new SKPoint((float)screen.X, (float)screen.Y), LeistenMass);
+        PlaceQuickMenu(ecke.X, ecke.Y);
     }
 
     /// <summary>Öffnet die Schnellaktionen mittig über der aktuellen Auswahl.</summary>
@@ -143,14 +146,12 @@ public partial class WhiteboardView
         PrepareQuickMenu();
         QuickMenu.Visibility = Visibility.Visible;
         QuickMenu.UpdateLayout();
-        double w = QuickMenu.ActualWidth, h = QuickMenu.ActualHeight;
 
         var tl = ToScreen(new SKPoint(_selectionBounds.Left, _selectionBounds.Top));
         var br = ToScreen(new SKPoint(_selectionBounds.Right, _selectionBounds.Bottom));
-        double midX = (tl.X + br.X) / 2;
-        double top = tl.Y - h - 10;
-        if (top < 4) top = br.Y + 10;   // kein Platz oben → unter die Auswahl
-        PlaceQuickMenu(midX - w / 2, top);
+        var ecke = WbSchnellaktionen.UeberDerAuswahl(
+            new SKRect((float)tl.X, (float)tl.Y, (float)br.X, (float)br.Y), LeistenMass);
+        PlaceQuickMenu(ecke.X, ecke.Y);
     }
 
     private bool CanShowQuickMenu() =>
@@ -160,34 +161,36 @@ public partial class WhiteboardView
     /// <summary>Setzt Aktiv-/Sichtbarkeit der Schnellaktionen je nach Auswahl/Zwischenablage.</summary>
     private void PrepareQuickMenu()
     {
-        bool hasSel = _selection.Count > 0;
-        Qm_Cut.IsEnabled = hasSel;
-        Qm_Copy.IsEnabled = hasSel;
-        Qm_Duplicate.IsEnabled = hasSel;
-        Qm_Delete.IsEnabled = hasSel;
-        Qm_Paste.IsEnabled = _clipboard.Count > 0 || ClipboardHasImage();
-        Qm_SelectAll.IsEnabled = _page is { Elements.Count: > 0 };
+        // Gerechnet wird in Core (§4.61), damit der Linux-Kopf dieselbe Regel bekommt.
+        var z = WbSchnellaktionen.Rechnen(
+            _selection, _page, _clipboard.Count,
+            ClipboardHasImage(), App.Platform.Ocr.IsAvailable);
 
-        // OCR nur zeigen, wenn verfügbar; aktiv bei ausgewähltem Bild oder (ohne
-        // Auswahl) einer Seite mit importiertem Hintergrund (PDF-Seite).
-        bool ocrOk = App.Platform.Ocr.IsAvailable;
-        bool ocrSource = _selection.OfType<ImageElement>().Any()
-            || (_selection.Count == 0 && _page is { HasBackgroundImage: true });
-        Qm_Ocr.Visibility = ocrOk ? Visibility.Visible : Visibility.Collapsed;
-        Qm_SepOcr.Visibility = ocrOk ? Visibility.Visible : Visibility.Collapsed;
-        Qm_Ocr.IsEnabled = ocrOk && ocrSource;
+        Qm_Cut.IsEnabled = z.Ausschneiden;
+        Qm_Copy.IsEnabled = z.Kopieren;
+        Qm_Duplicate.IsEnabled = z.Duplizieren;
+        Qm_Delete.IsEnabled = z.Loeschen;
+        Qm_Paste.IsEnabled = z.Einfuegen;
+        Qm_SelectAll.IsEnabled = z.AllesWaehlen;
+
+        Qm_Ocr.Visibility = z.TexterkennungSichtbar ? Visibility.Visible : Visibility.Collapsed;
+        Qm_SepOcr.Visibility = z.TexterkennungSichtbar ? Visibility.Visible : Visibility.Collapsed;
+        Qm_Ocr.IsEnabled = z.Texterkennung;
     }
 
     /// <summary>Positioniert die Leiste (in Leinwand-Koordinaten) und hält sie im sichtbaren Bereich.</summary>
     private void PlaceQuickMenu(double left, double top)
     {
-        double maxLeft = Math.Max(0, CanvasHost.ActualWidth - QuickMenu.ActualWidth);
-        double maxTop = Math.Max(0, CanvasHost.ActualHeight - QuickMenu.ActualHeight);
-        left = Math.Clamp(left, 0, maxLeft);
-        top = Math.Clamp(top, 0, maxTop);
-        QuickMenu.Margin = new Thickness(left, top, 0, 0);
+        var ecke = WbSchnellaktionen.ImBlick(
+            new SKPoint((float)left, (float)top), LeistenMass,
+            new SKSize((float)CanvasHost.ActualWidth, (float)CanvasHost.ActualHeight));
+
+        QuickMenu.Margin = new Thickness(ecke.X, ecke.Y, 0, 0);
         _quickShownTick = Environment.TickCount;
     }
+
+    /// <summary>Das gemessene Maß der Leiste — erst nach <c>UpdateLayout</c> belastbar.</summary>
+    private SKSize LeistenMass => new((float)QuickMenu.ActualWidth, (float)QuickMenu.ActualHeight);
 
     private void HideQuickMenu()
     {
@@ -226,33 +229,4 @@ public partial class WhiteboardView
         else PasteImageFromClipboard();
     }
 
-    private static WbElement CloneElement(WbElement el) => el switch
-    {
-        StrokeElement s => new StrokeElement
-        {
-            Points = s.Points.Select(p => new WbPoint(p.X, p.Y, p.P)).ToList(),
-            Color = s.Color, Width = s.Width, Kind = s.Kind,
-        },
-        ShapeElement sh => new ShapeElement
-        {
-            Shape = sh.Shape, X1 = sh.X1, Y1 = sh.Y1, X2 = sh.X2, Y2 = sh.Y2,
-            Color = sh.Color, StrokeWidth = sh.StrokeWidth, Fill = sh.Fill,
-        },
-        TextElement t => new TextElement
-        {
-            X = t.X, Y = t.Y, Text = t.Text, Color = t.Color, FontSize = t.FontSize,
-            Background = t.Background, FontFamily = t.FontFamily,
-        },
-        // Data wird bewusst geteilt (unveränderlich nach Import) – spart RAM und DB-Größe
-        ImageElement im => new ImageElement
-        {
-            X = im.X, Y = im.Y, Width = im.Width, Height = im.Height, Data = im.Data,
-        },
-        StickyNoteElement sn => new StickyNoteElement
-        {
-            X = sn.X, Y = sn.Y, Width = sn.Width, Height = sn.Height, Text = sn.Text,
-            Color = sn.Color, TextColor = sn.TextColor, FontSize = sn.FontSize, FontFamily = sn.FontFamily,
-        },
-        _ => throw new NotSupportedException(),
-    };
 }

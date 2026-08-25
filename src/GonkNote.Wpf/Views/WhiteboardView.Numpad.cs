@@ -1,10 +1,10 @@
-using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Media3D;
 using System.Windows.Threading;
+using GonkNote.Core.Editing;
 
 namespace GonkNote.Views;
 
@@ -17,12 +17,6 @@ namespace GonkNote.Views;
 /// </summary>
 public partial class WhiteboardView
 {
-    /// <summary>So lange muss gedrückt werden, bis der Zahlenblock aufgeht.</summary>
-    private static readonly TimeSpan HoldToOpen = TimeSpan.FromMilliseconds(500);
-
-    /// <summary>Ab dieser Bewegung ist es ein Ziehen am Schieber und kein Langdruck.</summary>
-    private const double HoldSlack = 8;
-
     private DispatcherTimer? _sizeHoldTimer;
     private Point _sizeHoldStart;
     private string _numpadEntry = "";
@@ -46,7 +40,7 @@ public partial class WhiteboardView
     {
         CancelSizeHold();
         _sizeHoldStart = p;
-        _sizeHoldTimer = new DispatcherTimer { Interval = HoldToOpen };
+        _sizeHoldTimer = new DispatcherTimer { Interval = WbZahlenblock.Haltedauer };
         _sizeHoldTimer.Tick += (_, _) => { CancelSizeHold(); OpenSizeNumpad(); };
         _sizeHoldTimer.Start();
     }
@@ -55,7 +49,7 @@ public partial class WhiteboardView
     {
         // Wird der Schieber gezogen (Bewegung), ist es kein Langdruck → normales Verhalten
         if (_sizeHoldTimer != null &&
-            (Math.Abs(p.X - _sizeHoldStart.X) > HoldSlack || Math.Abs(p.Y - _sizeHoldStart.Y) > HoldSlack))
+            WbZahlenblock.IstZiehen(_sizeHoldStart.X, _sizeHoldStart.Y, p.X, p.Y))
             CancelSizeHold();
     }
 
@@ -133,22 +127,9 @@ public partial class WhiteboardView
     {
         if (sender is not Button b || b.Content is not string key) return;
 
-        string next;
-        if (key == ",")
-        {
-            if (_numpadEntry.Contains(',')) return;
-            next = (_numpadEntry.Length == 0 ? "0" : _numpadEntry) + ",";
-        }
-        else
-        {
-            int comma = _numpadEntry.IndexOf(',');
-            if (comma >= 0 && _numpadEntry.Length - comma > 1) return;   // eine Nachkommastelle
-            next = _numpadEntry + key;
-        }
-
-        // Eine Eingabe über dem Höchstwert wird gar nicht erst angenommen. Sonst stünde im
-        // Display etwas anderes als die tatsächlich eingestellte (geklemmte) Größe.
-        if (Parse(next) > WidthSlider.Maximum) return;
+        // Welche Taste was mit der Eingabe macht, entscheidet Core (§4.61); null heißt
+        // abgelehnt (zweites Komma, zweite Nachkommastelle, über dem Höchstwert).
+        if (WbZahlenblock.Taste(_numpadEntry, key, WidthSlider.Maximum) is not { } next) return;
 
         _numpadEntry = next;
         ApplyNumpad();
@@ -156,24 +137,14 @@ public partial class WhiteboardView
 
     private void NumpadBack_Click(object sender, RoutedEventArgs e)
     {
-        if (_numpadEntry.Length > 0) _numpadEntry = _numpadEntry[..^1];
+        _numpadEntry = WbZahlenblock.Rueckschritt(_numpadEntry);
         ApplyNumpad();
     }
 
     private void ApplyNumpad()
     {
-        NumpadDisplay.Text = _numpadEntry.Length > 0 ? _numpadEntry : "0";
-        if (Parse(_numpadEntry) is { } v)
-            WidthSlider.Value = Math.Max(v, WidthSlider.Minimum);   // setzt über ValueChanged die Größe
+        NumpadDisplay.Text = WbZahlenblock.Anzeige(_numpadEntry);
+        if (WbZahlenblock.Schieberwert(_numpadEntry, WidthSlider.Minimum) is { } v)
+            WidthSlider.Value = v;   // setzt über ValueChanged die Größe
     }
-
-    /// <summary>
-    /// Zahlenwert der Eingabe; null, solange sie (noch) keine Zahl ergibt (leer oder "0,").
-    /// Das Komma der Tastatur wird für die Umwandlung zum Punkt.
-    /// </summary>
-    private static double? Parse(string entry) =>
-        double.TryParse(entry.TrimEnd(',').Replace(',', '.'), NumberStyles.Float,
-                        CultureInfo.InvariantCulture, out double v)
-            ? v
-            : null;
 }

@@ -42,13 +42,9 @@ public partial class WhiteboardView
         Skia.InvalidateVisual();
     }
 
-    private void SetAidGroupExpanded(bool expanded)
-    {
-        _aidGroupExpanded = expanded;
-        var rep = _lastAid == Zeichenhilfe.Geodreieck ? BtnSetSquare : BtnRuler;
-        foreach (var b in AidButtons)
-            b.Visibility = expanded || b == rep ? Visibility.Visible : Visibility.Collapsed;
-    }
+    private void SetAidGroupExpanded(bool expanded) =>
+        GruppeKlappen(AidButtons, _lastAid == Zeichenhilfe.Geodreieck ? BtnSetSquare : BtnRuler,
+                      expanded, out _aidGroupExpanded);
 
     // ==================== Was der Zeiger trifft ====================
 

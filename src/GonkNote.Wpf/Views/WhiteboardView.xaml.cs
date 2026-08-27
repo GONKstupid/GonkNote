@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 using GonkNote.Core.Editing;
 using GonkNote.Core.Models;
 using GonkNote.Services;
@@ -178,6 +179,7 @@ public partial class WhiteboardView : UserControl
             App.Platform.Theme.ThemeChanged += OnThemeChanged;
             Loc.LanguageChanged += OnLanguageChanged;
             Skia.InvalidateVisual();
+            FokusHolen();
         };
         Unloaded += (_, _) =>
         {
@@ -211,6 +213,32 @@ public partial class WhiteboardView : UserControl
         PreviewKeyDown += OnPreviewKeyDown;
         PreviewKeyUp += OnPreviewKeyUp;
     }
+
+    /// <summary>
+    /// Gibt der Zeichenfläche nach dem Öffnen den Tastaturfokus.
+    ///
+    /// <para>
+    /// <b>Ohne das ist der erste Tastendruck nach dem Öffnen verloren</b> — der Fokus liegt
+    /// dann auf der Seitenleiste, über die das Dokument aufgemacht wurde. Gefunden hat es der
+    /// Laptop im Linux-Kopf an Strg+V (§5 „Noch offen" 19, V2-86); <b>dieser Kopf tut
+    /// dasselbe</b>, am laufenden Programm gegengeprüft — es ist also kein Linux-Fehler,
+    /// sondern ein gemeinsamer, und es trifft jedes Kürzel und nicht nur Einfügen.
+    /// </para>
+    ///
+    /// <para>
+    /// <b>Die Ausnahme ist der Grund, warum das keine Einzeiler-Zeile ist:</b> ein frisch
+    /// angelegtes Board wird in der Seitenleiste sofort zum Umbenennen aufgeklappt, und
+    /// gleichzeitig geht sein Reiter auf. Wer hier bedingungslos den Fokus nimmt, reißt dem
+    /// Nutzer das Umbenennen unter den Fingern weg. Steht der Fokus in einem Textfeld, bleibt
+    /// er dort. Der Linux-Kopf hat dieselbe Regel an derselben Stelle.
+    /// </para>
+    /// </summary>
+    private void FokusHolen() => Dispatcher.BeginInvoke(DispatcherPriority.Background, () =>
+    {
+        if (!IsLoaded) return;
+        if (Keyboard.FocusedElement is System.Windows.Controls.TextBox) return;
+        Focus();
+    });
 
     private void OnThemeChanged() => Skia.InvalidateVisual();
 

@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Threading;
 using GonkNote.Core.Editing;
 using GonkNote.Core.Models;
 using GonkNote.Core.Platform;
@@ -175,6 +176,7 @@ public partial class WhiteboardView : UserControl
             App.Platform.Theme.ThemeChanged += OnThemeChanged;
             Loc.LanguageChanged += OnLanguageChanged;
             Neuzeichnen();
+            FokusHolen();
         };
         DetachedFromVisualTree += (_, _) =>
         {
@@ -203,6 +205,38 @@ public partial class WhiteboardView : UserControl
 
     /// <summary>Ein neues Bild anfordern. Alles, was den Inhalt ändert, ruft das.</summary>
     private void Neuzeichnen() => Skia.InvalidateVisual();
+
+    /// <summary>
+    /// Gibt der Zeichenfläche nach dem Öffnen den Tastaturfokus.
+    ///
+    /// <para>
+    /// <b>Ohne das ist der erste Tastendruck nach dem Öffnen verloren</b> — der Fokus liegt
+    /// dann auf der Seitenleiste, über die das Dokument aufgemacht wurde. Der Laptop hat es
+    /// an Strg+V gefunden (§5 „Noch offen" 19, V2-86); es trifft aber jedes Kürzel, und
+    /// <b>der WPF-Kopf tut dasselbe</b> — am laufenden Programm in beiden Köpfen
+    /// gegengeprüft, deshalb ist es hier behoben und nicht als Linux-Sache zurückgegangen.
+    /// </para>
+    ///
+    /// <para>
+    /// <b>Die Ausnahme ist der Grund, warum das keine Einzeiler-Zeile ist:</b> ein frisch
+    /// angelegtes Board wird in der Seitenleiste sofort zum Umbenennen aufgeklappt, und
+    /// gleichzeitig geht sein Reiter auf. Wer hier bedingungslos den Fokus nimmt, reißt dem
+    /// Nutzer das Umbenennen unter den Fingern weg. Steht der Fokus in einem Textfeld, bleibt
+    /// er dort.
+    /// </para>
+    ///
+    /// <para>
+    /// <b>Über den Dispatcher</b>, weil der Fokus zum Zeitpunkt des Anhängens noch verteilt
+    /// wird — ein <c>Focus()</c> mitten hinein wäre einen Wimpernschlag später wieder weg.
+    /// </para>
+    /// </summary>
+    private void FokusHolen() => Dispatcher.UIThread.Post(() =>
+    {
+        // Kein TopLevel heißt: der Reiter ist wieder zu, bevor der Dispatcher drankam.
+        if (TopLevel.GetTopLevel(this) is not { } oben) return;
+        if (oben.FocusManager?.GetFocusedElement() is TextBox) return;
+        Skia.Focus();
+    }, DispatcherPriority.Background);
 
     private void OnDataContextChanged(object? sender, EventArgs e)
     {

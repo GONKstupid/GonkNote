@@ -129,17 +129,10 @@ public partial class App : Application
 
     private static void Log(Exception? ex)
     {
-        if (ex == null) return;
-        try
-        {
-            Directory.CreateDirectory(Path.GetDirectoryName(LogPath)!);
-            File.AppendAllText(LogPath,
-                $"--- {DateTime.Now:yyyy-MM-dd HH:mm:ss} ---{Environment.NewLine}" +
-                $"{ex}{Environment.NewLine}{Environment.NewLine}");
-        }
-        catch
-        {
-            // Protokollieren darf selbst nie zum Problem werden
-        }
+        // Gerechnet und geschrieben wird in Core (Fehlerprotokoll), damit beide Koepfe
+        // dieselbe Obergrenze haben. **Hier stand bis V2-87 eine eigene Fassung ohne jede
+        // Grenze** -- und der andere Kopf dieselbe, Zeile fuer Zeile. Am 2026-08-12 hat das
+        // an einem Nachmittag 272 MB in den Datenordner geschrieben (§4.66).
+        Fehlerprotokoll.Schreiben(ex, LogPath);
     }
 }

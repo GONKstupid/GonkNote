@@ -102,7 +102,20 @@ public partial class App : Application
 
     protected override void OnExit(ExitEventArgs e)
     {
-        Db.Dispose();
+        // **Fragezeichen, und es ist kein vorsorgliches.** `Db` ist `null!`, bis der
+        // Konstruktor oben durchläuft. Scheitert er — eine unlesbare Altdatenbank genügt —,
+        // meldet `OnStartup` das und ruft `Shutdown(1)`; **dieses `OnExit` läuft danach
+        // trotzdem**, denn es ist ein Override und kein registrierter Handler.
+        //
+        // Ohne das Fragezeichen kam auf die ehrliche Meldung „Die Datenbank konnte nicht
+        // geöffnet werden" sofort eine zweite hinterher: „Es ist ein unerwarteter Fehler
+        // aufgetreten — Object reference not set to an instance of an object", **mit dem
+        // Zusatz „Die App läuft weiter", während sie sich gerade beendete**. Am laufenden
+        // Programm gesehen (V2-87, §4.66).
+        //
+        // Der Linux-Kopf hat das Problem nicht: dort hängt `Dispose` an
+        // `ShutdownRequested`, und der Fehlerpfad kehrt **vor** der Registrierung zurück.
+        Db?.Dispose();
         base.OnExit(e);
     }
 
@@ -126,17 +139,10 @@ public partial class App : Application
 
     private static void Log(Exception? ex)
     {
-        if (ex == null) return;
-        try
-        {
-            Directory.CreateDirectory(Path.GetDirectoryName(LogPath)!);
-            File.AppendAllText(LogPath,
-                $"--- {DateTime.Now:yyyy-MM-dd HH:mm:ss} ---{Environment.NewLine}" +
-                $"{ex}{Environment.NewLine}{Environment.NewLine}");
-        }
-        catch
-        {
-            // Protokollieren darf selbst nie zum Problem werden
-        }
+        // Gerechnet und geschrieben wird in Core (Fehlerprotokoll), damit beide Koepfe
+        // dieselbe Obergrenze haben. **Hier stand bis V2-87 eine eigene Fassung ohne jede
+        // Grenze** -- und der andere Kopf dieselbe, Zeile fuer Zeile. Am 2026-08-12 hat das
+        // an einem Nachmittag 272 MB in den Datenordner geschrieben (§4.66).
+        Fehlerprotokoll.Schreiben(ex, LogPath);
     }
 }

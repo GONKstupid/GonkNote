@@ -180,8 +180,25 @@ public partial class WhiteboardView
             return;
         }
 
-        // Nur die linke Maustaste zeichnet; die rechte ist für M1 unbelegt.
-        if (art == PointerType.Mouse && !punkt.Properties.IsLeftButtonPressed) return;
+        // Nur die linke Maustaste zeichnet. **Die rechte öffnet seit Stück 5 die
+        // Schnellaktionen** — bis dahin stand hier „für M1 unbelegt", und das war richtig,
+        // solange es die Leiste nicht gab.
+        if (art == PointerType.Mouse && !punkt.Properties.IsLeftButtonPressed)
+        {
+            if (punkt.Properties.IsRightButtonPressed)
+            {
+                SchnellaktionenZeigen(punkt.Position);
+                e.Handled = true;
+            }
+            return;
+        }
+
+        // Ein Druck irgendwo auf die Fläche schließt eine offene Leiste — sie ist eine
+        // Antwort auf eine Frage, und wer woanders hindrückt, hat die Frage zurückgezogen.
+        SchnellaktionenVerbergen();
+
+        // Bei Lasso, Verschieben und Hand kann daraus ein langer Druck werden.
+        DruckBeginnt(punkt.Position, vomFinger: false);
 
         var lage = Lage(punkt.Properties, art);
         NeigungMerken(lage, art);
@@ -228,6 +245,8 @@ public partial class WhiteboardView
         // oder loslassen kann.
         _umschaltGedrueckt = e.KeyModifiers.HasFlag(KeyModifiers.Shift);
 
+        DruckBewegt(e.GetPosition(Skia));
+
         foreach (var p in e.GetIntermediatePoints(Skia))
             MoveInput(ToCanvas(p.Position), Lage(p.Properties, art));
 
@@ -243,8 +262,19 @@ public partial class WhiteboardView
         }
 
         e.Pointer.Capture(null);
+        DruckAbbrechen();
 
         if (e.Pointer.Type == PointerType.Pen) _stiftLiegtAuf = false;
+
+        // Nach einem langen Druck ist die Handlung schon verworfen und die Leiste offen —
+        // das Loslassen darf sie nicht als Strich-Ende nachbereiten.
+        if (_druckEndeSchlucken)
+        {
+            _druckEndeSchlucken = false;
+            _stylusInverted = false;
+            e.Handled = true;
+            return;
+        }
 
         if (_panning) { EndPan(); e.Handled = true; return; }
 
@@ -280,6 +310,14 @@ public partial class WhiteboardView
         e.Pointer.Capture(Skia);
         _finger[e.Pointer.Id] = punkt.Position;
         if (_finger.Count >= 2) PinchSetzen();
+
+        SchnellaktionenVerbergen();
+
+        // Ein langer Druck mit **einem** Finger öffnet die Schnellaktionen; sobald ein
+        // zweiter dazukommt, ist es eine Zoom-Geste und kein Druck mehr.
+        if (_finger.Count == 1) DruckBeginnt(punkt.Position, vomFinger: true);
+        else DruckAbbrechen();
+
         e.Handled = true;
     }
 
@@ -302,6 +340,8 @@ public partial class WhiteboardView
 
         var neu = e.GetPosition(Skia);
         _finger[e.Pointer.Id] = neu;
+
+        DruckBewegt(neu);
 
         if (_finger.Count == 1)
         {
@@ -330,6 +370,7 @@ public partial class WhiteboardView
         e.Pointer.Capture(null);
         _finger.Remove(e.Pointer.Id);
         if (_finger.Count >= 2) PinchSetzen();
+        DruckAbbrechen();
         e.Handled = true;
     }
 

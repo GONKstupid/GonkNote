@@ -122,6 +122,28 @@
         <Setter Property="VerticalContentAlignment" Value="Center"/>
     </Style>
 
+    <!-- Eine Taste des Zahlenblocks an der Werkzeuggröße (Phase 4.5, Stück 5).
+         Bewusst hoch und mit Abstand: das Ding wird mit dem Finger oder der Stiftspitze
+         bedient, nicht mit dem Mauszeiger. Dieselben Maße wie im WPF-Kopf. -->
+    <Style Selector="Button.zifferntaste">
+        <Setter Property="Height" Value="44"/>
+        <Setter Property="Margin" Value="3"/>
+        <Setter Property="FontSize" Value="18"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="CornerRadius" Value="8"/>
+        <Setter Property="Foreground" Value="{DynamicResource Brush.Text}"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="Cursor" Value="Hand"/>
+    </Style>
+    <Style Selector="Button.zifferntaste:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource Brush.Hover}"/>
+    </Style>
+    <Style Selector="Button.zifferntaste:pressed /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource Brush.Pressed}"/>
+    </Style>
+
     <!-- Der Akzentknopf („Neu" in der Galerie). -->
     <Style Selector="Button.akzent">
         <Setter Property="Background" Value="{DynamicResource Brush.Accent}"/>

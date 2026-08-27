@@ -67,6 +67,12 @@ public partial class WhiteboardView
         BtnGeodreieck.IsChecked = _hilfe == Zeichenhilfe.Geodreieck;
         _suppressToolEvents = false;
 
+        // Die Gruppe klappt mit der Hilfe auf und mit ihr wieder zu. **Der Vertreter ist die
+        // zuletzt eingeschaltete** und nicht die gerade abgeschaltete — deshalb `art` und
+        // nicht `_hilfe`: nach dem Ausschalten ist `_hilfe` schon `Keine`.
+        VertreterMerken(art);
+        LeisteKlappen();
+
         // Beim ersten Einschalten in die Mitte der Sicht legen — dort sucht sie niemand
         // vergeblich. Danach bleibt sie liegen, wo der Nutzer sie hingeschoben hat.
         if (_hilfe != Zeichenhilfe.Keine && !_hilfeGesetzt)

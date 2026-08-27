@@ -1,4 +1,5 @@
 using System.IO;
+using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
@@ -34,17 +35,35 @@ public sealed class AvaloniaClipboard : Core.Platform.IClipboard
     }
 
     /// <summary>
-    /// <b>Diese Abfrage kodiert wirklich</b> — anders als unter Windows, wo
-    /// <c>Clipboard.ContainsImage()</c> nur nachsieht. Avalonia hat kein „enthält" ohne
-    /// „hol es", das Bild muss also durch den Dekodierer, um die Frage zu beantworten.
+    /// Fragt <b>nur die Formatliste</b> ab und holt das Bild nicht.
     /// <para>
-    /// Für den heutigen Aufrufer ist das folgenlos (die Abfrage entscheidet über einen
-    /// ausgegrauten Menüeintrag, und die Ablage enthält selten ein großes Bild). <b>Wer sie
-    /// künftig in einer Schleife oder beim Öffnen jedes Menüs aufruft, sollte das
-    /// wissen.</b>
+    /// <b>Bis V2-84 stand hier <c>GetImage() != null</c></b> — und der Kommentar daneben
+    /// warnte wörtlich: *„Wer sie künftig … beim Öffnen jedes Menüs aufruft, sollte das
+    /// wissen."* Genau das kam mit den Schnellaktionen (§4.62): sie fragen bei
+    /// <b>jedem</b> Öffnen, ob Einfügen etwas zu tun hätte. Unter Windows ist das ein
+    /// billiges <c>ContainsImage</c>; hier wäre bei jedem Öffnen das ganze Bild durch den
+    /// Dekodierer <b>und</b> den PNG-Kodierer gegangen — und <see cref="Modal.Warte"/>
+    /// betritt dabei die Nachrichtenschleife neu, mitten in der Eingabeverarbeitung.
+    /// </para>
+    /// <para>
+    /// <c>GetDataFormatsAsync</c> beantwortet dieselbe Frage, ohne die Daten anzufassen.
+    /// <b>Das ist keine Näherung:</b> die Formatliste ist genau das, was die Ablage über
+    /// sich selbst aussagt. Was danach beim Holen schiefgehen kann, fängt
+    /// <see cref="GetImage"/> ohnehin ab.
     /// </para>
     /// </summary>
-    public bool HasImage => GetImage() != null;
+    public bool HasImage
+    {
+        get
+        {
+            try
+            {
+                if (Ablage() is not { } a) return false;
+                return Modal.Warte(a.GetDataFormatsAsync()).Contains(DataFormat.Bitmap);
+            }
+            catch { return false; }
+        }
+    }
 
     /// <summary>Das Bild als PNG-Bytes — verlustfrei, und die Form, in der es in den Blob-Speicher wandert.</summary>
     public byte[]? GetImage()

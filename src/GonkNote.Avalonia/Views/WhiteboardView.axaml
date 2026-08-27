@@ -23,16 +23,26 @@
             <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
                 <StackPanel Orientation="Horizontal" Margin="8,5" Spacing="1">
 
-                    <Button x:Name="BtnUndo" Classes="flach symbol" Click="Undo_Click"
-                            ToolTip.Tip="{loc:T Action.Undo}">
-                        <views:Symbol Icon="Undo"
-                              Stroke="{DynamicResource Brush.Text}"/>
-                    </Button>
-                    <Button x:Name="BtnRedo" Classes="flach symbol" Click="Redo_Click"
-                            ToolTip.Tip="{loc:T Action.Redo}">
-                        <views:Symbol Icon="Redo"
-                              Stroke="{DynamicResource Brush.Text}"/>
-                    </Button>
+                    <!-- ==================== Die Werkzeuge ====================
+                         **Die Reihenfolge ist keine Geschmackssache, sie steht in Core**
+                         (WbLeiste.Reihenfolge, §4.61) und ist die des WPF-Kopfs: Hand, dann
+                         die Stifte samt Radierer, dann die Auswahl, dann alles, was etwas
+                         auf die Fläche legt. Bis V2-83 stand sie hier anders, und mit den
+                         Stücken 1 bis 4 war die Leiste so lang geworden, dass sie rollte.
+
+                         **Vier Gruppen klappen** (Stifte, Auswahl, Formen, Zeichenhilfen):
+                         eingeklappt bleibt nur der zuletzt benutzte Knopf stehen, das
+                         Anwählen klappt die Gruppe auf. Die Regel steht in
+                         WbLeiste.IstSichtbar, damit beide Köpfe dieselbe haben.
+
+                         **Der Glättstift fehlt weiterhin** — er gehört zum Formen-Stift, und
+                         der ist eigene Arbeit (§6). WbLeiste.Reihenfolge führt ihn schon;
+                         die Liste ist eine Vorgabe und keine Beschreibung. -->
+
+                    <ToggleButton x:Name="BtnPan" Classes="werkzeug" Tag="Pan"
+                                  IsCheckedChanged="Tool_Changed" ToolTip.Tip="{loc:T Tool.Hand.Tip}">
+                        <views:Symbol Icon="Hand" Stroke="{DynamicResource Brush.Text}"/>
+                    </ToggleButton>
 
                     <Border Classes="trenner"/>
 
@@ -40,62 +50,50 @@
                          Knopf ein eigenes Ereignis zu haben (wie im WPF-Kopf). -->
                     <ToggleButton x:Name="BtnPen" Classes="werkzeug" Tag="Pen"
                                   IsCheckedChanged="Tool_Changed" ToolTip.Tip="{loc:T Tool.Pen}">
-                        <views:Symbol Icon="Pen"
-                              Stroke="{DynamicResource Brush.Text}"/>
+                        <views:Symbol Icon="Pen" Stroke="{DynamicResource Brush.Text}"/>
                     </ToggleButton>
                     <ToggleButton x:Name="BtnPencil" Classes="werkzeug" Tag="Pencil"
                                   IsCheckedChanged="Tool_Changed" ToolTip.Tip="{loc:T Tool.Pencil}">
-                        <views:Symbol Icon="Pencil"
-                              Stroke="{DynamicResource Brush.Text}"/>
+                        <views:Symbol Icon="Pencil" Stroke="{DynamicResource Brush.Text}"/>
                     </ToggleButton>
                     <ToggleButton x:Name="BtnHighlighter" Classes="werkzeug" Tag="Highlighter"
                                   IsCheckedChanged="Tool_Changed" ToolTip.Tip="{loc:T Tool.Highlighter}">
-                        <views:Symbol Icon="Highlighter"
-                              Stroke="{DynamicResource Brush.Text}"/>
+                        <views:Symbol Icon="Highlighter" Stroke="{DynamicResource Brush.Text}"/>
                     </ToggleButton>
+
+                    <!-- Der Radierer steht neben den Stiften, gehört aber zu keiner Gruppe:
+                         er ist immer zu sehen. Dieselbe Stelle wie drüben. -->
                     <ToggleButton x:Name="BtnEraser" Classes="werkzeug" Tag="Eraser"
                                   IsCheckedChanged="Tool_Changed" ToolTip.Tip="{loc:T Tool.Eraser}">
-                        <views:Symbol Icon="Eraser"
-                              Stroke="{DynamicResource Brush.Text}"/>
+                        <views:Symbol Icon="Eraser" Stroke="{DynamicResource Brush.Text}"/>
                     </ToggleButton>
 
                     <Border Classes="trenner"/>
 
-                    <!-- Textfeld und Notizzettel (Phase 4.5). Beide gehören zu den
-                         Werkzeugen mit „genau einer ist gedrückt" und stehen deshalb in
-                         ToolButtons — anders als die fünf Formen, die sich eines teilen. -->
+                    <!-- Auswahl (Lasso und Verschieben) — klappbare Gruppe wie die Stifte. -->
+                    <ToggleButton x:Name="BtnLasso" Classes="werkzeug" Tag="Lasso"
+                                  IsCheckedChanged="Tool_Changed" ToolTip.Tip="{loc:T Tool.Lasso}">
+                        <views:Symbol Icon="Lasso" Stroke="{DynamicResource Brush.Text}"/>
+                    </ToggleButton>
+                    <ToggleButton x:Name="BtnMove" Classes="werkzeug" Tag="Move"
+                                  IsCheckedChanged="Tool_Changed" ToolTip.Tip="{loc:T Tool.Move.Tip}">
+                        <views:Symbol Icon="Move" Stroke="{DynamicResource Brush.Text}"/>
+                    </ToggleButton>
+
+                    <Border Classes="trenner"/>
+
+                    <!-- Textfeld. Gehört zu den Werkzeugen mit „genau einer ist gedrückt"
+                         und steht deshalb in ToolButtons — anders als die fünf Formen, die
+                         sich eines teilen. -->
                     <ToggleButton x:Name="BtnText" Classes="werkzeug" Tag="Text"
                                   IsCheckedChanged="Tool_Changed" ToolTip.Tip="{loc:T Tool.Text}">
                         <views:Symbol Icon="TextTool" Stroke="{DynamicResource Brush.Text}"/>
                     </ToggleButton>
-                    <ToggleButton x:Name="BtnZettel" Classes="werkzeug" Tag="Sticky"
-                                  IsCheckedChanged="Tool_Changed" ToolTip.Tip="{loc:T Tool.Sticky}">
-                        <views:Symbol Icon="StickyNote" Stroke="{DynamicResource Brush.Text}"/>
-                    </ToggleButton>
-                    <ToggleButton x:Name="BtnSticker" Classes="werkzeug" Tag="Sticker"
-                                  IsCheckedChanged="Tool_Changed" ToolTip.Tip="{loc:T Tool.Sticker}">
-                        <views:Symbol Icon="Sticker" Stroke="{DynamicResource Brush.Text}"/>
-                    </ToggleButton>
 
-                    <!-- Lineal und Geodreieck (Phase 4.5). **Sie stehen bewusst nicht in
-                         ToolButtons**: dort gilt „genau einer ist gedrückt", und eine
-                         Zeichenhilfe ist kein Werkzeug — sie liegt auf der Seite, während
-                         man mit dem Stift daran entlangfährt. Wer sie mit hineinnähme,
-                         verlöre beim Einschalten des Lineals seinen Stift. -->
-                    <ToggleButton x:Name="BtnLineal" Classes="werkzeug"
-                                  Click="Lineal_Click" ToolTip.Tip="{loc:T Tool.Ruler.Tip}">
-                        <views:Symbol Icon="Ruler" Stroke="{DynamicResource Brush.Text}"/>
-                    </ToggleButton>
-                    <ToggleButton x:Name="BtnGeodreieck" Classes="werkzeug"
-                                  Click="Geodreieck_Click" ToolTip.Tip="{loc:T Tool.SetSquare.Tip}">
-                        <views:Symbol Icon="SetSquare" Stroke="{DynamicResource Brush.Text}"/>
-                    </ToggleButton>
-
-                    <Border Classes="trenner"/>
-
-                    <!-- Die fünf Formen (Phase 4.5). Tag = der ShapeKind-Name; sie teilen
-                         sich ein eigenes Ereignis, weil alle fünf dasselbe Werkzeug
-                         einschalten und sich nur in der Art unterscheiden. -->
+                    <!-- Die fünf Formen. Tag = der ShapeKind-Name; sie teilen sich ein
+                         eigenes Ereignis, weil alle fünf dasselbe Werkzeug einschalten und
+                         sich nur in der Art unterscheiden. Rechteck zuerst — es ist die
+                         Vorgabe, und eingeklappt steht hier die zuletzt benutzte Form. -->
                     <ToggleButton x:Name="BtnFormRechteck" Classes="werkzeug" Tag="Rectangle"
                                   IsCheckedChanged="Form_Gewaehlt" ToolTip.Tip="{loc:T Tool.Shape.Rect}">
                         <views:Symbol Icon="ShapeRect" Stroke="{DynamicResource Brush.Text}"/>
@@ -117,22 +115,27 @@
                         <views:Symbol Icon="ShapeTriangle" Stroke="{DynamicResource Brush.Text}"/>
                     </ToggleButton>
 
-                    <Border Classes="trenner"/>
+                    <ToggleButton x:Name="BtnZettel" Classes="werkzeug" Tag="Sticky"
+                                  IsCheckedChanged="Tool_Changed" ToolTip.Tip="{loc:T Tool.Sticky}">
+                        <views:Symbol Icon="StickyNote" Stroke="{DynamicResource Brush.Text}"/>
+                    </ToggleButton>
+                    <ToggleButton x:Name="BtnSticker" Classes="werkzeug" Tag="Sticker"
+                                  IsCheckedChanged="Tool_Changed" ToolTip.Tip="{loc:T Tool.Sticker}">
+                        <views:Symbol Icon="Sticker" Stroke="{DynamicResource Brush.Text}"/>
+                    </ToggleButton>
 
-                    <ToggleButton x:Name="BtnLasso" Classes="werkzeug" Tag="Lasso"
-                                  IsCheckedChanged="Tool_Changed" ToolTip.Tip="{loc:T Tool.Lasso}">
-                        <views:Symbol Icon="Lasso"
-                              Stroke="{DynamicResource Brush.Text}"/>
+                    <!-- Lineal und Geodreieck. **Sie stehen bewusst nicht in ToolButtons**:
+                         dort gilt „genau einer ist gedrückt", und eine Zeichenhilfe ist kein
+                         Werkzeug — sie liegt auf der Seite, während man mit dem Stift daran
+                         entlangfährt. Wer sie mit hineinnähme, verlöre beim Einschalten des
+                         Lineals seinen Stift. Klappbar sind sie trotzdem. -->
+                    <ToggleButton x:Name="BtnLineal" Classes="werkzeug"
+                                  Click="Lineal_Click" ToolTip.Tip="{loc:T Tool.Ruler.Tip}">
+                        <views:Symbol Icon="Ruler" Stroke="{DynamicResource Brush.Text}"/>
                     </ToggleButton>
-                    <ToggleButton x:Name="BtnMove" Classes="werkzeug" Tag="Move"
-                                  IsCheckedChanged="Tool_Changed" ToolTip.Tip="{loc:T Tool.Move.Tip}">
-                        <views:Symbol Icon="Move"
-                              Stroke="{DynamicResource Brush.Text}"/>
-                    </ToggleButton>
-                    <ToggleButton x:Name="BtnPan" Classes="werkzeug" Tag="Pan"
-                                  IsCheckedChanged="Tool_Changed" ToolTip.Tip="{loc:T Tool.Hand.Tip}">
-                        <views:Symbol Icon="Hand"
-                              Stroke="{DynamicResource Brush.Text}"/>
+                    <ToggleButton x:Name="BtnGeodreieck" Classes="werkzeug"
+                                  Click="Geodreieck_Click" ToolTip.Tip="{loc:T Tool.SetSquare.Tip}">
+                        <views:Symbol Icon="SetSquare" Stroke="{DynamicResource Brush.Text}"/>
                     </ToggleButton>
 
                     <Border Classes="trenner"/>
@@ -156,13 +159,87 @@
 
                     <!-- Größe. Bedient je nach Werkzeug die Strichstärke oder den
                          Radierradius — beide Werte werden getrennt gemerkt, damit ein
-                         Werkzeugwechsel den jeweils anderen nicht überschreibt. -->
-                    <TextBlock x:Name="WidthLabel" VerticalAlignment="Center" Width="26"
-                               TextAlignment="Right" FontSize="12"
-                               Foreground="{DynamicResource Brush.TextMuted}"/>
+                         Werkzeugwechsel den jeweils anderen nicht überschreibt.
+
+                         **Alle drei Bedienelemente öffnen per Langdruck denselben
+                         Zahlenblock** (Phase 4.5, Stück 5) — Symbol, Schieber, Wertanzeige.
+                         Bis dahin versprach der Tooltip „lange drücken für Zahleneingabe"
+                         etwas, das es hier nicht gab. Das Symbol fehlte ebenfalls; es ist
+                         der dritte Auslöser und zugleich die Anzeige, was gerade eingestellt
+                         wird (Stift oder Radierer).
+
+                         **Die drei Zeigerereignisse hängen im Code-Behind am Tunnel und
+                         nicht hier.** Als gewöhnliches (Bubble-)Ereignis kommt der Handler
+                         nie an: der Slider markiert den Druck als erledigt, und der
+                         Langdruck fing gar nicht erst an — am laufenden Programm gesehen,
+                         der Schieber sprang auf den angeklickten Wert und sonst geschah
+                         nichts. Dieselbe Falle wie beim Tippen über der Fläche (§4.55). -->
+                    <views:Symbol x:Name="WidthIcon" Icon="Pencil" Size="12" Cursor="Hand"
+                                  VerticalAlignment="Center" Margin="2,0"
+                                  Stroke="{DynamicResource Brush.TextMuted}"
+                                  ToolTip.Tip="{loc:T Size.Tip}"/>
                     <Slider x:Name="WidthSlider" Width="110" Minimum="0.5" Maximum="40" Value="2.5"
                             VerticalAlignment="Center" Margin="6,0"
                             PropertyChanged="WidthSlider_Changed"/>
+                    <TextBlock x:Name="WidthLabel" VerticalAlignment="Center" Width="26"
+                               TextAlignment="Right" FontSize="12"
+                               Foreground="{DynamicResource Brush.TextMuted}"
+                               ToolTip.Tip="{loc:T Size.Tip}"/>
+
+                    <!-- Der Zahlenblock. **IsLightDismissEnabled schließt ihn bei einem Druck
+                         daneben** — und das ist hier der einfachere Weg als im WPF-Kopf, wo
+                         dieselbe Sache von Hand nachgebaut werden musste: dort lebt der
+                         Popup-Inhalt in einem eigenen Visual-Baum, ein Hochlauf vom Klickziel
+                         erreichte die Werkzeugleiste nie, und jeder Ziffernklick galt als
+                         „außerhalb". Avalonia behandelt Drücke **im** Popup von sich aus
+                         richtig. Der Preis: ein Druck auf den Schieber schließt den Block —
+                         was in Ordnung ist, denn dann bedient der Nutzer eben den Schieber. -->
+                    <Popup x:Name="Zahlenblock" PlacementTarget="{Binding #WidthSlider}"
+                           Placement="Bottom" IsLightDismissEnabled="True">
+                        <Border Background="{DynamicResource Brush.CardBg}"
+                                BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1"
+                                CornerRadius="12" Padding="10" Margin="8" Width="196"
+                                BoxShadow="0 2 16 0 #47000000">
+                            <StackPanel>
+                                <TextBlock x:Name="ZahlenblockAnzeige" Text="2,5" FontSize="28"
+                                           Margin="8,2,8,10"
+                                           Foreground="{DynamicResource Brush.Text}"/>
+                                <UniformGrid Columns="3" Rows="4">
+                                    <Button Classes="zifferntaste" Content="7" Click="Ziffer_Click"/>
+                                    <Button Classes="zifferntaste" Content="8" Click="Ziffer_Click"/>
+                                    <Button Classes="zifferntaste" Content="9" Click="Ziffer_Click"/>
+                                    <Button Classes="zifferntaste" Content="4" Click="Ziffer_Click"/>
+                                    <Button Classes="zifferntaste" Content="5" Click="Ziffer_Click"/>
+                                    <Button Classes="zifferntaste" Content="6" Click="Ziffer_Click"/>
+                                    <Button Classes="zifferntaste" Content="1" Click="Ziffer_Click"/>
+                                    <Button Classes="zifferntaste" Content="2" Click="Ziffer_Click"/>
+                                    <Button Classes="zifferntaste" Content="3" Click="Ziffer_Click"/>
+                                    <Button Classes="zifferntaste" Content="0" Click="Ziffer_Click"/>
+                                    <Button Classes="zifferntaste" Content="," Click="Ziffer_Click"/>
+                                    <Button Classes="zifferntaste" Click="Rueckschritt_Click"
+                                            ToolTip.Tip="{loc:T Action.Delete}">
+                                        <views:Symbol Icon="Backspace"
+                                                      Stroke="{DynamicResource Brush.Text}"/>
+                                    </Button>
+                                </UniformGrid>
+                            </StackPanel>
+                        </Border>
+                    </Popup>
+
+                    <Border Classes="trenner"/>
+
+                    <!-- Rückgängig und Wiederholen. **Sie stehen hinter der Größe und nicht
+                         vorn** — dieselbe Stelle wie im WPF-Kopf: die Werkzeugleiste ist
+                         nach „womit zeichne ich" und „wie sieht es aus" geordnet, und was
+                         etwas zurücknimmt, gehört hinter beides. -->
+                    <Button x:Name="BtnUndo" Classes="flach symbol" Click="Undo_Click"
+                            ToolTip.Tip="{loc:T Action.Undo}">
+                        <views:Symbol Icon="Undo" Stroke="{DynamicResource Brush.Text}"/>
+                    </Button>
+                    <Button x:Name="BtnRedo" Classes="flach symbol" Click="Redo_Click"
+                            ToolTip.Tip="{loc:T Action.Redo}">
+                        <views:Symbol Icon="Redo" Stroke="{DynamicResource Brush.Text}"/>
+                    </Button>
 
                     <Border Classes="trenner"/>
 
@@ -474,6 +551,55 @@
                          MinWidth="60" BorderThickness="1"
                          LostFocus="EditFeld_Verlassen"/>
             </Canvas>
+
+            <!-- Die Schnellaktionen (Phase 4.5, Stück 5). Eine schwebende Leiste statt eines
+                 Rechtsklick-Menüs — der Zweck ist die Bedienung **ohne Tastatur**, für den
+                 Stift also der einzige Weg zu Kopieren und Einfügen.
+
+                 **Sie liegt im selben Panel wie die Fläche und wird über den Rand gesetzt**
+                 (HorizontalAlignment/VerticalAlignment auf Top-Left, dann Margin): so ist die
+                 Ecke oben links ihre Position, und genau damit rechnet
+                 WbSchnellaktionen.ImBlick.
+
+                 **Kein Aufklappen nach einer frischen Auswahl** — anders als im WPF-Kopf.
+                 Dort legt sich die Leiste über die Oberkante der Auswahl und verdeckt den
+                 Dreh-Griff (§4.51, ein Wächter rechnet die Überschneidung nach). -->
+            <Border x:Name="Schnellaktionen" IsVisible="False"
+                    HorizontalAlignment="Left" VerticalAlignment="Top" ZIndex="50"
+                    Background="{DynamicResource Brush.CardBg}"
+                    BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1"
+                    CornerRadius="10" Padding="4"
+                    BoxShadow="0 2 14 0 #47000000">
+                <StackPanel Orientation="Horizontal">
+                    <Button x:Name="Sa_Ausschneiden" Classes="flach symbol" Click="Sa_Ausschneiden_Click"
+                            ToolTip.Tip="{loc:T Quick.Cut.Tip}">
+                        <views:Symbol Icon="Cut" Stroke="{DynamicResource Brush.Text}"/>
+                    </Button>
+                    <Button x:Name="Sa_Kopieren" Classes="flach symbol" Click="Sa_Kopieren_Click"
+                            ToolTip.Tip="{loc:T Quick.Copy.Tip}">
+                        <views:Symbol Icon="Copy" Stroke="{DynamicResource Brush.Text}"/>
+                    </Button>
+                    <Button x:Name="Sa_Duplizieren" Classes="flach symbol" Click="Sa_Duplizieren_Click"
+                            ToolTip.Tip="{loc:T Quick.Duplicate.Tip}">
+                        <views:Symbol Icon="Duplicate" Stroke="{DynamicResource Brush.Text}"/>
+                    </Button>
+                    <Button x:Name="Sa_Einfuegen" Classes="flach symbol" Click="Sa_Einfuegen_Click"
+                            ToolTip.Tip="{loc:T Quick.Paste.Tip}">
+                        <views:Symbol Icon="Paste" Stroke="{DynamicResource Brush.Text}"/>
+                    </Button>
+
+                    <Border Classes="trenner"/>
+
+                    <Button x:Name="Sa_Loeschen" Classes="flach symbol" Click="Sa_Loeschen_Click"
+                            ToolTip.Tip="{loc:T Quick.Delete.Tip}">
+                        <views:Symbol Icon="Trash" Stroke="{DynamicResource Brush.Text}"/>
+                    </Button>
+                    <Button x:Name="Sa_AllesWaehlen" Classes="flach symbol" Click="Sa_AllesWaehlen_Click"
+                            ToolTip.Tip="{loc:T Quick.SelectAll.Tip}">
+                        <views:Symbol Icon="SelectAll" Stroke="{DynamicResource Brush.Text}"/>
+                    </Button>
+                </StackPanel>
+            </Border>
 
             <!-- Die Wartesperre beim Einfügen (Phase 4.5). Sie hat **Hintergrund und liegt
                  über allem**, und das ist der Zweck: ein PDF wird im Hintergrund gerendert,

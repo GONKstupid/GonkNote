@@ -141,6 +141,12 @@ public partial class WhiteboardView : UserControl
         BtnPen.IsChecked = true;
         _suppressToolEvents = false;
 
+        // Der Anfangsstand der Leiste. **Ohne diesen Ruf stünden alle Knöpfe da** — die
+        // Klappregel läuft sonst erst beim ersten Werkzeugwechsel, und bis dahin sähe die
+        // Leiste aus wie vor der Umstellung.
+        LeisteKlappen();
+        ZahlenblockAnhaengen();
+
         Skia.Paint += OnPaint;
 
         // Die Seite mittig setzen, sobald die Fläche zum ersten Mal eine Breite hat. Der
@@ -293,7 +299,7 @@ public partial class WhiteboardView : UserControl
         _suppressToolEvents = false;
 
         _form = Enum.Parse<ShapeKind>((string)btn.Tag!);
-        SetTool(ToolType.Shape);
+        SetTool(ToolType.Shape);   // ruft LeisteKlappen und nimmt _form als Vertreter
     }
 
     private void SetTool(ToolType tool)
@@ -318,6 +324,16 @@ public partial class WhiteboardView : UserControl
         _tool = tool;
         _eraserVisible = false;
         SyncSizeControls();
+
+        // Erst merken, dann klappen: eingeklappt soll der Knopf stehen bleiben, den der
+        // Nutzer gerade gewählt hat, und nicht der davor.
+        VertreterMerken(tool);
+        LeisteKlappen();
+
+        // Ein Werkzeugwechsel beendet die Schnellaktionen und den Zahlenblock — beide
+        // beziehen sich auf einen Zustand, den es gerade nicht mehr gibt.
+        SchnellaktionenVerbergen();
+        ZahlenblockSchliessen();
 
         // Die Formen-Einstellungen erscheinen nur mit dem Werkzeug. Ist die Leiste zu,
         // klappt sie auf — sonst wäre die Füllfarbe hinter einem Knopf versteckt, den
@@ -490,12 +506,23 @@ public partial class WhiteboardView : UserControl
         if (_eraserVisible) Neuzeichnen();   // den Radierkreis sofort mitwachsen lassen
     }
 
-    /// <summary>Stellt Schieber und Anzeige auf das aktive Werkzeug um.</summary>
+    /// <summary>Stellt Schieber, Symbol und Anzeige auf das aktive Werkzeug um.</summary>
     private void SyncSizeControls()
     {
         if (WidthSlider == null || WidthLabel == null) return;
 
-        ToolTip.SetTip(WidthSlider, Loc.T(SizeControlsEraser ? "Size.Eraser.Tip" : "Size.Tip"));
+        // Der Tooltip gehört an **alle drei** Auslöser des Zahlenblocks, nicht nur an den
+        // Schieber: sie tun dasselbe, also sollen sie dasselbe erklären.
+        string tip = Loc.T(SizeControlsEraser ? "Size.Eraser.Tip" : "Size.Tip");
+        ToolTip.SetTip(WidthSlider, tip);
+        if (WidthIcon != null)
+        {
+            ToolTip.SetTip(WidthIcon, tip);
+            // Das Symbol sagt, **was** hier eingestellt wird — Strichstärke oder Radierergröße.
+            WidthIcon.Icon = SizeControlsEraser ? AppIcon.Eraser : AppIcon.Pencil;
+        }
+        ToolTip.SetTip(WidthLabel, tip);
+
         WidthSlider.Value = ActiveSize;
         WidthLabel.Text = ActiveSize.ToString("0.#");
     }
@@ -662,6 +689,14 @@ public partial class WhiteboardView : UserControl
 
     // ==================== Tastatur ====================
 
+    /// <summary>Der Leistenknopf zu einem Werkzeug; <c>null</c>, wenn es hier keinen gibt.</summary>
+    private ToggleButton? KnopfFuer(ToolType werkzeug) =>
+        ToolButtons.FirstOrDefault(b => (string?)b.Tag == werkzeug.ToString());
+
+    /// <summary>Der Knopf zu einer Form — die fünf teilen sich ein Werkzeug.</summary>
+    private ToggleButton FormButtonFuer(ShapeKind form) =>
+        FormButtons.First(b => (string?)b.Tag == form.ToString());
+
     private void OnKeyDown(object? sender, KeyEventArgs e)
     {
         if (_vm == null) return;
@@ -685,6 +720,12 @@ public partial class WhiteboardView : UserControl
                 case Key.Z: DoUndo(); e.Handled = true; return;
                 case Key.Y: DoRedo(); e.Handled = true; return;
                 case Key.A: SelectAll(); e.Handled = true; return;
+                case Key.C: Kopieren(); e.Handled = true; return;
+                case Key.X: Ausschneiden(); e.Handled = true; return;
+                case Key.D: Duplizieren(); e.Handled = true; return;
+                // Ohne Zielpunkt: die Tastatur nennt keine Stelle, also rückt das
+                // Eingefügte schräg weg. Aus den Schnellaktionen kommt einer mit.
+                case Key.V: Einfuegen(null); e.Handled = true; return;
             }
             return;
         }
@@ -721,21 +762,21 @@ public partial class WhiteboardView : UserControl
             case Key.D: HilfeSetzen(Zeichenhilfe.Geodreieck); e.Handled = true; return;
         }
 
-        // Werkzeug-Kürzel — dieselben Buchstaben wie im WPF-Kopf.
-        ToggleButton? btn = e.Key switch
+        // Werkzeug-Kürzel — **dieselbe Tabelle wie drüben**, sie steht in Core
+        // (WbLeiste.Kuerzel, §4.61). Bis V2-83 fehlten hier G, T, F und N, obwohl es die
+        // zugehörigen Werkzeuge seit §4.53/§4.55 gibt: sie waren beim Bauen der Werkzeuge
+        // schlicht nicht nachgezogen worden.
+        // Key.A bis Key.Z liegen lückenlos hintereinander — daraus wird der Buchstabe,
+        // mit dem die Tabelle in Core geschlüsselt ist.
+        if (e.Key is >= Key.A and <= Key.Z &&
+            WbLeiste.Kuerzel.TryGetValue((char)('A' + (e.Key - Key.A)), out var werkzeug))
         {
-            Key.S => BtnPen,
-            Key.B => BtnPencil,
-            Key.M => BtnHighlighter,
-            Key.E => BtnEraser,
-            Key.L => BtnLasso,
-            Key.V => BtnMove,
-            Key.H => BtnPan,
-            _ => null,
-        };
-        if (btn != null)
-        {
-            btn.IsChecked = true;
+            // Die Formen sind keine eigenen Werkzeuge, sondern fünf Knöpfe an einem —
+            // „F" schaltet deshalb auf die zuletzt benutzte Form und nicht auf eine feste.
+            if (werkzeug == ToolType.Shape) FormButtonFuer(_form).IsChecked = true;
+            else if (KnopfFuer(werkzeug) is { } btn) btn.IsChecked = true;
+            else return;
+
             e.Handled = true;
         }
     }

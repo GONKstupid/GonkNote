@@ -35,7 +35,7 @@ public partial class WhiteboardView
         if (images.Count == 0) return;
 
         _importing = true;
-        ShowBusy(images.Count > 1 ? "Text wird erkannt…  (mehrere Bilder)" : "Text wird erkannt…");
+        ShowBusy(Loc.T(images.Count > 1 ? "Msg.OcrRunningMany" : "Msg.OcrRunning"));
         try
         {
             string text = await Task.Run(() =>

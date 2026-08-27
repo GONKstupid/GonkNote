@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Die Texterkennung über Tesseract — und der **einzige** Ort, an dem der Wrapper noch
+       vorkommt. Bis Phase 4.5, Stück 6 stand er als `OcrService` im WPF-Kopf; der Linux-Kopf
+       hatte gar keine (`NoOcrEngine`).
+
+       Warum ein eigenes Projekt und nicht eine Datei in GonkNote.Core — dieselbe Überlegung
+       wie bei GonkNote.Legacy: das Paket `Tesseract` bringt Windows-DLLs mit und bindet sich
+       an eine native Bibliothek. Läge es in Core, schleppte es **jeder** Kopf mit, auch der
+       für iPadOS — und der bekommt laut Roadmap (Phase 5) Vision und nicht Tesseract.
+       Windows und Linux referenzieren dieses Projekt, iOS nicht.
+
+       Warum nicht zweimal geschrieben: der Rumpf ist plattformfrei. Sprachdaten suchen,
+       Bild aufbereiten, erkennen — das ist in beiden Köpfen dieselbe Datei. Verschieden ist
+       nur, wie die native Bibliothek gefunden wird, und das steht gekapselt in
+       TesseractLinux.cs.
+
+       **Achtung, und das ist der Grund, warum die Köpfe `Tesseract` trotzdem selbst
+       referenzieren:** das Paket verteilt seine nativen DLLs über `build/Tesseract.targets`
+       (None + CopyToOutputDirectory). MSBuild-Targets aus einem PackageReference wandern
+       **nicht** durch eine ProjectReference — ohne die Referenz im Kopf selbst bliebe der
+       x64-Ordner neben der Exe leer, und unter Windows liefe gar keine Erkennung mehr.
+
+       Gemeinsame Eigenschaften: ..\..\Directory.Build.props
+       Paketversionen:          ..\..\Directory.Packages.props -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>GonkNote.Ocr</RootNamespace>
+    <AssemblyName>GonkNote.Ocr</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Tesseract" />
+    <!-- **Kein SkiaSharp hier.** Die Bildaufbereitung vor der Erkennung liegt seit Phase 2
+         in Core (WbImagePrep) und nimmt `byte[]` entgegen wie sie `byte[]` zurückgibt — an
+         dieser Naht kommt kein Skia-Typ vor, also braucht dieses Projekt das Paket nicht. -->
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GonkNote.Core\GonkNote.Core.csproj" />
+  </ItemGroup>
+
+</Project>

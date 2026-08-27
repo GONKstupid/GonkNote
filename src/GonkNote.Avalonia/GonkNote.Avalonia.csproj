@@ -49,6 +49,14 @@
          selbst zeichnet, bringt Avalonia mit. Das System braucht dazu `fontconfig` und
          mindestens eine Schrift. -->
     <PackageReference Include="SkiaSharp.NativeAssets.Linux" />
+    <!-- Die Texterkennung (Phase 4.5, Stück 6). **Unter Linux bringt dieses Paket nichts
+         Brauchbares mit** — kein `runtimes/linux-*`, nur Windows-DLLs; dort legt
+         `TesseractLinux` beim Start Verweise auf die System-Bibliotheken an (§4.63).
+         Es steht hier trotzdem, und zwar aus zwei Gründen: `build\Tesseract.targets`
+         wandert nicht durch die ProjectReference (siehe GonkNote.Ocr.csproj), und **dieser
+         Kopf läuft auch unter Windows** (§5b) — dort soll die Erkennung beim Gegenvergleich
+         genauso gehen wie im WPF-Kopf. -->
+    <PackageReference Include="Tesseract" />
   </ItemGroup>
 
   <!-- Dieselben drei Projekte wie beim WPF-Kopf. Legacy ist dabei, weil auch unter Linux
@@ -58,15 +66,24 @@
     <ProjectReference Include="..\GonkNote.Core\GonkNote.Core.csproj" />
     <ProjectReference Include="..\GonkNote.ViewModels\GonkNote.ViewModels.csproj" />
     <ProjectReference Include="..\GonkNote.Legacy\GonkNote.Legacy.csproj" />
+    <!-- Die Texterkennung — dieselbe Datei wie im WPF-Kopf (Phase 4.5, Stück 6). -->
+    <ProjectReference Include="..\GonkNote.Ocr\GonkNote.Ocr.csproj" />
   </ItemGroup>
 
   <!-- Assets liegen in der Repo-Wurzel, also zwei Ebenen höher. Avalonia liest sie über
        `avares://GonkNote.Avalonia/Assets/...`; `Link` bestimmt diesen Pfad, genauso wie
        er beim WPF-Kopf den `pack://`-Namen bestimmt (HANDOFF §7 „Wurzel-Dateien").
 
-       Cover-Vorlagen und die OCR-Sprachdaten stehen bewusst **nicht** hier: die zugehörigen
-       Werkzeuge gibt es im Linux-Kopf nicht, und eine Datei mitzuschleppen, die niemand
-       liest, verschleiert nur, was der Kopf wirklich kann.
+       Cover-Vorlagen stehen bewusst **nicht** hier: das zugehörige Werkzeug gibt es im
+       Linux-Kopf nicht, und eine Datei mitzuschleppen, die niemand liest, verschleiert nur,
+       was der Kopf wirklich kann.
+
+       **Die OCR-Sprachdaten standen aus demselben Grund nicht hier — und das war richtig,
+       bis der Linux-Kopf eine Texterkennung bekam** (Phase 4.5, Stück 6). Jetzt liest er
+       sie, über `AppPaths.AppSubfolder("tessdata")`, genau wie der WPF-Kopf. **Das ist
+       innerhalb dieses einen Kommentars das zweite Mal**, dass eine genannte Voraussetzung
+       weggefallen ist (siehe das Geodreieck darunter) — ein Kommentar, der eine
+       Voraussetzung nennt, wird zur Falle, sobald sie sich ändert.
 
        **Die Geodreieck-SVGs standen bis Phase 4.5 aus demselben Grund nicht hier — und das
        war richtig, bis der Linux-Kopf ein Geodreieck bekam** (§4.60). Ohne sie greift der
@@ -86,6 +103,13 @@
              CopyToOutputDirectory="PreserveNewest" />
     <Content Include="..\..\Assets\Geodreieck-Dark.svg" Link="Assets\Geodreieck-Dark.svg"
              CopyToOutputDirectory="PreserveNewest" />
+
+    <!-- OCR-Sprachdaten (Tesseract, tessdata_fast deu+eng): wie beim WPF-Kopf als lose
+         Begleitdatei neben das Programm. **Sie kommen aus dem Repo und nicht vom System** —
+         Arch liefert im `tesseract`-Paket nur `osd` und `afr`, `deu` und `eng` sind eigene
+         Pakete. Auf dem Laptop gemessen (§4.63): der mitgelieferte Weg ist der richtige. -->
+    <Content Include="..\..\tessdata\*.traineddata"
+             Link="tessdata\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <!-- Die vier mitgelieferten Dokumente. Sie erscheinen unter „Hilfe → Erste Schritte" und

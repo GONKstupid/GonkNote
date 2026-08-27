@@ -638,6 +638,8 @@ internal static class LocEnglish
         ["Msg.DocxLoadFailed"] = "The Word document could not be loaded:\n{0}",
         ["Msg.OcrNoText"] = "No text was recognised.",
         ["Msg.OcrFailed"] = "Text recognition failed:\n{0}",
+        ["Msg.OcrRunning"] = "Recognising text…",
+        ["Msg.OcrRunningMany"] = "Recognising text…  (several images)",
         ["Msg.StickerFailed"] = "The sticker could not be inserted:\n{0}",
         ["Msg.PageN"] = "Page {0}",
         ["Dialog.ChoosePages"] = "Choose pages – {0}",

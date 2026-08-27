@@ -26,9 +26,15 @@ namespace GonkNote.Views;
 /// <b>Was hier nicht steht, und das ist Absicht:</b> das Aufklappen nach einer frischen
 /// Auswahl, das der WPF-Kopf hat. Es legt die Leiste über die Oberkante der Auswahl, und
 /// genau dort hängt der Dreh-Griff (§4.51; <c>SchnellaktionenTests</c> rechnet die
-/// Überschneidung nach). <b>Und der Texterkennungs-Knopf fehlt</b> — den gibt es im
-/// Linux-Kopf erst mit Stück 6, und <see cref="WbSchnellaktionen.Zustand"/> würde ihn
-/// ohnehin verbergen, solange keine Texterkennung da ist.
+/// Überschneidung nach).
+/// </para>
+///
+/// <para>
+/// <b>Der Texterkennungs-Knopf ist seit Stück 6 da</b> (§4.64). Hier stand bis dahin, er
+/// fehle — und dass <see cref="WbSchnellaktionen.Zustand"/> ihn ohnehin verbergen würde,
+/// „solange keine Texterkennung da ist". Der zweite Halbsatz gilt weiter und ist jetzt der
+/// eigentliche Punkt: <see cref="AvaloniaPlatformServices"/> liefert seit Stück 6 eine echte
+/// Erkennung, aber ob sie <i>trägt</i>, entscheidet erst das System unter der App.
 /// </para>
 /// </summary>
 public partial class WhiteboardView
@@ -121,6 +127,12 @@ public partial class WhiteboardView
         Sa_Einfuegen.IsEnabled = z.Einfuegen;
         Sa_Loeschen.IsEnabled = z.Loeschen;
         Sa_AllesWaehlen.IsEnabled = z.AllesWaehlen;
+
+        // Ausblenden statt ausgrauen, wenn es auf diesem System gar keine Erkennung gibt —
+        // und der Trenner davor geht mit, sonst stünden zwei nebeneinander.
+        Sa_Texterkennung.IsVisible = z.TexterkennungSichtbar;
+        Sa_TrennerOcr.IsVisible = z.TexterkennungSichtbar;
+        Sa_Texterkennung.IsEnabled = z.Texterkennung;
     }
 
     // ==================== Langes Drücken ====================
@@ -190,5 +202,16 @@ public partial class WhiteboardView
         SchnellaktionenVerbergen();
         Einfuegen(_saStelle);
         Skia.Focus();
+    }
+
+    /// <summary>
+    /// Texterkennung. <b>Kein <c>Skia.Focus()</c> hier</b> — anders als bei allen anderen
+    /// Knöpfen dieser Leiste: <see cref="TexterkennungLaufen"/> öffnet ein modales Fenster
+    /// und setzt den Fokus danach selbst, je nachdem, ob ein Zettel entstanden ist.
+    /// </summary>
+    private void Sa_Texterkennung_Click(object? s, RoutedEventArgs e)
+    {
+        SchnellaktionenVerbergen();
+        _ = TexterkennungLaufen();
     }
 }

@@ -1,4 +1,5 @@
 using GonkNote.Core.Platform;
+using GonkNote.Ocr;
 
 namespace GonkNote.Platform;
 
@@ -16,7 +17,7 @@ public sealed class WpfPlatformServices : IPlatformServices
     public IThemeHost Theme { get; } = new WpfThemeHost();
     public IShell Shell { get; } = new WpfShell();
     public IUiScheduler Scheduler { get; } = new WpfUiScheduler();
-    public IOcrEngine Ocr { get; } = new WpfOcrEngine();
+    public IOcrEngine Ocr { get; } = new TesseractOcrEngine();
     public ISpellChecker SpellChecker { get; } = new WpfSpellChecker();
     public IPdfRasterizer Pdf { get; } = new PdfiumRasterizer();
     public IFontProvider Fonts { get; } = new WpfFontProvider();

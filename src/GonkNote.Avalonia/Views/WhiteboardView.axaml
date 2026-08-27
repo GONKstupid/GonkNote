@@ -588,6 +588,17 @@
                         <views:Symbol Icon="Paste" Stroke="{DynamicResource Brush.Text}"/>
                     </Button>
 
+                    <!-- Die Texterkennung (Stück 6). **Sie wird ausgeblendet und nicht bloß
+                         ausgegraut**, wenn es auf diesem System keine gibt — ein dauerhaft
+                         grauer Knopf sieht aus wie ein Fehler. Der Trenner davor geht mit ihm
+                         mit, sonst stünden zwei Trenner nebeneinander
+                         (WbSchnellaktionen.Zustand.TexterkennungSichtbar). -->
+                    <Border x:Name="Sa_TrennerOcr" Classes="trenner"/>
+                    <Button x:Name="Sa_Texterkennung" Classes="flach symbol" Click="Sa_Texterkennung_Click"
+                            ToolTip.Tip="{loc:T Quick.Ocr}">
+                        <views:Symbol Icon="Ocr" Stroke="{DynamicResource Brush.Text}"/>
+                    </Button>
+
                     <Border Classes="trenner"/>
 
                     <Button x:Name="Sa_Loeschen" Classes="flach symbol" Click="Sa_Loeschen_Click"

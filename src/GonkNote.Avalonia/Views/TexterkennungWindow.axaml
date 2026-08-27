@@ -1,0 +1,45 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="clr-namespace:GonkNote.Services"
+        x:Class="GonkNote.Views.TexterkennungWindow"
+        Title="{loc:T Ocr.Title}"
+        Width="500" Height="440" MinWidth="360" MinHeight="300"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        Background="{DynamicResource Brush.WindowBg}"
+        Foreground="{DynamicResource Brush.Text}">
+
+    <!-- Das Gegenstück zu OcrResultDialog im WPF-Kopf (Phase 4.5, Stück 6).
+
+         **Der Text ist bearbeitbar, und das ist der Zweck.** Eine Erkennung sitzt selten zu
+         hundert Prozent; wer das Ergebnis erst als Notizzettel ablegen und dann dort
+         nachbessern müsste, korrigierte auf einer Zeichenfläche statt in einem Textfeld.
+
+         Maße und Knopfreihenfolge absichtlich wie drüben — es ist dasselbe Fenster in zwei
+         Toolkits, und wer zwischen den Köpfen wechselt, soll nicht suchen. -->
+
+    <DockPanel Margin="18">
+
+        <TextBlock DockPanel.Dock="Top" Margin="0,0,0,8"
+                   Foreground="{DynamicResource Brush.TextMuted}"
+                   TextWrapping="Wrap"
+                   Text="{loc:T Ocr.Hint}"/>
+
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"
+                    HorizontalAlignment="Right" Margin="0,14,0,0" Spacing="8">
+            <Button Classes="flach" Content="{loc:T Quick.Copy}" MinWidth="90"
+                    Click="Kopieren_Click"/>
+            <Button Classes="flach" Content="{loc:T Ocr.AsSticky}" MinWidth="120"
+                    Click="AlsZettel_Click"/>
+            <Button Classes="akzent" Content="{loc:T Window.Close}" MinWidth="90"
+                    IsCancel="True" Click="Schliessen_Click"/>
+        </StackPanel>
+
+        <!-- Feste Schrittweite: erkannter Text ist oft tabellarisch (eine Rechnung, ein
+             Stundenplan), und in einer Proportionalschrift zerfällt die Spaltenordnung. -->
+        <TextBox x:Name="ErgebnisFeld" AcceptsReturn="True" AcceptsTab="True"
+                 TextWrapping="Wrap" FontFamily="monospace"
+                 VerticalContentAlignment="Top"/>
+
+    </DockPanel>
+</Window>

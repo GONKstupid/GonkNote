@@ -683,6 +683,10 @@ internal static class LocGerman
         ["Msg.DocxLoadFailed"] = "Word-Dokument konnte nicht geladen werden:\n{0}",
         ["Msg.OcrNoText"] = "Es wurde kein Text erkannt.",
         ["Msg.OcrFailed"] = "Texterkennung fehlgeschlagen:\n{0}",
+        // Die Wartemeldung stand bis Phase 4.5, Stück 6 hart im WPF-Kopf — auf Deutsch, auch
+        // wenn die App auf Englisch lief. Jetzt hier, und beide Köpfe lesen sie von hier.
+        ["Msg.OcrRunning"] = "Text wird erkannt…",
+        ["Msg.OcrRunningMany"] = "Text wird erkannt…  (mehrere Bilder)",
         ["Msg.StickerFailed"] = "Sticker konnte nicht eingefügt werden:\n{0}",
         ["Msg.PageN"] = "Seite {0}",
         ["Dialog.ChoosePages"] = "Seiten auswählen – {0}",

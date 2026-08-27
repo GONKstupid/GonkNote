@@ -4,14 +4,11 @@ using GonkNote.Services;
 
 namespace GonkNote.Platform;
 
-/// <summary>Texterkennung über Tesseract (<see cref="OcrService"/>).</summary>
-public sealed class WpfOcrEngine : IOcrEngine
-{
-    public bool IsAvailable => OcrService.IsAvailable;
-
-    public string Recognize(byte[] imageData, CancellationToken ct = default) =>
-        OcrService.Recognize(imageData, ct);
-}
+// **Hier stand `WpfOcrEngine`, und davor `Services\OcrService.cs` mit 93 Zeilen.** Beides ist
+// mit Phase 4.5, Stück 6 weggefallen: der Rumpf war plattformfrei und liegt jetzt einmal
+// statt zweimal in GonkNote.Ocr (`TesseractOcrEngine`), den auch der Linux-Kopf benutzt.
+// `WpfPlatformServices` setzt ihn direkt ein — eine Hülle, die nur weiterreicht, wäre eine
+// Datei ohne Aufgabe.
 
 /// <summary>Sprachprüfung über die Windows-Rechtschreib-API (<see cref="SpellCheckSupport"/>).</summary>
 public sealed class WpfSpellChecker : ISpellChecker

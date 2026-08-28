@@ -467,11 +467,12 @@ internal static class LocGerman
         // Steht im WPF-Editor in einem Inhaltsverzeichnis ohne Überschriften — sonst
         // hätte der Behälter keine Höhe und das Feld wäre da, aber unauffindbar (§4.49).
         ["Td.Toc.Empty"] = "Inhaltsverzeichnis — noch keine Überschriften im Dokument",
-        ["Ed.ViewOnly"] = "Nur Ansicht",
-        ["Ed.ViewOnly.Tip"] =
-            "Der Linux-Kopf zeigt das Dokument, geschrieben wird bis auf Weiteres in der " +
-            "Windows-Fassung. Angezeigt wird genau das, was auch exportiert würde — " +
-            "derselbe Umbruch, derselbe Zeichner.",
+        // **Hier standen bis Phase 5 `Ed.ViewOnly` und `Ed.ViewOnly.Tip`** — „Nur Ansicht:
+        // der Linux-Kopf zeigt das Dokument, geschrieben wird bis auf Weiteres in der
+        // Windows-Fassung." **Seit §4.35 wird hier geschrieben**, seit §4.36 formatiert; die
+        // Zeile war seitdem eine Zusicherung, die nicht mehr stimmte. Abgerufen hat sie
+        // zuletzt niemand. `Ed.TextOnly` darunter ist ihr *lebender* Nachbar und bleibt —
+        // der beschreibt eine Ansicht, die es wirklich gibt.
         ["Ed.TextOnly"] = "Nur Text",
         ["Ed.TextOnly.Tip"] =
             "Hier lässt sich der Text schreiben: tippen, löschen, auswählen, rückgängig " +
@@ -539,25 +540,17 @@ internal static class LocGerman
             "Verlauf — Rückgängig holt sie nicht zurück.",
         ["Ed.Spacing.Scope"] =
             "Gilt für die Absätze, die die Auswahl berührt.",
-        // Die Warnung über dem Blatt, wenn das Altformat noch führt (HANDOFF §5 „Noch offen" 9,
-        // Nutzer-Entscheidung 2026-08-16: warnen, nicht sperren).
+        // **Hier standen bis Phase 5 die drei `Td.RtfLeads*`** — die Warnung über dem Blatt,
+        // wenn das Altformat noch führt (§4.36, Nutzer-Entscheidung 2026-08-16: warnen statt
+        // sperren). **Mit §4.48 ist der Grund weggefallen und nicht nur die Warnung:** Der
+        // WPF-Editor liest und schreibt seitdem das Modell, `Rtf` wird nie mehr überschrieben,
+        // und `TdFuehrung.AltformatFuehrt` ist gelöscht — es gibt nichts mehr, wovor zu warnen
+        // wäre. Die Streifen sind damals verschwunden, ihre Texte sind liegen geblieben.
         //
-        // **Sie muss die Folge nennen und nicht den Zustand.** „Dieses Dokument führt noch das
-        // Altformat" ist für den, der es liest, keine Auskunft, sondern ein Rätsel — was er
-        // wissen muss, ist, dass seine Arbeit hier verschwinden kann und wann. Der Grund steht
-        // im Tooltip; auf der Leiste steht der Satz, der zum Handeln reicht.
-        ["Td.RtfLeads"] = "Windows-Fassung führt",
-        ["Td.RtfLeads.Text"] =
-            "Was hier geschrieben wird, geht verloren, sobald dieses Dokument in der " +
-            "Windows-Fassung gespeichert wird.",
-        ["Td.RtfLeads.Tip"] =
-            "Dieses Dokument liegt doppelt: im Altformat der Windows-Fassung und im eigenen " +
-            "Modell. Solange das Altformat gefüllt ist, führt es — die Windows-Fassung zeigt " +
-            "beim nächsten Öffnen den Stand von dort und schreibt das Modell daraus neu. Was " +
-            "hier getippt wurde, ist danach weg, ohne Nachfrage.\n\n" +
-            "Der Inhalt selbst ist nicht in Gefahr: das Altformat wird nie überschrieben. " +
-            "Gefahrlos schreiben lässt sich hier deshalb alles, was die Windows-Fassung nie " +
-            "geöffnet hat — und alles andere, sobald die Führung umgestellt ist.",
+        // **Der Satz, für den sie geschrieben wurden, bleibt lesenswert** und steht in §5
+        // „Noch offen" 9: *eine Warnung muss die Folge nennen und nicht den Zustand.* „Dieses
+        // Dokument führt noch das Altformat" ist für den, der es liest, keine Auskunft,
+        // sondern ein Rätsel.
         ["Ed.Export"] = "Exportieren",
         ["Ed.Export.Tip"] = "Dieses Dokument als PDF, Word, Markdown oder PNG schreiben",
         ["Ed.FitWidth"] = "Seitenbreite",

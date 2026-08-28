@@ -140,9 +140,10 @@ public sealed class BlobStore
         catch (IOException) { /* gesperrt: bleibt liegen, der Aufräumlauf holt es später */ }
     }
 
-    /// <summary>Belegter Platz in Bytes.</summary>
-    public long TotalBytes() =>
-        Directory.EnumerateFiles(_root, "*.bin", SearchOption.AllDirectories).Sum(f => new FileInfo(f).Length);
+    // **Hier stand bis Phase 5 ein `TotalBytes()`** — „belegter Platz in Bytes", eine Summe
+    // über alle `*.bin`. Gerufen hat es nie jemand. Es zurückzuholen ist eine Zeile; bis
+    // dahin ist es eine Zusicherung, die niemand prüft, und ein Verzeichnislauf über den
+    // ganzen Blob-Ordner, dessen Kosten niemand gemessen hat.
 
     public IEnumerable<Guid> All()
     {

@@ -125,17 +125,13 @@ public abstract class WbElement
     public abstract void Scale(float f, float px, float py);
 }
 
-/// <summary>
-/// Elemente mit rechteckiger Position und Größe (Bild, Notizzettel). Ermöglicht
-/// gemeinsame Behandlung von Auswahl-Griff und Skalierung.
-/// </summary>
-public interface IBoxElement
-{
-    float X { get; set; }
-    float Y { get; set; }
-    float Width { get; set; }
-    float Height { get; set; }
-}
+// **Hier stand bis Phase 5 ein `IBoxElement`** — X/Y/Breite/Höhe für Bild und Notizzettel,
+// mit der Begründung „ermöglicht gemeinsame Behandlung von Auswahl-Griff und Skalierung".
+// **Genau diese Begründung ist abgelaufen** (§7, Muster B): Griffe und Skalierung gehen seit
+// §4.51 über `WbElement.Scale`, das jedes Element selbst beantwortet — ein Strich anders als
+// ein Kasten. Gelesen hat die Schnittstelle zuletzt nur `ResizeBoxAction`, und der ist mit
+// ihr zusammen weggefallen. **Das Dateiformat ist nicht betroffen:** `JsonDerivedType` steht
+// an den konkreten Klassen, nicht an einer Schnittstelle.
 
 public class StrokeElement : WbElement
 {
@@ -212,7 +208,7 @@ public class TextElement : WbElement
 /// werden beim Import auf max. 2048 px Kantenlänge verkleinert (RAM-/DB-Größe).
 /// SVG wird beim Import gerastert.
 /// </summary>
-public class ImageElement : WbElement, IBoxElement
+public class ImageElement : WbElement
 {
     public float X { get; set; }
     public float Y { get; set; }
@@ -236,7 +232,7 @@ public class ImageElement : WbElement, IBoxElement
 /// Notizzettel (Klebezettel): farbige Karte mit umbrochenem Text, frei verschieb-
 /// und skalierbar. Größe wird gespeichert; der Text wird beim Zeichnen umbrochen.
 /// </summary>
-public class StickyNoteElement : WbElement, IBoxElement
+public class StickyNoteElement : WbElement
 {
     public float X { get; set; }
     public float Y { get; set; }

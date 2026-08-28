@@ -136,8 +136,10 @@ public readonly record struct TdSelection(TdPosition Anchor, TdPosition Focus)
     /// <summary>Dieselbe Auswahl mit einer neuen Spitze — Umschalt+Pfeil, Ziehen mit der Maus.</summary>
     public TdSelection Bis(TdPosition spitze) => new(Anchor, spitze);
 
-    /// <summary>Die Auswahl auf ihre Spitze zusammenfallen lassen — ein Klick ohne Umschalt.</summary>
-    public TdSelection Zusammenfallen() => new(Focus, Focus);
+    // **Hier stand bis Phase 5 ein `Zusammenfallen()`** — „die Auswahl auf ihre Spitze
+    // zusammenfallen lassen, ein Klick ohne Umschalt". Gerufen hat es nie jemand: Wer einen
+    // Klick ohne Umschalt verarbeitet, kennt die neue Stelle schon und legt direkt eine
+    // Auswahl daraus an, statt erst eine alte mitzuschleppen und dann einzuklappen.
 
     /// <summary>Das ganze Dokument, Anker am Anfang.</summary>
     public static TdSelection Alles(TdDocument doc) =>

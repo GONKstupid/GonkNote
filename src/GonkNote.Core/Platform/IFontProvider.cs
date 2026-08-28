@@ -31,8 +31,8 @@ public interface IFontProvider
     string UiFamily => Scheme.Family(FontRole.Ui);
 }
 
-/// <summary>Die Vorgabe: das mitgelieferte Schema (§4.26).</summary>
-public sealed class DefaultFontProvider : IFontProvider
-{
-    public FontScheme Scheme => Fonts.Standard;
-}
+// **Hier stand bis Phase 5 ein `DefaultFontProvider`** — „die Vorgabe: das mitgelieferte
+// Schema". Erzeugt hat ihn nie jemand: **jeder Kopf bringt seinen eigenen mit**
+// (`WpfFontProvider`, `AvaloniaFontProvider`), weil er die Schriften auch *laden* muss und
+// das je Rücken verschieden ist. Ein Rückfall, den niemand nimmt, sieht aus wie einer, auf
+// den man sich verlassen kann — wer `Fonts.Standard` will, holt es sich direkt.

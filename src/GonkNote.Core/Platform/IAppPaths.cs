@@ -59,12 +59,11 @@ public static class AppPaths
     /// </summary>
     public static string DatabaseFile => Path.Combine(Current.DataFolder, "gonknote.sqlite");
 
-    /// <summary>
-    /// Die Datenbank früherer Programmstände (LiteDB). Sie wird beim ersten Start nach dem
-    /// Umbau **gelesen** und nach <see cref="DatabaseFile"/> übertragen; danach bleibt sie
-    /// unangetastet daneben liegen. Beschrieben, umbenannt oder gelöscht wird sie nie.
-    /// </summary>
-    public static string LegacyDatabaseFile => Path.Combine(Current.DataFolder, "gonknote.db");
+    // **Hier stand bis Phase 5 ein `LegacyDatabaseFile`** — der Pfad der LiteDB-Altdatenbank.
+    // Gerufen hat es nie jemand, und das ist kein Versehen: `DatabaseService.AltdateiZu`
+    // leitet den Pfad aus dem *tatsächlich übergebenen* Ziel ab. Eine Konstante hier hätte
+    // nur für den Vorgabepfad gestimmt und bei jedem `--db` auf die falsche Datei gezeigt.
+    // Was sie an Wissen trug, steht jetzt an `AltdateiZu`, wo das Verhalten wirklich sitzt.
 
     /// <summary>
     /// Wo die ausgelagerten Bilder liegen. Kam bis Phase 2 aus dem Dateinamen der Datenbank

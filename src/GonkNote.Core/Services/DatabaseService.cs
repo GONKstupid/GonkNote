@@ -334,6 +334,16 @@ public sealed class DatabaseService : IDisposable
     /// </list>
     /// Erkannt wird an der Kopfkennung, nicht an der Endung: eine Endung ist eine
     /// Behauptung, die ersten sechzehn Bytes sind eine Tatsache.
+    /// <para>
+    /// <b>Die Altdatei wird gelesen und danach nie wieder angefasst</b> — nicht beschrieben,
+    /// nicht umbenannt, nicht gelöscht. Solange sie daneben liegt, ist eine misslungene
+    /// Übernahme kein Datenverlust, sondern ein Versuch, der wiederholt werden kann.
+    /// </para>
+    /// <para>
+    /// <b>Ihr Pfad wird hier abgeleitet und steht nirgends als Konstante.</b> Bis Phase 5
+    /// gab es dafür ein ungenutztes <c>AppPaths.LegacyDatabaseFile</c>; es hätte nur für den
+    /// Vorgabepfad gestimmt und wäre bei jedem <c>--db</c> falsch gewesen.
+    /// </para>
     /// </summary>
     private static string? AltdateiZu(ref string ziel)
     {

@@ -452,11 +452,8 @@ internal static class LocEnglish
         // Shown inside a table of contents with no headings yet — otherwise the
         // container would have no height and the field would be there but unfindable.
         ["Td.Toc.Empty"] = "Table of contents — no headings in this document yet",
-        ["Ed.ViewOnly"] = "View only",
-        ["Ed.ViewOnly.Tip"] =
-            "The Linux edition shows the document; writing happens in the Windows edition " +
-            "for now. What you see is exactly what would be exported — same layout, same " +
-            "renderer.",
+        // Gegenstuecke zu Ed.ViewOnly* in LocGerman -- in Phase 5 zusammen entfallen, weil
+        // im Linux-Kopf seit §4.35 geschrieben wird (siehe dort).
         ["Ed.TextOnly"] = "Text only",
         ["Ed.TextOnly.Tip"] =
             "You can write the text here: type, delete, select, undo. Formatting, tables and " +
@@ -514,19 +511,8 @@ internal static class LocEnglish
             "history — undo will not bring them back.",
         ["Ed.Spacing.Scope"] =
             "Applies to the paragraphs the selection touches.",
-        // Gegenstuecke zu Td.RtfLeads* in LocGerman (§5 „Noch offen" 9, siehe dort).
-        ["Td.RtfLeads"] = "Windows edition leads",
-        ["Td.RtfLeads.Text"] =
-            "Anything written here is lost as soon as this document is saved in the Windows " +
-            "edition.",
-        ["Td.RtfLeads.Tip"] =
-            "This document is stored twice: in the Windows edition's legacy format and in the " +
-            "built-in model. While the legacy format holds content, it leads — the Windows " +
-            "edition shows that state the next time it opens the document and rewrites the " +
-            "model from it. Whatever was typed here is gone afterwards, without asking.\n\n" +
-            "The content itself is not at risk: the legacy format is never overwritten. So " +
-            "writing here is safe for anything the Windows edition has never opened — and for " +
-            "everything else once the lead has been handed over.",
+        // Gegenstuecke zu Td.RtfLeads* in LocGerman -- in Phase 5 zusammen entfallen, weil
+        // §4.48 den Grund beseitigt hat und nicht nur die Warnung (siehe dort).
         ["Ed.Export"] = "Export",
         ["Ed.Export.Tip"] = "Write this document as PDF, Word, Markdown or PNG",
         ["Ed.FitWidth"] = "Fit width",

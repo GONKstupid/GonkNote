@@ -132,22 +132,12 @@ public sealed class PartialEraseAction : IEditAction
     }
 }
 
-/// <summary>Skalieren eines Box-Elements (Bild oder Notizzettel).</summary>
-public sealed class ResizeBoxAction : IEditAction
-{
-    private readonly IBoxElement _element;
-    private readonly float _oldW, _oldH, _newW, _newH;
-
-    public ResizeBoxAction(IBoxElement element, float oldW, float oldH, float newW, float newH)
-    {
-        _element = element;
-        _oldW = oldW; _oldH = oldH;
-        _newW = newW; _newH = newH;
-    }
-
-    public void Redo(WbPage page) { _element.Width = _newW; _element.Height = _newH; }
-    public void Undo(WbPage page) { _element.Width = _oldW; _element.Height = _oldH; }
-}
+// **Hier stand bis Phase 5 ein `ResizeBoxAction`** — „Skalieren eines Box-Elements (Bild oder
+// Notizzettel)", mit alter und neuer Breite und Höhe. **Gebaut hat ihn nie jemand.**
+// Abgelöst hat ihn `ScaleElementsAction` darunter: seit §4.51 gehen beide Köpfe über die
+// Griffe der *Auswahl*, und `ImageElement.Scale`/`StickyNoteElement.Scale` ändern Breite und
+// Höhe mit. **Es fehlt hier also kein Undo-Schritt** — nachgesehen, statt es anzunehmen: die
+// einzigen zwei Stellen, die skalieren, legen beide ein `ScaleElementsAction` an.
 
 /// <summary>Gleichmäßiges Skalieren einer Auswahl um einen Pivot (Lasso-/Verschieben-Griff).</summary>
 public sealed class ScaleElementsAction : IEditAction

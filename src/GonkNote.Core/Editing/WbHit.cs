@@ -25,8 +25,17 @@ namespace GonkNote.Core.Editing;
 /// Wächter: <c>TrefferTests</c> — sie halten damit heute beide Köpfe.
 /// </para>
 /// <para>
-/// <b>Was im Kopf bleibt, hängt am Steuerelement:</b> die Toleranzen (<c>5f/Zoom</c>,
-/// <c>12f/Zoom</c>), der Zustand und die Griffe. Gerechnet wird hier.
+/// <b>Was im Kopf bleibt, hängt am Steuerelement:</b> die <i>Wahl</i> der Toleranzen
+/// (<c>5f/Zoom</c>, <c>12f/Zoom</c>) und der Zustand. Gerechnet wird hier.
+/// </para>
+/// <para>
+/// <b>⚠ Hier stand bis Phase 5 „…, der Zustand und die Griffe".</b> Das stimmte, als es
+/// geschrieben wurde, und **war seit §4.51 falsch**: Die Griff-Geometrie liegt seitdem in
+/// <see cref="WbHandles"/>, die Zeichnung in <see cref="Rendering.WbSelectionRenderer"/> —
+/// beides in Core, beide Köpfe rufen es. Ein Leser, der hier „die Griffe bleiben im Kopf"
+/// fand, hätte sie ein zweites Mal gebaut. *Die Regel dahinter: die **Wahl** einer Toleranz
+/// darf im Kopf liegen, die **Formel** nicht — <c>Zoom</c> ist kein Steuerelement, sondern
+/// eine Zahl.*
 /// </para>
 /// </summary>
 public static class WbHit

@@ -4,9 +4,14 @@ obj/
 .vs/
 TestAssets/
 
-# HANDOFF.md ist hier bewusst NICHT ausgeschlossen: solange dieses Repo privat ist,
-# wandert das Arbeitsprotokoll mit (Windows <-> Linux-Laptop). Vor dem Oeffentlich-
-# Schalten muss es wieder raus -- Checkliste in HANDOFF.md, Abschnitt 6.
+# Das Arbeitsprotokoll ist hier bewusst NICHT ausgeschlossen -- es MUSS mitwandern
+# (Windows <-> Linux-Laptop), und mit Phase 6 kommt der iPad-Kopf dazu. Es liegt seit
+# V2-93 unter Docs/HANDOFF.md und nicht mehr in der Wurzel: Nutzer-Entscheidung vom
+# 2026-08-28 (Docs/HANDOFF.md §5 Nr. 21). Die Datei darf oeffentlich lesbar sein -- kein
+# History-Rewrite --, sie soll nur keine der Hauptdateien auf der Repo-Startseite sein,
+# denn sie ist eine reine Arbeitsdatei. DARAUS FOLGT DIE REGEL, DIE WEITER GILT: nichts
+# hineinschreiben, was nicht oeffentlich stehen darf -- keine Pfade zu privaten Daten,
+# keine Zugangsdaten, keine Inhalte aus den Schulunterlagen.
 
 # Zerlegte Avalonia-Assemblies (ilspycmd, HANDOFF §4.42/§4.44) -- Scratch-Ablage,
 # mit einem Befehl reproduzierbar, deshalb nicht im Repo

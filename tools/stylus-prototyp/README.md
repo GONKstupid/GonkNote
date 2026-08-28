@@ -1,6 +1,6 @@
 # Stylus-Prototyp
 
-Messwerkzeug zu **HANDOFF.md §5a**: kommt Druckstärke unter Linux zuverlässig in Avalonia an?
+Messwerkzeug zu **Docs/HANDOFF.md §5a**: kommt Druckstärke unter Linux zuverlässig in Avalonia an?
 Kein Produktivcode — deshalb liegt das hier unter `tools/` und nicht unter `src/`.
 
 Das Projekt ist bewusst aus der zentralen Paketverwaltung ausgeklinkt

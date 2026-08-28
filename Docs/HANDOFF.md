@@ -1,6 +1,6 @@
 # Gonk Note V2 — Projektübergabe
 
-**Stand: 2026-08-28 · Version 0.3.0 · net10.0 · SkiaSharp 3 · SQLite · Avalonia 12 · ✅ M0 · ✅ M1 · ✅ **M2 ERREICHT — ausgerufen am 2026-08-28** (Nutzer-Entscheidung, §2): Funktionsgleichheit Linux ↔ Windows, **mit einem benannten Loch** — die Rechtschreibprüfung fehlt im Linux-Kopf (bewusst so entschieden am 2026-08-22, §6); die zweite Stift-Taste darf verschieden bleiben und ist **kein** Loch (§5 Nr. 17). **▶ Damit ist Phase 5 an der Reihe: aufräumen, prüfen, dann veröffentlichen** · ✅ Phase 4.5 abgeschlossen (§4.64, sechs von sechs Stücken) — **und die Gegenprobe auf dem Laptop ist gelaufen** (§4.64 „Was der Laptop gefunden hat", V2-89, **976/976 grün**): die Texterkennung trägt unter Linux **am laufenden Programm**, die App legt die zwei Verweise selbst an, erkannt wird zeichengenau, und der Fokus-Fix aus §4.65 ist ohne Regression. **⛔ Ein Werkzeugfund dazu, der die nächste Runde sonst wieder kostet:** XTEST ist unter GNOME 50 zum Klicken und Tippen unbrauchbar, `tools/linux/zeiger` taugt nur noch für `hervor`/`fenster` — gearbeitet wird mit `ydotool` (§7, §5d). **Der Laptop hat damit keinen offenen Auftrag mehr** · ✅ **Und sein ältester offener Fund ist zu** (§4.67, V2-90): der Wortzwischenraum an einer Stückgrenze — der Blocksatz verteilte den Restplatz auf **jede** Stückgrenze statt auf die Leerräume, und ein Stück entsteht auch am **Formatwechsel**. **Die Ursachenvermutung, die seit dem 2026-08-11 im Punkt stand, ist dabei widerlegt worden** — es lag weder am Maßstab noch am Rastern, und **das PDF war ebenso betroffen wie die Anzeige** · ✅ Phase 4 abgeschlossen (§4.28): Dokumentmodell, Übernahme, DOCX/Markdown/PDF/PNG gegen das Modell, Zeichner samt Diagrammen, Schriftkonzept — und die Anzeige im Linux-Kopf, **auf dem Laptop gegengeprüft** (§4.28, V2-37). ⏳ **Das Schreiben läuft** (§6): **Schritte 1 bis 6 stehen** — Stelle, Änderung, Verlauf, Trefferrechnung, **Tastatur und Maus** (§4.35, auf dem Laptop gegengeprüft: Umlaute, tote Tasten, der Cursor am Stift, kein verlorenes Zeichen) und **Schritt 6 ganz** (§4.36/§4.37): Formate, die drei Reiter Einfügen/Verweise/Tabelle — **und die Warnung**, wenn das Altformat noch führt (`TdFuehrung`). ✅ **Das Ribbon ist aufgeräumt** (§4.38) und **die Gruppen A und B stehen** (§4.39/§4.40): Listen, Vorlagen, Größenliste, Schriftart, Farben, Trennlinie, Kopf- und Fußzeile. ✅ **Neu am 2026-08-18: Schritt 6a, die Eingabe-Naht** (§4.41, V2-54) — `TdEingabe` in Core und ein `TextInputMethodClient` im Kopf; ein Cursorschritt ist dort genau **ein** Zeichen breit, sonst zeigte jeder Abstand hinter jedem Feld um eins daneben. ✅ **Und seit V2-57 steht Schritt 6b, das Zusammensetzen** (§4.43): `TdVorschau`, `SupportsPreedit => true`, der unfertige Text als Auflage an der Marke — **ohne das Modell anzufassen**. **823 Tests.** ✅ **Beide offenen Entscheidungen sind gefallen** (Nutzer, 2026-08-16): §5 Nr. 9 → **warnen statt sperren** (gebaut **und gesehen**, §4.37), §5 Nr. 10 → **`TextInputMethodClient`, nach Schritt 6** (gebaut, §4.41). ✅⚠ **Der Laptop hat am 2026-08-18 gemessen** (§4.41, V2-55, **769/769 grün**), und die Antwort ist zweigeteilt: **Die Bildschirmtastatur *schreibt* jetzt** — von Hand hervorgeholt kommt ihr Text im Dokument an, in V2-47 kam er nicht an; **die Naht aus V2-54 hat damit die Hälfte ihres Zwecks erreicht**. **Von selbst klappt sie nicht auf**, weil `Avalonia.X11` gar **keine `IInputPane`** hat (`TopLevel.InputPane` ist `null`, zur Laufzeit gemessen) — das behebt kein Kopfcode. **⚠ Dabei ist eine Regression aufgefallen: tote Tasten kommen seit V2-54 nicht mehr an** (`^`+`e` → nichts statt `ê`; Umlaute schon), eingekreist auf **IBus + `SupportsPreedit => false`** — §5 „Noch offen" **11**. ✅ **Neu am 2026-08-18 (V2-56, §4.42): die Ursache ist geklärt — am ausgelieferten Rücken nachgelesen** (`ilspycmd` gegen Avalonia 12.1.1), **kein Produktivcode angefasst**. **Der Befund kippt die bisherige Empfehlung:** Weg **(b) fällt aus**, denn `OnCommitText` reicht den `commit` **ohne jede Abfrage von `SupportsPreedit`** durch — die vermutete Lücke gibt es nicht; der Hebel ist, dass `SupportsPreedit` das **Fähigkeitswort an IBus** (`CapPreeditText`) bestimmt und damit, **wohin IBus das Zusammensetzen schickt** — und `gnome-text-editor`, das dieselbe Folge vollständig bekommt, **meldet genau diese Fähigkeit**. **Warten fällt auch aus:** 12.1.1 ist die neueste Fassung. ✅ **Und Weg (a) ist am selben Tag gebaut** (§4.43, V2-57): `TdVorschau` in Core, `SupportsPreedit => true`, der unfertige Text als **Auflage an der Marke** — **`TdDocument` wird nie angefasst**, damit greift §4.32 nicht; **20 Wächter, 823 Tests**, und die Windows-Gegenprobe (TSF) tippt zeichengenau. §5 Nr. **10a** ist damit erledigt. ⛔ **Und am 2026-08-18 hat der Laptop gemessen (V2-59, §4.43, 789/789 grün): es wirkt nicht.** `^`+`e` ergibt weiterhin **nichts** (Zähler **5** statt 7, zahlengleich mit V2-55); Umlaute **14**, ein Absatz von **427** Zeichen kommt **exakt** an. **Der `dbus-monitor` verschiebt die Ursache, statt sie nur zu verneinen:** **`CommitText` 0 mal bei uns, 2 mal bei `gnome-text-editor`** — derselbe Daemon, dieselbe Sekunde, **es liegt also nicht an IBus**; ✅ **das Fähigkeitswort kommt an** (`SetCapabilities uint32 9`), **§4.42 Punkt 2 ist gemessen**; **⚠ der Fehler sitzt davor** — der Kopf schickt für die tote Taste **gar keinen Tastendruck**, nur das Loslassen, und dazwischen **einen Aufruf mit `keysym = 0`/`keycode = 0`, den IBus mit `true` beantwortet** — genau danach verwirft Avalonia das rohe Ereignis. **(a) wird nicht zurückgebaut, es war nur nicht hinreichend.** ✅ **Am 2026-08-19 hat Windows den Tastenweg am zerlegten Rücken abgelaufen** (§4.44, V2-61; Avalonia 12.1.1, **kein Produktivcode angefasst**, **823 Tests** grün): **Der `0/0/0`-Aufruf kommt aus Avalonias eigenem dbus-Client, gespeist von einem Phantom-`KeyPress` mit `keycode = 0` aus dem X-Strom**; der echte Druck der toten Taste verschwindet zwischen `XNextEvent` und dem ersten Avalonia-Code. **Unser Kopf und die Warteschlange sind ausgeschlossen**; als Avalonia-Befunde festgehalten: der **Keycode-Versatz um 8** und das fehlende **`LockMask`**-Bit. **Upstream ist AvaloniaUI/Avalonia#18596 exakt dieses Symptom — geschlossen ohne Fix.** **Was mit dem benannten Fund geschieht, entscheidet der Nutzer.** ✅ **Und am 2026-08-19 hat der Laptop beide Messungen gefahren** (§4.44 „Was der Laptop gefunden hat", V2-62; **kein Produktivcode angefasst**, Bau 0/0, **789/789 grün**, von Hand getippt): **Die Leitspur ist widerlegt — der Druck kommt an** (`KeyPress keycode 49` **3 mal**, `keycode 26` **5 mal**, je mit Loslassen), und **ein `keycode 0` steht nirgends auf der Leitung**, weder bei GonkNote noch bei `xev` — **XWayland und ein fremder `XSendEvent`-Client scheiden damit beide aus**, und **das Verschwinden sitzt im Prozess**: `XFilterEvent` **filtert sehr wohl**. ✅ **Das `keycode = 0` ist kein Phantom, sondern der Bote** — libX11 verschluckt die beteiligten Drucke und legt das **fertige Zeichen** nach, `XmbLookupString` liefert dort `(c3 aa) "ê"`; **mit `XMODIFIERS=@im=none` gegengeprüft** (Avalonias eigene Einstellung), **4 mal `ecircumflex`** — **der Zusammensetzer ist Xlibs lokale Eingabemethode**, nicht `ibus-x11` und nicht IBus. **Die Kette schließt sich damit:** Avalonia lässt filtern, holt aber nie ab — `LookupKey(keycode)` statt `XmbLookupString`, und bei `keycode = 0` fällt das Zeichen heraus. **§5 „Noch offen" 11 ist aufgeklärt**, **§5d trägt keinen Auftrag mehr**, und offen ist nur noch **die Entscheidung des Nutzers** (umgehen / melden / stehen lassen). ✅ **Und am 2026-08-21 ist der Weg dicht gemacht, den Schritt 7 gehen wird** (§4.45, V2-63; Schritt **6c**, nur `TdZuFlow` und `FlowZuTd` angefasst, Führung unverändert, Bau 0/0, **832 Tests** = 789 Core + 43 WPF, **9 neue Wächter**). **Die Frage, die nie jemand gestellt hatte:** Schritt 7 dreht die Führung auf die Kette `Modell → FlowDocument → Modell` — **kehrt sie sich selbst um?** Gemessen an einem Modell, wie der **Linux-Kopf** es anlegt: **nein, siebenfach.** **Der Kern ist ein `?? 0`** — `TdZuFlow` hat die Kaskade aus §4.14 nicht aufgelöst, sondern durch Null ersetzt, und `TdParaFormat.Standard.SpaceAfterPt` ist **8**; dazu stand die Ausrichtung auf **Blocksatz**, weil ein `FlowDocument` von Haus aus so steht (Fund 2 aus §4.37, hier an der Wurzel behoben). Behoben sind auch Tabellenrahmen, Zellabstand, Spaltenbreite, der Abstand des Listenpunkts und `DefaultParaFormat`; **der Wächter, auf den es ankommt, vergleicht Byte für Byte: zweimal speichern ändert nichts mehr.** ⚠ **Und der Verlust wartet nicht auf Schritt 7 — er läuft seit §4.23:** `Migrate` wird bei jedem Speichern gerufen, also verliert ein unter Linux oder aus DOCX importiertes Dokument **heute schon beim ersten Speichern im WPF-Editor** seine Tabellenrahmen, seine Abstände, **sein Diagramm und seine Felder**. **Drei Lücken bleiben, mit eigenen Wächtern** (Diagramm, Feld, Gliederungsebene) — **gemessen unmöglich zu schließen, solange der Weg über das `XamlPackage` läuft** (`Tag` und `ToolTip` überleben es nicht; nur ein `ToolTip` an einem `Image` tut es). ✅ **Und am 2026-08-21 ist die erste der drei Folgerunden gefahren: Punkt und Pixel** (§4.46, V2-64; Schritt **6d**, Bau 0/0, **835 Tests**, **3 neue Wächter**, einer **umgedreht**). **Sie hat unterwegs die Richtung gewechselt:** Entschieden war „den WPF-Kopf anheben", **aber die Deutung dahinter war ungeprüft** — `TextStyles.BodySize` ist als **DIP** dokumentiert, `TdStil.KoerperPt` als **Punkt** mit dem Kommentar „dieselbe Zahl wie", und `TdCharFormat.Standard.FontSize` ist **11 pt** = 15 DIP. **Der WPF-Kopf stimmte längst mit der Vorgabe des Dateiformats überein; `TdStil` war die Kopie, die in §4.39 umetikettiert wurde** — belegt ohne jeden Vergleich der Köpfe: Die Vorlage „Standard" machte einen unberührten Absatz um ein Drittel **größer**. **Umgedreht (Nutzer): `TdStil` ist verkleinert**, alle Zahlen mal 0,75 (Überschrift 1: **21 pt**), Abstände und Zitat-Einzug ebenso; `TdCharFormat.Standard` bleibt bei 11, denn das ist die Vorgabe des *Formats* (§4.14). **⚠ `VorlagentabelleTests` war grün und hat nichts geprüft** — er verglich die Zahlen und nicht die Größen; er rechnet jetzt um, und ein zweiter Wächter hält fest, **warum** dort ein Faktor steht. ✅ **Und eine der drei Lücken aus §4.45 hat sich dabei von selbst geschlossen:** Die **Gliederungsebene** überlebt die Rundreise wieder (21 pt = 28 px, und `HeadingLevel` hält gegen genau diese 28) — **sie war kein Mangel des `FlowDocument`, sondern derselbe Zahlendreher. Es sind noch zwei** (Diagramm und Feld). ✅ **In beiden Köpfen am Schirm belegt:** im Linux-Kopf ändert „Standard" die Größe eines unberührten Absatzes nicht mehr, im WPF-Kopf steht für dieselbe Überschrift **28** im Ribbon und **„Überschrift 1" ist in der Galerie markiert** (vorher 37,33 und keine). **Die Lehre:** Eine Entscheidung, die auf einer **ungeprüften Deutung** des Befunds steht, ist selbst ungeprüft — auch dann, wenn der Befund stimmt. ✅ **Und am 2026-08-22 ist Runde ② gefahren: der Ladeweg** (§4.47, V2-65; Schritt **6e**, Bau 0/0, **840 Tests**, **5 neue Wächter**, Führung unverändert). `AusModell` lädt **direkt** statt über ein `XamlPackage`; die Übernahme steht als `TdZuFlow.InhaltUebernehmen` neben `Umwandeln`. **Und wieder hat die Auflage „erst messen" den Entwurf umgeworfen:** WPF **kopiert** ein `Tag` beim Teilen eines Absatzes **und** eines Laufs auf **beide** Hälften — ein Träger dort wäre nach einem Tastendruck doppelt vorhanden und damit **schlimmer als die Lücke, die er schließen sollte**; **übrig bleibt der `InlineUIContainer`**, unteilbar und derselbe Ort, an dem `DocumentImages` seit jeher trägt. **Ein Fund nebenbei, der nicht gesucht war:** Das Paket schiebt die Schrift des **Dokuments** als **örtlichen Wert** auf **jeden Absatz** — derselbe Fehler wie §4.45 an anderer Stelle, **mit Schritt 7 wäre er in jedes Dokument gewandert**; der direkte Weg räumt ihn mit weg. ⏳ **Die Träger für Diagramm und Feld sind bewusst nicht gebaut** — sie überleben jetzt das Laden, aber nicht das Speichern, und gehören damit zu Schritt 7. ⚠ **Benannter Nebenbefund:** Die Schriftliste des WPF-Kopfs zeigt nur **Systemschriften** und kann die Grundschrift eines Dokuments aus dem Modell gar nicht anzeigen (§5 „Noch offen" **14**). ✅ **Und am 2026-08-22 ist Schritt 7 gefahren: `Rtf` verliert die Führung** (§4.48, V2-66; Bau 0/0, **837 Tests** = 785 Core + 52 WPF). **Der eigentliche Zweck des ganzen Wegs.** Der WPF-Editor **liest und schreibt** jetzt das Modell; `Rtf` wird **nie wieder überschrieben** und bleibt als unangetastete Sicherung stehen (§4.22); `Migrate` läuft nur noch für die **einmalige** Übernahme — **das ist Antwort (d) aus §5 Nr. 9, die damals ausdrücklich falsch war und es seit dem Umdrehen der Führung nicht mehr ist**; **`TdFuehrung.AltformatFuehrt` ist gelöscht** (nicht auf `false` gesetzt — eine Funktion, die immer `false` liefert, sähe nach einer offenen Frage aus), und mit ihr sind vier Wächter und der **Warnstreifen im Linux-Kopf** gegangen. **Ein Wächter musste umgedreht werden**, und ein neuer hält fest, dass „führt nicht mehr" nicht „ist weg" heißt. **✅ Am laufenden Programm belegt — der Weg, der vorher Datenverlust war:** Linux schreibt → Windows bearbeitet und speichert → **Linux liest beides**. **✅ Und danach in der Datei nachgemessen**, was kein Schirm zeigt: `Rtf` hat **Länge 0** (vom WPF-Editor nicht angefasst, obwohl er gespeichert hat), `Model` trägt den Windows-Text. **✅ §5 „Noch offen" 9 ist damit an der Wurzel erledigt** — nicht mehr gewarnt, behoben. ⏳ **Offen bleiben die zwei Lücken aus §4.45** (Diagramm, Feld) — **nicht schlechter als vorher, aber jetzt zum ersten Mal schließbar**, weil das `XamlPackage` ganz aus dem Weg ist. ✅ **Und am 2026-08-22 ist die erste der zwei Lücken zu: das Feld** (§4.49, V2-67; Bau 0/0, **842 Tests**, **6 neue Wächter**, einer umgedreht). **Alle fünf Feldarten überleben die Rundreise — vorher keine einzige:** `PageNumber`, `PageCount`, `Date` und `Title` wurden zu Text, das Inhaltsverzeichnis zu eingefrorenen Einträgen. Ein Feld reist jetzt als **`InlineUIContainer`** mit dem `TdField` als Auflage, das Verzeichnis als **`BlockUIContainer`** — es steht nicht *in* einer Zeile, es *ist* mehrere, und das ist beim Bauen aufgefallen und nicht beim Planen. **Der Träger ist gemessen und nicht gewählt** (§4.47). **Und der Behälter ist nicht nur sicher, sondern richtig:** Ein Feld ist kein Text, sondern eine Stelle, an der gerechnet wird — vorher konnte man aus `{SEITE}` ein `{SEIT}` machen, und niemand hat es gemerkt. ✅ **Und am 2026-08-22 ist die letzte Lücke zu — der Augenschein und das Diagramm** (§4.50, V2-68; Bau 0/0, **849 Tests** = 790 Core + 59 WPF, **7 neue Wächter**, einer umgedreht, **kein Golden-File bewegt**). **Der Augenschein zu §4.49 war beim ersten Mal nicht am Programm gescheitert, sondern am Werkzeug:** `schau.ps1` fotografierte den **Bildschirm** und damit ein fremdes Fenster — *ein Werkzeug, das im Fehlerfall irgendein Bild liefert, ist schlimmer als eines, das nichts liefert.* Behoben in `tools/` (neu: `fenster.ps1`; `AttachThreadInput`, `PrintWindow` als Rückfall, Klicken **bricht ab** ohne Vordergrund, und jede Aufnahme sagt, wie sie entstanden ist). **Danach gemessen statt geschätzt: die Seitenzahl sitzt auf der Grundlinie** — **895** für den gewöhnlichen Lauf *und* für den Behälter, Oberkante bis Grundlinie **23 px** wie im feldlosen Absatz darüber; die Runde zurück in den Linux-Kopf rechnet **„Seite 1"** wieder aus. ⚠ **Ein benannter Unterschied ist dabei aufgefallen** (§5 „Noch offen" **15**): Der WPF-Editor bricht keine Seiten um, also hat sein Verzeichnis keine Seitenzahlen und das Feld zeigt `{SEITE}` — **am Code vor §4.49 nachgesehen: das war immer so**, kein Rückschritt und keine Lücke im Weg. **Und das Diagramm kommt an:** `TdRenderer.Diagramm` ist der öffentliche Einstieg, **bewusst ohne Rückgabewert** — er zeichnet auch den Platzhalter, denn zwei Platzhalter wären zwei Wahrheiten; `GrafikZeichnen` ruft ihn, **damit Editoranzeige und gedruckte Seite nicht auseinanderlaufen können**. Im WPF-Kopf reist ein Diagramm auf **demselben Träger wie ein Feld**, nur mit einem `Image` darin. ⚠ **Der Fund, der nicht im Auftrag stand und an dem die Runde still hätte scheitern können:** Unter der Auflage liegt ein `Image` — fragte `FlowZuTd` erst den **Inhalt** und dann die Auflage, machte `DocumentImages.Adopt` daraus **einen neuen Blob**, und **aus den Zahlen würden Pixel, bei jedem Speichern eine Kopie mehr, während es auf dem Schirm völlig richtig aussähe** — wörtlich der Fehler aus §4.21 an neuer Stelle; der Wächter dazu prüft deshalb **den Blob-Speicher** und nicht das Bild. **✅ Am laufenden Programm und danach in der Datei belegt:** Linux → Windows → Linux, beide Diagramme **mit ihren Zahlen**, `Rtf` **Länge 0**, **kein `image` im Modell**, `Images` leer, **Blob-Ordner leer** — *„es sieht richtig aus" hätte der alte Zustand auch geliefert.* **✅ Damit sind alle drei benannten Lücken aus §4.45 zu** (Gliederungsebene §4.46, Feld §4.49, Diagramm §4.50) **und die Lücke aus §4.28 mit.** ✅ **Und am 2026-08-22 hat der Nutzer die Rückfrage beantwortet: Phase 4.5 wird in voller Breite gefahren, aber OHNE die Rechtschreibprüfung** (sie wird eigens geführt), **angefangen mit der Auswahl** — die Begründung ist gemessen: die zwei „Ausnahmen" sind ungleich teuer (OCRs Naht steht **vollständig**, die der Rechtschreibung **gar nicht** — `ISpellChecker` liefert nur ja/nein und müsste **Fundstellen** liefern). **⚠ M2 wird damit mit einem benannten Loch ausgerufen.** ✅ **Und am 2026-08-23 ist das erste Stück zu: der Linux-Kopf dreht und skaliert** (§4.51, V2-69; Bau 0/0 in Debug **und** Release, **869 Tests** = 810 Core + 59 WPF, **20 neue Wächter**, kein Golden-File aus früheren Runden bewegt). Er konnte bis dahin nur verschieben und löschen. **⚠ Die Messung hat den Zuschnitt der Runde geändert:** der Undo-Weg lag **fertig** in Core, die Griff-Geometrie **privat im WPF-Kopf**, und der Kasten der Mehrfachauswahl stand in beiden Köpfen schon **Zeile für Zeile gleich** — also eine **Zusammenlegung** und kein Neubau; neu in Core sind `WbHandles` (Geometrie samt Weiche `Probe()`) und `WbSelectionRenderer` (Zeichnung). **⚠ Dabei ist eine begründete Entscheidung umgekehrt worden:** `WbHit` hielt fest, die Griffe blieben im Kopf, weil sie „am Steuerelement hängen" — **das trug nicht**, gerechnet wurde mit lauter Core-Sachen plus `Zoom`, und `Zoom` ist eine **Zahl**. **⚠ Zwei Funde, die nicht im Auftrag standen:** `Probe()` braucht die **Anzahl** der ausgewählten Elemente (sonst läge ein unsichtbarer Kasten um (0,0) und ein Klick auf die linke obere Ecke einer frischen Seite liefe als „verschieben" ins Leere), und **`InputInProgress` kannte Drehen und Skalieren nicht** — der Griff wurde erkannt, der Zustand gesetzt, jede folgende Bewegung galt als **bloßes Schweben**: **Bau 0 Fehler, alle 869 Wächter grün, am Bildschirm keinen Pixel Bewegung.** **Pixelgleichheit byteweise gemessen** (20 Vergleiche, 0 abweichende Bytes) **und die Messung danach gelöscht** — eine Altfassung im Test ist genau die zweite Fassung, welche die Zusammenlegung beseitigen sollte; geblieben sind **5 Golden-Files**, jedes Bild angesehen. ✅ **Und am 2026-08-23 sind zwei weitere Stücke gefallen: der Farbwähler** (§4.52, V2-70 — auf Nutzer-Entscheidung vorgezogen, weil er auch Text, Notizzettel und Cover blockierte; `HexColor` konnte schon Parsen **und** Formatieren, es fehlte **nur** die HSV-Rechnung; Wächter über **4.096 Farben**) **und die FORMEN** (§4.53, V2-71 — Linie, Pfeil, Rechteck, Ellipse, Dreieck samt Füllung und Deckkraft; **Bau 0/0 in Debug und Release, 889 Tests** = 830 Core + 59 WPF). **⚠ Auch hier hat das Messen den Zuschnitt geändert:** `WhiteboardView.Shapes.cs` ist **nicht** das Formen-Werkzeug, sondern der **Formen-Stift** plus Glättstift — 240 Zeilen Geometrie im Kopf, die nächste Zusammenlegung. **Fünf Symbole neu in Core, der WPF-Kopf mit umgestellt** (er zeigte dort Unicode-Zeichen in „Segoe UI", unter Linux leere Kästchen). **⚠ Zwei Fehler, die nur das laufende Programm zeigte:** ein `px`-Suffix in einem XAML-Maß wirft zur **Laufzeit** (der Bau war grün, und der Kommentar dazu war eine **ungeprüfte Deutung**), und das Aufklappen der Einstellungsleiste ohne `EinstellungenSpiegeln` ergab **lauter leere Umschalter** — ein Fehler, der seit Phase 3 **wörtlich im Code steht** und am zweiten Aufklappweg prompt wiederkam. **✅ Beide Köpfe an derselben Datei gemessen:** im Linux-Kopf gezeichnet und gefüllt, im WPF-Kopf **alle sechs Formen** mit Farbe, Füllung und Deckkraft. ✅ **Und am 2026-08-23 ist die Zusammenlegung für Stück 2 gefahren** (§4.54, V2-72/72a; **913 Tests** = 854 Core + 59 WPF): `Bildsammlung`, `StickerLibrary` und zwei Farbmethoden liegen in Core. **⚠ Vier Funde, zwei davon nicht beim Lesen:** der Sticker-Nutzerordner war **Windows-fest** (von Hand aus `Environment.SpecialFolder.ApplicationData`, obwohl `AppPaths` es seit Phase 2 weiß), die Endungsliste gehörte **zwei** Werkzeugen statt einem (**der Übersetzer hat es gemeldet**), die Zettel-Schriftfarbe wandert **in die Datei** und lag doch im Kopf, und eine **zweite** Kontrastrechnung wurde beim ersten Durchgang übersehen — `WhiteboardView` ist auf vierzehn Teildateien verteilt. ✅ **Und am 2026-08-24 stehen Text und Notizzettel im Linux-Kopf** (§4.55, V2-73 bis V2-77; Bau 0/0 in Debug **und** Release, **913 Tests** = 854 Core + 59 WPF — **dieselbe Zahl wie vorher, und das ist der Befund**: was hier zu bauen war, liegt vollständig im Kopf, und **keiner der vier Fehler wäre von einem Wächter gefunden worden**). Anlegen, Tippen, Abschließen mit Strg+Eingabe, Rückgängig — **und die Runde in den WPF-Kopf ist gefahren**: im Linux-Kopf beschriftet, gespeichert, **regulär geschlossen**, dieselbe Datei drüben geöffnet, **beide Elemente kommen an**. **⚠ Vier Durchgänge, und drei davon dieselbe Ursache:** In Avalonia entscheidet die **Routing-Strategie**, wer eine Taste zuerst sieht — `Tunnel` heißt „vor allen Kindern, egal wo der Fokus liegt", `Bubble` „erst nach dem Control". Einmal sah es aus wie ein **Fokusproblem** (getipptes „Hallo" schaltete Werkzeuge um, weil `WhiteboardView` ihren Handler seit Phase 3 mit `Tunnel` einhängt), einmal wie ein **Zeichensatzfehler** (ein Kästchen hinter dem Text, weil `KeyDown` am `TextBox` als Bubble hing), einmal wie ein Fehler der **Fernsteuerung** — und dass `Strg+Z` im offenen Feld nichts tut, war **gar kein Fehler**, sondern die richtige Folge der ersten Behebung. **⚠ Der vierte Fund ist der Farbfehler beim Bearbeiten, und er ist gemessen statt gedeutet:** Fluent setzt den Hintergrund **am Border im Template** und nicht am `TextBox` (`ilspycmd` gegen `Avalonia.Themes.Fluent` 12.1.1, dieselbe Methode wie §4.42); behoben über die `TextControlBackground…`-Ressourcen **am Feld**, weil man dafür nichts über Selektor-Vorränge annehmen muss. **„Schwarz mit heller Schrift" war eine Fehlbeobachtung** — die Schrift war immer unsere, nur dunkel auf schwarzem Grund. **⚠ Und eine Messung taugte nicht:** der Linux-Kopf wurde mit `Stop-Process` **hart beendet**, die leere Fläche drüben war deshalb **kein Befund** — *wer den Schreiber abschießt, misst nicht den Leser.* ✅ **Und am 2026-08-24 ist Stück 2 zu: die Sticker** (§4.56, V2-78; Bau 0/0 in Debug **und** Release, **920 Tests** = 861 Core + 59 WPF, **7 neue Wächter**). Sammlung ansehen, mit einem Klick einfügen, eigene Bilder aufnehmen — **und der Sticker kommt im WPF-Kopf an**. **⚠ Der Fund hat den Zuschnitt geändert und widerlegt den eigenen Auftrag:** Es gibt **kein `StickerElement`** — ein Sticker ist ein gewöhnliches `ImageElement`, die Sammlung ist eine **Bildquelle**. Der Prompt in §5e behauptete das Gegenteil, **hingeschrieben ohne nachzusehen**; *ein Auftrag ist keine Messung, auch wenn er im HANDOFF steht.* Damit brachte die Runde **den ersten Bild-Einfügeweg überhaupt** in den Linux-Kopf. Neu in Core ist `WbEinfuegen.FuerSticker` (die Größe wandert **in die Datei**, also darf sie nicht im Kopf liegen); die zweite Rechnung des WPF-Kopfs (`PlaceImages`) **bleibt bewusst stehen** — sie tut etwas anderes. **⚠ Und die teuersten Fehler dieser Runde waren Messfehler:** zweimal galt ein Scheinbefund („ein Klick fügt zwei ein", „Rückgängig wirkt nicht"), weil auf der Fläche noch ein Sticker **aus dem vorigen Lauf** lag — beide landen an derselben Stelle, also verdeckt der alte genau das, was zu sehen wäre; dazu ein Test mit der Taste „P", **die gar kein Kürzel ist**. *Wer prüft, ob etwas entsteht oder verschwindet, fängt mit einer leeren Fläche an.* **Der eine echte Fehler:** nach einem Klick auf eine Kachel kam **keine Taste** mehr an, weil der Knopf den Fokus behält — behoben mit `Skia.Focus()`, derselben Zeile, die `Input.cs` beim Zeigerdruck schon ruft; **der WPF-Kopf zeigt das nicht**, es ist Avalonia-eigen. **Vier Nebenfunde benannt:** ein seit §4.54 **toter SVG-Zweig**, **drei fest deutsche Texte** im WPF-Kopf (aufgefallen erst beim Portieren), **keine mitgelieferten Sticker** (`Assets/Stickers` gibt es nicht), und der Sticker-Ordner **hängt nicht an `--db`**. ✅ **Und am 2026-08-24 ist die Zusammenlegung für Stück 3 gefahren** (§4.57, V2-79; **938 Tests** = 879 Core + 59 WPF, **18 neue Wächter**, sichtbar unverändert): `WbImagePrep.ForSvg` und drei Platzierungsrechnungen (`WbEinfuegen.FuerBilder`, `.SeitenAnzeigegroesse`, `.SeitenRaster`) liegen in Core — **`Svg.Skia` war seit jeher ein Core-Paket, die Rasterung lag trotzdem privat im Kopf**. **⚠ Der Fund:** eine SVG mit leerer `viewBox` ergibt **1×1 Punkt** statt `null`, die Prüfung `< 1` griff nicht — die Datei landete als **unsichtbares Ein-Pixel-Element** auf der Fläche, ohne Meldung; und eine Datei ohne XML lässt `SKSvg.Load` **werfen** statt `null` zu liefern. Beides ist jetzt abgefangen, **und die erste Deutung davon war falsch** (die zwei roten Wächter hatten zwei verschiedene Ursachen). ✅ **Und am 2026-08-24 ist Stück 3 zu: der Import im Linux-Kopf** (§4.58, V2-80; Bau 0/0 in Debug **und** Release, **938 Tests** = 879 Core + 59 WPF, **kein neuer Wächter — die Rechnung lag nach §4.57 schon in Core**). Bilder, SVG, PDF **und DOCX**, ein Knopf für alle Formate, dazu ein **Seitenauswahl-Fenster** und eine **Wartesperre** — beides hatte der Linux-Kopf nicht. **⚠ Der Fall, der beim Bauen auffiel und nicht beim Planen:** der erste Entwurf legte die Seiten **immer** als Bilder auf die Fläche; im **Notizbuch** wäre das falsch, nicht bloß unschön (A4-Höhe, und `SeitenRaster` klemmt nichts — sie lägen zur Hälfte neben dem Blatt). Jetzt wird dort **jede Seite ein eigenes Blatt** mit dem Bild als Seitenhintergrund; **für eingefügte Seiten gibt es in beiden Köpfen keinen Undo-Schritt**, und das steht jetzt dort, wo es jemand findet. **✅ Belegt auf leerer Fläche und mit frisch gezogener DB-Kopie:** PDF mit abgewählter Seite 3 — genau 1, 2 und 4 kommen an; SVG und PNG in einem Zug, **versetzt** und scharf gerastert; PDF ins Notizbuch, die ursprüngliche Seite bleibt erhalten; und die Runde in den WPF-Kopf, wo alle drei ankommen. **Zwei weitere Übersetzungslöcher geschlossen** (Dialogtitel und Filter des Imports lagen fest auf Deutsch — dasselbe wie bei den Stickern; *ein fest verdrahteter Text fällt erst auf, wenn ihn ein zweiter Kopf braucht*). ✅ **Und am 2026-08-24 ist die Zusammenlegung für Stück 4 gefahren** (§4.59, V2-81; **963 Tests** = 904 Core + 59 WPF, **25 neue Wächter**, sichtbar unverändert). **⚠ Und sie hat die Einschätzung aus §6 widerlegt:** dort standen Lineal und Geodreieck als **„reine Bedienarbeit"**, weil `DrawSetSquare` schon `public` war — tatsächlich lagen in `WhiteboardView.Aids.cs` rund **200 Zeilen Geometrie** (Umriss, Kanten, Treffer, Dreh-Griff, **Einrasten**, Winkelraster) **und die komplette Zeichnung des Lineals** samt cm-Skala privat im WPF-Kopf. **Das ist der dritte Fall in Folge, in dem die §6-Schätzung beim Messen fällt** (§4.53, §4.57) — *die Reihenfolge dort ist gemessen, die Aufwandsschätzungen daneben sind es nicht.* Neu in Core: `Editing/WbZeichenhilfe.cs` und fünf Zeichenmethoden an `WbAidRenderer`. **✅ Belegt am laufenden Programm:** Lineal mit Skala und Griff, Drehen **fängt am 15°-Raster**, Geodreieck mit vollem SVG-Aufdruck — und **ein Strich, dessen Zieh-Pfad deutlich von der Kante abweicht, wird schnurgerade an der Hypotenuse entlanggezogen**. ✅ **Und am 2026-08-24 ist Stück 4 zu: Lineal und Geodreieck im Linux-Kopf** (§4.60, V2-82; Bau 0/0 in Debug **und** Release, **963 Tests** = 904 Core + 59 WPF, **kein neuer Wächter — die Rechnung lag nach §4.59 schon in Core**). Auflegen, verschieben, drehen mit 15°-Raster, Kürzel **R** und **D** — und **ein Strich rastet an der Kante ein**. `InputInProgress` kennt den neuen Zug (die Falle aus §4.51, hier unmittelbar da). **⚠ Der Fund stand wörtlich im Projekt:** das Geodreieck kam als **schlichte Kontur ohne Skalen**, weil die SVGs im Avalonia-`csproj` ausgenommen waren — mit der Begründung *„die zugehörigen Werkzeuge gibt es im Linux-Kopf nicht"*. **Das war richtig, bis der Linux-Kopf ein Geodreieck bekam.** *Ein Kommentar, der eine Voraussetzung nennt, wird zur Falle, sobald sie sich ändert.* **Bau und Tests waren grün** — nur das laufende Programm zeigte zwei Köpfe mit zwei Gestalten desselben Werkzeugs; jetzt stehen sie als `Content` im Projekt (**nicht** `AvaloniaResource`: der Zeichner liest sie mit `File.OpenRead` aus dem Ausgabeordner). **⚠ Und ein Messfehler sah wieder wie ein Programmfehler aus:** der erste Einrast-Versuch zog keinen Strich, sondern **verschob das Geodreieck** — der Startpunkt lag **im Körper**, und das ist richtig so; *wer am Lineal entlangzeichnen will, setzt außerhalb an*. **Diesmal ist er nicht als Befund durchgegangen.** ✅ **Und seit V2-83 ist die Zusammenlegung vor Stück 5 zu** (§4.61): `WbKlon`, `WbZahlenblock`, `WbSchnellaktionen` und `WbLeiste` stehen in Core, der WPF-Kopf ist darauf umgestellt, **1012 Tests** = 953 Core + 59 WPF, **49 neue Wächter**. **⚠ Der Fund war ein Fehler in beiden Klonwegen, und er war am laufenden Programm zu sehen:** `CloneElement` setzte weder `WbElement.Rotation` (seit §4.51) noch `WbPoint.TX`/`TY` (seit §4.11) — eine gedrehte Linie kam beim Duplizieren **gerade** wieder heraus, ein Bleistiftstrich verlor seine Neigung; betroffen waren Strg+D, Strg+C, Strg+V und drei Schnellaktionen. **Der Kloner ist älter als beide Felder** — genau darum gehört so etwas an eine gemeinsame Stelle. Vorher/nachher an einer **frisch gezogenen** DB-Kopie gemessen, mit Bild und Dateiinhalt. **⚠ Sechste Runde in Folge, in der das Messen den Zuschnitt geändert hat:** §6 führt Stück 5 als „die Bedienung“ — gemessen sind **440 Zeilen** privat im WPF-Kopf, und der Linux-Kopf hat davon **nichts** (keine Zwischenablage, kein Strg+C/X/V/D, keine Schnellaktionen, keinen Zahlenblock, **keine klappbaren Gruppen**, und die Kürzel `G`/`T`/`F`/`N` fehlen). ✅ **Und seit V2-84 ist Stück 5 ganz zu** (§4.62): der Linux-Kopf hat **Zwischenablage samt Strg+C/X/V/D**, die **Schnellaktionen** (Rechtsklick und langes Drücken), den **Zahlenblock** und eine Werkzeugleiste in der **Ordnung des WPF-Kopfs** mit vier klappbaren Gruppen. **⚠ Der Fund war die Routing-Strategie:** der Zahlenblock ging nicht auf, weil der `Slider` den Druck als erledigt markierte, bevor der Handler dran war — er hängt jetzt am **Tunnel**; *der Bau war dabei grün*. **⚠ Und die Falle aus §4.61 wurde vor dem Bauen entschärft:** `AvaloniaClipboard.HasImage` hätte bei **jedem** Öffnen der Leiste das ganze Bild dekodiert und neu kodiert — jetzt fragt es nur die Formatliste (`GetDataFormatsAsync`). **Am laufenden Linux-Kopf belegt** und mit der Runde in den WPF-Kopf geschlossen. ✅ **Zwei Nutzerentscheidungen am 2026-08-25** (V2-85, §5 Nr. 16 und 17): die Werkzeuggröße läuft **in beiden Köpfen von 0,5 bis 40** (gebaut, eine Zeile), und die **zweite Stift-Taste darf verschieden bleiben** — drüben Schnellaktionen, hier Radieren; *es fehlt keine Funktion, nur ein zweiter Weg zu ihr*, und beim Ausrufen von M2 ist das **nicht** zu erwähnen. ✅⚠ **Der Laptop hat am 2026-08-27 gemessen** (V2-86, §4.63 und §4.62, **953/953 grün**, kein Produktivcode angefasst), und **beide Aufträge sind beantwortet**. **① Tesseract trägt unter Linux — aber nicht von selbst:** das NuGet-Paket bringt für Linux **nichts** mit und sucht die **Windows-Dateinamen** `libtesseract50.so` und `libleptonica-1.82.0.so` im Unterordner `x64/`; die unversionierte `libtesseract.so` des Systems **hilft nicht**, und `libdl.so` gibt es seit glibc 2.44 gar nicht mehr. **Mit drei gerichteten Namen erkennt es zeichengenau** (5.5.3, Zuversicht 0,930) — **keine andere Bindung nötig**, ein `DllImportResolver` reicht aber nur für `libdl` (§5 Nr. **18**). **② Der Augenschein von Phase 4.5 ist überwiegend grün:** Umlaute kommen an, **tote Tasten nicht** (dieselbe Wurzel wie §4.44), das Feld **sitzt richtig**, die **Zwischenablage trägt in allen drei Richtungen**, `HasImage` öffnet die Leiste in **< 400 ms** mit einem 5000×4000-Bild, **Zahlenblock und Klappgruppen gehen per Langdruck auf**, und der **Farbfix aus V2-77 trägt** im dunklen Design — *die beiden Tunnel-Reparaturen aus §4.55 sind damit unter Linux belegt*. **⚠ Ein neuer Fund:** die Zeichenfläche hat nach dem Öffnen **keinen Tastaturfokus**, der erste Strg+V geht verloren (§5 Nr. **19**). ✅ **Und Stück 6 ist gebaut — Phase 4.5 ist abgeschlossen, sechs von sechs** (V2-87, 2026-08-27, §4.64; Bau 0/0, **1025 Tests** = 966 Core + 59 WPF). **Es ist ein Zusammenlegen geworden und keine zweite Umsetzung:** von den 93 Zeilen `OcrService` war **nichts** plattformabhängig außer der Frage, wie die native Bibliothek gefunden wird — es gibt jetzt **ein** neues Projekt `GonkNote.Ocr` mit **einer** `TesseractOcrEngine` für **beide** Köpfe (Begründung wie bei `GonkNote.Legacy`: das Paket bindet nativ, iPadOS bekommt Vision). **Die drei Teile aus §4.63 stehen:** der `DllImportResolver` für `libdl`, die zwei Verweise unter `…/x64/` — **Nutzer-Entscheidung: verwiesen, nicht mitgeliefert** (§5 Nr. 18) — und der Texterkennungs-Knopf samt Ergebnisfenster im Linux-Kopf. **⚠ Die teuerste Falle dabei:** `build\Tesseract.targets` verteilt die nativen DLLs, und **MSBuild-Targets wandern nicht durch eine `ProjectReference`** — beide Köpfe referenzieren `Tesseract` deshalb **zusätzlich selbst**. ✅ **Und §5 Nr. 19 ist mit erledigt** (§4.65): der Fokus-Fund des Laptops war **gemeinsam** und nicht linuxspezifisch — **der WPF-Kopf tut dasselbe** —, behoben in **beiden** Köpfen, mit der Ausnahme für das Umbenennen-Feld. **Beides am laufenden Programm gemessen und nicht nur gebaut** (§5e: „ein grüner Bau beweist an einer Eingabe-Naht fast nichts"). ⚠ **Und zwei Fehler, die der Nutzer nebenbei gesehen hat** (V2-88, §4.66; **1035 Tests**): `App.OnExit` im WPF-Kopf rief **`Db.Dispose()` auf `null`**, wenn die Datenbank beim Start nicht zu öffnen war — auf die ehrliche Meldung folgte sofort eine zweite, die nach kaputtem Programm aussah („Die App läuft weiter", während sie sich beendete). **Behoben und am laufenden Programm gegengeprüft**; der Linux-Kopf hat es nicht. **⚠ Beim Nachsehen fiel dann auf, dass `fehler.log` 272 MB groß war** — 48.962 mal derselbe Fehler, **alle vom 2026-08-12**, dem Tag, an dem er behoben wurde. *Eine Datei, die im Fehlerfall wächst, wächst am schnellsten genau dann, wenn niemand hinsieht.* Neu ist `Fehlerprotokoll` in Core mit **5 MB Obergrenze** für beide Köpfe. ▶ **Phase 5 läuft** — **Punkt 1 toter Code** (§4.68, V2-91): sechs Stellen in Core und zehn Übersetzungstexte weg, in beiden Köpfen nachgesehen. **Punkt 2 Doku gegen Code** (§4.69, V2-92): §7 an fünf Stellen richtiggestellt, darunter eine **gefährliche** — sie behauptete, `Rtf` führe noch, und stand in dem Abschnitt, den man *vor* jeder Codeänderung liest. **Als Nächstes:** der Rest des Aufräumens (benannte Lücken, §4.1), dann der **vollständige Prüflauf**, dann veröffentlichen (Flatpak/AppImage). **Zwei Fragen gehören dem Nutzer und blockieren das Ende der Phase:** ob `HANDOFF.md` auch aus der Git-Vorgeschichte verschwindet, und wann das Repo öffentlich geht. **Der Laptop hat keinen Auftrag** (§5d).
+**Stand: 2026-08-28 (V2-93) · Version 0.3.0, Ziel 1.0.0 · net10.0 · SkiaSharp 3 · SQLite · Avalonia 12 · ✅ M0 · ✅ M1 · ✅ **M2 ERREICHT — ausgerufen am 2026-08-28** (Nutzer-Entscheidung, §2): Funktionsgleichheit Linux ↔ Windows, **mit einem benannten Loch** — die Rechtschreibprüfung fehlt im Linux-Kopf (bewusst so entschieden am 2026-08-22, §6); die zweite Stift-Taste darf verschieden bleiben und ist **kein** Loch (§5 Nr. 17). **▶ Damit ist Phase 5 an der Reihe — seit dem 2026-08-28 in neuer Ordnung, siehe unten** · ✅ Phase 4.5 abgeschlossen (§4.64, sechs von sechs Stücken) — **und die Gegenprobe auf dem Laptop ist gelaufen** (§4.64 „Was der Laptop gefunden hat", V2-89, **976/976 grün**): die Texterkennung trägt unter Linux **am laufenden Programm**, die App legt die zwei Verweise selbst an, erkannt wird zeichengenau, und der Fokus-Fix aus §4.65 ist ohne Regression. **⛔ Ein Werkzeugfund dazu, der die nächste Runde sonst wieder kostet:** XTEST ist unter GNOME 50 zum Klicken und Tippen unbrauchbar, `tools/linux/zeiger` taugt nur noch für `hervor`/`fenster` — gearbeitet wird mit `ydotool` (§7, §5d). **Der Laptop hat damit keinen offenen Auftrag mehr** · ✅ **Und sein ältester offener Fund ist zu** (§4.67, V2-90): der Wortzwischenraum an einer Stückgrenze — der Blocksatz verteilte den Restplatz auf **jede** Stückgrenze statt auf die Leerräume, und ein Stück entsteht auch am **Formatwechsel**. **Die Ursachenvermutung, die seit dem 2026-08-11 im Punkt stand, ist dabei widerlegt worden** — es lag weder am Maßstab noch am Rastern, und **das PDF war ebenso betroffen wie die Anzeige** · ✅ Phase 4 abgeschlossen (§4.28): Dokumentmodell, Übernahme, DOCX/Markdown/PDF/PNG gegen das Modell, Zeichner samt Diagrammen, Schriftkonzept — und die Anzeige im Linux-Kopf, **auf dem Laptop gegengeprüft** (§4.28, V2-37). ⏳ **Das Schreiben läuft** (§6): **Schritte 1 bis 6 stehen** — Stelle, Änderung, Verlauf, Trefferrechnung, **Tastatur und Maus** (§4.35, auf dem Laptop gegengeprüft: Umlaute, tote Tasten, der Cursor am Stift, kein verlorenes Zeichen) und **Schritt 6 ganz** (§4.36/§4.37): Formate, die drei Reiter Einfügen/Verweise/Tabelle — **und die Warnung**, wenn das Altformat noch führt (`TdFuehrung`). ✅ **Das Ribbon ist aufgeräumt** (§4.38) und **die Gruppen A und B stehen** (§4.39/§4.40): Listen, Vorlagen, Größenliste, Schriftart, Farben, Trennlinie, Kopf- und Fußzeile. ✅ **Neu am 2026-08-18: Schritt 6a, die Eingabe-Naht** (§4.41, V2-54) — `TdEingabe` in Core und ein `TextInputMethodClient` im Kopf; ein Cursorschritt ist dort genau **ein** Zeichen breit, sonst zeigte jeder Abstand hinter jedem Feld um eins daneben. ✅ **Und seit V2-57 steht Schritt 6b, das Zusammensetzen** (§4.43): `TdVorschau`, `SupportsPreedit => true`, der unfertige Text als Auflage an der Marke — **ohne das Modell anzufassen**. **823 Tests.** ✅ **Beide offenen Entscheidungen sind gefallen** (Nutzer, 2026-08-16): §5 Nr. 9 → **warnen statt sperren** (gebaut **und gesehen**, §4.37), §5 Nr. 10 → **`TextInputMethodClient`, nach Schritt 6** (gebaut, §4.41). ✅⚠ **Der Laptop hat am 2026-08-18 gemessen** (§4.41, V2-55, **769/769 grün**), und die Antwort ist zweigeteilt: **Die Bildschirmtastatur *schreibt* jetzt** — von Hand hervorgeholt kommt ihr Text im Dokument an, in V2-47 kam er nicht an; **die Naht aus V2-54 hat damit die Hälfte ihres Zwecks erreicht**. **Von selbst klappt sie nicht auf**, weil `Avalonia.X11` gar **keine `IInputPane`** hat (`TopLevel.InputPane` ist `null`, zur Laufzeit gemessen) — das behebt kein Kopfcode. **⚠ Dabei ist eine Regression aufgefallen: tote Tasten kommen seit V2-54 nicht mehr an** (`^`+`e` → nichts statt `ê`; Umlaute schon), eingekreist auf **IBus + `SupportsPreedit => false`** — §5 „Noch offen" **11**. ✅ **Neu am 2026-08-18 (V2-56, §4.42): die Ursache ist geklärt — am ausgelieferten Rücken nachgelesen** (`ilspycmd` gegen Avalonia 12.1.1), **kein Produktivcode angefasst**. **Der Befund kippt die bisherige Empfehlung:** Weg **(b) fällt aus**, denn `OnCommitText` reicht den `commit` **ohne jede Abfrage von `SupportsPreedit`** durch — die vermutete Lücke gibt es nicht; der Hebel ist, dass `SupportsPreedit` das **Fähigkeitswort an IBus** (`CapPreeditText`) bestimmt und damit, **wohin IBus das Zusammensetzen schickt** — und `gnome-text-editor`, das dieselbe Folge vollständig bekommt, **meldet genau diese Fähigkeit**. **Warten fällt auch aus:** 12.1.1 ist die neueste Fassung. ✅ **Und Weg (a) ist am selben Tag gebaut** (§4.43, V2-57): `TdVorschau` in Core, `SupportsPreedit => true`, der unfertige Text als **Auflage an der Marke** — **`TdDocument` wird nie angefasst**, damit greift §4.32 nicht; **20 Wächter, 823 Tests**, und die Windows-Gegenprobe (TSF) tippt zeichengenau. §5 Nr. **10a** ist damit erledigt. ⛔ **Und am 2026-08-18 hat der Laptop gemessen (V2-59, §4.43, 789/789 grün): es wirkt nicht.** `^`+`e` ergibt weiterhin **nichts** (Zähler **5** statt 7, zahlengleich mit V2-55); Umlaute **14**, ein Absatz von **427** Zeichen kommt **exakt** an. **Der `dbus-monitor` verschiebt die Ursache, statt sie nur zu verneinen:** **`CommitText` 0 mal bei uns, 2 mal bei `gnome-text-editor`** — derselbe Daemon, dieselbe Sekunde, **es liegt also nicht an IBus**; ✅ **das Fähigkeitswort kommt an** (`SetCapabilities uint32 9`), **§4.42 Punkt 2 ist gemessen**; **⚠ der Fehler sitzt davor** — der Kopf schickt für die tote Taste **gar keinen Tastendruck**, nur das Loslassen, und dazwischen **einen Aufruf mit `keysym = 0`/`keycode = 0`, den IBus mit `true` beantwortet** — genau danach verwirft Avalonia das rohe Ereignis. **(a) wird nicht zurückgebaut, es war nur nicht hinreichend.** ✅ **Am 2026-08-19 hat Windows den Tastenweg am zerlegten Rücken abgelaufen** (§4.44, V2-61; Avalonia 12.1.1, **kein Produktivcode angefasst**, **823 Tests** grün): **Der `0/0/0`-Aufruf kommt aus Avalonias eigenem dbus-Client, gespeist von einem Phantom-`KeyPress` mit `keycode = 0` aus dem X-Strom**; der echte Druck der toten Taste verschwindet zwischen `XNextEvent` und dem ersten Avalonia-Code. **Unser Kopf und die Warteschlange sind ausgeschlossen**; als Avalonia-Befunde festgehalten: der **Keycode-Versatz um 8** und das fehlende **`LockMask`**-Bit. **Upstream ist AvaloniaUI/Avalonia#18596 exakt dieses Symptom — geschlossen ohne Fix.** **Was mit dem benannten Fund geschieht, entscheidet der Nutzer.** ✅ **Und am 2026-08-19 hat der Laptop beide Messungen gefahren** (§4.44 „Was der Laptop gefunden hat", V2-62; **kein Produktivcode angefasst**, Bau 0/0, **789/789 grün**, von Hand getippt): **Die Leitspur ist widerlegt — der Druck kommt an** (`KeyPress keycode 49` **3 mal**, `keycode 26` **5 mal**, je mit Loslassen), und **ein `keycode 0` steht nirgends auf der Leitung**, weder bei GonkNote noch bei `xev` — **XWayland und ein fremder `XSendEvent`-Client scheiden damit beide aus**, und **das Verschwinden sitzt im Prozess**: `XFilterEvent` **filtert sehr wohl**. ✅ **Das `keycode = 0` ist kein Phantom, sondern der Bote** — libX11 verschluckt die beteiligten Drucke und legt das **fertige Zeichen** nach, `XmbLookupString` liefert dort `(c3 aa) "ê"`; **mit `XMODIFIERS=@im=none` gegengeprüft** (Avalonias eigene Einstellung), **4 mal `ecircumflex`** — **der Zusammensetzer ist Xlibs lokale Eingabemethode**, nicht `ibus-x11` und nicht IBus. **Die Kette schließt sich damit:** Avalonia lässt filtern, holt aber nie ab — `LookupKey(keycode)` statt `XmbLookupString`, und bei `keycode = 0` fällt das Zeichen heraus. **§5 „Noch offen" 11 ist aufgeklärt**, **§5d trägt keinen Auftrag mehr**, und offen ist nur noch **die Entscheidung des Nutzers** (umgehen / melden / stehen lassen). ✅ **Und am 2026-08-21 ist der Weg dicht gemacht, den Schritt 7 gehen wird** (§4.45, V2-63; Schritt **6c**, nur `TdZuFlow` und `FlowZuTd` angefasst, Führung unverändert, Bau 0/0, **832 Tests** = 789 Core + 43 WPF, **9 neue Wächter**). **Die Frage, die nie jemand gestellt hatte:** Schritt 7 dreht die Führung auf die Kette `Modell → FlowDocument → Modell` — **kehrt sie sich selbst um?** Gemessen an einem Modell, wie der **Linux-Kopf** es anlegt: **nein, siebenfach.** **Der Kern ist ein `?? 0`** — `TdZuFlow` hat die Kaskade aus §4.14 nicht aufgelöst, sondern durch Null ersetzt, und `TdParaFormat.Standard.SpaceAfterPt` ist **8**; dazu stand die Ausrichtung auf **Blocksatz**, weil ein `FlowDocument` von Haus aus so steht (Fund 2 aus §4.37, hier an der Wurzel behoben). Behoben sind auch Tabellenrahmen, Zellabstand, Spaltenbreite, der Abstand des Listenpunkts und `DefaultParaFormat`; **der Wächter, auf den es ankommt, vergleicht Byte für Byte: zweimal speichern ändert nichts mehr.** ⚠ **Und der Verlust wartet nicht auf Schritt 7 — er läuft seit §4.23:** `Migrate` wird bei jedem Speichern gerufen, also verliert ein unter Linux oder aus DOCX importiertes Dokument **heute schon beim ersten Speichern im WPF-Editor** seine Tabellenrahmen, seine Abstände, **sein Diagramm und seine Felder**. **Drei Lücken bleiben, mit eigenen Wächtern** (Diagramm, Feld, Gliederungsebene) — **gemessen unmöglich zu schließen, solange der Weg über das `XamlPackage` läuft** (`Tag` und `ToolTip` überleben es nicht; nur ein `ToolTip` an einem `Image` tut es). ✅ **Und am 2026-08-21 ist die erste der drei Folgerunden gefahren: Punkt und Pixel** (§4.46, V2-64; Schritt **6d**, Bau 0/0, **835 Tests**, **3 neue Wächter**, einer **umgedreht**). **Sie hat unterwegs die Richtung gewechselt:** Entschieden war „den WPF-Kopf anheben", **aber die Deutung dahinter war ungeprüft** — `TextStyles.BodySize` ist als **DIP** dokumentiert, `TdStil.KoerperPt` als **Punkt** mit dem Kommentar „dieselbe Zahl wie", und `TdCharFormat.Standard.FontSize` ist **11 pt** = 15 DIP. **Der WPF-Kopf stimmte längst mit der Vorgabe des Dateiformats überein; `TdStil` war die Kopie, die in §4.39 umetikettiert wurde** — belegt ohne jeden Vergleich der Köpfe: Die Vorlage „Standard" machte einen unberührten Absatz um ein Drittel **größer**. **Umgedreht (Nutzer): `TdStil` ist verkleinert**, alle Zahlen mal 0,75 (Überschrift 1: **21 pt**), Abstände und Zitat-Einzug ebenso; `TdCharFormat.Standard` bleibt bei 11, denn das ist die Vorgabe des *Formats* (§4.14). **⚠ `VorlagentabelleTests` war grün und hat nichts geprüft** — er verglich die Zahlen und nicht die Größen; er rechnet jetzt um, und ein zweiter Wächter hält fest, **warum** dort ein Faktor steht. ✅ **Und eine der drei Lücken aus §4.45 hat sich dabei von selbst geschlossen:** Die **Gliederungsebene** überlebt die Rundreise wieder (21 pt = 28 px, und `HeadingLevel` hält gegen genau diese 28) — **sie war kein Mangel des `FlowDocument`, sondern derselbe Zahlendreher. Es sind noch zwei** (Diagramm und Feld). ✅ **In beiden Köpfen am Schirm belegt:** im Linux-Kopf ändert „Standard" die Größe eines unberührten Absatzes nicht mehr, im WPF-Kopf steht für dieselbe Überschrift **28** im Ribbon und **„Überschrift 1" ist in der Galerie markiert** (vorher 37,33 und keine). **Die Lehre:** Eine Entscheidung, die auf einer **ungeprüften Deutung** des Befunds steht, ist selbst ungeprüft — auch dann, wenn der Befund stimmt. ✅ **Und am 2026-08-22 ist Runde ② gefahren: der Ladeweg** (§4.47, V2-65; Schritt **6e**, Bau 0/0, **840 Tests**, **5 neue Wächter**, Führung unverändert). `AusModell` lädt **direkt** statt über ein `XamlPackage`; die Übernahme steht als `TdZuFlow.InhaltUebernehmen` neben `Umwandeln`. **Und wieder hat die Auflage „erst messen" den Entwurf umgeworfen:** WPF **kopiert** ein `Tag` beim Teilen eines Absatzes **und** eines Laufs auf **beide** Hälften — ein Träger dort wäre nach einem Tastendruck doppelt vorhanden und damit **schlimmer als die Lücke, die er schließen sollte**; **übrig bleibt der `InlineUIContainer`**, unteilbar und derselbe Ort, an dem `DocumentImages` seit jeher trägt. **Ein Fund nebenbei, der nicht gesucht war:** Das Paket schiebt die Schrift des **Dokuments** als **örtlichen Wert** auf **jeden Absatz** — derselbe Fehler wie §4.45 an anderer Stelle, **mit Schritt 7 wäre er in jedes Dokument gewandert**; der direkte Weg räumt ihn mit weg. ⏳ **Die Träger für Diagramm und Feld sind bewusst nicht gebaut** — sie überleben jetzt das Laden, aber nicht das Speichern, und gehören damit zu Schritt 7. ⚠ **Benannter Nebenbefund:** Die Schriftliste des WPF-Kopfs zeigt nur **Systemschriften** und kann die Grundschrift eines Dokuments aus dem Modell gar nicht anzeigen (§5 „Noch offen" **14**). ✅ **Und am 2026-08-22 ist Schritt 7 gefahren: `Rtf` verliert die Führung** (§4.48, V2-66; Bau 0/0, **837 Tests** = 785 Core + 52 WPF). **Der eigentliche Zweck des ganzen Wegs.** Der WPF-Editor **liest und schreibt** jetzt das Modell; `Rtf` wird **nie wieder überschrieben** und bleibt als unangetastete Sicherung stehen (§4.22); `Migrate` läuft nur noch für die **einmalige** Übernahme — **das ist Antwort (d) aus §5 Nr. 9, die damals ausdrücklich falsch war und es seit dem Umdrehen der Führung nicht mehr ist**; **`TdFuehrung.AltformatFuehrt` ist gelöscht** (nicht auf `false` gesetzt — eine Funktion, die immer `false` liefert, sähe nach einer offenen Frage aus), und mit ihr sind vier Wächter und der **Warnstreifen im Linux-Kopf** gegangen. **Ein Wächter musste umgedreht werden**, und ein neuer hält fest, dass „führt nicht mehr" nicht „ist weg" heißt. **✅ Am laufenden Programm belegt — der Weg, der vorher Datenverlust war:** Linux schreibt → Windows bearbeitet und speichert → **Linux liest beides**. **✅ Und danach in der Datei nachgemessen**, was kein Schirm zeigt: `Rtf` hat **Länge 0** (vom WPF-Editor nicht angefasst, obwohl er gespeichert hat), `Model` trägt den Windows-Text. **✅ §5 „Noch offen" 9 ist damit an der Wurzel erledigt** — nicht mehr gewarnt, behoben. ⏳ **Offen bleiben die zwei Lücken aus §4.45** (Diagramm, Feld) — **nicht schlechter als vorher, aber jetzt zum ersten Mal schließbar**, weil das `XamlPackage` ganz aus dem Weg ist. ✅ **Und am 2026-08-22 ist die erste der zwei Lücken zu: das Feld** (§4.49, V2-67; Bau 0/0, **842 Tests**, **6 neue Wächter**, einer umgedreht). **Alle fünf Feldarten überleben die Rundreise — vorher keine einzige:** `PageNumber`, `PageCount`, `Date` und `Title` wurden zu Text, das Inhaltsverzeichnis zu eingefrorenen Einträgen. Ein Feld reist jetzt als **`InlineUIContainer`** mit dem `TdField` als Auflage, das Verzeichnis als **`BlockUIContainer`** — es steht nicht *in* einer Zeile, es *ist* mehrere, und das ist beim Bauen aufgefallen und nicht beim Planen. **Der Träger ist gemessen und nicht gewählt** (§4.47). **Und der Behälter ist nicht nur sicher, sondern richtig:** Ein Feld ist kein Text, sondern eine Stelle, an der gerechnet wird — vorher konnte man aus `{SEITE}` ein `{SEIT}` machen, und niemand hat es gemerkt. ✅ **Und am 2026-08-22 ist die letzte Lücke zu — der Augenschein und das Diagramm** (§4.50, V2-68; Bau 0/0, **849 Tests** = 790 Core + 59 WPF, **7 neue Wächter**, einer umgedreht, **kein Golden-File bewegt**). **Der Augenschein zu §4.49 war beim ersten Mal nicht am Programm gescheitert, sondern am Werkzeug:** `schau.ps1` fotografierte den **Bildschirm** und damit ein fremdes Fenster — *ein Werkzeug, das im Fehlerfall irgendein Bild liefert, ist schlimmer als eines, das nichts liefert.* Behoben in `tools/` (neu: `fenster.ps1`; `AttachThreadInput`, `PrintWindow` als Rückfall, Klicken **bricht ab** ohne Vordergrund, und jede Aufnahme sagt, wie sie entstanden ist). **Danach gemessen statt geschätzt: die Seitenzahl sitzt auf der Grundlinie** — **895** für den gewöhnlichen Lauf *und* für den Behälter, Oberkante bis Grundlinie **23 px** wie im feldlosen Absatz darüber; die Runde zurück in den Linux-Kopf rechnet **„Seite 1"** wieder aus. ⚠ **Ein benannter Unterschied ist dabei aufgefallen** (§5 „Noch offen" **15**): Der WPF-Editor bricht keine Seiten um, also hat sein Verzeichnis keine Seitenzahlen und das Feld zeigt `{SEITE}` — **am Code vor §4.49 nachgesehen: das war immer so**, kein Rückschritt und keine Lücke im Weg. **Und das Diagramm kommt an:** `TdRenderer.Diagramm` ist der öffentliche Einstieg, **bewusst ohne Rückgabewert** — er zeichnet auch den Platzhalter, denn zwei Platzhalter wären zwei Wahrheiten; `GrafikZeichnen` ruft ihn, **damit Editoranzeige und gedruckte Seite nicht auseinanderlaufen können**. Im WPF-Kopf reist ein Diagramm auf **demselben Träger wie ein Feld**, nur mit einem `Image` darin. ⚠ **Der Fund, der nicht im Auftrag stand und an dem die Runde still hätte scheitern können:** Unter der Auflage liegt ein `Image` — fragte `FlowZuTd` erst den **Inhalt** und dann die Auflage, machte `DocumentImages.Adopt` daraus **einen neuen Blob**, und **aus den Zahlen würden Pixel, bei jedem Speichern eine Kopie mehr, während es auf dem Schirm völlig richtig aussähe** — wörtlich der Fehler aus §4.21 an neuer Stelle; der Wächter dazu prüft deshalb **den Blob-Speicher** und nicht das Bild. **✅ Am laufenden Programm und danach in der Datei belegt:** Linux → Windows → Linux, beide Diagramme **mit ihren Zahlen**, `Rtf` **Länge 0**, **kein `image` im Modell**, `Images` leer, **Blob-Ordner leer** — *„es sieht richtig aus" hätte der alte Zustand auch geliefert.* **✅ Damit sind alle drei benannten Lücken aus §4.45 zu** (Gliederungsebene §4.46, Feld §4.49, Diagramm §4.50) **und die Lücke aus §4.28 mit.** ✅ **Und am 2026-08-22 hat der Nutzer die Rückfrage beantwortet: Phase 4.5 wird in voller Breite gefahren, aber OHNE die Rechtschreibprüfung** (sie wird eigens geführt), **angefangen mit der Auswahl** — die Begründung ist gemessen: die zwei „Ausnahmen" sind ungleich teuer (OCRs Naht steht **vollständig**, die der Rechtschreibung **gar nicht** — `ISpellChecker` liefert nur ja/nein und müsste **Fundstellen** liefern). **⚠ M2 wird damit mit einem benannten Loch ausgerufen.** ✅ **Und am 2026-08-23 ist das erste Stück zu: der Linux-Kopf dreht und skaliert** (§4.51, V2-69; Bau 0/0 in Debug **und** Release, **869 Tests** = 810 Core + 59 WPF, **20 neue Wächter**, kein Golden-File aus früheren Runden bewegt). Er konnte bis dahin nur verschieben und löschen. **⚠ Die Messung hat den Zuschnitt der Runde geändert:** der Undo-Weg lag **fertig** in Core, die Griff-Geometrie **privat im WPF-Kopf**, und der Kasten der Mehrfachauswahl stand in beiden Köpfen schon **Zeile für Zeile gleich** — also eine **Zusammenlegung** und kein Neubau; neu in Core sind `WbHandles` (Geometrie samt Weiche `Probe()`) und `WbSelectionRenderer` (Zeichnung). **⚠ Dabei ist eine begründete Entscheidung umgekehrt worden:** `WbHit` hielt fest, die Griffe blieben im Kopf, weil sie „am Steuerelement hängen" — **das trug nicht**, gerechnet wurde mit lauter Core-Sachen plus `Zoom`, und `Zoom` ist eine **Zahl**. **⚠ Zwei Funde, die nicht im Auftrag standen:** `Probe()` braucht die **Anzahl** der ausgewählten Elemente (sonst läge ein unsichtbarer Kasten um (0,0) und ein Klick auf die linke obere Ecke einer frischen Seite liefe als „verschieben" ins Leere), und **`InputInProgress` kannte Drehen und Skalieren nicht** — der Griff wurde erkannt, der Zustand gesetzt, jede folgende Bewegung galt als **bloßes Schweben**: **Bau 0 Fehler, alle 869 Wächter grün, am Bildschirm keinen Pixel Bewegung.** **Pixelgleichheit byteweise gemessen** (20 Vergleiche, 0 abweichende Bytes) **und die Messung danach gelöscht** — eine Altfassung im Test ist genau die zweite Fassung, welche die Zusammenlegung beseitigen sollte; geblieben sind **5 Golden-Files**, jedes Bild angesehen. ✅ **Und am 2026-08-23 sind zwei weitere Stücke gefallen: der Farbwähler** (§4.52, V2-70 — auf Nutzer-Entscheidung vorgezogen, weil er auch Text, Notizzettel und Cover blockierte; `HexColor` konnte schon Parsen **und** Formatieren, es fehlte **nur** die HSV-Rechnung; Wächter über **4.096 Farben**) **und die FORMEN** (§4.53, V2-71 — Linie, Pfeil, Rechteck, Ellipse, Dreieck samt Füllung und Deckkraft; **Bau 0/0 in Debug und Release, 889 Tests** = 830 Core + 59 WPF). **⚠ Auch hier hat das Messen den Zuschnitt geändert:** `WhiteboardView.Shapes.cs` ist **nicht** das Formen-Werkzeug, sondern der **Formen-Stift** plus Glättstift — 240 Zeilen Geometrie im Kopf, die nächste Zusammenlegung. **Fünf Symbole neu in Core, der WPF-Kopf mit umgestellt** (er zeigte dort Unicode-Zeichen in „Segoe UI", unter Linux leere Kästchen). **⚠ Zwei Fehler, die nur das laufende Programm zeigte:** ein `px`-Suffix in einem XAML-Maß wirft zur **Laufzeit** (der Bau war grün, und der Kommentar dazu war eine **ungeprüfte Deutung**), und das Aufklappen der Einstellungsleiste ohne `EinstellungenSpiegeln` ergab **lauter leere Umschalter** — ein Fehler, der seit Phase 3 **wörtlich im Code steht** und am zweiten Aufklappweg prompt wiederkam. **✅ Beide Köpfe an derselben Datei gemessen:** im Linux-Kopf gezeichnet und gefüllt, im WPF-Kopf **alle sechs Formen** mit Farbe, Füllung und Deckkraft. ✅ **Und am 2026-08-23 ist die Zusammenlegung für Stück 2 gefahren** (§4.54, V2-72/72a; **913 Tests** = 854 Core + 59 WPF): `Bildsammlung`, `StickerLibrary` und zwei Farbmethoden liegen in Core. **⚠ Vier Funde, zwei davon nicht beim Lesen:** der Sticker-Nutzerordner war **Windows-fest** (von Hand aus `Environment.SpecialFolder.ApplicationData`, obwohl `AppPaths` es seit Phase 2 weiß), die Endungsliste gehörte **zwei** Werkzeugen statt einem (**der Übersetzer hat es gemeldet**), die Zettel-Schriftfarbe wandert **in die Datei** und lag doch im Kopf, und eine **zweite** Kontrastrechnung wurde beim ersten Durchgang übersehen — `WhiteboardView` ist auf vierzehn Teildateien verteilt. ✅ **Und am 2026-08-24 stehen Text und Notizzettel im Linux-Kopf** (§4.55, V2-73 bis V2-77; Bau 0/0 in Debug **und** Release, **913 Tests** = 854 Core + 59 WPF — **dieselbe Zahl wie vorher, und das ist der Befund**: was hier zu bauen war, liegt vollständig im Kopf, und **keiner der vier Fehler wäre von einem Wächter gefunden worden**). Anlegen, Tippen, Abschließen mit Strg+Eingabe, Rückgängig — **und die Runde in den WPF-Kopf ist gefahren**: im Linux-Kopf beschriftet, gespeichert, **regulär geschlossen**, dieselbe Datei drüben geöffnet, **beide Elemente kommen an**. **⚠ Vier Durchgänge, und drei davon dieselbe Ursache:** In Avalonia entscheidet die **Routing-Strategie**, wer eine Taste zuerst sieht — `Tunnel` heißt „vor allen Kindern, egal wo der Fokus liegt", `Bubble` „erst nach dem Control". Einmal sah es aus wie ein **Fokusproblem** (getipptes „Hallo" schaltete Werkzeuge um, weil `WhiteboardView` ihren Handler seit Phase 3 mit `Tunnel` einhängt), einmal wie ein **Zeichensatzfehler** (ein Kästchen hinter dem Text, weil `KeyDown` am `TextBox` als Bubble hing), einmal wie ein Fehler der **Fernsteuerung** — und dass `Strg+Z` im offenen Feld nichts tut, war **gar kein Fehler**, sondern die richtige Folge der ersten Behebung. **⚠ Der vierte Fund ist der Farbfehler beim Bearbeiten, und er ist gemessen statt gedeutet:** Fluent setzt den Hintergrund **am Border im Template** und nicht am `TextBox` (`ilspycmd` gegen `Avalonia.Themes.Fluent` 12.1.1, dieselbe Methode wie §4.42); behoben über die `TextControlBackground…`-Ressourcen **am Feld**, weil man dafür nichts über Selektor-Vorränge annehmen muss. **„Schwarz mit heller Schrift" war eine Fehlbeobachtung** — die Schrift war immer unsere, nur dunkel auf schwarzem Grund. **⚠ Und eine Messung taugte nicht:** der Linux-Kopf wurde mit `Stop-Process` **hart beendet**, die leere Fläche drüben war deshalb **kein Befund** — *wer den Schreiber abschießt, misst nicht den Leser.* ✅ **Und am 2026-08-24 ist Stück 2 zu: die Sticker** (§4.56, V2-78; Bau 0/0 in Debug **und** Release, **920 Tests** = 861 Core + 59 WPF, **7 neue Wächter**). Sammlung ansehen, mit einem Klick einfügen, eigene Bilder aufnehmen — **und der Sticker kommt im WPF-Kopf an**. **⚠ Der Fund hat den Zuschnitt geändert und widerlegt den eigenen Auftrag:** Es gibt **kein `StickerElement`** — ein Sticker ist ein gewöhnliches `ImageElement`, die Sammlung ist eine **Bildquelle**. Der Prompt in §5e behauptete das Gegenteil, **hingeschrieben ohne nachzusehen**; *ein Auftrag ist keine Messung, auch wenn er im HANDOFF steht.* Damit brachte die Runde **den ersten Bild-Einfügeweg überhaupt** in den Linux-Kopf. Neu in Core ist `WbEinfuegen.FuerSticker` (die Größe wandert **in die Datei**, also darf sie nicht im Kopf liegen); die zweite Rechnung des WPF-Kopfs (`PlaceImages`) **bleibt bewusst stehen** — sie tut etwas anderes. **⚠ Und die teuersten Fehler dieser Runde waren Messfehler:** zweimal galt ein Scheinbefund („ein Klick fügt zwei ein", „Rückgängig wirkt nicht"), weil auf der Fläche noch ein Sticker **aus dem vorigen Lauf** lag — beide landen an derselben Stelle, also verdeckt der alte genau das, was zu sehen wäre; dazu ein Test mit der Taste „P", **die gar kein Kürzel ist**. *Wer prüft, ob etwas entsteht oder verschwindet, fängt mit einer leeren Fläche an.* **Der eine echte Fehler:** nach einem Klick auf eine Kachel kam **keine Taste** mehr an, weil der Knopf den Fokus behält — behoben mit `Skia.Focus()`, derselben Zeile, die `Input.cs` beim Zeigerdruck schon ruft; **der WPF-Kopf zeigt das nicht**, es ist Avalonia-eigen. **Vier Nebenfunde benannt:** ein seit §4.54 **toter SVG-Zweig**, **drei fest deutsche Texte** im WPF-Kopf (aufgefallen erst beim Portieren), **keine mitgelieferten Sticker** (`Assets/Stickers` gibt es nicht), und der Sticker-Ordner **hängt nicht an `--db`**. ✅ **Und am 2026-08-24 ist die Zusammenlegung für Stück 3 gefahren** (§4.57, V2-79; **938 Tests** = 879 Core + 59 WPF, **18 neue Wächter**, sichtbar unverändert): `WbImagePrep.ForSvg` und drei Platzierungsrechnungen (`WbEinfuegen.FuerBilder`, `.SeitenAnzeigegroesse`, `.SeitenRaster`) liegen in Core — **`Svg.Skia` war seit jeher ein Core-Paket, die Rasterung lag trotzdem privat im Kopf**. **⚠ Der Fund:** eine SVG mit leerer `viewBox` ergibt **1×1 Punkt** statt `null`, die Prüfung `< 1` griff nicht — die Datei landete als **unsichtbares Ein-Pixel-Element** auf der Fläche, ohne Meldung; und eine Datei ohne XML lässt `SKSvg.Load` **werfen** statt `null` zu liefern. Beides ist jetzt abgefangen, **und die erste Deutung davon war falsch** (die zwei roten Wächter hatten zwei verschiedene Ursachen). ✅ **Und am 2026-08-24 ist Stück 3 zu: der Import im Linux-Kopf** (§4.58, V2-80; Bau 0/0 in Debug **und** Release, **938 Tests** = 879 Core + 59 WPF, **kein neuer Wächter — die Rechnung lag nach §4.57 schon in Core**). Bilder, SVG, PDF **und DOCX**, ein Knopf für alle Formate, dazu ein **Seitenauswahl-Fenster** und eine **Wartesperre** — beides hatte der Linux-Kopf nicht. **⚠ Der Fall, der beim Bauen auffiel und nicht beim Planen:** der erste Entwurf legte die Seiten **immer** als Bilder auf die Fläche; im **Notizbuch** wäre das falsch, nicht bloß unschön (A4-Höhe, und `SeitenRaster` klemmt nichts — sie lägen zur Hälfte neben dem Blatt). Jetzt wird dort **jede Seite ein eigenes Blatt** mit dem Bild als Seitenhintergrund; **für eingefügte Seiten gibt es in beiden Köpfen keinen Undo-Schritt**, und das steht jetzt dort, wo es jemand findet. **✅ Belegt auf leerer Fläche und mit frisch gezogener DB-Kopie:** PDF mit abgewählter Seite 3 — genau 1, 2 und 4 kommen an; SVG und PNG in einem Zug, **versetzt** und scharf gerastert; PDF ins Notizbuch, die ursprüngliche Seite bleibt erhalten; und die Runde in den WPF-Kopf, wo alle drei ankommen. **Zwei weitere Übersetzungslöcher geschlossen** (Dialogtitel und Filter des Imports lagen fest auf Deutsch — dasselbe wie bei den Stickern; *ein fest verdrahteter Text fällt erst auf, wenn ihn ein zweiter Kopf braucht*). ✅ **Und am 2026-08-24 ist die Zusammenlegung für Stück 4 gefahren** (§4.59, V2-81; **963 Tests** = 904 Core + 59 WPF, **25 neue Wächter**, sichtbar unverändert). **⚠ Und sie hat die Einschätzung aus §6 widerlegt:** dort standen Lineal und Geodreieck als **„reine Bedienarbeit"**, weil `DrawSetSquare` schon `public` war — tatsächlich lagen in `WhiteboardView.Aids.cs` rund **200 Zeilen Geometrie** (Umriss, Kanten, Treffer, Dreh-Griff, **Einrasten**, Winkelraster) **und die komplette Zeichnung des Lineals** samt cm-Skala privat im WPF-Kopf. **Das ist der dritte Fall in Folge, in dem die §6-Schätzung beim Messen fällt** (§4.53, §4.57) — *die Reihenfolge dort ist gemessen, die Aufwandsschätzungen daneben sind es nicht.* Neu in Core: `Editing/WbZeichenhilfe.cs` und fünf Zeichenmethoden an `WbAidRenderer`. **✅ Belegt am laufenden Programm:** Lineal mit Skala und Griff, Drehen **fängt am 15°-Raster**, Geodreieck mit vollem SVG-Aufdruck — und **ein Strich, dessen Zieh-Pfad deutlich von der Kante abweicht, wird schnurgerade an der Hypotenuse entlanggezogen**. ✅ **Und am 2026-08-24 ist Stück 4 zu: Lineal und Geodreieck im Linux-Kopf** (§4.60, V2-82; Bau 0/0 in Debug **und** Release, **963 Tests** = 904 Core + 59 WPF, **kein neuer Wächter — die Rechnung lag nach §4.59 schon in Core**). Auflegen, verschieben, drehen mit 15°-Raster, Kürzel **R** und **D** — und **ein Strich rastet an der Kante ein**. `InputInProgress` kennt den neuen Zug (die Falle aus §4.51, hier unmittelbar da). **⚠ Der Fund stand wörtlich im Projekt:** das Geodreieck kam als **schlichte Kontur ohne Skalen**, weil die SVGs im Avalonia-`csproj` ausgenommen waren — mit der Begründung *„die zugehörigen Werkzeuge gibt es im Linux-Kopf nicht"*. **Das war richtig, bis der Linux-Kopf ein Geodreieck bekam.** *Ein Kommentar, der eine Voraussetzung nennt, wird zur Falle, sobald sie sich ändert.* **Bau und Tests waren grün** — nur das laufende Programm zeigte zwei Köpfe mit zwei Gestalten desselben Werkzeugs; jetzt stehen sie als `Content` im Projekt (**nicht** `AvaloniaResource`: der Zeichner liest sie mit `File.OpenRead` aus dem Ausgabeordner). **⚠ Und ein Messfehler sah wieder wie ein Programmfehler aus:** der erste Einrast-Versuch zog keinen Strich, sondern **verschob das Geodreieck** — der Startpunkt lag **im Körper**, und das ist richtig so; *wer am Lineal entlangzeichnen will, setzt außerhalb an*. **Diesmal ist er nicht als Befund durchgegangen.** ✅ **Und seit V2-83 ist die Zusammenlegung vor Stück 5 zu** (§4.61): `WbKlon`, `WbZahlenblock`, `WbSchnellaktionen` und `WbLeiste` stehen in Core, der WPF-Kopf ist darauf umgestellt, **1012 Tests** = 953 Core + 59 WPF, **49 neue Wächter**. **⚠ Der Fund war ein Fehler in beiden Klonwegen, und er war am laufenden Programm zu sehen:** `CloneElement` setzte weder `WbElement.Rotation` (seit §4.51) noch `WbPoint.TX`/`TY` (seit §4.11) — eine gedrehte Linie kam beim Duplizieren **gerade** wieder heraus, ein Bleistiftstrich verlor seine Neigung; betroffen waren Strg+D, Strg+C, Strg+V und drei Schnellaktionen. **Der Kloner ist älter als beide Felder** — genau darum gehört so etwas an eine gemeinsame Stelle. Vorher/nachher an einer **frisch gezogenen** DB-Kopie gemessen, mit Bild und Dateiinhalt. **⚠ Sechste Runde in Folge, in der das Messen den Zuschnitt geändert hat:** §6 führt Stück 5 als „die Bedienung“ — gemessen sind **440 Zeilen** privat im WPF-Kopf, und der Linux-Kopf hat davon **nichts** (keine Zwischenablage, kein Strg+C/X/V/D, keine Schnellaktionen, keinen Zahlenblock, **keine klappbaren Gruppen**, und die Kürzel `G`/`T`/`F`/`N` fehlen). ✅ **Und seit V2-84 ist Stück 5 ganz zu** (§4.62): der Linux-Kopf hat **Zwischenablage samt Strg+C/X/V/D**, die **Schnellaktionen** (Rechtsklick und langes Drücken), den **Zahlenblock** und eine Werkzeugleiste in der **Ordnung des WPF-Kopfs** mit vier klappbaren Gruppen. **⚠ Der Fund war die Routing-Strategie:** der Zahlenblock ging nicht auf, weil der `Slider` den Druck als erledigt markierte, bevor der Handler dran war — er hängt jetzt am **Tunnel**; *der Bau war dabei grün*. **⚠ Und die Falle aus §4.61 wurde vor dem Bauen entschärft:** `AvaloniaClipboard.HasImage` hätte bei **jedem** Öffnen der Leiste das ganze Bild dekodiert und neu kodiert — jetzt fragt es nur die Formatliste (`GetDataFormatsAsync`). **Am laufenden Linux-Kopf belegt** und mit der Runde in den WPF-Kopf geschlossen. ✅ **Zwei Nutzerentscheidungen am 2026-08-25** (V2-85, §5 Nr. 16 und 17): die Werkzeuggröße läuft **in beiden Köpfen von 0,5 bis 40** (gebaut, eine Zeile), und die **zweite Stift-Taste darf verschieden bleiben** — drüben Schnellaktionen, hier Radieren; *es fehlt keine Funktion, nur ein zweiter Weg zu ihr*, und beim Ausrufen von M2 ist das **nicht** zu erwähnen. ✅⚠ **Der Laptop hat am 2026-08-27 gemessen** (V2-86, §4.63 und §4.62, **953/953 grün**, kein Produktivcode angefasst), und **beide Aufträge sind beantwortet**. **① Tesseract trägt unter Linux — aber nicht von selbst:** das NuGet-Paket bringt für Linux **nichts** mit und sucht die **Windows-Dateinamen** `libtesseract50.so` und `libleptonica-1.82.0.so` im Unterordner `x64/`; die unversionierte `libtesseract.so` des Systems **hilft nicht**, und `libdl.so` gibt es seit glibc 2.44 gar nicht mehr. **Mit drei gerichteten Namen erkennt es zeichengenau** (5.5.3, Zuversicht 0,930) — **keine andere Bindung nötig**, ein `DllImportResolver` reicht aber nur für `libdl` (§5 Nr. **18**). **② Der Augenschein von Phase 4.5 ist überwiegend grün:** Umlaute kommen an, **tote Tasten nicht** (dieselbe Wurzel wie §4.44), das Feld **sitzt richtig**, die **Zwischenablage trägt in allen drei Richtungen**, `HasImage` öffnet die Leiste in **< 400 ms** mit einem 5000×4000-Bild, **Zahlenblock und Klappgruppen gehen per Langdruck auf**, und der **Farbfix aus V2-77 trägt** im dunklen Design — *die beiden Tunnel-Reparaturen aus §4.55 sind damit unter Linux belegt*. **⚠ Ein neuer Fund:** die Zeichenfläche hat nach dem Öffnen **keinen Tastaturfokus**, der erste Strg+V geht verloren (§5 Nr. **19**). ✅ **Und Stück 6 ist gebaut — Phase 4.5 ist abgeschlossen, sechs von sechs** (V2-87, 2026-08-27, §4.64; Bau 0/0, **1025 Tests** = 966 Core + 59 WPF). **Es ist ein Zusammenlegen geworden und keine zweite Umsetzung:** von den 93 Zeilen `OcrService` war **nichts** plattformabhängig außer der Frage, wie die native Bibliothek gefunden wird — es gibt jetzt **ein** neues Projekt `GonkNote.Ocr` mit **einer** `TesseractOcrEngine` für **beide** Köpfe (Begründung wie bei `GonkNote.Legacy`: das Paket bindet nativ, iPadOS bekommt Vision). **Die drei Teile aus §4.63 stehen:** der `DllImportResolver` für `libdl`, die zwei Verweise unter `…/x64/` — **Nutzer-Entscheidung: verwiesen, nicht mitgeliefert** (§5 Nr. 18) — und der Texterkennungs-Knopf samt Ergebnisfenster im Linux-Kopf. **⚠ Die teuerste Falle dabei:** `build\Tesseract.targets` verteilt die nativen DLLs, und **MSBuild-Targets wandern nicht durch eine `ProjectReference`** — beide Köpfe referenzieren `Tesseract` deshalb **zusätzlich selbst**. ✅ **Und §5 Nr. 19 ist mit erledigt** (§4.65): der Fokus-Fund des Laptops war **gemeinsam** und nicht linuxspezifisch — **der WPF-Kopf tut dasselbe** —, behoben in **beiden** Köpfen, mit der Ausnahme für das Umbenennen-Feld. **Beides am laufenden Programm gemessen und nicht nur gebaut** (§5e: „ein grüner Bau beweist an einer Eingabe-Naht fast nichts"). ⚠ **Und zwei Fehler, die der Nutzer nebenbei gesehen hat** (V2-88, §4.66; **1035 Tests**): `App.OnExit` im WPF-Kopf rief **`Db.Dispose()` auf `null`**, wenn die Datenbank beim Start nicht zu öffnen war — auf die ehrliche Meldung folgte sofort eine zweite, die nach kaputtem Programm aussah („Die App läuft weiter", während sie sich beendete). **Behoben und am laufenden Programm gegengeprüft**; der Linux-Kopf hat es nicht. **⚠ Beim Nachsehen fiel dann auf, dass `fehler.log` 272 MB groß war** — 48.962 mal derselbe Fehler, **alle vom 2026-08-12**, dem Tag, an dem er behoben wurde. *Eine Datei, die im Fehlerfall wächst, wächst am schnellsten genau dann, wenn niemand hinsieht.* Neu ist `Fehlerprotokoll` in Core mit **5 MB Obergrenze** für beide Köpfe. ▶ **Phase 5 läuft** — **Punkt 1 toter Code** (§4.68, V2-91): sechs Stellen in Core und zehn Übersetzungstexte weg, in beiden Köpfen nachgesehen. **Punkt 2 Doku gegen Code** (§4.69, V2-92): §7 an fünf Stellen richtiggestellt, darunter eine **gefährliche** — sie behauptete, `Rtf` führe noch, und stand in dem Abschnitt, den man *vor* jeder Codeänderung liest. **Als Nächstes:** der Rest des Aufräumens (benannte Lücken, §4.1), dann der **vollständige Prüflauf**, dann veröffentlichen (Flatpak/AppImage). **Zwei Fragen gehören dem Nutzer und blockieren das Ende der Phase:** ob `HANDOFF.md` auch aus der Git-Vorgeschichte verschwindet, und wann das Repo öffentlich geht. **Der Laptop hat keinen Auftrag** (§5d) — **aber bei Schritt ③ ist er zwingend dran** (§5d, ein Flatpak lässt sich unter Windows weder bauen noch starten). ▶ **UND AM 2026-08-28 IST PHASE 5 NEU GEORDNET WORDEN** (§4.70, V2-93; **keine Zeile Produktivcode**): **① UI/UX 1:1 angleichen → ② Rückmeldung → ③ Flatpak/AppImage → ④ Rest des Aufräumens samt vollständigem Prüflauf → ⑤ veröffentlichen (1.0.0).** **Die Ordnung steht in §6 und nur dort.** **⚠ Schritt ① stand nirgends im Plan** — M2 wurde als *Funktionsgleichheit* ausgerufen und ist es auch, aber **Funktionsgleichheit ist nicht Aussehensgleichheit**; verglichen wird **nur unter Windows** (§5 Nr. 25), **Vorlage ist der Linux-Kopf — außer beim Editor, dort ist Windows die Vorlage**. **⚠ ③ ist vorgezogen, weil es das einzige Stück ist, das noch nie gelaufen ist** — §4.64 hat die Tesseract-Bindung ausdrücklich **außerhalb** eines Flatpaks vermessen; **⛔ ③ ist aber eine Erprobung und keine Auslieferung: nach ④ wird noch einmal gebaut, und erst dieser zweite Bau geht hinaus** — die Grundregel *„wer nach dem Aufräumen nicht mehr prüft, veröffentlicht einen Stand, den nie jemand gesehen hat"* gilt unverändert. **✅ Und sieben Entscheidungen sind gefallen, keine davon ist noch einmal zu fragen** (§5 Nr. **11**, **14**, **15**, **21**–**25**): `HANDOFF.md` liegt seit V2-93 unter **`Docs/`**, **kein History-Rewrite** — **daraus folgt eine Pflicht statt einer Entscheidung**, die Datei ist in jeder Fassung öffentlich lesbar und einmal ganz auf Privates durchzusehen (Checkliste in §6) —; die **Rechtschreibprüfung** wird als bekannte Einschränkung veröffentlicht **und** als **Phase 5.1 fest nach M3** eingeplant; die **toten Tasten** werden **an Avalonia gemeldet und als Mangel benannt**, nicht im Kopf umgangen; die **Schriftlisten** werden **zusammengeführt** (§5 Nr. 14); die **Seitenzahlen im WPF-Editor bleiben, wie sie sind** — **und das ist die Ausnahme in der Ausnahme:** die Editor-Vorlage-Regel meint das **Aussehen** des Ribbons und nicht das **Rechnen** dahinter, der Linux-Kopf wird hier **nicht** an den schlechteren angeglichen; Version **1.0.0**; die Veröffentlichung umfasst **alle vier** Stücke (READMEs, Pages, Releases, Beiwerk).
 
 > **📌 Dauerregeln des Nutzers — gelten immer, ohne Nachfragen:**
 >
@@ -65,17 +65,25 @@
 >    der falschen Stelle. **Aus der Kopie nichts ins Repo übernehmen** — dort stehen
 >    Schulunterlagen (Kopfzeile).
 >
-> **⚠️ Diese Datei liegt im Repo — solange es privat ist.** Nutzer-Entscheidung vom
-> 2026-07-29: eingecheckt, damit sie zwischen Rechnern (Windows ↔ CachyOS-Laptop)
-> mitwandert. **Bevor das Repo öffentlich geschaltet wird, muss sie wieder raus** — der
-> Eintrag steht als erster Punkt in §6 „Vor dem Öffentlich-Schalten".
+> **⚠️ Diese Datei bleibt im Repo — auch wenn es öffentlich wird.** Nutzer-Entscheidung vom
+> 2026-07-29 (eingecheckt, damit sie zwischen Windows und CachyOS-Laptop mitwandert),
+> **bestätigt und zugeschnitten am 2026-08-28** (§5 Nr. 21): Sie liegt seit V2-93 unter
+> **`Docs/HANDOFF.md`** und nicht mehr in der Wurzel — sie soll **keine der Hauptdateien auf
+> der Repo-Startseite** sein, denn sie ist eine reine Arbeitsdatei. **Aus dem Baum genommen
+> wird sie nicht**: sie muss mitwandern, heute zwischen zwei Rechnern und mit Phase 6
+> zwischen dreien.
 >
-> **Dabei wissen:** Ein `git rm` entfernt sie nur aus dem *aktuellen* Stand, nicht aus der
-> **History** — jeder frühere Stand bliebe lesbar. Wer das vermeiden will, braucht einen
-> History-Rewrite vor dem Umschalten. In V1 ist genau das passiert und wurde damals
-> bewusst hingenommen (V1-Handoff, Kopfzeile). Deshalb hier die Regel: **nichts in diese
-> Datei schreiben, was nicht irgendwann öffentlich stehen darf** — keine Pfade zu privaten
-> Daten, keine Zugangsdaten, keine Inhalte aus den Schulunterlagen.
+> **⛔ ENTSCHIEDEN IST AUCH: KEIN HISTORY-REWRITE.** Sie darf über `git log` und im Repo
+> lesbar bleiben. *(In V1 ist umgekehrt entschieden worden — dort ist sie ausgeschlossen und
+> die History umgeschrieben; V1-Handoff, Kopfzeile.)*
+>
+> **⚠ Daraus folgt eine Pflicht und keine Ersparnis.** Ohne Rewrite ist **jede** Fassung
+> dieser Datei öffentlich lesbar, auch jede frühere. Die Regel gilt damit schärfer als je
+> zuvor: **nichts hineinschreiben, was nicht irgendwann öffentlich stehen darf** — keine
+> Pfade zu privaten Daten, keine Zugangsdaten, keine Inhalte aus den Schulunterlagen.
+> **Bisher war sie durch die *Möglichkeit* eines Rewrites abgesichert; diese Absicherung
+> fällt weg.** Vor dem Öffentlich-Schalten wird die Datei deshalb einmal ganz durchgesehen —
+> eigener Punkt in der Checkliste in §6.
 
 ---
 
@@ -296,505 +304,88 @@ angezeigt, importiert (DOCX) und in alle vier Formate exportiert. **Damit ist Ph
 abgeschlossen.** Der Anschluss hat sofort einen Fehler gezeigt, den vier Runden lang kein
 Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — behoben.
 
-### ▶ Hier geht es weiter (Stand 2026-08-25, nach Runde V2-84)
+### ▶ Hier geht es weiter (Stand 2026-08-28, nach Runde V2-93)
 
-> **✅ Phase 4 ist abgeschlossen** (§4.28) und **auf dem Laptop gegengeprüft** (§4.28, „Was der
-> Laptop gefunden hat"): die Anzeige trägt, ihr Umbruch stimmt mit dem PDF überein, Rollen und
-> Zoom arbeiten.
+> **✅ M2 ist erreicht und ausgerufen** (2026-08-28, §2) — Funktionsgleichheit Linux ↔
+> Windows, **mit einem benannten Loch**: die Rechtschreibprüfung fehlt im Linux-Kopf.
+> Phase 4.5 ist auf **beiden** Systemen zu (§4.64, sechs von sechs Stücken), und der älteste
+> offene Fund des Laptops ist erledigt (§4.67).
 >
-> **✅ Die Entscheidung ist gefallen — Nutzer, 2026-08-11: (a) das Schreiben im Linux-Kopf**,
-> vor Phase 4.5. Damit ist §5 „Noch offen" 2 beantwortet, und **es ist nicht mehr
-> nachzufragen.** Phase 4.5 rückt dahinter, bleibt vollständig vorgemerkt und trägt weiterhin
-> M2.
+> **✅ Phase 5 läuft** — zwei Punkte sind angefangen: **toter Code** (§4.68) und **Doku gegen
+> den Code** (§4.69).
 >
-> **✅ Die drei Handgriffe aus §5e sind erledigt** (2026-08-11, §4.29): die Versionszeile ist
-> **in beiden Köpfen** geprüft, der Dateidialog ist **unter Windows durchgespielt** (Format
-> und Pfad kommen beide richtig, PDF und DOCX geschrieben, das DOCX wieder eingelesen), und
-> die Roadmap-Datei kennt **Phase 4.5 samt M2**.
->
-> **✅ Schritt 1 des Arbeitsplans steht** (2026-08-12, §4.30): `TdPosition`, `TdSelection` und
-> `TdCursor` in `Core/Text/`, **28 Wächter**, Bau 0/0 und **545 Tests** grün. Die Stelle steht
-> **im Modell**, wie vorgeschlagen.
->
-> **✅ Dazwischen kam ein Symbolsatz für alle drei Plattformen** (2026-08-12, §4.31) — auf eine
-> Frage des Nutzers hin, und sie traf einen blinden Fleck: Der WPF-Kopf setzte an **91 Stellen**
-> Zeichen aus `Segoe Fluent Icons`, einer Windows-Schrift, die unter Linux fehlt und nicht
-> mitgeliefert werden darf. Die Symbole stehen jetzt als **Tabelle in `Core/Theming/`** (71
-> Stück, aus Lucide; sieben eigene), beide Köpfe lesen sie, **12 neue Wächter**. **557 Tests.**
->
-> **✅ Schritt 2 des Arbeitsplans steht** (2026-08-12, §4.32): `TdEdit`, `TdFragment` und
-> `TdChange` daneben, **58 Wächter**, Bau 0/0 und **616 Tests** grün. Alles läuft über **einen**
-> Handgriff, und eine Änderung merkt sich **die Blöcke davor und danach** statt des Handgriffs —
-> daraus folgt die Regel, die alles Weitere erbt: **Absätze und Stücke werden nie verändert,
-> sondern ersetzt.** §5 „Noch offen" **8** ist damit erledigt.
->
-> **⚠ Und die Gegenprobe hat etwas gefunden, das nicht aus dieser Runde stammt:** Der
-> **WPF-Kopf konnte seit §4.31 kein Textdokument mehr öffnen** — ein Stil `TargetType="Path"`
-> an einem `views:Symbol` wirft beim Anwenden. Gegengeprüft auf dem unveränderten Stand,
-> behoben (§4.32, §7). **Keiner der zwölf Ikonen-Wächter konnte das sehen; nur ein laufendes
-> Fenster kann es.**
->
-> **✅ Schritt 3 des Arbeitsplans steht** (2026-08-13, §4.33): `TdUndo`, **21 Wächter**,
-> **637 Tests** grün. Er steht **neben** `UndoStack` und nicht darin — belegt mit drei Gründen
-> (kein `WbPage`, die Antwort ist eine Auswahl, und das **Zusammenfassen** gibt es dort gar
-> nicht: wer „Hallo" tippt, hat einen Handgriff gemacht und nicht fünf). **Der Fund kam wieder
-> aus dem Erproben der Wächter:** Ein Vergleich auf gleichen *Inhalt* statt auf dieselben
-> *Objekte* ließ alle 21 grün — und hätte beim Zusammenfassen Schritte übersprungen.
->
-> **✅ Schritt 4 des Arbeitsplans steht** (2026-08-13, §4.34): `TdHit`, **34 Wächter**,
-> **671 Tests** grün. Klick → Stelle und Stelle → Papier stehen als **eine** Rechnung
-> nebeneinander; der Zeichner bekommt Schreibmarke und Auswahl **je Zeile** fertig gerechnet.
-> **Der in §4.30 versprochene Rückweg war die Hälfte** — jedes gesetzte Stück trägt jetzt seine
-> Stelle im Absatz, denn nachzählen geht nicht (weggeworfener Leerraum, gerechnete Feldwerte,
-> Umbrüche ohne Stück). **Der Fund kam aus einer Mutation, die überlebt hat:** Ohne den
-> Spaltenversatz sind beide Richtungen *gleich falsch*, und der Hin-und-zurück-Wächter bleibt
-> grün — dabei kam heraus, dass ein Klick in die zweite Tabellenspalte in der ersten landete.
->
-> **✅ Schritt 5 des Arbeitsplans steht** (2026-08-16, §4.35): `TextDocView.Eingabe.cs`,
-> **22 Wächter**, **693 Tests** grün. **Der Linux-Kopf schreibt** — getippt wird über
-> `TextInput`, ausgewählt mit Maus und Umschalt, gesprungen wort- und zeilenweise, zurück-
-> genommen mit Strg+Z. Der Umbruch nach jeder Änderung ist **gemessen** (§4.35), und dabei kam
-> heraus, dass die Sorge aus §6 an der falschen Ursache hing: nicht das Verzeichnis kostet,
-> sondern die Länge. **Der Fund kam wieder vom Schirm und nicht von einem Wächter:** Die
-> Schreibmarke ging über die ganze Zeilenhöhe und war zwischen zwei Absätzen doppelt so hoch
-> wie die Buchstaben daneben.
->
-> **⚠ Und die Gegenprobe hat den ernstesten offenen Punkt dieser Runde gebracht:** Bei einem
-> Dokument mit gefülltem `Rtf` zeigt der WPF-Editor die Linux-Arbeit **nicht** und überschreibt
-> sie beim nächsten Speichern — nachgemessen, betrifft **jedes Bestandsdokument**.
-> **✅ Entschieden am 2026-08-16 (§5 „Noch offen" 9): warnen, nicht sperren** — seit V2-48 sagt
-> der Kopf es auf dem Schirm (§4.36). **Ganz zu ist es erst mit Schritt 7.**
->
-> **✅ Schritt 6 steht ganz** (2026-08-17, §4.36 und §4.37): `TdFormatEdit`, `TdFuehrung`,
-> `TdBlockEdit` und `TdTableEdit` in Core, die Formatgruppe und die **drei neuen Reiter** im
-> Ribbon — **61 Wächter**, **754 Tests** grün. **Formate lassen sich setzen** (F, K, U, S,
-> hoch/tief, Größe, die vier Ausrichtungen, Einzug, Strg+B/I/U), **einfügen lässt sich**
-> Seitenumbruch, Zeilenumbruch, Tabelle und Feld, **Verweise** lassen sich setzen und entfernen,
-> **Tabellen** um Zeilen und Spalten erweitern und beschneiden.
-> **Zwei Entscheidungen tragen das:** Formatieren läuft **nicht** über `TdEdit.Ersetzen` (es
-> verlöre das Absatzformat der Zwischenabsätze und würde im Verlauf mit dem Tippen
-> zusammengefasst), und `TdFragment` bekommt **keine** Blöcke (sonst trüge jeder Tastendruck eine
-> Möglichkeit mit sich, die er nie braucht). **Die Regel aus §4.32 wird hier zum ersten Mal
-> ernst:** Stücke werden kopiert und nicht umgestellt, sonst ändert das Formatieren die
-> Sicherung des Verlaufs mit.
-> **✅ Am laufenden Programm in beiden Köpfen gegengeprüft** (§4.37): Der WPF-Editor zeigt die vom
-> Linux-Kopf angelegte Tabelle, das Fett und den **blau unterstrichenen Verweis** — und der
-> **Warnstreifen erscheint genau dann, wenn `Rtf` gefüllt ist**, vorher nicht. **Zwei Funde, die
-> nur der Schirm liefern konnte:** die zwei Zahlenfelder waren zu schmal für ihren Wert
-> (behoben und nachgesehen), und der Weg durch den WPF-Editor setzt den Absatz auf **Blocksatz**
-> — das gehört zu Schritt 7 und ist dort vermerkt.
->
-> **✅ Der Laptop hat das inzwischen abgearbeitet** (2026-08-16, V2-47, §4.35 „Was der Laptop
-> gefunden hat"): Umlaute **und** tote Tasten kommen an, der **Stift setzt die Marke und zieht
-> eine Auswahl**, getippt wird flüssig ohne ein verlorenes Zeichen — Compose nur deshalb nicht
-> geprüft, weil auf dem Gerät keine eingerichtet ist. **Dabei zwei alte Punkte geschlossen**
-> (§5 „Noch offen" 7 und 1) und **einen neuen aufgeworfen** (§5 „Noch offen" 10: ohne
-> Hardware-Tastatur ist nicht zu schreiben).
->
-> **✅ Schritt 6 steht ganz, dazu die Gruppen A und B und Schritt 6a** (§4.36 bis §4.41,
-> V2-48 bis V2-54): Formate, die drei Reiter, das aufgeräumte Ribbon, Listen und Vorlagen,
-> Schriftart und Farben — und seit dem 2026-08-18 die **Eingabe-Naht** (`TextInputMethodClient`,
-> §4.41). **823 Tests.**
->
-> **▶ Als Nächstes: alles auf Windows — der Laptop hat abgeliefert.** Sein Befund vom
-> 2026-08-18 (§4.41, V2-55) ist zweigeteilt. **Das Gute:** Die Bildschirmtastatur **schreibt**
-> jetzt, wenn man sie von Hand hervorholt — in V2-47 war sie *unsichtbar und taub*, **taub ist
-> sie nicht mehr**. **Das Offene:** Von selbst klappt sie nicht auf, weil `Avalonia.X11`
-> **keine `IInputPane`** hat; das behebt kein Kopfcode und ist **keine Arbeit für Windows**
-> (§5 „Noch offen" 10). **Das Dringende:** Der Preis dafür sind die **toten Tasten** — sie
-> kommen seit V2-54 nicht mehr an (§5 „Noch offen" **11**).
->
-> **Die Regression geht VOR Schritt 7**, weil sie in derselben Naht sitzt, die Schritt 7
-> benutzt: Wer erst Schritt 7 baut, baut auf einem Eingabepfad weiter, an dem gerade Zeichen
-> verschwinden. **Danach macht Windows mit Schritt 7 weiter** (§5e): `Rtf` verliert die
-> Führung, der eigentliche Zweck des ganzen Wegs.
-> **Die Entscheidungen aus §5 Nr. 9 und 10 sind gefallen — nicht mehr nachfragen.**
->
-> **⛔ Und der Laptop hat am 2026-08-18 gemessen, dass Preedit die Regression NICHT behebt**
-> (§4.43, V2-59, **789/789 grün**): `^`+`e` ergibt weiterhin nichts, **Zähler 5 statt 7 —
-> zahlengleich mit V2-55**. Umlaute (**14**) und ein Absatz von **427** Zeichen sind heil.
-> **Der `dbus-monitor` sagt aber, wo es klemmt, und das ist der Fortschritt der Runde:**
-> **`CommitText` 0 mal bei uns, 2 mal bei `gnome-text-editor`** — derselbe Daemon, dieselbe
-> Engine, dieselbe Sekunde, **also nicht IBus**. ✅ **Das Fähigkeitswort kommt an**
-> (`SetCapabilities uint32 9` = `CapPreeditText` + `CapFocus`) — **Punkt 2 aus §4.42 ist
-> gemessen und bestätigt.** **⚠ Der Fehler sitzt eine Station davor:** für die tote Taste und
-> den Buchstaben danach schickt der Kopf **gar keinen Tastendruck** an IBus, nur das
-> **Loslassen** — und dazwischen **einen Aufruf mit `keysym = 0` und `keycode = 0`**, den IBus
-> mit **`true`** beantwortet; **genau danach verwirft Avalonia das rohe Ereignis samt Text.**
-> **Damit ist der Fund keine Verneinung, sondern eine Verschiebung: weg von der Fähigkeit, hin
-> zum Tastenweg.** **`SupportsPreedit` wird nicht zurückgebaut** — es heilte nichts und nähme
-> die Vorschau weg, die der iPadOS-Kopf ohnehin braucht.
-> **▶ Der nächste Griff ist benannt und gehört nach Windows:** nachsehen, **wer den Aufruf mit
-> `keysym = 0` absetzt** — eine der vier Anschlussstellen aus §4.41 oder `Avalonia.X11` selbst,
-> **am zerlegten Rücken zu lesen wie in §4.42.** **§5d trägt jetzt keinen Auftrag mehr.**
->
-> **✅ Und Windows hat am 2026-08-19 genau das getan** (§4.44, V2-61; am zerlegten Rücken von
-> Avalonia **12.1.1**, **kein Produktivcode angefasst**, Bau 0/0, **823 Tests** grün): **Der
-> `0/0/0`-Aufruf wird von Avalonias eigenem dbus-Client abgesetzt** — der einzigen Stelle, die
-> `ProcessKeyEvent` ruft —, **aber gespeist wird er von einem Phantom-`KeyPress` mit
-> `keycode = 0` aus dem X-Strom.** Der echte Druck der toten Taste verschwindet zwischen
-> `XNextEvent` und dem ersten Avalonia-Code; die einzige Weiche dort (`XFilterEvent`) dürfte
-> nach Avalonias eigener Startlogik gar nicht filtern, denn das XIC wird unter IBus nie
-> fokussiert. **Unser Kopf ist es nicht** (die vier Anschlussstellen aus §4.41 setzen keine
-> Tastenereignisse ab), **die Warteschlange auch nicht** — sie entkoppelt Druck und Antwort,
-> verändert aber weder Keysym noch Keycode. Als Befunde festgehalten: der **Keycode-Versatz
-> um 8** (der X11-Keycode geht unverändert an IBus — dieselbe Familie wie der
-> `CapSurroundingText`-Fund aus §4.42) und das fehlende **`LockMask`**-Bit. **Upstream
-> belegt:** AvaloniaUI/Avalonia#18596 ist exakt dieses Symptom, **geschlossen ohne Fix**.
-> **Was mit dem benannten Fund geschieht (Umgehung im Kopf, Meldung an Avalonia, stehen
-> lassen), entscheidet der Nutzer** — und die letzte offene Frage (erreicht der Druck den
-> X11-Client überhaupt, und wer speist das Phantom ein) klären **zwei Messungen auf dem
-> Laptop**, sie stehen in **§5d**. **Erst wenn beides da ist, ist Schritt 1 abgeschlossen —
-> dann ist Schritt 7 dran.**
->
-> **✅ Und der Laptop hat am 2026-08-19 die zwei Messungen nachgeliefert** (§4.44 „Was der
-> Laptop gefunden hat", V2-62; **kein Produktivcode angefasst**, Bau 0/0, **789/789 grün**,
-> von Hand getippt): **Die Leitspur aus §4.44 ist widerlegt — der Druck kommt an.** Auf
-> GonkNotes Leitung liegen `KeyPress keycode 49` **3 mal** und `keycode 26` **5 mal**, je mit
-> Loslassen; **ein `keycode 0` steht nirgends auf der Leitung**, weder bei GonkNote noch bei
-> `xev`. **Damit scheiden XWayland und ein fremder `XSendEvent`-Client beide aus**, und der
-> zweite Ausgang der Tabelle ist gemessen: **das Verschwinden sitzt im Prozess.**
-> **`XFilterEvent` filtert sehr wohl** (in `xev` mit `True` belegt — auch das gegen die
-> Herleitung in §4.44). ✅ **Und das `keycode = 0` ist kein Phantom, sondern der Bote:**
-> libX11 verschluckt die beteiligten Drucke und legt das **fertige Zeichen** als Ereignis
-> nach — `XmbLookupString` liefert dort `(c3 aa) "ê"`. **Mit `XMODIFIERS=@im=none`
-> gegengeprüft**, also in Avalonias eigener Einstellung: identisch, **4 mal `ecircumflex`**
-> — **der Zusammensetzer ist Xlibs lokale Eingabemethode**, nicht `ibus-x11` und nicht IBus.
-> **Damit schließt sich die Kette:** Avalonia lässt filtern, holt aber nie ab —
-> `HandleKeyEvent` bestimmt den Keysym über `LookupKey(keycode)`, und bei `keycode = 0` fällt
-> genau das Zeichen heraus, das im Ereignis steckt. **Der Weg, auf dem `xev` sein `ê` abholt
-> (`XmbLookupString`), wird nie gegangen.** **Zwei alte Fragen fallen nebenbei:** warum
-> Umlaute heil sind (einzelnes Keysym, `XFilterEvent` gibt `False`) und warum es vor V2-54
-> lief (ohne Eingabeziel wertete der Kopf das rohe Ereignis selbst aus und fragte IBus gar
-> nicht).
->
-> **▶ Damit ist Schritt 1 abgeschlossen und §5d trägt keinen Auftrag mehr.** Offen ist nur
-> noch **eine Entscheidung des Nutzers**, was mit dem benannten Avalonia-Fund geschieht:
-> **im Kopf umgehen**, **an Avalonia melden** (#18596 ist geschlossen, **dieser Befund ist
-> neu**) oder **als benannten Mangel stehen lassen**. **Keine der drei blockiert Schritt 7 —
-> und Schritt 7 ist jetzt dran** (§5e, unter Windows): `Rtf` verliert die Führung, der
-> eigentliche Zweck des ganzen Wegs.
->
-> **✅ Und am 2026-08-21 ist der Weg dicht gemacht, den Schritt 7 gehen wird** (§4.45,
-> V2-63, Schritt **6c**; **nur `TdZuFlow` und `FlowZuTd` angefasst**, an `TextDoc`, am
-> Speicherformat und an der Führung **nichts** geändert; Bau 0/0, **832 Tests**,
-> **9 neue Wächter**).
->
-> **Die Frage, die nie jemand gestellt hatte:** Schritt 7 dreht die Führung auf die Kette
-> `Modell → FlowDocument → Modell`, die dann bei **jedem** Speichern läuft —
-> **kehrt dieser Weg sich selbst um?** Gemessen an einem Modell, wie der **Linux-Kopf** es
-> anlegt (und ausdrücklich nicht am `Referenzdokument` — das ist selbst schon
-> `FlowZuTd`-Ausgabe und misst die *zweite* Rundreise; der gefährliche Fall ist die
-> *erste*). **Die Antwort war nein, siebenfach.**
->
-> **Der Kern ist ein `?? 0`:** `TdZuFlow` hat die Kaskade aus §4.14 nicht **aufgelöst**,
-> sondern durch **Null ersetzt** — und `TdParaFormat.Standard.SpaceAfterPt` ist **8**.
-> Daraus zwei Fehler, die wie einer aussehen, **und nur der zweite ist teuer**: eine falsche
-> Anzeige (Linux-Dokumente mit aneinandergeklebten Absätzen) und eine falsche **Datei**,
-> weil `FlowZuTd` den so gesetzten Wert als örtlich gesetzt zurückliest. **Ein falsch
-> angezeigter Wert repariert sich, ein festgeschriebener nicht.** Ebenso die Ausrichtung: ein
-> `FlowDocument` steht von Haus aus auf `Justify` — **damit ist Fund 2 aus §4.37 an
-> seiner Wurzel behoben.** Mit behoben: Tabellenrahmen und Zellabstand (kommen jetzt aus
-> `t.Format`), der eigene Abstand des Listenpunkts, die Rundungsdrift der Spaltenbreite und
-> `DefaultParaFormat`, das der DOCX-Import setzt und das schlicht übergangen wurde.
->
-> **⚠ Der Nebenbefund wiegt schwerer als die Runde: der Verlust wartet nicht auf Schritt 7,
-> er läuft seit §4.23.** `Migrate` wird bei **jedem** Speichern gerufen — ein unter
-> Linux oder aus DOCX importiertes Dokument verliert **heute schon beim ersten Speichern im
-> WPF-Editor** Tabellenrahmen, Abstände, **sein Diagramm und seine Felder**. §4.21 hatte
-> belegt, dass ein Diagramm DOCX → Modell → DOCX übersteht; **den Weg durch den
-> Editor übersteht es nicht.**
->
-> **Drei Lücken bleiben und haben eigene Wächter** (§4.19): Diagramm, Feld und
-> Gliederungsebene. **Sie sind kein Fleiß, sondern gemessen unmöglich, solange der Weg
-> über das `XamlPackage` läuft:** `Tag` und `ToolTip` an `Run` und `Paragraph` kommen als
-> `null` zurück, **nur ein `ToolTip` an einem `Image` übersteht das Paket** — genau
-> deshalb trägt `DocumentImages` ihn dort.
->
-> **✅ Und beide Entscheidungen sind am 2026-08-21 gefallen — nicht mehr nachfragen:**
->
-> | | Entschieden | Was daraus folgt |
-> |---|---|---|
-> | **§5 Nr. 12** | **Das Modell geht direkt in den `RichTextBox`** — als **eigene Runde vor** Schritt 7 | Sobald `Rtf` nicht mehr geschrieben wird, steht im Speicherweg gar kein `XamlPackage` mehr; ein Träger lebt nur im Arbeitsspeicher und überlebt. **Alle drei Lücken werden damit schließbar.** **Zu messen und nicht anzunehmen:** ob ein geteilter Absatz den Träger des alten erbt — das wäre eine verdoppelte Gliederungsebene |
-> | **§5 Nr. 13** | ~~Der WPF-Kopf wird angehoben, Punkt gewinnt~~ ⛔ **einen Tag später zurückgenommen — die Deutung dahinter hielt der Prüfung nicht stand.** Gültig ist: **`TdStil` wird verkleinert** (§4.46, siehe den Kasten darunter). Der Wortlaut bleibt stehen, damit die Umkehr nachvollziehbar ist und nicht wie eine stille Korrektur aussieht |
->
-> **▶ Die Reihenfolge steht damit fest: (13) die Schriftgrößen, (12) der Ladeweg, dann
-> Schritt 7.** Die Schriftgrößen zuerst, weil sie die dritte Lücke aus §4.45 überhaupt erst
-> heilbar machen (`TextStyles.HeadingLevel` erkennt eine Linux-Überschrift sonst nie wieder) —
-> und weil sie die einzige der drei Runden ist, die man am Schirm ansehen muss.
->
-> **✅ Und die erste davon ist am 2026-08-21 gefahren — sie hat unterwegs die Richtung
-> gewechselt** (§4.46, V2-64; Schritt **6d**, Bau 0/0, **835 Tests**, 3 neue Wächter, einer
-> **umgedreht**).
->
-> **Entschieden war „den WPF-Kopf anheben". Die Deutung dahinter war ungeprüft** — und sie ist
-> beim Bauen an drei Belegen zusammengebrochen, die alle schon dastanden:
-> `TextStyles.BodySize = 15` ist ausdrücklich als **DIP** dokumentiert, `TdStil.KoerperPt = 15`
-> als **Punkt** mit dem Kommentar „*dieselbe Zahl wie `TextStyles.BodySize`*", und
-> `TdCharFormat.Standard.FontSize` ist **11 pt** — was 15 DIP entspricht. **Der WPF-Kopf und
-> die Vorgabe des Dateiformats stimmten längst überein; `TdStil` war die Kopie, die in §4.39
-> von Pixeln auf Punkt umetikettiert wurde.**
->
-> **Und der eigentliche Beweis brauchte den Vergleich der Köpfe gar nicht:** Im Linux-Kopf
-> machte die Vorlage **„Standard"** einen unberührten Absatz um ein Drittel **größer** — die
-> Vorlage, die nichts ändern soll. **Umgedreht (Nutzer): `TdStil` ist verkleinert**, alle
-> Zahlen mal 0,75, Überschrift 1 auf **21 pt**; Abstände und Zitat-Einzug ebenso.
-> `TdCharFormat.Standard` bleibt bei **11** — das ist die Vorgabe des *Formats* und keine
-> Vorlage (§4.14).
->
-> **⚠ `VorlagentabelleTests` war grün und hat nichts geprüft.** Er verglich die **Zahlen** und
-> nicht die **Größen**, jahrelang, während „Überschrift 1" in den beiden Köpfen 28 pt gegen
-> 21 pt groß war — **also genau der Zustand, den er laut seinem eigenen Kommentar verhindern
-> sollte.** Er rechnet jetzt um, die Einzüge sind nicht mehr ausgenommen, und ein zweiter
-> Wächter hält fest, **warum** dort ein Faktor steht.
->
-> **✅ Und eine der drei Lücken aus §4.45 hat sich dabei von selbst geschlossen — das war nicht
-> der Zweck und ist das beste Ergebnis der Runde:** Die **Gliederungsebene** überlebt die
-> Rundreise wieder. Sie ging verloren, weil eine Überschrift 1 mit 28 pt = **37,33 px** ankam
-> und `TextStyles.HeadingLevel` sie gegen seine eigene **28** hielt; seit die Einheit stimmt,
-> sind es 21 pt = **28 px**. **Sie war kein Mangel des `FlowDocument`, sondern derselbe
-> Zahlendreher — es sind noch zwei** (Diagramm und Feld).
->
-> **✅ In beiden Köpfen am laufenden Programm belegt** (Wegwerf-Datenbank, danach gelöscht):
-> Im **Linux-Kopf** zeigt die Vorlagenliste für einen unberührten Absatz **„Standard"** (vorher
-> passte gar keine), und **„Standard" auf den Fließtext ändert die Größe nicht mehr**. Im
-> **WPF-Kopf**, dasselbe Dokument über `Model` und `TdZuFlow`: **28** in der Größenanzeige des
-> Ribbons und **„Überschrift 1" in der Galerie markiert** — vorher **37,33** und keine.
->
-> **Die Lehre der Runde, und sie gilt für die nächste genauso:** Eine Entscheidung, die auf
-> einer **ungeprüften Deutung** des Befunds steht, ist selbst ungeprüft — **auch dann, wenn
-> der Befund stimmt.**
->
-> **▶ Es bleiben zwei Runden: (2) der Ladeweg** (§5 „Noch offen" 12, jetzt für **zwei** Lücken
-> statt drei), **dann Schritt 7.**
->
-> **✅ Und Runde ② ist am 2026-08-22 gefahren** (§4.47, V2-65; Schritt **6e**, Bau 0/0,
-> **840 Tests**, 5 neue Wächter, **Führung unverändert**).
->
-> **Die Auflage lautete „erst messen, dann bauen" — und die Messung hat den Entwurf
-> umgeworfen, bevor eine Zeile davon stand.** Gefragt war, ob ein von WPF geteilter Absatz den
-> Träger des alten erbt. **Die Antwort:** `Paragraph.Tag` **wird kopiert**, `Run.Tag` ebenso —
-> **beide Hälften tragen ihn.** Ein Träger dort wäre nach **einem einzigen Tastendruck**
-> doppelt vorhanden: aus einem Diagramm würden zwei, aus einer Überschrift zwei. **Das ist
-> schlimmer als die Lücke, die er schließen sollte** — was verschwindet, sieht man; was sich
-> verdoppelt, findet man erst im Inhaltsverzeichnis.
->
-> **Übrig bleibt der `InlineUIContainer`**, und das ist keine Notlösung, sondern der passende
-> Ort: Ein Diagramm und ein Feld sind **unteilbare, nicht-textliche Dinge**. `DocumentImages`
-> führt seinen Blob-Verweis seit jeher dort, und §4.45 hatte schon gemessen, dass ausgerechnet
-> dieser Träger als einziger ein `XamlPackage` übersteht — **zwei unabhängige Messungen zeigen
-> auf dieselbe Stelle.**
->
-> **Gebaut ist der Weg:** `AusModell` lädt direkt (`Modell → FlowDocument → Blöcke umhängen`)
-> statt über ein Paket; die Übernahme steht als `TdZuFlow.InhaltUebernehmen` neben
-> `Umwandeln`. **Die alte Begründung im Code war richtig und trug trotzdem nicht** — ein
-> *ausgetauschtes* `Document` nähme dem `RichTextBox` Stile und Verdrahtung mit, **nur folgt
-> daraus nicht das Paket**: Es genügt, das `Document` zu behalten und seinen **Inhalt** zu
-> ersetzen. Ein richtiger Grund war an einen falschen Schluss gebunden.
->
-> **✅ Ein Fund, der gar nicht gesucht war:** `TextRange.Save`/`Load` schiebt die Schrift des
-> **Dokuments** als **örtlichen Wert** auf **jeden Absatz** hinunter. Sichtbar ist das nicht —
-> und genau deshalb ist es gefährlich: `FlowZuTd` liest örtliche Werte und schriebe danach in
-> *jedem* Absatz eine `FontFamily` ins Modell. **Derselbe Fehler wie §4.45, an anderer Stelle;
-> mit Schritt 7 wäre er in jedes Dokument gewandert.** Der direkte Weg räumt ihn mit weg.
->
-> **⏳ Die Träger für Diagramm und Feld sind bewusst nicht gebaut.** Sie überleben jetzt das
-> *Laden*, aber `FlushToModel` schreibt beim Speichern weiter ein Paket nach `Rtf`. **Ein
-> Träger, der eine Sitzung überlebt und das Speichern nicht, wäre eine Lücke mit mehr Code
-> drumherum** — sie gehören zu Schritt 7.
->
-> **⚠ Benannter Nebenbefund:** Die Schriftliste des WPF-Kopfs führt nur **Systemschriften** und
-> kann „Source Sans 3" — die Grundschrift jedes Dokuments aus dem Modell — gar nicht anzeigen.
-> Der Linux-Kopf macht es richtig (§4.40). **§5 „Noch offen" 14.**
->
-> **▶ Damit ist nur noch eines offen, und es ist der Zweck des ganzen Wegs: Schritt 7.**
->
-> **✅ Und Schritt 7 ist am 2026-08-22 gefahren** (§4.48, V2-66; sieben Dateien, am
-> Speicherformat und an `TextDoc` **nichts** geändert; Bau 0/0, **837 Tests**).
->
-> **Vier Zeilen sagen alles:** Der WPF-Editor **liest** jetzt das Modell (`Rtf` nur noch als
-> Rückfall) und **schreibt** es auch — `Rtf` wird **nie wieder** überschrieben; `Migrate` läuft
-> nur noch für die **einmalige** Übernahme; der **Warnstreifen im Linux-Kopf ist entfallen**.
->
-> **Der Datenverlust, den das behebt, war seit dem 2026-08-16 gemessen** (§4.35): Ein Dokument
-> mit gefülltem `Rtf`, im Linux-Kopf bearbeitet, verlor seine Arbeit beim nächsten Speichern
-> unter Windows **still** — bei **jedem** Bestandsdokument. **Die Warnung seit V2-48 war eine
-> Vertagung, keine Lösung**; die Lösung ist immer (a) gewesen.
->
-> **Die Reihenfolge im Speichern hat getragen, ohne dass jemand sie anfassen musste.** `Save`
-> ruft `Mitschreiben` (die Übernahme) und **danach** `ModellMitschreiben` (das Geschriebene) —
-> **seit §4.23 so festgelegt, ausdrücklich für diesen Tag.** Der Kommentar dort sagt es
-> wörtlich: *„Wenn Schritt 7 den WPF-Editor auf das Modell umstellt, ist sie schon richtig."*
->
-> **`Migrate` prüft jetzt `UebernahmeStehtAus` statt `AltformatFuehrt` — und das ist Antwort
-> (d) aus §5 Nr. 9, die damals ausdrücklich als falsch verworfen wurde.** Damals hieß sie: der
-> Umwandler liefe nie mehr. Heute läuft er bei jedem Speichern an anderer Stelle, und der
-> Einwand ist gegenstandslos. **Dieselbe Zeile, zwei Bedeutungen, je nachdem, wer führt** — wer
-> die alte Begründung liest, ohne die neue Lage zu kennen, hält die Änderung für einen Fehler.
->
-> **`Rtf` wird nicht überschrieben und auch nicht gelöscht.** Das Altfeld bleibt als Sicherung
-> stehen, und **der Rückfall darauf bleibt im Editor** — für den einen Fall, dass die Übernahme
-> aussteht oder **fehlgeschlagen** ist. **Geschrieben wird von dort nichts zurück: Der Rückfall
-> heilt sich selbst, sobald einmal gespeichert wurde.**
->
-> **✅ Am laufenden Programm gegengeprüft — genau der Weg, der vorher Datenverlust war**
-> (Wegwerf-Datenbank, danach gelöscht): Linux-Kopf schreibt „LINUX hat geschrieben." →
-> WPF-Kopf hängt „UND WINDOWS AUCH." an und speichert → **Linux-Kopf zeigt beides.** Vor
-> Schritt 7 wäre der dritte Schritt unmöglich gewesen.
->
-> **✅ Und die härtere Probe, weil sie nicht am Schirm hängt** — dieselbe Datei danach mit
-> `sqlite3` gelesen: **`Rtf` hat Länge 0** (vom WPF-Editor nicht angefasst, obwohl er
-> gespeichert hat — vorher stünde dort ein XamlPackage von mehreren Kilobyte), `Model` trägt
-> die Kennung `GNTD` und **enthält „UND WINDOWS AUCH"**. **Nicht „es sieht richtig aus",
-> sondern „in der Datei steht, was dastehen soll, und das andere Feld ist unberührt".**
->
-> **✅ §5 „Noch offen" 9 ist damit an der Wurzel erledigt.**
->
-> **▶ Es bleibt genau eine Arbeit an dieser Baustelle, und sie ist jetzt zum ersten Mal
-> möglich: die zwei Träger für Diagramm und Feld** (§4.45).
->
-> **✅ Und die erste davon ist am 2026-08-22 gebaut: das Feld** (§4.49, V2-67; Bau 0/0,
-> **842 Tests**, 6 neue Wächter, einer umgedreht). **Alle fünf Feldarten überleben die
-> Rundreise — vorher keine einzige.**
->
-> **Der Anlass war eine Frage** („kann ich nicht einfach mit Phase 4.5 weitermachen?" — ja, sie
-> hängt an nichts hiervon), **und dabei ist die Lehre aus §4.46 an ihrem eigenen Autor
-> eingetreten:** erst behauptet, ein Inhaltsverzeichnis friere ein; dann „korrigiert", es tue
-> es nicht, weil `FlowZuTd` eine Verzeichniserkennung hat; **dann gemessen** — die Erkennung
-> verlangt einen Absatz mit dem Wort „Inhaltsverzeichnis" davor, den der WPF-Editor selbst
-> erzeugt und **der Linux-Kopf nie schreibt**. **Die erste Aussage war richtig, die Korrektur
-> war der Fehler.** *Eine Aussage über den Code ist eine Vermutung, bis sie gemessen ist — auch
-> dann, wenn sie einer früheren Vermutung widerspricht.*
->
-> **Der Träger ist ein `InlineUIContainer` mit dem `TdField` als `Tag`**, und die Wahl ist
-> gemessen und nicht überlegt (§4.47): `Tag` an Absatz und Lauf wird beim Teilen **kopiert** —
-> nach **einem** Tastendruck mitten im Platzhalter stünde die Seitenzahl doppelt da,
-> **schlimmer als die Lücke**. **Das Verzeichnis brauchte einen zweiten Träger**
-> (`BlockUIContainer`): Es steht nicht *in* einer Zeile, es *ist* mehrere.
->
-> **Und beide Behälter sind nicht nur sicher, sondern richtig:** Ein Feld ist kein Text,
-> sondern eine Stelle, an der gerechnet wird; die Einträge eines Verzeichnisses gehören dem
-> Feld und nicht dem Nutzer (§4.20). Dass sich nicht mehr hineintippen lässt, ist die Wahrheit
-> über beide — **vorher konnte man aus `{SEITE}` ein `{SEIT}` machen, und niemand hat es
-> gemerkt.**
->
-> **⚠ Der Augenschein fehlt, und das ist keine Kleinigkeit.** Ein Behälter mitten im Absatz ist
-> genau die Sorte Änderung, bei der die Rechnung stimmt und das Bild trotzdem falsch sein kann.
-> **Der Versuch ist gefahren und gescheitert:** Das Dokument steht im Linux-Kopf (auf dem Schirm
-> stand **„Seite 1"**, das Feld rechnete also), aber das **WPF-Fenster kam nicht in den
-> Vordergrund** und die Aufnahme zeigte ein fremdes Fenster. **Abgebrochen statt ein drittes
-> Mal versucht — und hier benannt statt weggelassen.**
->
-> **▶ Es stehen also noch zwei Dinge: der Augenschein** (sitzt die Seitenzahl auf der
-> Grundlinie, sieht das Verzeichnis aus wie eines?) **und das Diagramm** — es braucht einen
-> öffentlichen Einstieg in `TdRenderer` und ist deshalb eine eigene Runde. **Danach ist
-> Phase 4.5 dran.**
->
-> **Gearbeitet wird auf dem Windows-Rechner.** Nicht wegen der Werkzeuge, sondern wegen der
-> Gegenprobe — jede Änderung am Modell muss der WPF-Editor überleben, und beide Köpfe
-> nebeneinander an derselben Datenbank gibt es nur dort (§5b). **Diese Runde ist der Beleg
-> dafür.**
->
-> **M1 bleibt ein gültiger Ausstiegspunkt.**
->
-> **Was dabei nicht untergehen darf:**
-> - **Neu und benannt:** Über eine **Tabellengrenze** hinweg wird nicht bearbeitet — eine
->   Auswahl, die halb in einer Tabelle steht, wird abgelehnt statt geraten (§4.32). Zu
->   schließen, ohne etwas zurückzudrehen.
-> - **Nebenbefund, unbehoben:** `%APPDATA%\GonkNote\fehler.log` ist auf **272 MB** angewachsen
->   und wird nie beschnitten (§4.32). Gehört in die Aufräumrunde von Phase 6.
-> - **Ein Fund des Laptops, Arbeit und keine Entscheidung:** §5 „Noch offen" **6** — der
->   Wortzwischenraum an einer Stückgrenze sitzt in der **Anzeige** falsch, im PDF nicht.
-> - ✅ **Ganz beantwortet:** §5 „Noch offen" **7** — der Dateidialog trägt unter **Windows**
->   (§4.29) **und unter GNOME-Wayland** (§4.35, V2-47, von Hand am Gerät geprüft). Beide
->   Fassungen sagen dasselbe: der Pfad kommt zurück, das Format steht vorgewählt oben.
-> - **Wartet auf ein Ja:** die Aufwandsschätzung für **Phase 4.5 — 5–8 Wochen**, in
->   `gonk-note-port-RM.MD` eingetragen, hergeleitet und **nicht gemessen** (§4.29).
-> - ✅ **Neu entschieden am 2026-08-18 (Nutzer): die Veröffentlichung ist vorgezogen, iPadOS
->   nachgestellt.** Neue Folge: Phase 4.5 → **Phase 5 = aufräumen, Repo öffentlich schalten,
->   Flatpak/AppImage** → **Phase 6 = iPadOS**. **Der Linux-Port ist das Ziel des Projekts**,
->   der iPad-Kopf ein Zusatz — und er **bleibt vollständig Teil desselben Projekts und
->   Repos**. **M1 und M2 unverändert**, dahinter umnummeriert: **M3 = veröffentlicht,
->   M4 = TestFlight**. Begründung, was mitgewandert ist und zwei leicht übersehene Folgen
->   stehen im Kasten in **§6**; **`gonk-note-port-RM.MD` ist nachgezogen**.
->   ⚠ **Die Folge, die am ehesten untergeht:** Die Frage, ob `HANDOFF.md` per
->   `git filter-repo` aus der Vorgeschichte fliegt, ist damit **die nächste Phase nach 4.5**
->   und nicht mehr weit weg — **und sie ist noch nicht entschieden**.
-> - ✅ **Gebaut, gesehen — und sie wirkt zur Hälfte:** §5 „Noch offen" **10**. Die Eingabe-Naht
->   steht (§4.41), rechnet richtig, und **die Bildschirmtastatur schreibt jetzt**, wenn man sie
->   von Hand hervorholt. **Aufklappen tut sie nicht:** `TopLevel.InputPane` ist unter
->   `Avalonia.X11` **`null`**, am 2026-08-18 zur Laufzeit gemessen. **Das ist eine Frage an den
->   Rücken, keine Runde Arbeit** — warten, oder Linux mit „von Hand hervorholen" führen und das
->   in den Erste-Schritte-Text schreiben. **Für den iPadOS-Kopf ist die Naht die Voraussetzung**
->   (`Avalonia.iOS` bringt eine `IInputPane` mit) — sie ist also nicht umsonst gebaut.
-> - ⚠ **Die eine Sache, die wirklich drängt, und sie geht vor Schritt 7:** §5 „Noch offen"
->   **11** — **tote Tasten kommen seit V2-54 nicht mehr an** (`^`+`e` → nichts statt `ê`,
->   Umlaute unbetroffen). ✅ **Die Ursache ist am 2026-08-18 geklärt** (§4.42, V2-56) — nicht
->   am Gerät, sondern **am ausgelieferten Rücken nachgelesen** (`ilspycmd` gegen Avalonia
->   12.1.1). **Und der Befund kippt die bisherige Empfehlung:** Weg **(b) fällt aus**, denn
->   `OnCommitText` reicht den `commit` **ohne jede Abfrage von `SupportsPreedit`** durch —
->   die vermutete Lücke gibt es nicht. Der Hebel ist ein anderer: `SupportsPreedit`
->   bestimmt das **Fähigkeitswort an IBus** (`CapPreeditText`) und damit, **wohin IBus das
->   Zusammensetzen schickt**. Der Vergleich, der es entscheidet: `gnome-text-editor`
->   bekommt dieselbe Folge vollständig — **und meldet genau diese Fähigkeit**.
->   **Damit war Weg (a) fällig** (Preedit bauen), nach der Regel, die §5 Nr. 11 selbst
->   aufgestellt hat. **Warten fiel auch aus:** 12.1.1 ist die neueste Fassung.
->   ✅ **Und (a) ist am selben Tag gebaut** (§4.43, V2-56, Nutzer-Entscheidung): `TdVorschau`
->   in Core, `SupportsPreedit => true`, der unfertige Text als **Auflage an der Marke** —
->   **`TdDocument` wird nie angefasst**, damit greift §4.32 nicht. **20 Wächter, 823 Tests**,
->   und unter Windows ist die Gegenprobe gefahren, auf die es dabei ankam: Preedit
->   einzuschalten schaltet den Windows-Weg auf **TSF** um, und getippt wird trotzdem
->   zeichengenau (+15, +5, Strg+Z nimmt den Wortblock zurück).
->   ⛔ **Am 2026-08-18 gemessen — es wirkt nicht** (§4.43, V2-59): `^`+`e` ergibt weiterhin
->   nichts, **Zähler 5 statt 7**. **Die Erwartung war widerlegbar formuliert, und sie ist
->   widerlegt.** Der vorgesehene nächste Griff ist gefahren worden und hat mehr geliefert als
->   ein Nein: **`CommitText` 0 mal bei uns, 2 mal bei `gnome-text-editor`** (derselbe Daemon,
->   dieselbe Sekunde — **also nicht IBus**), ✅ **das Fähigkeitswort kommt an**
->   (`SetCapabilities uint32 9`, **§4.42 Punkt 2 bestätigt**), **⚠ aber der Kopf schickt für
->   die tote Taste gar keinen Tastendruck**, nur das Loslassen — und dazwischen **einen Aufruf
->   mit `keysym = 0`/`keycode = 0`, den IBus mit `true` beantwortet.** **Der Fehler sitzt
->   davor, im Tastenweg.** **(a) wird nicht zurückgebaut** — es war nicht falsch, nur nicht
->   hinreichend.
->   ✅ **Und am 2026-08-19 ist die Ursache gemessen** (§4.44 „Was der Laptop gefunden hat",
->   V2-62): **Der Druck kommt beim X11-Client an**, ein **`keycode 0` steht nie auf der
->   Leitung**, `XFilterEvent` **filtert sehr wohl** — und das `keycode = 0` ist **kein
->   Phantom, sondern der Bote**: libX11 verschluckt die beteiligten Drucke und legt das
->   fertige Zeichen nach, `XmbLookupString` liefert dort `"ê"`. **Mit `@im=none`
->   gegengeprüft.** **Avalonias Fehler: es lässt filtern und holt nie ab**
->   (`LookupKey(keycode)` statt `XmbLookupString`). **Der Punkt ist damit aufgeklärt und
->   wartet nur noch auf eine Entscheidung** — umgehen, melden oder stehen lassen; **keine
->   davon blockiert Schritt 7.**
->   **Und eines hat weiterhin niemand gesehen:** wie der unfertige Text aussieht. Unter Windows
->   entsteht mangels Eingabemethode gar keiner, und unter Linux schickt IBus an unseren Kontext
->   **überhaupt keine Vorschau** — `VorschauMalen` ist bis heute nie gerufen worden.
-> - **Die `PointerType`-Weiche aus §4.41 ist unter Linux nicht prüfbar** und bleibt allein
->   unter Windows belegt — die Tastatur geht dort ja nie auf, wo sie es nicht soll.
-> - **Vor jedem Laptop-Auftrag die betroffene `.axaml` ansehen** — ob der Linux-Kopf
->   überhaupt kann, was der Auftrag verlangt. In §4.26 ist genau das schiefgegangen.
-> - **Drei Beobachtungen am Zeichner, alle offen und alle am selben Ort fällig** (§6, letzter
->   Absatz des Arbeitsplans): ein Verweis bekommt so viele `/Link`-Kästen wie Wörter, und
->   `TdRenderer` malt einen Verweis ohne jede Kennzeichnung (beide §4.27) — dazu: ein Diagramm
->   kommt im **WPF**-Editor nicht an, mit Absicht (§4.28).
-> - **Offen zur Entscheidung, unverändert:** §5 „Noch offen" **3** (darf ein PDF ~200 KB je
->   Schriftfamilie wiegen — Empfehlung: ja, so lassen).
-> - ✅ **Nicht mehr offen:** §5 „Noch offen" **1** (zweites Stiftgerät) — am 2026-08-16 an einem
->   **MPP**-Stift belegt, also an einer **anderen Technik** als dem eingebauten EMR-Wacom:
->   **Druck kommt an** (§4.35, V2-47). **Der einzige Punkt mit echtem Restrisiko ist damit
->   eingelöst.**
+> **▶ Und am 2026-08-28 hat der Nutzer Phase 5 neu geordnet und sieben Entscheidungen
+> getroffen** (§5 Nr. 11, 14, 15, 21–25). **Damit ist keine offene Frage mehr übrig, die den
+> Fortgang blockiert.**
 
-> **▶ Stand 2026-08-24: das Schreiben ist fertig, Phase 4.5 läuft.** Schritte 1 bis 7 stehen
-> (§4.48, `Rtf` führt nicht mehr), alle drei Lücken aus §4.45 sind zu (§4.46, §4.49, §4.50).
-> **Phase 4.5 ist entschieden** (Nutzer, 2026-08-22): **volle Breite, aber ohne die
-> Rechtschreibprüfung**. Erledigt sind die **Auswahl** (§4.51), der **Farbwähler** (§4.52) und die
-> **Formen** (§4.53), **Text, Notizzettel und Sticker** (§4.55/§4.56), **der Import** (§4.57/§4.58) und **Lineal/Geodreieck** (§4.59/§4.60): **fünf von sechs Stücken sind zu** — Stück 5 mit §4.61 (die Zusammenlegung) und §4.62 (die Bedienung). **Es fehlt nur noch Stück 6: OCR**, und das **braucht den Laptop** (`libtesseract`).
+#### ▶ Die Ordnung von Phase 5 — sie steht in §6, hier nur der Wegweiser
+
+```
+① UI/UX 1:1        beide Köpfe angleichen  ◀── HIER GEHT ES WEITER
+② Rückmeldung      was ① übersah, was ① brach
+③ Auslieferung     Flatpak + AppImage      — VORGEZOGEN, braucht den Laptop
+④ Rest + Prüflauf  toter Code, §7, §4.1, benannte Lücken, VOLLSTÄNDIG prüfen
+⑤ Veröffentlichen  READMEs, Pages, Releases, Beiwerk, public, 1.0.0
+```
+
+**Der volle Zuschnitt steht in §6, „Phase 5 — die Ordnung", und nur dort.** §5e sagt, womit
+die nächste Runde anfängt, und trägt den Prompt. *Ein Plan an drei Stellen ist einer, der an
+zweien veraltet.*
+
+**Warum ③ vor ④ steht** (Nutzer): Die Auslieferung ist **das einzige Stück, das noch nie
+gelaufen ist** — alles andere ist Nacharbeit an Bekanntem. **⛔ Und was das nicht heißt:**
+③ ist eine **Erprobung**, keine Auslieferung. Nach ④ wird noch einmal gebaut, **und erst
+dieser zweite Bau geht hinaus** — die Grundregel *„wer nach dem Aufräumen nicht mehr prüft,
+veröffentlicht einen Stand, den nie jemand gesehen hat"* ist damit **nicht** gestrichen.
+
+#### ▶ Schritt ① in drei Sätzen
+
+**Beide Köpfe Fläche für Fläche vergleichen, jeden sichtbaren Unterschied beseitigen.**
+**Vorlage ist der Linux-Kopf — außer beim Editor, dort ist Windows die Vorlage.**
+Gemessen wird **nur unter Windows** (§5 Nr. 25), an **derselben** DB-Kopie, fotografiert mit
+**`tools/fenster.ps1`** und nicht mit `schau.ps1` (§4.50). **§5 Nr. 14** (Schriftlisten
+zusammenführen) läuft mit. Der Rest steht in §5e.
+
+#### ▶ Die sieben Entscheidungen vom 2026-08-28 — nicht noch einmal fragen
+
+| Nr. | | |
+|---|---|---|
+| **21** | `HANDOFF.md` | liegt seit V2-93 unter **`Docs/`**, **kein History-Rewrite**. Daraus folgt eine Pflicht statt einer Entscheidung: die Datei einmal ganz auf Privates durchsehen (§6-Checkliste) |
+| **22** | Rechtschreibprüfung | als **bekannte Einschränkung** veröffentlichen **und** als **erster Punkt nach M3** fest einplanen — Phase **5.1** |
+| **11** | tote Tasten | **melden und stehen lassen**, nicht umgehen |
+| **14** | Schriftlisten | **zusammenführen** — mitgeliefert oben, System darunter, in beiden Köpfen |
+| **15** | Seitenzahlen im WPF-Editor | **bleiben, wie sie sind**, und werden benannt |
+| **23** | Version | **1.0.0**, gesetzt am Ende von ⑤ |
+| **24** | Veröffentlichung | **alle vier**: READMEs, Pages, Releases, Beiwerk |
+| **25** | Vergleich | **nur unter Windows** — was es nur unter echtem Linux gibt, fällt bei ③ auf |
+
+#### ⚠ Was weiterhin gilt und leicht untergeht
+
+- **Ein grüner Bau beweist an einer Oberfläche fast nichts.** Was am laufenden Programm zu
+  sehen ist, wird am laufenden Programm gesehen — in **beiden** Köpfen, an **derselben**
+  Datei. Fünf Runden in Folge haben Fehler gefunden, die **kein Wächter sehen konnte**
+  (§4.53, §4.55, §4.60, §4.62, §4.68).
+- **Ein Auftrag ist keine Messung, auch wenn er im HANDOFF steht** (§4.56).
+- **Die Fernsteuerung des Laptops:** `zeiger` taugt nur noch für `hervor`/`fenster`, geklickt
+  und getippt wird mit **`ydotool`** (§5 Nr. 20, §7).
+- **Drei Beobachtungen am Zeichner, alle offen** (§6, Arbeitsplan): ein Verweis bekommt so
+  viele `/Link`-Kästen wie Wörter, `TdRenderer` malt einen Verweis ohne Kennzeichnung (beide
+  §4.27), und ein Diagramm kommt im **WPF**-Editor nicht an — mit Absicht (§4.28).
+- **§5 Nr. 3** (darf ein PDF ~200 KB je Schriftfamilie wiegen) bleibt bei **(a) so lassen**.
+- **Niemand hat je gesehen, wie der unfertige Text aussieht:** Unter Windows entsteht mangels
+  Eingabemethode gar keiner, unter Linux schickt IBus an unseren Kontext **überhaupt keine
+  Vorschau** — `VorschauMalen` ist bis heute nie gerufen worden.
+
+*(Der volle Verlauf von Phase 3 bis 4.5 stand bis zum 2026-08-28 hier in voller Länge. Er
+steht in §4 — dort wird er gesucht — und in der Chronik §9.)*
 
 **Tests laufen lassen:**
 ```powershell
-dotnet test -c Release        # Windows: beide Projekte, 913 Tests
+dotnet test -c Release        # Windows: beide Projekte, 1040 Tests (981 Core + 59 WPF)
 ```
 
 ```bash
-dotnet test tests/GonkNote.Core.Tests   # Linux: 854 Tests (nur Core — der WPF-Kopf baut dort nicht)
+dotnet test tests/GonkNote.Core.Tests   # Linux: 981 Tests (nur Core — der WPF-Kopf baut dort nicht)
 ```
 
 ---
@@ -832,7 +423,7 @@ möglich) gelten unverändert weiter — siehe `gonk-note\HANDOFF.md` §1.
 | | |
 |---|---|
 | **Version** | 0.3.0 · `net10.0` · SkiaSharp 3.119.4 · Avalonia 12.1.1 · SQLite |
-| **Tests** | **1040** — 981 in `GonkNote.Core.Tests` (Windows **und** Linux), 59 in `GonkNote.Wpf.Tests` (alles, was am `FlowDocument` hängt) · Stand V2-91 |
+| **Tests** | **1040** — 981 in `GonkNote.Core.Tests` (Windows **und** Linux), 59 in `GonkNote.Wpf.Tests` (alles, was am `FlowDocument` hängt) · Stand V2-93 |
 | **Bau** | Debug und Release je 0 Fehler / 0 Warnungen; CI mit zwei Läufen (Windows, Ubuntu) |
 | **Meilensteine** | ✅ **M0** (Core baut auf Linux) · ✅ **M1** (Notizbuch und Whiteboard laufen unter Linux) · ✅ **M2** (Funktionsgleichheit Linux ↔ Windows) — **ausgerufen am 2026-08-28**, Nutzer-Entscheidung, **mit einem benannten Loch**: die Rechtschreibprüfung fehlt im Linux-Kopf (§6, bewusst so entschieden am 2026-08-22). Die zweite Stift-Taste darf verschieden bleiben und ist **kein** Loch (§5 Nr. 17) · ⏳ **M3** (veröffentlicht) hängt an Phase 5 |
 
@@ -846,7 +437,8 @@ möglich) gelten unverändert weiter — siehe `gonk-note\HANDOFF.md` §1.
 | **3** — Avalonia-Shell für Linux · **M1** | ✅ | §4.9 – §4.12, die zwei Schulden in §4.13 |
 | **4** — eigene Dokument-Engine | ✅ **abgeschlossen 2026-08-11** | §4.14 – §4.28 |
 | **4.5** — die fehlenden Werkzeuge des Linux-Kopfs · **trägt M2** | ✅ **abgeschlossen 2026-08-28** — sechs von sechs Stücken, auf **beiden** Systemen gegengeprüft (§4.64) | §4.51 – §4.64, §6 |
-| **5** — aufräumen, dann veröffentlichen (Flatpak/AppImage) · **M3** | ▶ **an der Reihe** | §6 |
+| **5** — ① UI/UX angleichen · ② Rückmeldung · ③ Flatpak/AppImage · ④ aufräumen und prüfen · ⑤ veröffentlichen · **M3** | ▶ **an der Reihe, Schritt ①** — die Ordnung ist am 2026-08-28 geändert worden (§4.70) | §6 |
+| **5.6** — Rechtschreibprüfung im Linux-Kopf | ⏳ **fest eingeplant als erster Punkt nach M3** (§5 Nr. 22) | §6 |
 | **6** — iPadOS, Apple Pencil, TestFlight · **M4** | ⏳ offen | §6 |
 
 > **⚠ Die Reihenfolge 5/6 ist am 2026-08-18 getauscht worden** (Nutzer): Veröffentlichung
@@ -8793,6 +8385,98 @@ einem Kommentar**; Bau 0/0, **1040 Tests** unverändert.
 
 ---
 
+### 4.70 Phase 5 neu geordnet — die Oberfläche zuerst, die Auslieferung vorgezogen
+
+**V2-93, 2026-08-28.** **Keine Zeile Produktivcode.** Diese Runde hat sieben Entscheidungen
+des Nutzers entgegengenommen, die Ordnung von Phase 5 umgestellt und `HANDOFF.md` von der
+Repo-Startseite genommen.
+
+#### Die Umstellung, und warum sie keine Streichung ist
+
+**Vorher** (seit 2026-08-05): aufräumen → prüfen → veröffentlichen, die Auslieferung als
+letzter Punkt einer Vorratsliste. **Jetzt:** **① UI/UX angleichen → ② Rückmeldung →
+③ Flatpak/AppImage → ④ Rest des Aufräumens samt vollständigem Prüflauf → ⑤ veröffentlichen.**
+
+**Zwei Dinge sind daran neu, und nur eines davon ist eine Umstellung.**
+
+**Neu hinzugekommen ist ①.** Die 1:1-Angleichung der Oberflächen stand **nirgends** im Plan —
+weder in §6 noch in der Roadmap. M2 wurde als *Funktionsgleichheit* ausgerufen und ist es
+auch; **Funktionsgleichheit ist aber nicht Aussehensgleichheit**, und der Unterschied ist
+niemandem aufgefallen, solange die Köpfe nacheinander gebaut wurden. *Ein Meilenstein misst,
+was er zu messen versprochen hat — und nichts darüber hinaus.*
+
+**Umgestellt ist die Lage der Auslieferung**, und die Begründung des Nutzers ist die stärkere:
+Sie ist **das einzige Stück, das noch nie gelaufen ist**; alles andere ist Nacharbeit an
+Bekanntem. Ein Flatpak, das erst nach dem Aufräumen zum ersten Mal gebaut wird, **findet
+seine Fehler zum spätestmöglichen Zeitpunkt** — und **§4.64 hat die Tesseract-Bindung
+ausdrücklich außerhalb eines Flatpaks vermessen**, die Sandbox ist ungeprüft.
+
+> **⛔ Was dabei ausdrücklich in §6 festgehalten worden ist, weil es sonst als Streichung
+> gelesen wird:** ③ ist eine **Erprobung** und keine Auslieferung. Das Flatpak wird **nach ④
+> noch einmal gebaut**, und erst dieser zweite Bau geht hinaus. **Die Grundregel von
+> 2026-08-05 gilt unverändert** — *wer nach dem Aufräumen nicht mehr prüft, veröffentlicht
+> einen Stand, den nie jemand gesehen hat.* Ohne diesen Satz hätte die nächste Runde zwei
+> Sätze im HANDOFF, die einander widersprechen, und müsste raten, welcher gilt.
+
+#### Die Vorlage-Regel — und die Ausnahme in der Ausnahme
+
+**Bei jedem sichtbaren Unterschied gewinnt der Linux-Kopf. Außer beim Editor: dort ist
+Windows die Vorlage.** Das ist die Vorgabe des Nutzers und sie ist eindeutig.
+
+**Beim Eintragen ist aufgefallen, dass sie an einer Stelle mit einer bereits getroffenen
+Entscheidung kollidiert** — und das ist der einzige inhaltliche Fund dieser Runde:
+**§5 Nr. 15**, die fehlenden Seitenzahlen im WPF-Editor. Nach dem Buchstaben der Regel
+(„beim Editor ist Windows die Vorlage") müsste der Linux-Kopf sie *verlieren*. **Das wäre
+ein Rückschritt aus einer Formregel heraus.** Festgehalten ist deshalb in §5 Nr. 15 und in
+§6: **Die Regel betrifft das Aussehen des Ribbons, nicht das Rechnen dahinter** — der
+Linux-Kopf wird hier **nicht** an den schlechteren angeglichen.
+
+*Eine Regel, die man wörtlich nimmt, ohne zu prüfen, worauf sie zeigt, macht aus einem
+Vorteil einen Unterschied und aus dem Unterschied einen Verlust.*
+
+#### Die sieben Entscheidungen
+
+Sie stehen vollständig in **§5** (Nr. **11**, **14**, **15**, **21**–**25**) und sind hier
+nur benannt: `HANDOFF.md` nach `Docs/` **ohne** History-Rewrite · Rechtschreibprüfung als
+benanntes Loch **und** als Phase **5.6** fest eingeplant · tote Tasten **melden und stehen
+lassen** · Schriftlisten **zusammenführen** · Seitenzahlen **stehen lassen** · Version
+**1.0.0** · Veröffentlichung in **allen vier** Stücken · Vergleich **nur unter Windows**.
+
+#### Der Umzug — und was er kostet
+
+`git mv HANDOFF.md Docs/HANDOFF.md`, als **Rename** in der Historie und nicht als
+Löschen-und-Neu. **Der V1-Weg war ausdrücklich zur Wahl gestellt und ist nicht gewählt
+worden:** Dort ist die Datei schlicht in `.gitignore`, also aus dem Baum — **und damit
+wandert sie nicht mehr per git mit**. Sie muss aber mitwandern, heute Windows ↔ Laptop und
+mit Phase 6 zu einem dritten Rechner.
+
+**151 Dateien nennen „HANDOFF", und fast alle als `HANDOFF §4.x`** — nur zwei nannten einen
+**Pfad** (`.gitignore` und `tools/stylus-prototyp/README.md`), beide nachgezogen. *Gesucht
+wurde nach `HANDOFF\.md` und nicht nach `HANDOFF`; die zweite Suche hätte 151 Treffer
+gehabt, von denen 149 nichts mit dem Umzug zu tun haben.*
+
+> **⚠ Und der Preis des Verzichts auf den Rewrite ist eine neue Pflicht, keine Ersparnis.**
+> Die Datei ist ohne Rewrite **in jeder Fassung öffentlich lesbar**, auch in jeder früheren.
+> Die Regel aus der Kopfzeile — *nichts hineinschreiben, was nicht öffentlich stehen darf* —
+> war bisher durch die **Möglichkeit** eines Rewrites abgesichert. **Diese Absicherung fällt
+> weg**, und deshalb steht in der Checkliste „Vor dem Öffentlich-Schalten" jetzt ein eigener
+> Punkt: die Datei einmal ganz auf Pfade zu privaten Daten, Zugangsdaten und Inhalte aus den
+> Schulunterlagen durchsehen.
+
+#### Nebenbei richtiggestellt
+
+Die Testzahlen im Schnellstart von §0 standen auf **913** (Windows) und **854** (Linux) —
+seit V2-90 sind es **1040** und **981**. *Dieselbe Sorte Fund wie §4.69: eine Zahl, die
+niemand liest, bis sie jemand zum Vergleichen benutzt.*
+
+#### Was diese Runde nicht getan hat
+
+**Keine Oberfläche angeglichen, kein Flatpak-Manifest, keine Schriftliste, kein
+Avalonia-Issue** — das sind ①, ③ und ④. **Das Repo ist nicht öffentlich geschaltet**, und die
+Version steht weiter auf **0.3.0**: Sie gehört ans Ende von ⑤, denn ein Stand, der die Nummer
+trägt, bevor er hinausgeht, ist zweimal derselbe Name für zwei verschiedene Stände.
+
+
 ## 5. Entscheidungen
 
 **Getroffen, alle umgesetzt:**
@@ -9091,7 +8775,30 @@ einem Kommentar**; Bau 0/0, **1040 Tests** unverändert.
     gemessen; **siehe Punkt 11**, dort steht der volle Befund. Für lateinische Schrift war es
     als „kostet nichts" verbucht — es kostet die toten Tasten.
 
-11. ⚠ **Tote Tasten kommen seit V2-54 nicht mehr an — und das ist eine Regression.**
+11. ✅ **Entschieden am 2026-08-28 (Nutzer): beides — an Avalonia melden UND als benannten
+    Mangel stehen lassen.** Der Weg „im Kopf umgehen“ ist ausdrücklich **nicht** gewählt.
+
+    **Die Begründung ist der Ort des Fehlers.** Er sitzt in `Avalonia.X11`
+    (`HandleKeyEvent` bestimmt den Keysym über `LookupKey(keycode)`, und bei `keycode = 0`
+    fällt genau das Zeichen heraus, das im Ereignis steckt — §4.44). Ihn zu umgehen hieße,
+    **unterhalb des Frameworks eigenen X11-Zugriff zu machen**: kein Wächter kann das
+    absichern, und es wäre bei **jedem** Avalonia-Update neu zu prüfen. *Ein Fehler, den
+    man am Framework vorbei behebt, wandert mit jeder Fassung wieder heran.*
+
+    **Was daraus an Arbeit folgt — beides gehört zu Schritt ④ von Phase 5** (§6):
+    - **Ein neues Issue bei AvaloniaUI/Avalonia** mit dem gemessenen Befund. `#18596` ist
+      **exakt dieses Symptom und ohne Fix geschlossen** — die Meldung dort nannte nur das
+      Symptom, **dieser Befund ist neu**: die Kette bis `XmbLookupString`, der Gegenbeweis
+      mit `XMODIFIERS=@im=none`, der `dbus-monitor`-Vergleich gegen `gnome-text-editor`.
+      **Mit hinein gehören die zwei Nebenbefunde derselben Naht**: der Keycode-Versatz um
+      **8** und das fehlende **`LockMask`**-Bit.
+    - **In beiden READMEs** (Dauerregel 1) unter den bekannten Einschränkungen: unter Linux
+      kommen **zusammengesetzte Zeichen** (`^`+`e`, `´`+`a`) nicht an; **Umlaute und alles
+      Übrige laufen**, ein Absatz von 427 Zeichen kommt exakt an.
+
+    **Der volle Befund steht darunter und bleibt stehen** — er ist die Vorlage für das Issue.
+
+    ⚠ ~~**Tote Tasten kommen seit V2-54 nicht mehr an — und das ist eine Regression.**~~
     Auf dem Laptop gemessen (§4.41, „Was der Laptop gefunden hat", 2026-08-18, V2-55):
     `^`+`e` ergibt **nichts** statt `ê`, `´`+`a` **nichts** statt `á`. Am 2026-08-16 stand
     genau das noch als gemessen und grün im HANDOFF (§4.35, V2-47).
@@ -9348,7 +9055,26 @@ einem Kommentar**; Bau 0/0, **1040 Tests** unverändert.
     **zwei** (Diagramm und Feld).
 
 
-14. ⚠ **Die Schriftliste des WPF-Kopfs zeigt nur Systemschriften.** Benannter Nebenbefund
+14. ✅ **Entschieden am 2026-08-28 (Nutzer): die beiden Listen werden zusammengeführt** —
+    **mitgelieferte Schriften oben, Systemschriften darunter**, in **beiden** Köpfen
+    dieselbe Quelle. Damit ist die Empfehlung dieses Dokuments angenommen.
+
+    **Warum nicht „Linux ist Vorlage“, obwohl das sonst die Regel von Schritt ① ist**
+    (§6): Würde der WPF-Kopf auf `Fonts.Mitgeliefert` allein umgestellt, fände **niemand
+    mehr die Systemschrift wieder, die er heute in einem Dokument gewählt hat** — die
+    Angleichung nähme etwas weg, statt einen Unterschied zu beseitigen. Umgekehrt (beide
+    bekommen die Systemschriften) wäre der Schriftbestand unter Linux von Rechner zu
+    Rechner verschieden, und **genau das sollte §4.26 verhindern**.
+
+    **Der Fehler, den es behebt, ist gesehen und nicht hergeleitet** (§4.68): In einem neuen
+    Textdokument steht das Schriftfeld des WPF-Kopfs **leer**, weil die Grundschrift
+    „Source Sans 3“ heißt und die Liste sie nicht kennt. **Es ist kein falscher Name,
+    sondern gar keiner.**
+
+    **Diese Arbeit gehört in Schritt ①** (die UI-Angleichung) — sie ist ein sichtbarer
+    Unterschied derselben Sorte und wird dort mit gemessen. Der Befund darunter bleibt.
+
+    ⚠ ~~**Die Schriftliste des WPF-Kopfs zeigt nur Systemschriften.**~~ Benannter Nebenbefund
     aus §4.47, **nicht dort entstanden**.
 
     `FontCombo.ItemsSource` ist `Fonts.SystemFontFamilies`. Die fünf **mitgelieferten**
@@ -9375,8 +9101,27 @@ einem Kommentar**; Bau 0/0, **1040 Tests** unverändert.
     ist, ohne dass ein bestehendes unlesbar wird.
 
 
-15. ⚠ **Der WPF-Editor rechnet keine Seitenzahlen — das Feld zeigt `{SEITE}`, das
-    Inhaltsverzeichnis hat keine.** Beim Augenschein zu §4.49 gesehen (§4.50), **nicht dort
+15. ✅ **Entschieden am 2026-08-28 (Nutzer): es bleibt, wie es ist — und wird benannt.**
+    Damit ist die abgelaufene Empfehlung „warten bis nach Phase 4.5“ ersetzt.
+
+    **Die Begründung ist der Preis und nicht die Machbarkeit.** Möglich wäre es — `TdLayout`
+    rechnet den echten Umbruch, der PDF-Weg tut es längst. Aber der Umbruch müsste **bei
+    jeder Änderung nachlaufen**, damit die Zahlen nicht stillschweigend veralten, und genau
+    deshalb wurden sie in §4.20 **gerechnet statt gespeichert**. *Eine Zahl, die manchmal
+    stimmt, ist schlechter als keine.*
+
+    **Es ist kein Datenverlust und kein Rückschritt:** Im **Modell** steht das Feld, im
+    **PDF** stehen die Zahlen, und der **Linux-Kopf** rechnet beides sofort wieder aus (am
+    laufenden Programm belegt, §4.50). Betroffen ist allein die Anzeige **im WPF-Editor**.
+
+    **Ausdrücklich eine Ausnahme von der Vorlage-Regel aus Schritt ①** (§6: beim Editor ist
+    Windows die Vorlage): Hier ist der Linux-Kopf der bessere von beiden, und er wird
+    **nicht** an den schlechteren angeglichen. Die Regel betrifft das **Aussehen** des
+    Ribbons, nicht das Rechnen dahinter. **In beiden READMEs unter den bekannten
+    Unterschieden zu nennen** (Dauerregel 1).
+
+    ⚠ ~~**Der WPF-Editor rechnet keine Seitenzahlen — das Feld zeigt `{SEITE}`, das
+    Inhaltsverzeichnis hat keine.**~~ Beim Augenschein zu §4.49 gesehen (§4.50), **nicht dort
     entstanden**.
 
     **Der Grund ist derselbe für beides: Der Editor bricht keine Seiten um.** Ein
@@ -9479,6 +9224,72 @@ einem Kommentar**; Bau 0/0, **1040 Tests** unverändert.
     Anleitung richtigstellen (in V2-89 geschehen, §5d und §7). Der Laptop hat gerade keinen
     Auftrag; ein Umbau ohne anstehende Messung ist Arbeit auf Vorrat. **Sobald wieder etwas
     zu messen ist, lohnt (b).**
+
+21. ✅ **Entschieden am 2026-08-28 (Nutzer): `HANDOFF.md` zieht nach `Docs/` — und die
+    History-Frage ist damit beantwortet: KEIN Rewrite.** Umgesetzt in V2-93 (§4.70).
+
+    **Der Auftrag im Wortlaut:** Die Datei *darf* weiterhin über die Vorgeschichte und auf
+    anderen Wegen im Repo einsehbar sein; sie soll nur **keine der Hauptdateien auf der
+    Startseite** des Repos sein, denn sie ist eine reine Arbeitsdatei. Als mögliche
+    Umsetzung war das V1-Repo genannt (dort ist sie schlicht ausgeschlossen).
+
+    **Warum trotzdem `Docs/` und nicht der V1-Weg** (`git rm --cached` + `.gitignore`):
+    Der V1-Weg nimmt die Datei aus dem Baum, **und damit wandert sie nicht mehr per git
+    mit**. Sie muss aber mitwandern — Windows ↔ CachyOS-Laptop heute, und **mit Phase 6
+    kommt der iPad-Kopf als dritter Rechner dazu**. Ein Unterordner löst die gestellte
+    Aufgabe vollständig (die Wurzelliste zeigt `Docs/`, nicht die Datei) und kostet nichts.
+
+    **⚠ Die Regel aus der Kopfzeile bleibt unverändert und wird durch diese Entscheidung
+    sogar schärfer:** *Nichts in diese Datei schreiben, was nicht irgendwann öffentlich
+    stehen darf* — keine Pfade zu privaten Daten, keine Zugangsdaten, keine Inhalte aus den
+    Schulunterlagen. **Ohne Rewrite ist das die einzige Sicherung, die es gibt.**
+
+22. ✅ **Entschieden am 2026-08-28 (Nutzer): die Rechtschreibprüfung wird als bekannte
+    Einschränkung veröffentlicht — und zugleich als erster Punkt nach M3 fest eingeplant.**
+
+    **Beides, nicht eines von beidem.** Genannt wird sie in **beiden READMEs** *und* im
+    **Über-Dialog** (Dauerregel 1, also vier Dokumente und zwei Sprachtabellen), und sie
+    steht als **erster Punkt nach der Veröffentlichung** in der Roadmap **und** im README —
+    **vor** dem iPad-Kopf.
+
+    **Der Unterschied zu „benannt lassen“ ist der Punkt:** Ein benanntes Loch ohne Termin
+    liest sich wie eine Absicht. *Es ist keine Absicht, es ist eine Reihenfolge.*
+
+    **Der Grund, warum sie nicht vor die Veröffentlichung rückt, steht seit dem 2026-08-22
+    fest** (§2): Die zwei „Ausnahmen“ von Phase 4.5 waren ungleich teuer — OCRs Naht stand
+    **vollständig**, die der Rechtschreibung **gar nicht**: `ISpellChecker` liefert nur
+    ja/nein und müsste **Fundstellen** liefern. Das ist eine eigene Runde und keine
+    Aufräumarbeit.
+
+23. ✅ **Entschieden am 2026-08-28 (Nutzer): die Veröffentlichung geht auf `1.0.0`.**
+    Heute steht **0.3.0**. **Die Nummer wird am Ende von Schritt ⑤ gesetzt und nicht
+    vorher** — sie gehört zur Auslieferung, und ein Stand, der die Nummer schon trägt,
+    bevor er hinausgeht, ist zweimal derselbe Name für zwei verschiedene Stände.
+
+    **Zu ändern sind dabei zusammen:** `Directory.Build.props` (`Version`), der Schlüssel
+    **`About.Version` in `LocGerman` UND `LocEnglish`** (§4.5 — die Zeile steht seitdem
+    nicht mehr im Code der Dialoge), die vier mitgelieferten Dokumente, der Git-Tag und der
+    GitHub-Release. **Danach beide Über-Dialoge in beiden Sprachen und in beiden Köpfen
+    gegenprüfen** (Dauerregel 1).
+
+24. ✅ **Entschieden am 2026-08-28 (Nutzer): die Veröffentlichung umfasst alle vier Stücke.**
+    READMEs überarbeiten, **GitHub Pages**, **Releases mit Artefakten**, **Repo-Beiwerk**.
+    Der Zuschnitt steht in §6, Schritt ⑤.
+
+    **Die Reihenfolge darin ist nicht beliebig:** Ein Release braucht ein gebautes Artefakt
+    (also Schritt ③), und eine Projektseite, die auf einen Download zeigt, den es noch nicht
+    gibt, ist schlechter als keine Seite.
+
+25. ✅ **Entschieden am 2026-08-28 (Nutzer): der 1:1-Vergleich der Oberflächen läuft NUR
+    unter Windows.** Beide Köpfe an derselben Datenbank-Kopie, `tools/fenster.ps1`, Bild
+    neben Bild (§5b: `Avalonia.Desktop` läuft unter Windows, und nur dort lassen sich beide
+    Köpfe nebeneinander fernsteuern).
+
+    **⚠ Was dieser Vergleich damit nicht findet, und es steht hier, damit es später niemand
+    für einen Rückschritt hält:** Unterschiede, die es **nur unter echtem Linux** gibt —
+    fontconfig-Rückfallschrift, GNOME-Fensterdekoration, HiDPI-Maße. **Sie fallen beim
+    Flatpak-Durchgang auf** (Schritt ③), der ohnehin auf dem Laptop läuft. *Keine
+    Auslassung, eine Verschiebung — aber eine, die benannt sein muss.*
 
 **Beantwortet und hier nur noch als Verweis** — der volle Wortlaut stand bis zum 2026-08-11
 darunter und wurde von niemandem mehr gelesen; was gilt, steht in der Tabelle oben:
@@ -10056,7 +9867,36 @@ dotnet run --project src/GonkNote.Avalonia -- --db /tmp/gonk-test/gonknote.sqlit
 
 ---
 
-### ▶ Aktueller Auftrag — **keiner. Der Laptop ist fertig, der Windows-Rechner ist dran.** (Stand 2026-08-28, nach Runde V2-90)
+### ▶ Aktueller Auftrag — **keiner. Aber er ist absehbar: bei Schritt ③ von Phase 5 ist der Laptop dran.** (Stand 2026-08-28, nach Runde V2-93)
+
+> **▶ VORGEMERKT UND NOCH NICHT SCHARF: die Auslieferung braucht dieses Gerät.**
+> Phase 5 ist am 2026-08-28 neu geordnet worden (§6, „Die fünf Schritte"), und **Schritt ③
+> ist der Flatpak-/AppImage-Bau — vorgezogen vor das Aufräumen**. Das ist der erste Punkt
+> seit Langem, den Windows **grundsätzlich nicht** erledigen kann: **ein Flatpak lässt sich
+> unter Windows weder bauen noch starten.**
+>
+> **Was ihn fällig macht, steht fest, und was er zu beantworten hat, ist schon absehbar:**
+> - **Baut das Manifest überhaupt?** Hinein gehören `fontconfig`, `freetype` **und
+>   `tesseract`/`leptonica`** (§4.63, §5 Nr. 18) — sonst rendert SkiaSharp **keine Schrift**
+>   und die Texterkennung findet nichts.
+> - **Trägt die Tesseract-Bindung in der Sandbox?** **§4.64 hat sie ausdrücklich AUSSERHALB
+>   eines Flatpaks vermessen.** `TesseractLinux` legt beim ersten Zugriff Symlinks in den
+>   **Nutzerdaten** an, weil `AppFolder` schreibgeschützt ist — im Flatpak ist der Pfad ein
+>   anderer, und **das ist zu messen und nicht anzunehmen.**
+> - **Finden `~/.config/GonkNote`, der Blob-Ordner und die Sticker sich in der Sandbox
+>   wieder?** Der Sticker-Ordner hängt bis heute **nicht** an `--db` (§4.56).
+> - **Kommt der Stift durch das Portal an?** Druck, Neigung, Handballen — der einzige Punkt
+>   mit echtem Restrisiko war er schon einmal (§5a).
+> - **Und die Frage, die aus §5 Nr. 25 nachrückt:** Der UI-Vergleich aus Schritt ① läuft
+>   **nur unter Windows**. Was es nur unter echtem Linux gibt — **fontconfig-Rückfallschrift,
+>   GNOME-Fensterdekoration, HiDPI-Maße** —, fällt **hier** auf oder gar nicht.
+>
+> **⛔ Aber der Auftrag wird erst geschrieben, wenn ① und ② durch sind.** Wer den
+> Laptop-Prompt einwirft und in der Chronik (§9) keine Runde nach V2-93 findet: **nichts
+> messen, nachfragen.** Ein Auftrag entsteht in §5e, nicht hier.
+
+#### Der abgearbeitete Stand darunter — Buchhaltung
+
 
 > **✅ Der Auftrag aus V2-87 ist abgearbeitet** (§4.64 „Was der Laptop gefunden hat"): sechs
 > Fragen, sechs Antworten, **die Texterkennung trägt unter Linux am laufenden Programm** und
@@ -10120,7 +9960,8 @@ und keinen Digitizer, das ist von hier aus grundsätzlich nicht messbar (§4.62)
 
 > **Das ist der Normalfall.** Entwickelt wird unter Windows (§5b); der Laptop ist Messgerät.
 > Dieser Abschnitt sagt, **womit die nächste Runde anfängt** — nicht, was zu bauen ist. Was
-> gebaut wird, steht in **§6, „Phase 5 — aufräumen, dann prüfen, dann erst veröffentlichen"**
+> gebaut wird, steht in **§6, „Phase 5 — die Ordnung, und warum sie am 2026-08-28
+> geändert wurde"**
 > samt der Checkliste „Vor dem Öffentlich-Schalten", und zwar nur dort. *(Bis V2-68 stand hier
 > „Als Nächstes: das Schreiben" — seit §4.48 fertig; bis V2-89 zeigte es auf „Vorgemerkt:
 > Phase 4.5" — seit §4.64 fertig und mit M2 abgeschlossen.)* Ein Plan an zwei Stellen ist
@@ -10131,224 +9972,210 @@ und keinen Digitizer, das ist von hier aus grundsätzlich nicht messbar (§4.62)
 ```text
 Du laeufst auf dem Windows-Rechner. Das Repo liegt in C:\Dev\Zed\gonk-note-V2.
 
-Lies dort HANDOFF.md, Abschnitt 5e ("Auftrag fuer den Windows-Rechner").
-
-M2 IST ERREICHT UND AUSGERUFEN (2026-08-28, Nutzer-Entscheidung).
-Phase 4.5 ist auf BEIDEN Systemen zu, sechs von sechs Stuecken. DER
-MEILENSTEIN TRAEGT EIN BENANNTES LOCH: die Rechtschreibpruefung fehlt
-im Linux-Kopf. Bei JEDER Veroeffentlichungsnotiz zu erwaehnen. Die
-zweite Stift-Taste NICHT -- die darf verschieden bleiben (§5 Nr. 17).
+Lies dort Docs/HANDOFF.md -- ACHTUNG, NEUER PFAD, die Datei liegt seit
+V2-93 nicht mehr in der Wurzel (§5 Nr. 21). Lies §5e ("Auftrag fuer den
+Windows-Rechner") und §6 ("Phase 5 -- die Ordnung").
 
 Zieh zuerst den Stand: git pull. Dann bauen und testen, BEVOR du etwas
 anfasst. Erwartet sind 0 Fehler, 0 Warnungen und 1040 Tests
 (981 Core + 59 WPF) -- stimmt eine der Zahlen nicht, IST DAS DER ERSTE
 BEFUND.
 
-ES LAEUFT JETZT PHASE 5: AUFRAEUMEN, PRUEFEN, VEROEFFENTLICHEN -- UND
-DIE REIHENFOLGE IST DER PUNKT. Wer nach dem Aufraeumen nicht mehr
-prueft, veroeffentlicht einen Stand, den nie jemand gesehen hat.
+M2 IST ERREICHT UND AUSGERUFEN (2026-08-28). Phase 4.5 ist auf BEIDEN
+Systemen zu. DER MEILENSTEIN TRAEGT EIN BENANNTES LOCH: die
+Rechtschreibpruefung fehlt im Linux-Kopf. Bei JEDER
+Veroeffentlichungsnotiz zu erwaehnen. Die zweite Stift-Taste NICHT --
+die darf verschieden bleiben (§5 Nr. 17).
 
-FRAG DEN NUTZER ZUERST DIE ZWEI DINGE, DIE IHM GEHOEREN UND DIE DEN
-REST BLOCKIEREN:
+PHASE 5 IST AM 2026-08-28 NEU GEORDNET WORDEN (Nutzer). DIE ORDNUNG
+STEHT IN §6 UND NUR DORT -- lies sie dort, statt dich auf diese
+Kurzfassung zu verlassen:
 
- (1) Soll HANDOFF.md auch aus der GIT-VORGESCHICHTE verschwinden
-     (git filter-repo) -- oder reicht es, es nicht mitzuliefern? DAS
-     IST DIE EINZIGE ENTSCHEIDUNG IN PHASE 5, DIE NACHTRAEGLICH NICHT
-     MEHR ZU TREFFEN IST.
- (2) Wann geht das Repo oeffentlich?
+  (1) UI/UX 1:1 angleichen   <-- HIER FAENGST DU AN
+  (2) Rueckmeldung
+  (3) Flatpak/AppImage       (VORGEZOGEN, braucht den Laptop)
+  (4) Rest des Aufraeumens + VOLLSTAENDIGER Prueflauf
+  (5) Veroeffentlichen (1.0.0)
 
-WAS ARBEIT IST UND KEINE FRAGE, in dieser Reihenfolge -- die volle
-Fassung steht in §5e:
- 1. Toter Code und aufgeloeste Naehte. DER COMPILER FINDET DAS NICHT,
-    was public ist, sieht benutzt aus.
- 2. Doku gegen den Code lesen. Was nicht mehr gilt, wird ALS ERLEDIGT
-    GEKENNZEICHNET UND NICHT GELOESCHT.
- 3. Benannte Luecken schliessen oder bewusst offen lassen (§4.19,
-    §4.21, §5 Nr. 12).
- 4. Der VOLLSTAENDIGE Prueflauf -- auch die vier mitgelieferten
-    Dokumente in BEIDEN Sprachen am laufenden Programm, und ein
-    Durchgang mit einer KOPIE der echten Daten.
- 5. Flatpak/AppImage. Ins Manifest gehoeren fontconfig, freetype UND
-    tesseract/leptonica -- sonst rendert SkiaSharp keine Schrift und
-    die Texterkennung findet nichts.
+DEIN AUFTRAG IST SCHRITT 1, UND ER HAT EINE VORLAGE-REGEL MIT EINER
+AUSNAHME:
 
-NOCH OFFEN UND MIT M2 FAELLIG GEWORDEN: §5 Nr. 14 (die Schriftliste
-des WPF-Kopfs zeigt nur Systemschriften -- die Grundschrift jedes
-Dokuments steht nicht drin) und Nr. 15 (keine Seitenzahlen im
-WPF-Editor; die Empfehlung "warten bis nach Phase 4.5" IST ABGELAUFEN
-und haengt an der groesseren Frage, ob der WPF-Kopf ueberhaupt einen
-eigenen Editor behaelt). Nr. 3 (PDF-Groesse) bleibt bei (a).
+ - Beide Koepfe werden Flaeche fuer Flaeche verglichen, und JEDER
+   SICHTBARE UNTERSCHIED wird beseitigt: Symbole, Bedienelemente,
+   Dialoge, Menues, Anordnung, Tooltips, leere Zustaende.
+ - BEI JEDEM UNTERSCHIED IST DER LINUX-KOPF DIE VORLAGE.
+ - AUSNAHME: BEIM EDITOR IST WINDOWS DIE VORLAGE. TextDocView wird an
+   TextEditorView angeglichen (Reiterfolge, Gruppennamen, Galerien,
+   Anordnung). Das ist ausdruecklich so entschieden.
 
-SCHON BEANTWORTET UND NICHT NOCH EINMAL ZU FRAGEN:
-  (6) Der Wortzwischenraum an der Stueckgrenze ist ZU (§4.67).
- (16) Beide Koepfe laufen von 0,5 bis 40 -- gebaut (V2-85).
- (17) Die zweite Stift-Taste DARF verschieden bleiben.
- (18) Tesseract VERWEIST auf die System-Bibliotheken (V2-87).
- (19) Der Fokus-Fund war GEMEINSAM, in beiden Koepfen behoben (§4.65).
- (20) zeiger wird NICHT umgebaut -- geklickt und getippt wird auf dem
-      Laptop mit ydotool (§4.64, §5d).
+WIE VERGLICHEN WIRD -- und das ist der Teil, an dem frueher Runden
+verloren gegangen sind:
 
-DER LAPTOP HAT KEINEN AUFTRAG (§5d). Wenn in Phase 5 einer entsteht,
-wird §5d NEU GESCHRIEBEN -- und ZUERST der Werkzeug-Abschnitt gelesen:
-XTEST ist unter GNOME 50 zum Klicken und Tippen unbrauchbar.
+ - BEIDE KOEPFE LAUFEN UNTER WINDOWS, an DERSELBEN frisch gezogenen
+   DB-Kopie (--db, Dauerregel 4). Verglichen wird NUR unter Windows,
+   das ist entschieden (§5 Nr. 25).
+ - FOTOGRAFIERT WIRD MIT tools/fenster.ps1 UND NICHT MIT schau.ps1.
+   schau.ps1 fotografiert den BILDSCHIRM und liefert im Fehlerfall ein
+   fremdes Fenster (§4.50). Ein Werkzeug, das im Fehlerfall irgendein
+   Bild liefert, ist schlimmer als eines, das nichts liefert.
+ - FANG MIT EINER LEEREN FLAECHE AN. Zwei Runden sind an
+   Scheinbefunden verloren gegangen, weil noch etwas aus dem vorigen
+   Lauf dalag (§4.56).
+ - EIN AUFTRAG IST KEINE MESSUNG. Unten stehen Dialoge, die im
+   Linux-Kopf keine eigene Datei haben -- ob sie FEHLEN oder INLINE
+   liegen, sieh nach, nimm es nicht an (§4.56).
+ - Schreib eine Befundtabelle je Flaeche: Element | WPF | Avalonia |
+   Vorlage | Befund. Sie ist das Arbeitsblatt fuer Schritt 1 und die
+   Vorlage fuer Schritt 2.
 
-ERST MESSEN, DANN BAUEN -- und "messen" heisst nicht "im HANDOFF
-nachlesen". §4.67 ist der juengste Beleg: der Punkt trug siebzehn Tage
-lang eine URSACHENVERMUTUNG, und sie war in BEIDEN Haelften falsch.
-Zwei Wegwerf-Sonden haben sie widerlegt, bevor eine Zeile Code entstand.
+DIE FLAECHEN, DIE ABZUGEHEN SIND:
+ 1. Titelleiste, Menueleiste, Tab-Leiste, Seitenleiste
+    (MainWindow.xaml <-> MainWindow.axaml)
+ 2. Whiteboard: Werkzeugleiste, die vier Klappgruppen,
+    Einstellungsleiste, Zahlenblock, Schnellaktionen, Sticker, Cover,
+    Import, Texterkennung
+ 3. Text: das ganze Ribbon, alle Reiter und Gruppen -- HIER IST
+    WINDOWS DIE VORLAGE
+ 4. Dialoge
+ 5. Die 71 Symbole (Core/Theming), Kontextmenues, Tooltips, leere
+    Zustaende, Fehlermeldungen
 
-DIE DREI TEUERSTEN FEHLERMUSTER, JEDES MEHRFACH VORGEKOMMEN:
+SCHON BEIM LESEN DES CODES AUFGEFALLEN -- im Linux-Kopf ohne eigene
+Datei, ZU MESSEN UND NICHT ANZUNEHMEN:
+ - ChartDialog (389 Zeilen im WPF-Kopf)
+ - HeaderFooterDialog, TableSizeDialog, TableSortDialog, PromptDialog,
+   FileInsertDialog
+ - TextEditorView.Find.cs (Suchen/Ersetzen)
+ - WhiteboardView.Covers.cs (227 Zeilen)
 
- (A) EIN GRUENER BAU BEWEIST AN EINER EINGABE-NAHT FAST NICHTS.
-     963 Waechter waren gruen, waehrend der Kloner Drehung und Neigung
-     verlor (§4.61). 1012 waren gruen, waehrend der Zahlenblock gar
-     nicht aufging (§4.62). 913 waren gruen, waehrend getipptes "Hallo"
-     Werkzeuge umschaltete (§4.55).
- (B) EIN KOMMENTAR WIRD ZUR FALLE -- auf ZWEI Weisen, und beide sind
-     vorgekommen. Er VERALTET (die Geodreieck-SVGs §4.60, der Kloner
-     §4.61, AvaloniaClipboard.HasImage §4.62). ODER ER WAR VON ANFANG
-     AN FALSCH und hat trotzdem zwanzig Runden ueberlebt, weil er sich
-     wie eine Selbstverstaendlichkeit las: "es gibt einen Zwischenraum
-     weniger als Stuecke" (§4.67).
- (C) MESSFEHLER SEHEN AUS WIE PROGRAMMFEHLER. Wer prueft, ob etwas
-     ENTSTEHT oder VERSCHWINDET, faengt mit einer LEEREN Flaeche an und
-     zieht die DB-Kopie NEU. schau.ps1 STARTET die App selbst und
-     ignoriert -AppPid still (§4.66); klick.ps1 -AppPid bedient einen
-     LAUFENDEN Prozess. Und ein Klick auf ein NICHT MAXIMIERTES Fenster
-     landet woanders -- in V2-90 hat er zwei Ordner angelegt, die
-     danach wie ein Programmfehler aussahen.
+MIT IN SCHRITT 1 GEHOERT §5 Nr. 14: die Schriftlisten werden
+ZUSAMMENGEFUEHRT -- mitgelieferte Schriften oben, Systemschriften
+darunter, in BEIDEN Koepfen dieselbe Quelle. Heute steht das
+Schriftfeld des WPF-Kopfs bei einem neuen Dokument LEER.
 
-WAS BEI DER BEDIENUNG GILT:
+WAS DU NICHT ANGLEICHST, WEIL ES ENTSCHIEDEN IST:
+ (11) Tote Tasten unter Linux -- als Mangel BENANNT lassen und ein
+      Issue bei Avalonia schreiben (gehoert zu Schritt 4, nicht 1).
+      NICHT im Kopf umgehen.
+ (15) Keine Seitenzahlen im WPF-Editor -- BLEIBT SO. Das ist eine
+      AUSNAHME von der Editor-Vorlage-Regel: der Linux-Kopf ist hier
+      der bessere und wird NICHT an den schlechteren angeglichen.
+ (17) Die zweite Stift-Taste darf verschieden bleiben.
+  (3) PDF-Groesse bleibt bei (a).
+ (16) (18) (19) (20) sind entschieden -- §5 lesen, nicht neu fragen.
+ (21)-(25) sind am 2026-08-28 entschieden worden: HANDOFF nach Docs/
+      (KEIN History-Rewrite), Rechtschreibpruefung als benanntes Loch
+      UND fest als erster Punkt nach M3, Version 1.0.0, alle vier
+      Veroeffentlichungsstuecke, Vergleich nur unter Windows.
 
- - Kommt eine Eingabe am falschen Ort an oder GAR NICHT, ist die erste
-   Frage die ROUTING-STRATEGIE (Tunnel = vor dem Control, Bubble =
-   danach) -- der Fund aus §4.62.
- - Wer einen neuen Zug ueber die Flaeche baut, traegt ihn in
-   InputInProgress ein -- sonst passiert GAR NICHTS (§4.51).
- - Wer einen Knopf baut, der etwas auf die Flaeche legt, gibt danach
-   den Fokus zurueck (Skia.Focus()). Sonst kommt KEINE Taste mehr an
-   (§4.56).
- - Wer eine Farbe setzt, die nicht ankommt, sieht INS TEMPLATE, bevor
-   er einen Style schreibt (§4.55).
- - SetTool klappt die Einstellungsleiste auf -- und muss dabei
-   EinstellungenSpiegeln rufen (§4.53).
- - Neue Texte gehoeren in BEIDE Sprachtabellen (Dauerregel 1).
-
-WAS SONST NOCH ZU WISSEN IST:
-
- - Der LINUX-KOPF LAESST SICH UNTER WINDOWS STARTEN
-   (GonkNote.Avalonia.exe, --db wie drueben). Das misst die
-   OBERFLAECHE und nichts darueber hinaus -- X11-Eigenheiten NICHT.
- - Anzeige und PDF gehen durch DENSELBEN Umbruch und DENSELBEN
-   Zeichner; nur der Massstab ist verschieden, und der ist als
-   wirkungslos gemessen (§4.67). "In der Anzeige falsch, im PDF
-   richtig" ist also ein Befund, der erst noch zu erklaeren waere.
+FALLEN, DIE DICH IN GENAU DIESER ARBEIT ERWISCHEN (§7 vorher
+ueberfliegen, das ist Pflicht):
+ - Avalonia: die ROUTING-STRATEGIE entscheidet, wer eine Taste zuerst
+   sieht. Drei von vier Fehlern in §4.55 und der Fehler in §4.62 hatten
+   diese eine Ursache, und DER BAU WAR JEDES MAL GRUEN.
+ - Ein px-Suffix in einem XAML-Mass wirft zur LAUFZEIT, nicht beim Bau
+   (§4.53).
+ - Die Einstellungsleiste ohne EinstellungenSpiegeln aufklappen ergibt
+   LAUTER LEERE UMSCHALTER -- der Fehler steht seit Phase 3 woertlich
+   im Code und kam am zweiten Aufklappweg prompt wieder (§4.53).
+ - Assets, die im Avalonia-csproj ausgenommen sind, weil "das Werkzeug
+   gibt es im Linux-Kopf nicht": DIESE BEGRUENDUNG LAEUFT AB, sobald es
+   das Werkzeug gibt (§4.60). Bau und Tests waren gruen, nur das
+   laufende Programm zeigte zwei Gestalten desselben Werkzeugs.
+ - Loc.T faellt bei einem fehlenden Schluessel AUF DEN SCHLUESSEL
+   SELBST zurueck -- ein Fehlgriff steht roh im Fenster und faellt in
+   keinem Test auf (§4.68).
+ - Fest verdrahtete deutsche Texte fallen erst auf, wenn sie ein
+   zweiter Kopf braucht (§4.56, §4.58). Beim Angleichen kommen neue
+   dazu -- BEIDE Sprachtabellen zusammen (Dauerregel 1).
  - Die Werkzeug-Kuerzel stehen in Core (WbLeiste.Kuerzel) und sind in
    beiden Koepfen dieselben: S G B M E L V T F N H. "P" ist keins.
- - Sticker- und Cover-Ordner liegen im DATENORDNER und haengen NICHT
-   an --db (§4.56). Es gibt KEINE mitgelieferten Sticker.
- - Im Notizbuch gibt es fuer eingefuegte SEITEN keinen Undo-Schritt --
-   in BEIDEN Koepfen (§4.58).
- - Ein Item und sein Board teilen sich DIESELBE Id (§4.61).
  - Beim Schreiben mit einem Skript: NICHT die Kodierung aendern. Die
    meisten .cs im Avalonia-Kopf haben KEIN BOM, WhiteboardView.axaml
    und einige WPF-Dateien schon.
- - Avalonia: x:Name an einem PINSEL erzeugt kein Feld,
-   ImageBrush.Source nimmt kein DrawingImage, und ein px-Suffix in
-   einem XAML-Mass wirft zur LAUFZEIT bei gruenem Bau.
- - Fuer die Runde zwischen den Koepfen: SPEICHERN (Strg+S, der
-   Aenderungspunkt im Titel muss weggehen), REGULAER SCHLIESSEN, dann
-   drueben oeffnen. NIEMALS Stop-Process.
+ - Avalonia: x:Name an einem PINSEL erzeugt kein Feld.
+ - Den Linux-Kopf zum Vergleichen NIE mit Stop-Process abschiessen --
+   wer den Schreiber abschiesst, misst nicht den Leser (§4.55).
 
-Lies in dieser Reihenfolge: §4.67 (zuletzt gefahren), §4.64 und §4.65
-(Stueck 6 und der Fokus-Fund), §6 "Phase 5" samt der Checkliste "Vor
-dem Oeffentlich-Schalten", §5 "Noch offen" 14 und 15, und §7.
+EIN GRUENER BAU BEWEIST AN EINER OBERFLAECHE FAST NICHTS. Was am
+laufenden Programm zu sehen ist, wird am laufenden Programm gesehen --
+in BEIDEN Koepfen, an DERSELBEN Datei.
 
-ACHTUNG BEIM LESEN AELTERER ABSCHNITTE: §4.23 sagt, Migrate laufe bei
-JEDEM Speichern, und §5 Nr. 9 nennt Antwort (d) ausdruecklich falsch --
-seit §4.48 gilt das Gegenteil. §4.45 nennt drei offene Luecken und
-§4.49 noch eine -- alle sind zu. WbHit sagt, die Griffe blieben im Kopf
--- seit §4.51 nicht mehr. §4.10 sagt, die zweite Stift-Taste radiere,
-weil "die Schnellaktionen nicht M1" seien -- die gibt es seit §4.62
-auch hier, und die Belegung ist seit §5 Nr. 17 bewusst verschieden.
-§4.28 sagt, der Wortzwischenraum sei ein Anzeigefehler und im PDF
-richtig -- seit §4.67 ist beides widerlegt. Die Abschnitte sind Chronik
-und nicht Vorschrift.
-
-Arbeite auf Deutsch, halte das HANDOFF nach, und sag mir am Ende, ob
-der Laptop dran ist.
+Arbeite auf Deutsch, halte Docs/HANDOFF.md nach, und sag mir am Ende,
+ob der Laptop dran ist.
 
 Fang an.
 ```
 
-### ▶ Aktueller Auftrag — **▶ Phase 5: aufräumen, prüfen, veröffentlichen** (Stand 2026-08-28, nach Runde V2-90)
+### ▶ Aktueller Auftrag — **▶ Phase 5, Schritt ①: die Oberflächen 1:1 angleichen** (Stand 2026-08-28, nach Runde V2-93)
 
-> **✅ M2 ist ausgerufen** (Nutzer-Entscheidung 2026-08-28, §2 und §6) — **mit dem benannten
-> Loch**: die Rechtschreibprüfung fehlt im Linux-Kopf. Phase 4.5 ist auf **beiden** Systemen
-> zu (§4.64), und der Laptop hat keinen Auftrag mehr (§5d).
+> **✅ M2 ist ausgerufen** (2026-08-28, §2 und §6) — **mit dem benannten Loch**: die
+> Rechtschreibprüfung fehlt im Linux-Kopf. Phase 4.5 ist auf **beiden** Systemen zu (§4.64).
 >
-> **✅ Und der älteste offene Fund des Laptops ist erledigt** (§4.67): der Wortzwischenraum an
-> der Stückgrenze, offen seit dem 2026-08-11. **Bau 0/0, 1040 Tests** (981 Core + 59 WPF),
-> am laufenden Programm mit dem alten Stand daneben gegengeprüft.
+> **✅ Und am 2026-08-28 sind sieben Entscheidungen gefallen, darunter die zwei, die den Rest
+> blockierten** (§5 Nr. 11, 14, 15, 21–25). **Es ist keine davon noch einmal zu fragen.**
 >
-> **▶ Damit ist Phase 5 an der Reihe, und ihre Reihenfolge ist der Punkt** (§6, Nutzer
-> 2026-08-05): **aufräumen → vollständig prüfen → veröffentlichen.** Wer nach dem Aufräumen
-> nicht mehr prüft, veröffentlicht einen Stand, den nie jemand gesehen hat.
+> **▶ Damit ist Phase 5 neu geordnet — und die Ordnung steht in §6, „Die fünf Schritte", und
+> nur dort.** Dieser Abschnitt sagt, **womit die nächste Runde anfängt**, nicht was zu bauen
+> ist. *Ein Plan an zwei Stellen ist einer, der an einer davon veraltet.*
 
-#### ▶ Womit Phase 5 anfängt — der Vorschlag steht, entschieden ist er nicht
+#### ▶ Schritt ① — was zu tun ist
 
-**Die Liste in §6 ist keine Reihenfolge, sondern ein Vorrat.** Zwei Dinge daraus sind
-**Entscheidungen des Nutzers und blockieren den Rest**, sie gehören deshalb zuerst gefragt:
+**Beide Köpfe Fläche für Fläche vergleichen und jeden sichtbaren Unterschied beseitigen.**
+Der Zuschnitt, die Vorlage-Regel samt ihrer einen Ausnahme und die Liste der Flächen stehen
+in **§6**. Hier steht nur, was diese Runde vor dem ersten Handgriff wissen muss:
 
 | | |
 |---|---|
-| **`HANDOFF.md` raus — und die History-Frage** | Das Dokument geht nicht mit ins öffentliche Repo. **Offen ist, ob es auch aus der Vorgeschichte verschwindet** (`git filter-repo`). Das ist die einzige Entscheidung in Phase 5, die **nachträglich nicht mehr zu treffen** ist: Wer erst veröffentlicht und dann umschreibt, hat es schon herausgegeben |
-| **Repo öffentlich schalten** | Der Zeitpunkt gehört dem Nutzer. Die Checkliste „Vor dem Öffentlich-Schalten" steht in §6 |
+| **Die Vorlage** | **Linux gewinnt bei jedem Unterschied** — **außer beim Editor**, dort ist Windows die Vorlage. **Und §5 Nr. 15 ist eine ausdrückliche Ausnahme davon:** die fehlenden Seitenzahlen des WPF-Editors werden **nicht** nach Linux übernommen. Die Regel betrifft das **Aussehen** des Ribbons, nicht das Rechnen dahinter |
+| **Wo gemessen wird** | **Nur unter Windows** (§5 Nr. 25), beide Köpfe an **derselben** frisch gezogenen DB-Kopie (`--db`, Dauerregel 4) |
+| **Womit fotografiert wird** | **`tools/fenster.ps1`, nicht `schau.ps1`** — das fotografiert den *Bildschirm* und liefert im Fehlerfall ein fremdes Fenster (§4.50) |
+| **Womit angefangen wird** | **Mit einer leeren Fläche.** Zwei Runden sind an Scheinbefunden verloren gegangen, weil noch etwas aus dem vorigen Lauf dalag (§4.56) |
+| **Was mitläuft** | **§5 Nr. 14** — die Schriftlisten werden zusammengeführt. Es ist ein sichtbarer Unterschied derselben Sorte |
+| **Was herauskommt** | Eine **Befundtabelle je Fläche**: *Element · WPF · Avalonia · Vorlage · Befund*. Sie ist das Arbeitsblatt für ① und die **Vorlage für ②** |
 
-**Alles andere ist Arbeit und keine Frage** — in dieser Reihenfolge vorgeschlagen, weil jeder
-Schritt den nächsten billiger macht:
+> **⚠ Schon beim Lesen des Codes aufgefallen — und ausdrücklich noch keine Messung:** Im
+> Linux-Kopf haben **`ChartDialog`** (389 Zeilen drüben), **`HeaderFooterDialog`**,
+> **`TableSizeDialog`**, **`TableSortDialog`**, **`PromptDialog`**, **`FileInsertDialog`**,
+> **`TextEditorView.Find.cs`** (Suchen/Ersetzen) und **`WhiteboardView.Covers.cs`**
+> (227 Zeilen) **keine eigene Datei**. Ob sie dort **fehlen** oder **inline** liegen, ist
+> **nachzusehen und nicht anzunehmen** — *ein Auftrag ist keine Messung, auch wenn er im
+> HANDOFF steht* (§4.56, wo genau dieser Fehler eine Runde gekostet hat).
+
+> **⚠ Und die Falle, die in genau dieser Arbeit wartet, weil sie schon fünfmal zugeschlagen
+> hat:** In Avalonia entscheidet die **Routing-Strategie**, wer eine Taste zuerst sieht
+> (`Tunnel` vor allen Kindern, `Bubble` erst nach dem Control). **Drei der vier Fehler in
+> §4.55 und der Fehler in §4.62 hatten diese eine Ursache — und der Bau war jedes Mal grün.**
+
+#### ▶ Was danach kommt — die Kurzform, die volle steht in §6
 
 | | | |
 |---|---|---|
-| **1** | **Toter Code und aufgelöste Nähte** · ▶ **angefangen (§4.68)** | **Der Compiler findet das nicht** — was `public` ist, sieht benutzt aus. **Erste Runde erledigt:** sechs tote Stellen und zehn Übersetzungstexte weg, mit zwei Sonden gefunden und **jeder Treffer von Hand nachgesehen** (die Mehrheit war Fehlalarm). **Offen bleibt:** Testprojekte und `tools/` sind nicht durchsucht, und `§4.1` ist noch nicht aufgelöst — zu klären ist, was im WPF-Kopf steht, weil es dort stehen **musste**, und was nur, weil es dort stand |
-| **2** | **Doku gegen den Code lesen** · ▶ **angefangen (§4.69)** | §7 ist auf **1281 Zeilen** gewachsen, und es ist der Abschnitt, den man *vor* jeder Codeänderung liest. **Erste Runde erledigt:** ein gefährlicher Fund (`Rtf` führt seit §4.48 nicht mehr — die Zeile behauptete das Gegenteil) und zwei Stellen, an denen Code und Doku in **entgegengesetzte** Richtungen falsch standen. **Was nicht mehr gilt, wird als erledigt gekennzeichnet und nicht gelöscht** — die Begründung ist mehr wert als der Hinweis. **Offen:** §7 ist nicht vollständig gegengelesen |
-| **3** | **Benannte Lücken schließen oder benennen** | Tabelle *in* einer Zelle (§4.19), ungenutzte Palettenfarben und fremde Zeichnungen (§4.21), Diagramm und Feld im WPF-Speicherweg (§5 Nr. 12). Jede ist heute mit einem Wächter festgehalten und muss vor der Veröffentlichung **entweder zu oder bewusst offen** sein |
-| **4** | **Der vollständige Prüflauf** | Beide Testprojekte, beide Köpfe mit 0 Warnungen, **die vier mitgelieferten Dokumente in beiden Sprachen** am laufenden Programm (Dauerregel 1) und ein Durchgang mit einer **Kopie** der echten Daten (Dauerregel 4) |
-| **5** | **Auslieferung** | **Flatpak/Flathub** als Hauptweg — im Manifest `fontconfig`, `freetype` **und `tesseract`/`leptonica`** (§4.63/§5 Nr. 18), sonst rendert SkiaSharp keine Schrift und die Texterkennung findet nichts. **AppImage** als zweiter, abhängigkeitsfreier Kanal. MIT-Text und `THIRD-PARTY-NOTICES.md` in den Info-Dialog |
-
-> **⚠ Zwei Fragen sind mit M2 fällig geworden und stehen noch offen**, beide in §5:
-> **Nr. 14** (die Schriftliste des WPF-Kopfs zeigt nur Systemschriften — die Grundschrift jedes
-> Dokuments steht nicht darin) und **Nr. 15** (der WPF-Editor rechnet keine Seitenzahlen). Bei
-> Nr. 15 ist die Empfehlung „stehen lassen bis nach Phase 4.5" **abgelaufen**; sie hängt an der
-> größeren Frage, **ob der WPF-Kopf überhaupt einen eigenen Editor behält** (§6). Nr. 3
-> (PDF-Größe) bleibt bei (a) so lassen.
-
-> **⚠ Die Versionsnummer steht weiter auf 0.3.0.** Sie gehört zur Auslieferung und damit ans
-> **Ende** dieser Phase. **Der Über-Dialog ist dagegen nachgezogen** (V2-90) und sagt jetzt
-> „Portierung, Phase 5 — aufräumen und veröffentlichen" / „Port, phase 5 — cleanup and
-> release" — beide Sprachtabellen zusammen (Dauerregel 1).
+| **②** | **Rückmeldung** | Eine **eigene Runde**. Wer eine Oberfläche in einem Zug umbaut und nicht noch einmal hinsieht, hat sie nicht geprüft, sondern nur geändert |
+| **③** | **Flatpak/AppImage — vorgezogen** | **Der Laptop ist dann dran** (§5d), und zwar zwingend: unter Windows lässt sich ein Flatpak weder bauen noch starten. **③ ist eine Erprobung und keine Auslieferung** — nach ④ wird noch einmal gebaut, und erst der zweite Bau geht hinaus |
+| **④** | **Rest des Aufräumens + vollständiger Prüflauf** | Dazu gehört auch das **Avalonia-Issue** (§5 Nr. 11) |
+| **⑤** | **Veröffentlichen** | READMEs, Pages, Releases, Beiwerk, Version **1.0.0** |
 
 #### ⛔ Was der Laptop mitgeschickt hat — es gilt weiter, auch ohne Auftrag
 
 **Die Fernsteuerung des Laptops ist kaputtgegangen, ohne dass jemand etwas geändert hat.**
 Unter GNOME 50 hängt XTEST am „Entfernter Bildschirm"-Portal: das erste Ereignis öffnet einen
 Dialog, **der eine Wayland-Oberfläche ist und den XTEST selbst nicht bedienen kann** — und
-solange er steht, kommt **gar kein** Ereignis an. Die Freigabe wird **nicht gespeichert**, und
-eine Bildschirmsperre nimmt sie zurück. *In V2-86 trug `zeiger` nur deshalb, weil die Freigabe
-aus einer früheren Handbedienung noch stand.* **Gearbeitet wird dort mit `ydotool`** (§7, §5d).
-
-> **✅ Die Entscheidung dazu ist gefallen** (§5 „Noch offen" 20, Nutzer 2026-08-28): **(a) —
-> vorerst nichts umbauen.** `zeiger` behält `hervor`/`fenster`, geklickt und getippt wird mit
-> `ydotool`, und die Anleitung ist in V2-89 richtiggestellt. **Sobald der Laptop wieder etwas
-> zu messen bekommt, lohnt (b)** — bis dahin wäre es Arbeit auf Vorrat.
+solange er steht, kommt **gar kein** Ereignis an. **Gearbeitet wird dort mit `ydotool`**
+(§7, §5d); `zeiger` behält `hervor`/`fenster` (§5 Nr. 20).
 
 > **▶ Und die allgemeine Lehre, die hier hingehört:** *eine Anleitung, die vier Runden lang
-> richtig war, ist damit nicht richtig geblieben.* Die Angabe „der Klick auf den Schalter
-> bedient den Dialog selbst" stand seit V2-86 in §5d und war beim nächsten Gebrauch falsch —
-> **nicht weil sie schlecht geschrieben war, sondern weil sich das System darunter geändert
-> hat.** Werkzeugwissen über fremde Oberflächen verfällt; **Befunde über den eigenen Code
-> nicht.** *(§4.67 zeigt die Kehrseite: ein Kommentar über den **eigenen** Code kann von
-> Anfang an falsch sein und trotzdem zwanzig Runden überleben.)*
+> richtig war, ist damit nicht richtig geblieben.* **Werkzeugwissen über fremde Oberflächen
+> verfällt; Befunde über den eigenen Code nicht.** *(§4.67 zeigt die Kehrseite: ein Kommentar
+> über den **eigenen** Code kann von Anfang an falsch sein und trotzdem zwanzig Runden
+> überleben.)*
+
+#### Abgearbeitet — die Fragen, die dem Nutzer gehörten (V2-93)
+
+> **▶ Hier standen bis zum 2026-08-28 zwei Fragen, die den Rest der Phase blockierten.**
+> **Beide sind beantwortet** (§5 Nr. 21 und §6): `HANDOFF.md` liegt unter `Docs/`, **kein
+> History-Rewrite**, und der Zeitpunkt des Öffentlich-Schaltens ist Schritt ⑤. Dazu fünf
+> weitere Entscheidungen in derselben Sitzung (§5 Nr. 11, 14, 15, 22–25).
 
 #### Abgearbeitet — der Wortzwischenraum an der Stückgrenze (V2-90)
 
@@ -11367,7 +11194,8 @@ Reihenfolge:
 | 3 | Avalonia-Shell für Linux — **fertig** | 6–8 W. | ✅ **M1 erreicht** — Notizbuch + Whiteboard laufen unter Linux, Textdokumente ausgegraut |
 | 4 | Eigene Dokument-Engine in `Core/Text/` — **fertig**, samt Umverdrahten (§4.48) | 8–12 W. | ~~M2~~ — Textdokumente laufen unter Linux |
 | **4.5** | **Die fehlenden Werkzeuge des Linux-Kopfs** (Formen, Lineal/Geodreieck, Textfelder, Sticker, Notizzettel, Bild-/PDF-Import, Zahlenblock, Schnellaktionen, Werkzeugleisten-Anordnung, Drehen/Skalieren) — **fertig, sechs von sechs Stücken** | 2026-08-23 bis 2026-08-28 | ✅ **M2 erreicht** — Funktionsgleichheit Linux ↔ Windows, **mit einem benannten Loch** (Rechtschreibprüfung) |
-| **5** | **Aufräumen, dann das Repo öffentlich schalten, dann Flatpak/AppImage** — siehe unten · ▶ **an der Reihe** | 3–5 W. | **M3 — veröffentlicht** (Linux + Windows) |
+| **5** | **① UI/UX angleichen → ② Rückmeldung → ③ Flatpak/AppImage → ④ aufräumen und vollständig prüfen → ⑤ veröffentlichen** — die Ordnung ist am 2026-08-28 geändert worden, Begründung unten · ▶ **an der Reihe** | 3–5 W. | **M3 — veröffentlicht** (Linux + Windows), Version **1.0.0** |
+| **5.6** | **Rechtschreibprüfung im Linux-Kopf** — das benannte Loch von M2, **fest eingeplant als erster Punkt NACH M3** (§5 Nr. 22) | 1–2 W. | Das Loch aus M2 ist zu |
 | **6** | **iPadOS-Head**, Apple Pencil, PDFKit/Vision, AOT-Härtung, App Store | 7–12 W. | **M4** — TestFlight-Build |
 
 > ### ▶ Die Reihenfolge ist am 2026-08-18 geändert worden — Nutzer-Entscheidung
@@ -11415,47 +11243,85 @@ Reihenfolge:
 > nicht danach: wer die Werkzeuge erst danach baut, baut sie **zweimal**". Der iPad-Kopf rückt
 > weiter nach hinten, **das Argument wird also stärker und nicht schwächer**.
 
-#### Phase 5 — aufräumen, dann prüfen, dann erst veröffentlichen
+#### Phase 5 — die Ordnung, und warum sie am 2026-08-28 geändert wurde
 
-**Nutzer-Entscheidung 2026-08-05** *(die Phase hieß damals 6 und lag hinter iPadOS — seit dem
-2026-08-18 ist sie Phase 5 und liegt davor; siehe den Kasten oben)*. Vor dem
-Öffentlich-Schalten wird der Code **einmal durchgeputzt**, und **danach** läuft die Prüfung
-noch einmal vollständig — erst dann geht das Projekt hinaus. Die Reihenfolge ist der Punkt:
-aufräumen, prüfen, veröffentlichen. Wer nach dem Aufräumen nicht mehr prüft, veröffentlicht
-einen Stand, den nie jemand gesehen hat.
+> **▶ HIER STEHT DIE REIHENFOLGE, UND NUR HIER.** §0 und §5e verweisen darauf, statt sie zu
+> wiederholen. *Ein Plan an drei Stellen ist einer, der an zweien veraltet.*
+
+**Die Grundregel von 2026-08-05 gilt unverändert** *(die Phase hieß damals 6 und lag hinter
+iPadOS — seit dem 2026-08-18 ist sie Phase 5 und liegt davor; siehe den Kasten oben)*:
+**aufräumen, prüfen, veröffentlichen. Wer nach dem Aufräumen nicht mehr prüft, veröffentlicht
+einen Stand, den nie jemand gesehen hat.**
 
 **Voraussetzung ist M2** — Funktionsgleichheit Linux ↔ Windows (Ende Phase 4.5). Vorher hat
 Veröffentlichen keinen Sinn: Was hinausgeht, soll auf Linux können, was es auf Windows kann.
+**M2 ist am 2026-08-28 ausgerufen** (§2).
 
-**Was dabei ansteht** (die Liste ergibt sich aus dem, was die Phasen bewusst stehen gelassen
-haben — sie ist beim Aufräumen zu ergänzen, nicht abzuarbeiten wie ein Vertrag):
+##### Die fünf Schritte
+
+| | Schritt | Was darin steckt |
+|---|---|---|
+| **①** | **UI/UX 1:1 angleichen** | Beide Köpfe Fläche für Fläche vergleichen und **jeden sichtbaren Unterschied** beseitigen — Symbole, Bedienelemente, Dialoge, Menüs, Anordnung. **Vorlage ist der Linux-Kopf — mit einer Ausnahme: beim Editor ist Windows die Vorlage**, `TextDocView` wird an `TextEditorView` angeglichen. Mit hinein gehört §5 Nr. **14** (Schriftlisten zusammenführen) |
+| **②** | **Rückmeldung** | Was der Vergleich übersehen hat und was ① kaputt gemacht hat. **Eine eigene Runde und kein Anhängsel** — wer eine Oberfläche in einem Zug umbaut und nicht noch einmal hinsieht, hat sie nicht geprüft, sondern nur geändert |
+| **③** | **Auslieferung — vorgezogen** | **Flatpak/Flathub** als Hauptweg, **AppImage** als zweiter, abhängigkeitsfreier Kanal, `.deb`/AUR optional. Ins Manifest gehören `fontconfig`, `freetype` **und `tesseract`/`leptonica`** (§4.63, §5 Nr. 18) — sonst rendert SkiaSharp **keine Schrift** und die Texterkennung findet nichts. **Braucht den Laptop** (§5d) |
+| **④** | **Der Rest des Aufräumens, dann der vollständige Prüflauf** | Die Vorratsliste unten, dann der ganze Prüflauf |
+| **⑤** | **Veröffentlichen** | READMEs, GitHub Pages, Releases mit Artefakten, Repo-Beiwerk, `Docs/HANDOFF.md`-Prüfung, Repo auf „public", Version **1.0.0** (§5 Nr. 23/24). Checkliste: „Vor dem Öffentlich-Schalten" |
+
+##### ⚠ Warum ③ vor ④ steht — und warum die Grundregel damit NICHT gestrichen ist
+
+**Nutzer-Entscheidung 2026-08-28, und die Begründung ist gemessen und nicht hergeleitet:**
+Die Auslieferung ist **das einzige Stück, das noch nie gelaufen ist**; alles andere ist
+Nacharbeit an Bekanntem. Ein Flatpak, das erst nach dem Aufräumen zum ersten Mal gebaut wird,
+**findet seine Fehler zum spätestmöglichen Zeitpunkt** — und **§4.64 hat die
+Tesseract-Bindung ausdrücklich außerhalb eines Flatpaks vermessen**, die Sandbox ist also
+ungeprüft. Dazu kommt, was §5 Nr. 25 benennt: Der UI-Vergleich läuft nur unter Windows, also
+ist ③ ohnehin der erste Durchgang auf echtem Linux.
+
+> **⛔ Und deshalb steht hier ausdrücklich, was ③ NICHT ist:** ③ ist eine **Erprobung** und
+> **keine Auslieferung**. Das Flatpak wird **nach ④ noch einmal gebaut und laufen gelassen**,
+> und **erst dieser zweite Bau geht hinaus**. Ohne diesen Satz liest die nächste Runde das
+> Vorziehen als Streichung der Grundregel — und veröffentlicht genau den Stand, den nie
+> jemand gesehen hat.
+
+##### Was in ④ ansteht
+
+*(Die Liste ergibt sich aus dem, was die Phasen bewusst stehen gelassen haben — sie ist beim
+Aufräumen zu **ergänzen**, nicht abzuarbeiten wie ein Vertrag.)*
 
 | | |
 |---|---|
-| **Aufgelöste Nähte wegräumen** | Was das Umverdrahten übrig lässt: `§4.1` löst sich auf, und mit ihm die Frage, was noch im WPF-Kopf steht, weil es dort stehen **musste**, und was nur, weil es dort stand |
+| **Toter Code, zweiter Lauf** | ▶ **Erste Runde erledigt** (§4.68): sechs Stellen und zehn Übersetzungstexte. **Offen:** die **Testprojekte** und `tools/` sind nicht durchsucht worden. **Der Compiler findet das nicht** — was `public` ist, sieht benutzt aus; die Sonden liegen als Muster in §8 |
+| **Doku gegen den Code, zu Ende** | ▶ **Erste Runde erledigt** (§4.69): §7 an fünf Stellen richtiggestellt, darunter eine gefährliche. **Offen:** §7 ist nicht vollständig gegengelesen. Was nicht mehr gilt, wird **als erledigt gekennzeichnet und nicht gelöscht** |
+| **Aufgelöste Nähte wegräumen** | `§4.1` löst sich auf, und mit ihm die Frage, was noch im WPF-Kopf steht, weil es dort stehen **musste**, und was nur, weil es dort stand |
+| **Benannte Lücken schließen oder benennen** | Tabelle *in* einer Zelle (§4.19), ungenutzte Palettenfarben und fremde Zeichnungen (§4.21). Jede ist heute mit einem Wächter festgehalten und muss vor der Veröffentlichung **entweder zu oder bewusst offen** sein |
 | **Zwei Verlaufsstapel: einer oder zwei?** | `UndoStack` (Zeichenfläche) und `TdUndo` (Text) teilen rund zwanzig Zeilen — zwei Listen, ein Deckel, ein Ereignis. **Bewusst getrennt gelassen** (§4.33, mit drei Gründen), aber genau die Sorte Frage, die zum Aufräumen gehört und nicht zum Bauen |
-| **Das Fehlerprotokoll wächst unbegrenzt** | `%APPDATA%\GonkNote\fehler.log` war am 2026-08-12 auf **272 MB** — dieselbe Ausnahme tausendfach, und nichts beschneidet die Datei (§4.32) |
-| **Benannte Lücken schließen oder benennen** | Tabelle *in* einer Zelle (§4.19), ungenutzte Palettenfarben und fremde Zeichnungen (§4.21) — jede ist heute mit einem Wächter festgehalten und muss vor der Veröffentlichung entweder zu oder bewusst offen sein |
-| **Toter Code und Altlasten** | Was nach dem Umverdrahten niemand mehr ruft. **Der Compiler findet das nicht** — was `public` ist, sieht benutzt aus |
-| **Doku gegen den Code lesen** | §7 ist über zwölf Runden gewachsen; einzelne Fallen sind seitdem ausgeräumt (z. B. §4.2). Was nicht mehr gilt, gehört als **erledigt gekennzeichnet** und nicht gelöscht — die Begründung ist mehr wert als der Hinweis |
-| **`HANDOFF.md` raus** | Steht als erster Punkt in „Vor dem Öffentlich-Schalten" und ist der einzige Punkt mit einer History-Frage (Rewrite oder nicht) |
+| **Das Avalonia-Issue schreiben** | §5 Nr. **11** ist entschieden: melden **und** stehen lassen. Der Befund aus §4.44 ist die Vorlage; `#18596` ist dasselbe Symptom, ohne Fix geschlossen |
+| ~~**Das Fehlerprotokoll wächst unbegrenzt**~~ | ✅ **Erledigt am 2026-08-28** (§4.66): `Fehlerprotokoll` in Core mit **5 MB Obergrenze**, für beide Köpfe. Die Datei war auf **272 MB** — 48.962 mal derselbe Fehler, alle von **einem** Tag |
+| ~~**`HANDOFF.md` raus**~~ | ✅ **Entschieden am 2026-08-28** (§5 Nr. 21) und in V2-93 **umgesetzt**: die Datei liegt unter `Docs/`, **kein History-Rewrite**. In ⑤ ist nur noch zu prüfen, dass sie dort geblieben ist |
 
 > **Und danach der ganze Prüflauf, nicht nur die Tests:** beide Testprojekte, beide Köpfe mit
-> 0 Warnungen, die vier mitgelieferten Dokumente in **beiden** Sprachen am laufenden Programm
-> (Dauerregel 1) und ein Durchgang mit einer **Kopie** der echten Daten (Dauerregel 4).
-> Aufräumen ist die Sorte Änderung, die nichts kaputt machen soll — und genau deshalb prüft
-> sie niemand nach.
+> **0 Warnungen**, die **vier mitgelieferten Dokumente in beiden Sprachen am laufenden
+> Programm** (Dauerregel 1) und ein Durchgang mit einer **Kopie** der echten Daten
+> (Dauerregel 4). Aufräumen ist die Sorte Änderung, die nichts kaputt machen soll — und genau
+> deshalb prüft sie niemand nach.
 
-**Und danach erst die Auslieferung** (Roadmap §5, Phase 5.3): **Flatpak/Flathub** als
-Hauptweg — im Manifest `fontconfig`, `freetype` und ggf. `libtesseract` deklarieren, **sonst
-rendert SkiaSharp keine Schrift** —, **AppImage** als zweiter, abhängigkeitsfreier Kanal,
-`.deb`/AUR optional. Dazu MIT-Lizenztext und `THIRD-PARTY-NOTICES.md` im Info-Dialog (die
-Apache-2.0 von Tesseract verlangt das ohnehin).
+##### Was in ⑤ ansteht (§5 Nr. 24: alle vier)
 
-> **✅ Nachgetragen:** Das war eine Ergänzung zu `gonk-note-port-RM.MD` und nicht daraus
-> abgeleitet — **am 2026-08-18 ist die Roadmap-Datei nachgezogen worden** (Phase 5 dort neu
-> gefasst, Phasen getauscht, Zeitrahmen und Risikotabelle angepasst). **Beide Dateien sagen
-> jetzt dasselbe.**
+| | |
+|---|---|
+| **READMEs überarbeiten** | Beide Fassungen zusammen (Dauerregel 1): Screenshots **beider** Köpfe, die drei Installationswege, MIT-Text, Verweis auf `THIRD-PARTY-NOTICES.md`. **Und die bekannten Einschränkungen namentlich:** Rechtschreibprüfung fehlt unter Linux (§5 Nr. 22, **mit dem Hinweis, dass sie als erster Punkt nach M3 eingeplant ist**), zusammengesetzte Zeichen kommen unter Linux nicht an (§5 Nr. 11), keine Seitenzahlen im WPF-Editor (§5 Nr. 15) |
+| **GitHub Pages** | Projektseite aus dem Repo (`docs/`-Ordner oder `gh-pages`): Screenshots, Download, Kurzbeschreibung, **zweisprachig**. Sie ist die Seite, auf die ein Flathub-Eintrag verweisen kann |
+| **Releases mit Artefakten** | Ein Tag mit **AppImage und Windows-Build** zum Herunterladen, plus Changelog. **Ohne das führt das öffentliche Repo nur Quellcode**, und niemand kann die App ausprobieren, bevor Flathub durch ist. `.github/workflows/ci.yml` ist der Ansatzpunkt |
+| **Repo-Beiwerk** | Beschreibung, Topics, sichtbare `LICENSE`, `CONTRIBUTING`, Issue-Vorlagen. Kleinkram — aber es ist das, was ein Fremder als Erstes sieht |
+
+> **⚠ Die Reihenfolge in ⑤ ist nicht beliebig:** Ein Release braucht ein gebautes Artefakt
+> (also ③ **und** dessen Wiederholung nach ④), und eine Projektseite, die auf einen Download
+> zeigt, den es noch nicht gibt, ist schlechter als keine Seite.
+
+> **✅ Nachgetragen:** Die Auslieferung war eine Ergänzung zu `gonk-note-port-RM.MD` und nicht
+> daraus abgeleitet — **am 2026-08-18 ist die Roadmap-Datei nachgezogen worden**, und **am
+> 2026-08-28 ein zweites Mal** (die neue Ordnung ①–⑤, Phase 5.1, Version 1.0.0). **Beide
+> Dateien sagen dasselbe.**
 
 > **M1 ist ein gültiger Ausstiegspunkt.** Phase 4 ist die, an der Projekte sterben — dort
 > strikt in der Reihenfolge Absätze/Zeichenformate → Seitenumbruch → Listen → Tabellen →
@@ -11546,30 +11412,43 @@ Vollständig in `gonk-note\HANDOFF.md` §5. Die Punkte, die für die Portierung 
 
 ### Vor dem Öffentlich-Schalten des Repos
 
-> **▶ Das ist seit dem 2026-08-18 Phase 5 und damit die Phase direkt nach 4.5** — vorher lag
-> es hinter iPadOS (Nutzer-Entscheidung, Begründung im Kasten in §6). **Die Liste ist damit
-> nicht mehr weit weg**, und der zweite Punkt ist der einzige darin, der eine echte
-> Entscheidung verlangt.
+> **▶ Das ist Schritt ⑤ von Phase 5** (§6, „Die fünf Schritte"). Erst abarbeiten, **dann** in
+> den GitHub-Einstellungen auf „public" stellen. Vorher nicht — **die Reihenfolge lässt sich
+> nicht nachholen.** Und davor stehen ①–④, samt vollständigem Prüflauf.
 
-Erst abarbeiten, **dann** in den GitHub-Einstellungen auf „public" stellen. Vorher nicht —
-die Reihenfolge lässt sich nicht nachholen. **Und davor steht das Aufräumen samt vollständigem
-Prüflauf** (§6, Phase 5) — nicht danach.
-
-- [ ] **`HANDOFF.md` wieder ausschließen:** Zeile `HANDOFF.md` in `.gitignore` zurückholen
-      (der Kommentar dort erklärt, warum sie fehlt), `git rm --cached HANDOFF.md`, commit.
-      Die Datei bleibt lokal liegen.
-- [ ] **Entscheiden: History-Rewrite ja oder nein?** `git rm --cached` löscht nur den
-      aktuellen Stand. Alle früheren Fassungen bleiben über `git log` lesbar. Für eine
-      wirklich saubere History: `git filter-repo --path HANDOFF.md --invert-paths`, danach
-      `git reflog expire --expire=now --all` + `git gc --prune=now`, **und `git fsck`
-      gegenprüfen** — in V1 hingen nach einem Rewrite noch unerreichbare Commits herum
-      (V1-Handoff §4, „Git").
+- [x] ✅ **`HANDOFF.md` von der Startseite nehmen — erledigt in V2-93.** Nutzer-Entscheidung
+      2026-08-28 (§5 Nr. 21): Die Datei liegt jetzt unter **`Docs/HANDOFF.md`** und wird
+      **nicht** aus dem Baum genommen — sie muss zwischen den Rechnern mitwandern. Der
+      Kommentar in `.gitignore` sagt, warum sie dort nicht ausgeschlossen ist.
+- [x] ✅ **History-Rewrite: NEIN — entschieden am 2026-08-28** (Nutzer, §5 Nr. 21). Die Datei
+      darf über `git log` und im Repo lesbar bleiben; sie soll nur keine der Hauptdateien auf
+      der Startseite sein. **Das war die einzige Entscheidung in Phase 5, die nachträglich
+      nicht mehr zu treffen gewesen wäre** — sie ist getroffen. *(Der Weg wäre gewesen:
+      `git filter-repo --path HANDOFF.md --invert-paths`, danach `git reflog expire
+      --expire=now --all` + `git gc --prune=now`, **und `git fsck` gegenprüfen** — in V1
+      hingen nach einem Rewrite noch unerreichbare Commits herum. Er wird nicht gegangen.)*
+- [ ] **⚠ Daraus folgt eine Pflicht statt einer Entscheidung: `Docs/HANDOFF.md` einmal ganz
+      durchsehen.** Ohne Rewrite ist die Datei **in jeder Fassung öffentlich lesbar**, auch in
+      jeder früheren. Zu suchen ist, was die Kopfzeile seit jeher verbietet: **Pfade zu
+      privaten Daten, Zugangsdaten, Inhalte aus den Schulunterlagen.** *Die Regel war bisher
+      durch die Möglichkeit eines Rewrites abgesichert; diese Absicherung fällt jetzt weg.*
 - [ ] **`git log --all --name-only` durchsehen**, nicht nur den aktuellen Baum. In V1 lag
       derselbe Inhalt ein zweites Mal in einem längst gelöschten Ordner.
 - [ ] **Lizenzlage prüfen** wie bei V1: jede eingecheckte Grafik braucht eine geklärte
-      Herkunft. „Selbst abgeändert" ist keine Lizenz, **NC ist mit MIT unvereinbar**.
+      Herkunft. „Selbst abgeändert" ist keine Lizenz, **NC ist mit MIT unvereinbar**. Betrifft
+      die 53 Cover, die Sticker, die Geodreieck-SVGs und die fünf Schriftfamilien.
 - [ ] **README-Paar und Erste-Schritte-Paar auf Stand** (Dauerregel 1) — beim
-      Öffentlich-Schalten liest das zum ersten Mal jemand anderes.
+      Öffentlich-Schalten liest das zum ersten Mal jemand anderes. **Mit den drei benannten
+      Einschränkungen** (§5 Nr. 22, 11, 15) und dem Hinweis, dass die Rechtschreibprüfung als
+      **erster Punkt nach M3** eingeplant ist.
+- [ ] **Version auf 1.0.0** (§5 Nr. 23): `Directory.Build.props`, `About.Version` in **beiden**
+      Sprachtabellen, die vier Dokumente, Tag und Release — danach beide Über-Dialoge in
+      beiden Sprachen und **in beiden Köpfen** gegenprüfen.
+- [ ] **Der Klon-Befehl in beiden Erste-Schritte-Fassungen** zeigt auf `GonkNote.git` und
+      **läuft heute nur mit Zugriff**, weil das Repo privat ist (§4.12). Mit dem Umschalten
+      wird er richtig — **nachsehen, nicht annehmen.**
+- [ ] **GitHub Pages, Releases mit Artefakten und das Repo-Beiwerk** (§5 Nr. 24) — der
+      Zuschnitt steht in §6, „Was in ⑤ ansteht".
 
 ---
 
@@ -13049,6 +12928,7 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 | V2-90 | 2026-08-28 | **M2 ist ausgerufen — und der älteste offene Fund des Laptops ist zu** (§4.67 neu; `TdLayout.Ausrichten` + neu `TdLayout.Luecken`, dazu beide Sprachtabellen für den Über-Dialog; Bau 0/0 in Release, **1040 Tests** = 981 Core + 59 WPF, **+5 Wächter**). **① Der Wortzwischenraum an der Stückgrenze** (§5 „Noch offen" 6, vom Laptop am 2026-08-11 gefunden und siebzehn Tage liegen geblieben): Der Blocksatz verteilte den Restplatz auf **jede Stückgrenze** — und ein Stück entsteht nicht nur am Wort, sondern auch am **Formatwechsel**. Daher eine Lücke vor jedem Komma und Punkt, das eine eigene Schrift hatte, und eine **anderthalbfache** Lücke dort, wo der Formatwechsel zwischen zwei Wörter fiel. **⛔ Die Ursachenvermutung, die im Punkt stand, ist in beiden Hälften widerlegt worden, bevor eine Zeile Code entstand:** Skia skaliert linear (**0,00 px** Unterschied zwischen Mess- und Zeichenmaßstab), und Stück für Stück gezeichnet ist **pixelgleich** mit einem Zug — es lag weder am Maßstab noch am Rastern. **Und „im PDF ist es richtig" stimmt nicht:** Anzeige und PDF gehen durch denselben Umbruch und denselben Zeichner. **✅ Am laufenden Programm mit dem alten Stand daneben gegengeprüft** (Messfläche von Hand angelegt, `git stash`, neu gebaut, gleiche Fenstergröße): dieselbe Zeile, **28 Trennungen vorher, 22 nachher** — es sind genau die an den Formatgrenzen. **⚠ Nicht reproduziert:** die notierte Schreibweise „und**Farbiges**" (eine ganz **fehlende** Lücke); die alte Rechnung macht Lücken zu breit, nie zu schmal. **② M2 ausgerufen** (Nutzer-Entscheidung): Funktionsgleichheit Linux ↔ Windows, **mit dem benannten Loch** Rechtschreibprüfung (§6) — die zweite Stift-Taste ausdrücklich **nicht** (§5 Nr. 17). Kopfzeile, §2, §6, §5d und §5e nachgezogen, der Über-Dialog sagt jetzt „Phase 5 — aufräumen und veröffentlichen" (beide Sprachen, Dauerregel 1); **die Versionsnummer bleibt bei 0.3.0**, sie gehört ans Ende der Phase. **③ §5 Nr. 20 entschieden** (Nutzer): `zeiger` wird **nicht** umgebaut, geklickt und getippt wird auf dem Laptop mit `ydotool`. **Der Laptop bekommt keinen Auftrag** — die Änderung sitzt in Core und ist hier gesehen. **▶ Phase 5 ist an der Reihe.** |
 | V2-91 | 2026-08-28 | **Phase 5 hat angefangen — toter Code** (§4.68 neu; sechs Stellen in `Core` gelöscht, zehn Übersetzungstexte, kein Verhalten geändert; Bau 0/0, **1040 Tests** unverändert). **Weg sind:** `DefaultFontProvider` (jeder Kopf bringt seinen eigenen mit), `ResizeBoxAction` (seit §4.51 macht das `ScaleElementsAction`), `IBoxElement`, `AppPaths.LegacyDatabaseFile` (hätte nur für den Vorgabepfad gestimmt und bei jedem `--db` auf die falsche Datei gezeigt), `BlobStore.TotalBytes()` und `TdSelection.Zusammenfallen()`. **Dazu fünf Übersetzungsschlüssel je Sprache**, beide Reste von etwas Abgeschafftem: `Ed.ViewOnly*` („geschrieben wird bis auf Weiteres in der Windows-Fassung" — seit §4.35 falsch) und `Td.RtfLeads*` (die Warnung, deren **Grund** mit §4.48 weggefallen ist, nicht nur die Warnung). 564 → **559 Schlüssel je Sprache**, beide im Gleichschritt, **null unbenutzte**. **Gefunden mit zwei Wegwerf-Sonden** (Muster jetzt in §8) — **und die Mehrheit der Treffer war Fehlalarm**: Markup-Erweiterungen, Erweiterungsmethoden, Schnittstellen-Umsetzungen, alles über `var`, und die 53 Cover, die per Verzeichnislauf geladen werden. **Der Fund, der nur beim zweiten Lauf kam:** eine Löschung macht die nächste tot — `IBoxElement` hatte vor der Runde noch einen Leser. **An jeder gelöschten Stelle steht jetzt ein Absatz**, was dort stand und warum es weg ist; wo eine Doku Wissen trug, ist es umgezogen statt zu verschwinden. **✅ Augenschein in beiden Köpfen** — `Loc.T` fällt bei einem fehlenden Schlüssel auf den Schlüssel selbst zurück, ein Fehlgriff stünde also roh im Fenster: neues Textdokument, alle Ribbon-Reiter, nichts dergleichen. **⚠ Nebenbefund, der §5 Nr. 14 belegt:** das Schriftfeld des WPF-Kopfs ist **leer**, wo der Linux-Kopf „Source Sans 3" zeigt — kein falscher Name, sondern gar keiner. **Nicht durchsucht:** Testprojekte und `tools/`, und `§4.1` ist noch nicht aufgelöst. |
 | V2-92 | 2026-08-28 | **Phase 5, Punkt 2 — die Doku gegen den Code gelesen** (§4.69 neu; §7 an fünf Stellen richtiggestellt, **ein** Kommentar im Code geändert, sonst kein Produktivcode; Bau 0/0, **1040 Tests** unverändert). **⛔ Der gefährliche Fund:** §7 sagte *„solange `Rtf` führt, ist jeder Fehler im Umwandler folgenlos — deshalb läuft er bei jedem Speichern mit"*. **Beide Hälften sind seit §4.48 falsch**, und die Umkehrung ist der Punkt: Ein Fehler im Umwandler ist nicht mehr folgenlos, sondern **genau einmal folgenreich** — er trifft die Übernahme eines Bestandsdokuments, danach gibt es keinen zweiten Anlauf. Die Zeile stand seit §4.23 in dem Abschnitt, den man **vor** jeder Codeänderung liest; **§5e warnt seit V2-88 davor — aber nur für §4.23, nicht für §7**, und eine Warnung, die den einen Fundort nennt und den anderen nicht, deckt den ungenannten schlechter ab als gar keine. **Beim Richtigstellen die eigene erste Fassung umgeworfen:** „`Migrate` läuft nicht mehr bei jedem Speichern" ist **auch falsch** — der Aufruf blieb, nur `TdFuehrung.UebernahmeStehtAus` lässt ihn nicht mehr durch. Am Code nachgemessen, nicht nachgelesen. **▶ Zwei Stellen, ein Muster, entgegengesetzte Richtungen:** bei `WbHit` wusste **§7** seit §4.51, dass der **Code**-Kommentar falsch war, und ließ ihn stehen („der Zustand und die Griffe" — die liegen längst in `WbHandles`); bei `AvaloniaClipboard.HasImage` war es umgekehrt — der **Code** war seit V2-84 richtig, **§7** warnte weiter vor dem behobenen Zustand. *Eine Stelle richtigzustellen heißt nicht, die andere mitzuziehen.* Und die alte §7-Zeile war dort **die Warnung, die funktioniert hat** — sie ist erst danach zur Falle geworden. **Außerdem:** `AppendInline` gibt es nicht mehr (der Markdown-Verweis ist heute eine Klammer um Stücke, kein `Span`-Erbe), zwei Dateinamen ausgeschrieben (bei **vierzehn** `WhiteboardView`-Teildateien ist `Editing.cs` eine Suche und keine Angabe), `OriginalString` gilt unverändert und ist zur Formatentscheidung geworden. **Gefunden mit drei Sonden** (Namen, Pfade, nachzählbare Zahlen) **plus gezieltem Lesen** — die Sonden fanden 32 Kandidaten, davon **29 Fremdcode oder ausdrücklich Vergangenheit**; die zwei wichtigsten Funde konnten sie **grundsätzlich nicht** sehen, weil dort alle Namen noch stimmen und nur die Aussage nicht. **Nicht behauptet:** §7 ist nicht vollständig gegengelesen. |
+| V2-93 | 2026-08-28 | **Phase 5 neu geordnet — die Oberfläche zuerst, die Auslieferung vorgezogen** (§4.70; **keine Zeile Produktivcode**, `git mv HANDOFF.md Docs/HANDOFF.md` als Rename, `.gitignore` und `tools/stylus-prototyp/README.md` nachgezogen, Roadmap-Datei mit). **Sieben Entscheidungen des Nutzers** (§5 Nr. **11**, **14**, **15**, **21**–**25**): `HANDOFF.md` nach `Docs/` **ohne History-Rewrite** — die einzige Entscheidung der Phase, die nachträglich nicht mehr zu treffen gewesen wäre —, Rechtschreibprüfung als benanntes Loch **und** als Phase **5.6** fest nach M3 eingeplant, tote Tasten **melden und stehen lassen** (nicht umgehen), Schriftlisten **zusammenführen**, Seitenzahlen im WPF-Editor **stehen lassen**, Version **1.0.0**, Veröffentlichung in **allen vier** Stücken, UI-Vergleich **nur unter Windows**. **Die neue Ordnung: ① UI/UX 1:1 → ② Rückmeldung → ③ Flatpak/AppImage → ④ Rest + vollständiger Prüflauf → ⑤ veröffentlichen.** **⚠ ① stand nirgends im Plan** — M2 wurde als *Funktionsgleichheit* ausgerufen und ist es auch, aber **Funktionsgleichheit ist nicht Aussehensgleichheit**, und das fiel niemandem auf, solange die Köpfe nacheinander gebaut wurden. **⚠ ③ ist vorgezogen, weil es das einzige Stück ist, das noch nie gelaufen ist** — und §4.64 hat die Tesseract-Bindung ausdrücklich **außerhalb** eines Flatpaks vermessen. **⛔ In §6 ausdrücklich festgehalten, damit es nicht als Streichung gelesen wird:** ③ ist eine **Erprobung**, nach ④ wird noch einmal gebaut, **und erst dieser zweite Bau geht hinaus** — die Grundregel von 2026-08-05 gilt unverändert. **⚠ Der einzige inhaltliche Fund der Runde kam beim Eintragen der Vorlage-Regel:** „beim Editor ist Windows die Vorlage“ hätte den Linux-Kopf wörtlich genommen seine **Seitenzahlen kosten** (§5 Nr. 15) — festgehalten ist deshalb, dass die Regel das **Aussehen** des Ribbons meint und nicht das **Rechnen** dahinter. *Eine Regel, die man wörtlich nimmt, ohne zu prüfen, worauf sie zeigt, macht aus einem Vorteil einen Verlust.* **⚠ Und der Verzicht auf den Rewrite ist keine Ersparnis, sondern eine neue Pflicht:** die Datei ist in **jeder** Fassung öffentlich lesbar, die Kopfzeilen-Regel war bisher durch die **Möglichkeit** eines Rewrites abgesichert — neuer Punkt in der Checkliste. **Nebenbei:** die Testzahlen im Schnellstart standen auf **913**/**854** statt **1040**/**981**. ▶ **Als Nächstes: Schritt ① — die Oberflächen 1:1 angleichen** (§5e). **Der Laptop ist nicht dran — aber bei ③ ist er es zwingend** (§5d) |
 | V2-67 | 2026-08-22 | **Das Feld reist als Auflage mit — die erste der zwei Lücken ist zu** (§4.49; Runde ④ aus §5e; `TdZuFlow`, `FlowZuTd` und die zwei Sprachtabellen angefasst, **am Modell, am Speicherformat und an der Führung nichts**; Bau 0/0, **842 Tests** grün = 785 Core + 57 WPF, **6 neue Wächter**, einer **umgedreht**). **Der Anlass war eine Frage des Nutzers** („kann ich nicht einfach mit Phase 4.5 weitermachen?" — ja, sie hängt an nichts hiervon), **und dabei ist die Lehre aus §4.46 an ihrem eigenen Autor eingetreten:** Erst behauptet, ein Inhaltsverzeichnis friere ein; dann „korrigiert", es friere nicht ein, weil `FlowZuTd` eine Verzeichniserkennung hat; **dann gemessen** — die Erkennung verlangt einen Absatz mit dem Wort „Inhaltsverzeichnis" davor, den der WPF-Editor selbst erzeugt und **der Linux-Kopf nie schreibt**. **Die erste Aussage war richtig, die Korrektur war der Fehler.** *Eine Aussage über den Code ist eine Vermutung, bis sie gemessen ist — auch dann, wenn sie einer früheren Vermutung widerspricht.* **Gemessen je Feldart, einmal durch die Rundreise:** vorher überlebte **keine einzige** — `PageNumber`, `PageCount`, `Date` und `Title` wurden zu `{SEITE}` und dergleichen als Text, das Verzeichnis zu **eingefrorenen Einträgen**; jetzt überleben **alle fünf**. **Alle fünf sind im Linux-Kopf einen Klick weit weg** (Reiter „Einfügen" → Feld, „Verweise" → Inhaltsverzeichnis) — **das ist der Unterschied zum Diagramm**, das dort gar nicht einfügbar ist und nur aus einem DOCX-Import kommt, und deshalb kam zuerst das Feld. **Der Träger ist ein `InlineUIContainer` mit dem `TdField` als `Tag`, und die Wahl ist nicht überlegt, sondern gemessen** (§4.47): WPF **kopiert** ein `Tag` beim Teilen eines Absatzes **und** eines Laufs auf beide Hälften — ein Träger dort wäre nach **einem** Tastendruck mitten im Platzhalter doppelt, **schlimmer als die Lücke**: Was verschwindet, sieht man; was sich verdoppelt, merkt man erst, wenn die Zahlen nicht mehr stimmen. **Und der Behälter ist nicht nur sicher, sondern richtig:** Ein Feld ist kein Text, sondern eine Stelle, an der gerechnet wird — dass sich nicht mehr hineintippen lässt, ist die Wahrheit über das Feld; **vorher konnte man aus `{SEITE}` ein `{SEIT}` machen, und niemand hat es gemerkt.** **Der Preis steht am Code:** Ein `UIElement` erbt keine `TextElement`-Eigenschaften, also müssen Schrift, Größe, Fett, Kursiv und Farbe von Hand aus dem aufgelösten Format gesetzt werden, dazu `BaselineAlignment.Baseline` — die Vorgabe `Bottom` hinge unter der Zeile und schöbe sie auseinander. **Das Verzeichnis brauchte einen zweiten Träger, und das ist beim Bauen aufgefallen und nicht beim Planen:** Es steht nicht *in* einer Zeile, es *ist* mehrere, wurde also auf Blockebene aufgefaltet — jetzt ein **`BlockUIContainer`** mit dem Feld als `Tag` und den gerechneten Einträgen als Anzeige. **Auch das ist der richtige Ort:** Die Einträge gehören dem Feld und nicht dem Nutzer (§4.20) — vorher liesz sich ein Eintrag ändern, und beim nächsten Umbruch war die Änderung weg oder, schlimmer, sie blieb und stimmte nicht mehr. **Ein leeres Verzeichnis bleibt sichtbar** (`Td.Toc.Empty`, beide Sprachen): ohne Überschriften hätte der Behälter keine Höhe, **das Feld wäre da und unauffindbar**. **Der Wächter ist umgedreht und aufgebohrt:** aus `Noch_offen_Ein_Feld_wird_zu_Text` wurde `Ein_Feld_ueberlebt_die_Rundreise` als **`[Theory]` über alle fünf Arten** — der alte prüfte nur `PageNumber` und hätte nie gezeigt, dass das Verzeichnis einen anderen Weg nimmt; dazu `Der_Platzhalter_bleibt_nicht_als_Text_stehen`, denn käme das Feld **und** sein Platzhalter zurück, stünde die Seitenzahl zweimal da. **⚠ Was diese Runde NICHT belegen konnte, und es ist keine Kleinigkeit: der Augenschein fehlt.** Ein `InlineUIContainer` mitten im Absatz und ein `BlockUIContainer` als Verzeichnis sind genau die Sorte Änderung, bei der die Rechnung stimmt und das Bild trotzdem falsch sein kann. **Der Versuch ist gefahren und gescheitert:** Das Dokument ist im Linux-Kopf angelegt worden (Überschrift, Text und Seitenzahl-Feld — **auf dem Schirm stand „Seite 1"**, das Feld rechnete also) und gespeichert, aber **das WPF-Fenster kam nicht in den Vordergrund** (`SetForegroundWindow` wird abgelehnt, wenn ein anderer Prozess den Fokus hält), und die Aufnahme zeigte zweimal ein fremdes Fenster. **Abgebrochen statt ein drittes Mal versucht, und hier benannt statt weggelassen** — fällig ist: dasselbe Dokument im WPF-Kopf ansehen (sitzt die Seitenzahl auf der Grundlinie, sieht das Verzeichnis aus wie eines?) und danach die Runde zurück in den Linux-Kopf wie in §4.48. **Es bleibt eine Lücke aus §4.45: das Diagramm.** Es braucht einen **öffentlichen Einstieg in `TdRenderer`** (`DiagrammZeichnen` ist privat), um als Bild in den Behälter zu kommen — **eine Änderung in Core an dem Zeichner, den PDF und beide Köpfe benutzen**, und deshalb eine eigene Runde und keine Beigabe. **Der Träger dafür steht schon**, nur mit einem `Image` statt eines `TextBlock`. ▶ **Als Nächstes: der Augenschein und das Diagramm**, danach **Phase 4.5**. **Der Laptop ist nicht dran** |
 | V2-66 | 2026-08-22 | **Schritt 7 — `Rtf` verliert die Führung** (§4.48; **der eigentliche Zweck des ganzen Wegs**, §5; sieben Dateien angefasst, am Speicherformat und an `TextDoc` **nichts** geändert; Bau 0/0, **837 Tests** grün = 785 Core + 52 WPF). **Vier Zeilen, die alles sagen:** Der WPF-Editor **liest** jetzt das Modell (`Rtf` nur noch als Rückfall) und **schreibt** es auch — `Rtf` wird **nie wieder** überschrieben; `WpfDocumentIo.Migrate` läuft nur noch für die **einmalige** Übernahme statt bei jedem Speichern; und der Warnstreifen im Linux-Kopf ist **entfallen**. **Der Datenverlust, den das behebt, war seit dem 2026-08-16 gemessen** (§4.35, §5 „Noch offen" 9): Ein Dokument mit gefülltem `Rtf`, im Linux-Kopf bearbeitet, verlor seine Arbeit beim nächsten Speichern unter Windows **still**, weil `Migrate` das Modell bedingungslos aus `Rtf` neu baute — **bei jedem Bestandsdokument**. Die Warnung seit V2-48 war eine **Vertagung, keine Lösung**; die Lösung ist immer (a) gewesen. **Zwei Stellen tragen es.** (1) `FlushToModel` schreibt das Modell — und zwar über `TextTabViewModel.Modell` und nicht direkt nach `Doc.Model`, **damit beide Köpfe denselben Weg nehmen**: `Save` ruft `Mitschreiben` (die Übernahme) und **danach** `ModellMitschreiben` (das Geschriebene), **und diese Reihenfolge steht seit §4.23 fest, ausdrücklich für diesen Tag** — der Kommentar dort sagt es wörtlich („Wenn Schritt 7 den WPF-Editor auf das Modell umstellt, ist sie schon richtig"). Sie war es. (2) `Migrate` prüft jetzt `UebernahmeStehtAus` statt `AltformatFuehrt`. **Das ist Antwort (d) aus §5 Nr. 9 — die damals ausdrücklich als falsch verworfen wurde:** „nicht übernehmen, wenn `Model` schon gefüllt ist" hieß damals, der Umwandler liefe nie mehr; heute läuft er bei jedem Speichern an anderer Stelle, und der Einwand ist gegenstandslos. **Dieselbe Zeile, zwei Bedeutungen, je nachdem, wer führt** — wer die alte Begründung liest, ohne die neue Lage zu kennen, hält die Änderung für einen Fehler. **`Rtf` wird nicht überschrieben und auch nicht gelöscht:** Die Regel aus §4.22 gilt weiter, das Altfeld bleibt als unangetastete Sicherung stehen, und **der Rückfall darauf bleibt im Editor** (`AusAltformat`) — für genau einen Fall: das Modell ist leer, weil die Übernahme aussteht oder **fehlgeschlagen** ist. Ein volles Dokument als leeres Blatt zu zeigen wäre der teuerste Fehler dieser Art (§4.28). **Geschrieben wird von dort nichts zurück — der Rückfall heilt sich selbst, sobald einmal gespeichert wurde.** **`TdFuehrung.AltformatFuehrt` ist gelöscht, nicht auf `false` gesetzt** — die Funktion hatte ihr eigenes Ende vorhergesagt („Sobald Schritt 7 die Führung umdreht, ist genau das die Stelle, die sich ändert, und keine andere"), und **eine Funktion, die immer `false` zurückgibt, wäre schlechter als keine: Sie sähe nach einer offenen Frage aus und würde eines Tages wieder geglaubt.** Mit ihr sind **vier Wächter** und der Warnstreifen gegangen; ein Hinweis, der vor einer Gefahr warnt, die es nicht gibt, kostet die Glaubwürdigkeit der Hinweise, die bleiben. **Ein Wächter musste umgedreht werden:** `Das_Altfeld_fuehrt_weiter_wenn_es_belegt_ist` hat die alte Regel festgehalten, wie es seine Aufgabe war — er heißt jetzt `Das_Modell_fuehrt_auch_bei_vollem_Altfeld` und prüft dieselbe Lage mit der anderen Antwort; **daneben steht ein neuer**, `Das_Altfeld_wird_nicht_angetastet`, denn „führt nicht mehr" und „ist weg" sind zwei verschiedene Dinge, und wer beim Umdrehen auch noch aufräumte, nähme die Sicherung unwiederbringlich weg. **✅ Am laufenden Programm gegengeprüft — der Weg, der vorher Datenverlust war** (Wegwerf-Datenbank, danach gelöscht, Dauerregel 4): Linux-Kopf schreibt „LINUX hat geschrieben." und speichert → WPF-Kopf öffnet dasselbe Dokument, hängt „UND WINDOWS AUCH." an, speichert → **Linux-Kopf zeigt beides**, 6 Wörter, 40 Zeichen. **Vor Schritt 7 wäre der dritte Schritt unmöglich gewesen.** **✅ Und die härtere Probe, weil sie nicht am Schirm hängt** — dieselbe Datei danach mit `sqlite3` gelesen: **`Rtf` hat Länge 0** (vom WPF-Editor nicht angefasst, obwohl er gespeichert hat — vorher stünde dort ein XamlPackage von mehreren Kilobyte), `Model` hat 764 Bytes mit der Kennung `GNTD` und **enthält „UND WINDOWS AUCH"**, `MigrationIssue` ist leer. **Das ist der Beleg in seiner strengsten Form: nicht „es sieht richtig aus", sondern „in der Datei steht, was dastehen soll, und das andere Feld ist unberührt".** **✅ §5 „Noch offen" 9 ist damit an der Wurzel erledigt** — nicht mehr gewarnt, behoben. **⏳ Was nicht mitgekommen ist:** Die zwei benannten Lücken aus §4.45 — **Diagramm** und **Feld** überleben die Rundreise durch das `FlowDocument` weiterhin nicht. **Sie sind nicht schlechter geworden** (sie gingen schon vorher bei jedem Speichern verloren, §4.45), **aber sie sind jetzt zum ersten Mal schließbar**: Seit §4.47 lädt der Editor ohne Paket, seit dieser Runde **schreibt** er auch ohne — **damit ist das `XamlPackage` ganz aus dem Weg**, und ein Träger im Arbeitsspeicher überlebt eine vollständige Runde aus Speichern und Öffnen; §4.47 hat schon gemessen, **welcher Träger es sein muss** (der `InlineUIContainer`, denn `Tag` an Absatz und Lauf wird beim Teilen kopiert). **Das ist eine eigene Runde und die letzte offene Arbeit an dieser Baustelle.** ▶ **Danach ist Phase 4.5 dran** (§6). **Der Laptop ist nicht dran** |
 | V2-65 | 2026-08-22 | **Der Ladeweg — das Modell geht direkt in den Editor** (§4.47; Runde ② der drei aus V2-63, Nutzer-Entscheidung §5 „Noch offen" **12**; **zwei Dateien angefasst**, an `TextDoc`, am Speicherformat und an der **Führung** nichts geändert; Bau 0/0, **840 Tests** grün = 789 Core + 51 WPF, **5 neue Wächter**). **Die Auflage aus V2-63 lautete „erst messen, dann bauen" — und die Messung hat den Entwurf umgeworfen, bevor eine Zeile davon stand.** Gefragt war, ob ein von WPF geteilter Absatz den Träger des alten erbt; gemessen an einem laufenden `RichTextBox` mit Fokus (ohne Fenster geht es nicht, Editierbefehle brauchen eines). **Die Antwort:** `Paragraph.Tag` **wird beim Teilen kopiert**, `Run.Tag` ebenso — **beide Hälften tragen ihn**. **Ein Träger an Absatz oder Lauf ist damit unbrauchbar:** Ein einziger Tastendruck in der Mitte macht aus einem Diagramm zwei und aus einer Überschrift zwei — **schlimmer als die Lücke, die er schließen sollte**, denn was verschwindet sieht man, was sich verdoppelt findet man erst im Inhaltsverzeichnis. **Übrig bleibt der `InlineUIContainer`**, und das ist keine Notlösung, sondern der passende Ort: Ein Diagramm und ein Feld sind unteilbare, nicht-textliche Dinge — genau das, was ein `InlineUIContainer` ist; `DocumentImages` führt seinen Blob-Verweis seit jeher dort, und §4.45 hatte schon gemessen, dass ausgerechnet dieser Träger als einziger ein `XamlPackage` übersteht. **Zwei unabhängige Messungen zeigen auf dieselbe Stelle.** **Gebaut ist der Weg selbst:** `TextEditorView.AusModell` hat den Umweg über das Paket verloren (`Modell → FlowDocument → Blöcke umhängen → Editor` statt über XamlPackage-Bytes), und die Übernahme steht als **`TdZuFlow.InhaltUebernehmen`** neben `Umwandeln` — dort gehört sie hin, denn sie ist dessen Gegenstück, und dort ist sie prüfbar, ohne ein Fenster zu bauen. **Die alte Begründung war richtig und trug trotzdem nicht:** Im Code stand, ein ausgetauschtes `Document` nähme dem `RichTextBox` seine Stile und alle Ereignisverdrahtungen mit — das stimmt, **nur folgt daraus nicht das Paket**; es genügt, das `Document` zu behalten und seinen **Inhalt** zu ersetzen (gemessen: dasselbe Objekt, Träger überleben, tippen geht danach weiter). **Ein richtiger Grund war an einen falschen Schluss gebunden, und deshalb stand der Umweg zwei Runden lang unbefragt.** **`DocumentImages.Attach` ist entfallen** und das ist kein Vergessen — es übersetzt einen Verweis aus dem `ToolTip` ins `Tag`, nötig nur nach dem Laden eines Pakets; `TdZuFlow.BildUmwandeln` setzt das `Tag` selbst (eigener Wächter, damit die gestrichene Zeile keine Vermutung ist). **✅ Und ein Fund, der gar nicht gesucht war — beim Nachmessen einer Nebensache aufgefallen: das Paket zerstört die Kaskade.** `TextRange.Save`/`Load` schiebt die Schrift des **Dokuments** als **örtlichen Wert** auf **jeden Absatz** hinunter (gemessen: über das Paket steht sie örtlich am Absatz, direkt steht dort nichts und sie wird geerbt — dasselbe Schriftbild, verschiedene Struktur). **Sichtbar ist das nicht, und genau deshalb ist es gefährlich:** `FlowZuTd.ZeichenformatVon` liest örtliche Werte und schriebe danach in *jedem* Absatz eine `FontFamily` ins Modell, wo vorher keine stand. **Es ist derselbe Fehler wie in §4.45** — aus „nicht gesetzt" wird „gesetzt" —, an anderer Stelle und ohne dass jemand ihn gesucht hätte; **solange `Rtf` führt folgenlos, mit Schritt 7 wäre er in jedes Dokument gewandert.** Der direkte Weg räumt ihn nebenbei mit weg, Wächter dafür. **⏳ Was die Runde ausdrücklich nicht tut: die Träger für Diagramm und Feld sind nicht gebaut.** Sie überleben jetzt das *Laden*, aber `FlushToModel` schreibt beim Speichern weiter ein Paket nach `Rtf`, und dort sterben sie — **ein Träger, der eine Sitzung überlebt und das Speichern nicht, wäre eine Lücke mit mehr Code drumherum.** Sie gehören zu **Schritt 7**, wo das Paket ganz aus dem Speicherweg fällt; **diese Runde legt den Weg, auf dem sie tragen können.** **⚠ Benannter Nebenbefund, nicht aus dieser Runde:** `FontCombo.ItemsSource` ist `Fonts.SystemFontFamilies` — **nur Systemschriften**; die fünf mitgelieferten Familien (§4.26) stehen nicht darin, und „Source Sans 3" ist die Grundschrift jedes Dokuments aus dem Modell. **Die Liste kann die Schrift des Dokuments gar nicht anzeigen.** Der Linux-Kopf macht es richtig (§4.40), der WPF-Kopf ist nie nachgezogen worden — §5 „Noch offen" **14**. **Ausdrücklich offen geblieben und nicht gedeutet:** ob sich die Anzeige dieser Liste mit dieser Runde geändert hat, ist **nicht** geklärt; gemessen ist nur, dass **beide Ladewege dieselbe Schrift liefern** (`GetPropertyValue` gibt auf beiden „Source Sans 3"), die Anzeige also nicht am Ladeweg hängt — **eine Vermutung darüber steht bewusst nicht da, sie wäre genau die ungeprüfte Deutung, vor der §4.46 warnt.** **✅ In beiden Köpfen am laufenden Programm gesehen** (Wegwerf-Datenbank, danach gelöscht): Ein im Linux-Kopf angelegtes Dokument mit Überschrift und Fließtext kommt im WPF-Kopf über genau den neuen Weg an — Überschrift blau und fett, **28** in der Größenanzeige, **„Überschrift 1" in der Galerie markiert**. **Derselbe Anblick wie vor dem Umbau, und das ist hier das Ziel: Der Ladeweg soll sich ändern, das Blatt nicht.** ▶ **Als Nächstes Schritt 7** (§5e) — `Rtf` verliert die Führung, und mit ihm fällt das Paket aus dem Speicherweg. **Der Laptop ist nicht dran** |

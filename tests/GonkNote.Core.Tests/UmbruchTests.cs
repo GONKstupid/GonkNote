@@ -203,6 +203,138 @@ public sealed class UmbruchTests
         Assert.Equal(0, zeilen[1].Runs[0].XCm, 3);
     }
 
+    // ==================== Blocksatz an der Stückgrenze (§5 „Noch offen" 6) ====================
+
+    /// <summary>
+    /// Ein Absatz aus mehreren Zeichenformaten. <b>Der Formatwechsel selbst darf im Umbruch
+    /// nichts kosten</b> — er teilt ein Stück, aber er fügt keinen Leerraum hinzu.
+    /// </summary>
+    private static TdParagraph Gemischt(params (string Text, bool Fett)[] teile)
+    {
+        var absatz = new TdParagraph(teile.Select(t => (TdInline)new TdRun(t.Text)
+        {
+            Format = new TdCharFormat { Bold = t.Fett },
+        }));
+        absatz.Format.Alignment = TdAlign.Justify;
+        return absatz;
+    }
+
+    /// <summary>
+    /// <b>Ein Formatwechsel mitten im Wort bekommt keinen Wortzwischenraum.</b> Auf dem Laptop
+    /// gefunden (§4.28, 2026-08-11), aufgeklärt in §5 „Noch offen" 6: Der Blocksatz verteilte
+    /// den Restplatz auf **jede** Stückgrenze, und ein Stück entsteht nicht nur am Wort,
+    /// sondern auch dort, wo die Schrift umschlägt. „abcd" mit fettem „cd" stand deshalb als
+    /// „ab cd" da.
+    /// </summary>
+    [Fact]
+    public void Blocksatz_streckt_keinen_Formatwechsel_im_Wort()
+    {
+        // „abcd ef ghij" — „cd" fett. Zeile 1 fasst „abcd ef" (7 von 10 cm), „ ghij" nicht mehr.
+        var doc = Dok(Blatt(), Gemischt(("ab", false), ("cd", true), (" ef ghij", false)));
+
+        var zeile = Umbrechen(doc).Pages[0].Lines[0];
+
+        Assert.Equal(["ab", "cd", " ef"], zeile.Runs.Select(r => r.Text));
+
+        // „cd" schließt unmittelbar an „ab" an — dazwischen steht kein Zeichen, also auch
+        // keine Lücke.
+        Assert.Equal(2, zeile.Runs[1].XCm, 6);
+
+        // Und die Zeile reicht trotzdem bis an den rechten Rand: die ganzen 3 cm Rest sind in
+        // den **einen** Zwischenraum gegangen, den es wirklich gibt.
+        Assert.Equal(10, zeile.Runs[^1].XCm + zeile.Runs[^1].WidthCm, 6);
+    }
+
+    /// <summary>
+    /// <b>Ein Leerzeichen an einer Stückgrenze ist ein Zwischenraum und nicht zwei.</b> Fällt
+    /// der Formatwechsel genau zwischen zwei Wörter, steht der Leerraum als eigenes Stück da —
+    /// mit einer Grenze davor und einer dahinter. Die alte Rechnung streckte beide und machte
+    /// aus einer Lücke die anderthalbfache: der Fund „Unterstrichenes␣␣und" aus §4.28.
+    /// </summary>
+    [Fact]
+    public void Blocksatz_zaehlt_einen_Leerraum_an_der_Stueckgrenze_einmal()
+    {
+        // „ab cd ef gh" — „cd" fett, der Leerraum davor gehört zum normalen Stück.
+        var doc = Dok(Blatt(), Gemischt(("ab ", false), ("cd", true), (" ef gh", false)));
+
+        var zeile = Umbrechen(doc).Pages[0].Lines[0];
+
+        Assert.Equal(["ab", " ", "cd", " ef"], zeile.Runs.Select(r => r.Text));
+
+        // Zwei Wörter, zwei echte Zwischenräume, 2 cm Rest — also je 1 cm Streckung. Gemessen
+        // wird von Wortende zu Wortanfang, denn nur das sieht man:
+        //   „ab" endet bei 2, „cd" beginnt bei 4  → 2 cm, davon 1 cm Leerzeichen
+        //   „cd" endet bei 6, „ef" beginnt bei 8  → 2 cm, davon 1 cm Leerzeichen
+        Assert.Equal(4, zeile.Runs[2].XCm, 6);
+        Assert.Equal(8, zeile.Runs[3].XCm + 1, 6);
+        Assert.Equal(10, zeile.Runs[^1].XCm + zeile.Runs[^1].WidthCm, 6);
+    }
+
+    /// <summary>
+    /// <b>Vor einem Schlusspunkt steht keine Lücke</b> — auch dann nicht, wenn das Wort davor
+    /// eine eigene Farbe hat. Das ist die zweite Hälfte des Fundes aus §4.28: Der Punkt war
+    /// das letzte Stück der Zeile und bekam deshalb die **volle** Streckung, obwohl vor ihm
+    /// nichts steht, was sich strecken ließe.
+    /// </summary>
+    [Fact]
+    public void Blocksatz_setzt_keine_Luecke_vor_den_Schlusspunkt()
+    {
+        // „ab cd. xyzw" — „cd" fett, der Punkt wieder normal.
+        var doc = Dok(Blatt(), Gemischt(("ab ", false), ("cd", true), (". xyzw", false)));
+
+        var zeile = Umbrechen(doc).Pages[0].Lines[0];
+
+        Assert.Equal(["ab", " ", "cd", "."], zeile.Runs.Select(r => r.Text));
+
+        // Der Punkt klebt am „d", wo er hingehört.
+        Assert.Equal(zeile.Runs[2].XCm + zeile.Runs[2].WidthCm, zeile.Runs[3].XCm, 6);
+        Assert.Equal(10, zeile.Runs[^1].XCm + zeile.Runs[^1].WidthCm, 6);
+    }
+
+    /// <summary>
+    /// <b>Ein Zwischenraum am Zeilenende zieht nichts auseinander.</b> Er entsteht, wenn das
+    /// nächste Wort nicht mehr passte. Wer ihn mitzählte, streckte eine Zeile, in der es nach
+    /// dem letzten Wort gar nichts mehr zu verschieben gibt — das Wort stünde am linken Rand
+    /// und der Leerraum am rechten.
+    /// </summary>
+    [Fact]
+    public void Blocksatz_streckt_nicht_in_einen_Leerraum_am_Zeilenende()
+    {
+        // „ab cdefghijkl" — der Leerraum steht nur deshalb als **eigenes** Stück da, weil
+        // dahinter die Schrift umschlägt; sonst hinge er am Wort. Das lange Wort passt nicht
+        // mehr, die erste Zeile endet also auf dem Leerzeichen.
+        var doc = Dok(Blatt(), Gemischt(("ab ", false), ("cdefghijkl", true)));
+
+        var zeile = Umbrechen(doc).Pages[0].Lines[0];
+
+        Assert.Equal(["ab", " "], zeile.Runs.Select(r => r.Text));
+        Assert.Equal(0, zeile.Runs[0].XCm, 6);
+        Assert.Equal(2, zeile.Runs[1].XCm, 6);
+    }
+
+    /// <summary>
+    /// <b>Eine Grafik ist Inhalt, auch ohne Text.</b> Endet die Zeile auf einem Bild, soll sie
+    /// bis an den Rand reichen — sonst bliebe ausgerechnet die Zeile kurz, in der das
+    /// auffälligste Stück steht.
+    /// </summary>
+    [Fact]
+    public void Blocksatz_zieht_die_Zeile_auch_bis_an_ein_Bild()
+    {
+        var absatz = new TdParagraph(new TdInline[]
+        {
+            new TdRun("ab cd "),
+            new TdImage { WidthCm = 2, HeightCm = 1 },
+            new TdRun(" efghij"),
+        });
+        absatz.Format.Alignment = TdAlign.Justify;
+
+        var zeile = Umbrechen(Dok(Blatt(), absatz)).Pages[0].Lines[0];
+
+        // „ab"(2) + " cd"(3) + " "(1) + Bild(2) = 8 cm, „ efghij" passt nicht mehr.
+        Assert.Equal(10, zeile.Runs[^1].XCm + zeile.Runs[^1].WidthCm, 6);
+        Assert.NotNull(zeile.Runs[^1].Graphic);
+    }
+
     // ==================== Seitenumbruch ====================
 
     /// <summary>Passt der Text nicht mehr, beginnt eine neue Seite — und zählt weiter.</summary>

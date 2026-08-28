@@ -587,7 +587,12 @@ internal static class LocGerman
         // Die Zeile sagt, **woran gearbeitet wird**, nicht was fertig ist (HANDOFF §5). Der
         // Zusatz steht dabei, weil die Phasennummer allein zu grob wurde: die Dokument-Engine
         // ist seit dem 2026-08-11 fertig (§4.28), das Schreiben ist der Rest derselben Phase.
-        ["About.Version"] = "Version {0} · Portierung, Phase 4 — das Schreiben",
+        //
+        // **Nachgezogen am 2026-08-28 mit M2** (HANDOFF §4.67): Phase 4.5 ist abgeschlossen,
+        // Linux und Windows können dasselbe. Gearbeitet wird ab jetzt an Phase 5 — aufräumen,
+        // dann veröffentlichen. **Die Versionsnummer bleibt bei 0.3.0**: sie gehört zur
+        // Auslieferung und damit ans Ende dieser Phase, nicht an ihren Anfang.
+        ["About.Version"] = "Version {0} · Portierung, Phase 5 — aufräumen und veröffentlichen",
         // {0} = Fehlermeldung, {1} = Pfad des Protokolls. Erscheint, wenn sich die Datenbank
         // nicht öffnen lässt — meist beim einmaligen Übertragen einer Altdatenbank nach
         // SQLite. Zwangsläufig in der Standardsprache: die Sprachwahl steht in eben der

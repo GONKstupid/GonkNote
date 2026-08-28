@@ -1047,14 +1047,92 @@ public static class TdLayout
 
             case TdAlign.Justify when !letzte && zeile.Runs.Count > 1:
             {
-                // Der Rest wird auf die Zwischenräume verteilt — es gibt einen weniger als
-                // Stücke.
-                double proLuecke = rest / (zeile.Runs.Count - 1);
+                // **Gestreckt wird Leerraum, nicht jede Stückgrenze** (§5 „Noch offen" 6).
+                // Bis hierher stand „es gibt einen Zwischenraum weniger als Stücke" — das ist
+                // die Annahme, die falsch ist: Ein Stück ist ein Wort **oder** ein
+                // Formatwechsel. Wo mitten im Satz die Schrift umschlägt, entstehen zwei
+                // Stücke ohne jeden Leerraum dazwischen, und die alte Rechnung schob dort
+                // trotzdem einen Wortzwischenraum ein — sichtbar als doppelte Lücke an der
+                // Stückgrenze und als Lücke vor einem Schlusspunkt, vor dem keine steht.
+                var stufe = Luecken(zeile.Runs, out int wirksam);
+                if (wirksam == 0) break;
+
+                double proLuecke = rest / wirksam;
                 for (int i = 1; i < zeile.Runs.Count; i++)
-                    zeile.Runs[i] = zeile.Runs[i] with { XCm = zeile.Runs[i].XCm + proLuecke * i };
+                    zeile.Runs[i] = zeile.Runs[i] with
+                    {
+                        XCm = zeile.Runs[i].XCm + proLuecke * Math.Min(stufe[i], wirksam),
+                    };
                 break;
             }
         }
+    }
+
+    /// <summary>
+    /// Wie viele Wortzwischenräume vor jedem Stück der Zeile liegen — und wie viele davon
+    /// überhaupt etwas auseinanderziehen können.
+    ///
+    /// <para>
+    /// <b>Ein Zwischenraum ist eine Folge von Leerzeichen im Text der Zeile, kein
+    /// Stückwechsel.</b> Die Stücke entstehen aus zwei ganz verschiedenen Gründen — an jedem
+    /// Wort (damit die Zeile umbrechen kann) und an jedem Formatwechsel (damit ein Stück eine
+    /// Schrift hat). Nur der erste Grund bringt Leerraum mit.
+    /// </para>
+    /// <para>
+    /// <b>Der Leerraum steht am Anfang eines Stücks</b> (<see cref="InWoerter"/>) oder bildet
+    /// ein Stück ganz allein — das kommt heraus, wenn der Formatwechsel genau zwischen zwei
+    /// Wörtern sitzt. Beide Fälle zählen als <b>ein</b> Zwischenraum, nicht als zwei: gezählt
+    /// wird über den fortlaufenden Text der Zeile hinweg, damit eine Stückgrenze mitten im
+    /// Leerraum ihn nicht verdoppelt.
+    /// </para>
+    /// <para>
+    /// <b>Ein Stück wird um die Zwischenräume verschoben, die vor seinem sichtbaren Anfang
+    /// liegen</b> — der eigene führende Leerraum zählt also mit. Das ist Absicht: Verschöbe man
+    /// ihn nicht, bliebe der Zwischenraum vor genau diesem Wort ungestreckt. Sichtbar ist
+    /// nichts davon, ein Leerzeichen ist unsichtbar; sichtbar ist nur, wo das Wort dahinter
+    /// steht.
+    /// </para>
+    /// </summary>
+    /// <param name="wirksam">
+    /// Die Zwischenräume, hinter denen noch etwas Sichtbares kommt. **Ein Zwischenraum am
+    /// Zeilenende zieht nichts auseinander** — er entsteht, wenn das nächste Wort nicht mehr
+    /// passte, und würde die Zeile sonst über den Rand hinaus strecken.
+    /// </param>
+    private static int[] Luecken(IReadOnlyList<TdLaidOutRun> stuecke, out int wirksam)
+    {
+        var stufe = new int[stuecke.Count];
+        int gezaehlt = 0;
+        bool imLeerraum = false;
+        wirksam = 0;
+
+        for (int i = 0; i < stuecke.Count; i++)
+        {
+            string text = stuecke[i].Text;
+
+            // Erst der führende Leerraum — er gehört noch vor dieses Stück.
+            int k = 0;
+            while (k < text.Length && char.IsWhiteSpace(text[k]))
+            {
+                if (!imLeerraum) { imLeerraum = true; gezaehlt++; }
+                k++;
+            }
+
+            stufe[i] = gezaehlt;
+
+            // **Eine Grafik ist Inhalt, auch ohne Text.** Sie zählt wie ein Wort: eine Zeile,
+            // die mit einem Bild endet, soll bis an den Rand reichen.
+            bool inhalt = stuecke[i].Graphic is not null;
+
+            for (; k < text.Length; k++)
+            {
+                if (char.IsWhiteSpace(text[k])) { if (!imLeerraum) { imLeerraum = true; gezaehlt++; } }
+                else { imLeerraum = false; inhalt = true; }
+            }
+
+            if (inhalt) wirksam = stufe[i];
+        }
+
+        return stufe;
     }
 
     private static void Verschieben(TdLine zeile, double um)

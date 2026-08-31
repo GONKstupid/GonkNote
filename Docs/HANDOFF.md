@@ -304,7 +304,7 @@ angezeigt, importiert (DOCX) und in alle vier Formate exportiert. **Damit ist Ph
 abgeschlossen.** Der Anschluss hat sofort einen Fehler gezeigt, den vier Runden lang kein
 Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — behoben.
 
-### ▶ Hier geht es weiter (Stand 2026-08-31, nach Runde V2-100)
+### ▶ Hier geht es weiter (Stand 2026-08-31, nach Runde V2-101)
 
 > **✅ M2 ist erreicht und ausgerufen** (2026-08-28, §2) — Funktionsgleichheit Linux ↔
 > Windows, **mit einem benannten Loch**: die Rechtschreibprüfung fehlt im Linux-Kopf.
@@ -333,7 +333,22 @@ Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — beh
 > `MessageBox` auf ein eigenes Fenster umgestellt — sie sahen an keiner Stelle aus wie die
 > App, während der Linux-Kopf seit jeher eines hat.
 >
-> **✅ ①c hat angefangen. §4.77 (V2-100):** Der **Tafel-Export** liegt in Core
+> **✅ ①c läuft. §4.78 (V2-101):** Der **Formen-Stift** liegt als `WbFormen` in Core und
+> steht in **beiden** Leisten — **+23 Wächter**, wo es vorher **keinen einzigen** gab. **⛔ Und
+> der Bau hat dabei nichts bewiesen:** der Knopf war da, das Werkzeug wählbar, und es tat
+> **nichts** — drei `switch`-Weichen im Linux-Kopf zählten die Stifte einzeln auf und kannten
+> ihn nicht. Gesehen hat es erst der Klick am laufenden Programm.
+>
+> **⛔ ZWEI FUNDE WARTEN AUF EINE ENTSCHEIDUNG DES NUTZERS** (§4.78, beide **nicht**
+> repariert, weil beide das Verhalten eines täglich benutzten Werkzeugs ändern):
+> **(a)** Die Formerkennung faltet **lange Gekritzel fälschlich zusammen** — die
+> Geschlossen-Schwelle wächst mit der Zuglänge, also gilt: je länger und krakeliger, desto
+> eher „geschlossen". Seit Phase 3 so. **(b)** Die **Vorgabetinte ist in beiden Köpfen
+> verschieden** — Linux nimmt `#1B2B4B` aus der Tabelle in Core, Windows verdrahtet
+> `#FF000000` fest (§5 Nr. 27). *Derselbe Strich hat je nach Kopf eine andere Farbe im
+> Dokument.*
+>
+> **✅ §4.77 (V2-100):** Der **Tafel-Export** liegt in Core
 > (`WbExport`) und läuft **in beiden Köpfen** — der Linux-Kopf konnte eine Tafel vorher
 > **überhaupt nicht** exportieren (`ExportBoard` warf). **Das war ein zweites, unbenanntes
 > Loch in M2**, und es ist zu. Dazu die Export-Gruppe in der Tafel-Einstellungsleiste, das
@@ -416,11 +431,11 @@ steht in §4 — dort wird er gesucht — und in der Chronik §9.)*
 
 **Tests laufen lassen:**
 ```powershell
-dotnet test -c Release        # Windows: beide Projekte, 1064 Tests (1000 Core + 64 WPF)
+dotnet test -c Release        # Windows: beide Projekte, 1087 Tests (1023 Core + 64 WPF)
 ```
 
 ```bash
-dotnet test tests/GonkNote.Core.Tests   # Linux: 993 Tests (nur Core — der WPF-Kopf baut dort nicht)
+dotnet test tests/GonkNote.Core.Tests   # Linux: 1016 Tests (nur Core — abgeleitet aus +12/+23, vom Laptop zu bestätigen)
 ```
 
 ---
@@ -458,7 +473,7 @@ möglich) gelten unverändert weiter — siehe `gonk-note\HANDOFF.md` §1.
 | | |
 |---|---|
 | **Version** | 0.3.0 · `net10.0` · SkiaSharp 3.119.4 · Avalonia 12.1.1 · SQLite |
-| **Tests** | **1064** — 1000 in `GonkNote.Core.Tests` (Windows **und** Linux), 64 in `GonkNote.Wpf.Tests` (alles, was am `FlowDocument` hängt) · Stand V2-100 |
+| **Tests** | **1087** — 1023 in `GonkNote.Core.Tests` (Windows **und** Linux), 64 in `GonkNote.Wpf.Tests` (alles, was am `FlowDocument` hängt) · Stand V2-101 |
 | **Bau** | Debug und Release je 0 Fehler / 0 Warnungen; CI mit zwei Läufen (Windows, Ubuntu) |
 | **Meilensteine** | ✅ **M0** (Core baut auf Linux) · ✅ **M1** (Notizbuch und Whiteboard laufen unter Linux) · ✅ **M2** (Funktionsgleichheit Linux ↔ Windows) — **ausgerufen am 2026-08-28**, Nutzer-Entscheidung, **mit einem benannten Loch**: die Rechtschreibprüfung fehlt im Linux-Kopf (§6, bewusst so entschieden am 2026-08-22). Die zweite Stift-Taste darf verschieden bleiben und ist **kein** Loch (§5 Nr. 17) · ⏳ **M3** (veröffentlicht) hängt an Phase 5 |
 
@@ -9317,6 +9332,133 @@ Methode wie bei `PART_SelectedPipe` und in §4.42. **Am laufenden Programm gegen
 Zeilen), `WbExport.cs` neu (312), `TafelexportTests.cs` neu (263).
 
 
+### 4.78 Phase 5, ①c — der Formen-Stift, und der Bau, der nichts bewiesen hat
+
+**V2-101, 2026-08-31, unter Windows.** Der zweite Posten von ①c: das **einzige** fehlende
+Werkzeug der Tafelleiste. Und die Runde ist der Beleg für den Satz, der in §5e ganz unten
+steht.
+
+#### Was gebaut wurde
+
+| | |
+|---|---|
+| **`Core/Editing/WbFormen.cs`** | Die Formerkennung, aus `GonkNote.Wpf/Views/WhiteboardView.Shapes.cs` gezogen — **255 Zeilen, keine Zeile Logikänderung**. Was am Kopf hing, waren zwei Werte: die aktuelle Tinte und die Strichbreite; sie sind jetzt **Parameter** |
+| **Der Knopf im Linux-Kopf** | `BtnFormenStift` mit dem Symbol `ShapePen` — es lag längst in Core (`AppIcon.ShapePen`) |
+| **Der Aufruf im Linux-Kopf** | `CommitStroke` versucht erst zu erkennen, sonst glättet es und legt einen Strich ab. **Derselbe Zuschnitt wie drüben** |
+| **`Core.Tests/FormenstiftTests.cs`** | **+23 Wächter** |
+
+#### Der Befund, der den Umzug gelohnt hat — vorher gab es **keinen einzigen** Wächter
+
+Die Erkennung war aus dem WPF-Kopf **nicht rufbar, ohne ein WPF-Fenster zu bauen**. 255
+Zeilen Geometrie, seit Phase 3 im Einsatz, **in fünf Phasen von keinem Test berührt.** Der
+Umzug nach Core hat sie prüfbar gemacht, und **die erste Prüfung hat sofort etwas gefunden**
+(unten).
+
+> **Die Lehre gehört neben die von §4.77:** *Wo Code liegt, entscheidet nicht nur, wer ihn
+> benutzen kann — es entscheidet auch, wer ihn prüfen kann.* Beide Male lag die Ursache
+> nicht in der Sache, sondern im Ort.
+
+#### ⛔ Der Fehler, den der Bau nicht sehen konnte — und die Wächter auch nicht
+
+**Der Knopf war da, das Werkzeug war wählbar, und es tat nichts.** Kein Zug begann, kein
+Strich entstand, keine Meldung. **Bau 0/0, alle Wächter grün.**
+
+Die Ursache: Der Eingabepfad des Linux-Kopfs zählt in **drei** `switch`-Weichen die Stifte
+einzeln auf —
+
+```csharp
+case ToolType.Pen:
+case ToolType.Pencil:
+case ToolType.Highlighter:
+```
+
+— und der Formen-Stift stand in keiner davon. **`WbLeiste.Stifte` in Core führt seit jeher
+vier**, `WbLeiste.Kuerzel` den Buchstaben `G`, und beide Sprachtabellen haben den Tooltip.
+Der Kopf führte drei.
+
+**Gesehen hat es erst der Klick am laufenden Programm — gegen den gewöhnlichen Stift
+gehalten:** mit dem Stift entsteht bei einem Klick ein Punkt, mit dem Formen-Stift nichts.
+*Ohne diese Gegenprobe wäre ein Werkzeug ausgeliefert worden, das man anklicken kann und das
+nichts tut.*
+
+> **Deshalb steht dort jetzt die Regel und keine Aufzählung mehr:**
+> `case ToolType t when WbLeiste.IstStift(t):` — **an einer Stelle, für beide Köpfe.**
+> *Eine Liste, die an drei Stellen im selben Kopf gepflegt werden muss, ist eine Liste, die an
+> einer davon veraltet.*
+
+#### ⛔ Und ein Fund in der Erkennung selbst — sie ist seit Phase 3 falsch
+
+Der erste geschriebene Wächter hieß „ein Gekritzel bleibt ein Gekritzel" und ist **gefallen**.
+Nachgemessen mit einer Wegwerf-Sonde:
+
+> Ein Zug aus 120 Punkten, **2.886 Einheiten lang** und nur **297 weit**, gilt als
+> *geschlossen* und wird zu einem **Streckenzug aus drei Punkten** eingedampft. Vom
+> Gekritzel bleibt nichts übrig.
+
+**Die Ursache steht in einer Zeile:** als geschlossen gilt ein Zug, dessen Sehne kürzer ist
+als `Länge × 0,16` — **die Schwelle wächst also mit der Zuglänge.** Je länger und krakeliger
+ein Strich, desto eher hält ihn die Erkennung für geschlossen. *Das ist genau verkehrt herum:
+gemeint ist „Anfang und Ende liegen nah beieinander", gemessen wird aber gegen die
+Gesamtlänge und nicht gegen die Ausdehnung.*
+
+Der am laufenden Programm gezogene Zickzack ist **knapp daran vorbeigekommen** (Sehne 354,
+Schwelle 336) — er hat überlebt, aber ein etwas längerer wäre gefallen.
+
+> **⚠ Der Fehler ist nicht in dieser Runde entstanden.** Er ist **seit Phase 3 im WPF-Kopf**;
+> der Umzug hat keine Zeile Logik geändert, er hat ihn nur **sichtbar** gemacht. Er ist
+> **nicht repariert**: das wäre eine Verhaltensänderung an einem Werkzeug, das der Nutzer
+> täglich benutzt, und sie im selben Zug mit dem Umzug zu prüfen hieße, zwei Dinge auf einmal
+> zu prüfen. **Der Zuschnitt gehört dem Nutzer** — der Punkt steht in §5e.
+>
+> **Ein Wächter friert das falsche Verhalten bewusst ein**
+> (`Ein_langes_Gekritzel_wird_faelschlich_zusammengefaltet`), damit es weder unbemerkt
+> verschwindet noch unbemerkt schlimmer wird. **Wer die Schwelle richtigstellt, lässt ihn
+> fallen — und das ist dann die richtige Meldung, nicht die falsche.** Was daneben *hält*, ist
+> der Gegenwächter: aus einem Gekritzel wird **nie** ein Rechteck oder eine Ellipse.
+
+#### ⛔ Dazu ein dritter Fund, beim Fotografieren gesehen: zwei Köpfe, zwei Tinten
+
+**Mit derselben Kachel „auto" schreiben die beiden Köpfe in verschiedenen Farben.** Im Bild
+nebeneinander zu sehen: die vier Formen aus dem Linux-Kopf stehen in Dunkelblau, die zwei aus
+dem WPF-Kopf in reinem Schwarz.
+
+| | |
+|---|---|
+| **Linux-Kopf** | `Themes.Light[ThemeColor.DefaultInk]` = **`#1B2B4B`** — aus der Farbtabelle in Core |
+| **WPF-Kopf** | fest verdrahtet **`"#FF000000"`** bzw. `"#FFFFFFFF"` |
+
+**Und der Kommentar im Linux-Kopf benennt die Regel wörtlich**, gegen die der WPF-Kopf
+verstößt: *„die Vorgabefarbe kommt aus der Farbtabelle in Core, nicht aus einer Konstante
+hier."* **Das ist §5 Nr. 27** und dieselbe Sorte Fund wie die Tintenpalette in §4.74 — nur
+schlimmer, weil er nicht das Aussehen betrifft, sondern **die gespeicherten Daten**: derselbe
+Strich hat je nach Kopf eine andere Farbe im Dokument.
+
+**Nicht repariert, aus demselben Grund wie oben:** es ändert die Tinte, mit der der Nutzer
+schreibt. Steht als offener Punkt in §5e.
+
+#### Am laufenden Programm geprüft (Dauerregel 1 und 4)
+
+**Beide Köpfe unter Windows, dieselbe frisch gezogene DB-Kopie, immer nur einer sichtbar.**
+
+- **Linux-Kopf:** krakeliger Kreis → **perfekter Kreis**; krakeliges Rechteck → **perfektes
+  Rechteck**; schräg gezogene Linie → **exakt waagerecht eingerastet**; Zickzack → **bleibt
+  ein Zickzack**, geglättet. Vier von vier.
+- **WPF-Kopf:** derselbe Versuch über das Kürzel `G`, nach dem Umzug **unverändert**.
+- **Und die Gegenprobe, die beide verbindet:** der WPF-Kopf zeigt die **vom Linux-Kopf
+  gezeichneten** Formen unverändert — ein Modell, ein Zeichner, zwei Köpfe.
+
+> **⚠ Eine Falle beim Fernsteuern, die zwei Anläufe gekostet hat:** `SetCursorPos` verschiebt
+> den Zeiger, erzeugt aber **keine verlässliche Bewegungseingabe** — der Avalonia-Kopf hat
+> einen so gezogenen Kreis **gar nicht gesehen**, und es sah aus wie ein Fehler im neuen Code.
+> Genommen wird `mouse_event(MOVE|ABSOLUTE)`. *Ein Werkzeug, das still nichts tut, ist beim
+> Messen so gefährlich wie ein Fehler im Gemessenen.*
+
+#### Zahlen
+
+**Bau 0/0. 1087 Tests grün (1023 Core + 64 WPF), +23.** `WhiteboardView.Shapes.cs` von 305
+auf 57 Zeilen, `WbFormen.cs` neu (312), `FormenstiftTests.cs` neu (312).
+
+
 ## 5. Entscheidungen
 
 **Getroffen, alle umgesetzt:**
@@ -10899,8 +11041,8 @@ Lies dort Docs/HANDOFF.md (NICHT in der Wurzel, §5 Nr. 21). Lies §5e
 ("Auftrag fuer den Windows-Rechner") und §6 ("Die Schritte").
 
 Zieh zuerst den Stand: git pull. Dann bauen und testen, BEVOR du etwas
-anfasst. Erwartet sind 0 Fehler, 0 Warnungen und 1064 Tests
-(1000 Core + 64 WPF) -- stimmt eine der Zahlen nicht, IST DAS DER ERSTE
+anfasst. Erwartet sind 0 Fehler, 0 Warnungen und 1087 Tests
+(1023 Core + 64 WPF) -- stimmt eine der Zahlen nicht, IST DAS DER ERSTE
 BEFUND. UND SIEH IN git log NACH, OB DER LETZTE EINTRAG ZU DEM PASST,
 WAS HIER STEHT: in V2-100 lagen sechs Runden ungesichert im
 Arbeitsbaum (§4.77).
@@ -10914,7 +11056,8 @@ DIE ORDNUNG VON PHASE 5 STEHT IN §6 UND NUR DORT:
 
   (1a) Vermessen    ERLEDIGT -- alle fuenf Flaechen (§4.71, §4.74, §4.75)
   (1b) Angleichen   weitgehend erledigt (§4.72-§4.75)
-  (1c) Werkzeuge    LAEUFT -- Tafel-Export ist zu (§4.77) <-- HIER WEITER
+  (1c) Werkzeuge    LAEUFT -- Tafel-Export (§4.77) und Formen-Stift
+                    (§4.78) sind zu <-- HIER WEITER
   (2)  Rueckmeldung VERSCHOBEN hinter 1c (§5 Nr. 28)
   (3)  Flatpak/AppImage  (braucht den Laptop)
   (4)  Rest des Aufraeumens + VOLLSTAENDIGER Prueflauf
@@ -10928,7 +11071,7 @@ nicht drueben geloescht. Was zu bauen ist, steht als Liste in §4.75;
 der ZUSCHNITT DER RUNDEN GEHOERT DEM NUTZER, also frag ihn, bevor du
 eine grosse Runde anfaengst.
 
-  Tafel:  Cover-Werkzeug, Formen-Stift (Tool.SmoothPen).
+  Tafel:  Cover-Werkzeug. (Der Formen-Stift ist in §4.78 gebaut.)
   Editor: Suchen & Ersetzen, der ganze Tabellenentwurf, Formatpinsel,
           Stil- und Listengalerien, Bild/Infobox/Symbol, Diagramm,
           Navigator, Wortzahl, Lineal, Rueckgaengig/Wiederholen.
@@ -10944,6 +11087,15 @@ RICHTIGGESTELLT -- MISS NACH, BEVOR DU BAUST (§4.56, drittes Mal):
    Werkzeug der Tafelleiste. Core kennt ihn schon (WbLeiste, Kuerzel
    G, beide Sprachtabellen); es fehlt der Knopf und die Erkennung
    (WhiteboardView.Shapes.cs, 305 Zeilen reine Geometrie -> Core).
+
+⛔ ZWEI FUNDE AUS §4.78 WARTEN AUF DEINE ENTSCHEIDUNG, NUTZER -- BEIDE
+GEMESSEN, BEIDE NICHT REPARIERT, WEIL BEIDE EIN TAEGLICH BENUTZTES
+WERKZEUG AENDERN (Einzelheiten in §5e, "Zwei Funde aus §4.78"):
+ (a) Die Formerkennung faltet LANGE GEKRITZEL zusammen -- die
+     Geschlossen-Schwelle waechst mit der Zuglaenge. Seit Phase 3.
+ (b) Die VORGABETINTE ist in beiden Koepfen verschieden: Linux nimmt
+     #1B2B4B aus der Tabelle in Core, Windows verdrahtet #FF000000
+     fest (§5 Nr. 27). Das betrifft die GESPEICHERTEN DATEN.
 
 DER TAFEL-EXPORT IST IN §4.77 ZU: er lag als PdfExporter im WPF-Kopf
 mit der Begruendung "zeichnet ueber den Kopf" -- DIE WAR VON ANFANG AN
@@ -11015,6 +11167,16 @@ ueberfliegen, das ist Pflicht):
    (§4.77). Vor einem modalen Fenster wird GEKLICKT, nicht getippt.
  - Ein Waechter im falschen Testprojekt ist fuer den anderen Kopf GAR
    KEINER: der Linux-Kopf faehrt nur GonkNote.Core.Tests (§4.77).
+ - ⛔ EIN KNOPF, DEN DER EINGABEPFAD NICHT KENNT, TUT STILL NICHTS. In
+   §4.78 war der Formen-Stift sichtbar, waehlbar und wirkungslos: drei
+   switch-Weichen im Linux-Kopf zaehlen die Stifte einzeln auf. BAU
+   GRUEN, WAECHTER GRUEN. Gesehen hat es erst der Klick am laufenden
+   Programm, GEGEN EIN FUNKTIONIERENDES WERKZEUG GEHALTEN. Wer ein
+   Werkzeug einbaut, prueft es mit genau dieser Gegenprobe.
+ - Beim Fernsteuern: SetCursorPos verschiebt den Zeiger, erzeugt aber
+   KEINE verlaessliche Bewegungseingabe -- der Avalonia-Kopf hat einen
+   so gezogenen Zug GAR NICHT gesehen, und es sah aus wie ein Fehler im
+   neuen Code. mouse_event(MOVE|ABSOLUTE) nehmen (§4.78).
  - Assets, die im Avalonia-csproj ausgenommen sind, weil "das Werkzeug
    gibt es im Linux-Kopf nicht": DIE BEGRUENDUNG LAEUFT AB, sobald es
    das Werkzeug gibt (§4.60). DAS GILT JETZT FUER DIE COVER-VORLAGEN --
@@ -11072,7 +11234,7 @@ Fang an.
 | ~~**Tafel-Export**~~ | ✅ **Erledigt (§4.77).** Er fehlte dem Linux-Kopf **ganz** — `ExportBoard` warf. Liegt jetzt als `Core/Rendering/WbExport.cs` in Core und läuft in beiden Köpfen, samt Export-Gruppe in der Einstellungsleiste |
 | **Einstellungsleiste der Tafel** | ⚠ **Nicht „7 gegen 1".** Seite, Formen, Text, Notizzettel, Sticker **stehen** im Linux-Kopf; Export ist in §4.77 dazugekommen. **Es fehlt nur noch Cover.** Offen bleibt die **Form**: `Expander` drüben gegen `StackPanel` hier — das ist ①b und keine fehlende Funktion |
 | **Cover-Werkzeug** | Gezeichnet wird es (`WhiteboardView.Render.cs`, `DrawCover`), **bedient nicht** — 250 Zeilen im WPF-Kopf. **Der letzte fehlende Abschnitt der Einstellungsleiste** |
-| **Formen-Stift** (`Tool.SmoothPen`) | **Das einzige fehlende Werkzeug der Tafelleiste.** Core kennt ihn (`WbLeiste`, Kürzel `G`, beide Sprachtabellen); es fehlt der Knopf und die Erkennung — `WhiteboardView.Shapes.cs`, **305 Zeilen reine Geometrie, die nach Core gehören** |
+| ~~**Formen-Stift** (`Tool.SmoothPen`)~~ | ✅ **Erledigt (§4.78).** Die Geometrie liegt als `Core/Editing/WbFormen.cs` in Core, der Knopf steht in der Leiste, **+23 Wächter** — vorher war sie durch **keinen einzigen** gedeckt. **⛔ Und dabei sind zwei Fehler aufgefallen, die nicht repariert sind — sie stehen unten** |
 | **Suchen & Ersetzen** | `TextEditorView.Find.cs`, fehlt ganz |
 | **Tabellenentwurf** | Stil, Rahmen, Füllung, Größe, AutoAnpassen, Zellenabstand — der ganze Abschnitt |
 | **Zellen verbinden/teilen, Tabelle teilen/sortieren/Formel/in Text** | fehlt ganz |
@@ -11106,6 +11268,17 @@ Fang an.
 | **Violetter Stummel am Schieber (Linux)** | Links vom Griff. **Drei Anläufe** (§4.74): Setter auf den Thumb wirkt nicht, die **ganze** Slider-Vorlage zu ersetzen wirkt gar nicht (Fluents `ControlTheme` gewinnt), nur eine Vorlage **für den Thumb** trägt |
 | **Auswahlpunkt: Gestalt (beide)** | ✅ **Die Farbe ist zu** (§4.77, `CheckOuterEllipse`/`CheckGlyph`, an 12.1.1 nachgemessen). **Offen bleibt die Gestalt:** der WPF-Kopf lässt seine `RadioButton` unangetastet und bekommt die Systemdarstellung. Gleicher **Bezug**, nicht gleiche **Form** |
 | **Einstellungsleiste: Expander gegen StackPanel** | Drüben klappbare Gruppen mit blauen Überschriften und dem Titel „Einstellungen", hier feste Abschnitte mit weißen Überschriften und dem Titel „Seite" (§4.77, beide Köpfe nebeneinander gesehen) |
+
+#### ⛔ Zwei Funde aus §4.78, die auf eine Entscheidung des Nutzers warten
+
+*Beide sind **nicht** repariert, und aus demselben Grund: sie ändern das Verhalten eines
+Werkzeugs, das täglich benutzt wird. **Der Zuschnitt gehört dem Nutzer.** Beide sind
+gemessen, nicht vermutet.*
+
+| | |
+|---|---|
+| **(a) Lange Gekritzel werden zusammengefaltet** | Ein Zug aus 120 Punkten, **2.886 lang und 297 weit**, gilt als *geschlossen* und wird zu einem **Streckenzug aus drei Punkten** — der Zug ist weg. **Ursache:** als geschlossen gilt `Sehne < Länge × 0,16`, die Schwelle **wächst also mit der Zuglänge**. Gemeint ist „Anfang und Ende liegen nah beieinander", gemessen wird gegen die Gesamtlänge statt gegen die **Ausdehnung**. **Seit Phase 3 so**, in beiden Köpfen (der Linux-Kopf hat den Fehler in §4.78 mitbekommen). Ein Wächter friert ihn ein; **wer die Schwelle richtigstellt, lässt ihn fallen** |
+| **(b) Zwei Köpfe, zwei Vorgabetinten** | Mit derselben Kachel „auto" schreibt der Linux-Kopf **`#1B2B4B`** (aus `Themes.Light[DefaultInk]` in Core), der WPF-Kopf **`#FF000000`** (fest verdrahtet). **Das ist §5 Nr. 27**, und es betrifft nicht das Aussehen, sondern die **gespeicherten Daten**: derselbe Strich hat je nach Kopf eine andere Farbe im Dokument. Der Kommentar im Linux-Kopf benennt die Regel wörtlich, gegen die der WPF-Kopf verstößt. **Vorlage ist der Linux-Kopf** (§6) — die Reparatur wäre also, den WPF-Kopf auf die Core-Tabelle zu stellen, und sie ändert die Tinte, mit der der Nutzer schreibt |
 
 *Beide stehen als Warnung im Code. **Fang nicht bei Anlauf eins an.***
 
@@ -12276,7 +12449,7 @@ Veröffentlichen keinen Sinn: Was hinausgeht, soll auf Linux können, was es auf
 |---|---|---|
 | **①a** | **Vermessen** ✅ *erledigt (§4.71, §4.74, §4.75)* | Beide Köpfe Fläche für Fläche vergleichen und je Fläche eine **Befundtabelle** schreiben — **ohne anzugleichen**. *Wer misst und ändert zugleich, misst zum Teil seine eigene Änderung.* **Alle fünf Flächen sind vermessen.** |
 | **①b** | **Angleichen** — *weitgehend erledigt* | Jeden sichtbaren Unterschied beseitigen, **wo beide Köpfe etwas haben und es verschieden aussieht**: Symbole, Farben, Kürzel, Tooltips, Anordnung. **Vorlage ist der Linux-Kopf — Ausnahme: beim Editor ist Windows die Vorlage.** ✅ Flächen **1, 4, 5** und die **Werkzeugleiste** der Tafel (§4.72–§4.75), dazu §5 Nr. **14**. **Offen:** die zwei benannten Reste aus §4.73/§4.74 |
-| **①c** | **Die fehlenden Werkzeuge** ◀ *läuft* | **Wo einer nichts hat, wird es dort gebaut** (§5 Nr. **26**) — und das ist **Phase-4.5-Arbeit unter neuem Namen** und keine Angleicharbeit. ✅ **Tafel-Export** (§4.77, in Core, beide Köpfe — er fehlte dem Linux-Kopf **ganz**). **Offen, Tafel:** Cover-Werkzeug, Formen-Stift. **Offen, Editor:** Suchen & Ersetzen, der ganze Tabellenentwurf, Formatpinsel, Stil- und Listengalerien, Bild/Infobox/Symbol, Diagramm, Navigator, Wortzahl, Lineal, Rückgängig/Wiederholen. **Der Zuschnitt der Runden gehört dem Nutzer** |
+| **①c** | **Die fehlenden Werkzeuge** ◀ *läuft* | **Wo einer nichts hat, wird es dort gebaut** (§5 Nr. **26**) — und das ist **Phase-4.5-Arbeit unter neuem Namen** und keine Angleicharbeit. ✅ **Tafel-Export** (§4.77) und ✅ **Formen-Stift** (§4.78), beide in Core und in beiden Köpfen. **Offen, Tafel:** Cover-Werkzeug, Diagramm-Werkzeug. **Offen, Editor:** Suchen & Ersetzen, der ganze Tabellenentwurf, Formatpinsel, Stil- und Listengalerien, Bild/Infobox/Symbol, Diagramm, Navigator, Wortzahl, Lineal, Rückgängig/Wiederholen. **Der Zuschnitt der Runden gehört dem Nutzer** |
 | **②** | **Rückmeldung** — *verschoben hinter ①c* | Was der Vergleich übersehen hat und was ① kaputt gemacht hat. **Eine eigene Runde und kein Anhängsel** — wer eine Oberfläche in einem Zug umbaut und nicht noch einmal hinsieht, hat sie nicht geprüft, sondern nur geändert. **⚠ Sie folgt erst auf ①c** (§5 Nr. **28**): Eine Rückmeldung über eine Oberfläche, an der die Hälfte der Werkzeuge fehlt, **listet in der Mehrzahl Dinge, die ohnehin geplant sind** — sie doppelt die Aufgabenliste, statt sie zu ergänzen |
 | **③** | **Auslieferung — vorgezogen** | **Flatpak/Flathub** als Hauptweg, **AppImage** als zweiter, abhängigkeitsfreier Kanal, `.deb`/AUR optional. Ins Manifest gehören `fontconfig`, `freetype` **und `tesseract`/`leptonica`** (§4.63, §5 Nr. 18) — sonst rendert SkiaSharp **keine Schrift** und die Texterkennung findet nichts. **Braucht den Laptop** (§5d) |
 | **④** | **Der Rest des Aufräumens, dann der vollständige Prüflauf** | Die Vorratsliste unten, dann der ganze Prüflauf |
@@ -13999,6 +14172,7 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 | V2-98 | 2026-08-31 | **Phase 5, ①b — Fläche 4: die Meldungen** (§4.75 neu; neu `src/GonkNote.Wpf/Views/MessageWindow.xaml(.cs)`; Bau 0/0, **1052 Tests** unverändert). **⛔ Der Befund: 28 Meldungen, die in keinem Fenster der App standen.** Der WPF-Kopf zeigte sie über die **native `MessageBox`** — an 28 Aufrufstellen in 12 Dateien, mit Systemfarben, Systemschrift und Systemsymbol; der Linux-Kopf hat seit jeher ein eigenes Fenster, weil Avalonia keine mitbringt. *Jede Fehlermeldung und jede Rückfrage war damit ein sichtbarer Unterschied — und der gefährlichste, weil man ihn erst sieht, wenn etwas schiefgeht.* **Alle 28 Stellen sind umgestellt, `MessageBox` kommt im WPF-Kopf nicht mehr vor.** Aufbau, Maße, Farben und Knopfreihenfolge sind aus dem Linux-Kopf übernommen; die Farben kommen **aus dem Theme** und nicht als feste Werte (§5 Nr. 27). **Was beim Nachbauen einer MessageBox als Erstes verlorengeht und deshalb ausdrücklich drinsteht:** Escape schließt, die Eingabetaste bestätigt, und **ohne Besitzer** erscheint das Fenster mittig statt hinter der App — beim Start und beim Beenden gibt es kurzzeitig keinen. **✅ Am laufenden Programm gegengeprüft**, dieselbe Rückfrage in beiden Köpfen: gleicher Punkt, gleicher Text, blaues „Ja" links, flaches „Nein" rechts. **⚠ Ein Rest ist benannt:** die Titelleiste des Linux-Fensters zeigt noch Minimieren und Maximieren — `CanResize="False"` nimmt sie in Avalonia nicht heraus, drüben tut es `ResizeMode="NoResize"`. **⛔ Und noch eine fest verdrahtete Meldung, diesmal in BEIDEN Köpfen:** „Es ist ein unerwarteter Fehler aufgetreten…" stand in beiden `App`-Klassen auf Deutsch — **kein Unterschied zwischen den Köpfen, aber eine Lücke in beiden**; ein englisches Programm zeigte hier Deutsch. Neu `Msg.Unexpected` je Sprache, **566 Schlüssel im Gleichschritt**. *Der Vergleich zweier Köpfe findet auch das, was beide gleich falsch machen — aber nur, wenn man beim Angleichen hinsieht statt zu vergleichen.* **Fläche 4 ist damit vermessen:** die fehlenden Dialoge (`ChartDialog`, `TableSortDialog`, `PromptDialog`, `FileInsertDialog`) sind **keine Dialog-Unterschiede, sondern die Feature-Lücke aus §4.71 in anderer Form** — es gibt sie nicht, weil es das Werkzeug dahinter nicht gibt; `HeaderFooterDialog` liegt drüben inline, `TableSizeDialog` ist durch zwei Zahlenfelder ersetzt, `SeitenwahlWindow` gibt es nur im Linux-Kopf. **⚠ Nicht getan, und es ist der größere Teil:** **Fläche 2** ist nur in der **Werkzeugleiste** angeglichen — Einstellungsleiste (**7 Klappgruppen gegen 1**), Cover-Werkzeug, Zahlenblock, Schnellaktionen, Import, Texterkennung, Diagramm-Werkzeug und Formen-Stift stehen aus; **Fläche 3 (Editor)** ist gemessen, aber **nicht angeglichen** (Suchen & Ersetzen, ganzer Tabellenentwurf, Formatpinsel, Galerien, Bild, Infobox, Symbol, Diagramm, Navigator, Wortzahl). **Das ist nach §5 Nr. 26 Phase-4.5-Arbeit unter neuem Namen — Werkzeuge bauen, nicht Oberflächen angleichen.** ▶ **Als Nächstes: der Zuschnitt gehört dem Nutzer** (§5e). **Der Laptop ist nicht dran — aber bei ③ ist er es zwingend** (§5d) |
 | V2-99 | 2026-08-31 | **Die Rückmeldung rückt hinter das Bauen — ① zerfällt in drei** (§4.76 neu; **keine Zeile Produktivcode**, §5 Nr. **28**, §6, §0 und §5e nachgezogen). **Nutzer-Entscheidung:** ② folgt erst auf **①c**. **Der Anlass steht in §4.75:** Das Vermessen aller fünf Flächen hat gezeigt, dass ① **zwei verschiedene Arbeiten unter einem Namen** führt — das **Angleichen** dessen, was beide Köpfe haben (Symbole, Farben, Kürzel, Tooltips, Anordnung), und das **Bauen** dessen, was einem fehlt (Suchen & Ersetzen, Tabellenentwurf, Cover-Werkzeug, sechs Einstellungs-Klappgruppen, Diagramm, Formen-Stift). **Eine Rückmeldung dazwischen liefe leer:** sie nennte in der Mehrzahl Werkzeuge, die ohnehin auf der Liste stehen, und *wer zwei Listen führt, arbeitet die kürzere ab*. **⛔ Ausdrücklich keine Streichung:** ② fällt nicht weg, der Satz *„wer eine Oberfläche in einem Zug umbaut und nicht noch einmal hinsieht, hat sie nicht geprüft, sondern nur geändert"* gilt unverändert — ② rückt nur dorthin, wo es eine **vollständige** Oberfläche zu prüfen gibt. **⚠ Und die Trennung ist keine Umbenennung:** ①b ist Oberflächenarbeit in Runden von Stunden, **①c ist Phase-4.5-Arbeit unter neuem Namen** in Runden von Tagen; beide unter einem Namen zu führen hieß, den Rest der Phase mit der falschen Größe zu schätzen — derselbe Fehler wie bei M2 in §4.24. **Stand von ①b:** Flächen **1, 4, 5** und die **Werkzeugleiste** der Tafel sind angeglichen (§4.72–§4.75), offen sind zwei benannte Reste. ▶ **Als Nächstes: ①c** (§5e). **Der Laptop ist nicht dran — aber bei ③ ist er es zwingend** (§5d) |
 | V2-100 | 2026-08-31 | **Phase 5, ①c — der Tafel-Export, den der Linux-Kopf nie hatte** (§4.77 neu; neu `Core/Rendering/WbExport.cs` und `tests/GonkNote.Core.Tests/TafelexportTests.cs`, gelöscht `src/GonkNote.Wpf/Services/PdfExporter.cs`; Bau 0/0, **1064 Tests** = 1000 Core + 64 WPF, **+12 Wächter**). **⛔ Der Befund vor dem ersten Handgriff: sechs Runden lagen ungesichert im Arbeitsbaum.** `git log` stand auf V2-93, das HANDOFF auf „nach V2-99" — §4.71 bis §4.76 waren **nie committet** (41 Dateien, 2.609 Zeilen). Nachgeholt als **ein** Commit für alle sechs. *Ein HANDOFF, das weiter ist als `git log`, beschreibt einen Stand, den nur dieser eine Rechner hat* — beim Wechsel auf den Laptop wäre die Arbeit schlicht nicht mitgekommen. **⛔ Der Fund: der Linux-Kopf konnte eine Tafel überhaupt nicht exportieren.** `BoardExportFormats` war leer, `ExportBoard` warf — **keine fehlende Bedienfläche, sondern eine fehlende Funktion, und ein zweites, unbenanntes Loch in M2** (das erste ist die Rechtschreibprüfung). **Warum es niemand gesehen hat:** `PdfExporter` lag im WPF-Projekt mit der Begründung *„Er zeichnet über `WhiteboardView`, also über den Kopf"* — **das war von Anfang an falsch**, alle fünf gerufenen Methoden waren einzeilige Weiterleitungen an `WbRenderer` in **Core**, und zwei Dateien weiter stand wörtlich das Gegenteil. **Das ist §4.67 zum zweiten Mal, und teurer:** dort kostete der falsche Kommentar Suchzeit, hier eine Funktion. *Ein Kommentar, der eine Arbeit als „gehört zu Phase X" einordnet, ist eine **Aufwandsschätzung** — und eine falsche Aufwandsschätzung verhindert die Arbeit zuverlässiger als ein fehlender Kommentar.* **Und ein zweiter falscher Satz deckte den ersten:** *„Eine leere Liste hält den Dateidialog zu"* — `SaveFilePickerAsync` öffnet mit leerem `FileTypeChoices` sehr wohl; wer exportieren wollte, bekam einen Dialog, wählte einen Namen und **danach eine Fehlermeldung**. **Gebaut:** `WbExport` in Core (Umzug ohne eine Zeile Logikänderung, `PdfExporter` **gelöscht** statt als Weiterleitung stehen gelassen — §4.10/§4.23), ein Einstieg `Exportieren` für beide Köpfe (beide `ExportBoard` sind jetzt **eine Zeile**), die **Formatliste an einer Stelle** nach dem Vorbild von `TdExport.Formate` (sie stand zweimal da: gefüllt drüben, **leer** hier, und beide Fassungen haben jeden Test bestanden — **genau §4.13**), dazu die **Export-Gruppe in der Tafel-Einstellungsleiste** des Linux-Kopfs. **⚠ Die neuen Wächter stehen in Core und nicht drüben:** zwei gab es schon, in `GonkNote.Wpf.Tests` — *ein Wächter im falschen Testprojekt ist kein halber Wächter, sondern für den anderen Kopf gar keiner*, denn der Linux-Kopf fährt nur `Core.Tests`. **✅ Am laufenden Programm, beide Köpfe, dieselbe frisch gezogene DB-Kopie, immer nur einer sichtbar:** der Linux-Kopf hat **zum ersten Mal eine Tafel exportiert** (35 KB PNG, 1780×2438, Punktmuster und Seitenformat korrekt, PNG im Dialog vorgewählt); der WPF-Kopf lief nach dem Umzug unverändert (197×197 — die unendliche Fläche wird auf ihren Inhalt zugeschnitten, und darauf lag ein einzelner Punkt). **Beide rechnen identisch; der Unterschied war der Inhalt, nicht der Kopf.** **⛔ Die Aufgabenliste selbst war an drei Stellen falsch und ist nachgemessen** (*ein Auftrag ist keine Messung*, §4.56, **drittes Mal**): „**7 Klappgruppen gegen 1**" war 7 gegen **5** — und drüben sind es zur Laufzeit **drei**, weil die übrigen an ihrem Werkzeug hängen; **Zahlenblock, Schnellaktionen, Import und Texterkennung gibt es im Linux-Kopf längst**; der **Formen-Stift** fehlt wirklich und ist das **einzige** fehlende Werkzeug der Tafelleiste. **Woher die falsche Zahl kam:** ein Kommentar zählte die *Form* (Expander gegen StackPanel) statt des Inhalts, und die Zahl wanderte von dort in §4.71, §4.75 und in den Prompt. *Eine falsche Zählung kostet nicht die Runde, die sie schreibt, sondern die, die ihr glaubt.* **⛔ Und der Befund, den nur das laufende Programm zeigen konnte:** die **Auswahlpunkte** der Einstellungsleiste waren **violett** — direkt neben der Gruppe, die diese Runde gebaut hat. **Die Regel zum fünften Mal bestätigt** (Baum §4.72, Klappliste §4.73, Schieber §4.74, Reiter, Auswahlpunkt): *jede Fläche, die noch nicht angefasst ist, hat ihr eigenes Violett.* Behoben über `CheckOuterEllipse`/`CheckGlyph`, **an der gebundenen Fassung 12.1.1 nachgemessen** und nicht geraten (§4.42) — am laufenden Programm gegengeprüft: blau. **⚠ Benannt statt halb erledigt:** der WPF-Kopf lässt seine `RadioButton` unangetastet, gleicher **Bezug**, nicht gleiche **Gestalt** (①b). **⚠ Eine Falle bei der Fernsteuerung, die eine Messung gekostet hat:** `klick.ps1` holt **das Hauptfenster** nach vorn — steht ein **modaler** Dialog davor, gehen die Tasten ans Fenster dahinter, und der getippte Pfad wurde zu Werkzeug-Kürzeln auf der Zeichenfläche. **Vor einem modalen Fenster wird geklickt, nicht getippt.** **Nicht getan:** **Tafel:** Cover-Werkzeug (⛔ dann müssen die Cover-Vorlagen ins Avalonia-csproj, §4.60) und Formen-Stift; **Editor:** Suchen & Ersetzen, ganzer Tabellenentwurf, Formatpinsel, Galerien, Bild, Infobox, Symbol, Diagramm, Navigator, Wortzahl, Lineal, Rückgängig/Wiederholen. ▶ **Als Nächstes: ①c weiter — der Zuschnitt gehört dem Nutzer** (§5e). **Der Laptop ist nicht dran — aber bei ③ ist er es zwingend** (§5d) |
+| V2-101 | 2026-08-31 | **Phase 5, ①c — der Formen-Stift, und der Bau, der nichts bewiesen hat** (§4.78 neu; neu `Core/Editing/WbFormen.cs` und `tests/GonkNote.Core.Tests/FormenstiftTests.cs`, `WhiteboardView.Shapes.cs` von 305 auf 57 Zeilen; Bau 0/0, **1087 Tests** = 1023 Core + 64 WPF, **+23 Wächter**). Das **einzige** fehlende Werkzeug der Tafelleiste. Die Formerkennung lag als `WhiteboardView.Shapes.cs` im WPF-Kopf — **255 Zeilen, keine davon an WPF gebunden**: Punktlisten hinein, Modellobjekte hinaus; am Kopf hingen nur zwei Werte (Tinte, Strichbreite), und die sind jetzt **Parameter**. **⛔ Der Befund, der den Umzug gelohnt hat:** Die Erkennung war aus dem WPF-Kopf **nicht rufbar, ohne ein WPF-Fenster zu bauen** — **in fünf Phasen von keinem einzigen Test berührt.** *Wo Code liegt, entscheidet nicht nur, wer ihn benutzen kann, sondern auch, wer ihn prüfen kann* (§4.77 zum zweiten Mal, andere Richtung). **⛔ Und dann der Fehler, den der Bau nicht sehen konnte:** Knopf da, Werkzeug wählbar — **und es tat nichts.** Kein Zug, kein Strich, keine Meldung, **Bau 0/0 und alle Wächter grün.** Drei `switch`-Weichen im Eingabepfad des Linux-Kopfs zählen die Stifte einzeln auf (`Pen`, `Pencil`, `Highlighter`) und kannten den Formen-Stift nicht, obwohl **`WbLeiste.Stifte` in Core seit jeher vier führt** und `WbLeiste.Kuerzel` den Buchstaben `G`. **Gesehen hat es erst der Klick am laufenden Programm, gegen den gewöhnlichen Stift gehalten** — mit dem entsteht ein Punkt, mit dem Formen-Stift nichts. Jetzt steht dort die Regel aus Core statt einer Aufzählung: `case ToolType t when WbLeiste.IstStift(t)`. *Eine Liste, die an drei Stellen im selben Kopf gepflegt werden muss, ist eine Liste, die an einer davon veraltet.* **⛔ Zwei Funde warten auf eine Entscheidung des Nutzers, beide gemessen, beide NICHT repariert** (sie ändern das Verhalten eines täglich benutzten Werkzeugs): **(a)** Der erste geschriebene Wächter — „ein Gekritzel bleibt ein Gekritzel" — **ist gefallen.** Ein Zug aus 120 Punkten, **2.886 lang und 297 weit**, gilt als *geschlossen* und wird zu einem **Streckenzug aus drei Punkten** eingedampft. Ursache: `Sehne < Länge × 0,16` — **die Schwelle wächst mit der Zuglänge**, gemeint war aber „Anfang und Ende liegen nah beieinander". **Seit Phase 3 so**; der Umzug hat ihn nur sichtbar gemacht. Ein Wächter friert das falsche Verhalten ein, damit es weder unbemerkt verschwindet noch schlimmer wird; **wer die Schwelle richtigstellt, lässt ihn fallen.** Was daneben hält: aus einem Gekritzel wird **nie** ein Rechteck oder eine Ellipse. **(b)** Beim Fotografieren nebeneinander gesehen: **mit derselben Kachel „auto" schreiben die beiden Köpfe in verschiedenen Farben** — Linux `#1B2B4B` aus `Themes.Light[DefaultInk]` in Core, Windows fest verdrahtet `#FF000000`. **Das ist §5 Nr. 27**, und es betrifft nicht das Aussehen, sondern die **gespeicherten Daten**. Der Kommentar im Linux-Kopf benennt die Regel wörtlich, gegen die der WPF-Kopf verstößt. **✅ Am laufenden Programm, beide Köpfe, dieselbe frisch gezogene DB-Kopie, immer nur einer sichtbar:** krakeliger Kreis → **perfekter Kreis**, krakeliges Rechteck → **perfektes Rechteck**, schräge Linie → **exakt waagerecht eingerastet**, Zickzack → **bleibt ein Zickzack**. Der WPF-Kopf nach dem Umzug unverändert, und er zeigt die **vom Linux-Kopf gezeichneten** Formen — ein Modell, ein Zeichner, zwei Köpfe. **⚠ Eine Falle beim Fernsteuern, zwei Anläufe gekostet:** `SetCursorPos` erzeugt **keine verlässliche Bewegungseingabe**, der Avalonia-Kopf sah einen so gezogenen Kreis gar nicht — es sah aus wie ein Fehler im neuen Code. `mouse_event(MOVE\|ABSOLUTE)` nehmen. **Nicht getan:** **Tafel:** Cover-Werkzeug (⛔ dann die Cover-Vorlagen ins Avalonia-csproj, §4.60) und Diagramm-Werkzeug; **Editor:** Suchen & Ersetzen, ganzer Tabellenentwurf, Formatpinsel, Galerien, Bild, Infobox, Symbol, Diagramm, Navigator, Wortzahl, Lineal, Rückgängig/Wiederholen. ▶ **Als Nächstes: die zwei Entscheidungen oben, dann ①c weiter** (§5e). **Der Laptop ist nicht dran — aber bei ③ ist er es zwingend** (§5d) |
 | V2-67 | 2026-08-22 | **Das Feld reist als Auflage mit — die erste der zwei Lücken ist zu** (§4.49; Runde ④ aus §5e; `TdZuFlow`, `FlowZuTd` und die zwei Sprachtabellen angefasst, **am Modell, am Speicherformat und an der Führung nichts**; Bau 0/0, **842 Tests** grün = 785 Core + 57 WPF, **6 neue Wächter**, einer **umgedreht**). **Der Anlass war eine Frage des Nutzers** („kann ich nicht einfach mit Phase 4.5 weitermachen?" — ja, sie hängt an nichts hiervon), **und dabei ist die Lehre aus §4.46 an ihrem eigenen Autor eingetreten:** Erst behauptet, ein Inhaltsverzeichnis friere ein; dann „korrigiert", es friere nicht ein, weil `FlowZuTd` eine Verzeichniserkennung hat; **dann gemessen** — die Erkennung verlangt einen Absatz mit dem Wort „Inhaltsverzeichnis" davor, den der WPF-Editor selbst erzeugt und **der Linux-Kopf nie schreibt**. **Die erste Aussage war richtig, die Korrektur war der Fehler.** *Eine Aussage über den Code ist eine Vermutung, bis sie gemessen ist — auch dann, wenn sie einer früheren Vermutung widerspricht.* **Gemessen je Feldart, einmal durch die Rundreise:** vorher überlebte **keine einzige** — `PageNumber`, `PageCount`, `Date` und `Title` wurden zu `{SEITE}` und dergleichen als Text, das Verzeichnis zu **eingefrorenen Einträgen**; jetzt überleben **alle fünf**. **Alle fünf sind im Linux-Kopf einen Klick weit weg** (Reiter „Einfügen" → Feld, „Verweise" → Inhaltsverzeichnis) — **das ist der Unterschied zum Diagramm**, das dort gar nicht einfügbar ist und nur aus einem DOCX-Import kommt, und deshalb kam zuerst das Feld. **Der Träger ist ein `InlineUIContainer` mit dem `TdField` als `Tag`, und die Wahl ist nicht überlegt, sondern gemessen** (§4.47): WPF **kopiert** ein `Tag` beim Teilen eines Absatzes **und** eines Laufs auf beide Hälften — ein Träger dort wäre nach **einem** Tastendruck mitten im Platzhalter doppelt, **schlimmer als die Lücke**: Was verschwindet, sieht man; was sich verdoppelt, merkt man erst, wenn die Zahlen nicht mehr stimmen. **Und der Behälter ist nicht nur sicher, sondern richtig:** Ein Feld ist kein Text, sondern eine Stelle, an der gerechnet wird — dass sich nicht mehr hineintippen lässt, ist die Wahrheit über das Feld; **vorher konnte man aus `{SEITE}` ein `{SEIT}` machen, und niemand hat es gemerkt.** **Der Preis steht am Code:** Ein `UIElement` erbt keine `TextElement`-Eigenschaften, also müssen Schrift, Größe, Fett, Kursiv und Farbe von Hand aus dem aufgelösten Format gesetzt werden, dazu `BaselineAlignment.Baseline` — die Vorgabe `Bottom` hinge unter der Zeile und schöbe sie auseinander. **Das Verzeichnis brauchte einen zweiten Träger, und das ist beim Bauen aufgefallen und nicht beim Planen:** Es steht nicht *in* einer Zeile, es *ist* mehrere, wurde also auf Blockebene aufgefaltet — jetzt ein **`BlockUIContainer`** mit dem Feld als `Tag` und den gerechneten Einträgen als Anzeige. **Auch das ist der richtige Ort:** Die Einträge gehören dem Feld und nicht dem Nutzer (§4.20) — vorher liesz sich ein Eintrag ändern, und beim nächsten Umbruch war die Änderung weg oder, schlimmer, sie blieb und stimmte nicht mehr. **Ein leeres Verzeichnis bleibt sichtbar** (`Td.Toc.Empty`, beide Sprachen): ohne Überschriften hätte der Behälter keine Höhe, **das Feld wäre da und unauffindbar**. **Der Wächter ist umgedreht und aufgebohrt:** aus `Noch_offen_Ein_Feld_wird_zu_Text` wurde `Ein_Feld_ueberlebt_die_Rundreise` als **`[Theory]` über alle fünf Arten** — der alte prüfte nur `PageNumber` und hätte nie gezeigt, dass das Verzeichnis einen anderen Weg nimmt; dazu `Der_Platzhalter_bleibt_nicht_als_Text_stehen`, denn käme das Feld **und** sein Platzhalter zurück, stünde die Seitenzahl zweimal da. **⚠ Was diese Runde NICHT belegen konnte, und es ist keine Kleinigkeit: der Augenschein fehlt.** Ein `InlineUIContainer` mitten im Absatz und ein `BlockUIContainer` als Verzeichnis sind genau die Sorte Änderung, bei der die Rechnung stimmt und das Bild trotzdem falsch sein kann. **Der Versuch ist gefahren und gescheitert:** Das Dokument ist im Linux-Kopf angelegt worden (Überschrift, Text und Seitenzahl-Feld — **auf dem Schirm stand „Seite 1"**, das Feld rechnete also) und gespeichert, aber **das WPF-Fenster kam nicht in den Vordergrund** (`SetForegroundWindow` wird abgelehnt, wenn ein anderer Prozess den Fokus hält), und die Aufnahme zeigte zweimal ein fremdes Fenster. **Abgebrochen statt ein drittes Mal versucht, und hier benannt statt weggelassen** — fällig ist: dasselbe Dokument im WPF-Kopf ansehen (sitzt die Seitenzahl auf der Grundlinie, sieht das Verzeichnis aus wie eines?) und danach die Runde zurück in den Linux-Kopf wie in §4.48. **Es bleibt eine Lücke aus §4.45: das Diagramm.** Es braucht einen **öffentlichen Einstieg in `TdRenderer`** (`DiagrammZeichnen` ist privat), um als Bild in den Behälter zu kommen — **eine Änderung in Core an dem Zeichner, den PDF und beide Köpfe benutzen**, und deshalb eine eigene Runde und keine Beigabe. **Der Träger dafür steht schon**, nur mit einem `Image` statt eines `TextBlock`. ▶ **Als Nächstes: der Augenschein und das Diagramm**, danach **Phase 4.5**. **Der Laptop ist nicht dran** |
 | V2-66 | 2026-08-22 | **Schritt 7 — `Rtf` verliert die Führung** (§4.48; **der eigentliche Zweck des ganzen Wegs**, §5; sieben Dateien angefasst, am Speicherformat und an `TextDoc` **nichts** geändert; Bau 0/0, **837 Tests** grün = 785 Core + 52 WPF). **Vier Zeilen, die alles sagen:** Der WPF-Editor **liest** jetzt das Modell (`Rtf` nur noch als Rückfall) und **schreibt** es auch — `Rtf` wird **nie wieder** überschrieben; `WpfDocumentIo.Migrate` läuft nur noch für die **einmalige** Übernahme statt bei jedem Speichern; und der Warnstreifen im Linux-Kopf ist **entfallen**. **Der Datenverlust, den das behebt, war seit dem 2026-08-16 gemessen** (§4.35, §5 „Noch offen" 9): Ein Dokument mit gefülltem `Rtf`, im Linux-Kopf bearbeitet, verlor seine Arbeit beim nächsten Speichern unter Windows **still**, weil `Migrate` das Modell bedingungslos aus `Rtf` neu baute — **bei jedem Bestandsdokument**. Die Warnung seit V2-48 war eine **Vertagung, keine Lösung**; die Lösung ist immer (a) gewesen. **Zwei Stellen tragen es.** (1) `FlushToModel` schreibt das Modell — und zwar über `TextTabViewModel.Modell` und nicht direkt nach `Doc.Model`, **damit beide Köpfe denselben Weg nehmen**: `Save` ruft `Mitschreiben` (die Übernahme) und **danach** `ModellMitschreiben` (das Geschriebene), **und diese Reihenfolge steht seit §4.23 fest, ausdrücklich für diesen Tag** — der Kommentar dort sagt es wörtlich („Wenn Schritt 7 den WPF-Editor auf das Modell umstellt, ist sie schon richtig"). Sie war es. (2) `Migrate` prüft jetzt `UebernahmeStehtAus` statt `AltformatFuehrt`. **Das ist Antwort (d) aus §5 Nr. 9 — die damals ausdrücklich als falsch verworfen wurde:** „nicht übernehmen, wenn `Model` schon gefüllt ist" hieß damals, der Umwandler liefe nie mehr; heute läuft er bei jedem Speichern an anderer Stelle, und der Einwand ist gegenstandslos. **Dieselbe Zeile, zwei Bedeutungen, je nachdem, wer führt** — wer die alte Begründung liest, ohne die neue Lage zu kennen, hält die Änderung für einen Fehler. **`Rtf` wird nicht überschrieben und auch nicht gelöscht:** Die Regel aus §4.22 gilt weiter, das Altfeld bleibt als unangetastete Sicherung stehen, und **der Rückfall darauf bleibt im Editor** (`AusAltformat`) — für genau einen Fall: das Modell ist leer, weil die Übernahme aussteht oder **fehlgeschlagen** ist. Ein volles Dokument als leeres Blatt zu zeigen wäre der teuerste Fehler dieser Art (§4.28). **Geschrieben wird von dort nichts zurück — der Rückfall heilt sich selbst, sobald einmal gespeichert wurde.** **`TdFuehrung.AltformatFuehrt` ist gelöscht, nicht auf `false` gesetzt** — die Funktion hatte ihr eigenes Ende vorhergesagt („Sobald Schritt 7 die Führung umdreht, ist genau das die Stelle, die sich ändert, und keine andere"), und **eine Funktion, die immer `false` zurückgibt, wäre schlechter als keine: Sie sähe nach einer offenen Frage aus und würde eines Tages wieder geglaubt.** Mit ihr sind **vier Wächter** und der Warnstreifen gegangen; ein Hinweis, der vor einer Gefahr warnt, die es nicht gibt, kostet die Glaubwürdigkeit der Hinweise, die bleiben. **Ein Wächter musste umgedreht werden:** `Das_Altfeld_fuehrt_weiter_wenn_es_belegt_ist` hat die alte Regel festgehalten, wie es seine Aufgabe war — er heißt jetzt `Das_Modell_fuehrt_auch_bei_vollem_Altfeld` und prüft dieselbe Lage mit der anderen Antwort; **daneben steht ein neuer**, `Das_Altfeld_wird_nicht_angetastet`, denn „führt nicht mehr" und „ist weg" sind zwei verschiedene Dinge, und wer beim Umdrehen auch noch aufräumte, nähme die Sicherung unwiederbringlich weg. **✅ Am laufenden Programm gegengeprüft — der Weg, der vorher Datenverlust war** (Wegwerf-Datenbank, danach gelöscht, Dauerregel 4): Linux-Kopf schreibt „LINUX hat geschrieben." und speichert → WPF-Kopf öffnet dasselbe Dokument, hängt „UND WINDOWS AUCH." an, speichert → **Linux-Kopf zeigt beides**, 6 Wörter, 40 Zeichen. **Vor Schritt 7 wäre der dritte Schritt unmöglich gewesen.** **✅ Und die härtere Probe, weil sie nicht am Schirm hängt** — dieselbe Datei danach mit `sqlite3` gelesen: **`Rtf` hat Länge 0** (vom WPF-Editor nicht angefasst, obwohl er gespeichert hat — vorher stünde dort ein XamlPackage von mehreren Kilobyte), `Model` hat 764 Bytes mit der Kennung `GNTD` und **enthält „UND WINDOWS AUCH"**, `MigrationIssue` ist leer. **Das ist der Beleg in seiner strengsten Form: nicht „es sieht richtig aus", sondern „in der Datei steht, was dastehen soll, und das andere Feld ist unberührt".** **✅ §5 „Noch offen" 9 ist damit an der Wurzel erledigt** — nicht mehr gewarnt, behoben. **⏳ Was nicht mitgekommen ist:** Die zwei benannten Lücken aus §4.45 — **Diagramm** und **Feld** überleben die Rundreise durch das `FlowDocument` weiterhin nicht. **Sie sind nicht schlechter geworden** (sie gingen schon vorher bei jedem Speichern verloren, §4.45), **aber sie sind jetzt zum ersten Mal schließbar**: Seit §4.47 lädt der Editor ohne Paket, seit dieser Runde **schreibt** er auch ohne — **damit ist das `XamlPackage` ganz aus dem Weg**, und ein Träger im Arbeitsspeicher überlebt eine vollständige Runde aus Speichern und Öffnen; §4.47 hat schon gemessen, **welcher Träger es sein muss** (der `InlineUIContainer`, denn `Tag` an Absatz und Lauf wird beim Teilen kopiert). **Das ist eine eigene Runde und die letzte offene Arbeit an dieser Baustelle.** ▶ **Danach ist Phase 4.5 dran** (§6). **Der Laptop ist nicht dran** |
 | V2-65 | 2026-08-22 | **Der Ladeweg — das Modell geht direkt in den Editor** (§4.47; Runde ② der drei aus V2-63, Nutzer-Entscheidung §5 „Noch offen" **12**; **zwei Dateien angefasst**, an `TextDoc`, am Speicherformat und an der **Führung** nichts geändert; Bau 0/0, **840 Tests** grün = 789 Core + 51 WPF, **5 neue Wächter**). **Die Auflage aus V2-63 lautete „erst messen, dann bauen" — und die Messung hat den Entwurf umgeworfen, bevor eine Zeile davon stand.** Gefragt war, ob ein von WPF geteilter Absatz den Träger des alten erbt; gemessen an einem laufenden `RichTextBox` mit Fokus (ohne Fenster geht es nicht, Editierbefehle brauchen eines). **Die Antwort:** `Paragraph.Tag` **wird beim Teilen kopiert**, `Run.Tag` ebenso — **beide Hälften tragen ihn**. **Ein Träger an Absatz oder Lauf ist damit unbrauchbar:** Ein einziger Tastendruck in der Mitte macht aus einem Diagramm zwei und aus einer Überschrift zwei — **schlimmer als die Lücke, die er schließen sollte**, denn was verschwindet sieht man, was sich verdoppelt findet man erst im Inhaltsverzeichnis. **Übrig bleibt der `InlineUIContainer`**, und das ist keine Notlösung, sondern der passende Ort: Ein Diagramm und ein Feld sind unteilbare, nicht-textliche Dinge — genau das, was ein `InlineUIContainer` ist; `DocumentImages` führt seinen Blob-Verweis seit jeher dort, und §4.45 hatte schon gemessen, dass ausgerechnet dieser Träger als einziger ein `XamlPackage` übersteht. **Zwei unabhängige Messungen zeigen auf dieselbe Stelle.** **Gebaut ist der Weg selbst:** `TextEditorView.AusModell` hat den Umweg über das Paket verloren (`Modell → FlowDocument → Blöcke umhängen → Editor` statt über XamlPackage-Bytes), und die Übernahme steht als **`TdZuFlow.InhaltUebernehmen`** neben `Umwandeln` — dort gehört sie hin, denn sie ist dessen Gegenstück, und dort ist sie prüfbar, ohne ein Fenster zu bauen. **Die alte Begründung war richtig und trug trotzdem nicht:** Im Code stand, ein ausgetauschtes `Document` nähme dem `RichTextBox` seine Stile und alle Ereignisverdrahtungen mit — das stimmt, **nur folgt daraus nicht das Paket**; es genügt, das `Document` zu behalten und seinen **Inhalt** zu ersetzen (gemessen: dasselbe Objekt, Träger überleben, tippen geht danach weiter). **Ein richtiger Grund war an einen falschen Schluss gebunden, und deshalb stand der Umweg zwei Runden lang unbefragt.** **`DocumentImages.Attach` ist entfallen** und das ist kein Vergessen — es übersetzt einen Verweis aus dem `ToolTip` ins `Tag`, nötig nur nach dem Laden eines Pakets; `TdZuFlow.BildUmwandeln` setzt das `Tag` selbst (eigener Wächter, damit die gestrichene Zeile keine Vermutung ist). **✅ Und ein Fund, der gar nicht gesucht war — beim Nachmessen einer Nebensache aufgefallen: das Paket zerstört die Kaskade.** `TextRange.Save`/`Load` schiebt die Schrift des **Dokuments** als **örtlichen Wert** auf **jeden Absatz** hinunter (gemessen: über das Paket steht sie örtlich am Absatz, direkt steht dort nichts und sie wird geerbt — dasselbe Schriftbild, verschiedene Struktur). **Sichtbar ist das nicht, und genau deshalb ist es gefährlich:** `FlowZuTd.ZeichenformatVon` liest örtliche Werte und schriebe danach in *jedem* Absatz eine `FontFamily` ins Modell, wo vorher keine stand. **Es ist derselbe Fehler wie in §4.45** — aus „nicht gesetzt" wird „gesetzt" —, an anderer Stelle und ohne dass jemand ihn gesucht hätte; **solange `Rtf` führt folgenlos, mit Schritt 7 wäre er in jedes Dokument gewandert.** Der direkte Weg räumt ihn nebenbei mit weg, Wächter dafür. **⏳ Was die Runde ausdrücklich nicht tut: die Träger für Diagramm und Feld sind nicht gebaut.** Sie überleben jetzt das *Laden*, aber `FlushToModel` schreibt beim Speichern weiter ein Paket nach `Rtf`, und dort sterben sie — **ein Träger, der eine Sitzung überlebt und das Speichern nicht, wäre eine Lücke mit mehr Code drumherum.** Sie gehören zu **Schritt 7**, wo das Paket ganz aus dem Speicherweg fällt; **diese Runde legt den Weg, auf dem sie tragen können.** **⚠ Benannter Nebenbefund, nicht aus dieser Runde:** `FontCombo.ItemsSource` ist `Fonts.SystemFontFamilies` — **nur Systemschriften**; die fünf mitgelieferten Familien (§4.26) stehen nicht darin, und „Source Sans 3" ist die Grundschrift jedes Dokuments aus dem Modell. **Die Liste kann die Schrift des Dokuments gar nicht anzeigen.** Der Linux-Kopf macht es richtig (§4.40), der WPF-Kopf ist nie nachgezogen worden — §5 „Noch offen" **14**. **Ausdrücklich offen geblieben und nicht gedeutet:** ob sich die Anzeige dieser Liste mit dieser Runde geändert hat, ist **nicht** geklärt; gemessen ist nur, dass **beide Ladewege dieselbe Schrift liefern** (`GetPropertyValue` gibt auf beiden „Source Sans 3"), die Anzeige also nicht am Ladeweg hängt — **eine Vermutung darüber steht bewusst nicht da, sie wäre genau die ungeprüfte Deutung, vor der §4.46 warnt.** **✅ In beiden Köpfen am laufenden Programm gesehen** (Wegwerf-Datenbank, danach gelöscht): Ein im Linux-Kopf angelegtes Dokument mit Überschrift und Fließtext kommt im WPF-Kopf über genau den neuen Weg an — Überschrift blau und fett, **28** in der Größenanzeige, **„Überschrift 1" in der Galerie markiert**. **Derselbe Anblick wie vor dem Umbau, und das ist hier das Ziel: Der Ladeweg soll sich ändern, das Blatt nicht.** ▶ **Als Nächstes Schritt 7** (§5e) — `Rtf` verliert die Führung, und mit ihm fällt das Paket aus dem Speicherweg. **Der Laptop ist nicht dran** |

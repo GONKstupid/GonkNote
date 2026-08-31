@@ -52,6 +52,19 @@
                                   IsCheckedChanged="Tool_Changed" ToolTip.Tip="{loc:T Tool.Pen}">
                         <views:Symbol Icon="Pen" Stroke="{DynamicResource Brush.Text}"/>
                     </ToggleButton>
+                    <!-- Der Formen-Stift, neu in Phase 5, Schritt ①c. **Er stand seit jeher in
+                         Core** — WbLeiste.Reihenfolge führt ihn an dieser Stelle, WbLeiste.Stifte
+                         als einen von vier, WbLeiste.Kuerzel unter „G", und beide Sprachtabellen
+                         haben seinen Tooltip. **Nur der Knopf fehlte**, und damit war er in
+                         diesem Kopf nicht erreichbar.
+
+                         ⚠ Und niemand hat es gemerkt, weil kein Wächter die Leiste gegen Core
+                         hält: `StiftKnoepfe` führte drei Einträge, `WbLeiste.Stifte` vier. Der
+                         Wächter dafür steht jetzt in Core.Tests (§4.78). -->
+                    <ToggleButton x:Name="BtnFormenStift" Classes="werkzeug" Tag="SmoothPen"
+                                  IsCheckedChanged="Tool_Changed" ToolTip.Tip="{loc:T Tool.SmoothPen}">
+                        <views:Symbol Icon="ShapePen" Stroke="{DynamicResource Brush.Text}"/>
+                    </ToggleButton>
                     <ToggleButton x:Name="BtnPencil" Classes="werkzeug" Tag="Pencil"
                                   IsCheckedChanged="Tool_Changed" ToolTip.Tip="{loc:T Tool.Pencil}">
                         <views:Symbol Icon="Pencil" Stroke="{DynamicResource Brush.Text}"/>

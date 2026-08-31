@@ -411,9 +411,17 @@ public partial class WhiteboardView
 
         switch (EffectiveTool)
         {
-            case ToolType.Pen:
-            case ToolType.Pencil:
-            case ToolType.Highlighter:
+            // ⛔ **Hier standen die drei Stifte einzeln aufgezählt — und der Formen-Stift
+            // fehlte** (§4.78). Er war damit im Linux-Kopf sichtbar, wählbar und **völlig
+            // wirkungslos**: kein Zug begann, kein Strich entstand, keine Fehlermeldung.
+            // **Der Bau war grün, die Wächter waren grün.** Gesehen hat es erst der
+            // Klick am laufenden Programm, gegen den gewöhnlichen Stift gehalten.
+            //
+            // **Deshalb steht hier jetzt die Regel aus Core und keine Aufzählung mehr:**
+            // `WbLeiste.IstStift` weiß, was ein Stift ist — an **einer** Stelle, für beide
+            // Köpfe. Eine Liste, die an drei Stellen im selben Kopf gepflegt werden muss,
+            // ist eine Liste, die an einer davon veraltet.
+            case ToolType t when WbLeiste.IstStift(t):
                 _drawing = true;
                 _activePoints = [new WbPoint(c.X, c.Y, lage.Druck, lage.TiltX, lage.TiltY)];
                 break;
@@ -538,9 +546,8 @@ public partial class WhiteboardView
 
         switch (EffectiveTool)
         {
-            case ToolType.Pen:
-            case ToolType.Pencil:
-            case ToolType.Highlighter:
+            // Dieselbe Regel wie oben (§4.78) — nicht wieder aufzählen.
+            case ToolType t when WbLeiste.IstStift(t):
             {
                 if (!_drawing || _activePoints == null) return;
 
@@ -677,9 +684,8 @@ public partial class WhiteboardView
 
         switch (EffectiveTool)
         {
-            case ToolType.Pen:
-            case ToolType.Pencil:
-            case ToolType.Highlighter:
+            // Dieselbe Regel wie oben (§4.78) — nicht wieder aufzählen.
+            case ToolType t when WbLeiste.IstStift(t):
                 if (_drawing && _activePoints != null) CommitStroke();
                 break;
 
@@ -806,9 +812,22 @@ public partial class WhiteboardView
             _activePoints.Add(new WbPoint(p.X + 0.1f, p.Y + 0.1f, p.P));
         }
 
+        // Formen-Stift: erst versuchen, eine Grundform zu erkennen (wie GoodNotes). **Die
+        // Geometrie steht in Core** (WbFormen, §4.78) und ist damit dieselbe wie drüben —
+        // hier steht nur, WANN sie gerufen wird. Erkennt sie nichts, wird der Zug geglättet
+        // und als gewöhnlicher Strich abgelegt; er geht also nie verloren.
+        if (_tool == ToolType.SmoothPen &&
+            WbFormen.Erkennen(_activePoints, CurrentInkHex(), _width) is { } form)
+        {
+            _page.Elements.Add(form);
+            _vm.Undo.Push(_page, new AddElementsAction([form]));
+            MarkDirty();
+            return;
+        }
+
         var strich = new StrokeElement
         {
-            Points = _activePoints,
+            Points = _tool == ToolType.SmoothPen ? WbFormen.Glaetten(_activePoints) : _activePoints,
             Color = CurrentInkHex(),
             Width = AktiveStrichbreite(),
             Kind = AktiveStrichart(),

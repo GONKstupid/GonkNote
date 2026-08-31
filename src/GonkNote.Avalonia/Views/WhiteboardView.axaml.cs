@@ -120,8 +120,11 @@ public partial class WhiteboardView : UserControl
     private string? _textGrundHex;
     private HexColor _zettelfarbe = new(0xFF, 0xFD, 0xE6, 0x8A);   // dasselbe Gelb wie drüben
 
+    // **`KnopfFuer` sucht hier über das `Tag`** — ein Werkzeug, dessen Knopf in dieser Liste
+    // fehlt, ist damit auch per Tastenkürzel nicht erreichbar. Genau das war der Zustand des
+    // Formen-Stifts bis §4.78: „G" fand keinen Knopf und tat still gar nichts.
     private ToggleButton[] ToolButtons =>
-        [BtnPen, BtnPencil, BtnHighlighter, BtnEraser, BtnLasso, BtnMove, BtnPan,
+        [BtnPen, BtnFormenStift, BtnPencil, BtnHighlighter, BtnEraser, BtnLasso, BtnMove, BtnPan,
          BtnText, BtnZettel, BtnSticker];
 
     /// <summary>

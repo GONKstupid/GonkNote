@@ -31,7 +31,10 @@ public partial class WhiteboardView
     private ToolType _letztesAuswahlwerkzeug = ToolType.Lasso;
     private Zeichenhilfe _letzteHilfe = Zeichenhilfe.Lineal;
 
-    private ToggleButton[] StiftKnoepfe => [BtnPen, BtnPencil, BtnHighlighter];
+    // **Vier, nicht drei** (§4.78). Hier standen drei, während `WbLeiste.Stifte` in Core seit
+    // jeher vier führt — der Formen-Stift fehlte, und kein Wächter hat die beiden verglichen.
+    // Der Wächter dafür steht jetzt in Core.Tests.
+    private ToggleButton[] StiftKnoepfe => [BtnPen, BtnFormenStift, BtnPencil, BtnHighlighter];
     private ToggleButton[] AuswahlKnoepfe => [BtnLasso, BtnMove];
     private ToggleButton[] HilfeKnoepfe => [BtnLineal, BtnGeodreieck];
 
@@ -83,6 +86,7 @@ public partial class WhiteboardView
 
     private ToggleButton KnopfFuerStift(ToolType stift) => stift switch
     {
+        ToolType.SmoothPen => BtnFormenStift,
         ToolType.Pencil => BtnPencil,
         ToolType.Highlighter => BtnHighlighter,
         _ => BtnPen,

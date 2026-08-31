@@ -625,8 +625,11 @@ public partial class WhiteboardView
             _ => StrokeKind.Pen,
         };
 
-        // Formen-Stift: erst versuchen, eine Grundform zu erkennen (wie GoodNotes)
-        if (_tool == ToolType.SmoothPen && RecognizeShape(_activePoints) is { } recognized)
+        // Formen-Stift: erst versuchen, eine Grundform zu erkennen (wie GoodNotes).
+        // Die Geometrie steht seit Phase 5, Schritt ①c in Core (WbFormen) und wird von
+        // beiden Köpfen gerufen — hier steht nur noch, WANN sie gerufen wird.
+        if (_tool == ToolType.SmoothPen &&
+            WbFormen.Erkennen(_activePoints, CurrentInkHex(), _width) is { } recognized)
         {
             _page.Elements.Add(recognized);
             _vm.Undo.Push(_page, new AddElementsAction(new[] { recognized }));
@@ -634,7 +637,7 @@ public partial class WhiteboardView
             return;
         }
 
-        var points = _tool == ToolType.SmoothPen ? SmoothPoints(_activePoints) : _activePoints;
+        var points = _tool == ToolType.SmoothPen ? WbFormen.Glaetten(_activePoints) : _activePoints;
 
         var stroke = new StrokeElement
         {

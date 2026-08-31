@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Documents;
 using GonkNote.Core.Models;
 using GonkNote.Core.Platform;
+using GonkNote.Core.Rendering;
 using GonkNote.Core.Services;
 using GonkNote.Core.Text;
 using GonkNote.Services;
@@ -36,11 +37,12 @@ public sealed class WpfDocumentIo : IDocumentIo
     // eine zweite Aufzählung im Linux-Kopf wäre die Falle aus §4.13.
     public IReadOnlyList<FileFilter> TextExportFormats => TdExport.Formate;
 
-    public IReadOnlyList<FileFilter> BoardExportFormats =>
-    [
-        new(Loc.T("Filter.Pdf"), ".pdf"),
-        new(Loc.T("Filter.Png"), ".png"),
-    ];
+    /// <summary>
+    /// Die Liste steht seit Phase 5, Schritt ①c in Core (<see cref="WbExport.Formate"/>) —
+    /// genau wie die des Textexports seit §4.28, und aus demselben Grund: der Linux-Kopf
+    /// führte hier eine <i>leere</i> zweite Fassung, und das ist niemandem aufgefallen.
+    /// </summary>
+    public IReadOnlyList<FileFilter> BoardExportFormats => WbExport.Formate;
 
     /// <summary>
     /// <inheritdoc cref="IDocumentIo.Import"/>
@@ -131,18 +133,15 @@ public sealed class WpfDocumentIo : IDocumentIo
     private static TdFieldContext Feldwerte(string title) =>
         new() { Date = DateTime.Now, Title = title };
 
-    public ExportResult ExportBoard(WhiteboardDoc doc, string title, string path)
-    {
-        string ext = Path.GetExtension(path).ToLowerInvariant();
-
-        List<string> written = ext == ".png"
-            ? PdfExporter.ExportWhiteboardPng(doc, title, path)
-            : Run(() => PdfExporter.ExportWhiteboard(doc, title, path), path);
-
-        return new ExportResult(written, 0, DocumentHealth.MissingImages(doc));
-
-        static List<string> Run(Action export, string path) { export(); return [path]; }
-    }
+    /// <summary>
+    /// <b>Eine Zeile, und dieselbe steht seit Phase 5, Schritt ①c im Linux-Kopf.</b> Der
+    /// Tafel-Export lag bis dahin als <c>PdfExporter</c> hier im WPF-Projekt, mit der
+    /// Begründung, er zeichne „über den Kopf" — <b>das stimmte nie</b> (siehe
+    /// <see cref="WbExport"/>). Er ist nach Core gezogen, unverändert bis auf die Namen der
+    /// Zeichenroutinen, und der andere Kopf konnte ihn <i>überhaupt nicht</i>.
+    /// </summary>
+    public ExportResult ExportBoard(WhiteboardDoc doc, string title, string path) =>
+        WbExport.Exportieren(doc, title, path);
 
     /// <summary>
     /// <b>Ja</b> — und nur hier. RTF und XamlPackage liest ausschließlich

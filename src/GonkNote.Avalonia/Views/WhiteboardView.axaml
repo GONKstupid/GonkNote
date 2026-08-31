@@ -319,20 +319,29 @@
         </Border>
 
         <!-- ==================== Einstellungen (rechte Seitenleiste) ==================== -->
-        <!-- **Nur die Seite.** Der WPF-Kopf hat hier zusätzlich Formen, Text, Notizzettel,
-             Sticker, Export und Cover — sieben Klappgruppen gegen diese eine.
+        <!-- Sechs Abschnitte: Seite, Formen, Text, Notizzettel, Sticker, Export.
+             Drüben sind es sieben — es fehlt **das Cover**, und nur das.
 
-             ⛔ **Die Begründung, die hier stand, ist abgelaufen** (HANDOFF §4.71, dieselbe
-             Falle wie §4.60). Sie lautete: „Werkzeuge, die es im Linux-Kopf nicht gibt
-             (nicht M1, HANDOFF §6)". **Das stimmte bis Phase 4.5 und stimmt seitdem für
-             vier der fünf nicht mehr** — Formen (§4.53), Text und Notizzettel (§4.55) und
-             Sticker (§4.56) gibt es hier. **Nur das Cover fehlt wirklich.**
+             ⛔ **Hier stand „nur die Seite … sieben Klappgruppen gegen diese eine", und das
+             war schon beim Schreiben falsch.** Formen (§4.53), Text und Notizzettel (§4.55)
+             und Sticker (§4.56) standen zu dem Zeitpunkt längst hier; gezählt wurde
+             offenbar die *Form* (Expander drüben, StackPanel hier) und nicht der Inhalt.
+             Der Satz ist als Zahl in §4.71/§4.75 weitergereicht worden und hat den nächsten
+             Auftrag mitgeprägt — **eine falsche Zählung kostet die Runde, die ihr glaubt.**
 
-             Der Satz dahinter gilt unverändert und ist der Grund, warum hier trotzdem noch
-             nichts steht: eine Sektion für ein fehlendes Werkzeug wäre ein halbes Feature,
-             und ein halbes Feature ist schlechter als ein fehlendes — niemand sieht ihm an,
-             dass es halb ist. **Was fehlt, wird nachgebaut und nicht drüben gelöscht**
-             (§5 Nr. 26); das ist Phase 5, Schritt ①b.
+             **Export ist in Phase 5, Schritt ①c dazugekommen** — zusammen mit dem
+             Tafel-Export selbst, den es in diesem Kopf **überhaupt nicht gab**
+             (`AvaloniaDocumentIo.ExportBoard` warf). Er liegt jetzt in Core (`WbExport`).
+
+             **Das Cover fehlt weiterhin, und es fehlt absichtlich:** eine Sektion für ein
+             Werkzeug, das es nicht gibt, wäre ein halbes Feature, und ein halbes Feature ist
+             schlechter als ein fehlendes — niemand sieht ihm an, dass es halb ist. **Was
+             fehlt, wird nachgebaut und nicht drüben gelöscht** (§5 Nr. 26); es steht als
+             nächster Posten in ①c.
+
+             ⛔ **Und wer das Cover baut, trägt die Cover-Vorlagen ins csproj nach.** Sie sind
+             dort ausgenommen, mit der Begründung „das Werkzeug gibt es im Linux-Kopf nicht" —
+             die läuft in dem Moment ab (§4.60, §4.63, §4.74: derselbe Fehler dreimal).
 
              Änderungen wirken sofort auf die aktuelle Seite, ohne OK-Knopf — genau wie
              drüben (WhiteboardView.Settings.cs, PageSetting_Changed). -->
@@ -540,6 +549,29 @@
                                                Foreground="{DynamicResource Brush.Text}"/>
                                 </StackPanel>
                             </Button>
+                        </StackPanel>
+
+                        <!-- ==================== Export ==================== -->
+                        <!-- Neu in Phase 5, Schritt ①c. **Immer sichtbar**, anders als die
+                             Werkzeug-Abschnitte darüber: exportiert wird das Dokument und
+                             nicht das, was gerade in der Hand liegt — dieselbe Regel wie
+                             drüben, wo der Abschnitt ebenfalls an keinem Werkzeug hängt.
+
+                             **Der Kopf exportiert nicht selbst**, er wählt nur das Format
+                             vor. Gespeichert und geschrieben wird über MainViewModel, genau
+                             wie bei „Datei → Exportieren" und wie im Texteditor dieses Kopfes
+                             (TextDocView, Export_Click). -->
+                        <StackPanel Margin="0,18,0,0">
+                            <TextBlock Text="{loc:T Settings.Export}" FontWeight="SemiBold" FontSize="14"
+                                       Margin="0,0,0,6" Foreground="{DynamicResource Brush.Text}"/>
+                            <TextBlock Text="{loc:T Settings.Export.Hint}" TextWrapping="Wrap" FontSize="11"
+                                       Margin="0,0,0,8" Foreground="{DynamicResource Brush.TextMuted}"/>
+                            <Button Classes="flach" HorizontalAlignment="Stretch" Margin="0,0,0,4"
+                                    Tag=".pdf" Click="TafelExport_Click"
+                                    Content="{loc:T Settings.Export.Pdf}"/>
+                            <Button Classes="flach" HorizontalAlignment="Stretch"
+                                    Tag=".png" Click="TafelExport_Click"
+                                    Content="{loc:T Settings.Export.Png}"/>
                         </StackPanel>
 
                     </StackPanel>

@@ -1,17 +1,27 @@
+using Avalonia.Controls;
 using Avalonia.Interactivity;
 using GonkNote.Core.Models;
+using GonkNote.ViewModels;
 
 namespace GonkNote.Views;
 
 /// <summary>
-/// Die Einstellungen-Seitenleiste rechts — <b>nur die Seite</b>: Muster, Farbton, Format,
-/// Ausrichtung.
+/// Die Einstellungen-Seitenleiste rechts: Seite (Muster, Farbton, Format, Ausrichtung),
+/// Formen, Text, Notizzettel, Sticker und <b>Export</b>.
 ///
 /// <para>
-/// Das Gegenstück im WPF-Kopf (<c>WhiteboardView.Settings.cs</c>, 398 Zeilen) bedient
-/// zusätzlich Formen, Text, Notizzettel, Sticker und Cover. Diese Werkzeuge gibt es im
-/// Linux-Kopf nicht (nicht M1, HANDOFF §6), und ihre Abschnitte stehen deshalb hier auch
-/// nicht — nicht vergessen, sondern ausgelassen.
+/// <b>Hier stand „nur die Seite", und dazu: „Diese Werkzeuge gibt es im Linux-Kopf nicht
+/// (nicht M1)".</b> Das galt bis Phase 4.5 und ist seitdem in beiden Hälften falsch gewesen —
+/// Formen (§4.53), Text und Notizzettel (§4.55) und Sticker (§4.56) werden gleich unten in
+/// dieser Datei gespiegelt. <b>Der Satz ist als Zahl weitergereicht worden</b> („sieben
+/// Klappgruppen gegen eine", §4.71/§4.75) und hat einen Auftrag mitgeprägt, der etwas bauen
+/// wollte, das dastand.
+/// </para>
+///
+/// <para>
+/// <b>Was jetzt noch fehlt, ist das Cover</b> — und nur das (<c>WhiteboardView.Covers.cs</c>
+/// drüben, 250 Zeilen). Es fehlt benannt und wird nach §5 Nr. 26 hier gebaut, nicht drüben
+/// gelöscht.
 /// </para>
 ///
 /// <para>
@@ -144,5 +154,28 @@ public partial class WhiteboardView
 
         MarkDirty();
         Neuzeichnen();
+    }
+
+    // ==================== Export ====================
+
+    /// <summary>
+    /// Exportiert die ganze Tafel — <b>neu in Phase 5, Schritt ①c</b>, und zwar in beiden
+    /// Bedeutungen: der Knopf ist neu, und der Weg dahinter existierte in diesem Kopf
+    /// überhaupt nicht (<c>AvaloniaDocumentIo.ExportBoard</c> warf, die Formatliste war leer).
+    /// Er liegt seitdem in Core (<see cref="Core.Rendering.WbExport"/>) und ist derselbe wie
+    /// drüben.
+    ///
+    /// <para>
+    /// <b>Der Kopf exportiert nicht selbst</b>, er wählt nur das Format vor: <c>MainViewModel</c>
+    /// speichert zuerst den offenen Stand ins Modell und ruft danach <c>IDocumentIo</c>.
+    /// Derselbe Weg wie „Datei → Exportieren" und wie <c>TextDocView.Export_Click</c> —
+    /// <b>ein zweiter Weg wäre die Falle aus §4.13.</b>
+    /// </para>
+    /// </summary>
+    private void TafelExport_Click(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Control { Tag: string endung } &&
+            (TopLevel.GetTopLevel(this) as Window)?.DataContext is MainViewModel vm)
+            vm.ExportActiveTab(endung);
     }
 }

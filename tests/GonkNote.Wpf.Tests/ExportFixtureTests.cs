@@ -1,6 +1,7 @@
 using System.IO;
 using System.Text;
 using System.Windows.Documents;
+using GonkNote.Core.Rendering;
 using GonkNote.Core.Text;
 using GonkNote.Services;
 using SkiaSharp;
@@ -306,7 +307,7 @@ public sealed class ExportFixtureTests
         var doc = Referenzbuch.Bauen(werkbank.Blobs);
         string pfad = werkbank.Datei("referenz-buch.pdf");
 
-        PdfExporter.ExportWhiteboard(doc, "Referenzbuch", pfad);
+        WbExport.ExportWhiteboard(doc, "Referenzbuch", pfad);
 
         Assert.Equal(doc.Pages.Count, GonkNote.Core.Services.PdfImporter.PageCount(pfad));
 
@@ -341,7 +342,7 @@ public sealed class ExportFixtureTests
         using var werkbank = new Referenzdokument.Werkbank("png-board");
         var doc = Referenzbuch.Bauen(werkbank.Blobs);
 
-        var dateien = PdfExporter.ExportWhiteboardPng(doc, "Referenzbuch", werkbank.Datei("buch.png"));
+        var dateien = WbExport.ExportWhiteboardPng(doc, "Referenzbuch", werkbank.Datei("buch.png"));
 
         Assert.Equal(doc.Pages.Count, dateien.Count);
         Assert.Equal(dateien, dateien.Distinct());

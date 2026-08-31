@@ -1,6 +1,7 @@
 using System.IO;
 using GonkNote.Core.Models;
 using GonkNote.Core.Platform;
+using GonkNote.Core.Rendering;
 using GonkNote.Core.Services;
 using GonkNote.Core.Text;
 using GonkNote.Services;
@@ -19,10 +20,15 @@ namespace GonkNote.Platform;
 /// </para>
 ///
 /// <para>
-/// <b>Was hier trotzdem fehlt, fehlt benannt</b> (§7): der <b>Tafel</b>-Export
-/// (Whiteboard/Notizbuch) und die <b>Übernahme</b> eines Bestandsdokuments. Beides ist keine
-/// vergessene Zeile, sondern hängt an Code, den es unter Linux nicht gibt — die Begründung
-/// steht jeweils an Ort und Stelle.
+/// <b>Was hier noch fehlt, fehlt benannt</b> (§7): die <b>Übernahme</b> eines
+/// Bestandsdokuments. Sie ist keine vergessene Zeile, sondern hängt an <c>TextRange</c>, das
+/// es unter Linux nicht gibt — die Begründung steht an Ort und Stelle.
+/// </para>
+///
+/// <para>
+/// <b>Der Tafel-Export stand bis Phase 5, Schritt ①c ebenfalls auf dieser Liste</b> — und er
+/// stand zu Unrecht darauf: seine Begründung („zeichnet über den Kopf“) war von Anfang an
+/// falsch. Er liegt jetzt in Core (<see cref="WbExport"/>) und läuft in beiden Köpfen.
 /// </para>
 /// </summary>
 public sealed class AvaloniaDocumentIo : IDocumentIo
@@ -43,13 +49,25 @@ public sealed class AvaloniaDocumentIo : IDocumentIo
     public IReadOnlyList<FileFilter> TextExportFormats => TdExport.Formate;
 
     /// <summary>
-    /// <b>Leer, und zwar weiterhin.</b> Der Tafel-Export zeichnet über <c>WhiteboardView</c>,
-    /// also über den <i>Kopf</i>, und liegt darum bis heute im WPF-Projekt (<c>PdfExporter</c>,
-    /// §4.27). Ihn nach Core zu ziehen ist Arbeit am Linux-Whiteboard und gehört zu Phase 4.5.
-    /// Eine leere Liste hält den Dateidialog zu, statt ihn in <see cref="ExportBoard"/> laufen
-    /// zu lassen.
+    /// <b>Dieselbe Liste wie im WPF-Kopf, seit Phase 5, Schritt ①c — und zwar buchstäblich
+    /// dieselbe: sie steht in Core (<see cref="WbExport.Formate"/>).</b>
+    ///
+    /// <para>
+    /// <b>Hier stand „leer, und zwar weiterhin" — mit einer Begründung, die nie stimmte:</b>
+    /// „Der Tafel-Export zeichnet über <c>WhiteboardView</c>, also über den <i>Kopf</i>."
+    /// <b>Tat er nicht.</b> Er rief fünf Weiterleitungen, die alle in <c>WbRenderer</c> in
+    /// <b>Core</b> endeten (siehe <see cref="WbExport"/>). Der Umzug war eine Umbenennung.
+    /// </para>
+    /// <para>
+    /// <b>Und was die leere Liste tatsächlich bewirkt hat, war nicht das, was hier stand:</b>
+    /// „hält den Dateidialog zu" — <c>SaveFilePickerAsync</c> öffnet mit leerem
+    /// <c>FileTypeChoices</c> sehr wohl, nur ohne Typwahl. Wer eine Tafel exportieren wollte,
+    /// bekam also einen Dateidialog, wählte einen Namen — und danach die Fehlermeldung aus
+    /// <c>ExportBoard</c>. <b>Zwei falsche Sätze in einem Kommentar, und der zweite hat den
+    /// ersten gedeckt.</b>
+    /// </para>
     /// </summary>
-    public IReadOnlyList<FileFilter> BoardExportFormats => [];
+    public IReadOnlyList<FileFilter> BoardExportFormats => WbExport.Formate;
 
     /// <summary>
     /// Liest eine DOCX-Datei ins <b>eigene Modell</b> und gibt <b>keine</b> Altformat-Bytes
@@ -100,12 +118,14 @@ public sealed class AvaloniaDocumentIo : IDocumentIo
     }
 
     /// <summary>
-    /// <b>Nein — siehe <see cref="BoardExportFormats"/>.</b> Erreichbar ist die Methode
-    /// ohnehin nicht, solange die Liste leer ist; sie sagt trotzdem, was los ist, statt einer
-    /// leeren Datei.
+    /// <b>Ja, seit Phase 5, Schritt ①c — und es ist dieselbe Zeile wie drüben.</b> Hier stand
+    /// ein <c>throw</c>, und damit war der Tafel-Export das <b>zweite</b>, nie benannte Loch
+    /// in M2 (das erste ist die Rechtschreibprüfung). Der Weg liegt jetzt in Core
+    /// (<see cref="WbExport"/>), rechnet mit denselben Zeichenroutinen wie der Bildschirm und
+    /// braucht von diesem Kopf nichts.
     /// </summary>
     public ExportResult ExportBoard(WhiteboardDoc doc, string title, string path) =>
-        throw new NotSupportedException(Loc.T("Io.NotOnThisPlatform"));
+        WbExport.Exportieren(doc, title, path);
 
     /// <summary>
     /// <b>Nein — und das ist keine Lücke, sondern eine Schranke.</b> RTF und XamlPackage liest

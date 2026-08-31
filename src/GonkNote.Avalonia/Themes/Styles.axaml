@@ -407,6 +407,38 @@
         <Setter Property="Stroke" Value="{DynamicResource Brush.Accent}"/>
     </Style>
 
+    <!-- ==== Auswahlpunkte der Einstellungsleiste ====================================== -->
+
+    <!-- **Der Auswahlpunkt gehört dem Theme** (§5 Nr. 27, Phase 5 Schritt ①c). Fluent malt
+         Ring und Punkt eines gewählten `RadioButton` in `SystemAccentColor` — in der
+         Einstellungsleiste der Tafel standen damit **violette** Punkte („Punktiert", „Hell")
+         in einer sonst blauen App, während der WPF-Kopf an derselben Stelle einen neutralen
+         Punkt zeigt. **Beide Köpfe nebeneinander am laufenden Programm gesehen**, nicht
+         hergeleitet — im Bau war nichts davon zu sehen.
+
+         Das ist dieselbe Sorte Fund wie Baum (§4.72), Klappliste (§4.73), Schieber (§4.74)
+         und Reiter oben in dieser Datei: **jede Fläche, die noch nicht angefasst ist, hat
+         ihr eigenes Violett.** Die Regel dahinter ist inzwischen fünfmal bestätigt und
+         gehört deshalb hierher und nicht in eine Notiz.
+
+         `CheckOuterEllipse` und `CheckGlyph` sind die Namen im Fluent-Template und **an der
+         gebundenen Fassung 12.1.1 nachgemessen** (`Avalonia.Themes.Fluent.dll`), nicht
+         geraten — dieselbe Methode wie bei `PART_SelectedPipe` oben und wie in §4.42.
+         Trifft ein Name eines Tages nicht mehr, wirkt der Selektor **still gar nicht**;
+         deshalb steht diese Zeile hier und nicht bloß der Selektor.
+
+         ⚠ **Was das NICHT angleicht:** Der WPF-Kopf lässt seine `RadioButton` unangetastet
+         und bekommt damit die Systemdarstellung. Die beiden Köpfe zeigen danach denselben
+         *Bezug* (die Farbe kommt aus der Tabelle in Core), aber nicht dieselbe *Gestalt*.
+         Das ist ein offener Punkt von ①b und benannt statt halb erledigt. -->
+    <Style Selector="RadioButton:checked /template/ Ellipse#CheckOuterEllipse">
+        <Setter Property="Fill" Value="Transparent"/>
+        <Setter Property="Stroke" Value="{DynamicResource Brush.Accent}"/>
+    </Style>
+    <Style Selector="RadioButton:checked /template/ Ellipse#CheckGlyph">
+        <Setter Property="Fill" Value="{DynamicResource Brush.Accent}"/>
+    </Style>
+
     <!-- Farbkachel: ein Kreis in der Tintenfarbe. Ausgewählt = Ring drumherum. -->
     <Style Selector="RadioButton.farbe">
         <Setter Property="Width" Value="26"/>

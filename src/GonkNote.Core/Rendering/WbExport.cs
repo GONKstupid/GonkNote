@@ -1,35 +1,104 @@
 using System.IO;
 using GonkNote.Core.Models;
-using GonkNote.Core.Rendering;
+using GonkNote.Core.Platform;
 using GonkNote.Core.Services;
-using GonkNote.Views;
+using GonkNote.Services;
 using SkiaSharp;
 
-namespace GonkNote.Services;
+namespace GonkNote.Core.Rendering;
 
 /// <summary>
-/// PDF- und PNG-Export von <b>Whiteboards und Notizbüchern</b> — über SkiaSharp und dieselben
-/// Zeichenroutinen wie im Editor.
+/// PDF- und PNG-Export von <b>Tafeln und Notizbüchern</b> — über SkiaSharp und dieselben
+/// Zeichenroutinen, mit denen beide Köpfe auch auf den Bildschirm malen
+/// (<see cref="WbRenderer"/>).
 ///
 /// <para>
-/// <b>Textdokumente stehen seit §4.27 nicht mehr hier.</b> Sie gehen über
-/// <see cref="GonkNote.Core.Text.TdPdf"/> in Core, gegen das Dokumentmodell statt gegen ein
-/// <c>FlowDocument</c> — damit läuft dieser Weg auch unter Linux und iPadOS, und der Text im
-/// PDF ist Text statt Rasterbild.
+/// <b>Hier stand bis Phase 5, Schritt ①c ein Kommentar, der nicht stimmte.</b> Der Code lag
+/// als <c>PdfExporter</c> im WPF-Projekt, und die Begründung dort lautete: „Der
+/// Whiteboard-Weg bleibt hier … Er zeichnet über <c>WhiteboardView</c>, also über den Kopf."
+/// <b>Er tat es nie.</b> Die gerufenen <c>WhiteboardView.DrawStroke</c>,
+/// <c>DrawShape</c>, <c>DrawText</c>, <c>DrawSticky</c> und <c>ElementBounds</c> waren
+/// allesamt einzeilige Weiterleitungen an <see cref="WbRenderer"/> in Core — ein Kommentar
+/// zwei Dateien weiter (<c>WhiteboardView.Render.cs</c>) sagte sogar ausdrücklich das
+/// Gegenteil: „Die eigentlichen Zeichenroutinen liegen in GonkNote.Core … WPF, PDF-Export
+/// und der Avalonia-Port teilen sich damit exakt dieselbe Darstellung."
 /// </para>
 /// <para>
-/// <b>Der Whiteboard-Weg bleibt hier</b>, und das ist kein Versehen: Er zeichnet über
-/// <c>WhiteboardView</c>, also über den Kopf. Ihn nach Core zu ziehen ist die Aufgabe des
-/// Linux-Whiteboards (Phase 4.5) und nicht die des Umverdrahtens.
+/// <b>Was der falsche Kommentar gekostet hat, war kein Aufwand, sondern eine Funktion:</b>
+/// Der Linux-Kopf konnte eine Tafel <i>überhaupt nicht</i> exportieren
+/// (<c>BoardExportFormats</c> war leer, <c>ExportBoard</c> warf), und niemand hat es als
+/// Lücke geführt — M2 ist mit <i>einem</i> benannten Loch ausgerufen worden, und das hier war
+/// ein zweites. <b>Das ist §4.67 zum zweiten Mal: ein Kommentar über den eigenen Code kann
+/// von Anfang an falsch sein und trotzdem viele Runden überleben.</b>
+/// </para>
+/// <para>
+/// <b>Textdokumente stehen hier nicht</b> — sie gehen seit §4.27 über
+/// <see cref="GonkNote.Core.Text.TdPdf"/>, gegen das Dokumentmodell statt gegen ein
+/// <c>FlowDocument</c>, und der Text im PDF ist dort Text statt Rasterbild.
 /// </para>
 /// </summary>
-public static class PdfExporter
+public static class WbExport
 {
-    // 96 DPI (Canvas) → 72 pt (PDF)
+    // 96 DPI (Leinwand) → 72 pt (PDF)
     private const float PtPerUnit = 72f / 96f;
+
+    /// <summary>PNG-Export rastert mit doppelter Auflösung.</summary>
+    private const float PngScale = 2f;
+
+    /// <summary>
+    /// Die Formate, in die eine Tafel geschrieben werden kann — <b>in beiden Köpfen
+    /// dieselben</b>, nach dem Vorbild von <see cref="Text.TdExport.Formate"/>.
+    ///
+    /// <para>
+    /// <b>Sie steht hier und nicht zweimal in den Köpfen</b>, und das ist keine Kosmetik: Der
+    /// WPF-Kopf führte diese Liste, der Linux-Kopf führte sie leer, und niemand hat es
+    /// gemerkt — <b>genau die Falle aus §4.13</b>. Zwei Aufzählungen bestehen dieselben Tests
+    /// und driften trotzdem auseinander; die erste, die ein Format vergisst, bietet es einem
+    /// Kopf nicht an.
+    /// </para>
+    /// <para>
+    /// Bei jedem Zugriff neu gebaut und nicht einmal beim Start: die Beschriftungen hängen an
+    /// <c>Loc.Current</c>, und ein Sprachwechsel ginge sonst still an ihnen vorbei
+    /// (HANDOFF §7, „Texte, die der Code setzt").
+    /// </para>
+    /// </summary>
+    public static IReadOnlyList<FileFilter> Formate =>
+    [
+        new(Loc.T("Filter.Pdf"), ".pdf"),
+        new(Loc.T("Filter.Png"), ".png"),
+    ];
+
+    /// <summary>
+    /// Der eine Einstieg für beide Köpfe: schreibt nach <paramref name="path"/> und liefert
+    /// zurück, was tatsächlich entstanden ist. <c>.png</c> ergibt <b>eine Datei je Seite</b>,
+    /// alles andere ein einzelnes PDF.
+    ///
+    /// <para>
+    /// <b>Die Fallunterscheidung steht hier und nicht in den Köpfen</b>, sonst führten sie
+    /// beide dieselbe — und die erste, die eine Endung vergisst, schriebe ein PDF mit der
+    /// Endung <c>.png</c>.
+    /// </para>
+    /// </summary>
+    public static ExportResult Exportieren(WhiteboardDoc doc, string title, string path)
+    {
+        string ext = Path.GetExtension(path).ToLowerInvariant();
+
+        List<string> geschrieben = ext == ".png"
+            ? ExportWhiteboardPng(doc, title, path)
+            : ExportPdfEinzeln(doc, title, path);
+
+        return new ExportResult(geschrieben, 0, DocumentHealth.MissingImages(doc));
+
+        static List<string> ExportPdfEinzeln(WhiteboardDoc doc, string title, string path)
+        {
+            ExportWhiteboard(doc, title, path);
+            return [path];
+        }
+    }
 
     // ==================== Whiteboard / Notizbuch ====================
 
+    /// <summary>Tafel/Notizbuch als PDF: eine Seite je Seite, Vektor wo möglich.</summary>
     public static void ExportWhiteboard(WhiteboardDoc doc, string title, string path)
     {
         using var stream = File.Create(path);
@@ -50,10 +119,9 @@ public static class PdfExporter
         pdf.Close();
     }
 
-    /// <summary>Whiteboard/Notizbuch als PNG: 1 Datei pro Seite, hohe Auflösung (2×).</summary>
+    /// <summary>Tafel/Notizbuch als PNG: 1 Datei pro Seite, hohe Auflösung (2×).</summary>
     public static List<string> ExportWhiteboardPng(WhiteboardDoc doc, string title, string path)
     {
-        const float scale = 2f;
         var written = new List<string>();
         string dir = Path.GetDirectoryName(path)!;
         string stem = Path.GetFileNameWithoutExtension(path);
@@ -64,10 +132,10 @@ public static class PdfExporter
             var page = doc.Pages[i];
             var (ox, oy, w, h) = PageGeometry(page);
 
-            var info = new SKImageInfo((int)Math.Round(w * scale), (int)Math.Round(h * scale));
+            var info = new SKImageInfo((int)Math.Round(w * PngScale), (int)Math.Round(h * PngScale));
             using var surface = SKSurface.Create(info);
             var canvas = surface.Canvas;
-            canvas.Scale(scale);
+            canvas.Scale(PngScale);
             canvas.Translate(-ox, -oy);
             PaintPage(canvas, page, doc, title, ox, oy, w, h);
 
@@ -111,7 +179,7 @@ public static class PdfExporter
     {
         if (el.Rotation != 0f)
         {
-            var b = WhiteboardView.ElementBounds(el);
+            var b = WbRenderer.ElementBounds(el);
             canvas.Save();
             canvas.RotateDegrees(el.Rotation, b.MidX, b.MidY);
             DrawElementCore(canvas, el);
@@ -123,18 +191,24 @@ public static class PdfExporter
         }
     }
 
+    /// <summary>
+    /// <b>Nicht <see cref="WbRenderer.DrawElementCore"/>:</b> Bilder gehen hier über ihre
+    /// <i>Original-Bytes</i> statt über den dekodierten <c>ImageCache</c> — siehe
+    /// <see cref="DrawImage"/>. Das ist der einzige Unterschied zwischen Bildschirm und
+    /// Export, und er ist der Grund, warum diese Verzweigung überhaupt noch einmal dasteht.
+    /// </summary>
     private static void DrawElementCore(SKCanvas canvas, WbElement el)
     {
         switch (el)
         {
-            case StrokeElement s: WhiteboardView.DrawStroke(canvas, s); break;
-            case ShapeElement sh: WhiteboardView.DrawShape(canvas, sh, sh.Color, sh.StrokeWidth); break;
-            case GonkNote.Core.Models.TextElement t: WhiteboardView.DrawText(canvas, t); break;
+            case StrokeElement s: WbRenderer.DrawStroke(canvas, s); break;
+            case ShapeElement sh: WbRenderer.DrawShape(canvas, sh, sh.Color, sh.StrokeWidth); break;
+            case TextElement t: WbRenderer.DrawText(canvas, t); break;
             case ImageElement im:
                 DrawImage(canvas, SKRect.Create(im.X, im.Y, im.Width, im.Height),
                           ImageCache.Bytes(im.Id, im.Data));
                 break;
-            case StickyNoteElement sn: WhiteboardView.DrawSticky(canvas, sn); break;
+            case StickyNoteElement sn: WbRenderer.DrawSticky(canvas, sn); break;
         }
     }
 
@@ -165,7 +239,7 @@ public static class PdfExporter
         SKRect r = SKRect.Empty;
         foreach (var el in page.Elements)
         {
-            var b = WhiteboardView.ElementBounds(el);
+            var b = WbRenderer.ElementBounds(el);
             if (b.IsEmpty) continue;
             if (first) { r = b; first = false; }
             else r = SKRect.Union(r, b);
@@ -250,7 +324,7 @@ public static class PdfExporter
         // **Über WbFonts und nicht über SKTypeface.FromFamilyName** (§4.26): nur so findet der
         // Cover-Titel die mitgelieferte Schrift. Ohne eigene Angabe die Rolle „Display".
         var typeface = WbFonts.Family(
-            cover?.FontFamily ?? WbFonts.FamilyOf(GonkNote.Core.Theming.FontRole.Display), bold: true);
+            cover?.FontFamily ?? WbFonts.FamilyOf(Theming.FontRole.Display), bold: true);
         using var titlePaint = new SKPaint { Color = SKColors.White, IsAntialias = true };
         using var titleFont = new SKFont(typeface, 46);
         while (titleFont.Size > 18 && titleFont.MeasureText(title) > page.Width * 0.8f)
@@ -269,17 +343,4 @@ public static class PdfExporter
         canvas.DrawText("N O T I Z B U C H", page.Width / 2f, page.Height * 0.49f,
             SKTextAlign.Center, subFont, subPaint);
     }
-
-    // ==================== Textdokument: gelöscht (§4.27) ====================
-    //
-    // Hier standen `ExportFlowDocument`, `ExportFlowDocumentPng`, `RenderFlowDocumentPages`
-    // und der Paginator-Weg dahinter. Sie sind weg, nicht auskommentiert — dieselbe
-    // Entscheidung wie bei `DocxExporter` und `MarkdownExporter` in §4.23, und aus demselben
-    // Grund: **zwei Wege parallel zu pflegen ist die Falle aus §4.10.** Der Ersatz steht in
-    // Core (`TdPdf`), geht gegen das Modell und läuft auf jedem Kopf.
-    //
-    // Was dabei besser wurde, war nicht nur der Ort: Der alte Weg rasterte jede Seite zu
-    // einem Bild — 300 dpi, aber ohne auswählbaren Text, ohne Suche, ohne anklickbaren
-    // Verweis. `TdPdf` zeichnet direkt auf die PDF-Leinwand; der Text im PDF ist Text.
-
 }

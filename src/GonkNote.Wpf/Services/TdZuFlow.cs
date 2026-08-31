@@ -110,7 +110,7 @@ public static class TdZuFlow
 
     /// <summary>
     /// Wie fein ein Diagramm gerastert wird — Vielfaches der Anzeigegröße (§4.50). Zwei ist
-    /// derselbe Wert, mit dem der PNG-Export rastert (<c>PdfExporter</c>), und der Grund ist
+    /// derselbe Wert, mit dem der PNG-Export rastert (<c>WbExport</c>), und der Grund ist
     /// dort wie hier derselbe: Strichzeichnung mit Beschriftung.
     /// </summary>
     private const double Feinheit = 2.0;

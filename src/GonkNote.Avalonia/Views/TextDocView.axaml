@@ -214,6 +214,21 @@
 
                     <Border Classes="trenner"/>
 
+                    <!-- Suchen & Ersetzen, neu in Phase 5, Schritt ①c (§4.80). Es fehlte in
+                         diesem Kopf **ganz** — anders als Tafel-Export (§4.77) und
+                         Formen-Stift (§4.78) lag der Code aber zu Recht drüben: er steht auf
+                         TextPointer/TextRange, und die gibt es nur unter Windows. Die Suche
+                         ist deshalb in Core **neu gegen das Modell** geschrieben
+                         (`TdSuche`), nicht umgezogen. -->
+                    <ToggleButton x:Name="KnopfSuchen" Classes="ribbonknopf"
+                                  ToolTip.Tip="{loc:T Ed.Find.Tip}"
+                                  IsCheckedChanged="SuchleisteUmschalten">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <views:Symbol Icon="Search" Stroke="{DynamicResource Brush.Text}"/>
+                            <TextBlock Text="{loc:T Ed.Find}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </ToggleButton>
+
                     <Button x:Name="KnopfExport" Classes="ribbonknopf"
                             ToolTip.Tip="{loc:T Ed.Export.Tip}">
                         <StackPanel Orientation="Horizontal" Spacing="6">
@@ -680,6 +695,36 @@
                     </Button>
                 </StackPanel>
             </DockPanel>
+        </Border>
+
+        <!-- ==================== Suchen & Ersetzen ==================== -->
+        <!-- **Über den Blättern und nicht darüber schwebend** — dieselbe Stelle wie drüben
+             (`FindPanel`, DockPanel.Dock="Top"). Eine schwebende Leiste verdeckte genau den
+             Treffer, den sie gerade gefunden hat.
+
+             Die Beschriftungen lagen **längst in beiden Sprachtabellen** (`Ed.Find.*`), weil
+             der WPF-Kopf sie benutzt. Neu sind nur die zwei **Meldungen** — sie standen
+             drüben fest verdrahtet auf Deutsch (§4.80, Dauerregel 1). -->
+        <Border x:Name="Suchleiste" DockPanel.Dock="Top" IsVisible="False"
+                Background="{DynamicResource Brush.SidebarBg}"
+                BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,0,0,1"
+                Padding="8,6">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+                <TextBox x:Name="SuchFeld" Width="180" PlaceholderText="{loc:T Ed.Find.Term}"
+                         ToolTip.Tip="{loc:T Ed.Find.Term}" KeyDown="SuchFeld_Taste"/>
+                <Button Classes="flach" Content="{loc:T Ed.Find.Next}" Click="Weitersuchen_Click"/>
+                <TextBox x:Name="ErsatzFeld" Width="180" Margin="6,0,0,0"
+                         PlaceholderText="{loc:T Ed.Find.ReplaceWith}"
+                         ToolTip.Tip="{loc:T Ed.Find.ReplaceWith}" KeyDown="SuchFeld_Taste"/>
+                <Button Classes="flach" Content="{loc:T Ed.Find.Replace}" Click="Ersetzen_Click"/>
+                <Button Classes="flach" Content="{loc:T Ed.Find.ReplaceAll}" Click="AlleErsetzen_Click"/>
+                <TextBlock x:Name="SuchStatus" VerticalAlignment="Center" Margin="4,0,0,0"
+                           Foreground="{DynamicResource Brush.TextMuted}"/>
+                <Button Classes="flach symbol" Click="SuchleisteSchliessen_Click"
+                        ToolTip.Tip="{loc:T Ed.Find.Close}">
+                    <views:Symbol Icon="Close" Size="10" Stroke="{DynamicResource Brush.Text}"/>
+                </Button>
+            </StackPanel>
         </Border>
 
         <!-- ==================== Die Blätter ==================== -->

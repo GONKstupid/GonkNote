@@ -352,6 +352,8 @@ internal static class LocEnglish
         ["Ed.Find.Close"] = "Close (Esc)",
         ["Ed.Find.Tip"] = "Find &amp; replace (Ctrl+F)",
         ["Ed.Find"] = "Find",
+        ["Ed.Find.NotFound"] = "Not found",
+        ["Ed.Find.Replaced"] = "{0} replaced",
         ["Ed.Status.Counts"] = "Words: 0 · Characters: 0",
         ["Ed.Spell.Language"] = "Spell-check language",
         ["Lang.German"] = "German",

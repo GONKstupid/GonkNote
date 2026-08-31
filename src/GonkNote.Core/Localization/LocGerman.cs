@@ -360,6 +360,11 @@ internal static class LocGerman
         ["Ed.Find.Close"] = "Schließen (Esc)",
         ["Ed.Find.Tip"] = "Suchen &amp; Ersetzen (Strg+F)",
         ["Ed.Find"] = "Suchen",
+        // Die zwei Meldungen der Suchleiste. **Sie standen bis §4.80 fest verdrahtet auf
+        // Deutsch im WPF-Kopf** („Nicht gefunden", „{0} ersetzt") — ein englisches Programm
+        // zeigte dort Deutsch (Dauerregel 1, dieselbe Sorte Fund wie §4.74 und §4.75).
+        ["Ed.Find.NotFound"] = "Nicht gefunden",
+        ["Ed.Find.Replaced"] = "{0} ersetzt",
         ["Ed.Status.Counts"] = "Wörter: 0 · Zeichen: 0",
         ["Ed.Spell.Language"] = "Sprache für die Rechtschreibprüfung",
         ["Lang.German"] = "Deutsch",

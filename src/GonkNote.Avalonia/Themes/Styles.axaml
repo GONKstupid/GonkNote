@@ -518,6 +518,60 @@
         <Setter Property="Opacity" Value="0.45"/>
     </Style>
 
+    <!-- **Derselbe Knopf als Schalter** (Suchen, §4.80). Die drei Regeln oben stehen auf
+         `Button` und greifen bei einem `ToggleButton` **nicht** — er sah deshalb aus wie ein
+         nackter Fluent-Knopf und war eingerastet **violett**.
+
+         ⛔ **Das ist das sechste Mal** (Baum §4.72, Klappliste §4.73, Schieber §4.74,
+         Reiter, Auswahlpunkt §4.77, jetzt der Ribbon-Schalter). Die Regel hält: *jede
+         Fläche, die noch nicht angefasst ist, hat ihr eigenes Violett.* Was daran neu ist:
+         **hier lag es nicht an einer fehlenden Überschreibung, sondern an einem Selektor,
+         der einen Typ zu eng fasst** — der Stil war da, er hat nur nicht gegolten.
+         *Ein Selektor auf `Button` deckt `ToggleButton` nicht ab; wer den Typ wechselt,
+         verliert das Aussehen still.*
+
+         **Der eingerastete Zustand ist die Akzentfläche** — dieselbe Sprache wie
+         `ToggleButton.werkzeug:checked` und wie der WPF-Kopf (`BtnSideFind`). -->
+    <Style Selector="ToggleButton.ribbonknopf">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="CornerRadius" Value="6"/>
+        <Setter Property="Height" Value="32"/>
+        <Setter Property="Padding" Value="8,0"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Foreground" Value="{DynamicResource Brush.Text}"/>
+    </Style>
+    <Style Selector="ToggleButton.ribbonknopf:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource Brush.Hover}"/>
+    </Style>
+    <Style Selector="ToggleButton.ribbonknopf:checked /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource Brush.AccentSoft}"/>
+    </Style>
+    <Style Selector="ToggleButton.ribbonknopf:checked:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource Brush.AccentSoft}"/>
+    </Style>
+    <Style Selector="ToggleButton.ribbonknopf:checked Path">
+        <Setter Property="Stroke" Value="{DynamicResource Brush.Accent}"/>
+    </Style>
+    <Style Selector="ToggleButton.ribbonknopf:disabled">
+        <Setter Property="Opacity" Value="0.45"/>
+    </Style>
+
+    <!-- **Der Rahmen eines Eingabefelds im Fokus gehört dem Theme** (§5 Nr. 27, §4.80).
+         Fluent malt ihn in `SystemAccentColor` — das Suchfeld stand damit **violett**
+         umrandet in einer blauen App.
+
+         `PART_BorderElement` ist der Name im Fluent-Template und **an der gebundenen Fassung
+         12.1.1 nachgemessen** (`Avalonia.Themes.Fluent.dll`), nicht geraten — dieselbe
+         Methode wie bei `PART_SelectedPipe` und `CheckOuterEllipse`. Trifft der Name eines
+         Tages nicht mehr, wirkt der Selektor **still gar nicht**. -->
+    <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
+        <Setter Property="BorderBrush" Value="{DynamicResource Brush.Accent}"/>
+    </Style>
+    <Style Selector="TextBox:focus-within /template/ Border#PART_BorderElement">
+        <Setter Property="BorderBrush" Value="{DynamicResource Brush.Accent}"/>
+    </Style>
+
     <!-- Formatschalter im Ribbon (F, K, U, S, Ausrichtung) — Schritt 6 des Schreibens.
 
          **Kleiner als `ToggleButton.werkzeug`** (30 statt 34) und mit eigenem Aussehen für den

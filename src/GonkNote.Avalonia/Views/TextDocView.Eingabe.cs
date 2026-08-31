@@ -342,6 +342,14 @@ public partial class TextDocView
                 break;
 
             // ---------- Tastenkürzel ----------
+            // Strg+F — dasselbe Kürzel wie drüben, und es steht im Tooltip des Knopfes
+            // (`Ed.Find.Tip`). **Ein Kürzel, das der Tooltip verspricht und das es nicht
+            // gibt, ist schlimmer als keines** (§4.80).
+            case Key.F when strg:
+                if (Suchleiste.IsVisible) SuchleisteSchliessen();
+                else SuchleisteZeigen();
+                break;
+
             case Key.A when strg:
                 _auswahl = TdSelection.Alles(_modell!);
                 MarkeVersetzt();

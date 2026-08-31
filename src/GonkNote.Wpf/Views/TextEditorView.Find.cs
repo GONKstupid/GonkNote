@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Input;
+using GonkNote.Services;
 
 namespace GonkNote.Views;
 
@@ -45,7 +46,7 @@ public partial class TextEditorView
         var hit = FindFrom(Editor.Selection.End, needle) ?? FindFrom(Editor.Document.ContentStart, needle);
         if (hit == null)
         {
-            FindStatus.Text = "Nicht gefunden";
+            FindStatus.Text = Loc.T("Ed.Find.NotFound");
             return;
         }
         FindStatus.Text = "";
@@ -79,7 +80,7 @@ public partial class TextEditorView
             count++;
             hit = FindFrom(hit.End, needle);
         }
-        FindStatus.Text = $"{count} ersetzt";
+        FindStatus.Text = Loc.T("Ed.Find.Replaced", count);
         if (count > 0) MarkDirty();
     }
 

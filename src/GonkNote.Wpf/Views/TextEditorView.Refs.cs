@@ -3,6 +3,8 @@ using System.Windows.Documents;
 using System.Windows.Media;
 using GonkNote.Services;
 
+using GonkNote.Core.Platform;
+
 namespace GonkNote.Views;
 
 /// <summary>
@@ -34,9 +36,10 @@ public partial class TextEditorView
     {
         if (FindTocTitle() is not { } title)
         {
-            MessageBox.Show(Window.GetWindow(this),
+            MessageWindow.Zeige(
+                Window.GetWindow(this),
                 Loc.T("Msg.NoToc"),
-                "Gonk Note", MessageBoxButton.OK, MessageBoxImage.Information);
+                DialogSeverity.Information, frage: false);
             return;
         }
         RebuildTocAfter(title);

@@ -41,8 +41,12 @@ public partial class TextEditorView : UserControl
     {
         InitializeComponent();
 
-        FontCombo.ItemsSource = System.Windows.Media.Fonts.SystemFontFamilies
-            .Select(f => f.Source).OrderBy(s => s).ToList();
+        // **Mitgelieferte oben, Systemschriften darunter** — die Zusammensetzung steht in
+        // Core und gilt fuer beide Koepfe (§5 Nr. 14, Schriftliste.cs). Hier stand bis zum
+        // 2026-08-30 nur `SystemFontFamilies`, also NUR Systemschriften: ein neues Dokument
+        // steht in „Source Sans 3", und dieses Feld blieb deshalb LEER (§4.71).
+        FontCombo.ItemsSource = GonkNote.Core.Theming.Schriftliste.Aufbauen(
+            System.Windows.Media.Fonts.SystemFontFamilies.Select(f => f.Source));
         SizeCombo.ItemsSource = FontSizes;
 
         BuildStyleGallery();

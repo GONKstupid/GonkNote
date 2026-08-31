@@ -120,7 +120,7 @@
                         <views:Symbol Icon="StickyNote" Stroke="{DynamicResource Brush.Text}"/>
                     </ToggleButton>
                     <ToggleButton x:Name="BtnSticker" Classes="werkzeug" Tag="Sticker"
-                                  IsCheckedChanged="Tool_Changed" ToolTip.Tip="{loc:T Tool.Sticker}">
+                                  IsCheckedChanged="Tool_Changed" ToolTip.Tip="{loc:T Tool.Sticker.Tip}">
                         <views:Symbol Icon="Sticker" Stroke="{DynamicResource Brush.Text}"/>
                     </ToggleButton>
 
@@ -144,16 +144,30 @@
                          dunklen Seiten — sie wird im Zeichenpfad nachgeführt. -->
                     <RadioButton x:Name="AutoSwatch" Classes="farbe" GroupName="Tinte" Tag="auto"
                                  IsChecked="True" IsCheckedChanged="Color_Changed"/>
-                    <RadioButton Classes="farbe" GroupName="Tinte" Tag="#FFE11D48" Background="#E11D48"
+                    <!-- **Die Farbkacheln entstehen im Code aus WbTinte.Palette** (Core) —
+                         dieselbe Liste, aus der sie auch der WPF-Kopf baut (§4.74). -->
+
+                    <!-- Die zuletzt frei gewaehlte Farbe. Sie ist zunaechst verborgen und
+                         erscheint erst, wenn der Waehler eine geliefert hat — genau wie
+                         drueben (CustomSwatch). -->
+                    <RadioButton x:Name="CustomSwatch" Classes="farbe" GroupName="Tinte"
+                                 Tag="#FF000000" IsVisible="False"
+                                 ToolTip.Tip="{loc:T Color.Custom}"
                                  IsCheckedChanged="Color_Changed"/>
-                    <RadioButton Classes="farbe" GroupName="Tinte" Tag="#FF2563EB" Background="#2563EB"
-                                 IsCheckedChanged="Color_Changed"/>
-                    <RadioButton Classes="farbe" GroupName="Tinte" Tag="#FF16A34A" Background="#16A34A"
-                                 IsCheckedChanged="Color_Changed"/>
-                    <RadioButton Classes="farbe" GroupName="Tinte" Tag="#FFF59E0B" Background="#F59E0B"
-                                 IsCheckedChanged="Color_Changed"/>
-                    <RadioButton Classes="farbe" GroupName="Tinte" Tag="#FF7C3AED" Background="#7C3AED"
-                                 IsCheckedChanged="Color_Changed"/>
+                    <Button Classes="flach symbol" ToolTip.Tip="{loc:T Color.Pick}"
+                            Click="EigeneTinte_Click">
+                        <Ellipse Width="16" Height="16">
+                            <Ellipse.Fill>
+                                <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                                    <GradientStop Color="#EF4444" Offset="0"/>
+                                    <GradientStop Color="#EAB308" Offset="0.25"/>
+                                    <GradientStop Color="#22C55E" Offset="0.5"/>
+                                    <GradientStop Color="#2563EB" Offset="0.75"/>
+                                    <GradientStop Color="#8B5CF6" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Ellipse.Fill>
+                        </Ellipse>
+                    </Button>
 
                     <Border Classes="trenner"/>
 
@@ -306,10 +320,19 @@
 
         <!-- ==================== Einstellungen (rechte Seitenleiste) ==================== -->
         <!-- **Nur die Seite.** Der WPF-Kopf hat hier zusätzlich Formen, Text, Notizzettel,
-             Sticker und Cover — Werkzeuge, die es im Linux-Kopf nicht gibt (nicht M1,
-             HANDOFF §6). Eine Sektion für ein fehlendes Werkzeug wäre ein halbes Feature,
-             und ein halbes Feature ist schlechter als ein fehlendes: niemand sieht ihm an,
-             dass es halb ist.
+             Sticker, Export und Cover — sieben Klappgruppen gegen diese eine.
+
+             ⛔ **Die Begründung, die hier stand, ist abgelaufen** (HANDOFF §4.71, dieselbe
+             Falle wie §4.60). Sie lautete: „Werkzeuge, die es im Linux-Kopf nicht gibt
+             (nicht M1, HANDOFF §6)". **Das stimmte bis Phase 4.5 und stimmt seitdem für
+             vier der fünf nicht mehr** — Formen (§4.53), Text und Notizzettel (§4.55) und
+             Sticker (§4.56) gibt es hier. **Nur das Cover fehlt wirklich.**
+
+             Der Satz dahinter gilt unverändert und ist der Grund, warum hier trotzdem noch
+             nichts steht: eine Sektion für ein fehlendes Werkzeug wäre ein halbes Feature,
+             und ein halbes Feature ist schlechter als ein fehlendes — niemand sieht ihm an,
+             dass es halb ist. **Was fehlt, wird nachgebaut und nicht drüben gelöscht**
+             (§5 Nr. 26); das ist Phase 5, Schritt ①b.
 
              Änderungen wirken sofort auf die aktuelle Seite, ohne OK-Knopf — genau wie
              drüben (WhiteboardView.Settings.cs, PageSetting_Changed). -->

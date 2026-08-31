@@ -28,8 +28,10 @@
         <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
             <!-- Reihenfolge wie bei der Windows-MessageBox: die bestätigende Antwort links,
                  die abweisende rechts. Bei einer Mitteilung ist NeinKnopf ausgeblendet. -->
-            <Button x:Name="JaKnopf" MinWidth="88" IsDefault="True" Click="Ja_Click"/>
-            <Button x:Name="NeinKnopf" MinWidth="88" IsCancel="True" Click="Nein_Click"/>
+            <Button x:Name="JaKnopf" Classes="akzent" MinWidth="88"
+                    IsDefault="True" Click="Ja_Click"/>
+            <Button x:Name="NeinKnopf" Classes="flach" MinWidth="88"
+                    IsCancel="True" Click="Nein_Click"/>
         </StackPanel>
 
     </StackPanel>

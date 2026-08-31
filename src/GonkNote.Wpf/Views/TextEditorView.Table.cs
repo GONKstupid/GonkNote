@@ -6,6 +6,8 @@ using System.Windows.Documents;
 using System.Windows.Media;
 using GonkNote.Services;
 
+using GonkNote.Core.Platform;
+
 namespace GonkNote.Views;
 
 /// <summary>
@@ -146,9 +148,10 @@ public partial class TextEditorView
         string text = Editor.Selection.Text;
         if (string.IsNullOrWhiteSpace(text))
         {
-            MessageBox.Show(Window.GetWindow(this),
+            MessageWindow.Zeige(
+                Window.GetWindow(this),
                 Loc.T("Msg.SelectTextFirst"),
-                "Gonk Note", MessageBoxButton.OK, MessageBoxImage.Information);
+                DialogSeverity.Information, frage: false);
             return;
         }
 
@@ -303,17 +306,19 @@ public partial class TextEditorView
         int idx = ctx.Group.Rows.IndexOf(ctx.Row);
         if (idx <= 0)
         {
-            MessageBox.Show(Window.GetWindow(this),
+            MessageWindow.Zeige(
+                Window.GetWindow(this),
                 Loc.T("Msg.SplitNeedsSecondRow"),
-                "Gonk Note", MessageBoxButton.OK, MessageBoxImage.Information);
+                DialogSeverity.Information, frage: false);
             return;
         }
         var pos = GridPositions(ctx.Table);
         if (pos.Any(kv => kv.Value.Row < idx && kv.Value.Row + kv.Value.RowSpan - 1 >= idx))
         {
-            MessageBox.Show(Window.GetWindow(this),
+            MessageWindow.Zeige(
+                Window.GetWindow(this),
                 Loc.T("Msg.SplitAcrossMerge"),
-                "Gonk Note", MessageBoxButton.OK, MessageBoxImage.Information);
+                DialogSeverity.Information, frage: false);
             return;
         }
 
@@ -387,9 +392,10 @@ public partial class TextEditorView
         if (rows.Count < 2) return;
         if (rows.SelectMany(r => r.Cells).Any(c => c.RowSpan > 1))
         {
-            MessageBox.Show(Window.GetWindow(this),
+            MessageWindow.Zeige(
+                Window.GetWindow(this),
                 Loc.T("Msg.SortWithMerge"),
-                "Gonk Note", MessageBoxButton.OK, MessageBoxImage.Information);
+                DialogSeverity.Information, frage: false);
             return;
         }
 
@@ -457,9 +463,10 @@ public partial class TextEditorView
             @"^=?\s*(SUMME|SUM|MITTELWERT|AVERAGE|MIN|MAX|ANZAHL|COUNT|PRODUKT|PRODUCT)\s*\(\s*(ABOVE|BELOW|LEFT|RIGHT)\s*\)$");
         if (!m.Success)
         {
-            MessageBox.Show(Window.GetWindow(this),
+            MessageWindow.Zeige(
+                Window.GetWindow(this),
                 Loc.T("Msg.FormulaUnknown"),
-                "Gonk Note", MessageBoxButton.OK, MessageBoxImage.Information);
+                DialogSeverity.Information, frage: false);
             return;
         }
 
@@ -483,8 +490,10 @@ public partial class TextEditorView
 
         if (values.Count == 0)
         {
-            MessageBox.Show(Window.GetWindow(this), Loc.T("Msg.NoNumbers"),
-                "Gonk Note", MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageWindow.Zeige(
+                Window.GetWindow(this),
+                Loc.T("Msg.NoNumbers"),
+                DialogSeverity.Information, frage: false);
             return;
         }
 

@@ -151,20 +151,11 @@
                         <RadioButton x:Name="AutoSwatch" Style="{StaticResource ColorSwatch}" GroupName="ink" IsChecked="True"
                                      Background="#000000" Tag="auto"
                                      ToolTip="{loc:T Color.Auto}" Checked="Color_Checked"/>
-                        <RadioButton Style="{StaticResource ColorSwatch}" GroupName="ink"
-                                     Background="#2563EB" Tag="#FF2563EB" ToolTip="{loc:T Color.Blue}" Checked="Color_Checked"/>
-                        <RadioButton Style="{StaticResource ColorSwatch}" GroupName="ink"
-                                     Background="#14B8A6" Tag="#FF14B8A6" ToolTip="{loc:T Color.Teal}" Checked="Color_Checked"/>
-                        <RadioButton Style="{StaticResource ColorSwatch}" GroupName="ink"
-                                     Background="#EC4899" Tag="#FFEC4899" ToolTip="{loc:T Color.Pink}" Checked="Color_Checked"/>
-                        <RadioButton Style="{StaticResource ColorSwatch}" GroupName="ink"
-                                     Background="#8B5CF6" Tag="#FF8B5CF6" ToolTip="{loc:T Color.Purple}" Checked="Color_Checked"/>
-                        <RadioButton Style="{StaticResource ColorSwatch}" GroupName="ink"
-                                     Background="#EF4444" Tag="#FFEF4444" ToolTip="{loc:T Color.Red}" Checked="Color_Checked"/>
-                        <RadioButton Style="{StaticResource ColorSwatch}" GroupName="ink"
-                                     Background="#EAB308" Tag="#FFEAB308" ToolTip="{loc:T Color.Yellow}" Checked="Color_Checked"/>
-                        <RadioButton Style="{StaticResource ColorSwatch}" GroupName="ink"
-                                     Background="#22C55E" Tag="#FF22C55E" ToolTip="{loc:T Color.Green}" Checked="Color_Checked"/>
+                        <!-- **Die Farbkacheln entstehen im Code aus WbTinte.Palette** (Core).
+                             Bis zum 2026-08-30 hatte dieser Kopf sieben Kacheln aus der
+                             Theme-Tabelle, der Linux-Kopf fuenf aus den Tintenfarben — zwei
+                             Paletten mit zwei fast gleichen Rottoenen, genau wovor
+                             TdTextfarben seit §4.40 woertlich warnt (§4.74). -->
                         <RadioButton x:Name="CustomSwatch" Style="{StaticResource ColorSwatch}" GroupName="ink"
                                      Tag="#FF000000" ToolTip="{loc:T Color.Custom}" Checked="Color_Checked"
                                      Visibility="Collapsed"/>

@@ -6,6 +6,8 @@ using System.Windows.Media.Imaging;
 using GonkNote.Services;
 using Microsoft.Win32;
 
+using GonkNote.Core.Platform;
+
 namespace GonkNote.Views;
 
 /// <summary>
@@ -48,8 +50,10 @@ public partial class TextEditorView
         }
         catch (Exception ex)
         {
-            MessageBox.Show(Window.GetWindow(this), Loc.T("Msg.ImageLoadFailed", ex.Message),
-                "Gonk Note", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageWindow.Zeige(
+                Window.GetWindow(this),
+                Loc.T("Msg.ImageLoadFailed", ex.Message),
+                DialogSeverity.Warning, frage: false);
         }
         Editor.Focus();
     }
@@ -182,8 +186,10 @@ public partial class TextEditorView
         if (!url.Contains("://") && !url.StartsWith("mailto:")) url = "https://" + url;
         if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
         {
-            MessageBox.Show(Window.GetWindow(this), Loc.T("Msg.InvalidUrl"),
-                "Gonk Note", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageWindow.Zeige(
+                Window.GetWindow(this),
+                Loc.T("Msg.InvalidUrl"),
+                DialogSeverity.Warning, frage: false);
             return;
         }
 
@@ -590,9 +596,10 @@ public partial class TextEditorView
             endCell.Parent is not TableRow { Parent: TableRowGroup endGroup } ||
             group != endGroup || group.Parent is not Table table)
         {
-            MessageBox.Show(Window.GetWindow(this),
+            MessageWindow.Zeige(
+                Window.GetWindow(this),
                 Loc.T("Msg.MergeSameTable"),
-                "Gonk Note", MessageBoxButton.OK, MessageBoxImage.Information);
+                DialogSeverity.Information, frage: false);
             return;
         }
 

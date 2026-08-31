@@ -605,8 +605,16 @@
                             <CheckBox x:Name="ErsteSeiteOhne" FontSize="12"
                                       Content="{loc:T Ed.HeaderFooter.SuppressFirst}"
                                       IsCheckedChanged="ErsteSeiteOhne_Geaendert"/>
+                            <!-- Dieselben drei Zeilen wie im Kopf-/Fusszeilen-Dialog des
+                                 WPF-Kopfs (§4.74). Bis dahin stand hier nur der kurze
+                                 Hinweis zu {SEITE} und {SEITEN}, und die zwei anderen
+                                 Platzhalter kannte nur, wer drueben nachsah. -->
                             <TextBlock Classes="feldname" TextWrapping="Wrap"
-                                       Text="{loc:T Ed.HeaderFooter.Hint}"/>
+                                       Text="{loc:T Ed.HeaderFooter.Fields}"/>
+                            <TextBlock Classes="feldname" TextWrapping="Wrap"
+                                       Text="{loc:T Ed.HeaderFooter.Fields2}"/>
+                            <TextBlock Classes="feldname" TextWrapping="Wrap"
+                                       Text="{loc:T Ed.HeaderFooter.Example}"/>
                             <TextBlock Classes="feldname" TextWrapping="Wrap"
                                        Text="{loc:T Ed.Page.NoUndo}"/>
                         </StackPanel>

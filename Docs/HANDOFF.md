@@ -304,7 +304,7 @@ angezeigt, importiert (DOCX) und in alle vier Formate exportiert. **Damit ist Ph
 abgeschlossen.** Der Anschluss hat sofort einen Fehler gezeigt, den vier Runden lang kein
 Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — behoben.
 
-### ▶ Hier geht es weiter (Stand 2026-08-28, nach Runde V2-93)
+### ▶ Hier geht es weiter (Stand 2026-08-31, nach Runde V2-99)
 
 > **✅ M2 ist erreicht und ausgerufen** (2026-08-28, §2) — Funktionsgleichheit Linux ↔
 > Windows, **mit einem benannten Loch**: die Rechtschreibprüfung fehlt im Linux-Kopf.
@@ -315,14 +315,39 @@ Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — beh
 > den Code** (§4.69).
 >
 > **▶ Und am 2026-08-28 hat der Nutzer Phase 5 neu geordnet und sieben Entscheidungen
-> getroffen** (§5 Nr. 11, 14, 15, 21–25). **Damit ist keine offene Frage mehr übrig, die den
-> Fortgang blockiert.**
+> getroffen** (§5 Nr. 11, 14, 15, 21–25).
+>
+> **▶ Schritt ① ist angefangen und geteilt: ①a hat gemessen** (§4.71, 2026-08-29) — **ohne
+> anzugleichen**, so zugeschnitten. **①b baut.** Dazu die achte Entscheidung, **§5 Nr. 26:
+> fehlt dem Linux-Kopf etwas, wird es dort nachgebaut und nicht drüben gelöscht.**
+>
+> **✅ ①b läuft.** **§4.72:** die drei Punkte aus §4.71, die keine Angleicharbeit waren,
+> sondern **Fehler** — Oberflächenschrift des WPF-Kopfs (Segoe UI statt Inter),
+> Tastaturfokus seines Umbenennen-Feldes, **Auswahlfarbe** des Linux-Kopfs (§5 Nr. 27).
+> **§4.73:** **Fläche 1 angeglichen** (fünfzehn Unterschiede), **§5 Nr. 14 eingelöst**.
+> **§4.74:** **Fläche 5 vermessen** (76/76 Symbole, keine Lücke), die **Tintenpalette** aus
+> einer Quelle in Core, der **Farbwähler** im Linux-Kopf nachgebaut, **vier fest verdrahtete
+> deutsche Texte** im WPF-Kopf übersetzt. **+12 Wächter insgesamt.**
+>
+> **§4.75:** **Fläche 4 vermessen** und die **28 Meldungen** des WPF-Kopfs von der nativen
+> `MessageBox` auf ein eigenes Fenster umgestellt — sie sahen an keiner Stelle aus wie die
+> App, während der Linux-Kopf seit jeher eines hat.
+>
+> **⚠ Was ①b noch vor sich hat, und es ist der größere Teil:** **Fläche 2 ist nur in der
+> Werkzeugleiste angeglichen** — Einstellungsleiste (**7 Klappgruppen gegen 1**), Cover,
+> Zahlenblock, Schnellaktionen, Import und Texterkennung stehen aus. **Fläche 3 (Editor) ist
+> gemessen, aber nicht angeglichen**; dort stehen Suchen & Ersetzen, der ganze
+> Tabellenentwurf, Formatpinsel, die Galerien, Bild, Infobox, Symbol, Diagramm, Navigator und
+> Wortzahl an. **Das ist nach §5 Nr. 26 Phase-4.5-Arbeit unter neuem Namen — Werkzeuge bauen,
+> nicht Oberflächen angleichen —, und der Zuschnitt gehört dem Nutzer.**
 
 #### ▶ Die Ordnung von Phase 5 — sie steht in §6, hier nur der Wegweiser
 
 ```
-① UI/UX 1:1        beide Köpfe angleichen  ◀── HIER GEHT ES WEITER
-② Rückmeldung      was ① übersah, was ① brach
+①a Vermessen       Befundtabellen je Fläche ✅ erledigt (alle fünf)
+①b Angleichen      was beide haben          ✅ weitgehend erledigt
+①c Werkzeuge       was einem fehlt, bauen  ◀── HIER GEHT ES WEITER
+② Rückmeldung      was ① übersah, was ① brach — VERSCHOBEN hinter ①c
 ③ Auslieferung     Flatpak + AppImage      — VORGEZOGEN, braucht den Laptop
 ④ Rest + Prüflauf  toter Code, §7, §4.1, benannte Lücken, VOLLSTÄNDIG prüfen
 ⑤ Veröffentlichen  READMEs, Pages, Releases, Beiwerk, public, 1.0.0
@@ -381,7 +406,7 @@ steht in §4 — dort wird er gesucht — und in der Chronik §9.)*
 
 **Tests laufen lassen:**
 ```powershell
-dotnet test -c Release        # Windows: beide Projekte, 1040 Tests (981 Core + 59 WPF)
+dotnet test -c Release        # Windows: beide Projekte, 1052 Tests (988 Core + 64 WPF)
 ```
 
 ```bash
@@ -423,7 +448,7 @@ möglich) gelten unverändert weiter — siehe `gonk-note\HANDOFF.md` §1.
 | | |
 |---|---|
 | **Version** | 0.3.0 · `net10.0` · SkiaSharp 3.119.4 · Avalonia 12.1.1 · SQLite |
-| **Tests** | **1040** — 981 in `GonkNote.Core.Tests` (Windows **und** Linux), 59 in `GonkNote.Wpf.Tests` (alles, was am `FlowDocument` hängt) · Stand V2-93 |
+| **Tests** | **1052** — 988 in `GonkNote.Core.Tests` (Windows **und** Linux), 64 in `GonkNote.Wpf.Tests` (alles, was am `FlowDocument` hängt) · Stand V2-96 |
 | **Bau** | Debug und Release je 0 Fehler / 0 Warnungen; CI mit zwei Läufen (Windows, Ubuntu) |
 | **Meilensteine** | ✅ **M0** (Core baut auf Linux) · ✅ **M1** (Notizbuch und Whiteboard laufen unter Linux) · ✅ **M2** (Funktionsgleichheit Linux ↔ Windows) — **ausgerufen am 2026-08-28**, Nutzer-Entscheidung, **mit einem benannten Loch**: die Rechtschreibprüfung fehlt im Linux-Kopf (§6, bewusst so entschieden am 2026-08-22). Die zweite Stift-Taste darf verschieden bleiben und ist **kein** Loch (§5 Nr. 17) · ⏳ **M3** (veröffentlicht) hängt an Phase 5 |
 
@@ -8476,6 +8501,670 @@ Avalonia-Issue** — das sind ①, ③ und ④. **Das Repo ist nicht öffentlich
 Version steht weiter auf **0.3.0**: Sie gehört ans Ende von ⑤, denn ein Stand, der die Nummer
 trägt, bevor er hinausgeht, ist zweimal derselbe Name für zwei verschiedene Stände.
 
+### 4.71 Phase 5, Schritt ①a — die Oberflächen vermessen, noch nicht angeglichen
+
+**V2-94, 2026-08-29. Kein Produktivcode.** Diese Runde hat **gemessen und nichts
+angeglichen** — so vom Nutzer zugeschnitten. Angefasst wurden `tools/foto.ps1` (neu), zwei
+abgelaufene Kommentare und diese Datei.
+
+**Der Vorlauf war grün und lieferte keinen Befund:** `git pull` → schon aktuell, Bau in
+Release **0/0**, **1040 Tests** (981 Core + 59 WPF). Alle drei erwarteten Zahlen stimmen.
+
+#### Die Entscheidung, die diese Runde gebraucht hat — §5 Nr. 26
+
+**Die Vorlage-Regel trifft am häufigsten den Fall, dass dem Linux-Kopf etwas ganz fehlt.**
+Wörtlich genommen („bei jedem Unterschied ist Linux die Vorlage") müsste der WPF-Kopf dann
+sein Cover-Werkzeug, sechs Einstellungs-Klappgruppen und die halbe Tabellenbedienung
+verlieren. **Der Nutzer hat entschieden: nach oben angleichen** — was fehlt, wird im
+Linux-Kopf **nachgebaut**, nicht drüben gelöscht. Voller Wortlaut in §5 Nr. 26.
+
+*Das ist die Verallgemeinerung dessen, was §4.70 für die Seitenzahlen einzeln entschieden
+hat (§5 Nr. 15) — und der Fall ist nicht die Ausnahme, sondern die Mehrheit.*
+
+#### Was gemessen ist, und was nicht
+
+| Fläche | Stand |
+|---|---|
+| **1 · Rahmen** (Titelleiste, Menüleiste, Tab-Leiste, Seitenleiste) | **Am laufenden Programm gemessen**, jede Zeile mit einem Bild belegt |
+| **3 · Editor** | **Am laufenden Programm gemessen** im Ganzen (ein Bild je Kopf: Start-Reiter, Statusleiste, Tab-Leiste); die einzelnen Reiter **nur am Code** |
+| **2 · Tafel**, **4 · Dialoge**, **5 · Symbole/Tooltips/leere Zustände** | **Nur am Code.** Kein Augenschein. Das ist eine benannte Lücke dieser Runde und keine Aussage über die Köpfe |
+
+> **⚠ Und das ist genau die Unterscheidung, die §4.56 verlangt.** Was unten unter „am Code"
+> steht, ist ein **Verdacht mit Fundstelle** und kein Befund. *Ein grüner Bau beweist an
+> einer Oberfläche fast nichts — ein gelesener Quelltext auch nicht.*
+
+#### Fläche 1 — Rahmen · Befundtabelle
+
+*Beide Köpfe unter Windows, je eine frische Wegwerf-DB, identische Fenstergeometrie
+(40,40 · 2400×1500), jeder Kopf **allein** sichtbar (Begründung unter „Was die Werkzeuge
+gekostet haben").*
+
+| Element | WPF | Avalonia | Vorlage | Befund |
+|---|---|---|---|---|
+| **Oberflächenschrift** | **Segoe UI** | **Inter** | Linux | ⛔ **Der WPF-Kopf fällt auf die Systemschrift zurück.** `Font.Ui` = `./Fonts/Inter/#Inter, Segoe UI` (`Themes/Styles.xaml:18`); die TTF liegen im Ausgabeordner, der relative Pfad greift trotzdem nicht. **§4.26 wollte genau das abschaffen** |
+| Seitenleisten-Umschalter | Symbol `Menu` (Hamburger) | Symbol `Sidebar` | Linux | ✗ verschiedene Symbole |
+| „Neuer Ordner" (Schnellzugriff) | `FolderNew` (Ordner mit Plus) | `Folder` (schlichter Ordner) | Linux | ✗ |
+| Menüabstände | Datei/Ansicht/Hilfe weit (≈175 px) | eng (≈117 px) | Linux | ✗ |
+| Menü-Aufklapppunkt | **am linken Rand der Leiste**, ragt aus dem Fenster | **unter dem Eintrag** | Linux | ✗ |
+| Kürzel „Speichern" | **Strg+S** | **Ctrl+S** | Linux, aber **deutsch** | ⛔ `InputGesture` rendert Avalonias eigene, **englische** Schreibweise. Unübersetzt (Dauerregel 1) |
+| Kürzel „Alle speichern" | Strg+Umschalt+S | Ctrl+Shift+S | dito | ⛔ dito |
+| Kürzel „Beenden" | **Alt+F4** | **fehlt** | nach oben (Nr. 26) | ✗ |
+| Kürzel „Seitenleiste" | **Strg+B** | **fehlt** | nach oben (Nr. 26) | ✗ |
+| Sprachwahl: aktive Sprache | **kein Haken** | **Radiopunkt ● bei Deutsch** | Linux | ⛔ Der WPF-Kopf zeigt **nicht**, welche Sprache gilt |
+| Baummenü: Einträge | 10, identisch | 10, identisch | — | ✅ gleich |
+| Baummenü: Kürzel | **F2**, **Entf** | fehlen | nach oben (Nr. 26) | ✗ |
+| Baummenü: Symbole | 📌 Anpinnen, ⭐ Als Favorit | fehlen | nach oben (Nr. 26) | ✗ |
+| Symbolfarbe: Farbpunkte | ● je Farbe | fehlen | nach oben (Nr. 26) | ✗ |
+| Symbolfarbe: „Eigene Farbe…" | vorhanden (`Tree.IconColor.Custom`) | **fehlt** | nach oben (Nr. 26) | ✗ *(am Code; im Bild unterhalb des Ausschnitts)* |
+| Menü- und Flyout-Aussehen | weiß, abgerundet, Schlagschatten | hellgrau, kantiger | Linux | ✗ |
+| **Baum-Auswahlbalken** | hellblau, abgerundet | **violett, rechteckig, volle Breite** | ⚠ **offen, siehe unten** | ⛔ Die Fluent-Vorgabe schlägt durch — **keine Gestaltungsentscheidung** |
+| ~~Tab: ungespeicherte Änderung~~ | ~~kein Zeichen~~ | ~~**•**~~ | — | ⛔ **Kein Befund, richtiggestellt in §4.73:** `TabHeader` liegt im **geteilten** ViewModel. Im Bild war ein Dokument geändert und das andere nicht |
+| Tab: Unterstrich | blau | violett (Fluent) | ⚠ offen, siehe unten | ⛔ dito |
+| Fenstergröße beim Start | 1280×820 → **2560×1640** | 1280×820 → **2586×1711** | Linux | ✗ dieselbe Angabe, zwei Größen |
+| Fensterknopf „Wiederherstellen" | `WindowMaximize` | `WindowRestore` | Linux | ✗ verschiedene Symbole, gleicher Tooltip |
+| Fensterknopf-Farbe | `TextMuted` | `Text` | Linux | ✗ |
+| Fenstersymbol (`Icon`) | **nicht gesetzt** | gesetzt | Linux | ✗ |
+| Leerer Ordner (Bild, Titel, Hinweis) | gleich | gleich | — | ✅ |
+| Galerie-Kachel, Pfadleiste, „Neu"-Knopf | gleich | gleich | — | ✅ |
+| **Umbenennen-Feld: Tastaturfokus** | **bekommt keinen** | bekommt ihn | Linux | ⛔ **eigener Abschnitt unten** |
+
+> **⚠ Zwei Zeilen tragen „offen" statt einer Vorlage, und das ist Absicht.** Bei
+> Auswahlbalken und Tab-Unterstrich ist der Linux-Kopf **violett** — das ist Avalonias
+> Fluent-Akzentfarbe, die durchschlägt, und keine Entscheidung. Die Vorlage-Regel setzt
+> voraus, dass beide Seiten **gemeint** sind. **Hier ist eine davon nicht gemeint**, und
+> deshalb gehört die Frage dem Nutzer: *dieselbe Sorte Kollision wie §5 Nr. 15, nur
+> andersherum.*
+
+#### Der Fund, der ohne den Vergleich nicht aufgefallen wäre
+
+**Im WPF-Kopf bekommt das Umbenennen-Feld beim Anlegen keinen Tastaturfokus.**
+
+Gemessen mit **derselben** Klick- und Tastenfolge in beiden Köpfen, in **einem** Durchgang
+ohne Fokuswechsel dazwischen, jeder Kopf allein sichtbar: Schnellknopf „Neuer Ordner",
+dann `Physik` tippen.
+
+* **Linux-Kopf:** im Feld steht `Physik`, die Schreibmarke blinkt darin.
+* **WPF-Kopf:** im Feld steht weiter `Neuer Ordner`, keine Schreibmarke — **das Getippte ist
+  nirgends angekommen.**
+
+**Die Folge ist schlimmer als der Fehler selbst:** Der Fokus bleibt auf dem
+Seitenleisten-Knopf. Ein anschließendes **Eingabe** löst ihn **erneut** aus und legt einen
+**zweiten** Ordner an. Genau das hat in dieser Runde zweimal wie „ein Klick erzeugt zwei
+Ordner" ausgesehen — bis ein isolierter Einzelklick zeigte, dass **ein** Ordner entsteht.
+**Solange das Feld offen ist, wirkt außerdem kein Klick auf Galerie oder Seitenleiste.**
+
+> Es ist dieselbe Sorte Fund wie **§4.65** („Der Fokus nach dem Öffnen") — nur diesmal im
+> **WPF**-Kopf, und gefunden, weil der Linux-Kopf danebenstand. *Ein Kopf allein hat kein
+> Maß für sich selbst.*
+
+#### Fläche 3 — Editor · was der Augenschein zeigt
+
+**Hier ist Windows die Vorlage** (Ausnahme: §5 Nr. 15, die Seitenzahlen bleiben im
+Linux-Kopf).
+
+| Element | WPF | Avalonia | Befund |
+|---|---|---|---|
+| **Schriftfeld bei neuem Dokument** | **leer** | **„Source Sans 3"** | ⛔ **§5 Nr. 14 am laufenden Programm bestätigt** |
+| Größenfeld bei neuem Dokument | **leer** | **leer** | ⛔ in **beiden** Köpfen leer — das stand so noch nirgends |
+| Rückgängig / Wiederholen | ✔ als Knöpfe | **fehlen** | ✗ nachbauen |
+| Lineal | ✔ | fehlt | ✗ |
+| Suchen (Lupe) · Navigator am Rand | ✔ | fehlen | ✗ |
+| Stilgalerie | **Kacheln** (Standard/Ü1/Ü2 + Chevron) | **Klappliste** „Standard" | ✗ Gestalt verschieden |
+| Ausrichtung | **ein Knopf + Klappmenü** | **vier Einzelknöpfe** | ✗ |
+| Reiter „Tabelle" | **nur in einer Tabelle sichtbar** | **immer sichtbar** | ✗ |
+| Reihenfolge im Start-Reiter | Schrift → Auszeichnung → Farben → Absatz → Listen → Stile | Stile → Auszeichnung → Schrift → Farben → Absatz → Listen → Export | ✗ vollständig verschieden |
+| „Exportieren" im Ribbon | fehlt (nur Menü Datei) | ✔ | ⚠ Linux hat mehr |
+| „Nur Text"-Hinweis | fehlt | ✔ oben rechts | ⚠ Linux hat mehr |
+| Statusleiste: Wörter/Zeichen | ✔ | ✔ | ✅ |
+| Statusleiste: Sprachwahl + Rechtschreibung | ✔ | **fehlt** | **das benannte Loch von M2** (§5 Nr. 22) |
+| Statusleiste: Seitenzahl „Seite 1 / 1" | **fehlt** | ✔ | **§5 Nr. 15 — bleibt so** |
+| Statusleiste: Breite/Seite anpassen | fehlen | ✔ | ⚠ Linux hat mehr |
+| Zoom | Schieberegler + 100 % | −/+ + 100 % | ✗ |
+
+**Am Code, nicht am Augenschein — dem Linux-Ribbon fehlen außerdem:** Formatpinsel ·
+Formatierung löschen · Aufzählungs-, Nummerierungs- und Stilgalerie · Tabellenraster,
+Tabellendialog, „Aus Text", Schnelltabellen · Bild · Infobox · Symbolauswahl · **Diagramm** ·
+Kopf-/Fußzeilen-**Dialog** (liegt inline in der Einstellungsleiste) · Seitenzahlen-Knopf ·
+Wasserzeichen · Umbruchanzeige · Inhaltsverzeichnis aktualisieren · Beschriftung · der
+**gesamte** Tabellenentwurf (Stil, Rahmen, Füllung, Größe, AutoAnpassen, Zellenabstand) ·
+Zellen verbinden/teilen · Tabelle teilen/sortieren/Formel/in Text umwandeln · **Suchen &
+Ersetzen** · Navigator · Objekt-Kontextmenü.
+
+#### Die acht Stellen aus dem Auftrag — gemessen statt angenommen
+
+| Vermutung | Gemessen |
+|---|---|
+| `ChartDialog` (389 Z.) | **fehlt wirklich** — kein Diagramm im Linux-Ribbon |
+| `HeaderFooterDialog` | **liegt inline** — Klappgruppe `AbschnittKopfFuss`, `TextDocView.axaml:598` |
+| `TableSizeDialog` | **ersetzt** durch `TabelleZeilen`/`TabelleSpalten` im Reiter Einfügen |
+| `TableSortDialog`, `PromptDialog`, `FileInsertDialog` | **fehlen wirklich** |
+| `TextEditorView.Find.cs` | **fehlt wirklich** |
+| `WhiteboardView.Covers.cs` (227 Z.) | **zeichnen ja, bedienen nein** — `WhiteboardView.Render.cs:382 DrawCover` gibt es, ein Cover-**Werkzeug** nicht |
+
+*Zwei von acht waren also falsch vermutet. Der Auftrag hat recht behalten: **ein Auftrag ist
+keine Messung**.*
+
+#### Zwei abgelaufene Begründungen — dieselbe Falle wie §4.60
+
+1. **`src/GonkNote.Avalonia/Views/WhiteboardView.axaml`** begründete, dass die
+   Einstellungsleiste nur die Seite kennt: *„Formen, Text, Notizzettel, Sticker und Cover —
+   Werkzeuge, die es im Linux-Kopf nicht gibt"*. **Für vier der fünf ist das seit Phase 4.5
+   falsch** (§4.53, §4.55, §4.56); nur Cover fehlt noch. Der WPF-Kopf hat **7 Klappgruppen**,
+   der Avalonia-Kopf **keinen einzigen Expander**. *Kommentar richtiggestellt, nicht
+   gelöscht.*
+2. **`GonkNote.Avalonia.csproj`** nimmt die Cover-Vorlagen mit derselben Begründung aus —
+   und warnt **in sich selbst zweimal** (tessdata, Geodreieck), dass sie abläuft. **Sie gilt
+   heute noch**, und genau deshalb steht dort jetzt der Satz: *sobald das Cover-Werkzeug
+   kommt, müssen die Assets mit.* Sonst ist es der Geodreieck-Fehler ein drittes Mal — Bau
+   grün, Tests grün, zwei Gestalten im Fenster.
+
+#### Was die Werkzeuge gekostet haben — und was daraus folgt
+
+**`tools/fenster.ps1` ist keine Aufnahme-Anwendung, sondern der Unterbau** von `schau.ps1`
+und `klick.ps1`: es definiert `Vorn`, `Foto` und `Schwarz` und wird per Punkt-Aufruf
+eingebunden. Der Auftrag „fotografiert wird mit `fenster.ps1`" ließ sich also nicht wörtlich
+befolgen. **Neu ist `tools/foto.ps1`** — es fotografiert ein **schon laufendes** Fenster per
+PID und **bricht ab, statt zurückzufallen**.
+
+**Drei Messfehler sind in dieser Runde passiert, alle drei am Werkzeug und keiner am Kopf.
+Sie stehen hier, weil jeder von ihnen als Befund durchgegangen wäre:**
+
+| Der Schein | Die Ursache | Was jetzt gilt |
+|---|---|---|
+| „Der Linux-Kopf hat **kein** Baum-Kontextmenü" | `foto.ps1` holte das Fenster nach vorn — **und schloss damit das Flyout**. Das Bild zeigte ein Fenster ohne Menü | `foto.ps1` prüft, ob das Vordergrundfenster **schon dem Prozess gehört**, und fasst dann nichts an |
+| „Der WPF-Kopf hat einen **schlichten** Ordner und einen **violetten** Auswahlbalken" | Beide Köpfe standen **deckungsgleich**; `kette.ps1` fotografiert per `CopyFromScreen` des Fensterrechtecks und lieferte **den anderen Kopf** | **Immer nur ein Kopf sichtbar**, und Zustandsbilder nur mit `foto.ps1` (PrintWindow) |
+| „Das Fenster ist **314×50** groß" | `Process.MainWindowHandle` zeigte auf einen offenen **Tooltip** | `foto.ps1` nimmt das **größte** sichtbare Fenster des Prozesses |
+
+> **⛔ Der mittlere ist §4.50 zum zweiten Mal**, und §5e warnt wörtlich davor. Er hat
+> trotzdem zugeschlagen — weil die Warnung `schau.ps1` nannte und der Fehler in `kette.ps1`
+> saß. *Eine Warnung, die den einen Fundort nennt und den anderen nicht, deckt den
+> ungenannten schlechter ab als gar keine* — dieselbe Lehre wie §4.69, an einem anderen
+> Gegenstand.
+
+#### Was diese Runde nicht getan hat
+
+**Keine Oberfläche angeglichen** — das ist ①b. **§5 Nr. 14 nicht umgesetzt**: die
+Schriftlisten zusammenzuführen heißt, eine gemeinsame Quelle in Core anzulegen, die beide
+Köpfe lesen, samt Wächtern — eine Änderung mit Golden-File-Berührung, die nicht in eine
+Messrunde gehört. **Sie ist der erste Punkt von ①b.** **Flächen 2, 4 und 5 sind nicht am
+laufenden Programm gesehen.**
+
+### 4.72 Phase 5, Schritt ①b — die ersten drei Unterschiede beseitigt
+
+**V2-95, 2026-08-30.** Die drei Punkte, die §4.71 gefunden hat und die keine Angleicharbeit
+sind, sondern **Fehler**: die Oberflächenschrift des WPF-Kopfs, der Tastaturfokus seines
+Umbenennen-Feldes und die Auswahlfarbe des Linux-Kopfs. Bau 0/0, **1045 Tests**
+(981 Core + **64** WPF, **+5 Wächter**).
+
+#### Die Entscheidung dahinter — §5 Nr. 27
+
+**Nutzer, 2026-08-29: Die Auswahl sieht in beiden Köpfen gleich aus und folgt dem Theme.**
+Heute ist das Blau; kommen später eigene Farbschemata, folgt sie **in beiden Köpfen** dem
+geladenen Schema. Damit war die Frage aus §4.71 beantwortet — und die Antwort ist nicht „mal
+Blau streichen", sondern **eine Farbe aus der Tabelle statt einer aus dem Rahmenwerk**.
+
+#### ① Die Oberflächenschrift — ein Rückfall, der immer griff
+
+**Der WPF-Kopf zeichnete seine Oberfläche in Segoe UI**, obwohl §4.26 seit elf Monaten Inter
+vorschreibt. In `Themes/Styles.xaml` stand:
+
+```xml
+<FontFamily x:Key="Font.Ui">./Fonts/Inter/#Inter, Segoe UI</FontFamily>
+```
+
+**Ein relativer Schrift-URI wird gegen die Basis des XAML aufgelöst**, und die ist bei einem
+eingebundenen Wörterbuch `pack://application:,,,/GonkNote;component/Themes/` — also **in**
+der Assembly, wo keine Schrift liegt. Der Kommentar daneben behauptete das Gegenteil („zeigt
+auf die losen Dateien neben der Exe"). *Wieder ein Kommentar über den eigenen Code, der von
+Anfang an falsch war und trotzdem lange überlebt hat — dieselbe Sorte wie §4.67.*
+
+**Zwei Anläufe, und der erste ist gemessen gescheitert.** `pack://siteoforigin:,,,/Fonts/…`
+sieht nach der richtigen Antwort aus und ergab **denselben Rückfall**: die Breite von
+„Dokumente" blieb bei 268 px. *Das steht hier, damit es niemand ein zweites Mal probiert.*
+
+**Was jetzt gilt:** `Services/AppFonts.cs` baut die drei Familien mit
+`new FontFamily(new Uri(AppContext.BaseDirectory), "./Fonts/…")` — **absolute Basis**, keine
+Frage der Auflösung mehr. Gesetzt wird in `App.OnStartup`, **vor dem ersten Fenster**; die
+drei Schlüssel in `Styles.xaml` tragen nur noch die Systemschrift als Rückfall.
+
+> **⚠ Und ein stiller Fallstrick steckte in der Umstellung:** Drei Setter benutzten
+> `{StaticResource Font.Ui}`. Ein `StaticResource` friert den Wert beim Laden des Wörterbuchs
+> ein — `AppFonts.Apply` hätte ins Leere gelaufen, **ohne dass irgendetwas anschlägt**. Alle
+> Verwendungen sind jetzt `DynamicResource`.
+
+**Nebenbei fällt eine Doppelschreibung weg,** und ihre Begründung war schon falsch: Der alte
+Kommentar rechtfertigte die zweite Fassung der Familiennamen damit, dass „XAML keine
+Konstante aus C# lesen kann". **C# kann es** — die Namen kommen jetzt aus `Fonts.Standard`
+und `Fonts.Mitgeliefert`, also aus derselben Tabelle wie im Linux-Kopf.
+
+**✅ Am laufenden Programm nachgemessen, nicht nachgelesen:** „Dokumente" ist von **268 px**
+auf **281 px** gewachsen (Avalonia: 283 px). Die Breite ist hier das Maß und nicht der
+Augenschein — *wie ein Buchstabe aussieht, gehört nicht in einen Test (§4.6), wie breit er
+ist, sehr wohl.*
+
+**+5 Wächter, `OberflaechenschriftTests`** — und der Punkt ist, **warum es sie vorher nicht
+gab**: `SchriftkonzeptTests` in Core prüft, dass jede Rolle auf eine mitgelieferte Familie
+zeigt und dass jede Datei danebenliegt. **Beides stimmte.** Niemand prüfte, ob der **Kopf**
+sie auch findet. Der neue Wächter fragt `FontFamily.FamilyNames` — dort steht der Name, den
+WPF *tatsächlich* aufgelöst hat.
+
+#### ② Der Tastaturfokus des Umbenennen-Feldes — zwei Wege, ein Haken
+
+**Gefunden mit UI-Automation statt mit einer Vermutung.** Die Abfrage nach dem
+Fokuselement — bei 60, 150, 300, 600, 1200 und 2500 ms nach dem Anlegen — nannte
+**durchgehend einen `Button`**. Damit war die naheliegende Erklärung („der `TreeViewItem`
+nimmt den Fokus wieder weg") widerlegt, **bevor eine Zeile Code entstand**: Er wurde nie
+weggenommen, sondern nie geholt.
+
+**Die Gegenprobe hat den Rest erklärt:** Über **F2** meldete dieselbe Abfrage ein `Edit`.
+Also arbeitete der Handler — nur nicht auf dem Anlegeweg.
+
+| Weg | Was mit dem Feld geschieht | `IsVisibleChanged` |
+|---|---|---|
+| **F2 / Kontextmenü** | Knoten steht, Feld ist `Collapsed`, `IsRenaming` wird wahr → **Sichtbarkeit ändert sich** | feuert ✅ |
+| **„Neuer Ordner"** | Eintrag entsteht **mit** `IsRenaming = true`, der Knoten erst danach → das Feld wird **gleich sichtbar geboren** | feuert nicht ⛔ |
+
+**Behoben mit einem zweiten Haken:** `Loaded` deckt den Anlegeweg ab, `IsVisibleChanged` den
+F2-Weg; beide rufen dieselbe Methode. Die Priorität ist dabei `DispatcherPriority.Input` und
+nicht die Vorgabe `Normal` — in WPF laufen **höhere** Prioritäten zuerst, `Normal` (9) also
+vor `DataBind` (8), `Render` (7) und `Loaded` (6).
+
+> **⛔ Die Folge war schlimmer als der Fehler selbst, und sie erklärt einen Scheinbefund aus
+> §4.71:** Der Fokus blieb auf dem Seitenleisten-Knopf. Getipptes ging ins Leere, und ein
+> **Eingabe** löste den Knopf **erneut** aus und legte einen **zweiten** Ordner an. In §4.71
+> sah das zweimal wie „ein Klick erzeugt zwei Ordner" aus.
+
+**✅ Gegengeprüft:** dieselbe Kette wie in §4.71 — anlegen, `Physik` tippen. Im Feld steht
+`Physik`, die Abfrage meldet `ControlType.Edit`.
+
+#### ③ Die Auswahlfarbe — eine Rahmenwerk-Vorgabe, die durchschlug
+
+Fluent malte die gewählte Baumzeile und den Reiterstrich in `SystemAccentColor` — **violett**,
+während der Rest der App blau ist. Im WPF-Kopf stand an derselben Stelle seit jeher
+`Brush.Selection`.
+
+**Vier Selektoren in `Themes/Styles.axaml`**, drei davon für die Baumzeile:
+`:selected`, `:selected:pointerover`, `:selected:pressed` — **die letzten beiden sind der
+eigentliche Inhalt.** Ohne sie bliebe das Violett in genau zwei Zuständen stehen, und zwar
+nur beim Überfahren und beim Drücken: *der unauffälligste Ort, an dem eine Vorgabe überleben
+kann.* Dazu `TabItem:selected /template/ Border#PART_SelectedPipe` → `Brush.Accent`.
+
+**`PART_SelectedPipe` ist an der gebundenen Fassung 12.1.1 nachgemessen** und nicht geraten
+(dieselbe Methode wie §4.42): die Namen der Template-Teile stehen als Zeichenketten in
+`Avalonia.Themes.Fluent.dll`.
+
+**✅ Zweimal gemessen, und die zweite Messung ist die wichtige:**
+
+| | Baumzeile | Was in Core steht |
+|---|---|---|
+| hell | `#C7DBFF` | `Themes.Light`, `Selection` |
+| **dunkel** | `#2C3E66` | `Themes.Dark`, `Selection` |
+
+Die Farbe kommt also **aus der Tabelle** und nicht aus einem eingetragenen Wert — *damit ist
+die Zusage aus §5 Nr. 27 eingelöst, bevor es eigene Farbschemata gibt.* Ein Bild in Blau
+allein hätte das nicht gezeigt.
+
+#### ⚠ Was offen bleibt und ausdrücklich nicht mitgemacht wurde
+
+**Die Gestalt des gewählten Reiters ist weiter verschieden:** Der Linux-Kopf zeichnet einen
+Strich darunter, der WPF-Kopf eine gefüllte Fläche mit runden oberen Ecken **ohne** Strich.
+Das ist eine Formfrage und keine Farbfrage, sie gehört in den Durchgang über Fläche 1 — und
+der Nutzer hat nach der **Auswahlfarbe** gefragt. *Was nebenbei mit erledigt wird, hat
+niemand entschieden.*
+
+**Und die drei Flächen aus §4.71 sind weiterhin nicht gesehen** (2 Tafel, 4 Dialoge,
+5 Symbole/Tooltips/leere Zustände). Sie stehen unverändert am Anfang der nächsten Runde.
+
+### 4.73 Phase 5, ①b — Fläche 1 angeglichen und die Schriftlisten zusammengeführt
+
+**V2-96, 2026-08-30.** Bau 0/0, **1052 Tests** (988 Core + 64 WPF, **+7 Wächter**).
+
+#### Fläche 1 — was jetzt gleich ist
+
+*Alles am laufenden Programm geprüft, jeder Kopf allein sichtbar.*
+
+| Was | Vorher | Jetzt |
+|---|---|---|
+| Seitenleisten-Umschalter | Hamburger ↔ Sidebar-Symbol | beide `Sidebar` |
+| „Neuer Ordner" im Schnellzugriff | `FolderNew` ↔ `Folder` | beide `Folder` |
+| Fensterknopf „Wiederherstellen" | `WindowMaximize` ↔ `WindowRestore` | beide `WindowRestore` |
+| Fensterknopf-Farbe | `TextMuted` ↔ `Text` | beide `Text` |
+| Fenstersymbol (`Icon`) | im WPF-Kopf **nicht gesetzt** | gesetzt |
+| Kürzel „Speichern" | **Strg+S** ↔ **Ctrl+S** | beide **Strg+S** |
+| Kürzel „Beenden" / „Seitenleiste" | nur im WPF-Menü | in beiden |
+| **Strg+B** | konnte nur der WPF-Kopf | können beide |
+| Kürzel im Baummenü (F2 / Entf) | nur im WPF-Menü | in beiden |
+| 📌 Anpinnen · ⭐ Als Favorit | Symbole nur im WPF-Menü | in beiden |
+| Symbolfarbe: Farbpunkte | nur im WPF-Menü | in beiden |
+| Symbolfarbe: „Eigene Farbe…" | fehlte im Linux-Menü | in beiden, Wähler ohne Deckkraft wie drüben |
+| Menüabstand | ≈180 px ↔ ≈117 px | ≈125 px ↔ ≈117 px |
+| Schatten an Ordnerkachel und Favoritenstern | nur im WPF-Kopf | in beiden |
+| Auswahl in Klapplisten und Listen | **violett** (Fluent) | `Brush.Selection` aus dem Theme |
+
+#### Die englischen Kürzel — warum daraus eine eigene Markup-Erweiterung wurde
+
+Avalonias `MenuItem` nimmt für das Kürzel eine `KeyGesture` und zeichnet sie über den
+`PlatformKeyGestureConverter` — **in englischer Schreibweise**. Im deutschen Menü stand
+„Ctrl+S", während drüben „Strg+S" stand; **beide Texte liegen längst in der Sprachtabelle**
+(`Shortcut.Save`), sie kamen dort nur nie an.
+
+**Umstylen ging nicht:** Das Fluent-Template hat für das Kürzel **keinen benannten Teil** —
+an 12.1.1 nachgesehen, es gibt nur `PART_IconPresenter` und `PART_ExpandCollapseChevron`.
+Ein Selektor `/template/ TextBlock` träfe die Beschriftung mit.
+
+Deshalb `{loc:TK Beschriftung|Kuerzel}` (`Services/Localization/TKExtension.cs`): eine
+Kopfzeile aus `DockPanel`, Kürzel rechts, **beide Texte aus derselben Tabelle wie drüben**.
+
+> **⚠ Und ein Fund beim ersten Augenschein, der zeigt, warum eine Kopfzeile mehr ist als
+> ein Text:** Die Beschriftungen tragen den Zugriffstasten-Strich (`_Speichern`). Ein
+> `MenuItem` mit einer Zeichenkette als Kopfzeile setzt von sich aus ein `AccessText` ein,
+> das ihn auswertet und wegnimmt — mein `TextBlock` zeigte ihn roh. **Im Bild stand
+> „_Speichern".** Jetzt steht dort ein `AccessText`.
+
+#### §5 Nr. 14 — die Schriftlisten
+
+**Neu `Core/Theming/Schriftliste.cs`:** mitgelieferte Familien zuerst, danach die
+Systemschriften des Kopfs, alphabetisch, **ohne Doppelte** (ohne Rücksicht auf die
+Schreibweise — „INTER" und „Inter" sind dieselbe). **Core bestimmt die Zusammensetzung, der
+Kopf liefert die Zutat**: einen plattformneutralen Weg zu den Systemschriften gibt es nicht
+(WPF `SystemFontFamilies`, Avalonia `FontManager.Current.SystemFonts`, iPadOS ein drittes
+Mal). Dieselbe Teilung wie beim Schriftschema in §4.26.
+
+**✅ Am laufenden Programm belegt:** Das Schriftfeld des WPF-Kopfs zeigt bei einem neuen
+Dokument jetzt **„Source Sans 3"** statt leer, und die Klappliste des Linux-Kopfs zeigt
+**Inter · Source Sans 3 · JetBrains Mono · Space Grotesk · Geist**, danach *Agency FB,
+ALGERIAN, Arial, …* — jeder Eintrag in seiner eigenen Schrift, in beiden Köpfen.
+
+> **Keine Trennlinie zwischen mitgeliefert und System, und zwar in beiden Köpfen.** Ein
+> `Separator` in einer Klappliste ist auswählbar — er stünde am Ende als Schriftart im
+> Dokument. *Die Reihenfolge trägt die Aussage; ein Strich, der ein gültiger Wert ist, trägt
+> sie schlechter als keiner.*
+
+**+7 Wächter** (`SchriftlisteTests`), darunter der Fehler aus §4.71 als Test: *die Vorgabe
+eines neuen Dokuments lässt sich auswählen.*
+
+#### ⛔ Zwei Zeilen aus §4.71 waren falsch — richtiggestellt
+
+*Beides Zustandsunterschiede, keine Befunde. Sie stehen hier, weil eine Befundtabelle, die
+niemand nachprüft, drei Runden später als Auftrag gelesen wird.*
+
+| Zeile in §4.71 | Was wirklich gilt |
+|---|---|
+| „Tab: ungespeicherte Änderung — Punkt nur im Linux-Kopf" | **Falsch.** `DocumentTabViewModel.TabHeader` hängt den Punkt an, und das ViewModel ist **geteilt**. Im Bild war das eine Dokument geändert und das andere nicht |
+| „Ziehen im Ordnerbaum — im Linux-Kopf zu prüfen" | **Vorhanden.** `MainWindow.Ziehen.cs` hängt Tunnel-Handler ein und behandelt `DragOver`/`Drop` |
+
+#### ⚠ Was auf Fläche 1 offen bleibt
+
+| | |
+|---|---|
+| **Menü-Aufklapppunkt** | Der WPF-Kopf klappt am **linken Rand der Leiste** auf statt unter dem Eintrag — bei „Ansicht" rund 320 px daneben. **Zwei Reparaturen sind gescheitert und stehen als Warnung im Code:** ein `PlacementTarget` auf die Border (`ElementName`) und auf den Vorlagen-Elternteil (`TemplatedParent`). **Beide Male öffnete sich das Menü danach gar nicht mehr** — ohne Fehler, ohne Meldung. WPFs `MenuItem` fasst `PART_Popup` selbst an |
+| **Gestalt des gewählten Reiters** | Strich darunter (Linux) gegen gefüllte Fläche mit runden oberen Ecken (Windows) |
+| **Fenstergröße beim Start** | `1280×820` ergibt 2560×1640 (WPF) gegen 2586×1711 (Avalonia). **Ausdrücklich nicht angeglichen:** der Unterschied ist die Windows-Fensterzier, die Avalonia nicht mitrechnet. Unter echtem Linux gibt es sie nicht — eine Angleichung hier verschöbe den Unterschied nur dorthin, wo ihn niemand misst (§5 Nr. 25) |
+| **Größenfeld leer** | In **beiden** Köpfen bei einem neuen Dokument. Gleich, aber falsch — ein Mangel und kein Unterschied |
+
+#### ⚠ Und der Rest von ①b ist nicht getan
+
+**Die Flächen 2 (Tafel), 4 (Dialoge) und 5 (Symbole, Tooltips, leere Zustände) sind
+weiterhin nur am Code gelesen** (§4.71) — kein Augenschein, keine Angleichung. **Fläche 3
+(Editor) ist gemessen, aber nicht angeglichen**; dort stehen nach §5 Nr. 26 unter anderem
+Cover-Werkzeug, Suchen & Ersetzen, der ganze Tabellenentwurf und sechs
+Einstellungs-Klappgruppen an. *Das ist Phase-4.5-Arbeit unter neuem Namen, und der Zuschnitt
+gehört dem Nutzer.*
+
+> **▶ Die Lehre dieser Runde, und sie gilt für den Rest von ①b:** Das Violett saß nicht an
+> **einer** Stelle. Nach dem Baum (§4.72) kam es an der Klappliste wieder — gefunden, weil
+> jemand die Schriftliste aufgeklappt hat. **Eine Rahmenwerk-Vorgabe sitzt an jeder Stelle,
+> die man nicht angefasst hat**, und die Suche danach ist ein Durchgang über die Oberfläche
+> und keine Liste von Steuerelementen.
+
+### 4.74 Phase 5, ①b — die Tintenpalette, die Tooltips und die deutschen Texte
+
+**V2-97, 2026-08-31.** Bau 0/0, **1052 Tests** unverändert. Fläche 5 ist **vermessen**,
+Fläche 2 in Teilen.
+
+#### Der Fund, den ein Kommentar selbst benannt hat
+
+`TdTextfarben` sagt seit §4.40 wörtlich: *„Die Tintenfarben sind dieselben wie auf der
+Zeichenfläche — ein Nutzer, der auf dem Whiteboard rot schreibt, sucht im Textdokument
+dasselbe Rot, und zwei Rottöne, die fast gleich sind, sind schlimmer als einer."*
+
+**Der Linux-Kopf hielt sich daran, der WPF-Kopf nicht.**
+
+| | WPF | Avalonia |
+|---|---|---|
+| Kacheln | **8** | **6** |
+| Farben | Theme-Tabelle: `#EF4444`, `#EAB308`, dazu Türkis und Pink | Tintenfarben: `#E11D48`, `#F59E0B` |
+| Eigene Farbe | Regenbogen-Knopf | **fehlte** |
+
+*Zwei Paletten, verschieden lang, verschieden sortiert, mit zwei fast gleichen Rottönen —
+genau das, wovor der Satz warnt.* **Ein Kommentar, der eine Übereinstimmung behauptet,
+ersetzt sie nicht.**
+
+**Neu `Core/Rendering/WbTinte.cs`:** eine Palette für beide Köpfe, dazu `Marke()` für die
+Umrechnung nach `#AARRGGBB` — die stand bisher in **beiden** XAML von Hand daneben
+(`Tag="#FF2563EB"` neben `Background="#2563EB"`). Beide Köpfe bauen ihre Kacheln jetzt im
+Code aus dieser Liste; nur „automatisch" und „eigene Farbe" bleiben benannte Elemente, weil
+anderer Code sie anspricht.
+
+**Der Linux-Kopf hat den Farbwähler dazubekommen** (§5 Nr. 26: was fehlt, wird nachgebaut) —
+Regenbogen-Knopf, Kachel für die zuletzt gewählte Farbe, ohne Deckkraft wie drüben.
+
+**✅ Am laufenden Programm:** beide Leisten zeigen jetzt dieselben sechs Kacheln in derselben
+Reihenfolge und denselben Regenbogen-Knopf.
+
+#### Fläche 5 — vermessen
+
+*Mit zwei Wegwerf-Sonden über beide Köpfe, danach von Hand nachgesehen (§8-Muster).*
+
+| | |
+|---|---|
+| **Symbole** | **76 deklariert, 76 gezeichnet — keine Lücke.** *(Der Auftrag sprach von 71; es sind seit §4.60 mehr.)* |
+| **Nur im WPF benutzt** | `Background`, `Caption`, `Chart`, `FormatPainter`, `Search`, `ShapePen`, `Warning` — allesamt Werkzeuge, die dem Linux-Kopf fehlen |
+| **Nur im Linux benutzt** | `Export`, `FitPage`, `FitWidth` — die drei Knöpfe, die dem WPF-Editor fehlen |
+| **In keinem Kopf benutzt** | `ChevronUp`, **`FolderNew`, `Menu`, `WindowMaximize`** |
+| **Tooltips** | 131 (WPF) gegen 96 (Avalonia) |
+
+> **⚠ Drei der vier toten Symbole hat §4.73 erzeugt** — `FolderNew`, `Menu` und
+> `WindowMaximize` wurden beim Angleichen ersetzt und sind seitdem unbenutzt. **Sie bleiben
+> stehen und gehören in Schritt ④** („toter Code, zweiter Lauf"). *Eine Angleichung
+> hinterlässt toten Code, und wer ihn im selben Zug löscht, prüft zwei Dinge auf einmal.*
+
+**Von den 54 Tooltips, die nur der WPF-Kopf hat, gehören 51 zu Werkzeugen, die dem
+Linux-Kopf fehlen** — sie sind kein Tooltip-Befund, sondern die Feature-Lücke aus §4.71 in
+anderer Form. **Der eine echte Fund:** der Sticker-Knopf trug im Linux-Kopf `Tool.Sticker`
+(„Sticker") statt `Tool.Sticker.Tip` („Sticker – Bild-Aufkleber aus der Sammlung einfügen").
+**Alle sechzehn anderen Werkzeuge benutzen in beiden Köpfen denselben Schlüssel** — der
+Sticker war der einzige Ausreißer. Behoben.
+
+#### ⛔ Fest verdrahtete deutsche Texte — vier Stellen, alle im WPF-Kopf
+
+*Dauerregel 1. Ein englisches Programm zeigte hier Deutsch.*
+
+| Stelle | Was dastand |
+|---|---|
+| `TextEditorView.xaml` | `ToolTip="Fügt „Seite {SEITE} von {SEITEN}“ in die Fußzeile ein"` |
+| `TextEditorView.xaml` | `InputGestureText="Strg+X"` / `"Strg+C"` / `"Strg+V"` im Kontextmenü |
+| `HeaderFooterDialog.xaml` | drei `Run`-Zeilen mit der Platzhalter-Erklärung und dem Beispiel |
+
+**Neu je Sprache:** `Shortcut.Cut/Copy/Paste`, `Ed.PageNumbers.Tip`,
+`Ed.HeaderFooter.Fields/Fields2/Example`.
+
+> **⚠ Die Platzhalter bleiben deutsch, auch im englischen Text.** `{SEITE}`, `{SEITEN}`,
+> `{DATUM}` und `{TITEL}` stehen so in `TdField` und werden dort **wörtlich gesucht**. Wer
+> sie mitübersetzt, macht aus einer Erklärung eine Anleitung, die nicht funktioniert.
+
+**Und der Linux-Kopf hat die Erklärung dazubekommen:** Er zeigte nur den kurzen Hinweis zu
+`{SEITE}`/`{SEITEN}`; die zwei anderen Platzhalter kannte nur, wer drüben nachsah. Jetzt
+stehen in beiden Köpfen dieselben drei Zeilen — `Ed.HeaderFooter.Hint` wurde dadurch tot und
+ist aus **beiden** Tabellen heraus. **565 Schlüssel je Sprache, im Gleichschritt, null
+unbenutzte.**
+
+#### Fläche 2 — was gemessen und was angeglichen ist
+
+| Element | Befund | Stand |
+|---|---|---|
+| Tintenpalette | 8 ↔ 6 Kacheln, andere Farben, kein Wähler im Linux-Kopf | ✅ angeglichen |
+| Farbwähler („eigene Farbe") | fehlte im Linux-Kopf | ✅ nachgebaut |
+| Rückgängig/Wiederholen | im Linux-Kopf mit **grauem Kasten** hinterlegt (Fluents `:disabled`) | ✅ flach wie drüben |
+| Strichstärke-Regler | Griff **violett** und groß | ⚠ **halb** — siehe unten |
+| **Diagramm-Werkzeug** | nur im WPF-Kopf (`Tool.Chart.Tip`) | ⛔ offen |
+| **Formen-Stift** | nur im WPF-Kopf (`Tool.SmoothPen`) | ⛔ offen |
+| Bleistift und Textmarker | im WPF-Kopf **hinter der Stift-Klappgruppe**, im Linux-Kopf **offen in der Leiste** | ⛔ offen (Formfrage) |
+| Einstellungsleiste | **7 Klappgruppen ↔ 1** | ⛔ offen (§4.71) |
+| Cover-Werkzeug | fehlt im Linux-Kopf | ⛔ offen (§4.71) |
+
+#### ⚠ Der Schieber — drei Anläufe, und was davon steht
+
+**Der Griff ist jetzt blau und klein wie drüben, das Band grau. Links vom Griff bleibt ein
+schmaler violetter Stummel.**
+
+| Anlauf | Ergebnis |
+|---|---|
+| Setter auf `Background` des Thumbs | **wirkt nicht** — erreicht Fluents eigene Thumb-Vorlage nicht |
+| **Die ganze Slider-Vorlage** in einem `Style` ersetzen | **wirkt gar nicht** — Fluents `ControlTheme` setzt `Template` und gewinnt; der Schieber sah aus wie vor jeder Änderung |
+| Vorlage **nur für den Thumb** | ✅ trägt |
+
+Der Stummel kommt aus einem Element, dessen Namen die Assembly **nicht preisgibt** — weder
+als `PART_` noch als Ressourcenschlüssel. *Das steht hier, damit die nächste Runde nicht bei
+Anlauf eins anfängt.*
+
+#### ⚠ Was von ①b weiterhin aussteht
+
+**Fläche 4 (Dialoge) ist nicht gesehen.** **Fläche 3 (Editor) ist gemessen, aber nicht
+angeglichen.** **Fläche 2 ist nur in der Werkzeugleiste angeglichen** — Einstellungsleiste,
+Cover, Zahlenblock, Schnellaktionen, Import und Texterkennung stehen aus.
+
+> **▶ Und die Lehre wiederholt sich zum dritten Mal:** Das Violett saß nach dem Baum (§4.72)
+> an der Klappliste (§4.73) und jetzt am Schieber. **Jede Fläche, die noch nicht angefasst
+> ist, hat ihres.** Wer ①b plant, plant keinen Durchgang über eine Liste von Steuerelementen,
+> sondern einen über die Oberfläche.
+
+### 4.75 Phase 5, ①b — Fläche 4: die Meldungen, und was die MessageBox gekostet hat
+
+**V2-98, 2026-08-31.** Bau 0/0, **1052 Tests** unverändert.
+
+#### Der Befund: 28 Meldungen, die in keinem Fenster der App standen
+
+**Der WPF-Kopf zeigte seine Meldungen über die native `MessageBox`** — an **28 Aufrufstellen
+in 12 Dateien**. Die trägt Systemfarben, Systemschrift und Systemsymbol. **Der Linux-Kopf hat
+seit jeher ein eigenes Fenster** (`MessageWindow`), weil Avalonia keine MessageBox mitbringt.
+
+*Jede Fehlermeldung und jede Rückfrage war damit ein sichtbarer Unterschied — und der
+gefährlichste, weil man ihn erst sieht, wenn etwas schiefgeht.* **Ein Unterschied, den man an
+jeder Fehlermeldung sieht, ist keine Kleinigkeit; er ist nur überall ein bisschen.**
+
+**Neu `src/GonkNote.Wpf/Views/MessageWindow.xaml(.cs)`** — Aufbau, Maße, Farben und
+Knopfreihenfolge aus dem Linux-Kopf übernommen: farbiger Punkt für die Schwere (blau =
+Mitteilung, pink = Warnung, türkis = Frage), Text, ein oder zwei Knöpfe.
+
+> **Was beim Nachbauen einer MessageBox als Erstes verlorengeht, und deshalb ausdrücklich
+> drinsteht:** Escape schließt, die Eingabetaste bestätigt, und **ohne Besitzer** erscheint
+> das Fenster mittig auf dem Bildschirm statt hinter der App — beim Start und beim Beenden
+> gibt es kurzzeitig keinen.
+
+**Alle 28 Stellen sind umgestellt**, `MessageBox` kommt im WPF-Kopf nicht mehr vor. Die
+Farben kommen **aus dem Theme** (`Brush.Pink`/`Turquoise`/`Accent`) und nicht als feste
+Werte — sonst folgten sie einem späteren eigenen Farbschema nicht (§5 Nr. 27).
+
+**✅ Am laufenden Programm gegengeprüft**, dieselbe Rückfrage in beiden Köpfen („Diese Seite
+und ihren Inhalt löschen?"): gleicher Punkt, gleicher Text, gleiche Knopfreihenfolge, blaues
+„Ja" links, flaches „Nein" rechts.
+
+> **⚠ Ein Rest bleibt und ist benannt:** Die Titelleiste des Linux-Fensters zeigt noch
+> **Minimieren und Maximieren**; drüben nimmt `ResizeMode="NoResize"` beide heraus.
+> `CanResize="False"` tut das in Avalonia nicht. *Eine modale Meldung, die man minimieren
+> kann, ist ein Fenster zu viel.*
+
+#### Fläche 4 — die Bestandsaufnahme
+
+| Dialog | WPF | Avalonia |
+|---|---|---|
+| Über, Erste Schritte, Farbwähler, Texterkennung | ✔ | ✔ |
+| **Meldungen** | ~~native MessageBox~~ → **eigenes Fenster** | eigenes Fenster |
+| `ChartDialog` | ✔ | **fehlt** |
+| `FileInsertDialog`, `PromptDialog` | ✔ | **fehlen** |
+| `TableSizeDialog` | ✔ | **ersetzt** durch zwei Zahlenfelder im Reiter |
+| `TableSortDialog` | ✔ | **fehlt** |
+| `HeaderFooterDialog` | ✔ | **inline** in der Einstellungsleiste |
+| `SeitenwahlWindow` | **fehlt** | ✔ |
+
+*Die fehlenden Dialoge sind keine Dialog-Unterschiede, sondern die Feature-Lücke aus §4.71 in
+anderer Form: Es gibt sie nicht, weil es das Werkzeug dahinter nicht gibt.*
+
+#### Noch eine fest verdrahtete Meldung — diesmal in **beiden** Köpfen
+
+`„Es ist ein unerwarteter Fehler aufgetreten…"` stand in **beiden** `App`-Klassen fest
+verdrahtet auf Deutsch. **Kein Unterschied zwischen den Köpfen, aber eine Lücke in beiden**
+(Dauerregel 1) — ein englisches Programm zeigte hier Deutsch. Neu `Msg.Unexpected` je
+Sprache, beide Köpfe lesen sie. **566 Schlüssel je Sprache, im Gleichschritt.**
+
+> *Der Vergleich zweier Köpfe findet auch das, was beide gleich falsch machen — aber nur,
+> wenn man beim Angleichen hinsieht statt zu vergleichen.*
+
+#### ⚠ Was von ①b weiterhin aussteht — und es ist der größere Teil
+
+| Fläche | Stand |
+|---|---|
+| **1 · Rahmen** | ✅ angeglichen (§4.73), zwei benannte Reste |
+| **4 · Dialoge** | ✅ vermessen, Meldungen angeglichen; die fehlenden Dialoge hängen an fehlenden Werkzeugen |
+| **5 · Symbole/Tooltips** | ✅ vermessen und angeglichen (§4.74) |
+| **2 · Tafel** | ⚠ **nur die Werkzeugleiste.** Offen: Einstellungsleiste (**7 Klappgruppen gegen 1**), Cover-Werkzeug, Zahlenblock, Schnellaktionen, Import, Texterkennung, Diagramm-Werkzeug, Formen-Stift |
+| **3 · Editor** | ⛔ **gemessen, nicht angeglichen.** Offen: Suchen & Ersetzen, der ganze Tabellenentwurf, Formatpinsel, Stil-/Listengalerien, Bild, Infobox, Symbol, Diagramm, Navigator, Wortzahl |
+
+**Das ist nach §5 Nr. 26 Phase-4.5-Arbeit unter neuem Namen** — Werkzeuge bauen, nicht
+Oberflächen angleichen. **Der Zuschnitt gehört dem Nutzer**, und er ist nach dem Befund von
+§4.71 zu treffen.
+
+### 4.76 Die Rückmeldung rückt hinter das Bauen — ① zerfällt in drei
+
+**V2-99, 2026-08-31. Keine Zeile Produktivcode.** Eine Entscheidung des Nutzers und ihre
+Eintragung.
+
+#### Was sich ändert
+
+**Bis hierher:** ① UI/UX angleichen → ② Rückmeldung → ③ Auslieferung → ④ Rest → ⑤ veröffentlichen.
+**Jetzt:** **①a Vermessen → ①b Angleichen → ①c Die fehlenden Werkzeuge → ② Rückmeldung** → ③ → ④ → ⑤.
+
+#### Warum — und der Anlass steht in §4.75
+
+**Das Vermessen aller fünf Flächen hat gezeigt, dass ① zwei verschiedene Arbeiten unter einem
+Namen führt.**
+
+| | |
+|---|---|
+| **Angleichen (①b)** | Symbole, Farben, Kürzel, Tooltips, Anordnung — Stellen, an denen **beide** Köpfe etwas haben und es verschieden aussieht |
+| **Bauen (①c)** | Suchen & Ersetzen, Tabellenentwurf, Cover-Werkzeug, sechs Einstellungs-Klappgruppen, Diagramm, Formen-Stift — Stellen, an denen **einer nichts hat** (§5 Nr. 26) |
+
+**Die Begründung des Nutzers:** Eine Rückmeldung über eine Oberfläche, an der die Hälfte der
+Werkzeuge noch fehlt, **listet in der Mehrzahl Dinge, die ohnehin geplant sind**. Sie doppelt
+die Aufgabenliste, statt sie zu ergänzen — *und wer zwei Listen führt, arbeitet die kürzere
+ab.*
+
+> **⛔ Was das ausdrücklich nicht heißt, weil es sonst als Streichung gelesen wird:** ② fällt
+> **nicht weg**. *Wer eine Oberfläche in einem Zug umbaut und nicht noch einmal hinsieht, hat
+> sie nicht geprüft, sondern nur geändert* — der Satz aus §6 gilt unverändert. **② rückt nur
+> dorthin, wo es eine vollständige Oberfläche zu prüfen gibt.** *Eine Prüfung, die zu früh
+> kommt, ersetzt keine, die zur richtigen Zeit kommt — sie verbraucht nur die Aufmerksamkeit
+> dafür.*
+
+#### Die Trennung ist keine Umbenennung
+
+**Sie hat eine Folge, die beim Planen zählt:** ①b ist Oberflächenarbeit und in Runden von
+Stunden zu messen; **①c ist Phase-4.5-Arbeit unter neuem Namen** und in Runden von Tagen.
+Beide unter einem Namen zu führen hieß, den Rest der Phase mit der falschen Größe zu
+schätzen — genau der Fehler, den §4.24 bei M2 schon einmal gemacht hat (*„M2 war mit Phase 4
+allein gar nicht erreichbar, und der Aufwandsschätzer deckte nur die Engine"*).
+
+#### Der Stand von ①b bei der Umstellung
+
+✅ **Fläche 1** (Rahmen), **4** (Dialoge), **5** (Symbole/Tooltips) und die **Werkzeugleiste**
+der Tafel — §4.72 bis §4.75, dazu §5 Nr. 14. **Offen sind zwei benannte Reste:** der
+Menü-Aufklapppunkt des WPF-Kopfs (§4.73, zwei Reparaturen gescheitert) und der violette
+Stummel am Schieber (§4.74, drei Anläufe).
+
+**Nachgezogen:** §5 Nr. **28**, §6 („Die Schritte" samt Begründungskasten), der Wegweiser in
+§0 und die Kurzform in §5e.
+
 
 ## 5. Entscheidungen
 
@@ -9290,6 +9979,89 @@ trägt, bevor er hinausgeht, ist zweimal derselbe Name für zwei verschiedene St
     fontconfig-Rückfallschrift, GNOME-Fensterdekoration, HiDPI-Maße. **Sie fallen beim
     Flatpak-Durchgang auf** (Schritt ③), der ohnehin auf dem Laptop läuft. *Keine
     Auslassung, eine Verschiebung — aber eine, die benannt sein muss.*
+26. ✅ **Entschieden am 2026-08-29 (Nutzer): fehlt dem Linux-Kopf etwas, wird es dort
+    NACHGEBAUT — nicht im WPF-Kopf gelöscht.**
+
+    **Die Frage kam beim Messen von Schritt ①a** (§4.71) und musste gestellt werden, weil
+    die Vorlage-Regel sie nicht beantwortet: „Bei jedem Unterschied ist Linux die Vorlage"
+    setzt voraus, dass **beide** Köpfe etwas haben und es verschieden aussieht. **Der
+    häufigste Fall ist ein anderer** — dem Linux-Kopf fehlt etwas ganz. Wörtlich genommen
+    verlöre der WPF-Kopf dann sein **Cover-Werkzeug**, **sechs von sieben
+    Einstellungs-Klappgruppen** der Tafel, **Suchen & Ersetzen**, den **ganzen
+    Tabellenentwurf** und die **Kürzelanzeige** in Menüs und Kontextmenüs.
+
+    **Was jetzt gilt:**
+
+    | Lage | Was geschieht |
+    |---|---|
+    | Beide haben es, es sieht verschieden aus | **Linux gewinnt** (Editor: Windows, §4.70) |
+    | **Linux fehlt es** | **im Linux-Kopf nachbauen** |
+    | **Windows fehlt es** | **im WPF-Kopf nachbauen** (z. B. der Punkt für ungespeicherte Änderungen am Reiter) |
+    | Eine Seite ist eine **durchschlagende Rahmenwerk-Vorgabe** und keine Entscheidung | **weder noch — nachfragen** (§4.71, violetter Auswahlbalken) |
+
+    > **⚠ Das ist ausdrücklich keine Aufweichung der Regel, sondern ihre Lesart.** §4.70
+    > hatte dieselbe Kollision schon einmal — an §5 Nr. 15, den Seitenzahlen — und dort
+    > einzeln entschieden. **Der Fall ist aber nicht die Ausnahme, sondern die Mehrheit**,
+    > und eine Regel, die man wörtlich nimmt, ohne zu prüfen, worauf sie zeigt, macht aus
+    > einem Vorteil einen Verlust.
+
+    **⛔ Was daraus folgt und beim Planen von ①b nicht untergehen darf:** Schritt ① ist
+    damit **keine reine Angleicharbeit mehr**. Ein Cover-Werkzeug, eine Suchleiste und der
+    Tabellenentwurf sind **Phase-4.5-Arbeit unter neuem Namen**. **Der Zuschnitt der
+    Baurunden gehört dem Nutzer** und ist nach dem Befund von §4.71 zu treffen — nicht
+    vorweg.
+
+27. ✅ **Entschieden am 2026-08-29 (Nutzer): die Auswahl sieht in beiden Köpfen gleich aus
+    und folgt dem Theme.**
+
+    **Die Frage kam aus §4.71:** Fluent malte die gewählte Baumzeile und den Reiterstrich
+    des Linux-Kopfs in `SystemAccentColor` — **violett**, während der Rest der App blau ist.
+    Das war keine Gestaltungsentscheidung, sondern eine durchschlagende Vorgabe, und deshalb
+    ließ sich die Vorlage-Regel nicht anwenden: **sie setzt voraus, dass beide Seiten gemeint
+    sind.**
+
+    **Die Antwort ist größer als die Farbe:** Heute ist es Blau, weil das mitgelieferte
+    Schema blau ist. **Kommen später eigene Farbschemata** (§6, „Vorgemerkt: eigene
+    Farbschemata"), **folgt die Auswahl in beiden Köpfen dem geladenen Schema.** Damit ist
+    die Vorgabe nicht „blau streichen", sondern **eine Farbe aus der Tabelle statt einer aus
+    dem Rahmenwerk**.
+
+    **Umgesetzt in §4.72** — `Brush.Selection` für die Baumzeile, `Brush.Accent` für den
+    Reiterstrich, beide aus `GonkNote.Core.Theming`. **Gegengeprüft mit einem Themenwechsel
+    und nicht mit einem Bild:** hell `#C7DBFF`, dunkel `#2C3E66`, beides die Werte aus der
+    Tabelle. *Ein Bild in Blau hätte nur gezeigt, dass es blau ist — nicht, dass es folgt.*
+
+    > **⚠ Nicht mit entschieden und deshalb offen:** die **Gestalt** des gewählten Reiters.
+    > Der Linux-Kopf zeichnet einen Strich darunter, der WPF-Kopf eine gefüllte Fläche mit
+    > runden oberen Ecken. Das ist eine Formfrage, sie gehört in den Durchgang über Fläche 1,
+    > und der Nutzer hat nach der **Farbe** gefragt.
+
+
+28. ✅ **Entschieden am 2026-08-31 (Nutzer): die Rückmeldung (②) wird verschoben, bis die
+    fehlenden Werkzeuge gebaut sind.**
+
+    **Der Anlass steht in §4.75.** Nach dem Vermessen aller fünf Flächen ist klar geworden,
+    dass ① aus **zwei verschiedenen Arbeiten** besteht, die nur denselben Namen tragen:
+
+    | | |
+    |---|---|
+    | **Angleichen** | Symbole, Farben, Kürzel, Tooltips, Anordnung — Stellen, an denen **beide** Köpfe etwas haben und es verschieden aussieht |
+    | **Bauen** | Suchen & Ersetzen, Tabellenentwurf, Cover-Werkzeug, sechs Einstellungs-Klappgruppen, Diagramm, Formen-Stift — Stellen, an denen **einer nichts hat** (§5 Nr. 26) |
+
+    **Die Begründung des Nutzers, und sie ist die stärkere:** Eine Rückmeldung über eine
+    Oberfläche, an der die Hälfte der Werkzeuge noch fehlt, **listet in der Mehrzahl Dinge,
+    die ohnehin schon geplant sind**. Sie doppelt die Aufgabenliste, statt sie zu ergänzen —
+    und wer zwei Listen führt, arbeitet die kürzere ab.
+
+    > **⛔ Was das ausdrücklich NICHT heißt, damit es nicht als Streichung gelesen wird:**
+    > ② fällt **nicht weg**. Der Satz aus §6 gilt unverändert — *wer eine Oberfläche in einem
+    > Zug umbaut und nicht noch einmal hinsieht, hat sie nicht geprüft, sondern nur geändert.*
+    > **② rückt nur hinter ①c**, und dann ist es die Rückmeldung über eine **vollständige**
+    > Oberfläche. *Eine Prüfung, die zu früh kommt, ersetzt keine, die zur richtigen Zeit
+    > kommt — sie verbraucht nur die Aufmerksamkeit dafür.*
+
+    **Umgesetzt in §6:** ① zerfällt in **①a Vermessen** (erledigt), **①b Angleichen** und
+    **①c Die fehlenden Werkzeuge**. ② folgt auf ①c.
 
 **Beantwortet und hier nur noch als Verweis** — der volle Wortlaut stand bis zum 2026-08-11
 darunter und wurde von niemandem mehr gelesen; was gilt, steht in der Tabelle oben:
@@ -9972,130 +10744,119 @@ und keinen Digitizer, das ist von hier aus grundsätzlich nicht messbar (§4.62)
 ```text
 Du laeufst auf dem Windows-Rechner. Das Repo liegt in C:\Dev\Zed\gonk-note-V2.
 
-Lies dort Docs/HANDOFF.md -- ACHTUNG, NEUER PFAD, die Datei liegt seit
-V2-93 nicht mehr in der Wurzel (§5 Nr. 21). Lies §5e ("Auftrag fuer den
-Windows-Rechner") und §6 ("Phase 5 -- die Ordnung").
+Lies dort Docs/HANDOFF.md (NICHT in der Wurzel, §5 Nr. 21). Lies §5e
+("Auftrag fuer den Windows-Rechner") und §6 ("Die Schritte").
 
 Zieh zuerst den Stand: git pull. Dann bauen und testen, BEVOR du etwas
-anfasst. Erwartet sind 0 Fehler, 0 Warnungen und 1040 Tests
-(981 Core + 59 WPF) -- stimmt eine der Zahlen nicht, IST DAS DER ERSTE
+anfasst. Erwartet sind 0 Fehler, 0 Warnungen und 1052 Tests
+(988 Core + 64 WPF) -- stimmt eine der Zahlen nicht, IST DAS DER ERSTE
 BEFUND.
 
-M2 IST ERREICHT UND AUSGERUFEN (2026-08-28). Phase 4.5 ist auf BEIDEN
-Systemen zu. DER MEILENSTEIN TRAEGT EIN BENANNTES LOCH: die
-Rechtschreibpruefung fehlt im Linux-Kopf. Bei JEDER
+M2 IST ERREICHT UND AUSGERUFEN. DER MEILENSTEIN TRAEGT EIN BENANNTES
+LOCH: die Rechtschreibpruefung fehlt im Linux-Kopf. Bei JEDER
 Veroeffentlichungsnotiz zu erwaehnen. Die zweite Stift-Taste NICHT --
 die darf verschieden bleiben (§5 Nr. 17).
 
-PHASE 5 IST AM 2026-08-28 NEU GEORDNET WORDEN (Nutzer). DIE ORDNUNG
-STEHT IN §6 UND NUR DORT -- lies sie dort, statt dich auf diese
-Kurzfassung zu verlassen:
+DIE ORDNUNG VON PHASE 5 STEHT IN §6 UND NUR DORT:
 
-  (1) UI/UX 1:1 angleichen   <-- HIER FAENGST DU AN
-  (2) Rueckmeldung
-  (3) Flatpak/AppImage       (VORGEZOGEN, braucht den Laptop)
-  (4) Rest des Aufraeumens + VOLLSTAENDIGER Prueflauf
-  (5) Veroeffentlichen (1.0.0)
+  (1a) Vermessen    ERLEDIGT -- alle fuenf Flaechen (§4.71, §4.74, §4.75)
+  (1b) Angleichen   weitgehend erledigt (§4.72-§4.75)
+  (1c) Werkzeuge    <-- HIER FAENGST DU AN
+  (2)  Rueckmeldung VERSCHOBEN hinter 1c (§5 Nr. 28)
+  (3)  Flatpak/AppImage  (braucht den Laptop)
+  (4)  Rest des Aufraeumens + VOLLSTAENDIGER Prueflauf
+  (5)  Veroeffentlichen (1.0.0)
 
-DEIN AUFTRAG IST SCHRITT 1, UND ER HAT EINE VORLAGE-REGEL MIT EINER
-AUSNAHME:
+DEIN AUFTRAG IST 1c: DIE FEHLENDEN WERKZEUGE BAUEN.
 
- - Beide Koepfe werden Flaeche fuer Flaeche verglichen, und JEDER
-   SICHTBARE UNTERSCHIED wird beseitigt: Symbole, Bedienelemente,
-   Dialoge, Menues, Anordnung, Tooltips, leere Zustaende.
- - BEI JEDEM UNTERSCHIED IST DER LINUX-KOPF DIE VORLAGE.
- - AUSNAHME: BEIM EDITOR IST WINDOWS DIE VORLAGE. TextDocView wird an
-   TextEditorView angeglichen (Reiterfolge, Gruppennamen, Galerien,
-   Anordnung). Das ist ausdruecklich so entschieden.
+DAS IST KEINE ANGLEICHARBEIT, SONDERN PHASE-4.5-ARBEIT UNTER NEUEM
+NAMEN. §5 Nr. 26 sagt: was einer Seite GANZ fehlt, wird DORT gebaut --
+nicht drueben geloescht. Was zu bauen ist, steht als Liste in §4.75;
+der ZUSCHNITT DER RUNDEN GEHOERT DEM NUTZER, also frag ihn, bevor du
+eine grosse Runde anfaengst.
 
-WIE VERGLICHEN WIRD -- und das ist der Teil, an dem frueher Runden
-verloren gegangen sind:
+  Linux-Kopf: Einstellungsleiste (7 Klappgruppen gegen 1),
+  Cover-Werkzeug, Suchen & Ersetzen, der ganze Tabellenentwurf,
+  Formatpinsel, Stil- und Listengalerien, Bild/Infobox/Symbol,
+  Diagramm, Formen-Stift, Navigator, Wortzahl.
 
+DER GROESSTE SICHTBARE POSTEN IST DIE EINSTELLUNGSLEISTE DER TAFEL --
+und vier der fuenf Werkzeuge dahinter (Formen, Text, Notizzettel,
+Sticker) GIBT ES IM LINUX-KOPF LAENGST, es fehlt nur die Bedienflaeche.
+Nur Cover fehlt wirklich.
+
+WAS 1b NOCH OFFEN LAESST, ZWEI BENANNTE RESTE -- BEIDE MIT
+GESCHEITERTEN VERSUCHEN IM CODE, FANG NICHT BEI ANLAUF EINS AN:
+ - Der WPF-Kopf klappt seine Menues am LINKEN RAND der Leiste auf
+   statt unter dem Eintrag (§4.73). PlacementTarget hilft nicht --
+   weder ElementName noch TemplatedParent; danach oeffnet das Menue
+   GAR NICHT MEHR.
+ - Am Strichstaerke-Regler bleibt links vom Griff ein violetter
+   Stummel (§4.74). Ein Setter auf den Thumb hilft nicht, die ganze
+   Slider-Vorlage zu ersetzen hilft auch nicht (Fluents ControlTheme
+   gewinnt) -- nur eine Vorlage NUR fuer den Thumb traegt.
+
+WIE GEMESSEN UND GEPRUEFT WIRD -- daran sind frueher Runden verloren
+gegangen:
  - BEIDE KOEPFE LAUFEN UNTER WINDOWS, an DERSELBEN frisch gezogenen
-   DB-Kopie (--db, Dauerregel 4). Verglichen wird NUR unter Windows,
-   das ist entschieden (§5 Nr. 25).
- - FOTOGRAFIERT WIRD MIT tools/fenster.ps1 UND NICHT MIT schau.ps1.
-   schau.ps1 fotografiert den BILDSCHIRM und liefert im Fehlerfall ein
-   fremdes Fenster (§4.50). Ein Werkzeug, das im Fehlerfall irgendein
-   Bild liefert, ist schlimmer als eines, das nichts liefert.
- - FANG MIT EINER LEEREN FLAECHE AN. Zwei Runden sind an
-   Scheinbefunden verloren gegangen, weil noch etwas aus dem vorigen
-   Lauf dalag (§4.56).
- - EIN AUFTRAG IST KEINE MESSUNG. Unten stehen Dialoge, die im
-   Linux-Kopf keine eigene Datei haben -- ob sie FEHLEN oder INLINE
-   liegen, sieh nach, nimm es nicht an (§4.56).
- - Schreib eine Befundtabelle je Flaeche: Element | WPF | Avalonia |
-   Vorlage | Befund. Sie ist das Arbeitsblatt fuer Schritt 1 und die
-   Vorlage fuer Schritt 2.
+   DB-Kopie (--db, Dauerregel 4). Verglichen wird NUR unter Windows
+   (§5 Nr. 25).
+ - FOTOGRAFIERT WIRD MIT tools/foto.ps1 (§8). fenster.ps1 ist KEINE
+   Anwendung, sondern der gemeinsame Unterbau.
+ - IMMER NUR EIN KOPF SICHTBAR. Stehen beide deckungsgleich,
+   fotografiert kette.ps1 den ANDEREN Kopf -- §4.50 zum zweiten Mal.
+ - FANG MIT EINER LEEREN FLAECHE AN (§4.56).
+ - EIN AUFTRAG IST KEINE MESSUNG. In §4.71 waren zwei von acht
+   vermuteten Befunden falsch, und zwei Zeilen der Befundtabelle
+   mussten in §4.73 richtiggestellt werden.
 
-DIE FLAECHEN, DIE ABZUGEHEN SIND:
- 1. Titelleiste, Menueleiste, Tab-Leiste, Seitenleiste
-    (MainWindow.xaml <-> MainWindow.axaml)
- 2. Whiteboard: Werkzeugleiste, die vier Klappgruppen,
-    Einstellungsleiste, Zahlenblock, Schnellaktionen, Sticker, Cover,
-    Import, Texterkennung
- 3. Text: das ganze Ribbon, alle Reiter und Gruppen -- HIER IST
-    WINDOWS DIE VORLAGE
- 4. Dialoge
- 5. Die 71 Symbole (Core/Theming), Kontextmenues, Tooltips, leere
-    Zustaende, Fehlermeldungen
-
-SCHON BEIM LESEN DES CODES AUFGEFALLEN -- im Linux-Kopf ohne eigene
-Datei, ZU MESSEN UND NICHT ANZUNEHMEN:
- - ChartDialog (389 Zeilen im WPF-Kopf)
- - HeaderFooterDialog, TableSizeDialog, TableSortDialog, PromptDialog,
-   FileInsertDialog
- - TextEditorView.Find.cs (Suchen/Ersetzen)
- - WhiteboardView.Covers.cs (227 Zeilen)
-
-MIT IN SCHRITT 1 GEHOERT §5 Nr. 14: die Schriftlisten werden
-ZUSAMMENGEFUEHRT -- mitgelieferte Schriften oben, Systemschriften
-darunter, in BEIDEN Koepfen dieselbe Quelle. Heute steht das
-Schriftfeld des WPF-Kopfs bei einem neuen Dokument LEER.
+DIE REGEL, DIE SICH IN JEDER RUNDE BESTAETIGT HAT:
+JEDE FLAECHE, DIE NOCH NICHT ANGEFASST IST, HAT IHR EIGENES VIOLETT.
+Fluents SystemAccentColor schlaegt ueberall durch, wo niemand es
+ueberschrieben hat -- Baum (§4.72), Klappliste (§4.73), Schieber
+(§4.74). §5 Nr. 27: die Auswahl sieht in BEIDEN Koepfen gleich aus und
+folgt dem Theme, also NIE ein fester Farbwert, immer ein Wert aus der
+Tabelle in Core.
 
 WAS DU NICHT ANGLEICHST, WEIL ES ENTSCHIEDEN IST:
- (11) Tote Tasten unter Linux -- als Mangel BENANNT lassen und ein
-      Issue bei Avalonia schreiben (gehoert zu Schritt 4, nicht 1).
-      NICHT im Kopf umgehen.
- (15) Keine Seitenzahlen im WPF-Editor -- BLEIBT SO. Das ist eine
-      AUSNAHME von der Editor-Vorlage-Regel: der Linux-Kopf ist hier
-      der bessere und wird NICHT an den schlechteren angeglichen.
+ (11) Tote Tasten unter Linux -- benannt lassen, Issue bei Avalonia
+      (gehoert zu Schritt 4).
+ (15) Keine Seitenzahlen im WPF-Editor -- BLEIBT SO.
  (17) Die zweite Stift-Taste darf verschieden bleiben.
   (3) PDF-Groesse bleibt bei (a).
- (16) (18) (19) (20) sind entschieden -- §5 lesen, nicht neu fragen.
- (21)-(25) sind am 2026-08-28 entschieden worden: HANDOFF nach Docs/
-      (KEIN History-Rewrite), Rechtschreibpruefung als benanntes Loch
-      UND fest als erster Punkt nach M3, Version 1.0.0, alle vier
-      Veroeffentlichungsstuecke, Vergleich nur unter Windows.
+ (16) (18)-(25) sind entschieden -- §5 lesen, nicht neu fragen.
+ (26) Was einer Seite GANZ fehlt, wird dort NACHGEBAUT.
+ (27) Die Auswahl folgt dem Theme, in beiden Koepfen.
+ (28) Die Rueckmeldung folgt erst auf 1c.
+ Die Startgroesse des Fensters wird NICHT angeglichen (§4.73, dort
+ steht die Begruendung).
 
 FALLEN, DIE DICH IN GENAU DIESER ARBEIT ERWISCHEN (§7 vorher
 ueberfliegen, das ist Pflicht):
  - Avalonia: die ROUTING-STRATEGIE entscheidet, wer eine Taste zuerst
    sieht. Drei von vier Fehlern in §4.55 und der Fehler in §4.62 hatten
    diese eine Ursache, und DER BAU WAR JEDES MAL GRUEN.
- - Ein px-Suffix in einem XAML-Mass wirft zur LAUFZEIT, nicht beim Bau
-   (§4.53).
+ - Ein px-Suffix in einem XAML-Mass wirft zur LAUFZEIT (§4.53).
  - Die Einstellungsleiste ohne EinstellungenSpiegeln aufklappen ergibt
-   LAUTER LEERE UMSCHALTER -- der Fehler steht seit Phase 3 woertlich
-   im Code und kam am zweiten Aufklappweg prompt wieder (§4.53).
+   LAUTER LEERE UMSCHALTER (§4.53) -- und genau diese Leiste baust du
+   jetzt aus.
  - Assets, die im Avalonia-csproj ausgenommen sind, weil "das Werkzeug
-   gibt es im Linux-Kopf nicht": DIESE BEGRUENDUNG LAEUFT AB, sobald es
-   das Werkzeug gibt (§4.60). Bau und Tests waren gruen, nur das
-   laufende Programm zeigte zwei Gestalten desselben Werkzeugs.
+   gibt es im Linux-Kopf nicht": DIE BEGRUENDUNG LAEUFT AB, sobald es
+   das Werkzeug gibt (§4.60). DAS GILT JETZT FUER DIE COVER-VORLAGEN --
+   es steht so im csproj.
  - Loc.T faellt bei einem fehlenden Schluessel AUF DEN SCHLUESSEL
-   SELBST zurueck -- ein Fehlgriff steht roh im Fenster und faellt in
-   keinem Test auf (§4.68).
- - Fest verdrahtete deutsche Texte fallen erst auf, wenn sie ein
-   zweiter Kopf braucht (§4.56, §4.58). Beim Angleichen kommen neue
-   dazu -- BEIDE Sprachtabellen zusammen (Dauerregel 1).
- - Die Werkzeug-Kuerzel stehen in Core (WbLeiste.Kuerzel) und sind in
-   beiden Koepfen dieselben: S G B M E L V T F N H. "P" ist keins.
- - Beim Schreiben mit einem Skript: NICHT die Kodierung aendern. Die
-   meisten .cs im Avalonia-Kopf haben KEIN BOM, WhiteboardView.axaml
-   und einige WPF-Dateien schon.
+   SELBST zurueck (§4.68).
+ - Fest verdrahtete Texte fallen erst auf, wenn ein zweiter Kopf sie
+   braucht. In §4.74 und §4.75 waren es sieben Stellen, eine davon in
+   BEIDEN Koepfen. BEIDE Sprachtabellen zusammen (Dauerregel 1).
+ - Die Werkzeug-Kuerzel stehen in Core (WbLeiste.Kuerzel): S G B M E
+   L V T F N H. "P" ist keins.
+ - Beim Schreiben mit einem Skript: NICHT die Kodierung und NICHT die
+   Zeilenenden aendern. Die Dateien sind gemischt (LF und CRLF, mit
+   und ohne BOM) -- vor dem Schreiben lesen, was dasteht.
  - Avalonia: x:Name an einem PINSEL erzeugt kein Feld.
- - Den Linux-Kopf zum Vergleichen NIE mit Stop-Process abschiessen --
-   wer den Schreiber abschiesst, misst nicht den Leser (§4.55).
+ - Den Linux-Kopf NIE mit Stop-Process abschiessen (§4.55). Haengt ein
+   modales Fenster, hilft WM_CLOSE an ALLE Fenster des Prozesses.
 
 EIN GRUENER BAU BEWEIST AN EINER OBERFLAECHE FAST NICHTS. Was am
 laufenden Programm zu sehen ist, wird am laufenden Programm gesehen --
@@ -10107,19 +10868,86 @@ ob der Laptop dran ist.
 Fang an.
 ```
 
-### ▶ Aktueller Auftrag — **▶ Phase 5, Schritt ①: die Oberflächen 1:1 angleichen** (Stand 2026-08-28, nach Runde V2-93)
+### ▶ Aktueller Auftrag — **▶ Phase 5, Schritt ①c: die fehlenden Werkzeuge bauen** (Stand 2026-08-31, nach Runde V2-99)
 
-> **✅ M2 ist ausgerufen** (2026-08-28, §2 und §6) — **mit dem benannten Loch**: die
-> Rechtschreibprüfung fehlt im Linux-Kopf. Phase 4.5 ist auf **beiden** Systemen zu (§4.64).
+> **✅ ①a ist erledigt** — **alle fünf Flächen sind vermessen** (§4.71 Rahmen und Editor,
+> §4.74 Symbole/Tooltips, §4.75 Dialoge).
 >
-> **✅ Und am 2026-08-28 sind sieben Entscheidungen gefallen, darunter die zwei, die den Rest
-> blockierten** (§5 Nr. 11, 14, 15, 21–25). **Es ist keine davon noch einmal zu fragen.**
+> **✅ ①b ist weitgehend erledigt** — Flächen **1, 4, 5** und die **Werkzeugleiste** der
+> Tafel (§4.72 bis §4.75), dazu **§5 Nr. 14** (Schriftlisten). **Zwei benannte Reste stehen
+> unten.**
 >
-> **▶ Damit ist Phase 5 neu geordnet — und die Ordnung steht in §6, „Die fünf Schritte", und
-> nur dort.** Dieser Abschnitt sagt, **womit die nächste Runde anfängt**, nicht was zu bauen
-> ist. *Ein Plan an zwei Stellen ist einer, der an einer davon veraltet.*
+> **▶ ①c ist neu und ist der Rest von ①** (§5 Nr. 28, §4.76): **was einer Seite ganz fehlt,
+> wird dort gebaut** (§5 Nr. 26). **Das ist Phase-4.5-Arbeit unter neuem Namen** — Werkzeuge
+> bauen, nicht Oberflächen angleichen. **② rückt dahinter**, damit die Rückmeldung nicht in
+> der Mehrzahl Dinge nennt, die ohnehin auf der Liste stehen.
+>
+> **▶ Die Ordnung der Phase steht in §6, „Die Schritte", und nur dort.**
 
-#### ▶ Schritt ① — was zu tun ist
+#### ▶ Was in ①c zu bauen ist
+
+*Alles im **Linux-Kopf**, sofern nicht anders vermerkt. Die Liste kommt aus §4.71 und §4.75.*
+
+| Gegenstand | Umfang |
+|---|---|
+| **Einstellungsleiste der Tafel** | **7 Klappgruppen gegen 1.** Formen, Text, Notizzettel, Sticker, Export, Cover fehlen |
+| **Cover-Werkzeug** | Gezeichnet wird es (`WhiteboardView.Render.cs`, `DrawCover`), **bedient nicht** — 227 Zeilen im WPF-Kopf |
+| **Suchen & Ersetzen** | `TextEditorView.Find.cs`, fehlt ganz |
+| **Tabellenentwurf** | Stil, Rahmen, Füllung, Größe, AutoAnpassen, Zellenabstand — der ganze Abschnitt |
+| **Zellen verbinden/teilen, Tabelle teilen/sortieren/Formel/in Text** | fehlt ganz |
+| **Formatpinsel, Formatierung löschen** | fehlen |
+| **Stil-, Aufzählungs- und Nummerierungsgalerie** | fehlen (der Linux-Kopf hat eine Klappliste statt der Kachelgalerie) |
+| **Bild, Infobox, Symbolauswahl** | fehlen |
+| **Diagramm** | `ChartDialog`, 389 Zeilen — und ein **Diagramm-Werkzeug in der Tafelleiste** |
+| **Formen-Stift** (`Tool.SmoothPen`) | fehlt in der Tafelleiste |
+| **Navigator, Wortzahl** | fehlen |
+| **Rückgängig/Wiederholen im Editor** | fehlen als Knöpfe |
+| **Lineal im Editor** | fehlt |
+
+> **⚠ Der größte sichtbare Posten ist die Einstellungsleiste — und der billigste:** **Vier
+> der fünf Werkzeuge dahinter gibt es im Linux-Kopf längst** (Formen §4.53, Text und
+> Notizzettel §4.55, Sticker §4.56). **Es fehlt nur die Bedienfläche.** Nur Cover fehlt
+> wirklich. *Der Kommentar, der das Fehlen begründet, steht seit §4.74 richtiggestellt in
+> `WhiteboardView.axaml`.*
+
+> **⛔ Und die Falle, die genau hier wartet:** Sobald das Cover-Werkzeug kommt, **müssen die
+> Cover-Vorlagen ins Avalonia-csproj** — sie sind dort ausgenommen, mit der Begründung „das
+> Werkzeug gibt es im Linux-Kopf nicht". **Diese Begründung läuft in dem Moment ab.** Es
+> stünde sonst zum dritten Mal derselbe Fehler da: Bau grün, Tests grün, zwei Gestalten
+> desselben Werkzeugs (§4.60, §4.63, §4.74).
+
+#### ⚠ Die zwei Reste aus ①b — beide mit gescheiterten Versuchen
+
+| | |
+|---|---|
+| **Menü-Aufklapppunkt (WPF)** | Die Menüs klappen am **linken Rand der Leiste** auf statt unter dem Eintrag. **Zwei Reparaturen sind gescheitert:** `PlacementTarget` per `ElementName` **und** per `TemplatedParent` — **beide Male öffnete das Menü danach gar nicht mehr**, ohne Fehler (§4.73) |
+| **Violetter Stummel am Schieber (Linux)** | Links vom Griff. **Drei Anläufe** (§4.74): Setter auf den Thumb wirkt nicht, die **ganze** Slider-Vorlage zu ersetzen wirkt gar nicht (Fluents `ControlTheme` gewinnt), nur eine Vorlage **für den Thumb** trägt |
+
+*Beide stehen als Warnung im Code. **Fang nicht bei Anlauf eins an.***
+
+#### ▶ Die Regel, die sich in jeder Runde bestätigt hat
+
+**Jede Fläche, die noch nicht angefasst ist, hat ihr eigenes Violett.** Fluents
+`SystemAccentColor` schlägt überall durch, wo niemand es überschrieben hat — Baum (§4.72),
+Klappliste (§4.73), Schieber (§4.74). **§5 Nr. 27:** die Auswahl sieht in **beiden** Köpfen
+gleich aus und **folgt dem Theme** — also nie ein fester Farbwert, immer einer aus der
+Tabelle in Core.
+
+#### ▶ Wie fotografiert wird — drei Regeln, die ①a teuer gelernt hat
+
+**`tools/fenster.ps1` ist keine Anwendung, sondern der Unterbau.** Genommen wird
+**`tools/foto.ps1 -AppPid <pid> -Bild <pfad> [-Menue]`** (§8).
+
+| Regel | Warum |
+|---|---|
+| **Immer nur ein Kopf sichtbar** | Stehen beide deckungsgleich, fotografiert `kette.ps1`/`klick.ps1` per `CopyFromScreen` **den anderen Kopf**. Das ist §4.50 zum zweiten Mal, und es ist in ①a passiert |
+| **Zustandsbilder mit `foto.ps1` ohne `-Menue`** | `PrintWindow`, also garantiert dieses Fenster |
+| **Menü- und Flyout-Bilder mit `-Menue`** | Nimmt die Hülle über **alle Fenster des Prozesses** auf und holt das Fenster **nicht** nach vorn, wenn es schon vorn ist — sonst schließt das Nachvornholen das Flyout, und das Bild sieht aus wie „kein Kontextmenü" |
+
+> **Und wenn ein modales Fenster den Bau blockiert:** `WM_CLOSE` an **alle** Fenster des
+> Prozesses. **Nie `Stop-Process`** (§4.55).
+
+#### ▶ Schritt ① — der Zuschnitt (unverändert gültig)
 
 **Beide Köpfe Fläche für Fläche vergleichen und jeden sichtbaren Unterschied beseitigen.**
 Der Zuschnitt, die Vorlage-Regel samt ihrer einen Ausnahme und die Liste der Flächen stehen
@@ -10151,7 +10979,8 @@ in **§6**. Hier steht nur, was diese Runde vor dem ersten Handgriff wissen muss
 
 | | | |
 |---|---|---|
-| **②** | **Rückmeldung** | Eine **eigene Runde**. Wer eine Oberfläche in einem Zug umbaut und nicht noch einmal hinsieht, hat sie nicht geprüft, sondern nur geändert |
+| **①c** | **Die fehlenden Werkzeuge** | **Wo einer nichts hat, wird es dort gebaut** (§5 Nr. 26). Das ist **Phase-4.5-Arbeit unter neuem Namen** und keine Angleicharbeit — **der Zuschnitt der Runden gehört dem Nutzer** |
+| **②** | **Rückmeldung** — *verschoben hinter ①c* | Eine **eigene Runde**. Wer eine Oberfläche in einem Zug umbaut und nicht noch einmal hinsieht, hat sie nicht geprüft, sondern nur geändert. **⚠ Erst nach ①c** (§5 Nr. **28**) — sonst nennt sie in der Mehrzahl Werkzeuge, die ohnehin auf der Liste stehen |
 | **③** | **Flatpak/AppImage — vorgezogen** | **Der Laptop ist dann dran** (§5d), und zwar zwingend: unter Windows lässt sich ein Flatpak weder bauen noch starten. **③ ist eine Erprobung und keine Auslieferung** — nach ④ wird noch einmal gebaut, und erst der zweite Bau geht hinaus |
 | **④** | **Rest des Aufräumens + vollständiger Prüflauf** | Dazu gehört auch das **Avalonia-Issue** (§5 Nr. 11) |
 | **⑤** | **Veröffentlichen** | READMEs, Pages, Releases, Beiwerk, Version **1.0.0** |
@@ -11257,15 +12086,40 @@ einen Stand, den nie jemand gesehen hat.**
 Veröffentlichen keinen Sinn: Was hinausgeht, soll auf Linux können, was es auf Windows kann.
 **M2 ist am 2026-08-28 ausgerufen** (§2).
 
-##### Die fünf Schritte
+##### Die Schritte
 
 | | Schritt | Was darin steckt |
 |---|---|---|
-| **①** | **UI/UX 1:1 angleichen** | Beide Köpfe Fläche für Fläche vergleichen und **jeden sichtbaren Unterschied** beseitigen — Symbole, Bedienelemente, Dialoge, Menüs, Anordnung. **Vorlage ist der Linux-Kopf — mit einer Ausnahme: beim Editor ist Windows die Vorlage**, `TextDocView` wird an `TextEditorView` angeglichen. Mit hinein gehört §5 Nr. **14** (Schriftlisten zusammenführen) |
-| **②** | **Rückmeldung** | Was der Vergleich übersehen hat und was ① kaputt gemacht hat. **Eine eigene Runde und kein Anhängsel** — wer eine Oberfläche in einem Zug umbaut und nicht noch einmal hinsieht, hat sie nicht geprüft, sondern nur geändert |
+| **①a** | **Vermessen** ✅ *erledigt (§4.71, §4.74, §4.75)* | Beide Köpfe Fläche für Fläche vergleichen und je Fläche eine **Befundtabelle** schreiben — **ohne anzugleichen**. *Wer misst und ändert zugleich, misst zum Teil seine eigene Änderung.* **Alle fünf Flächen sind vermessen.** |
+| **①b** | **Angleichen** — *weitgehend erledigt* | Jeden sichtbaren Unterschied beseitigen, **wo beide Köpfe etwas haben und es verschieden aussieht**: Symbole, Farben, Kürzel, Tooltips, Anordnung. **Vorlage ist der Linux-Kopf — Ausnahme: beim Editor ist Windows die Vorlage.** ✅ Flächen **1, 4, 5** und die **Werkzeugleiste** der Tafel (§4.72–§4.75), dazu §5 Nr. **14**. **Offen:** die zwei benannten Reste aus §4.73/§4.74 |
+| **①c** | **Die fehlenden Werkzeuge** ◀ *hier geht es weiter* | **Wo einer nichts hat, wird es dort gebaut** (§5 Nr. **26**) — und das ist **Phase-4.5-Arbeit unter neuem Namen** und keine Angleicharbeit. **Linux-Kopf:** Einstellungsleiste (**7 Klappgruppen gegen 1**), Cover-Werkzeug, Suchen & Ersetzen, der ganze Tabellenentwurf, Formatpinsel, Stil- und Listengalerien, Bild/Infobox/Symbol, Diagramm, Formen-Stift, Navigator, Wortzahl. **Der Zuschnitt der Runden gehört dem Nutzer** |
+| **②** | **Rückmeldung** — *verschoben hinter ①c* | Was der Vergleich übersehen hat und was ① kaputt gemacht hat. **Eine eigene Runde und kein Anhängsel** — wer eine Oberfläche in einem Zug umbaut und nicht noch einmal hinsieht, hat sie nicht geprüft, sondern nur geändert. **⚠ Sie folgt erst auf ①c** (§5 Nr. **28**): Eine Rückmeldung über eine Oberfläche, an der die Hälfte der Werkzeuge fehlt, **listet in der Mehrzahl Dinge, die ohnehin geplant sind** — sie doppelt die Aufgabenliste, statt sie zu ergänzen |
 | **③** | **Auslieferung — vorgezogen** | **Flatpak/Flathub** als Hauptweg, **AppImage** als zweiter, abhängigkeitsfreier Kanal, `.deb`/AUR optional. Ins Manifest gehören `fontconfig`, `freetype` **und `tesseract`/`leptonica`** (§4.63, §5 Nr. 18) — sonst rendert SkiaSharp **keine Schrift** und die Texterkennung findet nichts. **Braucht den Laptop** (§5d) |
 | **④** | **Der Rest des Aufräumens, dann der vollständige Prüflauf** | Die Vorratsliste unten, dann der ganze Prüflauf |
 | **⑤** | **Veröffentlichen** | READMEs, GitHub Pages, Releases mit Artefakten, Repo-Beiwerk, `Docs/HANDOFF.md`-Prüfung, Repo auf „public", Version **1.0.0** (§5 Nr. 23/24). Checkliste: „Vor dem Öffentlich-Schalten" |
+
+> **▶ Warum ① in ①a und ①b zerfällt, und warum das keine zusätzliche Runde ist:** Beim
+> Messen hat sich gezeigt, dass ① **kein Zuschnitt für eine Runde** ist — dem Linux-Kopf
+> fehlen ganze Werkzeuge (Cover, Suchen & Ersetzen, Tabellenentwurf, sechs
+> Einstellungs-Klappgruppen), und mit §5 Nr. 26 werden sie **gebaut** und nicht drüben
+> gestrichen. **Die Teilung benennt diesen Umfang, statt ihn in einer Runde zu verstecken.**
+> Der Nutzer entscheidet den Zuschnitt von ①b am Befund von §4.71 — nicht vorweg.
+
+##### ⚠ Warum ② hinter ①c rückt — und warum es keine Streichung ist
+
+**Nutzer-Entscheidung 2026-08-31** (§5 Nr. 28). Beim Vermessen aller fünf Flächen hat sich
+gezeigt, dass ① **zwei verschiedene Arbeiten** unter einem Namen führt: das **Angleichen**
+dessen, was beide Köpfe haben, und das **Bauen** dessen, was einem fehlt. Das Zweite ist
+Phase-4.5-Arbeit unter neuem Namen.
+
+**Eine Rückmeldung dazwischen liefe leer:** Sie nennte in der Mehrzahl Werkzeuge, die
+ohnehin auf der Liste stehen — und **wer zwei Listen führt, arbeitet die kürzere ab.**
+
+> **⛔ Und was das nicht heißt:** ② fällt **nicht weg**. *Wer eine Oberfläche in einem Zug
+> umbaut und nicht noch einmal hinsieht, hat sie nicht geprüft, sondern nur geändert* — der
+> Satz gilt unverändert. ② rückt nur dorthin, wo es eine **vollständige** Oberfläche zu
+> prüfen gibt. *Eine Prüfung, die zu früh kommt, ersetzt keine, die zur richtigen Zeit
+> kommt — sie verbraucht nur die Aufmerksamkeit dafür.*
 
 ##### ⚠ Warum ③ vor ④ steht — und warum die Grundregel damit NICHT gestrichen ist
 
@@ -12851,8 +13705,33 @@ Kandidatenliste ist und keine Zusicherung:
 > **Und nach dem Löschen ein zweites Mal laufen lassen** — eine Löschung macht die nächste
 > Stelle tot (dort: `ResizeBoxAction` → `IBoxElement`).
 
-**Fernsteuern und fotografieren** — seit Phase 2 als drei Skripte unter `tools\`, statt
-jedes Mal neu getippt:
+**Fernsteuern und fotografieren** — seit Phase 2 als Skripte unter `tools\`, statt jedes
+Mal neu getippt. **`fenster.ps1` ist keine Anwendung, sondern der gemeinsame Unterbau**
+(`Vorn`, `Foto`, `Schwarz`); die anderen binden es per Punkt-Aufruf ein.
+
+**Zum Vergleichen zweier Köpfe (Phase 5, §4.71) ist `foto.ps1` das richtige Werkzeug** — es
+fotografiert ein **schon laufendes** Fenster, so oft man will, und **bricht ab, statt im
+Fehlerfall irgendein Bild zu liefern**:
+
+```powershell
+.\tools\foto.ps1 -AppPid <pid> -Bild $env:TEMP\a.png           # PrintWindow: garantiert DIESES Fenster
+.\tools\foto.ps1 -AppPid <pid> -Bild $env:TEMP\b.png -Menue    # fuer offene Menues und Flyouts
+```
+
+> **⛔ Drei Regeln, die §4.71 teuer gelernt hat, und alle drei sind Messfehler und keine
+> Befunde gewesen:**
+> **(1) Immer nur EIN Kopf sichtbar.** Stehen beide deckungsgleich, fotografieren
+> `kette.ps1` und `klick.ps1` per `CopyFromScreen` des Fensterrechtecks — und liefern **den
+> anderen Kopf**. *Das ist §4.50 zum zweiten Mal; die Warnung dort nennt `schau.ps1`, der
+> Fehler saß in `kette.ps1`.*
+> **(2) `-Menue` nur für offene Menues.** Es nimmt die Hülle über **alle Fenster des
+> Prozesses** auf und holt das Fenster **nicht** nach vorn, wenn es schon vorn ist — sonst
+> schließt das Nachvornholen das Flyout, und das Bild sieht aus wie „kein Kontextmenü".
+> **(3) `Process.MainWindowHandle` ist unzuverlässig** — bei offenem Tooltip zeigt es auf
+> dessen Fenster (gemessen: ein 314×50-Bild). `foto.ps1` nimmt deshalb das **größte**
+> sichtbare Fenster des Prozesses.
+
+Die drei älteren Skripte:
 
 ```powershell
 # Seit Phase 3 wählt -Kopf, welcher der beiden Köpfe startet.
@@ -12929,6 +13808,12 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 | V2-91 | 2026-08-28 | **Phase 5 hat angefangen — toter Code** (§4.68 neu; sechs Stellen in `Core` gelöscht, zehn Übersetzungstexte, kein Verhalten geändert; Bau 0/0, **1040 Tests** unverändert). **Weg sind:** `DefaultFontProvider` (jeder Kopf bringt seinen eigenen mit), `ResizeBoxAction` (seit §4.51 macht das `ScaleElementsAction`), `IBoxElement`, `AppPaths.LegacyDatabaseFile` (hätte nur für den Vorgabepfad gestimmt und bei jedem `--db` auf die falsche Datei gezeigt), `BlobStore.TotalBytes()` und `TdSelection.Zusammenfallen()`. **Dazu fünf Übersetzungsschlüssel je Sprache**, beide Reste von etwas Abgeschafftem: `Ed.ViewOnly*` („geschrieben wird bis auf Weiteres in der Windows-Fassung" — seit §4.35 falsch) und `Td.RtfLeads*` (die Warnung, deren **Grund** mit §4.48 weggefallen ist, nicht nur die Warnung). 564 → **559 Schlüssel je Sprache**, beide im Gleichschritt, **null unbenutzte**. **Gefunden mit zwei Wegwerf-Sonden** (Muster jetzt in §8) — **und die Mehrheit der Treffer war Fehlalarm**: Markup-Erweiterungen, Erweiterungsmethoden, Schnittstellen-Umsetzungen, alles über `var`, und die 53 Cover, die per Verzeichnislauf geladen werden. **Der Fund, der nur beim zweiten Lauf kam:** eine Löschung macht die nächste tot — `IBoxElement` hatte vor der Runde noch einen Leser. **An jeder gelöschten Stelle steht jetzt ein Absatz**, was dort stand und warum es weg ist; wo eine Doku Wissen trug, ist es umgezogen statt zu verschwinden. **✅ Augenschein in beiden Köpfen** — `Loc.T` fällt bei einem fehlenden Schlüssel auf den Schlüssel selbst zurück, ein Fehlgriff stünde also roh im Fenster: neues Textdokument, alle Ribbon-Reiter, nichts dergleichen. **⚠ Nebenbefund, der §5 Nr. 14 belegt:** das Schriftfeld des WPF-Kopfs ist **leer**, wo der Linux-Kopf „Source Sans 3" zeigt — kein falscher Name, sondern gar keiner. **Nicht durchsucht:** Testprojekte und `tools/`, und `§4.1` ist noch nicht aufgelöst. |
 | V2-92 | 2026-08-28 | **Phase 5, Punkt 2 — die Doku gegen den Code gelesen** (§4.69 neu; §7 an fünf Stellen richtiggestellt, **ein** Kommentar im Code geändert, sonst kein Produktivcode; Bau 0/0, **1040 Tests** unverändert). **⛔ Der gefährliche Fund:** §7 sagte *„solange `Rtf` führt, ist jeder Fehler im Umwandler folgenlos — deshalb läuft er bei jedem Speichern mit"*. **Beide Hälften sind seit §4.48 falsch**, und die Umkehrung ist der Punkt: Ein Fehler im Umwandler ist nicht mehr folgenlos, sondern **genau einmal folgenreich** — er trifft die Übernahme eines Bestandsdokuments, danach gibt es keinen zweiten Anlauf. Die Zeile stand seit §4.23 in dem Abschnitt, den man **vor** jeder Codeänderung liest; **§5e warnt seit V2-88 davor — aber nur für §4.23, nicht für §7**, und eine Warnung, die den einen Fundort nennt und den anderen nicht, deckt den ungenannten schlechter ab als gar keine. **Beim Richtigstellen die eigene erste Fassung umgeworfen:** „`Migrate` läuft nicht mehr bei jedem Speichern" ist **auch falsch** — der Aufruf blieb, nur `TdFuehrung.UebernahmeStehtAus` lässt ihn nicht mehr durch. Am Code nachgemessen, nicht nachgelesen. **▶ Zwei Stellen, ein Muster, entgegengesetzte Richtungen:** bei `WbHit` wusste **§7** seit §4.51, dass der **Code**-Kommentar falsch war, und ließ ihn stehen („der Zustand und die Griffe" — die liegen längst in `WbHandles`); bei `AvaloniaClipboard.HasImage` war es umgekehrt — der **Code** war seit V2-84 richtig, **§7** warnte weiter vor dem behobenen Zustand. *Eine Stelle richtigzustellen heißt nicht, die andere mitzuziehen.* Und die alte §7-Zeile war dort **die Warnung, die funktioniert hat** — sie ist erst danach zur Falle geworden. **Außerdem:** `AppendInline` gibt es nicht mehr (der Markdown-Verweis ist heute eine Klammer um Stücke, kein `Span`-Erbe), zwei Dateinamen ausgeschrieben (bei **vierzehn** `WhiteboardView`-Teildateien ist `Editing.cs` eine Suche und keine Angabe), `OriginalString` gilt unverändert und ist zur Formatentscheidung geworden. **Gefunden mit drei Sonden** (Namen, Pfade, nachzählbare Zahlen) **plus gezieltem Lesen** — die Sonden fanden 32 Kandidaten, davon **29 Fremdcode oder ausdrücklich Vergangenheit**; die zwei wichtigsten Funde konnten sie **grundsätzlich nicht** sehen, weil dort alle Namen noch stimmen und nur die Aussage nicht. **Nicht behauptet:** §7 ist nicht vollständig gegengelesen. |
 | V2-93 | 2026-08-28 | **Phase 5 neu geordnet — die Oberfläche zuerst, die Auslieferung vorgezogen** (§4.70; **keine Zeile Produktivcode**, `git mv HANDOFF.md Docs/HANDOFF.md` als Rename, `.gitignore` und `tools/stylus-prototyp/README.md` nachgezogen, Roadmap-Datei mit). **Sieben Entscheidungen des Nutzers** (§5 Nr. **11**, **14**, **15**, **21**–**25**): `HANDOFF.md` nach `Docs/` **ohne History-Rewrite** — die einzige Entscheidung der Phase, die nachträglich nicht mehr zu treffen gewesen wäre —, Rechtschreibprüfung als benanntes Loch **und** als Phase **5.6** fest nach M3 eingeplant, tote Tasten **melden und stehen lassen** (nicht umgehen), Schriftlisten **zusammenführen**, Seitenzahlen im WPF-Editor **stehen lassen**, Version **1.0.0**, Veröffentlichung in **allen vier** Stücken, UI-Vergleich **nur unter Windows**. **Die neue Ordnung: ① UI/UX 1:1 → ② Rückmeldung → ③ Flatpak/AppImage → ④ Rest + vollständiger Prüflauf → ⑤ veröffentlichen.** **⚠ ① stand nirgends im Plan** — M2 wurde als *Funktionsgleichheit* ausgerufen und ist es auch, aber **Funktionsgleichheit ist nicht Aussehensgleichheit**, und das fiel niemandem auf, solange die Köpfe nacheinander gebaut wurden. **⚠ ③ ist vorgezogen, weil es das einzige Stück ist, das noch nie gelaufen ist** — und §4.64 hat die Tesseract-Bindung ausdrücklich **außerhalb** eines Flatpaks vermessen. **⛔ In §6 ausdrücklich festgehalten, damit es nicht als Streichung gelesen wird:** ③ ist eine **Erprobung**, nach ④ wird noch einmal gebaut, **und erst dieser zweite Bau geht hinaus** — die Grundregel von 2026-08-05 gilt unverändert. **⚠ Der einzige inhaltliche Fund der Runde kam beim Eintragen der Vorlage-Regel:** „beim Editor ist Windows die Vorlage“ hätte den Linux-Kopf wörtlich genommen seine **Seitenzahlen kosten** (§5 Nr. 15) — festgehalten ist deshalb, dass die Regel das **Aussehen** des Ribbons meint und nicht das **Rechnen** dahinter. *Eine Regel, die man wörtlich nimmt, ohne zu prüfen, worauf sie zeigt, macht aus einem Vorteil einen Verlust.* **⚠ Und der Verzicht auf den Rewrite ist keine Ersparnis, sondern eine neue Pflicht:** die Datei ist in **jeder** Fassung öffentlich lesbar, die Kopfzeilen-Regel war bisher durch die **Möglichkeit** eines Rewrites abgesichert — neuer Punkt in der Checkliste. **Nebenbei:** die Testzahlen im Schnellstart standen auf **913**/**854** statt **1040**/**981**. ▶ **Als Nächstes: Schritt ① — die Oberflächen 1:1 angleichen** (§5e). **Der Laptop ist nicht dran — aber bei ③ ist er es zwingend** (§5d) |
+| V2-94 | 2026-08-29 | **Phase 5, Schritt ①a — die Oberflächen vermessen, noch nicht angeglichen** (§4.71 neu; **kein Produktivcode**, neu `tools/foto.ps1`, zwei abgelaufene Kommentare richtiggestellt; Bau 0/0 in Release, **1040 Tests** unverändert). **Vom Nutzer so zugeschnitten: messen, nicht ändern** — wer misst und ändert zugleich, misst zum Teil seine eigene Änderung. **▶ Neue Entscheidung §5 Nr. 26: nach oben angleichen** — fehlt dem Linux-Kopf etwas, wird es **dort nachgebaut** und nicht drüben gelöscht. Die Frage musste gestellt werden, weil die Vorlage-Regel sie nicht beantwortet: „Linux ist Vorlage" setzt voraus, dass **beide** etwas haben; der häufigste Fall ist, dass **einer nichts hat**, und wörtlich genommen verlöre der WPF-Kopf sein Cover-Werkzeug, sechs von sieben Einstellungs-Klappgruppen, Suchen & Ersetzen und den ganzen Tabellenentwurf. **Damit ist ① keine reine Angleicharbeit mehr, sondern Phase-4.5-Arbeit unter neuem Namen** — deshalb in **①a (messen, erledigt)** und **①b (bauen)** geteilt, und der Zuschnitt von ①b gehört dem Nutzer. **⛔ Der schwerste Fund, und er wäre ohne den Vergleich nie aufgefallen: im WPF-Kopf bekommt das Umbenennen-Feld beim Anlegen keinen Tastaturfokus.** Dieselbe Klick- und Tastenfolge, ein Durchgang, jeder Kopf allein: Linux zeigt `Physik` mit Schreibmarke, Windows weiter `Neuer Ordner` — **das Getippte kommt nirgends an**. Die Folge ist schlimmer als der Fehler: der Fokus bleibt auf dem Seitenleisten-Knopf, ein **Eingabe** löst ihn erneut aus und legt einen **zweiten** Ordner an; solange das Feld offen ist, wirkt kein Klick auf Galerie oder Seitenleiste. *Dieselbe Sorte wie §4.65, nur im WPF-Kopf — ein Kopf allein hat kein Maß für sich selbst.* **⛔ Zweiter Fund: der WPF-Kopf zeichnet seine Oberfläche in Segoe UI statt Inter** — `Font.Ui` = `./Fonts/Inter/#Inter, Segoe UI`, die TTF liegen im Ausgabeordner, der relative Pfad greift trotzdem nicht; **§4.26 wollte genau das abschaffen**. **Dazu am laufenden Programm belegt:** §5 Nr. 14 (WPF-Schriftfeld **leer**, Linux „Source Sans 3" — und das **Größen**feld ist in **beiden** leer, das stand so noch nirgends), die englischen Kürzeltexte `Ctrl+S`/`Ctrl+Shift+S` im deutschen Linux-Menü (`InputGesture` rendert Avalonias eigene Schreibweise), die fehlende Haken-Anzeige der aktiven Sprache im WPF-Kopf, verschiedene Symbole (Hamburger ↔ Sidebar, FolderNew ↔ Folder, WindowMaximize ↔ WindowRestore), Menü-Aufklapppunkt (WPF am linken Leistenrand, Linux unter dem Eintrag), fehlende Kürzel und Menüsymbole im Linux-Kontextmenü, der Punkt für ungespeicherte Änderungen **nur** im Linux-Tab, und **derselbe** Wert 1280×820 ergibt zwei Fenstergrößen. **⚠ Offen und dem Nutzer vorgelegt:** Baum-Auswahlbalken und Tab-Unterstrich sind im Linux-Kopf **violett** — Avalonias Fluent-Vorgabe schlägt durch, das ist keine Gestaltungsentscheidung, und die Vorlage-Regel setzt voraus, dass beide Seiten gemeint sind. **▶ Zwei der acht „zu messenden" Stellen waren falsch vermutet:** `HeaderFooterDialog` liegt **inline** als Klappgruppe, `TableSizeDialog` ist durch zwei Zahlenfelder **ersetzt**; `ChartDialog`, `TableSortDialog`, `PromptDialog`, `FileInsertDialog` und Suchen/Ersetzen fehlen wirklich, und Cover wird **gezeichnet, aber nicht bedient**. **⚠ Zwei abgelaufene Begründungen gefunden (§4.60-Muster):** `WhiteboardView.axaml` begründete die fehlenden Einstellungs-Klappgruppen mit „Werkzeuge, die es im Linux-Kopf nicht gibt" — **für vier der fünf seit Phase 4.5 falsch**; im `csproj` gilt dieselbe Begründung für die Cover-Vorlagen **noch**, und dort steht jetzt, dass sie mit dem Cover-Werkzeug mitwandern müssen. **⛔ Und drei Messfehler dieser Runde stehen mit im Bericht, weil jeder als Befund durchgegangen wäre:** das Nachvornholen schloss das Flyout („Linux hat kein Kontextmenü"), zwei deckungsgleiche Fenster ließen `kette.ps1` **den anderen Kopf** fotografieren (**§4.50 zum zweiten Mal** — die Warnung nannte `schau.ps1`, der Fehler saß in `kette.ps1`), und `MainWindowHandle` zeigte auf einen Tooltip. Alle drei sind im Werkzeug behoben. **Nicht getan:** Flächen **2 (Tafel), 4 (Dialoge), 5 (Symbole/Tooltips/leere Zustände)** sind **nur am Code gelesen, nicht gesehen** — benannte Lücke, sie gehören an den Anfang von ①b. §5 Nr. 14 ist **nicht** umgesetzt (Golden-File-Berührung, gehört nicht in eine Messrunde). ▶ **Als Nächstes: ①b** (§5e). **Der Laptop ist nicht dran — aber bei ③ ist er es zwingend** (§5d) |
+| V2-95 | 2026-08-30 | **Phase 5, Schritt ①b — die ersten drei Unterschiede beseitigt** (§4.72 neu; neu `src/GonkNote.Wpf/Services/AppFonts.cs` und `tests/GonkNote.Wpf.Tests/OberflaechenschriftTests.cs`, dazu `Themes/Styles.xaml`, `App.xaml.cs`, `MainWindow.xaml(.cs)`, `Avalonia/Themes/Styles.axaml`; Bau 0/0, **1045 Tests** = 981 Core + **64** WPF, **+5 Wächter**). **Die drei Punkte aus §4.71, die keine Angleicharbeit waren, sondern Fehler.** **⛔ ① Der WPF-Kopf zeichnete seine Oberfläche in Segoe UI statt Inter** — seit §4.26, also elf Monate lang. `./Fonts/Inter/#Inter, Segoe UI` in `Styles.xaml` ist ein **relativer** Schrift-URI und wird gegen die Basis des XAML aufgelöst: bei einem eingebundenen Wörterbuch `pack://application:,,,/GonkNote;component/Themes/`, also **in** der Assembly, wo keine Schrift liegt. Der Kommentar daneben behauptete das Gegenteil („zeigt auf die losen Dateien neben der Exe") — *ein Kommentar über den eigenen Code, der von Anfang an falsch war, dieselbe Sorte wie §4.67*. **⚠ Der erste Reparaturversuch ist gemessen gescheitert und steht deshalb im Bericht:** `pack://siteoforigin:,,,/Fonts/…` sieht nach der richtigen Antwort aus und ergab **denselben Rückfall** (Breite von „Dokumente" blieb bei 268 px). Jetzt baut `AppFonts` die Familien mit **absoluter** Basis (`AppContext.BaseDirectory`), gesetzt in `App.OnStartup` vor dem ersten Fenster. **⚠ Ein stiller Fallstrick steckte in der Umstellung:** drei Setter benutzten `{StaticResource Font.Ui}` — das friert den Wert beim Laden des Wörterbuchs ein, `AppFonts.Apply` wäre **ohne jeden Hinweis** ins Leere gelaufen; alle Verwendungen sind jetzt `DynamicResource`. **Nebenbei fällt eine Doppelschreibung weg, deren Begründung falsch war** („XAML kann keine Konstante aus C# lesen" — C# kann es, die Namen kommen jetzt aus `Fonts.Standard`). **✅ Am laufenden Programm nachgemessen:** „Dokumente" 268 px → **281 px** (Avalonia 283). **+5 Wächter `OberflaechenschriftTests`, und der Punkt ist, warum es sie vorher nicht gab:** `SchriftkonzeptTests` prüft, dass jede Rolle auf eine mitgelieferte Familie zeigt und jede Datei danebenliegt — **beides stimmte**; niemand prüfte, ob der **Kopf** sie findet. **⛔ ② Das Umbenennen-Feld des WPF-Kopfs bekam beim Anlegen keinen Tastaturfokus.** **Mit UI-Automation gemessen statt vermutet:** die Fokusabfrage nannte bei 60/150/300/600/1200/2500 ms **durchgehend einen `Button`** — damit war „der `TreeViewItem` nimmt ihn wieder weg" widerlegt, **bevor eine Zeile Code entstand**: er wurde nie genommen, sondern nie geholt. **Die Gegenprobe erklärte den Rest:** über **F2** meldete dieselbe Abfrage ein `Edit`. Ursache: auf dem Anlegeweg entsteht der Eintrag **mit** `IsRenaming = true`, das Feld wird also **gleich sichtbar geboren** — `IsVisibleChanged` feuert nicht, weil sich nichts *ändert*. Behoben mit einem zweiten Haken (`Loaded`) und `DispatcherPriority.Input` statt der Vorgabe `Normal` (in WPF laufen **höhere** Prioritäten zuerst). **Damit ist auch ein Scheinbefund aus §4.71 erklärt:** der Fokus blieb auf dem Seitenleisten-Knopf, ein **Eingabe** löste ihn erneut aus und legte einen **zweiten** Ordner an. **✅ ③ Die Auswahlfarbe** (§5 Nr. **27**, Nutzer-Entscheidung: **gleich in beiden Köpfen und dem Theme folgend**, auch einem späteren eigenen). Fluent malte Baumzeile und Reiterstrich in `SystemAccentColor` — violett. Jetzt `Brush.Selection` bzw. `Brush.Accent` aus Core. **Vier Selektoren, und die zwei zusätzlichen sind der eigentliche Inhalt:** ohne `:selected:pointerover` und `:selected:pressed` bliebe das Violett **nur beim Überfahren und Drücken** stehen — der unauffälligste Ort, an dem eine Vorgabe überlebt. `PART_SelectedPipe` ist **an der gebundenen Fassung 12.1.1 nachgemessen** (Zeichenketten in `Avalonia.Themes.Fluent.dll`), nicht geraten. **✅ Zweimal gemessen, und die zweite Messung ist die wichtige:** hell `#C7DBFF`, **dunkel `#2C3E66`** — beides die Werte aus `Themes.Light`/`Themes.Dark`. *Ein Bild in Blau hätte nur gezeigt, dass es blau ist, nicht dass es folgt.* **⚠ Ausdrücklich nicht mitgemacht:** die **Gestalt** des gewählten Reiters bleibt verschieden (Strich gegen gefüllte Fläche) — Formfrage, gehört in den Durchgang über Fläche 1; *was nebenbei mit erledigt wird, hat niemand entschieden*. **Nicht getan:** Flächen **2, 4, 5** sind weiterhin **nur am Code gelesen**, §5 Nr. 14 ist offen. ▶ **Als Nächstes: ①b weiter** (§5e). **Der Laptop ist nicht dran — aber bei ③ ist er es zwingend** (§5d) |
+| V2-96 | 2026-08-30 | **Phase 5, ①b — Fläche 1 angeglichen und die Schriftlisten zusammengeführt** (§4.73 neu; neu `Core/Theming/Schriftliste.cs`, `Avalonia/Services/Localization/TKExtension.cs`, `tests/…/SchriftlisteTests.cs`; Bau 0/0, **1052 Tests** = 988 Core + 64 WPF, **+7 Wächter**). **Fünfzehn Unterschiede der Fläche 1 sind weg**, alle am laufenden Programm geprüft, jeder Kopf allein sichtbar: Seitenleisten-Umschalter, Ordnersymbol, Fensterknopf und dessen Farbe, das fehlende **Fenstersymbol** im WPF-Kopf, die Kürzelanzeige in Menü und Kontextmenü, **Strg+B** (das konnte bisher nur der WPF-Kopf, obwohl beide Menüs den Eintrag zeigen), die Symbole für Anpinnen und Favorit, die **Farbpunkte** und **„Eigene Farbe…"** im Symbolfarben-Menü, der Menüabstand, die Schatten an Ordnerkachel und Favoritenstern. **⛔ Die englischen Kürzel wurden zur eigenen Markup-Erweiterung:** Avalonia zeichnet ein `InputGesture` über den `PlatformKeyGestureConverter`, also „Ctrl+S" im deutschen Menü — **die deutschen Texte lagen längst in der Sprachtabelle und kamen dort nie an**. Umstylen ging nicht: das Fluent-Template hat für das Kürzel **keinen benannten Teil** (an 12.1.1 nachgesehen). Jetzt `{loc:TK Beschriftung\|Kuerzel}` mit `DockPanel`-Kopfzeile aus **derselben** Tabelle wie drüben. **⚠ Und der erste Augenschein danach fand gleich den nächsten Fehler:** die Beschriftungen tragen den Zugriffstasten-Strich, ein roher `TextBlock` zeigte ihn — **im Bild stand „_Speichern"**; jetzt steht dort ein `AccessText`, das ihn auswertet wie das Original. **✅ §5 Nr. 14 ist eingelöst:** `Schriftliste.Aufbauen` in Core setzt mitgelieferte Familien nach vorn und die Systemschriften des Kopfs alphabetisch dahinter, **ohne Doppelte** und ohne Rücksicht auf die Schreibweise. **Core bestimmt die Zusammensetzung, der Kopf liefert die Zutat** — einen plattformneutralen Weg zu den Systemschriften gibt es nicht (dieselbe Teilung wie §4.26). **Am laufenden Programm belegt:** das Schriftfeld des WPF-Kopfs zeigt bei einem neuen Dokument **„Source Sans 3"** statt leer, die Klappliste des Linux-Kopfs **Inter · Source Sans 3 · JetBrains Mono · Space Grotesk · Geist**, danach *Agency FB, ALGERIAN, Arial …*, jeder Eintrag in seiner eigenen Schrift. **Keine Trennlinie, und zwar in beiden Köpfen** — ein `Separator` in einer Klappliste ist auswählbar und stünde am Ende als Schriftart im Dokument. **⛔ Der Fund beim Aufklappen dieser Liste ist die Lehre der Runde:** dort war die Auswahl **wieder violett**. Das Violett saß nicht an einer Stelle — nach dem Baum (§4.72) kam es an `ComboBoxItem` und `ListBoxItem` zurück. *Eine Rahmenwerk-Vorgabe sitzt an jeder Stelle, die man nicht angefasst hat*; die Suche danach ist ein Durchgang über die Oberfläche und keine Liste von Steuerelementen. **⛔ Zwei Zeilen aus §4.71 waren falsch und sind richtiggestellt** (gekennzeichnet, nicht gelöscht): der Punkt für ungespeicherte Änderungen kommt aus dem **geteilten** `DocumentTabViewModel.TabHeader` — im Bild war schlicht ein Dokument geändert und das andere nicht; und das **Ziehen im Ordnerbaum gibt es im Linux-Kopf** (`MainWindow.Ziehen.cs`). *Eine Befundtabelle, die niemand nachprüft, wird drei Runden später als Auftrag gelesen.* **⚠ Zwei Reparaturen sind gescheitert und stehen als Warnung im Code:** der Menü-Aufklapppunkt des WPF-Kopfs (er klappt am **linken Rand der Leiste** auf statt unter dem Eintrag) ließ sich weder über `PlacementTarget`/`ElementName` noch über `TemplatedParent` richten — **beide Male öffnete sich das Menü danach gar nicht mehr**, ohne Fehler und ohne Meldung. **⚠ Ausdrücklich nicht angeglichen:** die Startgröße des Fensters (der Unterschied ist die Windows-Fensterzier, die es unter echtem Linux nicht gibt — eine Angleichung verschöbe ihn nur dorthin, wo ihn niemand misst, §5 Nr. 25). **Nicht getan:** Flächen **2 (Tafel), 4 (Dialoge), 5 (Symbole/Tooltips)** sind weiterhin **nur am Code gelesen**; **Fläche 3 (Editor) ist gemessen, aber nicht angeglichen** — dort stehen nach §5 Nr. 26 Cover-Werkzeug, Suchen & Ersetzen, der ganze Tabellenentwurf und sechs Einstellungs-Klappgruppen an. ▶ **Als Nächstes: ①b weiter** (§5e). **Der Laptop ist nicht dran — aber bei ③ ist er es zwingend** (§5d) |
+| V2-97 | 2026-08-31 | **Phase 5, ①b — die Tintenpalette, die Tooltips und die deutschen Texte** (§4.74 neu; neu `Core/Rendering/WbTinte.cs`; Bau 0/0, **1052 Tests** unverändert). **⛔ Der Fund, den ein Kommentar selbst benannt hat:** `TdTextfarben` sagt seit §4.40 wörtlich, die Tintenfarben seien *„dieselben wie auf der Zeichenfläche"* — **der Linux-Kopf hielt sich daran, der WPF-Kopf nicht.** Acht Kacheln aus der Theme-Tabelle (`#EF4444`, `#EAB308`, dazu Türkis und Pink) gegen sechs aus den Tintenfarben (`#E11D48`, `#F59E0B`): **zwei Paletten, verschieden lang, verschieden sortiert, mit zwei fast gleichen Rottönen** — genau das, wovor der Satz warnt. *Ein Kommentar, der eine Übereinstimmung behauptet, ersetzt sie nicht.* Jetzt eine Liste in Core für beide Köpfe, samt der Umrechnung nach `#AARRGGBB`, die bisher in **beiden** XAML von Hand danebenstand. **Der Linux-Kopf hat den Farbwähler dazubekommen** (§5 Nr. 26). **✅ Fläche 5 vermessen** (zwei Wegwerf-Sonden, dann von Hand): **76 Symbole deklariert, 76 gezeichnet, keine Lücke**; 131 Tooltips gegen 96, aber **51 der 54 Unterschiede sind die Feature-Lücke aus §4.71 in anderer Form** und kein Tooltip-Befund. **Der eine echte:** der Sticker-Knopf trug im Linux-Kopf `Tool.Sticker` statt `Tool.Sticker.Tip` — **alle sechzehn anderen Werkzeuge benutzen in beiden Köpfen denselben Schlüssel**, der Sticker war der einzige Ausreißer. **⛔ Vier fest verdrahtete deutsche Texte, alle im WPF-Kopf** (Dauerregel 1 — ein englisches Programm zeigte hier Deutsch): der Tooltip der Seitenzahlen, die drei `InputGestureText` des Editor-Kontextmenüs (`Strg+X/C/V`) und die drei Erklärzeilen des Kopf-/Fußzeilen-Dialogs. **Sieben neue Schlüssel je Sprache.** **⚠ Die Platzhalter bleiben deutsch, auch im englischen Text** — `{SEITE}` und `{DATUM}` stehen so in `TdField` und werden dort **wörtlich gesucht**; wer sie mitübersetzt, macht aus einer Erklärung eine Anleitung, die nicht funktioniert. **Der Linux-Kopf hat die Erklärung dazubekommen** (er kannte nur zwei der vier Platzhalter); `Ed.HeaderFooter.Hint` wurde dadurch tot und ist aus **beiden** Tabellen heraus — **565 Schlüssel je Sprache, im Gleichschritt, null unbenutzte**. **Dazu in der Werkzeugleiste:** Rückgängig und Wiederholen hatten im Linux-Kopf einen **grauen Kasten** (Fluents `:disabled`), jetzt flach wie drüben. **⚠ Der Schieber nur halb, und drei Anläufe stehen im Code, damit niemand bei eins anfängt:** ein Setter auf `Background` des Thumbs **wirkt nicht** (erreicht Fluents Thumb-Vorlage nicht); die **ganze** Slider-Vorlage in einem `Style` zu ersetzen **wirkt gar nicht** (Fluents `ControlTheme` setzt `Template` und gewinnt); eine Vorlage **nur für den Thumb** trägt — der Griff ist blau und klein, **links davon bleibt ein schmaler violetter Stummel** aus einem Element, dessen Namen die Assembly nicht preisgibt. **⚠ Drei tote Symbole hat §4.73 selbst erzeugt** (`FolderNew`, `Menu`, `WindowMaximize` — beim Angleichen ersetzt). **Sie bleiben stehen und gehören in Schritt ④**; *wer sie im selben Zug löscht, prüft zwei Dinge auf einmal.* **Nicht getan:** **Fläche 4 (Dialoge) ist nicht gesehen**, **Fläche 3 (Editor) gemessen, aber nicht angeglichen**, **Fläche 2 nur in der Werkzeugleiste** — Einstellungsleiste (7 Klappgruppen gegen 1), Cover, Zahlenblock, Schnellaktionen, Import und Texterkennung stehen aus, dazu Diagramm-Werkzeug und Formen-Stift, die es nur im WPF-Kopf gibt. ▶ **Als Nächstes: ①b weiter** (§5e). **Der Laptop ist nicht dran — aber bei ③ ist er es zwingend** (§5d) |
+| V2-98 | 2026-08-31 | **Phase 5, ①b — Fläche 4: die Meldungen** (§4.75 neu; neu `src/GonkNote.Wpf/Views/MessageWindow.xaml(.cs)`; Bau 0/0, **1052 Tests** unverändert). **⛔ Der Befund: 28 Meldungen, die in keinem Fenster der App standen.** Der WPF-Kopf zeigte sie über die **native `MessageBox`** — an 28 Aufrufstellen in 12 Dateien, mit Systemfarben, Systemschrift und Systemsymbol; der Linux-Kopf hat seit jeher ein eigenes Fenster, weil Avalonia keine mitbringt. *Jede Fehlermeldung und jede Rückfrage war damit ein sichtbarer Unterschied — und der gefährlichste, weil man ihn erst sieht, wenn etwas schiefgeht.* **Alle 28 Stellen sind umgestellt, `MessageBox` kommt im WPF-Kopf nicht mehr vor.** Aufbau, Maße, Farben und Knopfreihenfolge sind aus dem Linux-Kopf übernommen; die Farben kommen **aus dem Theme** und nicht als feste Werte (§5 Nr. 27). **Was beim Nachbauen einer MessageBox als Erstes verlorengeht und deshalb ausdrücklich drinsteht:** Escape schließt, die Eingabetaste bestätigt, und **ohne Besitzer** erscheint das Fenster mittig statt hinter der App — beim Start und beim Beenden gibt es kurzzeitig keinen. **✅ Am laufenden Programm gegengeprüft**, dieselbe Rückfrage in beiden Köpfen: gleicher Punkt, gleicher Text, blaues „Ja" links, flaches „Nein" rechts. **⚠ Ein Rest ist benannt:** die Titelleiste des Linux-Fensters zeigt noch Minimieren und Maximieren — `CanResize="False"` nimmt sie in Avalonia nicht heraus, drüben tut es `ResizeMode="NoResize"`. **⛔ Und noch eine fest verdrahtete Meldung, diesmal in BEIDEN Köpfen:** „Es ist ein unerwarteter Fehler aufgetreten…" stand in beiden `App`-Klassen auf Deutsch — **kein Unterschied zwischen den Köpfen, aber eine Lücke in beiden**; ein englisches Programm zeigte hier Deutsch. Neu `Msg.Unexpected` je Sprache, **566 Schlüssel im Gleichschritt**. *Der Vergleich zweier Köpfe findet auch das, was beide gleich falsch machen — aber nur, wenn man beim Angleichen hinsieht statt zu vergleichen.* **Fläche 4 ist damit vermessen:** die fehlenden Dialoge (`ChartDialog`, `TableSortDialog`, `PromptDialog`, `FileInsertDialog`) sind **keine Dialog-Unterschiede, sondern die Feature-Lücke aus §4.71 in anderer Form** — es gibt sie nicht, weil es das Werkzeug dahinter nicht gibt; `HeaderFooterDialog` liegt drüben inline, `TableSizeDialog` ist durch zwei Zahlenfelder ersetzt, `SeitenwahlWindow` gibt es nur im Linux-Kopf. **⚠ Nicht getan, und es ist der größere Teil:** **Fläche 2** ist nur in der **Werkzeugleiste** angeglichen — Einstellungsleiste (**7 Klappgruppen gegen 1**), Cover-Werkzeug, Zahlenblock, Schnellaktionen, Import, Texterkennung, Diagramm-Werkzeug und Formen-Stift stehen aus; **Fläche 3 (Editor)** ist gemessen, aber **nicht angeglichen** (Suchen & Ersetzen, ganzer Tabellenentwurf, Formatpinsel, Galerien, Bild, Infobox, Symbol, Diagramm, Navigator, Wortzahl). **Das ist nach §5 Nr. 26 Phase-4.5-Arbeit unter neuem Namen — Werkzeuge bauen, nicht Oberflächen angleichen.** ▶ **Als Nächstes: der Zuschnitt gehört dem Nutzer** (§5e). **Der Laptop ist nicht dran — aber bei ③ ist er es zwingend** (§5d) |
+| V2-99 | 2026-08-31 | **Die Rückmeldung rückt hinter das Bauen — ① zerfällt in drei** (§4.76 neu; **keine Zeile Produktivcode**, §5 Nr. **28**, §6, §0 und §5e nachgezogen). **Nutzer-Entscheidung:** ② folgt erst auf **①c**. **Der Anlass steht in §4.75:** Das Vermessen aller fünf Flächen hat gezeigt, dass ① **zwei verschiedene Arbeiten unter einem Namen** führt — das **Angleichen** dessen, was beide Köpfe haben (Symbole, Farben, Kürzel, Tooltips, Anordnung), und das **Bauen** dessen, was einem fehlt (Suchen & Ersetzen, Tabellenentwurf, Cover-Werkzeug, sechs Einstellungs-Klappgruppen, Diagramm, Formen-Stift). **Eine Rückmeldung dazwischen liefe leer:** sie nennte in der Mehrzahl Werkzeuge, die ohnehin auf der Liste stehen, und *wer zwei Listen führt, arbeitet die kürzere ab*. **⛔ Ausdrücklich keine Streichung:** ② fällt nicht weg, der Satz *„wer eine Oberfläche in einem Zug umbaut und nicht noch einmal hinsieht, hat sie nicht geprüft, sondern nur geändert"* gilt unverändert — ② rückt nur dorthin, wo es eine **vollständige** Oberfläche zu prüfen gibt. **⚠ Und die Trennung ist keine Umbenennung:** ①b ist Oberflächenarbeit in Runden von Stunden, **①c ist Phase-4.5-Arbeit unter neuem Namen** in Runden von Tagen; beide unter einem Namen zu führen hieß, den Rest der Phase mit der falschen Größe zu schätzen — derselbe Fehler wie bei M2 in §4.24. **Stand von ①b:** Flächen **1, 4, 5** und die **Werkzeugleiste** der Tafel sind angeglichen (§4.72–§4.75), offen sind zwei benannte Reste. ▶ **Als Nächstes: ①c** (§5e). **Der Laptop ist nicht dran — aber bei ③ ist er es zwingend** (§5d) |
 | V2-67 | 2026-08-22 | **Das Feld reist als Auflage mit — die erste der zwei Lücken ist zu** (§4.49; Runde ④ aus §5e; `TdZuFlow`, `FlowZuTd` und die zwei Sprachtabellen angefasst, **am Modell, am Speicherformat und an der Führung nichts**; Bau 0/0, **842 Tests** grün = 785 Core + 57 WPF, **6 neue Wächter**, einer **umgedreht**). **Der Anlass war eine Frage des Nutzers** („kann ich nicht einfach mit Phase 4.5 weitermachen?" — ja, sie hängt an nichts hiervon), **und dabei ist die Lehre aus §4.46 an ihrem eigenen Autor eingetreten:** Erst behauptet, ein Inhaltsverzeichnis friere ein; dann „korrigiert", es friere nicht ein, weil `FlowZuTd` eine Verzeichniserkennung hat; **dann gemessen** — die Erkennung verlangt einen Absatz mit dem Wort „Inhaltsverzeichnis" davor, den der WPF-Editor selbst erzeugt und **der Linux-Kopf nie schreibt**. **Die erste Aussage war richtig, die Korrektur war der Fehler.** *Eine Aussage über den Code ist eine Vermutung, bis sie gemessen ist — auch dann, wenn sie einer früheren Vermutung widerspricht.* **Gemessen je Feldart, einmal durch die Rundreise:** vorher überlebte **keine einzige** — `PageNumber`, `PageCount`, `Date` und `Title` wurden zu `{SEITE}` und dergleichen als Text, das Verzeichnis zu **eingefrorenen Einträgen**; jetzt überleben **alle fünf**. **Alle fünf sind im Linux-Kopf einen Klick weit weg** (Reiter „Einfügen" → Feld, „Verweise" → Inhaltsverzeichnis) — **das ist der Unterschied zum Diagramm**, das dort gar nicht einfügbar ist und nur aus einem DOCX-Import kommt, und deshalb kam zuerst das Feld. **Der Träger ist ein `InlineUIContainer` mit dem `TdField` als `Tag`, und die Wahl ist nicht überlegt, sondern gemessen** (§4.47): WPF **kopiert** ein `Tag` beim Teilen eines Absatzes **und** eines Laufs auf beide Hälften — ein Träger dort wäre nach **einem** Tastendruck mitten im Platzhalter doppelt, **schlimmer als die Lücke**: Was verschwindet, sieht man; was sich verdoppelt, merkt man erst, wenn die Zahlen nicht mehr stimmen. **Und der Behälter ist nicht nur sicher, sondern richtig:** Ein Feld ist kein Text, sondern eine Stelle, an der gerechnet wird — dass sich nicht mehr hineintippen lässt, ist die Wahrheit über das Feld; **vorher konnte man aus `{SEITE}` ein `{SEIT}` machen, und niemand hat es gemerkt.** **Der Preis steht am Code:** Ein `UIElement` erbt keine `TextElement`-Eigenschaften, also müssen Schrift, Größe, Fett, Kursiv und Farbe von Hand aus dem aufgelösten Format gesetzt werden, dazu `BaselineAlignment.Baseline` — die Vorgabe `Bottom` hinge unter der Zeile und schöbe sie auseinander. **Das Verzeichnis brauchte einen zweiten Träger, und das ist beim Bauen aufgefallen und nicht beim Planen:** Es steht nicht *in* einer Zeile, es *ist* mehrere, wurde also auf Blockebene aufgefaltet — jetzt ein **`BlockUIContainer`** mit dem Feld als `Tag` und den gerechneten Einträgen als Anzeige. **Auch das ist der richtige Ort:** Die Einträge gehören dem Feld und nicht dem Nutzer (§4.20) — vorher liesz sich ein Eintrag ändern, und beim nächsten Umbruch war die Änderung weg oder, schlimmer, sie blieb und stimmte nicht mehr. **Ein leeres Verzeichnis bleibt sichtbar** (`Td.Toc.Empty`, beide Sprachen): ohne Überschriften hätte der Behälter keine Höhe, **das Feld wäre da und unauffindbar**. **Der Wächter ist umgedreht und aufgebohrt:** aus `Noch_offen_Ein_Feld_wird_zu_Text` wurde `Ein_Feld_ueberlebt_die_Rundreise` als **`[Theory]` über alle fünf Arten** — der alte prüfte nur `PageNumber` und hätte nie gezeigt, dass das Verzeichnis einen anderen Weg nimmt; dazu `Der_Platzhalter_bleibt_nicht_als_Text_stehen`, denn käme das Feld **und** sein Platzhalter zurück, stünde die Seitenzahl zweimal da. **⚠ Was diese Runde NICHT belegen konnte, und es ist keine Kleinigkeit: der Augenschein fehlt.** Ein `InlineUIContainer` mitten im Absatz und ein `BlockUIContainer` als Verzeichnis sind genau die Sorte Änderung, bei der die Rechnung stimmt und das Bild trotzdem falsch sein kann. **Der Versuch ist gefahren und gescheitert:** Das Dokument ist im Linux-Kopf angelegt worden (Überschrift, Text und Seitenzahl-Feld — **auf dem Schirm stand „Seite 1"**, das Feld rechnete also) und gespeichert, aber **das WPF-Fenster kam nicht in den Vordergrund** (`SetForegroundWindow` wird abgelehnt, wenn ein anderer Prozess den Fokus hält), und die Aufnahme zeigte zweimal ein fremdes Fenster. **Abgebrochen statt ein drittes Mal versucht, und hier benannt statt weggelassen** — fällig ist: dasselbe Dokument im WPF-Kopf ansehen (sitzt die Seitenzahl auf der Grundlinie, sieht das Verzeichnis aus wie eines?) und danach die Runde zurück in den Linux-Kopf wie in §4.48. **Es bleibt eine Lücke aus §4.45: das Diagramm.** Es braucht einen **öffentlichen Einstieg in `TdRenderer`** (`DiagrammZeichnen` ist privat), um als Bild in den Behälter zu kommen — **eine Änderung in Core an dem Zeichner, den PDF und beide Köpfe benutzen**, und deshalb eine eigene Runde und keine Beigabe. **Der Träger dafür steht schon**, nur mit einem `Image` statt eines `TextBlock`. ▶ **Als Nächstes: der Augenschein und das Diagramm**, danach **Phase 4.5**. **Der Laptop ist nicht dran** |
 | V2-66 | 2026-08-22 | **Schritt 7 — `Rtf` verliert die Führung** (§4.48; **der eigentliche Zweck des ganzen Wegs**, §5; sieben Dateien angefasst, am Speicherformat und an `TextDoc` **nichts** geändert; Bau 0/0, **837 Tests** grün = 785 Core + 52 WPF). **Vier Zeilen, die alles sagen:** Der WPF-Editor **liest** jetzt das Modell (`Rtf` nur noch als Rückfall) und **schreibt** es auch — `Rtf` wird **nie wieder** überschrieben; `WpfDocumentIo.Migrate` läuft nur noch für die **einmalige** Übernahme statt bei jedem Speichern; und der Warnstreifen im Linux-Kopf ist **entfallen**. **Der Datenverlust, den das behebt, war seit dem 2026-08-16 gemessen** (§4.35, §5 „Noch offen" 9): Ein Dokument mit gefülltem `Rtf`, im Linux-Kopf bearbeitet, verlor seine Arbeit beim nächsten Speichern unter Windows **still**, weil `Migrate` das Modell bedingungslos aus `Rtf` neu baute — **bei jedem Bestandsdokument**. Die Warnung seit V2-48 war eine **Vertagung, keine Lösung**; die Lösung ist immer (a) gewesen. **Zwei Stellen tragen es.** (1) `FlushToModel` schreibt das Modell — und zwar über `TextTabViewModel.Modell` und nicht direkt nach `Doc.Model`, **damit beide Köpfe denselben Weg nehmen**: `Save` ruft `Mitschreiben` (die Übernahme) und **danach** `ModellMitschreiben` (das Geschriebene), **und diese Reihenfolge steht seit §4.23 fest, ausdrücklich für diesen Tag** — der Kommentar dort sagt es wörtlich („Wenn Schritt 7 den WPF-Editor auf das Modell umstellt, ist sie schon richtig"). Sie war es. (2) `Migrate` prüft jetzt `UebernahmeStehtAus` statt `AltformatFuehrt`. **Das ist Antwort (d) aus §5 Nr. 9 — die damals ausdrücklich als falsch verworfen wurde:** „nicht übernehmen, wenn `Model` schon gefüllt ist" hieß damals, der Umwandler liefe nie mehr; heute läuft er bei jedem Speichern an anderer Stelle, und der Einwand ist gegenstandslos. **Dieselbe Zeile, zwei Bedeutungen, je nachdem, wer führt** — wer die alte Begründung liest, ohne die neue Lage zu kennen, hält die Änderung für einen Fehler. **`Rtf` wird nicht überschrieben und auch nicht gelöscht:** Die Regel aus §4.22 gilt weiter, das Altfeld bleibt als unangetastete Sicherung stehen, und **der Rückfall darauf bleibt im Editor** (`AusAltformat`) — für genau einen Fall: das Modell ist leer, weil die Übernahme aussteht oder **fehlgeschlagen** ist. Ein volles Dokument als leeres Blatt zu zeigen wäre der teuerste Fehler dieser Art (§4.28). **Geschrieben wird von dort nichts zurück — der Rückfall heilt sich selbst, sobald einmal gespeichert wurde.** **`TdFuehrung.AltformatFuehrt` ist gelöscht, nicht auf `false` gesetzt** — die Funktion hatte ihr eigenes Ende vorhergesagt („Sobald Schritt 7 die Führung umdreht, ist genau das die Stelle, die sich ändert, und keine andere"), und **eine Funktion, die immer `false` zurückgibt, wäre schlechter als keine: Sie sähe nach einer offenen Frage aus und würde eines Tages wieder geglaubt.** Mit ihr sind **vier Wächter** und der Warnstreifen gegangen; ein Hinweis, der vor einer Gefahr warnt, die es nicht gibt, kostet die Glaubwürdigkeit der Hinweise, die bleiben. **Ein Wächter musste umgedreht werden:** `Das_Altfeld_fuehrt_weiter_wenn_es_belegt_ist` hat die alte Regel festgehalten, wie es seine Aufgabe war — er heißt jetzt `Das_Modell_fuehrt_auch_bei_vollem_Altfeld` und prüft dieselbe Lage mit der anderen Antwort; **daneben steht ein neuer**, `Das_Altfeld_wird_nicht_angetastet`, denn „führt nicht mehr" und „ist weg" sind zwei verschiedene Dinge, und wer beim Umdrehen auch noch aufräumte, nähme die Sicherung unwiederbringlich weg. **✅ Am laufenden Programm gegengeprüft — der Weg, der vorher Datenverlust war** (Wegwerf-Datenbank, danach gelöscht, Dauerregel 4): Linux-Kopf schreibt „LINUX hat geschrieben." und speichert → WPF-Kopf öffnet dasselbe Dokument, hängt „UND WINDOWS AUCH." an, speichert → **Linux-Kopf zeigt beides**, 6 Wörter, 40 Zeichen. **Vor Schritt 7 wäre der dritte Schritt unmöglich gewesen.** **✅ Und die härtere Probe, weil sie nicht am Schirm hängt** — dieselbe Datei danach mit `sqlite3` gelesen: **`Rtf` hat Länge 0** (vom WPF-Editor nicht angefasst, obwohl er gespeichert hat — vorher stünde dort ein XamlPackage von mehreren Kilobyte), `Model` hat 764 Bytes mit der Kennung `GNTD` und **enthält „UND WINDOWS AUCH"**, `MigrationIssue` ist leer. **Das ist der Beleg in seiner strengsten Form: nicht „es sieht richtig aus", sondern „in der Datei steht, was dastehen soll, und das andere Feld ist unberührt".** **✅ §5 „Noch offen" 9 ist damit an der Wurzel erledigt** — nicht mehr gewarnt, behoben. **⏳ Was nicht mitgekommen ist:** Die zwei benannten Lücken aus §4.45 — **Diagramm** und **Feld** überleben die Rundreise durch das `FlowDocument` weiterhin nicht. **Sie sind nicht schlechter geworden** (sie gingen schon vorher bei jedem Speichern verloren, §4.45), **aber sie sind jetzt zum ersten Mal schließbar**: Seit §4.47 lädt der Editor ohne Paket, seit dieser Runde **schreibt** er auch ohne — **damit ist das `XamlPackage` ganz aus dem Weg**, und ein Träger im Arbeitsspeicher überlebt eine vollständige Runde aus Speichern und Öffnen; §4.47 hat schon gemessen, **welcher Träger es sein muss** (der `InlineUIContainer`, denn `Tag` an Absatz und Lauf wird beim Teilen kopiert). **Das ist eine eigene Runde und die letzte offene Arbeit an dieser Baustelle.** ▶ **Danach ist Phase 4.5 dran** (§6). **Der Laptop ist nicht dran** |
 | V2-65 | 2026-08-22 | **Der Ladeweg — das Modell geht direkt in den Editor** (§4.47; Runde ② der drei aus V2-63, Nutzer-Entscheidung §5 „Noch offen" **12**; **zwei Dateien angefasst**, an `TextDoc`, am Speicherformat und an der **Führung** nichts geändert; Bau 0/0, **840 Tests** grün = 789 Core + 51 WPF, **5 neue Wächter**). **Die Auflage aus V2-63 lautete „erst messen, dann bauen" — und die Messung hat den Entwurf umgeworfen, bevor eine Zeile davon stand.** Gefragt war, ob ein von WPF geteilter Absatz den Träger des alten erbt; gemessen an einem laufenden `RichTextBox` mit Fokus (ohne Fenster geht es nicht, Editierbefehle brauchen eines). **Die Antwort:** `Paragraph.Tag` **wird beim Teilen kopiert**, `Run.Tag` ebenso — **beide Hälften tragen ihn**. **Ein Träger an Absatz oder Lauf ist damit unbrauchbar:** Ein einziger Tastendruck in der Mitte macht aus einem Diagramm zwei und aus einer Überschrift zwei — **schlimmer als die Lücke, die er schließen sollte**, denn was verschwindet sieht man, was sich verdoppelt findet man erst im Inhaltsverzeichnis. **Übrig bleibt der `InlineUIContainer`**, und das ist keine Notlösung, sondern der passende Ort: Ein Diagramm und ein Feld sind unteilbare, nicht-textliche Dinge — genau das, was ein `InlineUIContainer` ist; `DocumentImages` führt seinen Blob-Verweis seit jeher dort, und §4.45 hatte schon gemessen, dass ausgerechnet dieser Träger als einziger ein `XamlPackage` übersteht. **Zwei unabhängige Messungen zeigen auf dieselbe Stelle.** **Gebaut ist der Weg selbst:** `TextEditorView.AusModell` hat den Umweg über das Paket verloren (`Modell → FlowDocument → Blöcke umhängen → Editor` statt über XamlPackage-Bytes), und die Übernahme steht als **`TdZuFlow.InhaltUebernehmen`** neben `Umwandeln` — dort gehört sie hin, denn sie ist dessen Gegenstück, und dort ist sie prüfbar, ohne ein Fenster zu bauen. **Die alte Begründung war richtig und trug trotzdem nicht:** Im Code stand, ein ausgetauschtes `Document` nähme dem `RichTextBox` seine Stile und alle Ereignisverdrahtungen mit — das stimmt, **nur folgt daraus nicht das Paket**; es genügt, das `Document` zu behalten und seinen **Inhalt** zu ersetzen (gemessen: dasselbe Objekt, Träger überleben, tippen geht danach weiter). **Ein richtiger Grund war an einen falschen Schluss gebunden, und deshalb stand der Umweg zwei Runden lang unbefragt.** **`DocumentImages.Attach` ist entfallen** und das ist kein Vergessen — es übersetzt einen Verweis aus dem `ToolTip` ins `Tag`, nötig nur nach dem Laden eines Pakets; `TdZuFlow.BildUmwandeln` setzt das `Tag` selbst (eigener Wächter, damit die gestrichene Zeile keine Vermutung ist). **✅ Und ein Fund, der gar nicht gesucht war — beim Nachmessen einer Nebensache aufgefallen: das Paket zerstört die Kaskade.** `TextRange.Save`/`Load` schiebt die Schrift des **Dokuments** als **örtlichen Wert** auf **jeden Absatz** hinunter (gemessen: über das Paket steht sie örtlich am Absatz, direkt steht dort nichts und sie wird geerbt — dasselbe Schriftbild, verschiedene Struktur). **Sichtbar ist das nicht, und genau deshalb ist es gefährlich:** `FlowZuTd.ZeichenformatVon` liest örtliche Werte und schriebe danach in *jedem* Absatz eine `FontFamily` ins Modell, wo vorher keine stand. **Es ist derselbe Fehler wie in §4.45** — aus „nicht gesetzt" wird „gesetzt" —, an anderer Stelle und ohne dass jemand ihn gesucht hätte; **solange `Rtf` führt folgenlos, mit Schritt 7 wäre er in jedes Dokument gewandert.** Der direkte Weg räumt ihn nebenbei mit weg, Wächter dafür. **⏳ Was die Runde ausdrücklich nicht tut: die Träger für Diagramm und Feld sind nicht gebaut.** Sie überleben jetzt das *Laden*, aber `FlushToModel` schreibt beim Speichern weiter ein Paket nach `Rtf`, und dort sterben sie — **ein Träger, der eine Sitzung überlebt und das Speichern nicht, wäre eine Lücke mit mehr Code drumherum.** Sie gehören zu **Schritt 7**, wo das Paket ganz aus dem Speicherweg fällt; **diese Runde legt den Weg, auf dem sie tragen können.** **⚠ Benannter Nebenbefund, nicht aus dieser Runde:** `FontCombo.ItemsSource` ist `Fonts.SystemFontFamilies` — **nur Systemschriften**; die fünf mitgelieferten Familien (§4.26) stehen nicht darin, und „Source Sans 3" ist die Grundschrift jedes Dokuments aus dem Modell. **Die Liste kann die Schrift des Dokuments gar nicht anzeigen.** Der Linux-Kopf macht es richtig (§4.40), der WPF-Kopf ist nie nachgezogen worden — §5 „Noch offen" **14**. **Ausdrücklich offen geblieben und nicht gedeutet:** ob sich die Anzeige dieser Liste mit dieser Runde geändert hat, ist **nicht** geklärt; gemessen ist nur, dass **beide Ladewege dieselbe Schrift liefern** (`GetPropertyValue` gibt auf beiden „Source Sans 3"), die Anzeige also nicht am Ladeweg hängt — **eine Vermutung darüber steht bewusst nicht da, sie wäre genau die ungeprüfte Deutung, vor der §4.46 warnt.** **✅ In beiden Köpfen am laufenden Programm gesehen** (Wegwerf-Datenbank, danach gelöscht): Ein im Linux-Kopf angelegtes Dokument mit Überschrift und Fließtext kommt im WPF-Kopf über genau den neuen Weg an — Überschrift blau und fett, **28** in der Größenanzeige, **„Überschrift 1" in der Galerie markiert**. **Derselbe Anblick wie vor dem Umbau, und das ist hier das Ziel: Der Ladeweg soll sich ändern, das Blatt nicht.** ▶ **Als Nächstes Schritt 7** (§5e) — `Rtf` verliert die Führung, und mit ihm fällt das Paket aus dem Speicherweg. **Der Laptop ist nicht dran** |

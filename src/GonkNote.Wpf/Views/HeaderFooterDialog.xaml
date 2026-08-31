@@ -22,9 +22,11 @@
                 BorderThickness="1" CornerRadius="6" Padding="10,8" Margin="0,14,0,0">
             <TextBlock Foreground="{DynamicResource Brush.TextMuted}" FontSize="12" TextWrapping="Wrap">
                 <Run Text="{loc:T HeaderFooter.Placeholders}"/><LineBreak/>
-                <Run Text="{}{SEITE} = Seitenzahl · {SEITEN} = Seitenanzahl"/><LineBreak/>
-                <Run Text="{}{DATUM} = heutiges Datum · {TITEL} = Dokumentname"/><LineBreak/>
-                <Run Text="Beispiel: Mathe – Brüche · Klasse 6b · Seite {SEITE}/{SEITEN}"/>
+                <!-- Die drei Zeilen standen bis zum 2026-08-30 fest verdrahtet auf
+                     Deutsch — im englischen Programm also ebenfalls (§4.74). -->
+                <Run Text="{loc:T Ed.HeaderFooter.Fields}"/><LineBreak/>
+                <Run Text="{loc:T Ed.HeaderFooter.Fields2}"/><LineBreak/>
+                <Run Text="{loc:T Ed.HeaderFooter.Example}"/>
             </TextBlock>
         </Border>
 

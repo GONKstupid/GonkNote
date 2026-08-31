@@ -5,11 +5,14 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 using GonkNote.Core.Editing;
+using GonkNote.Core.Rendering;
 using GonkNote.Core.Models;
 using GonkNote.Services;
 using GonkNote.Core.Services;
 using GonkNote.ViewModels;
 using SkiaSharp;
+
+using GonkNote.Core.Platform;
 
 namespace GonkNote.Views;
 
@@ -162,6 +165,8 @@ public partial class WhiteboardView : UserControl
     public WhiteboardView()
     {
         InitializeComponent();
+
+        FarbkachelnAufbauen();
 
         _suppressToolEvents = true;
         BtnPen.IsChecked = true;
@@ -406,6 +411,41 @@ public partial class WhiteboardView : UserControl
         SetPenGroupExpanded(false);
         SetSelectGroupExpanded(false);
         SetShapeGroupExpanded(true);
+    }
+
+    /// <summary>
+    /// Baut die Farbkacheln der Werkzeugleiste aus <see cref="WbTinte.Palette"/> —
+    /// <b>zwischen „automatisch" und der eigenen Farbe</b>, deren Kacheln als benannte
+    /// Elemente in der XAML bleiben, weil anderer Code sie anspricht.
+    ///
+    /// <para>
+    /// <b>Aus Core und nicht aus der XAML</b> (HANDOFF §4.74): Beide Köpfe pflegten die Liste
+    /// von Hand, in verschiedener Länge und Reihenfolge — und <c>TdTextfarben</c> behauptet
+    /// seit §4.40, sie seien dieselben wie auf der Zeichenfläche. <i>Ein Kommentar, der eine
+    /// Übereinstimmung behauptet, ersetzt sie nicht.</i>
+    /// </para>
+    /// </summary>
+    private void FarbkachelnAufbauen()
+    {
+        int stelle = ColorPanel.Children.IndexOf(AutoSwatch) + 1;
+
+        foreach (var farbe in WbTinte.Palette)
+        {
+            // „automatisch" ist AutoSwatch und folgt der Seite — es steht in der Tabelle,
+            // damit die Reihenfolge dort vollständig ist, und wird hier übersprungen.
+            if (farbe.Hex is not { } hex) continue;
+
+            var kachel = new RadioButton
+            {
+                Style = (Style)FindResource("ColorSwatch"),
+                GroupName = "ink",
+                Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString(hex)),
+                Tag = WbTinte.Marke(farbe),
+                ToolTip = Loc.T(farbe.Key),
+            };
+            kachel.Checked += Color_Checked;
+            ColorPanel.Children.Insert(stelle++, kachel);
+        }
     }
 
     private void Color_Checked(object sender, RoutedEventArgs e)
@@ -758,9 +798,12 @@ public partial class WhiteboardView : UserControl
     private void DeletePage_Click(object sender, RoutedEventArgs e)
     {
         if (_vm == null || _vm.Doc.Pages.Count <= 1 || _page == null) return;
+        // Dieselbe Rueckfrage wie drueben (WhiteboardView.axaml.cs, DeletePage_Click).
         if ((_page.Elements.Count > 0 || _page.BackgroundImage != null) &&
-            MessageBox.Show(Loc.T("Msg.DeletePage"), "Gonk Note",
-                MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+            !MessageWindow.Zeige(
+                Window.GetWindow(this),
+                Loc.T("Msg.DeletePage"),
+                DialogSeverity.Warning, frage: true))
             return;
 
         int idx = _vm.PageIndex;

@@ -158,9 +158,10 @@ public partial class WhiteboardView
         }
         catch (Exception ex)
         {
-            MessageBox.Show(Window.GetWindow(this),
+            MessageWindow.Zeige(
+                Window.GetWindow(this),
                 Loc.T("Msg.PresetDeleteFailed", ex.Message),
-                "Gonk Note", MessageBoxButton.OK, MessageBoxImage.Warning);
+                DialogSeverity.Warning, frage: false);
             return;
         }
         ReloadCoverPresets();
@@ -240,9 +241,10 @@ public partial class WhiteboardView
         }
         catch (Exception ex)
         {
-            MessageBox.Show(Window.GetWindow(this),
+            MessageWindow.Zeige(
+                Window.GetWindow(this),
                 Loc.T("Msg.PresetLoadFailed", ex.Message),
-                "Gonk Note", MessageBoxButton.OK, MessageBoxImage.Warning);
+                DialogSeverity.Warning, frage: false);
         }
     }
 }

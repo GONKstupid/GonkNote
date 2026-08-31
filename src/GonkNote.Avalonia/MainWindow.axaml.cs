@@ -4,6 +4,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using GonkNote.Core.Models;
+using GonkNote.Core.Theming;
 using GonkNote.Services;
 using GonkNote.ViewModels;
 using GonkNote.Views;
@@ -21,6 +22,11 @@ public partial class MainWindow : Window
 
     public MainWindow()
     {
+        // **Vor InitializeComponent.** Die KeyBinding in der XAML bindet beim Aufbau
+        // auf diese Eigenschaft; steht sie danach, ist sie beim Binden noch null und
+        // die Taste bleibt still.
+        SeitenleisteBefehl = new RelayCommand(SeitenleisteUmschalten);
+
         // **InitializeComponent, nicht AvaloniaXamlLoader.Load.** Beide bauen den
         // Oberflächenbaum auf, aber nur die erzeugte Methode weist danach die
         // `x:Name`-Felder zu. Mit dem Lader direkt bleibt jedes davon `null`, und der
@@ -48,7 +54,24 @@ public partial class MainWindow : Window
 
     // ---------- Menüleiste ----------
 
+    /// <summary>
+    /// Strg+B blendet die Seitenleiste um — <b>bis zum 2026-08-30 konnte das nur der
+    /// WPF-Kopf</b> (§4.71), obwohl beide Menüs denselben Eintrag zeigen.
+    ///
+    /// <para>
+    /// <b>Ein Befehl und kein <c>KeyDown</c>-Zweig:</b> Die drei anderen Kürzel des
+    /// Fensters hängen an <c>Window.KeyBindings</c>, und eine vierte Taste an einer
+    /// anderen Stelle zu behandeln hieße, bei der nächsten Änderung zwei Orte zu
+    /// kennen. <c>Seitenleiste_Click</c> bleibt daneben stehen, weil Menü und Knopf
+    /// ein <c>RoutedEventArgs</c> liefern und kein Befehlsziel.
+    /// </para>
+    /// </summary>
+    public System.Windows.Input.ICommand SeitenleisteBefehl { get; }
+
     private void Seitenleiste_Click(object? sender, RoutedEventArgs e) =>
+        SeitenleisteUmschalten();
+
+    private void SeitenleisteUmschalten() =>
         Seitenleiste.IsVisible = !Seitenleiste.IsVisible;
 
     private void Sprache_Click(object? sender, RoutedEventArgs e)
@@ -109,6 +132,29 @@ public partial class MainWindow : Window
         if (sender is not MenuItem { Tag: string hex }) return;
         // Leerer Tag = „automatisch": die Farbe des übergeordneten Ordners erben.
         _vm.SetIconColor(_vm.SelectedTreeItem, hex.Length == 0 ? null : hex);
+    }
+
+    /// <summary>
+    /// Eine freie Symbolfarbe über den Farbwähler — <b>der Eintrag fehlte hier ganz</b>
+    /// (§4.71), obwohl der Wähler seit §4.52 da ist und der WPF-Kopf denselben Weg
+    /// anbietet.
+    ///
+    /// <para>
+    /// <b>Ohne Deckkraft</b>, wie drüben: Eine halb durchsichtige Ordnerfarbe im Baum
+    /// wäre auf hellem und dunklem Grund verschieden hell — eine Einstellung, die je
+    /// nach Theme etwas anderes bedeutet, ist keine.
+    /// </para>
+    /// </summary>
+    private void SymbolfarbeEigene_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_vm.SelectedTreeItem is not { } eintrag) return;
+
+        // Tuerkis als Ausgangspunkt, wenn noch keine Farbe gesetzt ist — dieselbe
+        // Vorgabe wie im WPF-Kopf (dort `Colors.Teal`).
+        var start = HexColor.Parse(eintrag.Item.IconColor, new HexColor(0xFF, 0x14, 0xB8, 0xA6));
+
+        if (ColorPickerWindow.Waehlen(this, start, mitDeckkraft: false) is { } gewaehlt)
+            _vm.SetIconColor(eintrag, gewaehlt.ToString());
     }
 
     // ---------- Umbenennen ----------

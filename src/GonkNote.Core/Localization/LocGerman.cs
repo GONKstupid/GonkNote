@@ -94,6 +94,12 @@ internal static class LocGerman
         ["Shortcut.Theme"] = "Strg+T",
         ["Shortcut.Rename"] = "F2",
         ["Shortcut.Delete"] = "Entf",
+        // Die drei Kuerzel des Editor-Kontextmenues. Sie standen bis zum 2026-08-30
+        // fest verdrahtet in TextEditorView.xaml — im englischen Programm also auf
+        // Deutsch (HANDOFF §4.74, Dauerregel 1).
+        ["Shortcut.Cut"] = "Strg+X",
+        ["Shortcut.Copy"] = "Strg+C",
+        ["Shortcut.Paste"] = "Strg+V",
 
         // ---- Texte, die der Code setzt ----
         ["Gallery.Root"] = "Dokumente",
@@ -441,6 +447,12 @@ internal static class LocGerman
         // App. Avalonia hat keine MessageBox, der Kopf baut sie selbst, und damit sind
         // die Beschriftungen zum ersten Mal unsere. (Nebenbei ist das die einzige Stelle,
         // an der der Linux-Kopf die Sprachwahl konsequenter befolgt als der Windows-Kopf.)
+        // Der Text des unerwarteten Fehlers. Er stand bis zum 2026-08-31 in BEIDEN
+        // Koepfen fest verdrahtet auf Deutsch — kein Unterschied zwischen ihnen, aber
+        // eine Luecke in beiden (§4.75, Dauerregel 1).
+        ["Msg.Unexpected"] =
+            "Es ist ein unerwarteter Fehler aufgetreten:\n\n{0}\n\n" +
+            "Die App läuft weiter. Einzelheiten stehen in:\n{1}",
         ["Dlg.Yes"] = "Ja",
         ["Dlg.No"] = "Nein",
         // ---- Textdokument im Linux-Kopf (HANDOFF §4.28) ----
@@ -530,9 +542,17 @@ internal static class LocGerman
         ["Ed.HeaderFooter.Header"] = "Kopfzeile",
         ["Ed.HeaderFooter.Footer"] = "Fußzeile",
         ["Ed.HeaderFooter.SuppressFirst"] = "Auf der ersten Seite weglassen",
-        ["Ed.HeaderFooter.Hint"] =
-            "{SEITE} und {SEITEN} werden beim Umbruch durch die Seitenzahl und die " +
-            "Seitenanzahl ersetzt.",
+        // Die drei Zeilen der Platzhalter-Erklaerung. Sie standen bis zum 2026-08-30 fest
+        // verdrahtet im WPF-Dialog und fehlten dem Linux-Kopf ganz (§4.74).
+        //
+        // ⚠ Die Platzhalter selbst bleiben DEUTSCH, auch im englischen Text: sie stehen so
+        // in Core (TdField.PlatzhalterTabelle) und werden dort woertlich gesucht. Wer sie
+        // uebersetzt, macht aus einer Erklaerung eine Anleitung, die nicht funktioniert.
+        ["Ed.HeaderFooter.Fields"] = "{SEITE} = Seitenzahl · {SEITEN} = Seitenanzahl",
+        ["Ed.HeaderFooter.Fields2"] = "{DATUM} = heutiges Datum · {TITEL} = Dokumentname",
+        ["Ed.HeaderFooter.Example"] =
+            "Beispiel: Mathe – Brüche · Klasse 6b · Seite {SEITE}/{SEITEN}",
+        ["Ed.PageNumbers.Tip"] = "Fügt „Seite {SEITE} von {SEITEN}“ in die Fußzeile ein",
         // Zwei Sätze in der Einstellungs-Seitenleiste, die eine Grenze benennen, statt sie
         // den Nutzer suchen zu lassen (HANDOFF §4.38).
         ["Ed.Page.NoUndo"] =

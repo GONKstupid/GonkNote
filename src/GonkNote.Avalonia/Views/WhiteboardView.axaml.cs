@@ -138,6 +138,8 @@ public partial class WhiteboardView : UserControl
         // (HANDOFF §7, „AvaloniaXamlLoader.Load füllt die x:Name-Felder nicht").
         InitializeComponent();
 
+        FarbkachelnAufbauen();
+
         _suppressToolEvents = true;
         BtnPen.IsChecked = true;
         _suppressToolEvents = false;
@@ -450,6 +452,62 @@ public partial class WhiteboardView : UserControl
     private void FuellvorschauNachfuehren() =>
         FuellungVorschau.Background =
             _fuellfarbe.WithAlpha((byte)Math.Round(_fuellDeckkraft * 255)).ToBrush();
+
+    /// <summary>
+    /// Baut die Farbkacheln der Werkzeugleiste aus <see cref="WbTinte.Palette"/> — hinter
+    /// „automatisch" und vor der eigenen Farbe.
+    ///
+    /// <para>
+    /// <b>Aus Core und nicht aus der XAML</b> (HANDOFF §4.74): Beide Köpfe pflegten die Liste
+    /// von Hand, in verschiedener Länge und Reihenfolge.
+    /// </para>
+    /// </summary>
+    private void FarbkachelnAufbauen()
+    {
+        if (AutoSwatch.Parent is not Panel leiste) return;
+
+        int stelle = leiste.Children.IndexOf(AutoSwatch) + 1;
+
+        foreach (var farbe in WbTinte.Palette)
+        {
+            // „automatisch" ist AutoSwatch und folgt der Seite.
+            if (farbe.Hex is not { } hex) continue;
+
+            var kachel = new RadioButton
+            {
+                GroupName = "Tinte",
+                Tag = WbTinte.Marke(farbe),
+                Background = HexColor.Parse(hex, HexColor.Black).ToBrush(),
+            };
+            kachel.Classes.Add("farbe");
+            ToolTip.SetTip(kachel, Loc.T(farbe.Key));
+            kachel.IsCheckedChanged += Color_Changed;
+            leiste.Children.Insert(stelle++, kachel);
+        }
+    }
+
+    /// <summary>
+    /// Eine freie Tintenfarbe über den Farbwähler — <b>den Knopf gab es hier nicht</b>
+    /// (§4.74), obwohl der Wähler seit §4.52 da ist und der WPF-Kopf ihn seit jeher anbietet.
+    ///
+    /// <para>
+    /// <b>Die gewählte Farbe bleibt als eigene Kachel stehen</b> und wird ausgewählt — sonst
+    /// müsste man sie beim nächsten Strich erneut heraussuchen. Dasselbe tut der WPF-Kopf.
+    /// </para>
+    /// </summary>
+    private void EigeneTinte_Click(object? sender, RoutedEventArgs e)
+    {
+        var start = HexColor.Parse(CustomSwatch.Tag as string, HexColor.Black);
+
+        if (ColorPickerWindow.Waehlen(TopLevel.GetTopLevel(this) as Window,
+                start, mitDeckkraft: false) is not { } gewaehlt)
+            return;
+
+        CustomSwatch.Background = gewaehlt.ToBrush();
+        CustomSwatch.Tag = "#FF" + gewaehlt.ToString().TrimStart('#');
+        CustomSwatch.IsVisible = true;
+        CustomSwatch.IsChecked = true;
+    }
 
     private void Color_Changed(object? sender, RoutedEventArgs e)
     {

@@ -1,19 +1,28 @@
 using System.Windows;
 using GonkNote.Core.Platform;
+using GonkNote.Views;
 
 namespace GonkNote.Platform;
 
-/// <summary>Meldungen über die WPF-<see cref="MessageBox"/>.</summary>
+/// <summary>
+/// Meldungen über <see cref="MessageWindow"/> — <b>nicht mehr über die native
+/// <c>MessageBox</c></b> (HANDOFF §4.75).
+///
+/// <para>
+/// <b>Der Wechsel ist der ganze Inhalt dieser Datei.</b> Die <c>MessageBox</c> trägt
+/// Systemfarben, Systemschrift und Systemsymbol; an 28 Aufrufstellen sah damit jede
+/// Meldung dieses Kopfs anders aus als dieselbe Meldung im Linux-Kopf, der seit jeher ein
+/// eigenes Fenster hat. <i>Ein Unterschied, den man an jeder Fehlermeldung sieht, ist keine
+/// Kleinigkeit — er ist nur überall ein bisschen.</i>
+/// </para>
+/// </summary>
 public sealed class WpfDialogService : IDialogService
 {
-    private const string Title = "Gonk Note";
-
     public void Inform(string message, DialogSeverity severity = DialogSeverity.Information) =>
-        MessageBox.Show(Owner(), message, Title, MessageBoxButton.OK, Icon(severity));
+        MessageWindow.Zeige(Owner(), message, severity, frage: false);
 
     public bool Confirm(string message, DialogSeverity severity = DialogSeverity.Question) =>
-        MessageBox.Show(Owner(), message, Title, MessageBoxButton.YesNo, Icon(severity))
-            == MessageBoxResult.Yes;
+        MessageWindow.Zeige(Owner(), message, severity, frage: true);
 
     /// <summary>
     /// Ohne Besitzer erscheint das Fenster mittig auf dem Bildschirm statt über der App und
@@ -21,11 +30,4 @@ public sealed class WpfDialogService : IDialogService
     /// Beenden kurzzeitig null — dann eben ohne.
     /// </summary>
     private static Window? Owner() => Application.Current?.MainWindow;
-
-    private static MessageBoxImage Icon(DialogSeverity severity) => severity switch
-    {
-        DialogSeverity.Warning => MessageBoxImage.Warning,
-        DialogSeverity.Question => MessageBoxImage.Question,
-        _ => MessageBoxImage.Information,
-    };
 }

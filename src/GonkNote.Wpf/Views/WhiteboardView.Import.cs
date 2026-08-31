@@ -10,6 +10,8 @@ using GonkNote.Core.Text;
 using GonkNote.ViewModels;
 using SkiaSharp;
 
+using GonkNote.Core.Platform;
+
 namespace GonkNote.Views;
 
 /// <summary>
@@ -92,8 +94,10 @@ public partial class WhiteboardView
 
         if (imported.Count > 0) PlaceImages(imported, at);
         if (failed.Count > 0)
-            MessageBox.Show(Loc.T("Msg.LoadFailed") + "\n" + string.Join("\n", failed),
-                "Gonk Note", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageWindow.Zeige(
+                Window.GetWindow(this),
+                Loc.T("Msg.LoadFailed") + "\n" + string.Join("\n", failed),
+                DialogSeverity.Warning, frage: false);
     }
 
     /// <summary>
@@ -254,8 +258,10 @@ public partial class WhiteboardView
                 PdfImporter.RenderPages(path, PdfImporter.ThumbnailLongSide, progress));
             if (thumbs.Count == 0)
             {
-                MessageBox.Show(Loc.T("Msg.PdfNoPages"),
-                    "Gonk Note", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageWindow.Zeige(
+                    Window.GetWindow(this),
+                    Loc.T("Msg.PdfNoPages"),
+                    DialogSeverity.Information, frage: false);
                 return;
             }
 
@@ -273,8 +279,10 @@ public partial class WhiteboardView
         }
         catch (Exception ex)
         {
-            MessageBox.Show(Loc.T("Msg.PdfLoadFailed", ex.Message),
-                "Gonk Note", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageWindow.Zeige(
+                Window.GetWindow(this),
+                Loc.T("Msg.PdfLoadFailed", ex.Message),
+                DialogSeverity.Warning, frage: false);
         }
         finally
         {
@@ -337,8 +345,10 @@ public partial class WhiteboardView
 
             if (pages.Count == 0)
             {
-                MessageBox.Show(Loc.T("Msg.DocxNoPages"),
-                    "Gonk Note", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageWindow.Zeige(
+                    Window.GetWindow(this),
+                    Loc.T("Msg.DocxNoPages"),
+                    DialogSeverity.Information, frage: false);
                 return;
             }
 
@@ -351,8 +361,10 @@ public partial class WhiteboardView
         }
         catch (Exception ex)
         {
-            MessageBox.Show(Loc.T("Msg.DocxLoadFailed", ex.Message),
-                "Gonk Note", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageWindow.Zeige(
+                Window.GetWindow(this),
+                Loc.T("Msg.DocxLoadFailed", ex.Message),
+                DialogSeverity.Warning, frage: false);
         }
         finally
         {

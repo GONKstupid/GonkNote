@@ -385,7 +385,7 @@
                     <Button Style="{StaticResource LabelButton}" Content="{loc:T Ed.HeaderFooter.Dialog}" Click="EditHeaderFooter_Click"
                             AutomationProperties.Name="{loc:T Ed.HeaderFooter}"/>
                     <Button Style="{StaticResource LabelButton}" Content="{loc:T Ed.PageNumbers}" Click="InsertPageNumbers_Click"
-                            ToolTip="Fügt „Seite {SEITE} von {SEITEN}“ in die Fußzeile ein"
+                            ToolTip="{loc:T Ed.PageNumbers.Tip}"
                             AutomationProperties.Name="{loc:T Ed.PageNumbers}"/>
                 </WrapPanel>
 
@@ -942,9 +942,12 @@
                                              ContextMenuOpening="Editor_ContextMenuOpening">
                                     <RichTextBox.ContextMenu>
                                         <ContextMenu x:Name="EditorMenu">
-                                            <MenuItem Header="{loc:T Quick.Cut}" Command="ApplicationCommands.Cut" InputGestureText="Strg+X"/>
-                                            <MenuItem Header="{loc:T Quick.Copy}" Command="ApplicationCommands.Copy" InputGestureText="Strg+C"/>
-                                            <MenuItem Header="{loc:T Ed.Tab.Insert}" Command="ApplicationCommands.Paste" InputGestureText="Strg+V"/>
+                                            <MenuItem Header="{loc:T Quick.Cut}" Command="ApplicationCommands.Cut"
+                                                      InputGestureText="{loc:T Shortcut.Cut}"/>
+                                            <MenuItem Header="{loc:T Quick.Copy}" Command="ApplicationCommands.Copy"
+                                                      InputGestureText="{loc:T Shortcut.Copy}"/>
+                                            <MenuItem Header="{loc:T Ed.Tab.Insert}" Command="ApplicationCommands.Paste"
+                                                      InputGestureText="{loc:T Shortcut.Paste}"/>
                                             <Separator/>
                                             <MenuItem x:Name="MenuLink" Header="{loc:T Ed.Link.Edit}" Click="InsertLink_Click"/>
                                             <MenuItem x:Name="MenuUnlink" Header="{loc:T Ed.Link.Remove}" Click="RemoveLink_Click"/>

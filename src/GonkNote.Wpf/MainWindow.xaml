@@ -5,6 +5,7 @@
         xmlns:views="clr-namespace:GonkNote.Views"
         xmlns:loc="clr-namespace:GonkNote.Services"
         Title="Gonk Note" Width="1280" Height="820"
+        Icon="/Assets/gonk-note-Icon.png"
         MinWidth="760" MinHeight="480"
         WindowStartupLocation="CenterScreen"
         Background="{DynamicResource Brush.WindowBg}"
@@ -32,7 +33,7 @@
         <Style x:Key="CaptionButton" TargetType="Button">
             <Setter Property="Width" Value="46"/>
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="{DynamicResource Brush.TextMuted}"/>
+            <Setter Property="Foreground" Value="{DynamicResource Brush.Text}"/>
             <Setter Property="FontSize" Value="10"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -52,7 +53,7 @@
         <Style x:Key="CaptionCloseButton" TargetType="Button">
             <Setter Property="Width" Value="46"/>
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="{DynamicResource Brush.TextMuted}"/>
+            <Setter Property="Foreground" Value="{DynamicResource Brush.Text}"/>
             <Setter Property="FontSize" Value="10"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -90,10 +91,13 @@
                 BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,0,0,1"
                 MouseLeftButtonDown="TopBar_MouseLeftButtonDown">
             <DockPanel>
-            <Button DockPanel.Dock="Left" Style="{StaticResource IconButton}" Content="{views:Icon Menu}"
+            <Button DockPanel.Dock="Left" Style="{StaticResource IconButton}" Content="{views:Icon Sidebar}"
                     ToolTip="{loc:T Sidebar.Toggle}" Margin="4,2"
                     Click="ToggleSidebar_Click"/>
-            <Menu Padding="0,2">
+            <!-- Der Abstand der Eintraege folgt dem Linux-Kopf (§4.71). Der Unterschied
+                 sass NICHT in der Polsterung, sondern in der Kuerzelspalte des
+                 MenuItem-Templates: sie trug ihren Rand auch ohne Kuerzel (Themes/Styles.xaml). -->
+            <Menu Padding="0,2" VerticalAlignment="Center">
                 <MenuItem Header="{loc:T Menu.File}">
                     <MenuItem Header="{loc:T Menu.File.NewFolder}" Command="{Binding NewFolderCommand}"/>
                     <MenuItem Header="{loc:T Menu.File.NewNotebook}" Command="{Binding NewNotebookCommand}"/>
@@ -148,7 +152,7 @@
 
                     <!-- Schnellzugriff: Neu -->
                     <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="2,0,0,8">
-                        <Button Style="{StaticResource IconButton}" Content="{views:Icon FolderNew}" ToolTip="{loc:T New.Folder}"
+                        <Button Style="{StaticResource IconButton}" Content="{views:Icon Folder}" ToolTip="{loc:T New.Folder}"
                                 Command="{Binding NewFolderCommand}"/>
                         <Button Style="{StaticResource IconButton}" Content="{views:Icon Notebook}" ToolTip="{loc:T New.Notebook}"
                                 Command="{Binding NewNotebookCommand}"/>
@@ -340,6 +344,7 @@
                                              Margin="6,0,4,0" MinWidth="110" Padding="2,1"
                                              Visibility="{Binding IsRenaming, Converter={StaticResource BoolToVis}}"
                                              IsVisibleChanged="RenameBox_IsVisibleChanged"
+                                             Loaded="RenameBox_Loaded"
                                              LostKeyboardFocus="RenameBox_LostFocus"
                                              KeyDown="RenameBox_KeyDown"/>
                                 </StackPanel>
@@ -594,7 +599,7 @@
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
                 <Button Style="{StaticResource CaptionButton}" Content="{views:Icon WindowMinimize}"
                         ToolTip="{loc:T Window.Minimize}" Click="Caption_Minimize"/>
-                <Button Style="{StaticResource CaptionButton}" Content="{views:Icon WindowMaximize}"
+                <Button Style="{StaticResource CaptionButton}" Content="{views:Icon WindowRestore}"
                         ToolTip="{loc:T Window.Restore}" Click="Caption_Restore"/>
                 <Button Style="{StaticResource CaptionCloseButton}" Content="{views:Icon Close}"
                         ToolTip="{loc:T Window.Close}" Click="Caption_Close"/>

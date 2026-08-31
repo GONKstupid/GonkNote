@@ -2,26 +2,34 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:views="clr-namespace:GonkNote.Views">
 
-    <!-- ===================== Basistypografie ===================== -->
+    <!-- ===================== Basistypografie =====================
 
-    <!-- Die mitgelieferten Schriften (HANDOFF §4.26). Die Namen stehen in Core
-         (Theming/Fonts.cs) und hier ein zweites Mal, weil XAML keine Konstante aus C#
-         lesen kann — der Wächter `SchriftkonzeptTests` haelt beide Fassungen zusammen,
-         genau wie `FarbtabelleTests` es fuer die Farben tut (§4.9).
+         **Hier stehen nur die Systemschriften — die mitgelieferten setzt `AppFonts.Apply`
+         beim Start** (Services/AppFonts.cs, gerufen aus App.OnStartup).
 
-         Schreibweise: `./Fonts/<Ordner>/#<Familienname>` zeigt auf die losen Dateien neben
-         der Exe; Core kopiert sie dorthin. Der Name hinter `#` ist der Familienname IM
-         Namensverzeichnis der Schrift, nicht der Dateiname.
+         ⛔ **Warum, und es ist ein behobener Fehler und keine Vorliebe** (HANDOFF §4.71):
+         Bis zum 2026-08-29 stand hier `./Fonts/Inter/#Inter, Segoe UI`, und der Kommentar
+         daneben sagte, das zeige auf die losen Dateien neben der Exe. **Das hat nie
+         gestimmt.** Ein RELATIVER Schrift-URI wird gegen die Basis des XAML aufgeloest, und
+         die ist bei einem eingebundenen Woerterbuch
+         `pack://application:,,,/GonkNote;component/Themes/` — also IN der Assembly, wo keine
+         Schrift liegt. Die App zeichnete still in Segoe UI. **Bau gruen, Tests gruen,
+         aufgefallen erst im Vergleich mit dem Linux-Kopf.**
 
-         Die Systemschrift dahinter ist Absicht: faellt das Laden aus, sieht die App unter
-         Windows weiterhin richtig aus statt in Times New Roman. -->
-    <FontFamily x:Key="Font.Ui">./Fonts/Inter/#Inter, Segoe UI</FontFamily>
-    <FontFamily x:Key="Font.Mono">./Fonts/JetBrainsMono/#JetBrains Mono, Consolas</FontFamily>
-    <FontFamily x:Key="Font.Display">./Fonts/SpaceGrotesk/#Space Grotesk, Segoe UI</FontFamily>
+         Die Werte hier sind damit der **Rueckfall** und kein Platzhalter: faellt das Laden
+         der Datei aus, sieht die App unter Windows weiterhin richtig aus statt in Times New
+         Roman. Genau dieser Rueckfall hat den Fehler versteckt — der Waechter
+         `OberflaechenschriftTests` haelt jetzt fest, dass er die Ausnahme bleibt.
+
+         **Alle Verwendungen sind `DynamicResource`.** Ein `StaticResource` fror den Wert
+         beim Laden des Woerterbuchs ein, und `AppFonts.Apply` liefe ins Leere — still. -->
+    <FontFamily x:Key="Font.Ui">Segoe UI</FontFamily>
+    <FontFamily x:Key="Font.Mono">Consolas</FontFamily>
+    <FontFamily x:Key="Font.Display">Segoe UI</FontFamily>
 
     <Style TargetType="TextBlock" x:Key="Text.Base">
         <Setter Property="Foreground" Value="{DynamicResource Brush.Text}"/>
-        <Setter Property="FontFamily" Value="{StaticResource Font.Ui}"/>
+        <Setter Property="FontFamily" Value="{DynamicResource Font.Ui}"/>
     </Style>
 
     <Style TargetType="TextBlock" x:Key="Text.Muted" BasedOn="{StaticResource Text.Base}">
@@ -287,13 +295,13 @@
     <Style TargetType="Menu">
         <Setter Property="Background" Value="Transparent"/>
         <Setter Property="Foreground" Value="{DynamicResource Brush.Text}"/>
-        <Setter Property="FontFamily" Value="{StaticResource Font.Ui}"/>
+        <Setter Property="FontFamily" Value="{DynamicResource Font.Ui}"/>
         <Setter Property="FontSize" Value="13"/>
     </Style>
 
     <Style TargetType="MenuItem">
         <Setter Property="Foreground" Value="{DynamicResource Brush.Text}"/>
-        <Setter Property="FontFamily" Value="{StaticResource Font.Ui}"/>
+        <Setter Property="FontFamily" Value="{DynamicResource Font.Ui}"/>
         <Setter Property="FontSize" Value="13"/>
         <Setter Property="Padding" Value="10,6"/>
         <Setter Property="Template">
@@ -312,7 +320,12 @@
                                               VerticalAlignment="Center" Margin="0,0,8,0"/>
                             <ContentPresenter Grid.Column="1" ContentSource="Header"
                                               VerticalAlignment="Center" RecognizesAccessKey="True"/>
-                            <TextBlock Grid.Column="2" Text="{TemplateBinding InputGestureText}"
+                            <!-- Die Spalte traegt auch ohne Kuerzel ihren Rand von 24 px, und
+                                 bei „Datei/Ansicht/Hilfe" hat kein Eintrag eines. Der Abstand
+                                 der Menueleiste war dadurch rund 180 px statt der 117 des
+                                 Linux-Kopfs (§4.71). Der Ausloeser unten nimmt sie heraus. -->
+                            <TextBlock x:Name="kuerzel" Grid.Column="2"
+                                       Text="{TemplateBinding InputGestureText}"
                                        Foreground="{DynamicResource Brush.TextMuted}"
                                        Margin="24,0,0,0" VerticalAlignment="Center"/>
                             <views:Symbol x:Name="arrow" Grid.Column="3" Icon="ChevronRight"
@@ -320,6 +333,20 @@
                                        Stroke="{DynamicResource Brush.TextMuted}"
                                        Margin="12,0,0,0" VerticalAlignment="Center"
                                        Visibility="Collapsed"/>
+                            <!-- ⚠ **Offen und zweimal vergeblich versucht** (§4.72): Dieses
+                                 Menue klappt am LINKEN Rand der Leiste auf statt unter
+                                 seinem Eintrag — bei „Ansicht" rund 320 px daneben und
+                                 teils aus dem Fenster heraus. Der Linux-Kopf klappt unter
+                                 dem Eintrag auf und ist hier die Vorlage.
+
+                                 **Was NICHT hilft, damit es niemand ein drittes Mal
+                                 probiert:** das Aufklappziel auf `bd` zu setzen
+                                 (`ElementName`) und ebenso auf den Vorlagen-Elternteil
+                                 (`RelativeSource TemplatedParent`). Beide Male oeffnete
+                                 sich das Menue danach **gar nicht mehr** — ohne Fehler,
+                                 ohne Meldung. WPFs `MenuItem` fasst `PART_Popup` selbst an
+                                 und vertraegt kein zweites Ziel.
+                                 Am laufenden Programm gesehen, nicht hergeleitet. -->
                             <Popup x:Name="PART_Popup" Grid.Column="0"
                                    IsOpen="{Binding IsSubmenuOpen, RelativeSource={RelativeSource TemplatedParent}}"
                                    AllowsTransparency="True" Focusable="False"
@@ -339,6 +366,9 @@
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsHighlighted" Value="True">
                             <Setter TargetName="bd" Property="Background" Value="{DynamicResource Brush.Hover}"/>
+                        </Trigger>
+                        <Trigger Property="InputGestureText" Value="">
+                            <Setter TargetName="kuerzel" Property="Visibility" Value="Collapsed"/>
                         </Trigger>
                         <Trigger Property="Role" Value="SubmenuHeader">
                             <Setter TargetName="arrow" Property="Visibility" Value="Visible"/>

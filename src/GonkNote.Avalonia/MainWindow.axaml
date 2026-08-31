@@ -3,7 +3,7 @@
         xmlns:vm="clr-namespace:GonkNote.ViewModels;assembly=GonkNote.ViewModels"
         xmlns:loc="clr-namespace:GonkNote.Services"
         xmlns:views="clr-namespace:GonkNote.Views"
-        x:Class="GonkNote.MainWindow"
+        x:Class="GonkNote.MainWindow" x:Name="Fenster"
         x:DataType="vm:MainViewModel"
         Title="Gonk Note" Width="1280" Height="820"
         MinWidth="760" MinHeight="480"
@@ -26,6 +26,10 @@
         <KeyBinding Gesture="Ctrl+S" Command="{Binding SaveCommand}"/>
         <KeyBinding Gesture="Ctrl+Shift+S" Command="{Binding SaveAllCommand}"/>
         <KeyBinding Gesture="Ctrl+T" Command="{Binding ToggleThemeCommand}"/>
+        <!-- Strg+B fehlte hier ganz, obwohl der WPF-Kopf es kann und im Menue anzeigt
+             (§4.71). Beide Koepfe zeigen es jetzt — und ein Kuerzel anzuzeigen, das
+             nichts tut, waere schlimmer als keines. -->
+        <KeyBinding Gesture="Ctrl+B" Command="{Binding #Fenster.SeitenleisteBefehl}"/>
         <KeyBinding Gesture="Ctrl+W" Command="{Binding CloseTabCommand}"
                     CommandParameter="{Binding SelectedTab}"/>
     </Window.KeyBindings>
@@ -53,18 +57,27 @@
                         <MenuItem Header="{loc:T Menu.File.Import}" Command="{Binding ImportDocxCommand}"/>
                         <MenuItem Header="{loc:T Menu.File.Export}" Command="{Binding ExportCommand}"/>
                         <Separator/>
-                        <MenuItem Header="{loc:T Menu.File.Save}" Command="{Binding SaveCommand}"
-                                  InputGesture="Ctrl+S"/>
-                        <MenuItem Header="{loc:T Menu.File.SaveAll}" Command="{Binding SaveAllCommand}"
-                                  InputGesture="Ctrl+Shift+S"/>
+                        <!-- **Kuerzel als Kopfzeile und nicht als `InputGesture`** (§4.72):
+                             Avalonia rendert ein `InputGesture` ueber den
+                             `PlatformKeyGestureConverter` und damit in ENGLISCHER
+                             Schreibweise — im deutschen Menue stand „Ctrl+S". Einen
+                             benannten Template-Teil zum Umstylen gibt es nicht (an 12.1.1
+                             nachgesehen). `loc:TK` setzt den Text aus derselben
+                             Sprachtabelle, aus der ihn auch der WPF-Kopf nimmt. -->
+                        <MenuItem Command="{Binding SaveCommand}"
+                                  Header="{loc:TK Menu.File.Save|Shortcut.Save}"/>
+                        <MenuItem Command="{Binding SaveAllCommand}"
+                                  Header="{loc:TK Menu.File.SaveAll|Shortcut.SaveAll}"/>
                         <Separator/>
-                        <MenuItem Header="{loc:T Menu.File.Quit}" Command="{Binding ExitCommand}"/>
+                        <MenuItem Command="{Binding ExitCommand}"
+                                  Header="{loc:TK Menu.File.Quit|Shortcut.Quit}"/>
                     </MenuItem>
 
                     <MenuItem Header="{loc:T Menu.View}">
-                        <MenuItem Header="{loc:T Menu.View.Sidebar}" Click="Seitenleiste_Click"/>
-                        <MenuItem Header="{loc:T Menu.View.Theme}" Command="{Binding ToggleThemeCommand}"
-                                  InputGesture="Ctrl+T"/>
+                        <MenuItem Click="Seitenleiste_Click"
+                                  Header="{loc:TK Menu.View.Sidebar|Shortcut.Sidebar}"/>
+                        <MenuItem Command="{Binding ToggleThemeCommand}"
+                                  Header="{loc:TK Menu.View.Theme|Shortcut.Theme}"/>
                         <MenuItem Header="{loc:T Menu.View.Language}">
                             <MenuItem x:Name="SpracheDeutsch" Header="{loc:T Menu.View.Language.German}"
                                       ToggleType="Radio" GroupName="Sprache" Tag="de" Click="Sprache_Click"/>
@@ -179,30 +192,71 @@
                                 <Separator/>
                                 <MenuItem Header="{loc:T Tree.Open}" Command="{Binding OpenItemCommand}"
                                           CommandParameter="{Binding SelectedTreeItem}"/>
-                                <MenuItem Header="{loc:T Tree.Rename}" Command="{Binding RenameCommand}"
+                                <MenuItem Header="{loc:TK Tree.Rename|Shortcut.Rename}"
+                                          Command="{Binding RenameCommand}"
                                           CommandParameter="{Binding SelectedTreeItem}"/>
                                 <MenuItem Header="{Binding SelectedTreeItem.PinMenuHeader}"
                                           IsVisible="{Binding SelectedTreeItem.IsFolder, FallbackValue=False}"
                                           Command="{Binding TogglePinCommand}"
-                                          CommandParameter="{Binding SelectedTreeItem}"/>
+                                          CommandParameter="{Binding SelectedTreeItem}">
+                                    <MenuItem.Icon>
+                                        <views:Symbol Icon="Pin" Size="12"
+                                              Stroke="{DynamicResource Brush.TextMuted}"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
                                 <MenuItem Header="{Binding SelectedTreeItem.FavoriteMenuHeader}"
                                           IsVisible="{Binding SelectedTreeItem.IsFolder, FallbackValue=False}"
                                           Command="{Binding ToggleFavoriteCommand}"
-                                          CommandParameter="{Binding SelectedTreeItem}"/>
-                                <MenuItem Header="{loc:T Tree.IconColor}">
-                                    <MenuItem Header="{loc:T Tree.IconColor.Auto}" Tag="" Click="Symbolfarbe_Click"/>
-                                    <Separator/>
-                                    <MenuItem Header="{loc:T Color.Blue}"   Tag="#2563EB" Click="Symbolfarbe_Click"/>
-                                    <MenuItem Header="{loc:T Color.Teal}"   Tag="#14B8A6" Click="Symbolfarbe_Click"/>
-                                    <MenuItem Header="{loc:T Color.Pink}"   Tag="#EC4899" Click="Symbolfarbe_Click"/>
-                                    <MenuItem Header="{loc:T Color.Purple}" Tag="#8B5CF6" Click="Symbolfarbe_Click"/>
-                                    <MenuItem Header="{loc:T Color.Red}"    Tag="#EF4444" Click="Symbolfarbe_Click"/>
-                                    <MenuItem Header="{loc:T Color.Orange}" Tag="#F97316" Click="Symbolfarbe_Click"/>
-                                    <MenuItem Header="{loc:T Color.Yellow}" Tag="#EAB308" Click="Symbolfarbe_Click"/>
-                                    <MenuItem Header="{loc:T Color.Green}"  Tag="#22C55E" Click="Symbolfarbe_Click"/>
-                                    <MenuItem Header="{loc:T Color.Gray}"   Tag="#94A3B8" Click="Symbolfarbe_Click"/>
+                                          CommandParameter="{Binding SelectedTreeItem}">
+                                    <MenuItem.Icon>
+                                        <views:Symbol Icon="Star" Size="12" Fill="#EAB308"/>
+                                    </MenuItem.Icon>
                                 </MenuItem>
-                                <MenuItem Header="{loc:T Tree.Delete}" Command="{Binding DeleteCommand}"
+                                <!-- Die Farbpunkte und „Eigene Farbe…" fehlten hier (§4.71).
+                                     Der Punkt ist eine `Ellipse` und kein Symbol — drueben ist es
+                                     dieselbe Form, und ein Symbol waere ein zweiter Weg zum
+                                     selben Bild. -->
+                                <MenuItem Header="{loc:T Tree.IconColor}">
+                                    <MenuItem Header="{loc:T Tree.IconColor.Auto}" Tag="" Click="Symbolfarbe_Click"
+                                              ToolTip.Tip="{loc:T Tree.IconColor.AutoTooltip}">
+                                        <MenuItem.Icon>
+                                            <Ellipse Width="12" Height="12" Fill="{DynamicResource Brush.Turquoise}"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <Separator/>
+                                    <MenuItem Header="{loc:T Color.Blue}" Tag="#2563EB" Click="Symbolfarbe_Click">
+                                        <MenuItem.Icon><Ellipse Width="12" Height="12" Fill="#2563EB"/></MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem Header="{loc:T Color.Teal}" Tag="#14B8A6" Click="Symbolfarbe_Click">
+                                        <MenuItem.Icon><Ellipse Width="12" Height="12" Fill="#14B8A6"/></MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem Header="{loc:T Color.Pink}" Tag="#EC4899" Click="Symbolfarbe_Click">
+                                        <MenuItem.Icon><Ellipse Width="12" Height="12" Fill="#EC4899"/></MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem Header="{loc:T Color.Purple}" Tag="#8B5CF6" Click="Symbolfarbe_Click">
+                                        <MenuItem.Icon><Ellipse Width="12" Height="12" Fill="#8B5CF6"/></MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem Header="{loc:T Color.Red}" Tag="#EF4444" Click="Symbolfarbe_Click">
+                                        <MenuItem.Icon><Ellipse Width="12" Height="12" Fill="#EF4444"/></MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem Header="{loc:T Color.Orange}" Tag="#F97316" Click="Symbolfarbe_Click">
+                                        <MenuItem.Icon><Ellipse Width="12" Height="12" Fill="#F97316"/></MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem Header="{loc:T Color.Yellow}" Tag="#EAB308" Click="Symbolfarbe_Click">
+                                        <MenuItem.Icon><Ellipse Width="12" Height="12" Fill="#EAB308"/></MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem Header="{loc:T Color.Green}" Tag="#22C55E" Click="Symbolfarbe_Click">
+                                        <MenuItem.Icon><Ellipse Width="12" Height="12" Fill="#22C55E"/></MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem Header="{loc:T Color.Gray}" Tag="#94A3B8" Click="Symbolfarbe_Click">
+                                        <MenuItem.Icon><Ellipse Width="12" Height="12" Fill="#94A3B8"/></MenuItem.Icon>
+                                    </MenuItem>
+                                    <Separator/>
+                                    <MenuItem Header="{loc:T Tree.IconColor.Custom}"
+                                              Click="SymbolfarbeEigene_Click"/>
+                                </MenuItem>
+                                <MenuItem Header="{loc:TK Tree.Delete|Shortcut.Delete}"
+                                          Command="{Binding DeleteCommand}"
                                           CommandParameter="{Binding SelectedTreeItem}"/>
                             </MenuFlyout>
                         </TreeView.ContextFlyout>
@@ -330,7 +384,15 @@
                                                     <views:Symbol Icon="{Binding Kind, Converter={StaticResource KindToIcon}}"
                                                           Stroke="{Binding IconColorHex, Converter={StaticResource HexToBrush}}"
                                                           HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                          IsVisible="{Binding IsFolder}" Size="106" Weight="0.51"/>
+                                                          IsVisible="{Binding IsFolder}" Size="106" Weight="0.51">
+                                                        <!-- Derselbe Schlagschatten wie drueben (§4.71): dort
+                                                             BlurRadius 10, ShadowDepth 2 bei Richtung 315°,
+                                                             also gut 1,4 px nach rechts unten. -->
+                                                        <views:Symbol.Effect>
+                                                            <DropShadowEffect BlurRadius="10" OffsetX="1.4" OffsetY="1.4"
+                                                                              Color="Black" Opacity="0.3"/>
+                                                        </views:Symbol.Effect>
+                                                    </views:Symbol>
 
                                                     <!-- Notizbuch: Cover-Vorschau -->
                                                     <Border IsVisible="{Binding IsNotebook}"
@@ -398,9 +460,16 @@
                                                     </Border>
 
                                                     <!-- Favoritenstern -->
-                                                    <views:Symbol Icon="Star" Fill="#EAB308" Size="15"
+                                                    <views:Symbol Icon="Star" Fill="#EAB308" Stroke="#EAB308" Size="15"
                                                           HorizontalAlignment="Right" VerticalAlignment="Top"
-                                                          Margin="0,2,6,0" IsVisible="{Binding IsFavorite}"/>
+                                                          Margin="0,2,6,0" IsVisible="{Binding IsFavorite}">
+                                                        <!-- Kontur UND Schatten wie drueben: auf einem hellen
+                                                             Cover verschwaende der Stern sonst. -->
+                                                        <views:Symbol.Effect>
+                                                            <DropShadowEffect BlurRadius="3" OffsetX="0" OffsetY="0"
+                                                                              Color="Black" Opacity="0.6"/>
+                                                        </views:Symbol.Effect>
+                                                    </views:Symbol>
                                                 </Panel>
 
                                                 <!-- Name + Chevron -->

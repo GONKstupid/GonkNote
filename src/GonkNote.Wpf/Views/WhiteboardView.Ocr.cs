@@ -4,6 +4,8 @@ using GonkNote.Core.Models;
 using GonkNote.Services;
 using GonkNote.Core.Services;
 
+using GonkNote.Core.Platform;
+
 namespace GonkNote.Views;
 
 /// <summary>
@@ -55,9 +57,10 @@ public partial class WhiteboardView
 
             if (string.IsNullOrWhiteSpace(text))
             {
-                MessageBox.Show(Window.GetWindow(this),
-                    Loc.T("Msg.OcrNoText"), Loc.T("Ocr.Title"),
-                    MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageWindow.Zeige(
+                    Window.GetWindow(this),
+                    Loc.T("Msg.OcrNoText"),
+                    DialogSeverity.Information, frage: false);
                 return;
             }
 
@@ -68,9 +71,10 @@ public partial class WhiteboardView
         catch (Exception ex)
         {
             HideBusy();
-            MessageBox.Show(Window.GetWindow(this),
-                Loc.T("Msg.OcrFailed", ex.Message), Loc.T("Ocr.Title"),
-                MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageWindow.Zeige(
+                Window.GetWindow(this),
+                Loc.T("Msg.OcrFailed", ex.Message),
+                DialogSeverity.Warning, frage: false);
         }
         finally
         {

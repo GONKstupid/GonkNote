@@ -8,6 +8,8 @@ using GonkNote.Core.Theming;
 using GonkNote.Services;
 using SkiaSharp;
 
+using GonkNote.Core.Platform;
+
 namespace GonkNote.Views;
 
 /// <summary>
@@ -358,8 +360,10 @@ public partial class WhiteboardView
                 : PrepareRaster(File.ReadAllBytes(dlg.FileName));
             if (img == null)
             {
-                MessageBox.Show(Loc.T("Msg.ImageLoadSimple"), "Gonk Note",
-                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageWindow.Zeige(
+                    Window.GetWindow(this),
+                    Loc.T("Msg.ImageLoadSimple"),
+                    DialogSeverity.Warning, frage: false);
                 return;
             }
             var cs = EnsureCoverStyle();
@@ -370,8 +374,10 @@ public partial class WhiteboardView
         }
         catch
         {
-            MessageBox.Show(Loc.T("Msg.ImageLoadSimple"), "Gonk Note",
-                MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageWindow.Zeige(
+                Window.GetWindow(this),
+                Loc.T("Msg.ImageLoadSimple"),
+                DialogSeverity.Warning, frage: false);
         }
     }
 

@@ -9,6 +9,8 @@ using GonkNote.Core.Services;
 using GonkNote.Services;
 using Microsoft.Win32;
 
+using GonkNote.Core.Platform;
+
 namespace GonkNote.Views;
 
 /// <summary>
@@ -131,8 +133,10 @@ public partial class WhiteboardView
         }
         catch (Exception ex)
         {
-            MessageBox.Show(Window.GetWindow(this), Loc.T("Msg.StickerFailed", ex.Message),
-                "Gonk Note", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageWindow.Zeige(
+                Window.GetWindow(this),
+                Loc.T("Msg.StickerFailed", ex.Message),
+                DialogSeverity.Warning, frage: false);
         }
     }
 

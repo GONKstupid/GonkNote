@@ -78,6 +78,13 @@
        Linux-Kopf nicht, und eine Datei mitzuschleppen, die niemand liest, verschleiert nur,
        was der Kopf wirklich kann.
 
+       **⛔ Diese Begründung gilt heute noch — und sie läuft ab, sobald das Cover-Werkzeug
+       kommt** (Phase 5, Schritt ①b; §5 Nr. 26: nachbauen statt drüben löschen). **Dann
+       müssen die Vorlagen im selben Zug hier mit hinein.** Das ist keine Vorsicht, sondern
+       eine Zählung: unten stehen **zwei** Fälle, in denen genau diese Begründung abgelaufen
+       ist und es niemandem auffiel, weil Bau und Tests grün blieben. **Ein dritter wäre
+       keiner mehr, sondern ein Muster** (HANDOFF §4.71).
+
        **Die OCR-Sprachdaten standen aus demselben Grund nicht hier — und das war richtig,
        bis der Linux-Kopf eine Texterkennung bekam** (Phase 4.5, Stück 6). Jetzt liest er
        sie, über `AppPaths.AppSubfolder("tessdata")`, genau wie der WPF-Kopf. **Das ist

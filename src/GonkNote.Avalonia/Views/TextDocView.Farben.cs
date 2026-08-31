@@ -41,13 +41,23 @@ public partial class TextDocView
     /// </summary>
     private void FarbenAufbauen()
     {
-        foreach (var familie in Fonts.Mitgeliefert)
+        // **Mitgelieferte oben, Systemschriften darunter** — die Zusammensetzung steht in
+        // Core und gilt für beide Köpfe (§5 Nr. 14, Schriftliste.cs). Hier standen bis zum
+        // 2026-08-30 NUR die fünf mitgelieferten; drüben nur die des Systems (§4.71).
+        var namen = Schriftliste.Aufbauen(
+            Avalonia.Media.FontManager.Current.SystemFonts.Select(f => f.Name));
+
+        // **Ohne Trennlinie zwischen mitgeliefert und System, und zwar in beiden Köpfen.**
+        // Ein `Separator` in einer Klappliste ist auswählbar — er stünde am Ende als
+        // Schriftart im Dokument. Die Reihenfolge trägt die Aussage; ein Strich, der ein
+        // gültiger Wert ist, trägt sie schlechter als keiner.
+        foreach (var name in namen)
             SchriftWahl.Items.Add(new ComboBoxItem
             {
-                Content = familie.Family,
-                Tag = familie.Family,
+                Content = name,
+                Tag = name,
                 // Jeder Eintrag in seiner eigenen Schrift — dieselbe Vorschau wie drüben.
-                FontFamily = new FontFamily(familie.Family),
+                FontFamily = new FontFamily(name),
             });
 
         Kacheln(SchriftfarbenFeld, TdTextfarben.Schrift, Schriftfarbe);

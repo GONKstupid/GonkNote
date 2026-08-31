@@ -91,6 +91,10 @@ internal static class LocEnglish
         ["Shortcut.Theme"] = "Ctrl+T",
         ["Shortcut.Rename"] = "F2",
         ["Shortcut.Delete"] = "Del",
+        // Gegenstuecke zu Shortcut.Cut/Copy/Paste in LocGerman (§4.74).
+        ["Shortcut.Cut"] = "Ctrl+X",
+        ["Shortcut.Copy"] = "Ctrl+C",
+        ["Shortcut.Paste"] = "Ctrl+V",
 
         // ---- Texts set from code ----
         ["Gallery.Root"] = "Documents",
@@ -431,6 +435,10 @@ internal static class LocEnglish
         ["Dlg.All"] = "All",
         ["Dlg.None"] = "None",
         // Gegenstuecke zu Dlg.Yes/Dlg.No in LocGerman (neu in Phase 3, siehe dort).
+        // Gegenstueck zu Msg.Unexpected in LocGerman (§4.75).
+        ["Msg.Unexpected"] =
+            "An unexpected error occurred:\n\n{0}\n\n" +
+            "The app keeps running. Details are in:\n{1}",
         ["Dlg.Yes"] = "Yes",
         ["Dlg.No"] = "No",
         // ---- Gegenstuecke zum Textdokument im Linux-Kopf in LocGerman (§4.28, siehe dort).
@@ -502,9 +510,13 @@ internal static class LocEnglish
         ["Ed.HeaderFooter.Header"] = "Header",
         ["Ed.HeaderFooter.Footer"] = "Footer",
         ["Ed.HeaderFooter.SuppressFirst"] = "Omit on the first page",
-        ["Ed.HeaderFooter.Hint"] =
-            "{SEITE} and {SEITEN} are replaced with the page number and the page count when " +
-            "the document is laid out.",
+        // Gegenstuecke zu Ed.HeaderFooter.Fields/Fields2/Example und Ed.PageNumbers.Tip in
+        // LocGerman (§4.74). Die Platzhalter bleiben deutsch -- Begruendung siehe dort.
+        ["Ed.HeaderFooter.Fields"] = "{SEITE} = page number · {SEITEN} = page count",
+        ["Ed.HeaderFooter.Fields2"] = "{DATUM} = today's date · {TITEL} = document name",
+        ["Ed.HeaderFooter.Example"] =
+            "Example: Maths – Fractions · Year 6b · Page {SEITE}/{SEITEN}",
+        ["Ed.PageNumbers.Tip"] = "Inserts “Seite {SEITE} von {SEITEN}” into the footer",
         // Gegenstuecke zu Ed.Page.NoUndo und Ed.Spacing.Scope in LocGerman (§4.38, siehe dort).
         ["Ed.Page.NoUndo"] =
             "Margins and paper size apply to the whole section and are not part of the undo " +

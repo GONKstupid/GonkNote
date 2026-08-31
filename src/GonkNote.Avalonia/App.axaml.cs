@@ -122,8 +122,7 @@ public partial class App : Application
         if (_errorShown) return;   // Folgefehler nur noch protokollieren, nicht zumüllen
         _errorShown = true;
         MessageWindow.Zeige(AvaloniaDialogService.Besitzer(),
-            $"Es ist ein unerwarteter Fehler aufgetreten:\n\n{e.Exception.Message}\n\n" +
-            $"Die App läuft weiter. Einzelheiten stehen in:\n{LogPath}",
+            Loc.T("Msg.Unexpected", e.Exception.Message, LogPath),
             DialogSeverity.Warning, frage: false);
     }
 

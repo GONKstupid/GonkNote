@@ -35,6 +35,11 @@ public partial class App : Application
         AppPaths.Current = Platform.Paths;
         Core.Rendering.WbFonts.Schema = Platform.Fonts.Scheme;       // vor dem ersten Zeichnen
 
+        // Die Oberflaechenschriften — **vor dem ersten Fenster**, sonst zeichnet es in der
+        // Systemschrift und wechselt danach sichtbar. Warum sie hier und nicht in Styles.xaml
+        // gesetzt werden, steht bei AppFonts (HANDOFF §4.71).
+        AppFonts.Apply(Resources);
+
         // "--db <pfad>" erlaubt eine alternative Datenbank (z. B. für UI-Tests)
         string? dbPath = null;
         for (int i = 0; i < e.Args.Length - 1; i++)
@@ -58,9 +63,9 @@ public partial class App : Application
             // Der Text erscheint zwangsläufig in der Standardsprache: welche Sprache der
             // Nutzer gewählt hat, steht in genau der Datenbank, die sich nicht öffnen lässt.
             Log(ex);
-            MessageBox.Show(
-                Loc.T("Db.OpenFailed", ex.Message, LogPath),
-                "Gonk Note", MessageBoxButton.OK, MessageBoxImage.Error);
+            Views.MessageWindow.Zeige(
+                null, Loc.T("Db.OpenFailed", ex.Message, LogPath),
+                DialogSeverity.Warning, frage: false);
             Shutdown(1);
             return;
         }
@@ -131,10 +136,9 @@ public partial class App : Application
 
         if (_errorShown) return;   // Folgefehler nur noch protokollieren, nicht zumüllen
         _errorShown = true;
-        MessageBox.Show(
-            $"Es ist ein unerwarteter Fehler aufgetreten:\n\n{e.Exception.Message}\n\n" +
-            $"Die App läuft weiter. Einzelheiten stehen in:\n{LogPath}",
-            "Gonk Note", MessageBoxButton.OK, MessageBoxImage.Warning);
+        Views.MessageWindow.Zeige(
+            MainWindow, Loc.T("Msg.Unexpected", e.Exception.Message, LogPath),
+            DialogSeverity.Warning, frage: false);
     }
 
     private static void Log(Exception? ex)

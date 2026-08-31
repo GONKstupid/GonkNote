@@ -223,6 +223,34 @@
         <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}"/>
     </Style>
 
+    <!-- **Die Auswahl gehört dem Theme und nicht dem Rahmenwerk** (Nutzer-Entscheidung
+         2026-08-29, HANDOFF §4.71). Ohne diese zwei Setter malt Fluent die ausgewählte
+         Zeile in `SystemAccentColor` — **violett**, während der Rest der App blau ist. Das
+         war keine Gestaltung, sondern eine durchschlagende Vorgabe; im WPF-Kopf steht an
+         derselben Stelle seit jeher `Brush.Selection` (Themes/Styles.xaml, TreeViewItem).
+
+         `Brush.Selection` kommt aus der Farbtabelle in Core (`ThemeColor.Selection`) und
+         wird von `AvaloniaThemeHost` je Theme neu gebaut. **Damit folgt die Auswahl
+         automatisch auch einem später geladenen eigenen Farbschema** — genau das war die
+         Vorgabe, und sie ist der Grund, warum hier kein fester Farbwert steht.
+
+         **Beide Setter sind Absicht**, aus demselben Grund wie beim Zielordner darunter. -->
+    <Style Selector="TreeViewItem:selected">
+        <Setter Property="Background" Value="{DynamicResource Brush.Selection}"/>
+    </Style>
+    <Style Selector="TreeViewItem:selected /template/ Border#PART_LayoutRoot">
+        <Setter Property="Background" Value="{DynamicResource Brush.Selection}"/>
+    </Style>
+    <!-- Auch beim Überfahren und beim Zeigerdruck: sonst blitzt in genau diesen zwei
+         Zuständen das Violett wieder durch, und zwar nur dann — der unauffälligste Ort,
+         an dem eine Rahmenwerk-Vorgabe überleben kann. -->
+    <Style Selector="TreeViewItem:selected:pointerover /template/ Border#PART_LayoutRoot">
+        <Setter Property="Background" Value="{DynamicResource Brush.Selection}"/>
+    </Style>
+    <Style Selector="TreeViewItem:selected:pressed /template/ Border#PART_LayoutRoot">
+        <Setter Property="Background" Value="{DynamicResource Brush.Selection}"/>
+    </Style>
+
     <!-- Zielordner beim Ziehen. **Beide Setter sind Absicht.** Fluents TreeViewItem malt
          seine Fläche auf einer Border namens `PART_LayoutRoot` im Template; trifft dieser
          Name eines Tages nicht mehr, greift wenigstens der Setter am Knoten selbst. Ein
@@ -235,6 +263,96 @@
         <Setter Property="Background" Value="{DynamicResource Brush.AccentSoft}"/>
     </Style>
 
+    <!-- **Die Auswahl in einer Klappliste gehoert ebenfalls dem Theme** (§5 Nr. 27).
+         Beim Baum ist das mit §4.72 geschehen; hier stand das Violett noch — gefunden beim
+         Aufklappen der Schriftliste. *Eine Rahmenwerk-Vorgabe sitzt nicht an einer Stelle,
+         sondern an jeder, die man nicht angefasst hat.*
+
+         `PART_ContentPresenter` ist der Name im Fluent-Template, an 12.1.1 nachgemessen.
+         Der Setter am Element selbst steht daneben, aus demselben Grund wie beim
+         Zielordner weiter oben: ein Selektor, dessen Template-Teil es nicht mehr gibt,
+         wirkt in Avalonia still gar nicht. -->
+    <Style Selector="ComboBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource Brush.Selection}"/>
+    </Style>
+    <Style Selector="ComboBoxItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource Brush.Selection}"/>
+    </Style>
+    <Style Selector="ComboBoxItem:selected:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource Brush.Selection}"/>
+    </Style>
+    <Style Selector="ComboBoxItem:selected">
+        <Setter Property="Foreground" Value="{DynamicResource Brush.Text}"/>
+    </Style>
+
+    <!-- Dasselbe fuer Listen: `ListBoxItem` teilt sich das Template-Teil mit der
+         Klapplisten-Zeile, und was hier nicht steht, faellt spaeter woanders auf. -->
+    <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource Brush.Selection}"/>
+    </Style>
+    <Style Selector="ListBoxItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource Brush.Selection}"/>
+    </Style>
+    <Style Selector="ListBoxItem:selected">
+        <Setter Property="Foreground" Value="{DynamicResource Brush.Text}"/>
+    </Style>
+
+    <!-- ==== Schieber (Strichstaerke) ================================================== -->
+
+    <!-- **Auch der Schieber gehoert dem Theme** (§5 Nr. 27, HANDOFF §4.74). Fluent malt
+         Griff und gefuellten Teil in `SystemAccentColor` — in der Werkzeugleiste stand
+         damit ein **violetter** Knopf neben blauen Kacheln, waehrend der WPF-Kopf an
+         derselben Stelle einen kleinen blauen Punkt auf duennem Band zeigt
+         (Themes/Styles.xaml, Slider).
+
+         Die Masse sind die des WPF-Templates: Band 4 px, Griff 14 px. -->
+    <!-- **Der Griff des Schiebers bekommt eine eigene Vorlage** (§5 Nr. 27, HANDOFF §4.74).
+         Fluent malt ihn in `SystemAccentColor` — in der Werkzeugleiste stand damit ein
+         violetter Knopf neben blauen Kacheln, waehrend der WPF-Kopf dort einen kleinen
+         blauen Punkt auf duennem Band zeigt.
+
+         ⚠ **Drei Anlaeufe, und nur der dritte traegt — damit es niemand wiederholt:**
+         (1) Ein Setter auf `Background` des Thumbs erreicht Fluents eigene Thumb-Vorlage
+             nicht; der Knopf blieb violett.
+         (2) Die **ganze** Slider-Vorlage in einem `Style` zu ersetzen wirkt gar nicht:
+             Fluents `ControlTheme` setzt `Template` und gewinnt — der Schieber sah danach
+             aus wie ohne jede Aenderung.
+         (3) Eine Vorlage nur fuer den **Thumb** traegt. Alles am laufenden Programm
+             gesehen, nicht hergeleitet.
+
+         ⚠ **Was danach uebrig bleibt und offen ist:** links vom Griff steht ein schmaler
+         violetter Stummel, den Fluent aus einem Element malt, dessen Namen die Assembly
+         nicht preisgibt (weder als `PART_` noch als Ressourcenschluessel). Der Rest des
+         Bandes ist grau wie drueben. -->
+    <Style Selector="Slider /template/ Thumb">
+        <Setter Property="Width" Value="14"/>
+        <Setter Property="Height" Value="14"/>
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Ellipse Width="14" Height="14" Fill="{DynamicResource Brush.Accent}"/>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <!-- Der bereits zurueckgelegte Teil des Bandes; dahinter der Rest in der Randfarbe. -->
+    <Style Selector="Slider /template/ RepeatButton#PART_DecreaseButton">
+        <Setter Property="Background" Value="{DynamicResource Brush.Accent}"/>
+    </Style>
+    <Style Selector="Slider /template/ RepeatButton#PART_IncreaseButton">
+        <Setter Property="Background" Value="{DynamicResource Brush.Border}"/>
+    </Style>
+
+    <!-- Ein flacher Knopf bleibt flach, auch wenn er nicht kann. Fluent legt im Zustand
+         `:disabled` eine graue Flaeche unter — in der Werkzeugleiste sahen Rueckgaengig und
+         Wiederholen dadurch aus wie zwei gedrueckte Kaesten, waehrend drueben nur die
+         Pfeile blasser werden (§4.74). -->
+    <Style Selector="Button.flach:disabled /template/ ContentPresenter">
+        <Setter Property="Background" Value="Transparent"/>
+    </Style>
+    <Style Selector="Button.flach:disabled">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Opacity" Value="0.4"/>
+    </Style>
+
     <!-- ==== Registerkarten ============================================================ -->
 
     <Style Selector="TabControl">
@@ -245,6 +363,21 @@
         <Setter Property="FontSize" Value="13"/>
         <Setter Property="MinHeight" Value="38"/>
         <Setter Property="Padding" Value="12,0"/>
+    </Style>
+    <!-- Der Strich unter dem gewählten Reiter — **aus dem Theme, nicht aus Fluent**
+         (dieselbe Entscheidung wie bei der Baum-Auswahl oben). Fluent malt ihn sonst in
+         `SystemAccentColor`, also violett.
+
+         `PART_SelectedPipe` ist der Name im Fluent-Template und **an der gebundenen Fassung
+         12.1.1 nachgemessen**, nicht geraten (dieselbe Methode wie §4.42). Trifft der Name
+         eines Tages nicht mehr, wirkt der Selektor still gar nicht — deshalb steht er hier
+         mit dieser Zeile und nicht ohne.
+
+         ⚠ **Die Gestalt bleibt vorerst verschieden:** der WPF-Kopf zeichnet den gewählten
+         Reiter als gefüllte Fläche mit runden oberen Ecken und **ohne** Strich. Das ist ein
+         offener Punkt von Schritt ①b und keine Farbfrage (HANDOFF §4.71). -->
+    <Style Selector="TabItem:selected /template/ Border#PART_SelectedPipe">
+        <Setter Property="Background" Value="{DynamicResource Brush.Accent}"/>
     </Style>
 
     <!-- ==== Werkzeugleiste der Zeichenfläche ========================================== -->

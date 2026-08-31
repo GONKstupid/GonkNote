@@ -4,6 +4,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using System.Windows.Threading;
 using GonkNote.Services;
 using GonkNote.ViewModels;
 using GonkNote.Core.Platform;
@@ -433,16 +434,72 @@ public partial class MainWindow : Window
 
     // ==================== Umbenennen ====================
 
-    private void RenameBox_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+    /// <summary>
+    /// Das Umbenennen-Feld bekommt den Tastaturfokus. <b>Zwei Haken, weil es zwei Wege in
+    /// dieses Feld gibt</b> — und bis zum 2026-08-29 war nur einer davon abgedeckt
+    /// (HANDOFF §4.71).
+    ///
+    /// <para>
+    /// <b>Der Weg über F2 oder das Kontextmenü:</b> Der Knoten steht schon, das Feld ist
+    /// <c>Collapsed</c>, <c>IsRenaming</c> wird wahr — <b>die Sichtbarkeit ändert sich</b>,
+    /// <see cref="RenameBox_IsVisibleChanged"/> feuert. Dieser Weg hat immer funktioniert.
+    /// </para>
+    /// <para>
+    /// <b>Der Weg über „Neuer Ordner":</b> Der Eintrag entsteht <b>mit</b>
+    /// <c>IsRenaming = true</c>. Der Knoten wird erst danach erzeugt, das Feld also
+    /// <b>gleich sichtbar geboren</b> — und dann ändert sich nichts mehr, worauf
+    /// <c>IsVisibleChanged</c> verlässlich anspringen könnte. <b>Das Feld stand offen und
+    /// nahm nichts an.</b>
+    /// </para>
+    /// <para>
+    /// <b>Die Folge war schlimmer als der Fehler:</b> Der Fokus blieb auf dem
+    /// Seitenleisten-Knopf. Getipptes ging ins Leere, und ein <b>Eingabe</b> löste den Knopf
+    /// <b>erneut</b> aus und legte einen zweiten Ordner an. Gefunden wurde es erst, als der
+    /// Linux-Kopf danebenstand und dieselbe Tastenfolge dort ankam.
+    /// <i>Ein Kopf allein hat kein Maß für sich selbst.</i>
+    /// </para>
+    /// <para>
+    /// <b>Am laufenden Programm nachgemessen und nicht hergeleitet:</b> Die Fokusabfrage
+    /// über UI-Automation nannte nach dem Anlegen durchgehend einen <c>Button</c> — der
+    /// Fokus wurde also nie geholt und nicht etwa wieder weggenommen. Über F2 nannte
+    /// dieselbe Abfrage ein <c>Edit</c>. Das ist die ganze Herleitung.
+    /// </para>
+    /// </summary>
+    private void RenameBox_Loaded(object sender, RoutedEventArgs e) => FokusInsFeld(sender);
+
+    /// <inheritdoc cref="RenameBox_Loaded"/>
+    private void RenameBox_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e) =>
+        FokusInsFeld(sender);
+
+    /// <summary>
+    /// <b>Die Priorität ist Absicht.</b> In WPF laufen höhere Prioritäten zuerst, und
+    /// <c>Normal</c> (9) liegt <i>vor</i> <c>DataBind</c> (8), <c>Render</c> (7) und
+    /// <c>Loaded</c> (6): Ein Fokus, der dort gesetzt wird, kann dem frisch erzeugten
+    /// <see cref="TreeViewItem"/> wieder in die Hände fallen, sobald der ausgewählt wird.
+    /// <c>Input</c> (5) läuft nach all dem.
+    ///
+    /// <para>
+    /// <see cref="Keyboard.Focus(IInputElement)"/> statt <see cref="UIElement.Focus"/>:
+    /// Letzteres setzt nur den logischen Fokus, wenn der Bereich gerade nicht der aktive
+    /// ist — und dann blinkt keine Schreibmarke, obwohl das Feld gewählt aussieht.
+    /// </para>
+    /// <para>
+    /// <b>Beide Haken dürfen laufen.</b> Der zweite Aufruf ist harmlos: Das Feld hat den
+    /// Fokus dann bereits, <see cref="TextBox.SelectAll"/> wählt dasselbe noch einmal aus.
+    /// Eine Bedingung dagegen wäre teurer als der doppelte Aufruf und hätte einen Zustand
+    /// mehr, den jemand pflegen muss.
+    /// </para>
+    /// </summary>
+    private static void FokusInsFeld(object sender)
     {
-        if (sender is TextBox box && box.IsVisible)
+        if (sender is not TextBox box || !box.IsVisible) return;
+
+        box.Dispatcher.BeginInvoke(DispatcherPriority.Input, () =>
         {
-            box.Dispatcher.BeginInvoke(() =>
-            {
-                box.Focus();
-                box.SelectAll();
-            });
-        }
+            if (!box.IsVisible) return;   // in der Zwischenzeit abgebrochen
+            Keyboard.Focus(box);
+            box.SelectAll();
+        });
     }
 
     private void RenameBox_LostFocus(object sender, KeyboardFocusChangedEventArgs e)

@@ -11347,7 +11347,7 @@ anfasst. Erwartet sind 0 Fehler, 0 Warnungen und 1120 Tests
 (1056 Core + 64 WPF) -- stimmt eine der Zahlen nicht, IST DAS DER ERSTE
 BEFUND. UND SIEH IN git log NACH, OB DER LETZTE EINTRAG ZU DEM PASST,
 WAS HIER STEHT: in V2-100 lagen sechs Runden ungesichert im
-Arbeitsbaum (§4.77).
+Arbeitsbaum (§4.77). Der letzte Eintrag muss V2-104 sein.
 
 M2 IST ERREICHT UND AUSGERUFEN. DER MEILENSTEIN TRAEGT EIN BENANNTES
 LOCH: die Rechtschreibpruefung fehlt im Linux-Kopf. Bei JEDER
@@ -11356,12 +11356,9 @@ die darf verschieden bleiben (§5 Nr. 17).
 
 DIE ORDNUNG VON PHASE 5 STEHT IN §6 UND NUR DORT:
 
-  (1a) Vermessen    ERLEDIGT -- alle fuenf Flaechen (§4.71, §4.74, §4.75)
+  (1a) Vermessen    ERLEDIGT -- alle fuenf Flaechen
   (1b) Angleichen   weitgehend erledigt (§4.72-§4.75)
-  (1c) Werkzeuge    LAEUFT -- Tafel-Export (§4.77), Formen-Stift
-                    (§4.78 / §4.79), Suchen & Ersetzen (§4.80) und
-                    das Cover (§4.81) sind zu. DIE TAFEL IST DAMIT
-                    ZU, bis auf das Diagramm-Werkzeug <-- HIER WEITER
+  (1c) Werkzeuge    LAEUFT <-- HIER WEITER
   (2)  Rueckmeldung VERSCHOBEN hinter 1c (§5 Nr. 28)
   (3)  Flatpak/AppImage  (braucht den Laptop)
   (4)  Rest des Aufraeumens + VOLLSTAENDIGER Prueflauf
@@ -11371,43 +11368,60 @@ DEIN AUFTRAG IST 1c: DIE FEHLENDEN WERKZEUGE BAUEN.
 
 DAS IST KEINE ANGLEICHARBEIT, SONDERN PHASE-4.5-ARBEIT UNTER NEUEM
 NAMEN. §5 Nr. 26 sagt: was einer Seite GANZ fehlt, wird DORT gebaut --
-nicht drueben geloescht. Was zu bauen ist, steht als Liste in §4.75;
-der ZUSCHNITT DER RUNDEN GEHOERT DEM NUTZER, also frag ihn, bevor du
-eine grosse Runde anfaengst.
+nicht drueben geloescht. DER ZUSCHNITT DER RUNDEN GEHOERT DEM NUTZER,
+also frag ihn, bevor du eine grosse Runde anfaengst.
 
-  Tafel:  nur noch das Diagramm-Werkzeug. (Formen-Stift §4.78,
-          Cover §4.81.)
-  Editor: der ganze Tabellenentwurf, Formatpinsel, Stil- und
-          Listengalerien, Bild/Infobox/Symbol, Diagramm, Navigator,
-          Wortzahl, Lineal, Rueckgaengig/Wiederholen.
-          (Suchen & Ersetzen ist in §4.80 gebaut.)
+WAS IN 1c SCHON ZU IST (fuenf Runden, alles in beiden Koepfen am
+laufenden Programm geprueft):
+  §4.77  Tafel-Export      -> Core/Rendering/WbExport.cs, +12 Waechter
+  §4.78  Formen-Stift      -> Core/Editing/WbFormen.cs,   +23 Waechter
+  §4.79  die zwei Funde daraus (Schwellen, Vorgabetinte)
+  §4.80  Suchen & Ersetzen -> Core/Text/TdSuche.cs,       +20 Waechter
+  §4.81  Cover-Werkzeug    -> Core/Services/CoverLibrary.cs, +8 Waechter
 
-⛔ DIE LISTE IM HANDOFF WAR AN DREI STELLEN FALSCH, §4.77 HAT SIE
-RICHTIGGESTELLT -- MISS NACH, BEVOR DU BAUST (§4.56, drittes Mal):
- - "7 Klappgruppen gegen 1" war 7 gegen 5, und drueben sind es zur
-   Laufzeit DREI (die uebrigen haengen an ihrem Werkzeug). Es fehlt
-   nur noch Cover; Export ist in §4.77 gebaut.
- - Zahlenblock, Schnellaktionen, Import und Texterkennung GIBT ES im
-   Linux-Kopf laengst -- der Prompt zaehlte sie als offen auf.
- - Der Formen-Stift fehlt wirklich, und er ist das EINZIGE fehlende
-   Werkzeug der Tafelleiste. Core kennt ihn schon (WbLeiste, Kuerzel
-   G, beide Sprachtabellen); es fehlt der Knopf und die Erkennung
-   (WhiteboardView.Shapes.cs, 305 Zeilen reine Geometrie -> Core).
+DIE TAFEL IST DAMIT ZU, bis auf das Diagramm-Werkzeug. Die
+Einstellungsleiste des Linux-Kopfs hat jetzt ALLE Abschnitte des
+WPF-Kopfs.
 
-DIE ZWEI FUNDE AUS §4.78 SIND IN §4.79 ZU -- die Formerkennung misst
-gegen die Ausdehnung statt gegen die Bogenlaenge, und die Vorgabetinte
-kommt in BEIDEN Koepfen aus der Tabelle in Core. LEHRE DARAUS, die beim
-naechsten Schwellenfehler zaehlt: DERSELBE DENKFEHLER SASS AN DREI
-STELLEN. Wer nur die eine Zeile geaendert haette, haette den Fehler
-verschoben statt behoben -- und der Waechter dafuer waere gruen
-geworden.
+WAS WIRKLICH NOCH FEHLT -- und diese Liste ist in §4.81 nachgemessen:
+  Tafel:  Diagramm-Werkzeug.
+  Editor: Tabellenentwurf (Stil, Rahmen, Fuellung, Groesse,
+          AutoAnpassen, Zellenabstand, verbinden/teilen, sortieren,
+          Formel, in Text), Formatpinsel + Formatierung loeschen,
+          Stil-/Aufzaehlungs-/Nummerierungsgalerie, Bild, Infobox,
+          Symbolauswahl, Diagramm, Navigator, Lineal,
+          Rueckgaengig/Wiederholen als Knoepfe.
 
-DER TAFEL-EXPORT IST IN §4.77 ZU: er lag als PdfExporter im WPF-Kopf
-mit der Begruendung "zeichnet ueber den Kopf" -- DIE WAR VON ANFANG AN
-FALSCH, alle fuenf Aufrufe gingen an WbRenderer in Core. Der Linux-Kopf
-konnte eine Tafel UEBERHAUPT NICHT exportieren; das war ein zweites,
-unbenanntes Loch in M2. Jetzt Core/Rendering/WbExport.cs, beide Koepfe,
-+12 Waechter IN CORE.
+⛔ MISS NACH, BEVOR DU BAUST. Die Liste im HANDOFF hat ZWEIMAL Arbeit
+versprochen, die laengst dastand:
+ - §4.77: "7 Klappgruppen gegen 1" war 7 gegen 5; Zahlenblock,
+   Schnellaktionen, Import und Texterkennung GIBT ES im Linux-Kopf
+   laengst.
+ - §4.81: "Wortzahl" fehlt NICHT -- der Linux-Editor zeigt
+   "Woerter - Zeichen" seit jeher (Ed.Status.Counts.Format).
+Eine Aufgabenliste, die niemand nachmisst, waechst nur -- erledigte
+Punkte tragen sich nicht von selbst aus (§4.56, dreimal bestaetigt).
+
+⛔ UND MISS AUCH NACH, OB DER CODE WIRKLICH IM FALSCHEN PROJEKT LIEGT.
+Zweimal lag er es (§4.77 Tafel-Export, §4.78 Formen-Stift: beide hingen
+an NICHTS, was WPF gewesen waere). Beim dritten Mal lag er zu Recht
+drueben (§4.80: TextEditorView.Find.cs steht auf TextPointer/TextRange,
+eine echte Windows-Schranke). WER NACH ZWEI FUNDEN DERSELBEN SORTE
+ANFAENGT, SIE UEBERALL ZU VERMUTEN, SPART SICH DAS NACHSEHEN.
+
+ZWEI OFFENE PUNKTE, DIE DEM NUTZER GEHOEREN (§5e, "Zwei offene Punkte
+aus §4.80") -- BEIDE NICHT NEBENBEI MACHEN:
+ (a) DAS VIOLETT AN DER WURZEL STATT AN DEN BLAETTERN. Sechs Runden,
+     sechs Stellen. Fluent laesst sich die Akzentfarbe an EINER Stelle
+     vorgeben (FluentTheme.Palettes / ColorPaletteResources.Accent),
+     gespeist aus ThemeColor.Accent in Core. Das waere die Antwort auf
+     die URSACHE statt auf ihre Erscheinungen -- aber es faerbt jede
+     Flaeche auf einmal um und verlangt einen vollen Durchgang durch
+     beide Koepfe. Eigene Runde.
+ (b) STRG+F WIRKT NUR MIT FOKUS AUF DER LEINWAND. Der Tastenweg des
+     Editors haengt am Canvas; nach einem Doppelklick im Ordnerbaum
+     drueckt man ins Leere. Betrifft vermutlich ALLE Editor-Kuerzel --
+     erst messen, dann bauen.
 
 WAS 1b NOCH OFFEN LAESST, ZWEI BENANNTE RESTE -- BEIDE MIT
 GESCHEITERTEN VERSUCHEN IM CODE, FANG NICHT BEI ANLAUF EINS AN:
@@ -11430,19 +11444,27 @@ gegangen:
  - IMMER NUR EIN KOPF SICHTBAR. Stehen beide deckungsgleich,
    fotografiert kette.ps1 den ANDEREN Kopf -- §4.50 zum zweiten Mal.
  - FANG MIT EINER LEEREN FLAECHE AN (§4.56).
- - EIN AUFTRAG IST KEINE MESSUNG. In §4.71 waren zwei von acht
-   vermuteten Befunden falsch, und zwei Zeilen der Befundtabelle
-   mussten in §4.73 richtiggestellt werden.
+ - DIE WAECHTER VOR DIE OBERFLAECHE SCHREIBEN. In §4.80 sind zwei
+   gefallen, und beide hatten recht: TdEdit.Ersetzen BAUT eine
+   Aenderung nur (Anwenden muss der Aufrufer rufen), und FormatBei
+   erbt nach LINKS. Kein Bau haette das gezeigt.
+ - BEIDE KOEPFE NEBENEINANDER AN DERSELBEN DATEI. So sind gefunden
+   worden: zwei verschiedene Vorgabetinten (§4.78) und ein leeres
+   Schriftfeld, wo drueben "Space Grotesk" stand (§4.81).
 
 DIE REGEL, DIE SICH IN JEDER RUNDE BESTAETIGT HAT:
 JEDE FLAECHE, DIE NOCH NICHT ANGEFASST IST, HAT IHR EIGENES VIOLETT.
-Fluents SystemAccentColor schlaegt ueberall durch, wo niemand es
-ueberschrieben hat -- Baum (§4.72), Klappliste (§4.73), Schieber
-(§4.74), Auswahlpunkt (§4.77). FUENFMAL BESTAETIGT. §5 Nr. 27: die
-Auswahl sieht in BEIDEN Koepfen gleich aus und folgt dem Theme, also
-NIE ein fester Farbwert, immer ein Wert aus der Tabelle in Core.
-Den Namen des Template-Teils NACHMESSEN und nicht raten -- die
-Zeichenketten stehen in Avalonia.Themes.Fluent.dll (§4.42, §4.77).
+Baum (§4.72), Klappliste (§4.73), Schieber (§4.74), Reiter,
+Auswahlpunkt (§4.77), Ribbon-Schalter und Eingabefeld (§4.80).
+SECHSMAL BESTAETIGT. §5 Nr. 27: die Auswahl sieht in BEIDEN Koepfen
+gleich aus und folgt dem Theme, also NIE ein fester Farbwert, immer
+ein Wert aus der Tabelle in Core. Den Namen des Template-Teils
+NACHMESSEN und nicht raten -- die Zeichenketten stehen in
+Avalonia.Themes.Fluent.dll (§4.42, §4.77, §4.80).
+⛔ UND IN §4.80 KAM EINE NEUE URSACHE DAZU: der Stil EXISTIERTE und
+galt nur nicht -- Button.ribbonknopf deckt einen ToggleButton nicht ab.
+Wer den Typ eines Steuerelements wechselt, verliert sein Aussehen
+STILL.
 
 WAS DU NICHT ANGLEICHST, WEIL ES ENTSCHIEDEN IST:
  (11) Tote Tasten unter Linux -- benannt lassen, Issue bei Avalonia
@@ -11464,33 +11486,43 @@ ueberfliegen, das ist Pflicht):
    diese eine Ursache, und DER BAU WAR JEDES MAL GRUEN.
  - Ein px-Suffix in einem XAML-Mass wirft zur LAUFZEIT (§4.53).
  - Die Einstellungsleiste ohne EinstellungenSpiegeln aufklappen ergibt
-   LAUTER LEERE UMSCHALTER (§4.53) -- und genau diese Leiste baust du
-   jetzt aus.
- - klick.ps1 holt DAS HAUPTFENSTER nach vorn, bevor es tippt. Steht ein
-   MODALER Dialog davor, gehen die Tasten ans Fenster DAHINTER -- der
-   getippte Pfad wurde zu Werkzeug-Kuerzeln auf der Zeichenflaeche
-   (§4.77). Vor einem modalen Fenster wird GEKLICKT, nicht getippt.
- - Ein Waechter im falschen Testprojekt ist fuer den anderen Kopf GAR
-   KEINER: der Linux-Kopf faehrt nur GonkNote.Core.Tests (§4.77).
+   LAUTER LEERE UMSCHALTER (§4.53).
  - ⛔ EIN KNOPF, DEN DER EINGABEPFAD NICHT KENNT, TUT STILL NICHTS. In
    §4.78 war der Formen-Stift sichtbar, waehlbar und wirkungslos: drei
-   switch-Weichen im Linux-Kopf zaehlen die Stifte einzeln auf. BAU
+   switch-Weichen im Linux-Kopf zaehlten die Stifte einzeln auf. BAU
    GRUEN, WAECHTER GRUEN. Gesehen hat es erst der Klick am laufenden
    Programm, GEGEN EIN FUNKTIONIERENDES WERKZEUG GEHALTEN. Wer ein
    Werkzeug einbaut, prueft es mit genau dieser Gegenprobe.
- - Beim Fernsteuern: SetCursorPos verschiebt den Zeiger, erzeugt aber
-   KEINE verlaessliche Bewegungseingabe -- der Avalonia-Kopf hat einen
-   so gezogenen Zug GAR NICHT gesehen, und es sah aus wie ein Fehler im
-   neuen Code. mouse_event(MOVE|ABSOLUTE) nehmen (§4.78).
+ - Avalonia: bei gesetztem ItemsSource ist Items NICHT die Liste,
+   gegen die man vergleicht -- ein Contains() darauf sagt immer
+   "nein", und die Auswahl bleibt leer (§4.81).
+ - Ein Waechter im falschen Testprojekt ist fuer den anderen Kopf GAR
+   KEINER: der Linux-Kopf faehrt nur GonkNote.Core.Tests (§4.77).
  - Assets, die im Avalonia-csproj ausgenommen sind, weil "das Werkzeug
    gibt es im Linux-Kopf nicht": DIE BEGRUENDUNG LAEUFT AB, sobald es
-   das Werkzeug gibt (§4.60). DAS GILT JETZT FUER DIE COVER-VORLAGEN --
-   es steht so im csproj.
+   das Werkzeug gibt (§4.60). Bei den Cover-Vorlagen hat die Warnung
+   getragen (§4.81) -- sie kamen im selben Commit mit. NICHT die
+   Warnung war das Verdienst, sondern ihr ORT: sie stand dort, wo
+   gebaut wird, und nannte ihren eigenen Ablaufzeitpunkt.
  - Loc.T faellt bei einem fehlenden Schluessel AUF DEN SCHLUESSEL
    SELBST zurueck (§4.68).
- - Fest verdrahtete Texte fallen erst auf, wenn ein zweiter Kopf sie
-   braucht. In §4.74 und §4.75 waren es sieben Stellen, eine davon in
-   BEIDEN Koepfen. BEIDE Sprachtabellen zusammen (Dauerregel 1).
+ - FEST VERDRAHTETE DEUTSCHE TEXTE IM WPF-KOPF, VIER RUNDEN IN FOLGE
+   (§4.74, §4.75, §4.80, §4.81). Wer im WPF-Kopf etwas anfasst, sieht
+   nach: Dialogtitel, Dateifilter, Statusmeldungen. BEIDE
+   Sprachtabellen zusammen (Dauerregel 1).
+ - UND DIESELBE SORTE FUND EINE EBENE HOEHER (§4.81): §5 Nr. 14
+   ("Schriftlisten zusammenfuehren") war beim Editor umgesetzt und
+   beim Cover nicht. Eine Entscheidung, die an EINER Stelle umgesetzt
+   wird, ist nicht umgesetzt, sondern angefangen.
+ - klick.ps1 holt DAS HAUPTFENSTER nach vorn, bevor es tippt. Steht
+   ein MODALER Dialog davor, gehen die Tasten ans Fenster DAHINTER
+   (§4.77). Vor einem modalen Fenster wird GEKLICKT, nicht getippt.
+   Und nach einem {ESC} liegt der Fokus im Ordnerbaum -- erst auf die
+   Flaeche klicken, dann ein Kuerzel druecken (§4.79).
+ - Beim Fernsteuern: SetCursorPos verschiebt den Zeiger, erzeugt aber
+   KEINE verlaessliche Bewegungseingabe -- der Avalonia-Kopf hat einen
+   so gezogenen Zug GAR NICHT gesehen. mouse_event(MOVE|ABSOLUTE)
+   nehmen (§4.78).
  - Die Werkzeug-Kuerzel stehen in Core (WbLeiste.Kuerzel): S G B M E
    L V T F N H. "P" ist keins.
  - Beim Schreiben mit einem Skript: NICHT die Kodierung und NICHT die
@@ -11510,7 +11542,7 @@ ob der Laptop dran ist.
 Fang an.
 ```
 
-### ▶ Aktueller Auftrag — **▶ Phase 5, Schritt ①c: die fehlenden Werkzeuge bauen** (Stand 2026-08-31, nach Runde V2-100)
+### ▶ Aktueller Auftrag — **▶ Phase 5, Schritt ①c: die fehlenden Werkzeuge bauen** (Stand 2026-08-31, nach Runde V2-104)
 
 > **✅ ①a ist erledigt** — **alle fünf Flächen sind vermessen** (§4.71 Rahmen und Editor,
 > §4.74 Symbole/Tooltips, §4.75 Dialoge).
@@ -11537,7 +11569,7 @@ Fang an.
 | Gegenstand | Umfang |
 |---|---|
 | ~~**Tafel-Export**~~ | ✅ **Erledigt (§4.77).** Er fehlte dem Linux-Kopf **ganz** — `ExportBoard` warf. Liegt jetzt als `Core/Rendering/WbExport.cs` in Core und läuft in beiden Köpfen, samt Export-Gruppe in der Einstellungsleiste |
-| **Einstellungsleiste der Tafel** | ⚠ **Nicht „7 gegen 1".** Seite, Formen, Text, Notizzettel, Sticker **stehen** im Linux-Kopf; Export ist in §4.77 dazugekommen. **Es fehlt nur noch Cover.** Offen bleibt die **Form**: `Expander` drüben gegen `StackPanel` hier — das ist ①b und keine fehlende Funktion |
+| ~~**Einstellungsleiste der Tafel**~~ | ✅ **Vollständig (§4.77 Export, §4.81 Cover).** Sie hat jetzt **alle** Abschnitte des WPF-Kopfs. ⚠ Offen bleibt allein die **Form**: `Expander` drüben gegen `StackPanel` hier, und die Überschrift („Einstellungen" gegen „Seite") — das ist ①b und keine fehlende Funktion |
 | ~~**Cover-Werkzeug**~~ | ✅ **Erledigt (§4.81).** `Core/Services/CoverLibrary.cs` + Abschnitt in der Einstellungsleiste, **+8 Wächter** — und **die Cover-Vorlagen sind im selben Commit ins Avalonia-csproj gekommen**, die Warnung von §4.60 hat getragen. **Die Einstellungsleiste hat damit alle Abschnitte des WPF-Kopfs** |
 | ~~**Formen-Stift** (`Tool.SmoothPen`)~~ | ✅ **Erledigt (§4.78).** Die Geometrie liegt als `Core/Editing/WbFormen.cs` in Core, der Knopf steht in der Leiste, **+23 Wächter** — vorher war sie durch **keinen einzigen** gedeckt. **⛔ Und dabei sind zwei Fehler aufgefallen, die nicht repariert sind — sie stehen unten** |
 | ~~**Suchen & Ersetzen**~~ | ✅ **Erledigt (§4.80).** `Core/Text/TdSuche.cs` gegen das Modell — **nicht umgezogen**: der WPF-Weg steht auf `TextPointer` und ist eine echte Windows-Schranke. **+20 Wächter**, und der Linux-Kopf findet dabei mehr als der WPF-Kopf (Treffer über Formatgrenzen) |
@@ -11547,7 +11579,8 @@ Fang an.
 | **Stil-, Aufzählungs- und Nummerierungsgalerie** | fehlen (der Linux-Kopf hat eine Klappliste statt der Kachelgalerie) |
 | **Bild, Infobox, Symbolauswahl** | fehlen |
 | **Diagramm** | `ChartDialog`, **435 Zeilen** — und ein **Diagramm-Werkzeug in der Tafelleiste** |
-| **Navigator, Wortzahl** | fehlen |
+| **Navigator** | fehlt |
+| ~~**Wortzahl**~~ | ⛔ **Fehlt nicht** — der Linux-Editor zeigt „Wörter · Zeichen" seit jeher (`Ed.Status.Counts.Format`, in der Statusleiste). **In §4.81 nachgemessen**; die Zeile stand hier zu Unrecht (§4.56, zweites Mal nach §4.77) |
 | **Rückgängig/Wiederholen im Editor** | fehlen als Knöpfe |
 | **Lineal im Editor** | fehlt |
 
@@ -11556,14 +11589,13 @@ Fang an.
 > die *Form* (Expander gegen StackPanel), nicht der Inhalt. Was dahinter wirklich fehlte, war
 > **der Export**, und zwar nicht als Bedienfläche, sondern als **Funktion** (§4.77). *Eine
 > falsche Zählung kostet nicht die Runde, die sie schreibt, sondern die, die ihr glaubt.*
->
-> **Was von dem Posten übrig ist: das Cover** — und das fehlt wirklich.
 
-> **⛔ Und die Falle, die genau hier wartet:** Sobald das Cover-Werkzeug kommt, **müssen die
-> Cover-Vorlagen ins Avalonia-csproj** — sie sind dort ausgenommen, mit der Begründung „das
-> Werkzeug gibt es im Linux-Kopf nicht". **Diese Begründung läuft in dem Moment ab.** Es
-> stünde sonst zum dritten Mal derselbe Fehler da: Bau grün, Tests grün, zwei Gestalten
-> desselben Werkzeugs (§4.60, §4.63, §4.74).
+> **✅ Und die Falle aus §4.60 ist nicht zugeschnappt.** Die Warnung im Avalonia-csproj lautete:
+> *„sobald das Cover-Werkzeug kommt, müssen die Vorlagen im selben Zug hier mit hinein — ein
+> dritter Fall wäre kein Fall mehr, sondern ein Muster."* **Sie hat getragen:** die 62
+> Vorlagen sind in §4.81 **im selben Commit** mitgekommen. *Nicht die Warnung war das
+> Verdienst, sondern ihr Ort — sie stand dort, wo gebaut wird, und nannte ihren eigenen
+> Ablaufzeitpunkt.*
 
 #### ⚠ Die zwei Reste aus ①b — beide mit gescheiterten Versuchen
 

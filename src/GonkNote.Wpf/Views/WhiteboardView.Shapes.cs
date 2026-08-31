@@ -1,5 +1,6 @@
 ﻿using System.Windows.Media;
 using GonkNote.Core.Models;
+using GonkNote.Core.Theming;
 using GonkNote.Services;
 using SkiaSharp;
 using GonkNote.Core.Platform;
@@ -33,12 +34,44 @@ public partial class WhiteboardView
         return App.Platform.Theme.Current == AppTheme.Dark ? PageShade.Dark : PageShade.Light;
     }
 
+    /// <summary>
+    /// Die Farbe, mit der gezeichnet wird. „auto" heißt: dunkel auf hellem, hell auf dunklem
+    /// Papier — <b>und die Vorgabefarbe kommt aus der Farbtabelle in Core</b>.
+    ///
+    /// <para>
+    /// ⛔ <b>Hier standen bis §4.79 zwei feste Werte:</b> <c>"#FF000000"</c> und
+    /// <c>"#FFFFFFFF"</c>. Der Linux-Kopf nahm an derselben Stelle
+    /// <c>Themes.Light[ThemeColor.DefaultInk]</c> = <c>#1B2B4B</c> — <b>mit derselben Kachel
+    /// „auto" schrieben die beiden Köpfe also in verschiedenen Farben.</b> Beim Fotografieren
+    /// nebeneinander gesehen (§4.78): dieselbe Seite, vier dunkelblaue Formen aus dem einen
+    /// Kopf, zwei tiefschwarze aus dem anderen.
+    /// </para>
+    /// <para>
+    /// <b>Das ist §5 Nr. 27 — „nie ein fester Farbwert, immer einer aus der Tabelle in
+    /// Core"</b> —, und es war der schlimmere Fall davon: Es betrifft nicht das Aussehen der
+    /// Oberfläche, sondern <b>die gespeicherten Daten</b>. Ein Dokument, das auf beiden
+    /// Rechnern bearbeitet wird, bekommt zwei verschiedene Schwarztöne, und man sieht es erst
+    /// nebeneinander.
+    /// </para>
+    /// <para>
+    /// <b>Der Kommentar im Linux-Kopf benannte die Regel wörtlich, gegen die dieser hier
+    /// verstieß</b> — nachzulesen in <c>WhiteboardView.axaml.cs</c>, <c>AutoTinte</c>.
+    /// *Zwei Fassungen derselben Entscheidung, und die eine wusste von der anderen nichts.*
+    /// </para>
+    /// </summary>
     private string CurrentInkHex()
     {
         if (!string.IsNullOrEmpty(_colorTag) && _colorTag != "auto") return _colorTag;
-        // Standardtinte: Schwarz auf hellen, Weiß auf dunklen Seiten
-        return EffectiveShade(_page) == PageShade.Dark ? "#FFFFFFFF" : "#FF000000";
+        return AutoTinte().ToString();
     }
+
+    /// <summary>
+    /// Die Vorgabetinte zur Seite. <b>Sie gehört zum Papier, nicht zur App</b> — bei einem
+    /// festgelegten Farbton zählt <b>der</b>, und nur bei <see cref="PageShade.Auto"/> folgt
+    /// sie dem Theme. <see cref="EffectiveShade"/> beantwortet genau das.
+    /// </summary>
+    private HexColor AutoTinte() =>
+        (EffectiveShade(_page) == PageShade.Dark ? Themes.Dark : Themes.Light)[ThemeColor.DefaultInk];
 
     /// <summary>
     /// Hält die erste Farbkachel synchron zur Seite: Schwarz auf hellen, Weiß auf
@@ -52,6 +85,12 @@ public partial class WhiteboardView
         bool dark = EffectiveShade(_page) == PageShade.Dark;
         if (_autoSwatchDark == dark) return;
         _autoSwatchDark = dark;
-        AutoSwatch.Background = new SolidColorBrush(dark ? Colors.White : Colors.Black);
+
+        // **Dieselbe Quelle wie die Tinte selbst** (§4.79). Hier standen Colors.White und
+        // Colors.Black — die Kachel zeigte damit eine andere Farbe an, als der Stift
+        // schrieb, sobald man den Wert nur an einer der beiden Stellen ändert.
+        // *Eine Vorschau, die aus einer zweiten Quelle kommt, ist keine Vorschau.*
+        var tinte = AutoTinte();
+        AutoSwatch.Background = new SolidColorBrush(Color.FromArgb(tinte.A, tinte.R, tinte.G, tinte.B));
     }
 }

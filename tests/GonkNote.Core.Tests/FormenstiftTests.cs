@@ -1,5 +1,6 @@
 using GonkNote.Core.Editing;
 using GonkNote.Core.Models;
+using GonkNote.Core.Theming;
 
 namespace GonkNote.Core.Tests;
 
@@ -95,48 +96,64 @@ public sealed class FormenstiftTests
     }
 
     /// <summary>
-    /// ⛔ <b>Dieser Wächter hält einen Fehler fest, keine Zusage — und er ist der Grund,
-    /// warum der Umzug nach Core sich gelohnt hat.</b>
+    /// <b>Ein Gekritzel bleibt ein Gekritzel.</b> Der wichtigste Wächter der Datei: Wer den
+    /// Formen-Stift zum Schreiben benutzt, darf seine Handschrift nicht als Vieleck
+    /// wiederfinden.
     ///
     /// <para>
-    /// Er war als „ein Gekritzel bleibt ein Gekritzel" geschrieben und ist <b>gefallen</b>.
-    /// Gemessen (Wegwerf-Sonde, §4.78): ein Zug aus 120 Punkten, <b>2.886 Einheiten lang</b>
-    /// und nur <b>297 weit</b>, gilt als <i>geschlossen</i> und wird zu einem
-    /// <b>Streckenzug aus drei Punkten</b> eingedampft. Vom Gekritzel bleibt nichts übrig.
+    /// <b>Dieser Wächter ist schon einmal gefallen, und das war der Fund von §4.78.</b> Vor
+    /// §4.79 wurde dieser Zug — 120 Punkte, <b>2.886 lang und nur 297 weit</b> — als
+    /// <i>geschlossen</i> eingestuft und zu einem <b>Streckenzug aus drei Punkten</b>
+    /// eingedampft: das Gekritzel war weg. Ursache waren drei Schwellen der Form
+    /// <c>Länge × k</c>; sie <b>wuchsen mit jedem Zickzack</b>, statt zu sagen, wie groß das
+    /// Gezeichnete ist. Seit §4.79 wird gegen die <b>Ausdehnung</b> gemessen.
     /// </para>
     /// <para>
-    /// <b>Die Ursache steht in einer Zeile:</b> als geschlossen gilt ein Zug, dessen Sehne
-    /// kürzer ist als <c>Länge × 0,16</c> — <b>die Schwelle wächst also mit der Zuglänge.</b>
-    /// Je länger und krakeliger ein Strich ist, desto eher hält ihn die Erkennung für
-    /// geschlossen. Das ist genau verkehrt herum. Hier: Schwelle 461, Sehne 297.
-    /// </para>
-    /// <para>
-    /// <b>Warum das trotzdem so stehen bleibt:</b> Der Fehler ist <b>seit Phase 3 im
-    /// WPF-Kopf</b> und nicht in §4.78 entstanden — der Umzug hat keine Zeile Logik geändert,
-    /// er hat den Fehler nur <i>sichtbar</i> gemacht. Ihn im selben Zug zu reparieren hieße,
-    /// den Umzug und eine Verhaltensänderung zusammen zu prüfen; und es ändert ein Werkzeug,
-    /// das der Nutzer täglich benutzt. <b>Der Zuschnitt gehört dem Nutzer</b> (§5e).
-    /// </para>
-    /// <para>
-    /// <b>Dieser Wächter friert das falsche Verhalten also bewusst ein</b>, damit es nicht
-    /// unbemerkt wieder verschwindet <i>oder</i> unbemerkt schlimmer wird. <b>Wer die
-    /// Schwelle richtigstellt, lässt ihn fallen — und das ist dann die richtige Meldung,
-    /// nicht die falsche.</b> Der Fund steht in §4.78 und als offener Punkt in §5e.
+    /// <b>Er stand eine Runde lang als Warnschild da</b> (mit <c>Points.Count &lt;= 4</c>),
+    /// damit das falsche Verhalten weder unbemerkt verschwindet noch schlimmer wird. Jetzt
+    /// sagt er, was er sagen soll. *Ein Wächter, der einen Fehler einfriert, ist eine Notiz
+    /// mit Alarmanlage — und er gehört ersetzt, sobald der Fehler weg ist.*
     /// </para>
     /// </summary>
     [Fact]
-    public void Ein_langes_Gekritzel_wird_faelschlich_zusammengefaltet()
+    public void Ein_Gekritzel_wird_zu_keiner_Form()
     {
         var punkte = new List<(float, float)>();
         for (int i = 0; i < 120; i++)
             punkte.Add((i * 2.5f, 40f * MathF.Sin(i * 0.9f) + 12f * MathF.Cos(i * 2.3f)));
 
-        var zug = Assert.IsType<StrokeElement>(Erkennen(punkte));
+        Assert.Null(Erkennen(punkte));
+    }
 
-        Assert.True(zug.Points.Count <= 4,
-            $"Der Fund aus §4.78 ist weg: das Gekritzel überlebt jetzt mit {zug.Points.Count} " +
-            "Punkten. Wenn die Schwelle richtiggestellt wurde, gehört dieser Wächter ersetzt " +
-            "durch: Assert.Null(Erkennen(punkte)).");
+    /// <summary>
+    /// <b>Der Gegenwächter zum Fund, und er ist der eigentliche Beweis:</b> Derselbe Zug,
+    /// nur <b>länger gekritzelt</b> — mehr Zickzack auf derselben Strecke. Vor §4.79 wurde er
+    /// dadurch <i>eher</i> zusammengefaltet (die Schwelle wuchs mit); jetzt ändert die Zahl
+    /// der Wellen am Ergebnis <b>nichts mehr</b>, weil die Ausdehnung dieselbe bleibt.
+    ///
+    /// <para>
+    /// <b>Die Reihe fängt bei 120 an, und das ist gemessen und nicht gerundet:</b> Bei 60 —
+    /// gut zwei flache Wellen auf 300 Einheiten — wird ein Streckenzug erkannt, und das ist
+    /// <i>richtig</i> so. Zwei weiche Bögen sind kein Gekritzel, sondern eine Linie mit ein
+    /// paar Ecken. *Ein Wächter, der auch das verböte, würde nicht den Fehler festhalten,
+    /// sondern das Werkzeug abschaffen.*
+    /// </para>
+    /// </summary>
+    [Theory]
+    [InlineData(120)]
+    [InlineData(240)]
+    [InlineData(400)]
+    [InlineData(800)]
+    public void Mehr_Zickzack_auf_derselben_Strecke_aendert_nichts(int wellen)
+    {
+        var punkte = new List<(float, float)>();
+        for (int i = 0; i < 120; i++)
+        {
+            float t = i / 119f;
+            punkte.Add((t * 300f, 40f * MathF.Sin(t * wellen * 0.2f)));
+        }
+
+        Assert.Null(Erkennen(punkte));
     }
 
     /// <summary>
@@ -379,6 +396,45 @@ public sealed class FormenstiftTests
     {
         List<WbPoint> zwei = [new(0, 0, 0.5f), new(10, 10, 0.5f)];
         Assert.Same(zwei, WbFormen.Glaetten(zwei));
+    }
+
+    // ==================== Die Vorgabetinte ====================
+
+    /// <summary>
+    /// <b>Die Vorgabetinte steht in der Tabelle in Core — an einer Stelle, für beide
+    /// Köpfe</b> (§5 Nr. 27, §4.79).
+    ///
+    /// <para>
+    /// <b>Der Grund für diesen Wächter ist gemessen:</b> Bis §4.79 nahm der Linux-Kopf
+    /// <c>Themes.Light[DefaultInk]</c>, der WPF-Kopf zwei <b>fest verdrahtete</b> Werte
+    /// (<c>#FF000000</c> / <c>#FFFFFFFF</c>). **Mit derselben Kachel „auto" schrieben die
+    /// beiden Köpfe in verschiedenen Farben** — und das betrifft nicht das Aussehen, sondern
+    /// <b>die gespeicherten Daten</b>: derselbe Strich hat je nach Kopf eine andere Farbe im
+    /// Dokument. Aufgefallen ist es erst, als beide Köpfe nebeneinander fotografiert wurden.
+    /// </para>
+    /// <para>
+    /// <b>Was dieser Wächter kann und was nicht:</b> Er hält fest, dass es die Werte gibt und
+    /// dass sie <i>nicht</i> reines Schwarz und Weiß sind — also dass die alten Konstanten
+    /// nicht klammheimlich zurückkehren. **Ob ein Kopf die Tabelle auch benutzt, kann er
+    /// nicht sehen**; das bleibt Sache des laufenden Programms. *Ein Wächter, der behauptet,
+    /// mehr zu prüfen als er kann, ist schlimmer als keiner.*
+    /// </para>
+    /// </summary>
+    [Fact]
+    public void Die_Vorgabetinte_kommt_aus_der_Tabelle_und_ist_nicht_schwarz_weiss()
+    {
+        var hell = Themes.Light[ThemeColor.DefaultInk];
+        var dunkel = Themes.Dark[ThemeColor.DefaultInk];
+
+        Assert.NotEqual(HexColor.Black, hell);
+        Assert.NotEqual(new HexColor(0xFF, 0xFF, 0xFF, 0xFF), dunkel);
+
+        // Tinte auf hellem Papier muss dunkel sein und umgekehrt — sonst schreibt ein Kopf
+        // unsichtbar, und der Strich ist da, gespeichert und exportierbar, nur nicht zu sehen.
+        Assert.True(Helligkeit(hell) < 0.5, $"Die helle Vorgabetinte {hell} ist zu hell.");
+        Assert.True(Helligkeit(dunkel) > 0.5, $"Die dunkle Vorgabetinte {dunkel} ist zu dunkel.");
+
+        static double Helligkeit(HexColor c) => (0.299 * c.R + 0.587 * c.G + 0.114 * c.B) / 255.0;
     }
 
     // ==================== Die Leiste gegen Core ====================

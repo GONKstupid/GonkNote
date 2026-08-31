@@ -56,22 +56,54 @@ public static class WbFormen
         var b = punkte[^1];
         float sehne = Abstand(a, b);
 
-        // Gerade Linie: Punkte weichen kaum von der Sehne ab
+        // Gerade Linie: Punkte weichen kaum von der Sehne ab. **Hier ist `len` richtig** —
+        // bei einem fast geraden Zug ist die Bogenlänge praktisch die Ausdehnung.
         if (sehne > len * 0.8f && MaxSehnenabstand(punkte) <= Math.Max(4f, len * 0.05f))
             return GeradeEinrasten(a, b, farbe, breite);
 
-        bool geschlossen = sehne <= Math.Max(18f, len * 0.16f);
+        // **Ab hier wird gegen die Ausdehnung gemessen und nicht gegen die Bogenlänge.**
+        //
+        // ⛔ Bis Phase 5, Schritt ①c standen hier drei Schwellen der Form `len × k` — und das
+        // war seit Phase 3 falsch (§4.78, §4.79). „Geschlossen" heißt *Anfang und Ende liegen
+        // nah beieinander*; gemessen wurde aber gegen die **Gesamtlänge**, und die wächst mit
+        // jedem Zickzack. **Je länger und krakeliger ein Zug, desto eher galt er als
+        // geschlossen** — genau verkehrt herum. Gemessen: ein Zug aus 120 Punkten,
+        // 2.886 lang und nur 297 weit, wurde zu einem Streckenzug aus **drei** Punkten
+        // eingedampft; vom Gekritzel blieb nichts übrig.
+        //
+        // Dieselbe Verwechslung steckte in **beiden** Douglas-Peucker-Schwellen darunter: ein
+        // Epsilon, das mit der Bogenlänge wächst, bügelt einen langen Zug platt.
+        //
+        // **Die Diagonale der Umschließung ist das richtige Maß** — sie sagt, wie groß das
+        // Gezeichnete *ist*, nicht wie weit der Stift dabei gelaufen ist.
+        //
+        // Die Faktoren sind so gewählt, dass die bisherigen Erkennungen erhalten bleiben.
+        // Umfang zu Diagonale: Kreis ≈ 2,22 ×, Rechteck ≈ 2,75 ×, flache Ellipse ≈ 2,12 ×.
+        // Daraus 0,16 → **0,35** (geschlossen), 0,03 → **0,045** (offene Ecken) und
+        // 0,025 → **0,05** (geschlossene Ecken).
+        //
+        // ⚠ **Beim Eckenmaß zählt das kleinste Verhältnis, nicht das mittlere** — und das
+        // ist an einem gefallenen Wächter gemessen worden, nicht überlegt: mit dem aus dem
+        // Rechteck gerechneten 0,07 wurde ein **flaches Oval zum Viereck**. Ein zu großes
+        // Epsilon bügelt Rundungen zu Ecken; ein zu kleines lässt ein Rechteck als Vieleck
+        // stehen. **0,05 hält beides**, geprüft an Kreis, flachem Oval, Rechteck (in vier
+        // Drehungen) und gekipptem Viereck — und am laufenden Programm in beiden Köpfen.
+        var (minX, minY, maxX, maxY) = Umschliessung(punkte);
+        float breiteXY = maxX - minX, hoeheXY = maxY - minY;
+        float ausdehnung = MathF.Sqrt(breiteXY * breiteXY + hoeheXY * hoeheXY);
+
+        bool geschlossen = sehne <= Math.Max(18f, ausdehnung * 0.35f);
         if (!geschlossen)
         {
             // Offener Zug mit wenigen klaren Ecken → perfekter Streckenzug
-            var offen = DouglasPeucker(punkte, Math.Max(6f, len * 0.03f));
+            var offen = DouglasPeucker(punkte, Math.Max(6f, ausdehnung * 0.045f));
             if (offen.Count == 2) return GeradeEinrasten(offen[0], offen[^1], farbe, breite);
             if (offen.Count <= 6) return Streckenzug(offen, geschlossen: false, farbe, breite);
             return null;
         }
 
         // Geschlossener Zug: wenige Ecken → Polygon, sonst Ellipse prüfen
-        var polygon = GeschlosseneEcken(punkte, Math.Max(7f, len * 0.025f));
+        var polygon = GeschlosseneEcken(punkte, Math.Max(7f, ausdehnung * 0.05f));
 
         if (polygon.Count == 4 && RechteckEinrasten(polygon, farbe, breite) is { } rechteck)
             return rechteck;

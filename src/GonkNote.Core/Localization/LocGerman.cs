@@ -219,6 +219,10 @@ internal static class LocGerman
         ["Settings.Cover.RemoveImage"] = "Entfernen",
         ["Settings.Cover.ImageHint"] = "Das Bild ersetzt Verlauf und Titel auf dem Cover.",
         ["Settings.Cover.Presets"] = "Vorlagen",
+        // Der Knopf unter der Sammlung. **Nicht „Vorlagen"** — er stand dort in §4.81 kurz
+        // als „+ Vorlagen" und las sich wie eine zweite Überschrift statt wie ein Handgriff.
+        // Am laufenden Programm gesehen; der Sticker-Knopf daneben macht es richtig vor.
+        ["Settings.Cover.Add"] = "Vorlage hinzufügen",
         ["Quick.Cut.Tip"] = "Ausschneiden (Strg+X)",
         ["Quick.Cut"] = "Ausschneiden",
         ["Quick.Copy.Tip"] = "Kopieren (Strg+C)",

@@ -564,6 +564,75 @@
                             </Button>
                         </StackPanel>
 
+                        <!-- ==================== Cover ==================== -->
+                        <!-- Neu in Phase 5, Schritt ①c (§4.81) — **der letzte Abschnitt, der
+                             dem Linux-Kopf fehlte.** Gezeichnet hat er das Cover seit jeher
+                             (`WhiteboardView.Render.cs`, `DrawCover`); bedienen konnte er es
+                             nicht.
+
+                             **Nur auf einer Cover-Seite sichtbar** — dieselbe Regel wie
+                             drüben und derselbe Grund wie beim Hinweis oben: Ein Farbverlauf
+                             ohne Cover ist eine Einstellung ohne Gegenstand.
+
+                             ⛔ **Die Vorlagen sind im selben Zug ins csproj gekommen.** Die
+                             Begründung dort („das Werkzeug gibt es hier nicht") ist mit
+                             diesem Abschnitt abgelaufen — es wäre sonst §4.60 zum dritten
+                             Mal gewesen. -->
+                        <StackPanel x:Name="CoverBereich" IsVisible="False" Margin="0,18,0,0">
+                            <TextBlock Text="{loc:T Settings.Cover}" FontWeight="SemiBold" FontSize="14"
+                                       Margin="0,0,0,6" Foreground="{DynamicResource Brush.Text}"/>
+
+                            <TextBlock Text="{loc:T Settings.Cover.Gradient}" FontWeight="SemiBold"
+                                       Margin="0,0,0,4" Foreground="{DynamicResource Brush.Text}"/>
+                            <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,0,0,12">
+                                <Button Classes="flach" Click="CoverStart_Click"
+                                        ToolTip.Tip="{loc:T Settings.Cover.StartColor}">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <Border x:Name="CoverStartKachel" Width="14" Height="14" CornerRadius="3"
+                                                BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1"/>
+                                        <TextBlock Text="{loc:T Settings.Cover.Start}" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Classes="flach" Click="CoverEnde_Click"
+                                        ToolTip.Tip="{loc:T Settings.Cover.EndColor}">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <Border x:Name="CoverEndeKachel" Width="14" Height="14" CornerRadius="3"
+                                                BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1"/>
+                                        <TextBlock Text="{loc:T Settings.Cover.End}" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+
+                            <TextBlock Text="{loc:T Settings.Cover.Font}" FontWeight="SemiBold"
+                                       Margin="0,0,0,4" Foreground="{DynamicResource Brush.Text}"/>
+                            <ComboBox x:Name="CoverSchrift" Margin="0,0,0,12" HorizontalAlignment="Stretch"
+                                      SelectionChanged="CoverSchrift_Geaendert"/>
+
+                            <TextBlock Text="{loc:T Settings.Cover.Image}" FontWeight="SemiBold"
+                                       Margin="0,0,0,4" Foreground="{DynamicResource Brush.Text}"/>
+                            <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,0,0,4">
+                                <Button Classes="flach" Content="{loc:T Settings.Cover.ChooseImage}"
+                                        Click="CoverBild_Click"/>
+                                <Button x:Name="CoverBildWeg" Classes="flach" IsEnabled="False"
+                                        Content="{loc:T Settings.Cover.RemoveImage}" Click="CoverBildWeg_Click"/>
+                            </StackPanel>
+                            <TextBlock Text="{loc:T Settings.Cover.ImageHint}" TextWrapping="Wrap" FontSize="11"
+                                       Margin="0,0,0,12" Foreground="{DynamicResource Brush.TextMuted}"/>
+
+                            <TextBlock Text="{loc:T Settings.Cover.Presets}" FontWeight="SemiBold"
+                                       Margin="0,0,0,4" Foreground="{DynamicResource Brush.Text}"/>
+                            <StackPanel x:Name="CoverVorlagen"/>
+                            <Button Classes="flach" HorizontalAlignment="Left" Margin="0,8,0,0"
+                                    Click="CoverVorlageHinzufuegen_Click">
+                                <StackPanel Orientation="Horizontal">
+                                    <views:Symbol Icon="Plus" VerticalAlignment="Center"
+                                                  Stroke="{DynamicResource Brush.Text}"/>
+                                    <TextBlock Text="{loc:T Settings.Cover.Add}" Margin="6,0,0,0"
+                                               Foreground="{DynamicResource Brush.Text}"/>
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+
                         <!-- ==================== Export ==================== -->
                         <!-- Neu in Phase 5, Schritt ①c. **Immer sichtbar**, anders als die
                              Werkzeug-Abschnitte darüber: exportiert wird das Dokument und

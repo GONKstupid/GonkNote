@@ -97,6 +97,10 @@ public partial class WhiteboardView
 
         CoverHinweis.IsVisible = _page.IsCover;
 
+        // Der Cover-Abschnitt (§4.81). **Hier und nicht in seiner eigenen Datei** — wer ihn
+        // ohne Spiegeln aufklappt, bekommt lauter leere Schalter (§4.53).
+        CoverSpiegeln();
+
         _stummeEinstellungen = false;
     }
 

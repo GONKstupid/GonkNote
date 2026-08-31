@@ -21,12 +21,24 @@ public partial class WhiteboardView
 
     private bool _suppressSettingsEvents;
 
-    private static readonly string[] CoverFonts =
-    {
-        "Segoe UI", "Segoe Print", "Segoe Script", "Arial", "Calibri", "Cambria",
-        "Comic Sans MS", "Consolas", "Georgia", "Impact", "Palatino Linotype",
-        "Times New Roman", "Trebuchet MS", "Verdana",
-    };
+    /// <summary>
+    /// Die Schriften des Cover-Wählers.
+    ///
+    /// <para>
+    /// ⛔ <b>Hier stand bis §4.81 eine fest verdrahtete Liste</b> — „Segoe UI", „Segoe Print",
+    /// „Calibri" … , also <b>Windows</b>-Schriften an einer Stelle, die für beide Köpfe gilt.
+    /// <b>§5 Nr. 14 („Schriftlisten zusammenführen, in beiden Köpfen") ist in §4.73 beim
+    /// Schriftfeld des Editors angekommen und beim Cover nicht.</b> Aufgefallen ist es erst,
+    /// als der Linux-Kopf sein Cover-Werkzeug bekam und dieselbe Liste brauchte.
+    /// </para>
+    /// <para>
+    /// *Eine Entscheidung, die an einer Stelle umgesetzt wird, ist nicht umgesetzt — sie ist
+    /// angefangen.* Jetzt kommt die Liste aus <see cref="Schriftliste"/> in Core:
+    /// mitgelieferte oben, Systemschriften darunter, ohne Doppelte.
+    /// </para>
+    /// </summary>
+    private static IReadOnlyList<string> CoverFonts =>
+        Schriftliste.Aufbauen(System.Windows.Media.Fonts.SystemFontFamilies.Select(f => f.Source));
 
     private void PageSetup_Click(object sender, RoutedEventArgs e)
     {
@@ -89,10 +101,16 @@ public partial class WhiteboardView
             CoverStartSwatch.Background = BrushFromHex(cs?.GradientStart ?? "#1E3A8A");
             CoverEndSwatch.Background = BrushFromHex(cs?.GradientEnd ?? "#7C3AED");
 
-            string font = cs?.FontFamily ?? "Segoe UI";
-            CoverFontBox.ItemsSource = CoverFonts.Contains(font)
-                ? CoverFonts
-                : CoverFonts.Append(font).OrderBy(f => f).ToArray();
+            var schriften = CoverFonts;
+            string? font = cs?.FontFamily;
+
+            // Eine Schrift, die das Dokument nennt und dieses System nicht hat, wird
+            // trotzdem angeboten — sonst spränge die Auswahl beim Öffnen still auf etwas
+            // anderes und schriebe das beim nächsten Ändern in die Datei.
+            if (font is { Length: > 0 } && !schriften.Contains(font))
+                schriften = [.. schriften, font];
+
+            CoverFontBox.ItemsSource = schriften;
             CoverFontBox.SelectedItem = font;
 
             // Nicht auf die Bytes im Datensatz sehen: nach dem ersten Speichern liegt das
@@ -346,10 +364,15 @@ public partial class WhiteboardView
     private void CoverImage_Click(object sender, RoutedEventArgs e)
     {
         if (_vm == null) return;
+        // ⛔ Hier standen bis §4.81 **Titel und Filter fest verdrahtet auf Deutsch** — ein
+        // englisches Programm zeigte an dieser Stelle Deutsch (Dauerregel 1, dieselbe Sorte
+        // Fund wie §4.74, §4.75 und §4.80). Beide Texte liegen längst in den Sprachtabellen,
+        // weil andere Dialoge sie benutzen.
         var dlg = new Microsoft.Win32.OpenFileDialog
         {
-            Title = "Bild als Cover wählen",
-            Filter = "Bilder (*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.webp;*.svg)|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.webp;*.svg|Alle Dateien (*.*)|*.*",
+            Title = Loc.T("Settings.Cover.ChooseImage"),
+            Filter = $"{Loc.T("Filter.Images")}|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.webp;*.svg"
+                   + $"|{Loc.T("Filter.AllFiles")}|*.*",
         };
         if (dlg.ShowDialog(Window.GetWindow(this)) != true) return;
 

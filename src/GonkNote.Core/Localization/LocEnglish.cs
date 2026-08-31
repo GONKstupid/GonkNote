@@ -211,6 +211,7 @@ internal static class LocEnglish
         ["Settings.Cover.RemoveImage"] = "Remove",
         ["Settings.Cover.ImageHint"] = "The image replaces the gradient and the title on the cover.",
         ["Settings.Cover.Presets"] = "Templates",
+        ["Settings.Cover.Add"] = "Add template",
         ["Quick.Cut.Tip"] = "Cut (Ctrl+X)",
         ["Quick.Cut"] = "Cut",
         ["Quick.Copy.Tip"] = "Copy (Ctrl+C)",

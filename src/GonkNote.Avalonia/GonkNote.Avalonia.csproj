@@ -74,16 +74,16 @@
        `avares://GonkNote.Avalonia/Assets/...`; `Link` bestimmt diesen Pfad, genauso wie
        er beim WPF-Kopf den `pack://`-Namen bestimmt (HANDOFF §7 „Wurzel-Dateien").
 
-       Cover-Vorlagen stehen bewusst **nicht** hier: das zugehörige Werkzeug gibt es im
-       Linux-Kopf nicht, und eine Datei mitzuschleppen, die niemand liest, verschleiert nur,
-       was der Kopf wirklich kann.
+       **✅ Die Cover-Vorlagen sind seit Phase 5, Schritt ①c hier** (§4.81, unten im
+       ItemGroup). Bis dahin standen sie bewusst **nicht** hier, mit der Begründung „das
+       zugehörige Werkzeug gibt es im Linux-Kopf nicht" — **und genau daneben stand die
+       Warnung, dass diese Begründung abläuft, sobald das Werkzeug kommt.**
 
-       **⛔ Diese Begründung gilt heute noch — und sie läuft ab, sobald das Cover-Werkzeug
-       kommt** (Phase 5, Schritt ①b; §5 Nr. 26: nachbauen statt drüben löschen). **Dann
-       müssen die Vorlagen im selben Zug hier mit hinein.** Das ist keine Vorsicht, sondern
-       eine Zählung: unten stehen **zwei** Fälle, in denen genau diese Begründung abgelaufen
-       ist und es niemandem auffiel, weil Bau und Tests grün blieben. **Ein dritter wäre
-       keiner mehr, sondern ein Muster** (HANDOFF §4.71).
+       **Sie ist abgelaufen, und die Warnung hat getragen:** die Vorlagen sind **im selben
+       Zug** mitgekommen wie das Werkzeug, nicht eine Runde später. Damit ist der Fall, der
+       unten zweimal steht (tessdata, Geodreieck), **nicht** zum dritten Mal eingetreten.
+       *Eine Warnung, die niemand liest, wenn ihr Zeitpunkt kommt, ist keine Warnung — dass
+       sie hier stand, wo gebaut wird, ist der Grund, warum sie gewirkt hat.*
 
        **Die OCR-Sprachdaten standen aus demselben Grund nicht hier — und das war richtig,
        bis der Linux-Kopf eine Texterkennung bekam** (Phase 4.5, Stück 6). Jetzt liest er
@@ -135,6 +135,17 @@
     <AvaloniaResource Include="..\..\README.en.md"         Link="README.en.md" />
     <AvaloniaResource Include="..\..\ERSTE-SCHRITTE.md"    Link="ERSTE-SCHRITTE.md" />
     <AvaloniaResource Include="..\..\GETTING-STARTED.md"   Link="GETTING-STARTED.md" />
+  </ItemGroup>
+
+  <!-- Cover-Vorlagen (§4.81). **Dieselben zwei Zeilen wie im WPF-csproj** — und das ist der
+       Punkt: eine Sammlung, die auf zwei Systemen verschieden gefüllt ist, sieht auf beiden
+       richtig aus und ist es nur auf einem. Der Weg dorthin steht in Core
+       (`CoverLibrary.AppFolder`), die Dateien liegen hier. -->
+  <ItemGroup>
+    <Content Include="..\..\Assets\Covers\**\*.jpg"
+             Link="Assets\Covers\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\Assets\Covers\**\*.png"
+             Link="Assets\Covers\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

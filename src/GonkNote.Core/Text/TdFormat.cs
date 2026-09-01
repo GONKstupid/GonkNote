@@ -179,6 +179,37 @@ public sealed class TdCharFormat
         VerticalAlign is null;
 
     public TdCharFormat Kopie() => (TdCharFormat)MemberwiseClone();
+
+    /// <summary>
+    /// Alle Abweichungen fallen lassen — der Griff hinter „Formatierung löschen" (§4.84).
+    ///
+    /// <para>
+    /// <b>Es löscht keine Formatierung, sondern die Abweichung</b>, und das ist der
+    /// Unterschied, auf dem §4.14 besteht: Was danach zu sehen ist, kommt vom Absatz und von
+    /// der Grundschrift — ein Text in einer Überschrift bleibt also groß. Genau das erwartet
+    /// jemand, der „Formatierung löschen" drückt: <i>zurück auf das, was hier ohnehin gälte</i>,
+    /// und nicht „alles klein und schwarz".
+    /// </para>
+    /// <para>
+    /// <b>Und es steht hier und nicht am Aufrufer</b>, direkt neben <see cref="IstLeer"/>, das
+    /// dieselben neun Felder aufzählt: Zwei Listen derselben Felder in zwei Dateien sind eine
+    /// Liste, die beim nächsten neuen Feld an einer davon veraltet — und das Feld fiele dann
+    /// still durch. <c>IstLeer</c> ist danach zwangsläufig <c>true</c>; genau das prüft der
+    /// Wächter.
+    /// </para>
+    /// </summary>
+    public void Zuruecksetzen()
+    {
+        FontFamily = null;
+        FontSize = null;
+        Bold = null;
+        Italic = null;
+        Underline = null;
+        Strikethrough = null;
+        Color = null;
+        Highlight = null;
+        VerticalAlign = null;
+    }
 }
 
 /// <summary>

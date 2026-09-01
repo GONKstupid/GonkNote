@@ -40,6 +40,19 @@
                                Foreground="{DynamicResource Brush.TextMuted}"/>
 
                     <StackPanel Orientation="Horizontal" Margin="6,0,0,0">
+                        <!-- Rückgängig und Wiederholen als Knöpfe (§4.84). **Die Funktion gab
+                             es längst** (Strg+Z/Y über `Zuruecknehmen`) — es fehlte allein der
+                             Griff für den, der nicht mit Tasten arbeitet. **Links vor den
+                             Reitern, wie drüben** (§6: beim Editor ist Windows die Vorlage). -->
+                        <Button Classes="flach symbol" Click="Rueckgaengig_Click"
+                                ToolTip.Tip="{loc:T Action.Undo}">
+                            <views:Symbol Icon="Undo" Stroke="{DynamicResource Brush.Text}"/>
+                        </Button>
+                        <Button Classes="flach symbol" Click="Wiederholen_Click"
+                                ToolTip.Tip="{loc:T Action.Redo}" Margin="0,0,8,0">
+                            <views:Symbol Icon="Redo" Stroke="{DynamicResource Brush.Text}"/>
+                        </Button>
+
                         <RadioButton x:Name="ReiterStart" Classes="ribbonreiter" GroupName="ribbon"
                                      Content="{loc:T Ed.Tab.Home}" IsChecked="True"
                                      IsCheckedChanged="Reiter_Gewechselt" Tag="Start"/>
@@ -101,6 +114,13 @@
                                   Click="Tief_Click" ToolTip.Tip="{loc:T Ed.Subscript}" Content="x₂"/>
                     <ToggleButton x:Name="SchalterHoch" Classes="ribbonschalter" IsThreeState="True"
                                   Click="Hoch_Click" ToolTip.Tip="{loc:T Ed.Superscript}" Content="x²"/>
+
+                    <!-- Formatierung löschen (§4.84). **„Aax" wie drüben** — beim Editor ist
+                         Windows die Vorlage (§6), und ein eigenes Symbol dafür gäbe es in
+                         keinem der beiden Köpfe. **Ein `Button` und kein Schalter:** Der
+                         Handgriff hat keinen Zustand, den man eingerastet lassen könnte. -->
+                    <Button Classes="ribbonschalter" Click="FormatLoeschen_Click"
+                            ToolTip.Tip="{loc:T Ed.ClearFormat}" Content="Aax"/>
 
                     <Border Classes="trenner"/>
 

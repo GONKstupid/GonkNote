@@ -60,6 +60,31 @@ public partial class TextDocView
     private void Durchgestrichen() =>
         Umschalten(f => f.Strikethrough, (f, an) => f.Strikethrough = an);
 
+    /// <summary>
+    /// <b>Formatierung löschen</b> (§4.84) — genauer: die <b>Abweichung</b> des Stücks fallen
+    /// lassen.
+    ///
+    /// <para>
+    /// <b>Was danach zu sehen ist, kommt vom Absatz und von der Grundschrift</b> (§4.14): Ein
+    /// Text in einer Überschrift bleibt groß. Genau das erwartet, wer den Knopf drückt —
+    /// <i>zurück auf das, was hier ohnehin gälte</i>, und nicht „alles klein und schwarz".
+    /// </para>
+    /// <para>
+    /// <b>Die neun Felder stehen in Core</b> (<see cref="TdCharFormat.Zuruecksetzen"/>) und
+    /// nicht hier: Sonst zählte sie der zweite Kopf ein zweites Mal auf, und beim nächsten
+    /// neuen Feld veraltete eine der beiden Listen.
+    /// </para>
+    /// </summary>
+    private void FormatLoeschen_Click(object? s, RoutedEventArgs e)
+    {
+        if (!Schreibbar) return;
+
+        Aendern(TdFormatEdit.Zeichen(_modell!, _auswahl,
+            (abweichung, _) => abweichung.Zuruecksetzen()));
+
+        RibbonNachziehen();
+    }
+
     private void Fett_Click(object? s, RoutedEventArgs e) => Fett();
     private void Kursiv_Click(object? s, RoutedEventArgs e) => Kursiv();
     private void Unterstrichen_Click(object? s, RoutedEventArgs e) => Unterstrichen();

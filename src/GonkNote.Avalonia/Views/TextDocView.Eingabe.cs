@@ -547,6 +547,12 @@ public partial class TextDocView
         UmbruchAnstossen();
     }
 
+    private void Rueckgaengig_Click(object? s, Avalonia.Interactivity.RoutedEventArgs e) =>
+        Zuruecknehmen(vor: false);
+
+    private void Wiederholen_Click(object? s, Avalonia.Interactivity.RoutedEventArgs e) =>
+        Zuruecknehmen(vor: true);
+
     private void Zuruecknehmen(bool vor)
     {
         if (_vm is null) return;

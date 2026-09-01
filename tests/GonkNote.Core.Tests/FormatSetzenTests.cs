@@ -454,6 +454,71 @@ public sealed class FormatSetzenTests
         Assert.Null(TdFormatEdit.GemeinsamerAbsatz(doc, Von(doc, 0, 0, 1, 4)).Alignment);
         Assert.Equal(TdAlign.Center, TdFormatEdit.GemeinsamerAbsatz(doc, Bei(doc, 1, 0)).Alignment);
     }
+
+    // ==================== Formatierung löschen (§4.84) ====================
+
+    /// <summary>
+    /// <b>„Formatierung löschen" lässt die Abweichung fallen</b> — und
+    /// <see cref="TdCharFormat.IstLeer"/> ist danach zwangsläufig <c>true</c>.
+    ///
+    /// <para>
+    /// <b>Dieser Wächter hält vor allem die zweite Liste fest:</b> <c>Zuruecksetzen</c> und
+    /// <c>IstLeer</c> zählen <b>dieselben neun Felder</b> auf. Kommt ein zehntes dazu und
+    /// vergisst jemand eine der beiden Stellen, fällt genau dieser Test — sonst fiele das neue
+    /// Feld beim Löschen **still** durch, und der Nutzer sähe eine Formatierung, die er gerade
+    /// entfernt hat.
+    /// </para>
+    /// </summary>
+    [Fact]
+    public void Zuruecksetzen_laesst_jede_Abweichung_fallen()
+    {
+        var format = new TdCharFormat
+        {
+            FontFamily = "Space Grotesk", FontSize = 22, Bold = true, Italic = true,
+            Underline = true, Strikethrough = true, Color = "#112233", Highlight = "#FFFF00",
+            VerticalAlign = TdVerticalAlign.Superscript,
+        };
+
+        Assert.False(format.IstLeer);
+        format.Zuruecksetzen();
+        Assert.True(format.IstLeer);
+    }
+
+    /// <summary>
+    /// <b>Am Dokument: die Abweichung ist weg, der Text ist es nicht.</b> Ein „Formatierung
+    /// löschen", das Zeichen mitnimmt, wäre ein Datenverlust und kein Formatbefehl.
+    /// </summary>
+    [Fact]
+    public void Formatierung_loeschen_nimmt_die_Abweichung_und_nicht_den_Text()
+    {
+        var doc = Dok(Abs(Fett("fett"), new TdRun("normal")));
+
+        TdFormatEdit.Zeichen(doc, Von(doc, 0, 0, 0, 10),
+            (abweichung, _) => abweichung.Zuruecksetzen())!.Anwenden();
+
+        var stuecke = TdCursor.Stuecke(TdCursor.AbsatzAn(doc, 0)!).OfType<TdRun>().ToList();
+
+        Assert.Equal("fettnormal", string.Concat(stuecke.Select(r => r.Text)));
+        Assert.All(stuecke, r => Assert.True(r.Format.IstLeer));
+    }
+
+    /// <summary>
+    /// <b>Was vom Absatz kommt, bleibt</b> (§4.14): Gelöscht wird die <i>Abweichung</i> des
+    /// Stücks, nicht das Aussehen. Ein Text in einer Überschrift bleibt eine Überschrift — und
+    /// genau das erwartet, wer den Knopf drückt: <i>zurück auf das, was hier ohnehin gälte.</i>
+    /// </summary>
+    [Fact]
+    public void Was_vom_Absatz_kommt_ueberlebt_das_Loeschen()
+    {
+        var absatz = Abs(Fett("Titel"));
+        absatz.Format.Alignment = TdAlign.Center;
+        var doc = Dok(absatz);
+
+        TdFormatEdit.Zeichen(doc, Von(doc, 0, 0, 0, 5),
+            (abweichung, _) => abweichung.Zuruecksetzen())!.Anwenden();
+
+        Assert.Equal(TdAlign.Center, TdCursor.AbsatzAn(doc, 0)!.Format.Alignment);
+    }
 }
 
 /// <summary>Kleiner Lesehelfer für die Wächter oben.</summary>

@@ -583,7 +583,13 @@
          **Dritter Zustand: unbestimmt.** Über einer Auswahl aus fettem und magerem Text ist der
          Knopf weder gedrückt noch nicht gedrückt (`TdFormatEdit.Gemeinsam` antwortet dort mit
          `null`). Avalonias `IsThreeState` trägt das schon; sichtbar gemacht wird es hier. -->
-    <Style Selector="ToggleButton.ribbonschalter">
+    <!-- **Auch für `Button`, und das ist §4.80 zum zweiten Mal** (§4.84): Ein Selektor auf
+         `ToggleButton` deckt einen `Button` **nicht** ab — wer den Typ wechselt, verliert das
+         Aussehen **still**. „Formatierung löschen" steht neben F/K/U/S, hat aber keinen
+         Zustand zum Einrasten und ist deshalb ein gewöhnlicher Knopf. Die Zustandsregeln
+         darunter (`:checked`, `:indeterminate`) bleiben beim `ToggleButton`, denn ein `Button`
+         hat sie gar nicht. -->
+    <Style Selector="ToggleButton.ribbonschalter, Button.ribbonschalter">
         <Setter Property="MinWidth" Value="30"/>
         <Setter Property="Height" Value="30"/>
         <Setter Property="Padding" Value="6,0"/>
@@ -595,7 +601,7 @@
         <Setter Property="Foreground" Value="{DynamicResource Brush.Text}"/>
         <Setter Property="Cursor" Value="Hand"/>
     </Style>
-    <Style Selector="ToggleButton.ribbonschalter:pointerover /template/ ContentPresenter">
+    <Style Selector="ToggleButton.ribbonschalter:pointerover /template/ ContentPresenter, Button.ribbonschalter:pointerover /template/ ContentPresenter">
         <Setter Property="Background" Value="{DynamicResource Brush.Hover}"/>
     </Style>
     <Style Selector="ToggleButton.ribbonschalter:checked /template/ ContentPresenter">
@@ -607,7 +613,7 @@
     <Style Selector="ToggleButton.ribbonschalter:indeterminate /template/ ContentPresenter">
         <Setter Property="Background" Value="{DynamicResource Brush.Hover}"/>
     </Style>
-    <Style Selector="ToggleButton.ribbonschalter:disabled">
+    <Style Selector="ToggleButton.ribbonschalter:disabled, Button.ribbonschalter:disabled">
         <Setter Property="Opacity" Value="0.45"/>
     </Style>
 

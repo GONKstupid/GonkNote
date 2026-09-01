@@ -612,7 +612,7 @@ public static class TdZuFlow
             // gar kein Zweig: Ein Diagramm fiel beim Umwandeln **still heraus** und war nach
             // dem ersten Speichern im WPF-Editor weg — samt seiner Zahlen (§4.45).
             case TdChart diagramm:
-                ziel.Add(new InlineUIContainer(DiagrammUmwandeln(diagramm)) { Tag = diagramm });
+                ziel.Add(DiagrammBehaelter(diagramm));
                 break;
 
             // **Ein Feld reist als Auflage mit** (§4.49). Bis dahin stand hier ein gewöhnlicher
@@ -731,36 +731,27 @@ public static class TdZuFlow
     /// </summary>
     private static Image DiagrammUmwandeln(TdChart diagramm)
     {
-        double breite = Px(diagramm.WidthCm);
-        double hoehe = Px(diagramm.HeightCm);
-
-        var info = new SKImageInfo(
-            Math.Max(1, (int)Math.Round(breite * Feinheit)),
-            Math.Max(1, (int)Math.Round(hoehe * Feinheit)));
-
-        using var flaeche = SKSurface.Create(info);
-        // Der Kasten ist die ganze Fläche; der Maßstab ist die Bildschirmvorgabe mal Feinheit,
-        // damit Linienstärken und Beschriftung mitwachsen (TdRenderer rechnet aus Zentimetern).
-        TdRenderer.Diagramm(
-            flaeche.Canvas, diagramm,
-            SKRect.Create(0, 0, info.Width, info.Height),
-            TdRenderer.PixelProCm * Feinheit);
-
-        using var abbild = flaeche.Snapshot();
-        using var daten = abbild.Encode(SKEncodedImageFormat.Png, 100);
+        // **Die Fläche und das Kodieren stehen seit §4.82 in Core** (`TdRenderer.DiagrammPng`):
+        // Die Tafel braucht denselben Weg, und zweimal dieselben zehn Zeilen wären zweimal
+        // dieselbe Entscheidung über Auflösung und Grundfarbe gewesen.
+        //
+        // **Durchsichtig, und das ist hier die richtige Antwort:** Im Editor gibt die Seite den
+        // Grund — ein weißer Kasten stäche auf getöntem Papier und über einem Wasserzeichen
+        // heraus. Die Tafel hat keine Seite und sagt deshalb ausdrücklich Weiß.
+        var png = TdRenderer.DiagrammPng(diagramm, grund: null, feinheit: Feinheit);
 
         var quelle = new BitmapImage();
         quelle.BeginInit();
         quelle.CacheOption = BitmapCacheOption.OnLoad;
-        quelle.StreamSource = new MemoryStream(daten.ToArray());
+        quelle.StreamSource = new MemoryStream(png);
         quelle.EndInit();
         quelle.Freeze();
 
         return new Image
         {
             Source = quelle,
-            Width = breite,
-            Height = hoehe,
+            Width = Px(diagramm.WidthCm),
+            Height = Px(diagramm.HeightCm),
             Stretch = Stretch.Uniform,
         };
         // **Kein `Tag`**, und das ist der Unterschied zu einem Bild: Ein `BlobRef` hier hieße
@@ -768,6 +759,22 @@ public static class TdZuFlow
         // `Adopt` gehen genau danach. Die gerechnete Anzeige eines Diagramms gehört dort
         // nicht hin; sie entsteht bei jedem Laden neu.
     }
+
+    /// <summary>
+    /// Der Behälter, in dem ein Diagramm im <c>FlowDocument</c> steht — <b>der eine Ort, an
+    /// dem er gebaut wird</b> (§4.82).
+    ///
+    /// <para>
+    /// <b>Warum er öffentlich ist:</b> Bis §4.82 baute nur der <i>Ladeweg</i> einen solchen
+    /// Behälter, und das Diagramm-Werkzeug fügte stattdessen ein gewöhnliches Bild ein — ohne
+    /// <c>Tag</c>. <see cref="FlowZuTd"/> erkennt ein Diagramm aber genau daran. Ein
+    /// eingefügtes Diagramm war deshalb beim ersten Speichern kein Diagramm mehr, sondern ein
+    /// Bild, und seine Zahlen waren weg. <b>Zwei Wege, die dasselbe bauen, weichen
+    /// voneinander ab — und zwar an der Stelle, die niemand nachsieht.</b>
+    /// </para>
+    /// </summary>
+    public static InlineUIContainer DiagrammBehaelter(TdChart diagramm) =>
+        new(DiagrammUmwandeln(diagramm)) { Tag = diagramm };
 
     /// <summary>„#RRGGBB" als Farbe — oder <c>null</c>, wenn dort nichts Brauchbares steht.</summary>
     private static Color? Farbe(string? hex)

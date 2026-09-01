@@ -1,0 +1,92 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="clr-namespace:GonkNote.Services"
+        x:Class="GonkNote.Views.DiagrammWindow"
+        Width="560" SizeToContent="Height"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False"
+        ShowInTaskbar="False"
+        Background="{DynamicResource Brush.WindowBg}"
+        Foreground="{DynamicResource Brush.Text}"
+        FontSize="13"
+        Title="{loc:T Chart.Title}">
+
+    <!-- Das Gegenstück zu ChartDialog im WPF-Kopf (§4.82). **Beim Editor ist Windows die
+         Vorlage** (§6), deshalb steht hier dieselbe Aufteilung: Art, Titel, Kategorien,
+         Reihennamen, Werte, Farben, Vorschau.
+
+         **Gerechnet und gezeichnet wird in Core** — `TdChartEingabe` liest die Felder,
+         `TdChartLayout` rechnet, `TdRenderer` malt. Dieses Fenster hält nur die Felder.
+         Bis §4.82 hatte der WPF-Kopf dafür 435 Zeilen eigene Zeichnung; sie ein zweites Mal
+         zu schreiben wäre der Fehler gewesen, den §4.25, §4.13 und §4.54 schon dreimal
+         vermieden haben. -->
+
+    <StackPanel Margin="18">
+
+        <DockPanel Margin="0,0,0,10">
+            <TextBlock Text="{loc:T Chart.Type}" Width="120" VerticalAlignment="Center"
+                       Foreground="{DynamicResource Brush.TextMuted}"/>
+            <ComboBox x:Name="ArtWahl" HorizontalAlignment="Stretch"
+                      SelectionChanged="Eingabe_Geaendert"/>
+        </DockPanel>
+
+        <DockPanel Margin="0,0,0,10">
+            <TextBlock Text="{loc:T Chart.TitleField}" Width="120" VerticalAlignment="Center"
+                       Foreground="{DynamicResource Brush.TextMuted}"/>
+            <TextBox x:Name="TitelFeld" Text="{loc:T Ed.Chart}" TextChanged="Eingabe_Geaendert"/>
+        </DockPanel>
+
+        <DockPanel Margin="0,0,0,10">
+            <TextBlock Text="{loc:T Chart.Categories}" Width="120" VerticalAlignment="Center"
+                       Foreground="{DynamicResource Brush.TextMuted}"/>
+            <TextBox x:Name="KategorienFeld" Text="{loc:T Chart.Categories.Example}"
+                     TextChanged="Eingabe_Geaendert"
+                     ToolTip.Tip="{loc:T Chart.Categories.Hint}"/>
+        </DockPanel>
+
+        <DockPanel Margin="0,0,0,10">
+            <TextBlock Text="{loc:T Chart.SeriesNames}" Width="120" VerticalAlignment="Center"
+                       Foreground="{DynamicResource Brush.TextMuted}"/>
+            <TextBox x:Name="NamenFeld" Text="{loc:T Chart.Series.Example}"
+                     TextChanged="Eingabe_Geaendert"
+                     ToolTip.Tip="{loc:T Chart.SeriesNames.Hint}"/>
+        </DockPanel>
+
+        <DockPanel Margin="0,0,0,4">
+            <TextBlock Text="{loc:T Chart.Values}" Width="120" VerticalAlignment="Top"
+                       Margin="0,4,0,0" Foreground="{DynamicResource Brush.TextMuted}"/>
+            <TextBox x:Name="WerteFeld" Text="4, 7, 3, 9" TextChanged="Eingabe_Geaendert"
+                     AcceptsReturn="True" Height="58" TextWrapping="Wrap"
+                     VerticalAlignment="Top"
+                     ToolTip.Tip="{loc:T Chart.Values.Hint}"/>
+        </DockPanel>
+        <TextBlock Margin="120,2,0,0" FontSize="11" TextWrapping="Wrap"
+                   Foreground="{DynamicResource Brush.TextMuted}"
+                   Text="{loc:T Chart.Values.Note}"/>
+
+        <DockPanel Margin="0,6,0,0">
+            <TextBlock Text="{loc:T Chart.Colors}" Width="120" VerticalAlignment="Top"
+                       Margin="0,4,0,0" Foreground="{DynamicResource Brush.TextMuted}"/>
+            <!-- WrapPanel: mit dem „+"-Knopf können beliebig viele Farben dazukommen -->
+            <WrapPanel x:Name="Farbreihe"/>
+        </DockPanel>
+
+        <TextBlock x:Name="FehlerText" Foreground="#EF4444" FontSize="12"
+                   Margin="120,4,0,0" TextWrapping="Wrap"/>
+
+        <Border Background="{DynamicResource Brush.CardBg}"
+                BorderBrush="{DynamicResource Brush.Border}"
+                BorderThickness="1" CornerRadius="8" Margin="0,12,0,0" Height="240">
+            <Image x:Name="Vorschau" Margin="8"/>
+        </Border>
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"
+                    Margin="0,16,0,0" Spacing="8">
+            <Button Classes="flach" Content="{loc:T Dlg.Cancel}" MinWidth="90"
+                    Click="Abbrechen_Click"/>
+            <Button Classes="akzent" Content="{loc:T Ed.Tab.Insert}" MinWidth="110"
+                    Click="Ok_Click"/>
+        </StackPanel>
+
+    </StackPanel>
+</Window>

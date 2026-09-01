@@ -837,5 +837,99 @@ public sealed class ZeichnerTests
         Assert.InRange(anteilGross, anteilKlein * 0.75, anteilKlein * 1.25);
     }
 
+    // ==================== Das fertige PNG für die Tafel (§4.82) ====================
+
+    /// <summary>
+    /// <b>Ein Diagramm als PNG, für die Tafel</b> (§4.82). Sie kennt kein
+    /// <see cref="TdChart"/>; dort <i>ist</i> ein Diagramm ein Bild. Bis §4.82 hat der WPF-Kopf
+    /// dafür seine eigene Zeichnung gehabt (<c>ChartDialog</c> mit <c>DrawingVisual</c>) —
+    /// also die sieben Diagrammarten ein zweites Mal.
+    /// </summary>
+    [Fact]
+    public void Ein_Diagramm_wird_zu_einem_lesbaren_PNG()
+    {
+        var png = TdRenderer.DiagrammPng(Saeulen(), SKColors.White);
+
+        using var bmp = SKBitmap.Decode(png);
+        Assert.NotNull(bmp);
+
+        var tinte = TinteKasten(bmp);
+        Assert.False(tinte.IsEmpty, "Das PNG ist leer.");
+        Assert.True(tinte.Width > bmp.Width / 2, $"Zu schmal: {tinte.Width} von {bmp.Width}.");
+    }
+
+    /// <summary>
+    /// <b>Der Grund ist weiß und nicht durchsichtig.</b> Der Editor bekommt seinen Grund von
+    /// der Seite, die Tafel hat keinen — ein PNG mit durchsichtigem Grund sähe auf einer
+    /// dunklen Tafel aus wie ein Fehler, und zwar erst beim Nutzer.
+    /// </summary>
+    [Fact]
+    public void Der_Grund_des_PNG_ist_weiss_und_nicht_durchsichtig()
+    {
+        var png = TdRenderer.DiagrammPng(Saeulen(), SKColors.White);
+
+        using var bmp = SKBitmap.Decode(png);
+        var ecke = bmp.GetPixel(1, 1);
+
+        Assert.Equal(byte.MaxValue, ecke.Alpha);
+        Assert.Equal(SKColors.White, Ohne_Alpha(ecke));
+    }
+
+    /// <summary>
+    /// <b>Ohne Grundfarbe bleibt der Grund durchsichtig — der Fall des Editors.</b> Dort gibt
+    /// die Seite den Grund; ein weißer Kasten stäche auf getöntem Papier und über einem
+    /// Wasserzeichen heraus. Deshalb ist die Angabe Pflicht und keine Vorgabe: Sonst erbte
+    /// einer der beiden Aufrufer sie stillschweigend, und zwar der, der später dazukommt.
+    /// </summary>
+    [Fact]
+    public void Ohne_Grundfarbe_bleibt_der_Grund_durchsichtig()
+    {
+        var png = TdRenderer.DiagrammPng(Saeulen(), grund: null);
+
+        using var bmp = SKBitmap.Decode(png);
+        Assert.Equal(0, bmp.GetPixel(1, 1).Alpha);
+
+        // Gezeichnet wurde trotzdem — durchsichtig heißt nicht leer.
+        Assert.False(TinteKasten(bmp).IsEmpty, "Es wurde nichts gezeichnet.");
+    }
+
+    /// <summary>
+    /// <b>Die Feinheit wirkt, und sie ist der Grund für die Größe.</b> Ein Diagramm ist
+    /// Strichzeichnung mit Beschriftung; bei einfacher Auflösung franst es beim Vergrößern
+    /// genau dann aus, wenn jemand hinsieht.
+    ///
+    /// <para>
+    /// <b>Warum hier nicht auf das Pixel genau geprüft wird</b> — die erste Fassung tat es und
+    /// ist gefallen (604 gegen 605): Gerundet wird <b>nach</b> der Multiplikation mit dem
+    /// Maßstab und nicht davor, also ist <c>Round(x·2m)</c> nicht immer <c>2·Round(x·m)</c>.
+    /// Das ist die richtige Reihenfolge — rundete der Zeichner zuerst auf ganze Pixel und
+    /// vervielfachte danach, summierte sich der Fehler mit der Größe des Diagramms auf.
+    /// </para>
+    /// </summary>
+    [Fact]
+    public void Die_Feinheit_bestimmt_die_Groesse_des_PNG()
+    {
+        using var einfach = SKBitmap.Decode(TdRenderer.DiagrammPng(Saeulen(), SKColors.White, feinheit: 1.0));
+        using var doppelt = SKBitmap.Decode(TdRenderer.DiagrammPng(Saeulen(), SKColors.White, feinheit: 2.0));
+
+        Assert.InRange(doppelt.Width, einfach.Width * 2 - 1, einfach.Width * 2 + 1);
+        Assert.InRange(doppelt.Height, einfach.Height * 2 - 1, einfach.Height * 2 + 1);
+    }
+
+    /// <summary>
+    /// <b>Auch ein Diagramm ohne Zahlen liefert ein Bild</b> — den Platzhalterkasten. Käme
+    /// hier nichts oder <c>null</c> heraus, verschwände auf der Tafel ein Element, das der
+    /// Nutzer gerade eingefügt hat, ohne Meldung (§7).
+    /// </summary>
+    [Fact]
+    public void Auch_ein_leeres_Diagramm_liefert_ein_Bild()
+    {
+        var png = TdRenderer.DiagrammPng(new TdChart(TdChartKind.Column, 8, 5), SKColors.White);
+
+        using var bmp = SKBitmap.Decode(png);
+        Assert.NotNull(bmp);
+        Assert.False(TinteKasten(bmp).IsEmpty, "Der Platzhalterkasten fehlt.");
+    }
+
     private static SKColor Ohne_Alpha(SKColor farbe) => new(farbe.Red, farbe.Green, farbe.Blue);
 }

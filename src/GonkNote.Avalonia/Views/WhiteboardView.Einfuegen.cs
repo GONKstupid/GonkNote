@@ -113,6 +113,39 @@ public partial class WhiteboardView
                 DialogSeverity.Warning, frage: false);
     }
 
+    // ==================== Diagramm (§4.82) ====================
+
+    /// <summary>
+    /// Das Diagramm-Werkzeug der Tafel — es fehlte dem Linux-Kopf <b>ganz</b> (§4.82).
+    ///
+    /// <para>
+    /// <b>Hier wird ein Bild abgelegt, und das ist kein Verlust wie in §4.21, sondern die
+    /// Grenze des Tafel-Modells:</b> Eine <see cref="WbPage"/> kennt Zeichenelemente, kein
+    /// <c>TdChart</c>. Im Text-Editor bleibt das Diagramm dagegen ein Diagramm und behält
+    /// seine Zahlen — der Unterschied steht damit sichtbar da, statt sich hinter einer
+    /// gemeinsamen Zeile zu verstecken. <b>Gezeichnet wird in Core</b>
+    /// (<see cref="TdRenderer.DiagrammPng"/>), von beiden Köpfen mit demselben Aufruf.
+    /// </para>
+    /// </summary>
+    private void Diagramm_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        // Der Knopf steht in der Werkzeugleiste und ist ein `ToggleButton`, damit er wie die
+        // Nachbarn aussieht (§4.80: `Classes` gelten je Typ) — gedrückt bleiben soll er nicht.
+        if (sender is Avalonia.Controls.Primitives.ToggleButton knopf) knopf.IsChecked = false;
+        if (_page == null || _vm == null) return;
+
+        if (DiagrammWindow.Waehlen(AvaloniaDialogService.Besitzer()) is not { } diagramm) return;
+
+        // **Weißer Grund, ausdrücklich:** Die Tafel hat keine Seite, die einen mitbrächte —
+        // ein durchsichtiges Diagramm auf dunkler Tafel sähe aus wie ein Fehler (§4.82).
+        var png = TdRenderer.DiagrammPng(diagramm, SKColors.White);
+
+        using var abbild = SKBitmap.Decode(png);
+        if (abbild is null) return;
+
+        BilderAblegen([(png, abbild.Width, abbild.Height)]);
+    }
+
     /// <summary>Legt vorbereitete Bilder auf die Fläche und wählt sie aus.</summary>
     private void BilderAblegen(List<(byte[] Data, float B, float H)> bilder)
     {

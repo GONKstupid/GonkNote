@@ -1,3 +1,4 @@
+using System.Windows.Documents;
 using GonkNote.Core.Text;
 using GonkNote.Services;
 using TextDoc = GonkNote.Core.Models.TextDoc;
@@ -278,6 +279,59 @@ public sealed class RundreiseTests
         int vorher = werkbank.Blobs.All().Count();
         var zurueck = Rundreise(quelle, werkbank);
 
+        Assert.Empty(zurueck.Blocks().OfType<TdParagraph>()
+            .SelectMany(p => p.Inlines).OfType<TdImage>());
+        Assert.Equal(vorher, werkbank.Blobs.All().Count());
+    });
+
+    /// <summary>
+    /// <b>Was das Werkzeug einfügt, ist danach ein Diagramm — und nicht erst, was der Ladeweg
+    /// baut</b> (§4.82).
+    ///
+    /// <para>
+    /// <b>Das ist die Naht, an der es bis §4.82 auseinanderging, und kein Wächter sah es.</b>
+    /// Die Rundreise oben geht vom <i>Modell</i> aus und war immer grün. Das
+    /// <i>Diagramm-Werkzeug</i> nahm aber einen anderen Weg: Es legte ein gewöhnliches
+    /// <c>Image</c> in den Text, <b>ohne Auflage</b> — und genau an der erkennt
+    /// <see cref="FlowZuTd"/> ein Diagramm. Ein frisch eingefügtes Diagramm war deshalb beim
+    /// ersten Speichern keines mehr, sondern ein Bild samt neuem Blob, während der Wächter für
+    /// dieselbe Datenstruktur grün blieb.
+    /// </para>
+    /// <para>
+    /// <b>Deshalb prüft dieser Wächter den Behälter, den das Werkzeug wirklich benutzt</b>
+    /// (<see cref="TdZuFlow.DiagrammBehaelter"/>), und nicht einen nachgebauten. <i>Zwei Wege,
+    /// die dasselbe bauen, weichen voneinander ab — und zwar an der Stelle, die niemand
+    /// nachsieht.</i>
+    /// </para>
+    /// </summary>
+    [Fact]
+    public void Was_das_Werkzeug_einfuegt_ueberlebt_als_Diagramm() => Sta.Run(() =>
+    {
+        using var werkbank = new Referenzdokument.Werkbank("werkzeug-diagramm");
+
+        // Genau der Griff, den der Dialog tut: Text in den Feldern → Diagramm.
+        var diagramm = TdChartEingabe.Lesen(
+            TdChartKind.Bar, "Noten", "Mathe, Deutsch", "Halbjahr", "2, 3",
+            breiteCm: 14, hoeheCm: 8)!;
+
+        var flow = new FlowDocument();
+        var absatz = new Paragraph();
+        absatz.Inlines.Add(TdZuFlow.DiagrammBehaelter(diagramm));
+        flow.Blocks.Add(absatz);
+
+        int vorher = werkbank.Blobs.All().Count();
+        var zurueck = FlowZuTd.Umwandeln(new TextDoc(), flow, werkbank.Blobs);
+
+        var wieder = Assert.Single(zurueck.Blocks()
+            .OfType<TdParagraph>().SelectMany(p => p.Inlines).OfType<TdChart>());
+
+        Assert.Equal(TdChartKind.Bar, wieder.Kind);
+        Assert.Equal("Noten", wieder.Title);
+        Assert.Equal(["Mathe", "Deutsch"], wieder.Categories);
+        Assert.Equal([2, 3], Assert.Single(wieder.Series).Values);
+
+        // Und kein Bild, kein Blob — sonst wäre aus den Zahlen beim Speichern ein Pixelbild
+        // geworden, so wie es §4.21 am alten Editor gemessen hat.
         Assert.Empty(zurueck.Blocks().OfType<TdParagraph>()
             .SelectMany(p => p.Inlines).OfType<TdImage>());
         Assert.Equal(vorher, werkbank.Blobs.All().Count());

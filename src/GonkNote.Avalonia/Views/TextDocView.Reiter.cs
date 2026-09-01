@@ -141,6 +141,32 @@ public partial class TextDocView
             new TdParagraph([new TdField(TdFieldKind.TableOfContents)])));
     }
 
+    // ==================== Diagramm (§4.82) ====================
+
+    /// <summary>
+    /// Das Diagramm-Werkzeug — es fehlte dem Linux-Kopf <b>ganz</b> (§4.82).
+    ///
+    /// <para>
+    /// <b>Es geht als <see cref="TdChart"/> ins Modell und nicht als Bild.</b> Damit bleiben
+    /// die Zahlen erhalten: Ein Diagramm lässt sich später wieder öffnen und ändern, und beim
+    /// DOCX-Export geht ein echtes <c>c:chart</c> hinaus statt eines Pixelbilds (§4.21). Der
+    /// WPF-Kopf rasterte es bis zur selben Runde beim Einfügen zu einer Bitmap.
+    /// </para>
+    /// <para>
+    /// <b>Ein eigener Absatz, wie drüben</b> — ein Diagramm zwischen zwei Wörtern klemmte im
+    /// Fließtext. Und <b>ein</b> Handgriff über <see cref="TdBlockEdit"/>, damit ein Strg+Z
+    /// ihn ganz zurücknimmt und nicht zur Hälfte (§4.32).
+    /// </para>
+    /// </summary>
+    private void Diagramm_Click(object? s, RoutedEventArgs e)
+    {
+        if (!Schreibbar) return;
+
+        if (DiagrammWindow.Waehlen(TopLevel.GetTopLevel(this) as Window) is not { } diagramm) return;
+
+        Aendern(TdBlockEdit.Einfuegen(_modell!, _auswahl, new TdParagraph([diagramm])));
+    }
+
     // ==================== Tabelle ====================
 
     private void ZeileDarueber_Click(object? s, RoutedEventArgs e) => Zeile(darunter: false);

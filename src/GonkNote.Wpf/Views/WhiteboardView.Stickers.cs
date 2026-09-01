@@ -10,6 +10,8 @@ using GonkNote.Services;
 using Microsoft.Win32;
 
 using GonkNote.Core.Platform;
+using GonkNote.Core.Rendering;
+using SkiaSharp;
 
 namespace GonkNote.Views;
 
@@ -150,18 +152,20 @@ public partial class WhiteboardView
         if (_page == null || _vm == null) return;
 
         var dlg = new ChartDialog { Owner = Window.GetWindow(this) };
-        if (dlg.ShowDialog() != true || dlg.ResultImage == null) return;
+        if (dlg.ShowDialog() != true || dlg.Result is not { } diagramm) return;
 
-        byte[] data;
-        var enc = new PngBitmapEncoder();
-        enc.Frames.Add(BitmapFrame.Create(dlg.ResultImage));
-        using (var ms = new MemoryStream()) { enc.Save(ms); data = ms.ToArray(); }
+        // **Hier bleibt es ein Bild, und das ist kein Verlust derselben Sorte wie in §4.21,
+        // sondern die Grenze des Tafel-Modells:** Eine `WbPage` kennt Zeichenelemente, kein
+        // `TdChart`. Der Unterschied zum Editor steht damit sichtbar da, statt sich hinter
+        // einer gemeinsamen Zeile zu verstecken.
+        //
+        // **Weißer Grund, ausdrücklich** (§4.82): Die Tafel hat keine Seite, die einen
+        // mitbrachte — ein durchsichtiges Diagramm auf dunkler Tafel sähe aus wie ein Fehler.
+        var png = TdRenderer.DiagrammPng(diagramm, SKColors.White);
 
+        using var abbild = SKBitmap.Decode(png);
         PlaceImages(
-            new List<(byte[] Data, float W, float H)>
-            {
-                (data, dlg.ResultImage.PixelWidth, dlg.ResultImage.PixelHeight),
-            },
+            new List<(byte[] Data, float W, float H)> { (png, abbild.Width, abbild.Height) },
             ViewCenter());
     }
 

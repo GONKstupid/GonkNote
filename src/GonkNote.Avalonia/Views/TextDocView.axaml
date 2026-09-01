@@ -313,6 +313,19 @@
                         </Button.Flyout>
                     </Button>
 
+                    <!-- Diagramm (§4.82). **Es geht als `TdChart` ins Modell und nicht als
+                         Bild** — die Zahlen bleiben also erhalten, und dasselbe Diagramm lässt
+                         sich später wieder öffnen. Der WPF-Kopf rasterte es bis §4.82 beim
+                         Einfügen zu einer Bitmap und warf sie weg (§4.21); seit derselben
+                         Runde tut er es auch dort nicht mehr. -->
+                    <Button Classes="ribbonknopf" Click="Diagramm_Click"
+                            ToolTip.Tip="{loc:T Ed.Chart.Tip}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <views:Symbol Icon="Chart" Stroke="{DynamicResource Brush.Text}"/>
+                            <TextBlock Text="{loc:T Ed.Chart}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
                     <Border Classes="trenner"/>
 
                     <Button Classes="ribbonknopf" ToolTip.Tip="{loc:T Ed.Field.Tip}">

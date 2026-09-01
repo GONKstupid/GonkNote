@@ -128,6 +128,17 @@
                         <views:Symbol Icon="ShapeTriangle" Stroke="{DynamicResource Brush.Text}"/>
                     </ToggleButton>
 
+                    <!-- Diagramm (§4.82). **Kein Werkzeug, sondern ein Knopf**: Er öffnet ein
+                         Fenster und legt ein Bild ab, es bleibt also nichts gedrückt — der
+                         Handler setzt ihn deshalb sofort zurück, genau wie drüben.
+                         `ToggleButton` und nicht `Button`, weil `Classes="werkzeug"` nur für
+                         ToggleButton gilt: Ein Typwechsel verlöre das Aussehen **still**
+                         (§4.80, dort andersherum). -->
+                    <ToggleButton x:Name="BtnDiagramm" Classes="werkzeug"
+                                  Click="Diagramm_Click" ToolTip.Tip="{loc:T Tool.Chart.Tip}">
+                        <views:Symbol Icon="Chart" Stroke="{DynamicResource Brush.Text}"/>
+                    </ToggleButton>
+
                     <ToggleButton x:Name="BtnZettel" Classes="werkzeug" Tag="Sticky"
                                   IsCheckedChanged="Tool_Changed" ToolTip.Tip="{loc:T Tool.Sticky}">
                         <views:Symbol Icon="StickyNote" Stroke="{DynamicResource Brush.Text}"/>

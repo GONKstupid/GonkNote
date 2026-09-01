@@ -424,6 +424,57 @@ public static class TdRenderer
         PlatzhalterZeichnen(leinwand, kasten, Platzhaltertext(diagramm), massstab);
     }
 
+    /// <summary>
+    /// Ein Diagramm als PNG — <b>für die Tafel, wo es kein Modell dafür gibt</b> (§4.82).
+    ///
+    /// <para>
+    /// <b>Warum das hier steht und nicht zweimal in den Köpfen.</b> Im Text-Editor bleibt ein
+    /// Diagramm ein <see cref="TdChart"/> und behält seine Zahlen. Die Tafel kennt nur
+    /// Zeichenelemente — dort <b>ist</b> ein Diagramm ein Bild, und das ist kein Verlust
+    /// derselben Sorte wie in §4.21, sondern die Grenze ihres Modells. Beide Köpfe brauchen
+    /// denselben Weg dorthin; der WPF-Kopf hat ihn bis §4.82 mit <c>DrawingVisual</c> gebaut
+    /// und damit die sieben Diagrammarten ein zweites Mal gezeichnet.
+    /// </para>
+    /// <para>
+    /// <b>Warum <paramref name="feinheit"/> und nicht 1:1:</b> Ein Diagramm ist Strichzeichnung
+    /// mit Beschriftung. Bei einfacher Auflösung franst es beim Vergrößern aus — und zwar
+    /// genau dann, wenn jemand hinsieht, weil ihm etwas daran auffiel. Dieselbe Überlegung und
+    /// derselbe Wert wie im Editor (<c>TdZuFlow</c>).
+    /// </para>
+    /// <para>
+    /// <b>Es gibt kein <c>null</c>:</b> Hat das Diagramm nichts darzustellen, malt
+    /// <see cref="Diagramm"/> den Platzhalterkasten. Ein Diagramm darf nicht verschwinden, nur
+    /// weil es gerade leer ist (§7).
+    /// </para>
+    /// </summary>
+    /// <param name="grund">
+    /// Die Farbe unter dem Diagramm, oder <c>null</c> für <b>durchsichtig</b>.
+    /// <para>
+    /// <b>Pflichtangabe und keine stille Vorgabe</b>, weil die beiden Aufrufer sie verschieden
+    /// beantworten und beide recht haben: Im <b>Editor</b> gibt die Seite den Grund — ein
+    /// weißer Kasten stäche auf getöntem Papier und über einem Wasserzeichen heraus. Auf der
+    /// <b>Tafel</b> gibt es keinen, und ein durchsichtiges Diagramm auf dunklem Grund sieht
+    /// aus wie ein Fehler. Eine Vorgabe hier hieße, dass einer der beiden sie stillschweigend
+    /// erbt — und zwar der, der später dazukommt.
+    /// </para>
+    /// </param>
+    public static byte[] DiagrammPng(TdChart diagramm, SKColor? grund, double feinheit = 2.0)
+    {
+        double massstab = PixelProCm * feinheit;
+        var info = new SKImageInfo(
+            Math.Max(1, (int)Math.Round(diagramm.WidthCm * massstab)),
+            Math.Max(1, (int)Math.Round(diagramm.HeightCm * massstab)));
+
+        using var flaeche = SKSurface.Create(info);
+        if (grund is { } farbe) flaeche.Canvas.Clear(farbe);
+
+        Diagramm(flaeche.Canvas, diagramm, SKRect.Create(0, 0, info.Width, info.Height), massstab);
+
+        using var abbild = flaeche.Snapshot();
+        using var daten = abbild.Encode(SKEncodedImageFormat.Png, 100);
+        return daten.ToArray();
+    }
+
     private static bool BildZeichnen(SKCanvas leinwand, TdImage bild, SKRect kasten, TdRenderContext kontext)
     {
         if (kontext.Bilder?.Lesen(bild.BlobId) is not { } bytes) return false;

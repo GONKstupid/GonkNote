@@ -83,7 +83,23 @@ public static class TdFormatEdit
     /// </para>
     /// </summary>
     public static TdChange? Zeichen(
-        TdDocument doc, TdSelection auswahl, Action<TdCharFormat, TdCharFormat> aendern)
+        TdDocument doc, TdSelection auswahl, Action<TdCharFormat, TdCharFormat> aendern) =>
+        Zeichen(doc, auswahl, (abweichung, aufgeloest, _) => aendern(abweichung, aufgeloest));
+
+    /// <summary>
+    /// <inheritdoc cref="Zeichen(TdDocument, TdSelection, Action{TdCharFormat, TdCharFormat})" path="/summary/node()[1]"/>
+    ///
+    /// <para>
+    /// Wie oben, nur bekommt <paramref name="aendern"/> ein <b>drittes</b> Format: die
+    /// <b>Unterlage</b> des Stücks, also das, was dort ohne jede Stück-Abweichung gälte
+    /// (Absatz → Dokument → Standard). <b>Nur wer sie kennt, kann etwas übertragen, ohne es
+    /// einzubrennen</b> — siehe <see cref="Uebertragen"/>. Für alles andere genügt die Fassung
+    /// mit zwei Formaten.
+    /// </para>
+    /// </summary>
+    private static TdChange? Zeichen(
+        TdDocument doc, TdSelection auswahl,
+        Action<TdCharFormat, TdCharFormat, TdCharFormat> aendern)
     {
         var gezogen = TdCursor.Normalisieren(doc, auswahl);
         var start = gezogen.Start;
@@ -124,6 +140,73 @@ public static class TdFormatEdit
         return new TdChange(
             container, iA, alt, neu, gezogen, Wie(gezogen, neuStart, neuEnde),
             TdEditArt.Struktur, schliesstGruppe: true);
+    }
+
+    /// <summary>
+    /// <b>Der Formatpinsel</b>: überträgt ein aufgenommenes Zeichenformat auf die Auswahl —
+    /// <b>sichtbar vollständig, im Dokument so sparsam wie möglich</b> (§4.87).
+    ///
+    /// <para>
+    /// <b>Die Entscheidung, die hier steckt.</b> §4.14 trennt die <b>Abweichung</b> eines Stücks
+    /// von seinem <b>wirksamen</b> Format, und ein Pinsel kann jede der beiden nehmen — beide
+    /// falsch. Nimmt er die Abweichung, überträgt ein Wort, das nur wegen seiner Überschrift
+    /// fett aussieht, <b>nichts</b>: der Nutzer klickt und sieht keine Wirkung. Nimmt er das
+    /// wirksame Format und schreibt es hin, <b>brennt er neun Eigenschaften als Stück-Abweichung
+    /// ein</b> — und eine spätere Änderung an der Überschrift ginge an genau diesen Wörtern
+    /// vorbei. Das ist das, was `TdCharFormat` verhindern soll.
+    /// </para>
+    /// <para>
+    /// <b>Deshalb die dritte Antwort: aufnehmen, was wirkt — hinschreiben, was fehlt.</b>
+    /// <paramref name="quelle"/> ist das <b>aufgelöste</b> Format der Aufnahmestelle
+    /// (<see cref="Gemeinsam"/> liefert genau das). Am Ziel wird jede Eigenschaft mit der
+    /// <b>Unterlage</b> verglichen — dem, was dort ohne Stück-Abweichung ohnehin gälte — und nur
+    /// in die Abweichung geschrieben, wo sich beide unterscheiden. <b>Das Ergebnis sieht aus wie
+    /// „wirksames Format" und verhält sich wie „Abweichung".</b>
+    /// </para>
+    /// <para>
+    /// Zwei Fälle, an denen man es ablesen kann:
+    /// <list type="bullet">
+    ///   <item>
+    ///     Quelle steht in „Überschrift 1" (fett vom Absatz), Ziel im Fließtext: die Unterlage
+    ///     des Ziels ist mager, also wird <c>Bold = true</c> geschrieben. <b>Der Nutzer sieht
+    ///     die Wirkung</b>, die er erwartet.
+    ///   </item>
+    ///   <item>
+    ///     Quelle <b>und</b> Ziel stehen in „Überschrift 1": es wird <b>nichts</b> geschrieben.
+    ///     Ändert später jemand die Überschrift, ändern sich beide mit — <b>genau das
+    ///     Versprechen aus §4.14</b>.
+    ///   </item>
+    /// </list>
+    /// </para>
+    /// <para>
+    /// <b>Es wird immer alles zugewiesen, auch <c>null</c>.</b> Eine Eigenschaft, die am Ziel
+    /// als Abweichung stand und die die Quelle nicht mitbringt, muss <b>fallen</b> — sonst
+    /// überträge der Pinsel nur hinzu und nie weg, und zweimal Pinseln ergäbe etwas anderes als
+    /// einmal.
+    /// </para>
+    /// </summary>
+    public static TdChange? Uebertragen(TdDocument doc, TdSelection auswahl, TdCharFormat quelle)
+    {
+        var wirksam = quelle.Aufgeloest();
+
+        return Zeichen(doc, auswahl, (abweichung, _, unterlage) =>
+        {
+            abweichung.FontFamily = NurText(wirksam.FontFamily, unterlage.FontFamily);
+            abweichung.FontSize = Nur(wirksam.FontSize, unterlage.FontSize);
+            abweichung.Bold = Nur(wirksam.Bold, unterlage.Bold);
+            abweichung.Italic = Nur(wirksam.Italic, unterlage.Italic);
+            abweichung.Underline = Nur(wirksam.Underline, unterlage.Underline);
+            abweichung.Strikethrough = Nur(wirksam.Strikethrough, unterlage.Strikethrough);
+            abweichung.Color = NurText(wirksam.Color, unterlage.Color);
+            abweichung.Highlight = NurText(wirksam.Highlight, unterlage.Highlight);
+            abweichung.VerticalAlign = Nur(wirksam.VerticalAlign, unterlage.VerticalAlign);
+        });
+
+        // Der Wert, wenn er von der Unterlage abweicht — sonst „nicht gesetzt".
+        static T? Nur<T>(T? wert, T? unterlage) where T : struct =>
+            EqualityComparer<T?>.Default.Equals(wert, unterlage) ? null : wert;
+
+        static string? NurText(string? wert, string? unterlage) => wert == unterlage ? null : wert;
     }
 
     // ---------------------------------------------------------------- Absatzformat
@@ -436,7 +519,7 @@ public static class TdFormatEdit
     /// </summary>
     private static TdParagraph NeuFormatiert(
         TdDocument doc, TdParagraph absatz, int von, int bis,
-        Action<TdCharFormat, TdCharFormat> aendern)
+        Action<TdCharFormat, TdCharFormat, TdCharFormat> aendern)
     {
         var kopf = TdEdit.Teil(absatz.Inlines, 0, von);
         var mitte = TdEdit.Teil(absatz.Inlines, von, bis);
@@ -467,7 +550,7 @@ public static class TdFormatEdit
     /// </summary>
     private static TdInline Umformatiert(
         TdDocument doc, TdParagraph absatz, TdInline stueck,
-        Action<TdCharFormat, TdCharFormat> aendern)
+        Action<TdCharFormat, TdCharFormat, TdCharFormat> aendern)
     {
         if (stueck is TdHyperlink verweis)
         {
@@ -478,7 +561,9 @@ public static class TdFormatEdit
         }
 
         var format = stueck.Format.Kopie();
-        aendern(format, doc.FormatVon(absatz, stueck));
+        aendern(format,
+                doc.FormatVon(absatz, stueck),
+                absatz.CharFormat.Over(doc.DefaultCharFormat).Aufgeloest());
         return stueck.MitFormat(format);
     }
 

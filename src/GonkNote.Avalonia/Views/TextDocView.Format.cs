@@ -85,6 +85,88 @@ public partial class TextDocView
         RibbonNachziehen();
     }
 
+    // ==================== Der Formatpinsel (§4.87) ====================
+
+    /// <summary>
+    /// Das aufgenommene Format, solange der Pinsel geladen ist — <c>null</c>, wenn nicht.
+    /// <b>Es ist das aufgelöste</b> (siehe <see cref="TdFormatEdit.Uebertragen"/>); was davon
+    /// im Dokument landet, entscheidet Core und nicht dieser Kopf.
+    /// </summary>
+    private TdCharFormat? _pinselFormat;
+
+    /// <summary>
+    /// Die Auswahl, aus der aufgenommen wurde. <b>Erst eine andere darf empfangen</b> — sonst
+    /// träfe der Pinsel beim ersten Loslassen sich selbst, und der Nutzer sähe einen Knopf, der
+    /// beim Drücken sofort wieder aufspringt.
+    /// </summary>
+    private TdSelection? _pinselQuelle;
+
+    /// <summary>
+    /// <b>Aufnehmen</b> — und mit dem zweiten Klick wieder ablegen, ohne etwas zu übertragen.
+    ///
+    /// <para>
+    /// <b>Aufgenommen wird über <see cref="TdFormatEdit.Gemeinsam"/>, also das *wirksame*
+    /// Format</b>, und das ist die Entscheidung vom 2026-09-01 (§5e Frage 1, §4.87). Ein Wort,
+    /// das nur wegen seiner Überschrift fett aussieht, trägt keine eigene Abweichung — nähme
+    /// der Pinsel sie, käme nichts mit, und der Nutzer klickte ins Leere.
+    /// </para>
+    /// <para>
+    /// <b>Was daraus im Dokument landet, entscheidet dieser Kopf ausdrücklich nicht.</b>
+    /// <see cref="TdFormatEdit.Uebertragen"/> schreibt nur, was von der Unterlage des Ziels
+    /// abweicht — sonst brennte jeder Pinselstrich neun Eigenschaften ein und höbe die Trennung
+    /// auf, auf der §4.14 besteht. Diese Rechnung gehört nach Core, damit der WPF-Kopf sie
+    /// bekommt, sobald er sein <c>FlowDocument</c> los ist (§4.1).
+    /// </para>
+    /// </summary>
+    private void Pinsel_Click(object? s, RoutedEventArgs e)
+    {
+        if (!Schreibbar || SchalterPinsel.IsChecked != true) { PinselAblegen(); return; }
+
+        _pinselFormat = TdFormatEdit.Gemeinsam(_modell!, _auswahl);
+        _pinselQuelle = _auswahl;
+
+        // Ohne den Fokus zurück auf der Fläche zielt die nächste Auswahl ins Leere — dieselbe
+        // Stelle, an der §4.86 den ganzen Tastenweg gefunden hat.
+        Skia.Focus();
+    }
+
+    /// <summary>
+    /// <b>Auftragen</b>, sobald der Nutzer eine <i>andere</i>, nicht leere Auswahl gezogen hat.
+    /// Gerufen aus <c>Zeiger_Losgelassen</c> und damit erst, wenn das Ziehen fertig ist.
+    ///
+    /// <para>
+    /// <b>Eine leere Auswahl trägt nichts auf</b> — wie drüben. Word pinselte auf einen
+    /// einfachen Klick das ganze Wort; das wäre ein zweiter Handgriff mit eigener Regel, und
+    /// er stünde dann nur in einem der beiden Köpfe.
+    /// </para>
+    /// </summary>
+    private void PinselAnwenden()
+    {
+        if (_pinselFormat is not { } format || !Schreibbar) return;
+
+        var gezogen = TdCursor.Normalisieren(_modell!, _auswahl);
+        if (gezogen.Start == gezogen.End) return;
+
+        if (_pinselQuelle is { } quelle)
+        {
+            var alt = TdCursor.Normalisieren(_modell!, quelle);
+            if (alt.Start == gezogen.Start && alt.End == gezogen.End) return;
+        }
+
+        Aendern(TdFormatEdit.Uebertragen(_modell!, _auswahl, format));
+
+        PinselAblegen();
+        RibbonNachziehen();
+    }
+
+    /// <summary>Der Pinsel ist verbraucht oder abgewählt — ein Handgriff, zwei Aufrufer.</summary>
+    private void PinselAblegen()
+    {
+        _pinselFormat = null;
+        _pinselQuelle = null;
+        SchalterPinsel.IsChecked = false;
+    }
+
     private void Fett_Click(object? s, RoutedEventArgs e) => Fett();
     private void Kursiv_Click(object? s, RoutedEventArgs e) => Kursiv();
     private void Unterstrichen_Click(object? s, RoutedEventArgs e) => Unterstrichen();

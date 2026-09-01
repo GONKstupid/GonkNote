@@ -138,6 +138,10 @@ public partial class TextDocView
         _spalte = null;
         _zieht = false;
 
+        // **Ein geladener Pinsel gehört dem alten Dokument** (§4.87) — die gemerkte
+        // Quell-Auswahl zeigt auf dessen Absätze, und im nächsten träfe sie irgendetwas.
+        PinselAblegen();
+
         // **Ein angefangenes Zusammensetzen gehört dem alten Dokument** (Schritt 6a): Eine halb
         // getippte Silbe säße sonst gleich im nächsten.
         EingabemethodeZuruecksetzen();
@@ -249,7 +253,15 @@ public partial class TextDocView
         MarkeVersetzt();
     }
 
-    private void Zeiger_Losgelassen(object? sender, PointerReleasedEventArgs e) => _zieht = false;
+    private void Zeiger_Losgelassen(object? sender, PointerReleasedEventArgs e)
+    {
+        _zieht = false;
+
+        // **Hier und nicht in `MarkeNachziehen`**: der Pinsel braucht eine *fertige* Auswahl.
+        // `MarkeNachziehen` läuft bei jeder Zwischenstellung des Ziehens mit — der Pinsel
+        // schlüge dann auf dem ersten Buchstaben zu, über den die Maus kommt (§4.87).
+        PinselAnwenden();
+    }
 
     /// <summary>
     /// Liegt diese Stelle in der aktuellen Auswahl? <b>Verglichen wird zwischen normalisierten

@@ -10206,6 +10206,93 @@ liegen lassen.
 > anzunehmen** — sie gehören in ②.
 
 
+### 4.87 Der Formatpinsel — die dritte Antwort auf eine Frage mit zwei Antworten
+
+**V2-110, 2026-09-01.** Frage (1) aus §5e, und §4.84 hatte den Pinsel ausdrücklich liegen
+lassen, weil sie eine **Entscheidung** und keine Umsetzung war.
+
+#### Die Frage stand auf einer falschen Prämisse
+
+§5e führte es als Wahl zwischen zwei Möglichkeiten: der Pinsel überträgt entweder die
+**Abweichung** eines Stücks oder sein **wirksames** Format, `TdFormatEdit.Gemeinsam` liefere
+das erste. **Gemessen liefert sie das zweite** (§4.86) — und eine Methode für die gemeinsame
+*Abweichung* gibt es in Core gar nicht. Damit war die Frage nicht „welche der beiden", sondern
+offen, und beide Antworten sind falsch:
+
+| | Was der Nutzer sieht |
+|---|---|
+| **Abweichung** | Ein Wort, das nur wegen seiner Überschrift fett aussieht, trägt **keine** eigene Abweichung. Der Pinsel überträgt **nichts** — geklickt, und nichts passiert |
+| **Wirksames Format** | Trägt sichtbar richtig, **brennt aber neun Eigenschaften als Stück-Abweichung ein**. Eine spätere Änderung an „Überschrift 1" ginge an genau diesen Wörtern vorbei — das ist das, was `TdCharFormat` seit §4.14 verhindern soll |
+
+#### Die dritte Antwort: aufnehmen, was wirkt — hinschreiben, was fehlt
+
+**`TdFormatEdit.Uebertragen`** nimmt das **aufgelöste** Format der Quelle und vergleicht am Ziel
+jede Eigenschaft mit der **Unterlage** — dem, was dort ohne jede Stück-Abweichung ohnehin gälte
+(Absatz → Dokument → Standard). Geschrieben wird nur, wo sich beide unterscheiden.
+
+> **Das Ergebnis sieht aus wie „wirksames Format" und verhält sich wie „Abweichung".** Es ist
+> nie schlechter als die eine Fassung und nie überraschender als die andere — deshalb ist es
+> keine Kompromisslösung, sondern die richtige.
+
+Zwei Fälle, an denen man es ablesen kann, und beide stehen als Wächter:
+
+- Quelle in „Überschrift 1", Ziel im Fließtext → `Bold` und `FontSize` werden geschrieben.
+  **Der Nutzer sieht die Wirkung.**
+- Quelle **und** Ziel in „Überschrift 1" → es wird **nichts** geschrieben. Ändert später jemand
+  die Überschrift, ändern sich beide mit. **Das Versprechen aus §4.14 bleibt heil.**
+
+> **⚠ Es wird immer alles zugewiesen, auch `null`.** Eine Abweichung, die am Ziel stand und die
+> die Quelle nicht mitbringt, muss **fallen** — sonst überträge der Pinsel nur hinzu und nie
+> weg, und zweimal Pinseln ergäbe etwas anderes als einmal. Ein eigener Wächter hält das fest
+> (`Pinseln_ist_wiederholbar`).
+
+#### Was dafür in Core dazukam — und was ausdrücklich nicht
+
+`Zeichen` hat eine **private** dritte Fassung bekommen, deren Rückruf ein drittes Format
+bekommt: die Unterlage des Stücks. **Die öffentliche Fassung mit zwei Formaten bleibt
+unverändert** und delegiert — alle bisherigen Aufrufer sind unberührt, und wer nur fett machen
+will, sieht die dritte gar nicht. *Eine Schnittstelle, die für einen Sonderfall weiter wird,
+wird für alle anderen schwerer zu lesen.*
+
+**Die Rechnung liegt in Core und nicht im Kopf**, obwohl bis heute nur der Linux-Kopf sie ruft:
+Der WPF-Pinsel steht auf `TextPointer`/`GetPropertyValue` und kann sie noch nicht brauchen —
+er bekommt sie, sobald er sein `FlowDocument` los ist (§4.1). *Zwei Fassungen derselben
+Entscheidung wären zwei, von denen später eine anders pinselt als die andere.*
+
+#### Die Oberfläche
+
+Ein `ToggleButton` in der Start-Gruppe, mit demselben Symbol wie drüben
+(`AppIcon.FormatPainter`, §4.31) — **ein Schalter und kein Knopf**, anders als „Formatierung
+löschen": Zwischen Aufnehmen und Auftragen liegt eine zweite Handlung des Nutzers, und solange
+muss er sehen, dass der Pinsel geladen ist.
+
+| Entscheidung | Warum |
+|---|---|
+| **Aufgetragen wird in `Zeiger_Losgelassen`**, nicht in `MarkeNachziehen` | `MarkeNachziehen` läuft bei **jeder Zwischenstellung** des Ziehens mit. Der Pinsel schlüge auf dem ersten Buchstaben zu, über den die Maus kommt |
+| **Erst eine *andere* Auswahl darf empfangen** | Sonst träfe der Pinsel beim ersten Loslassen sich selbst, und der Knopf spränge beim Drücken sofort wieder auf. Dieselbe Vorsicht wie im WPF-Kopf (`_painterFromStart`) |
+| **Eine leere Auswahl trägt nichts auf** | Wie drüben. Word pinselte auf einen einfachen Klick das ganze Wort — das wäre ein zweiter Handgriff mit eigener Regel, und er stünde dann nur in einem der beiden Köpfe |
+| **Ein geladener Pinsel gehört dem alten Dokument** | Beim Wechsel der Registerkarte wird er abgelegt: die gemerkte Quell-Auswahl zeigt auf dessen Absätze, und im nächsten träfe sie irgendetwas |
+
+#### Was am laufenden Programm geprüft ist (Dauerregel 1 und 4)
+
+*Linux-Kopf unter Windows, allein sichtbar (§4.50), frisch gezogene DB-Kopie (`--db`).*
+
+Ein Absatz auf „Überschrift 1" gestellt (groß, fett, blau — **alles am Absatz, nichts am
+Stück**), ein zweiter im Fließtext daneben:
+
+| Handgriff | Ergebnis |
+|---|---|
+| Wort in der Überschrift doppelgeklickt, Pinsel gedrückt | ✅ Knopf rastet ein |
+| „Zweite" im Fließtext doppelgeklickt | ✅ **groß, fett und blau** — „Zeile" daneben bleibt klein und schwarz |
+| danach der Knopf | ✅ wieder ausgerastet, der Pinsel ist verbraucht |
+| Strg+Z | ✅ nimmt den Pinselstrich **in einem** Schritt zurück |
+
+**Das ist genau der Fall, an dem die Fassung „Abweichung" nichts übertragen hätte** — die
+Überschrift trägt keine eigene.
+
+**Bau 0/0. 1165 Tests (1100 Core + 65 WPF), +7.**
+
+
 ## 5. Entscheidungen
 
 **Getroffen, alle umgesetzt:**
@@ -11959,7 +12046,7 @@ Fang mit den Rueckfragen an.
 | ~~**Suchen & Ersetzen**~~ | ✅ **Erledigt (§4.80).** `Core/Text/TdSuche.cs` gegen das Modell — **nicht umgezogen**: der WPF-Weg steht auf `TextPointer` und ist eine echte Windows-Schranke. **+20 Wächter**, und der Linux-Kopf findet dabei mehr als der WPF-Kopf (Treffer über Formatgrenzen) |
 | **Tabellenentwurf** | Stil, Rahmen, Füllung, Größe, AutoAnpassen, Zellenabstand — der ganze Abschnitt |
 | **Zellen verbinden/teilen, Tabelle teilen/sortieren/Formel/in Text** | fehlt ganz |
-| **Formatpinsel**, ~~Formatierung löschen~~ | ✅ **Formatierung löschen ist gebaut** (§4.84, `TdCharFormat.Zuruecksetzen` in Core). **⚠ Der Formatpinsel liegt bewusst noch:** Ob er die **Abweichung** oder das **wirksame** Format überträgt, ist eine Entscheidung und keine Umsetzung (§4.14) — Einzelheiten in §4.84 |
+| ~~**Formatpinsel**~~, ~~Formatierung löschen~~ | ✅ **Beide erledigt** (§4.84 Löschen, §4.87 Pinsel). Der Pinsel überträgt das **wirksame** Format, schreibt aber nur, was von der Unterlage des Ziels abweicht — `TdFormatEdit.Uebertragen` in Core, **+7 Wächter**. ⛔ Die Frage in §5e stand auf einer falschen Prämisse: `Gemeinsam` liefert nicht die Abweichung, sondern das Wirksame |
 | ~~**Stil-, Aufzählungs- und Nummerierungsgalerie**~~ | ⛔ **Fehlen nicht** (§4.82 nachgemessen, drittes Mal nach §4.77/§4.81). Der Linux-Kopf hat die **Absatzvorlagen-Klappliste aus `TdStil`** und **beide Listenschalter**. Klappliste gegen Kachel ist **Form** und damit ①b; wirklich offen ist allein die **Markenauswahl** (`Ed.List.BulletPick`/`NumberPick`) |
 | **Bild, Infobox, Symbolauswahl** | fehlen |
 | ~~**Diagramm**~~ | ✅ **Erledigt (§4.82, §4.83).** Ein bestehendes Diagramm lässt sich per **Doppelklick ändern** — in beiden Köpfen. `Core/Text/TdChartEingabe.cs` + `TdRenderer.DiagrammPng`, **+29 Wächter** — in **beiden** Köpfen, Tafel **und** Editor. **`ChartDialog` 435 → 235 Zeilen**: er rechnete die sieben Arten selbst, die Core seit §4.25 kann, und lieferte eine **Bitmap** ab. Beide Köpfe legen jetzt ein `TdChart` ins Dokument — **die Zahlen bleiben** |

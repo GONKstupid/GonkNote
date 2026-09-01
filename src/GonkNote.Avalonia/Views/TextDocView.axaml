@@ -122,6 +122,16 @@
                     <Button Classes="ribbonschalter" Click="FormatLoeschen_Click"
                             ToolTip.Tip="{loc:T Ed.ClearFormat}" Content="Aax"/>
 
+                    <!-- Formatpinsel (§4.87). **Ein `ToggleButton` und kein `Button`:** anders
+                         als „Formatierung löschen" hat er sehr wohl einen Zustand — zwischen
+                         dem Aufnehmen und dem Auftragen liegt eine zweite Handlung des
+                         Nutzers, und solange muss er sehen, dass der Pinsel geladen ist.
+                         Dasselbe Symbol wie drüben (`AppIcon.FormatPainter`, §4.31). -->
+                    <ToggleButton x:Name="SchalterPinsel" Classes="ribbonschalter"
+                                  Click="Pinsel_Click" ToolTip.Tip="{loc:T Ed.FormatPainter.Tip}">
+                        <views:Symbol Icon="FormatPainter" Stroke="{DynamicResource Brush.Text}"/>
+                    </ToggleButton>
+
                     <Border Classes="trenner"/>
 
                     <!-- Schriftart (§4.40). **Die Liste zeigt die mitgelieferten Familien und

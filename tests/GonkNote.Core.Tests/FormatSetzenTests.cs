@@ -519,6 +519,144 @@ public sealed class FormatSetzenTests
 
         Assert.Equal(TdAlign.Center, TdCursor.AbsatzAn(doc, 0)!.Format.Alignment);
     }
+
+    // ==================== Der Formatpinsel (§4.87) ====================
+
+    // Ein Absatz, der wie eine Überschrift eingestellt ist: fett und groß am ABSATZ, nicht am
+    // Stück. Das ist der Fall, an dem sich die drei möglichen Pinsel unterscheiden.
+    private static TdParagraph Ueberschrift(string text)
+    {
+        var absatz = new TdParagraph(text);
+        absatz.CharFormat.Bold = true;
+        absatz.CharFormat.FontSize = 20;
+        return absatz;
+    }
+
+    /// <summary>
+    /// <b>Der Fall, an dem die Fassung „Abweichung" scheitert.</b> Das Wort in der Überschrift
+    /// hat keine eigene Abweichung — es sieht nur fett aus, weil sein Absatz es ist. Ein Pinsel,
+    /// der die Abweichung überträgt, überträgt <i>nichts</i>; der Nutzer klickt und sieht keine
+    /// Wirkung.
+    /// </summary>
+    [Fact]
+    public void Pinsel_traegt_weiter_was_nur_vom_Absatz_kommt()
+    {
+        var doc = Dok(Ueberschrift("Titel"), Text("Fliesstext"));
+
+        var quelle = TdFormatEdit.Gemeinsam(doc, Von(doc, 0, 0, 0, 5));
+        TdFormatEdit.Uebertragen(doc, Von(doc, 1, 0, 1, 4), quelle)!.Anwenden();
+
+        var ziel = (TdRun)TdCursor.Stuecke(TdCursor.AbsatzAn(doc, 1)!).First();
+        Assert.True(ziel.Format.Bold);
+        Assert.Equal(20, ziel.Format.FontSize);
+    }
+
+    /// <summary>
+    /// <b>Der Fall, an dem die Fassung „wirksames Format" scheitert.</b> Quelle und Ziel stehen
+    /// im selben Absatzstil — es gibt also nichts zu übertragen, und es wird <i>nichts</i>
+    /// geschrieben. Wer hier das aufgelöste Format hinschriebe, brennte neun Eigenschaften ein,
+    /// und eine spätere Änderung der Überschrift ginge an diesen Wörtern vorbei (§4.14).
+    /// </summary>
+    [Fact]
+    public void Pinsel_brennt_nichts_ein_was_ohnehin_gilt()
+    {
+        var doc = Dok(Ueberschrift("Titel eins"), Ueberschrift("Titel zwei"));
+
+        var quelle = TdFormatEdit.Gemeinsam(doc, Von(doc, 0, 0, 0, 5));
+        TdFormatEdit.Uebertragen(doc, Von(doc, 1, 0, 1, 5), quelle)!.Anwenden();
+
+        var ziel = (TdRun)TdCursor.Stuecke(TdCursor.AbsatzAn(doc, 1)!).First();
+        Assert.Null(ziel.Format.Bold);
+        Assert.Null(ziel.Format.FontSize);
+        Assert.Null(ziel.Format.Color);
+    }
+
+    /// <summary>
+    /// <b>Und die Probe darauf, dass das kein Zufall ist:</b> Ändert sich der Absatzstil des
+    /// Ziels nachträglich, geht die Änderung <i>durch</i> — genau das Versprechen aus §4.14,
+    /// und genau das, was ein einbrennender Pinsel kaputt macht.
+    /// </summary>
+    [Fact]
+    public void Was_der_Pinsel_nicht_einbrennt_folgt_dem_Absatz_weiter()
+    {
+        var doc = Dok(Ueberschrift("Titel eins"), Ueberschrift("Titel zwei"));
+
+        var quelle = TdFormatEdit.Gemeinsam(doc, Von(doc, 0, 0, 0, 5));
+        TdFormatEdit.Uebertragen(doc, Von(doc, 1, 0, 1, 5), quelle)!.Anwenden();
+
+        TdCursor.AbsatzAn(doc, 1)!.CharFormat.Bold = false;
+
+        var absatz = TdCursor.AbsatzAn(doc, 1)!;
+        Assert.False(doc.FormatVon(absatz, TdCursor.Stuecke(absatz).First()).Bold);
+    }
+
+    /// <summary>
+    /// <b>Der Pinsel nimmt auch weg.</b> Eine Abweichung, die am Ziel stand und die die Quelle
+    /// nicht mitbringt, muss fallen — sonst überträge er nur hinzu, und zweimal Pinseln ergäbe
+    /// etwas anderes als einmal.
+    /// </summary>
+    [Fact]
+    public void Pinsel_raeumt_die_alte_Abweichung_weg()
+    {
+        var doc = Dok(Text("mager"), Abs(Fett("fett")));
+
+        var quelle = TdFormatEdit.Gemeinsam(doc, Von(doc, 0, 0, 0, 5));
+        TdFormatEdit.Uebertragen(doc, Von(doc, 1, 0, 1, 4), quelle)!.Anwenden();
+
+        var absatz = TdCursor.AbsatzAn(doc, 1)!;
+        Assert.False(doc.FormatVon(absatz, TdCursor.Stuecke(absatz).First()).Bold);
+    }
+
+    /// <summary>
+    /// Eine Farbe, die die Quelle wirklich als Abweichung trägt, kommt mit — sonst wäre der
+    /// Pinsel sparsam bis zur Wirkungslosigkeit.
+    /// </summary>
+    [Fact]
+    public void Pinsel_traegt_eine_echte_Abweichung_mit()
+    {
+        var rot = new TdRun("rot", new TdCharFormat { Color = "#FF0000", Italic = true });
+        var doc = Dok(Abs(rot), Text("schlicht"));
+
+        var quelle = TdFormatEdit.Gemeinsam(doc, Von(doc, 0, 0, 0, 3));
+        TdFormatEdit.Uebertragen(doc, Von(doc, 1, 0, 1, 8), quelle)!.Anwenden();
+
+        var ziel = (TdRun)TdCursor.Stuecke(TdCursor.AbsatzAn(doc, 1)!).First();
+        Assert.Equal("#FF0000", ziel.Format.Color);
+        Assert.True(ziel.Format.Italic);
+    }
+
+    /// <summary>
+    /// Zweimal auf dieselbe Stelle gepinselt ergibt dasselbe wie einmal. <b>Das ist die Probe
+    /// auf „es wird immer alles zugewiesen"</b> — ein Pinsel, der nur setzt und nie löscht,
+    /// fällt hier durch, sobald zwischendurch etwas anderes gepinselt wurde.
+    /// </summary>
+    [Fact]
+    public void Pinseln_ist_wiederholbar()
+    {
+        var doc = Dok(Abs(new TdRun("quelle", new TdCharFormat { Color = "#00FF00" })),
+                      Abs(Fett("ziel")));
+
+        var quelle = TdFormatEdit.Gemeinsam(doc, Von(doc, 0, 0, 0, 6));
+        TdFormatEdit.Uebertragen(doc, Von(doc, 1, 0, 1, 4), quelle)!.Anwenden();
+        var einmal = Abbild(doc);
+
+        TdFormatEdit.Uebertragen(doc, Von(doc, 1, 0, 1, 4), quelle)!.Anwenden();
+
+        Assert.Equal(einmal, Abbild(doc));
+    }
+
+    /// <summary>
+    /// Eine leere Auswahl ändert nichts — dieselbe benannte Lücke wie bei
+    /// <see cref="TdFormatEdit.Zeichen(TdDocument, TdSelection, System.Action{TdCharFormat, TdCharFormat})"/>.
+    /// </summary>
+    [Fact]
+    public void Pinsel_auf_leere_Auswahl_aendert_nichts()
+    {
+        var doc = Dok(Text("eins"), Text("zwei"));
+        var quelle = TdFormatEdit.Gemeinsam(doc, Von(doc, 0, 0, 0, 4));
+
+        Assert.Null(TdFormatEdit.Uebertragen(doc, Bei(doc, 1, 2), quelle));
+    }
 }
 
 /// <summary>Kleiner Lesehelfer für die Wächter oben.</summary>

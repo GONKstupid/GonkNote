@@ -118,6 +118,10 @@ public partial class TextDocView : UserControl
         {
             App.Platform.Theme.ThemeChanged += OnThemeChanged;
             Loc.LanguageChanged += OnLanguageChanged;
+
+            // **Ohne diese Zeile gilt kein Kürzel, bevor jemand die Leinwand angeklickt hat**
+            // (§4.86). Die Tafel holt ihn hier seit jeher; der Editor tat es nicht.
+            FokusHolen();
         };
         DetachedFromVisualTree += (_, _) =>
         {

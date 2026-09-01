@@ -1,7 +1,9 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using GonkNote.Core.Rendering;
 using GonkNote.Core.Text;
 
@@ -101,8 +103,17 @@ public partial class TextDocView
         Skia.PointerPressed += Zeiger_Gedrueckt;
         Skia.PointerMoved += Zeiger_Bewegt;
         Skia.PointerReleased += Zeiger_Losgelassen;
-        Skia.KeyDown += Taste;
         Skia.TextInput += Texteingabe;
+
+        // **Die Tasten hängen an der Ansicht, nicht an der Fläche** (§4.86) — und im `Tunnel`,
+        // also vor jedem Kind. Vorher stand hier `Skia.KeyDown += Taste`, und damit brauchte
+        // **jedes** Editor-Kürzel erst einen Klick auf die Leinwand: wer ein Dokument im
+        // Ordnerbaum doppelklickte, drückte Strg+F ins Leere. Das ist am laufenden Programm
+        // gemessen (§4.86) und hat vorher schon einen Messdurchgang gekostet (§4.80).
+        //
+        // **Die Tafel macht es seit jeher so** (`WhiteboardView.axaml.cs`) — der Editor hat
+        // diese Lösung nur nie bekommen.
+        AddHandler(KeyDownEvent, Taste, RoutingStrategies.Tunnel);
 
         // Schritt 6a: Die Fläche meldet sich als **Eingabeziel** an — sonst hat eine
         // Bildschirmtastatur nichts, woran sie andocken könnte (§5 „Noch offen" 10).
@@ -308,12 +319,69 @@ public partial class TextDocView
     // ==================== Die Tastatur ====================
 
     /// <summary>
+    /// Steht der Fokus in einem Feld, in das jemand schreibt? Dann hält
+    /// <see cref="Taste"/> still.
+    ///
+    /// <para>
+    /// <b>Geprüft wird auf den Fokus und nicht auf die Sichtbarkeit</b> — anders als in der
+    /// Tafel, die genau ein Eingabefeld hat. Der Editor hat sechs (Suchen, Ersetzen,
+    /// Kopfzeile, Fußzeile, Verweisziel, die Zahlenfelder im Layout-Reiter), und mehrere davon
+    /// sind <b>dauerhaft sichtbar</b>, sobald ihre Leiste offen ist. Auf Sichtbarkeit zu prüfen
+    /// hieße: bei offener Suchleiste geht kein einziges Kürzel mehr.
+    /// </para>
+    /// <para>
+    /// <see cref="AutoCompleteBox"/> und <see cref="ComboBox"/> tragen ihren
+    /// <see cref="TextBox"/> im Inneren; deshalb wird der Baum aufwärts abgesucht und nicht
+    /// nur der eine Typ verglichen.
+    /// </para>
+    /// </summary>
+    private bool FokusInEingabefeld()
+    {
+        if (TopLevel.GetTopLevel(this)?.FocusManager?.GetFocusedElement() is not Visual v)
+            return false;
+
+        for (Visual? p = v; p != null; p = p.GetVisualParent())
+            if (p is TextBox) return true;
+
+        return false;
+    }
+
+    /// <summary>
+    /// Holt den Fokus auf die Leinwand, sobald der Reiter angezeigt wird — <b>damit die
+    /// Kürzel ohne einen Klick vorweg gelten</b> (§4.86).
+    ///
+    /// <para>
+    /// <b>Über den Dispatcher</b>, weil der Fokus zum Zeitpunkt des Anhängens noch verteilt
+    /// wird; ein <c>Focus()</c> mitten hinein wäre einen Wimpernschlag später wieder weg.
+    /// <b>Und nicht, wenn schon jemand in einem Feld steht</b> — ein frisch angelegtes
+    /// Dokument klappt in der Seitenleiste sofort zum Umbenennen auf, und wer hier
+    /// bedingungslos zugreift, reißt es dem Nutzer unter den Fingern weg. Beides wörtlich
+    /// die Regel aus <c>WhiteboardView.FokusHolen</c>.
+    /// </para>
+    /// </summary>
+    private void FokusHolen() => Dispatcher.UIThread.Post(() =>
+    {
+        // Kein TopLevel heißt: der Reiter ist wieder zu, bevor der Dispatcher drankam.
+        if (TopLevel.GetTopLevel(this) is not { } oben) return;
+        if (oben.FocusManager?.GetFocusedElement() is TextBox) return;
+        Skia.Focus();
+    }, DispatcherPriority.Background);
+
+    /// <summary>
     /// Alles, was wirklich eine Taste ist. <b>Getippte Zeichen stehen nicht darunter</b> — die
     /// kommen über <see cref="Texteingabe"/>.
     /// </summary>
     private void Taste(object? sender, KeyEventArgs e)
     {
         if (!Schreibbar) return;
+
+        // **Der Tunnel kommt vor jedem Kind — also auch vor jedem Eingabefeld.** Ohne diese
+        // Zeile wäre ein „f" im Suchfeld ein Sprung im Dokument und Strg+A markierte den Text
+        // statt den Feldinhalt. Der Tunnel ist für die Leinwand richtig (sie soll die Tasten
+        // sicher bekommen); solange jemand in ein Feld schreibt, gehört das Feld davor.
+        // Dieselbe Regel wie in der Tafel, nur auf Fokus statt auf Sichtbarkeit geprüft —
+        // der Editor hat sechs solcher Felder und nicht eines.
+        if (FokusInEingabefeld()) return;
 
         bool umschalt = e.KeyModifiers.HasFlag(KeyModifiers.Shift);
         bool strg = e.KeyModifiers.HasFlag(KeyModifiers.Control);

@@ -10098,6 +10098,114 @@ Tabellen, weil der WPF-Kopf sie benutzt.
 > `StackPanel` mit Knöpfen füllt, prüft die Oberfläche und nicht das Programm.*
 
 
+### 4.86 Die Wurzel statt der Blätter — und der Tastenweg, den der Editor nie bekam
+
+**Zwei Runden in einer** (V2-109, 2026-09-01), beide aus dem Entscheidungsblock in §5e, beide
+**vor** dem Rest von ①c, weil jede weitere Fläche sie sonst noch einmal kostet.
+
+#### Was gemessen wurde, bevor gefragt wurde
+
+**Die sieben Fragen aus §5e sind vorab am Code nachgemessen worden, nicht an der Liste** — und
+**an zwei Stellen stimmte die Liste nicht.** Das ist §4.56 zum vierten Mal: *ein Auftrag ist
+keine Messung, auch wenn er im HANDOFF steht.*
+
+| | |
+|---|---|
+| **⛔ Die Prämisse von Frage (1) war falsch** | §5e sagte, `TdFormatEdit.Gemeinsam` liefere die **Abweichung**. Sie liefert das **wirksame** Format, in beiden Zweigen: bei leerer Auswahl über `.Over(hier.CharFormat).Over(doc.DefaultCharFormat).Aufgeloest()`, bei gezogener über `doc.FormatVon(absatz, stueck)`, und das ist `inline.Format.Over(absatz.CharFormat).Over(DefaultCharFormat).Aufgeloest()`. **Eine Methode für die gemeinsame *Abweichung* gibt es in Core gar nicht.** Damit hat Frage (1) eine dritte Antwort, die auf keiner Liste stand |
+| **⛔ Drei Posten fehlten in der Aufgabenliste** | Ein Abgleich **aller** `Ed.*`-Schlüssel beider Köpfe (XAML **und** Code-Behind — sonst wären Listen und Wortzahl Fehlalarm gewesen, sie stehen unter anderen Schlüsseln) zeigt: **Seitenhintergrund/Wasserzeichen** (`Ed.Layout.Background`, `Ed.Background.*`, `Ed.Opacity`), **Inhaltsverzeichnis aktualisieren** (`Ed.Toc.Update`) und **Umbruchzeichen anzeigen** (`Ed.Layout.PageBreaks`) fehlen dem Linux-Editor und standen nirgends. Beim Wasserzeichen ist das besonders unauffällig: Core **kann** es (`TdPageSetup.Watermark`), `TdRenderer` **zeichnet** es, `AvaloniaDocumentIo` **bewahrt** es beim Aufräumen — nur **setzen** kann man es nicht. Ein vorhandenes Wasserzeichen sieht man also, ein neues bekommt man nicht |
+
+> **▶ Die Regel dahinter, jetzt zum vierten Mal bestätigt:** *eine falsche Zählung kostet nicht
+> die Runde, die sie schreibt, sondern die, die ihr glaubt.* Viermal hat die Liste Arbeit
+> versprochen, die längst dastand (§4.77, §4.81, §4.82), und **dreimal** hat sie welche
+> verschwiegen — die zwei aus §4.82 und die drei hier.
+
+#### (1) Das Violett an der Wurzel — sieben Schlüssel, ein Setzer
+
+**Der Befund, der den Zuschnitt geändert hat.** §5e führte diesen Punkt als „färbt jede Fläche
+auf einmal um und verlangt einen vollen Durchgang durch beide Köpfe, also eine eigene Runde".
+Zwei Messungen machen daraus eine halbe:
+
+1. **Der Linux-Kopf setzt Farben an genau einer Stelle** — `AvaloniaThemeHost.Apply` baut zur
+   Laufzeit `Brush.{name}` und `Color.{name}` aus `ThemeDefinition.Entries`.
+2. **Fluent 12.1.1 liest genau sieben Schlüssel** — `SystemAccentColor` und sechs Abstufungen
+   (`…Light1/2/3`, `…Dark1/2/3`). *An der gebundenen Assembly gemessen, nicht aus der
+   Dokumentation genommen* (dieselbe Methode wie §4.42). Und die sechs Abstufungen rechnet
+   `ColorPaletteResources` aus der einen Akzentfarbe **selbst** aus (`CalculateAccentShades`).
+
+**Zu setzen ist damit eine Farbe an einer Stelle**, gespeist aus `ThemeColor.Accent` in Core
+(§5 Nr. 27: nie ein fester Farbwert, immer einer aus der Tabelle). Neu ist
+`AvaloniaThemeHost.AkzentSetzen` — es holt sich das `FluentTheme` aus dem Stilbaum und setzt
+`Palettes[variante].Accent`. **Nur die gerade gültige Variante:** `Apply` läuft bei jedem
+Wechsel und setzt `RequestedThemeVariant` mit, die andere ist in diesem Augenblick unsichtbar.
+
+> **✅ Und der Rest aus ①b ist damit ohne eigenen Handgriff mitgekommen.** In §4.74 stand:
+> *„links vom Griff steht ein schmaler violetter Stummel, den Fluent aus einem Element malt,
+> dessen Namen die Assembly nicht preisgibt (weder als `PART_` noch als Ressourcenschlüssel)."*
+> **Der Stummel ist blau.** Am laufenden Programm nachgesehen und vergrößert. *Wer die Wurzel
+> färbt, muss den Namen des Blattes nicht kennen* — und drei Anläufe in §4.74 haben genau
+> daran gehangen, dass sie ihn kennen wollten.
+
+> **⚠ Was das ausdrücklich NICHT wegräumt:** die rund zwanzig `Brush.Accent`-Setter in
+> `Themes/Styles.axaml` bleiben stehen und **gewinnen weiter** — sie sind ab jetzt überflüssig,
+> nicht falsch. Wer sie herausnimmt, prüft jede Fläche einzeln nach; das ist Aufräumarbeit für
+> Schritt ④ und war nicht Teil dieser Runde. *Eine Vereinfachung, die man nicht nachmisst, ist
+> eine Änderung.*
+
+#### (2) Strg+F wirkte nur mit Fokus auf der Leinwand — und es waren alle Kürzel
+
+**Erst gemessen, dann gebaut** — so stand es in §5e, und die Messung hat die Frage beantwortet,
+statt sie zu stellen.
+
+| | |
+|---|---|
+| **Im Code** | `TextDocView.Eingabe.cs` hängte die Tastatur mit `Skia.KeyDown += Taste` an die **Zeichenfläche**. In diesem einen Handler stecken **alle** Editor-Kürzel: Strg + F/A/C/X/V/Z/Y/B/I/U sowie Pfeile, Pos1, Ende, Bild↑↓, Rück, Entf, Eingabe, Tab. `AttachedToVisualTree` hängte Theme und Sprache an — **keinen Fokus** |
+| **Am laufenden Programm** | Dokument im Ordnerbaum doppelgeklickt, dann Strg+F: **nichts.** Danach einmal in die Seite geklickt, dann Strg+F: **Suchleiste offen.** Gleiches Werkzeug, gleicher Lauf, ein Klick Unterschied |
+| **Die Vorlage lag im selben Repo** | Die **Tafel** hat das seit jeher gelöst: `AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel)` an der **Ansicht** statt an der Fläche, dazu `FokusHolen()` über den Dispatcher. *Der Editor hat diese Lösung nur nie bekommen* |
+
+**Gebaut ist deshalb das Muster der Tafel, ganz** — nicht Strg+F allein. Ein Kürzel zu
+reparieren und die anderen dreizehn stehen zu lassen, hieße die Falle für die nächste Runde
+liegen lassen.
+
+> **⚠ Und die Falle, die der Tunnel selbst aufstellt** (§4.55 und §4.62 hatten viermal diese
+> eine Ursache): `Tunnel` läuft **vor jedem Kind**, also auch vor jedem Eingabefeld. Ohne
+> Gegenwehr wäre ein „f" im Suchfeld ein Sprung im Dokument. Die Tafel prüft dafür auf
+> **Sichtbarkeit** ihres einen Feldes; **das trägt hier nicht** — der Editor hat sechs Felder
+> (Suchen, Ersetzen, Kopfzeile, Fußzeile, Verweisziel, die Zahlenfelder im Layout-Reiter), und
+> mehrere sind **dauerhaft sichtbar**, sobald ihre Leiste offen ist. Auf Sichtbarkeit geprüft
+> ginge bei offener Suchleiste **kein einziges** Kürzel mehr. `FokusInEingabefeld()` prüft
+> deshalb den **Fokus** und sucht den Baum aufwärts ab, weil `ComboBox` und `AutoCompleteBox`
+> ihren `TextBox` im Inneren tragen.
+
+#### Was am laufenden Programm geprüft ist (Dauerregel 1 und 4)
+
+*Linux-Kopf unter Windows, allein sichtbar (§4.50), frisch gezogene DB-Kopie (`--db`),
+`tools/foto.ps1`.*
+
+| Handgriff | Ergebnis |
+|---|---|
+| Dokument im Ordnerbaum doppelgeklickt, **ohne Klick** Strg+F | ✅ Suchleiste offen — vorher tat sie nichts |
+| Im Suchfeld „wwq" getippt, dann Pos1 und Strg+A | ✅ Text steht im **Feld**, Strg+A markiert den **Feldinhalt** — der Editor hält still |
+| In die Seite geklickt, „Hallo Welt" getippt | ✅ steht im Dokument — der Tunnel schluckt die Texteingabe nicht |
+| Dreimal Strg+Z | ✅ zurückgenommen |
+| Strichstärke-Schieber der Tafel vergrößert angesehen | ✅ Stummel links vom Griff ist **blau**, nicht mehr violett |
+| Absatzvorlagen-Klappliste geöffnet | ✅ der gewählte Eintrag steht in der Theme-Farbe |
+
+**Bau 0/0. 1158 Tests unverändert.**
+
+> **⚠ Keine neuen Wächter, und hier ist das ein benanntes Loch:** Beide Änderungen liegen im
+> **Linux-Kopf**, und für den gibt es kein Testprojekt — bewacht sind `Core` und der WPF-Kopf.
+> Ein Wächter, der `FluentTheme.Palettes` liest oder einen Tunnel-Handler zählt, prüfte die
+> Verdrahtung und nicht die Wirkung; **gesehen hat beides erst der Blick aufs laufende
+> Programm**, so wie in §4.78 und §4.82. *Das ist kein Argument gegen Wächter, sondern eines
+> für den dritten Kopf im Prüfnetz — es gehört auf die Vorratsliste für ④.*
+
+> **⚠ Zwei Beobachtungen am Rand, beide unverändert vorhanden und beide NICHT von dieser Runde
+> verursacht** (in den Aufnahmen **vor** dem ersten Handgriff schon zu sehen): ein frisch
+> geöffnetes Textdokument trägt sofort den Punkt für „ungespeichert", und das Schriftgradfeld
+> im Ribbon bleibt leer, bis die Auswahl sich das erste Mal ändert. **Nachzusehen, nicht
+> anzunehmen** — sie gehören in ②.
+
+
 ## 5. Entscheidungen
 
 **Getroffen, alle umgesetzt:**
@@ -11798,13 +11906,13 @@ Fang mit den Rueckfragen an.
 
 | # | Frage | Was daran hängt |
 |---|---|---|
-| **1** | **Formatpinsel: Abweichung oder wirksames Format?** | **Eine Sachfrage, keine Umsetzung.** Core unterscheidet die **Abweichung** eines Stücks von seinem **wirksamen** Format (§4.14). `TdFormatEdit.Gemeinsam` liefert die Abweichung; der WPF-Kopf nimmt über `GetPropertyValue` das wirksame. Ein Wort, das nur wegen seines Absatzstils fett aussieht, hat **keine** Abweichung — überträgt der Pinsel sie, **kommt nichts mit**; überträgt er das wirksame Format, **brennt er eine Absatzeigenschaft ins Zeichenformat ein**. §4.84 hat ihn deshalb ausdrücklich liegen gelassen. ⚠ §6 sagt „beim Editor ist Windows die Vorlage" — das spräche für das wirksame Format und **gegen** die Trennung, auf der das Modell besteht |
+| **1** | ✅ **Entschieden am 2026-09-01: das wirksame Format aufnehmen, aber minimal schreiben** | ⛔ **Die Frage stand auf einer falschen Prämisse** (§4.86): `TdFormatEdit.Gemeinsam` liefert **nicht** die Abweichung, sondern das **wirksame** Format — eine Methode für die gemeinsame *Abweichung* gibt es in Core gar nicht. Damit gab es eine dritte Antwort: Quelle wirksam auflösen, am Ziel aber nur die Eigenschaften in die Abweichung schreiben, die vom Ziel-Absatz **nicht ohnehin** kommen. Sieht aus wie „wirksam“, verhält sich wie „Abweichung“ — und brennt nichts ein |
 | **2** | **Tabellenentwurf — in welchem Zuschnitt?** | Der **größte** verbliebene Posten. `TdTable` kann im Modell alles (Rahmen an sechs Kanten, Zellabstände, Schattierung, `ColumnSpan`, `VerticalMerge`, `IsHeader`), aber **`TdTableEdit` hat nur sechs Handgriffe** — Zeile/Spalte ein und aus, Tabelle löschen. Es fehlen: verbinden/teilen, Rahmen, Füllung, Größe, AutoAnpassen, Zellabstand, sortieren, Formel, in Text. **Erst Core, dann Oberfläche — realistisch zwei Runden** |
 | **3** | **Bild / Infobox / Symbolauswahl — zusammen oder getrennt?** | `TdImage`/`ITdImages` stehen, die Bedienung fehlt ganz. **Daran hängen zwei Posten, die in der Aufgabenliste fehlten** und erst §4.82 gefunden hat: **Objekt-Anordnung** (`Ed.Object.*` — vorn/hinten, größer/kleiner, exakte Größe, neun Schlüssel) und **Beschriftung** (`Ed.Caption`) |
 | **4** | **Lineal — lohnt es vor 1.0.0?** | Der einzige Posten, für den **nichts** in Core steht. Der WPF-Kopf zeichnet es in `TextEditorView.Layout.cs` (`DrawRuler`) auf ein `Canvas`; im Linux-Kopf wäre es Neubau |
 | **5** | **Markenauswahl für Listen** | Der **letzte** Rest dessen, was die Liste „Aufzählungs- und Nummerierungsgalerie" nannte — die Schalter selbst gibt es längst (§4.82). Klein |
-| **6** | **Das Violett an der Wurzel statt an den Blättern — jetzt oder in ④?** | **Sechs Runden, sechs Stellen** (Baum §4.72, Klappliste §4.73, Schieber §4.74, Reiter, Auswahlpunkt §4.77, Ribbon-Schalter und Eingabefeld §4.80). `FluentTheme.Palettes` / `ColorPaletteResources.Accent`, gespeist aus `ThemeColor.Accent`, wäre die Antwort auf die **Ursache** statt auf ihre Erscheinungen — **färbt aber jede Fläche auf einmal um** und verlangt einen vollen Durchgang durch beide Köpfe |
-| **7** | **Strg+F wirkt nur mit Fokus auf der Leinwand — wie weit soll die Reparatur gehen?** | Der Tastenweg des Editors hängt am Canvas (`TextDocView.Eingabe.cs`). Wer ein Dokument gerade im Ordnerbaum doppelgeklickt hat, drückt ins Leere; der Ribbon-Knopf geht immer. **Das hat in §4.80 einen Messdurchgang gekostet.** Betrifft vermutlich **alle** Editor-Kürzel — ⚠ **erst messen, dann fragen** |
+| **6** | ✅ **Erledigt (§4.86, V2-109)** | Nicht „eine eigene Runde“, sondern **sieben Schlüssel und ein Setzer**: `AvaloniaThemeHost.AkzentSetzen` gibt Fluents `Palettes[variante].Accent` die Farbe aus `ThemeColor.Accent`; die sechs Abstufungen rechnet `ColorPaletteResources` selbst. **An der gebundenen Assembly gemessen** (Avalonia 12.1.1). **Und der violette Stummel am Schieber aus §4.74 ist ohne eigenen Handgriff mitgekommen** |
+| **7** | ✅ **Erledigt (§4.86, V2-109)** | **Die Messung hat die Frage beantwortet, statt sie zu stellen:** es waren **alle** Kürzel — vierzehn Strg-Kürzel und die ganze Navigation hingen in **einem** Handler an `Skia.KeyDown`. Gebaut ist das Muster der Tafel, ganz: `Tunnel`-Handler an der Ansicht + `FokusHolen()` beim Anhängen, mit einer Wache auf den **Fokus** (nicht auf die Sichtbarkeit — der Editor hat sechs Eingabefelder, nicht eines) |
 
 > **⚠ Und zwei Reste aus ①b hängen mit dran**, beide mit **gescheiterten Versuchen im Code**:
 > der **Menü-Aufklapppunkt** im WPF-Kopf (§4.73 — `PlacementTarget` weder per `ElementName`

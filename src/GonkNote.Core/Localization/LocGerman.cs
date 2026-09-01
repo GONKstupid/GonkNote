@@ -624,6 +624,7 @@ internal static class LocGerman
             "Die bisherigen Daten sind nicht verloren — die alte Datenbankdatei liegt " +
             "unverändert an ihrem Platz. Einzelheiten stehen in:\n{1}",
         ["Chart.Title"] = "Diagramm einfügen",
+        ["Chart.Title.Edit"] = "Diagramm ändern",
         ["Chart.Type"] = "Typ",
         ["Chart.Type.Column"] = "Säulen",
         ["Chart.Type.Bar"] = "Balken",

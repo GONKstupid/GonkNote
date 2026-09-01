@@ -939,7 +939,8 @@
                                              TextChanged="Editor_TextChanged"
                                              SelectionChanged="Editor_SelectionChanged"
                                              PreviewKeyDown="Editor_PreviewKeyDown"
-                                             ContextMenuOpening="Editor_ContextMenuOpening">
+                                             ContextMenuOpening="Editor_ContextMenuOpening"
+                                             PreviewMouseDoubleClick="Editor_DoubleClick">
                                     <RichTextBox.ContextMenu>
                                         <ContextMenu x:Name="EditorMenu">
                                             <MenuItem Header="{loc:T Quick.Cut}" Command="ApplicationCommands.Cut"

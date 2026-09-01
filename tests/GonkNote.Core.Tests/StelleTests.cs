@@ -620,4 +620,64 @@ public sealed class StelleTests
         Assert.True(new TdPosition(1, 0, 9) < new TdPosition(1, 1, 0));
         Assert.True(new TdPosition(1, 1, 0) < new TdPosition(1, 1, 1));
     }
+
+    // ==================== Worauf zeigt eine Stelle? (§4.83) ====================
+
+    /// <summary>
+    /// <b>Das Stück unter einer Stelle</b> — die Frage, die ein Doppelklick stellt: Liegt dort
+    /// ein Diagramm, wird es geöffnet; liegt dort Text, wird ein Wort ausgewählt.
+    /// </summary>
+    [Fact]
+    public void Eine_Stelle_nennt_das_Stueck_in_dem_sie_steht()
+    {
+        var diagramm = new TdChart(TdChartKind.Column, 8, 5);
+        var doc = Dok(Abs(new TdRun("vor"), diagramm, new TdRun("nach")));
+
+        Assert.IsType<TdRun>(TdCursor.StueckAn(doc, new TdPosition(0, 0, 1)));
+        Assert.Same(diagramm, TdCursor.StueckAn(doc, new TdPosition(0, 1, 0)));
+        Assert.IsType<TdRun>(TdCursor.StueckAn(doc, new TdPosition(0, 2, 0)));
+    }
+
+    /// <summary>
+    /// <b>Ein Diagramm ist einen Schritt breit</b> (§4.30) — davor und dahinter meinen beide
+    /// dasselbe Stück. Andernfalls träfe ein Doppelklick es nur an einer seiner beiden Kanten,
+    /// und welche das ist, hinge daran, wo im Bild man geklickt hat.
+    /// </summary>
+    [Fact]
+    public void Davor_und_dahinter_meinen_dasselbe_Diagramm()
+    {
+        var diagramm = new TdChart(TdChartKind.Pie, 8, 5);
+        var doc = Dok(Abs(new TdRun("a"), diagramm));
+
+        Assert.Same(diagramm, TdCursor.StueckAn(doc, new TdPosition(0, 1, 0)));
+        Assert.Same(diagramm, TdCursor.StueckAn(doc, new TdPosition(0, 1, 1)));
+    }
+
+    /// <summary>
+    /// <b>Gefragt wird die flache Sicht, nicht <c>Inlines</c></b> — ein Verweis erscheint darin
+    /// nicht, seine Stücke schon (§4.30). Wer hier die rohe Liste nähme, bekäme in jedem
+    /// Dokument mit Verweis das falsche Stück; der Fehler zeigte sich erst dort.
+    /// </summary>
+    [Fact]
+    public void Gezaehlt_wird_die_flache_Sicht_und_nicht_die_rohe_Liste()
+    {
+        var diagramm = new TdChart(TdChartKind.Bar, 8, 5);
+        var verweis = new TdHyperlink { Target = "https://example.org" };
+        verweis.Inlines.Add(new TdRun("Text"));
+
+        var doc = Dok(Abs(verweis, diagramm));
+
+        // Roh sind es zwei Stücke (Verweis, Diagramm); flach ebenfalls zwei — aber das erste
+        // ist der **Run im Verweis** und nicht der Verweis selbst.
+        Assert.IsType<TdRun>(TdCursor.StueckAn(doc, new TdPosition(0, 0, 0)));
+        Assert.Same(diagramm, TdCursor.StueckAn(doc, new TdPosition(0, 1, 0)));
+    }
+
+    /// <summary>Eine Stelle außerhalb liefert <c>null</c> und wirft nicht.</summary>
+    [Theory]
+    [InlineData(0, 9)]
+    [InlineData(0, -1)]
+    [InlineData(7, 0)]
+    public void Eine_Stelle_ausserhalb_nennt_kein_Stueck(int absatz, int stueck) =>
+        Assert.Null(TdCursor.StueckAn(Dok(Text("kurz")), new TdPosition(absatz, stueck, 0)));
 }

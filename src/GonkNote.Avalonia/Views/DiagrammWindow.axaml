@@ -84,7 +84,7 @@
                     Margin="0,16,0,0" Spacing="8">
             <Button Classes="flach" Content="{loc:T Dlg.Cancel}" MinWidth="90"
                     Click="Abbrechen_Click"/>
-            <Button Classes="akzent" Content="{loc:T Ed.Tab.Insert}" MinWidth="110"
+            <Button x:Name="OkKnopf" Classes="akzent" Content="{loc:T Ed.Tab.Insert}" MinWidth="110"
                     Click="Ok_Click"/>
         </StackPanel>
 

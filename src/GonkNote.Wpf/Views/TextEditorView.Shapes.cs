@@ -1,4 +1,5 @@
 using System.Windows;
+using System.Windows.Input;
 using System.Windows.Documents;
 using GonkNote.Services;
 
@@ -33,6 +34,45 @@ public partial class TextEditorView
 
         // Diagramm als eigener Absatz (zentriert), damit es nicht im Fließtext klemmt
         InsertBlockAtCaret(absatz);
+        MarkDirty();
+        Editor.Focus();
+    }
+
+    /// <summary>
+    /// <b>Ein Doppelklick auf ein Diagramm öffnet es zum Ändern</b> (§4.83) — der Punkt, den
+    /// §4.82 offen gelassen hat.
+    ///
+    /// <para>
+    /// <b>Vor §4.82 wäre das gar nicht möglich gewesen:</b> Im Text lag eine <b>Bitmap</b>,
+    /// und aus Pixeln holt man keine Zahlen zurück (§4.21). Jetzt reist das
+    /// <see cref="Core.Text.TdChart"/> als Auflage am Behälter mit, und
+    /// <c>TdChartEingabe</c> legt seine Werte wieder in die Felder.
+    /// </para>
+    /// <para>
+    /// <b>Gefragt wird <c>e.OriginalSource</c> und nicht die Schreibmarke:</b> Ein
+    /// Doppelklick auf ein Bild setzt keine sinnvolle Textstelle, und ein
+    /// <c>GetPositionFromPoint</c> daneben zeigte auf den Absatz statt auf das Diagramm.
+    /// </para>
+    /// </summary>
+    private void Editor_DoubleClick(object sender, MouseButtonEventArgs e)
+    {
+        if (e.OriginalSource is not FrameworkElement quelle) return;
+        if (quelle.Parent is not InlineUIContainer behaelter) return;
+        if (behaelter.Tag is not Core.Text.TdChart altes) return;
+
+        // Angeklickt war es in jedem Fall — auch beim Abbrechen soll der Doppelklick nicht
+        // noch als Wortauswahl im Bild landen.
+        e.Handled = true;
+
+        var dlg = new ChartDialog(altes) { Owner = Window.GetWindow(this) };
+        if (dlg.ShowDialog() != true || dlg.Result is not { } neues) return;
+
+        // **Ersetzt und nicht verändert** (§4.32): Wer das vorhandene `TdChart` von innen
+        // umschriebe, änderte die Sicherung im Rückgängig-Stapel mit.
+        if (behaelter.Parent is not Paragraph absatz) return;
+        absatz.Inlines.InsertAfter(behaelter, TdZuFlow.DiagrammBehaelter(neues));
+        absatz.Inlines.Remove(behaelter);
+
         MarkDirty();
         Editor.Focus();
     }

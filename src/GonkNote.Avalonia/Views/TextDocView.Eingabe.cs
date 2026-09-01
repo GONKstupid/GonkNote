@@ -1,4 +1,5 @@
 ﻿using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Threading;
 using GonkNote.Core.Rendering;
@@ -169,6 +170,12 @@ public partial class TextDocView
 
         if (!punkt.Properties.IsLeftButtonPressed && punkt.Pointer.Type == PointerType.Mouse) return;
 
+        // **Ein Doppelklick auf ein Diagramm oeffnet es zum Aendern** (§4.83), statt ein Wort
+        // auszuwaehlen -- ein Diagramm hat keines. Das ist der Punkt, den §4.82 offen gelassen
+        // hat: Core kann ein Diagramm laengst zurueck in die Felder holen
+        // (`TdChartEingabe`), es fehlte nur der Griff, mit dem man danach fragt.
+        if (e.ClickCount == 2 && DiagrammGeoeffnet(stelle)) { e.Handled = true; return; }
+
         _auswahl = e.ClickCount switch
         {
             >= 3 => AbsatzAuswahl(stelle),
@@ -191,6 +198,34 @@ public partial class TextDocView
         if (punkt.Pointer.Type is PointerType.Touch or PointerType.Pen) TastaturAnfordern();
 
         e.Handled = true;
+    }
+
+    /// <summary>
+    /// Ein Diagramm unter der Stelle? Dann oeffnen, aendern und **ersetzen** — sonst
+    /// <c>false</c>, und der Klick geht seinen gewohnten Weg (§4.83).
+    ///
+    /// <para>
+    /// <b>Ersetzt und nicht veraendert:</b> §4.32 verlangt es fuer jedes Stueck, und hier
+    /// haengt der Verlauf daran — wer das vorhandene <see cref="TdChart"/> von innen
+    /// umschriebe, aenderte die Sicherung im Rueckgaengig-Stapel mit, und das Rueckgaengig
+    /// fuehrte auf den bereits geaenderten Stand zurueck.
+    /// </para>
+    /// <para>
+    /// <b>Die Auswahl wird selbst gebaut und nicht aus der Stelle uebernommen:</b> Ein
+    /// Diagramm ist **einen** Schritt breit (§4.30), und ein Klick darauf landet je nach
+    /// Bildhaelfte davor oder dahinter. Genommen wird deshalb immer der ganze Schritt.
+    /// </para>
+    /// </summary>
+    private bool DiagrammGeoeffnet(TdPosition stelle)
+    {
+        if (TdCursor.StueckAn(_modell!, stelle) is not TdChart altes) return false;
+
+        if (DiagrammWindow.Waehlen(TopLevel.GetTopLevel(this) as Window, altes) is not { } neues)
+            return true;   // angeklickt war es trotzdem: kein Wort auswaehlen
+
+        var ganzes = new TdSelection(stelle with { Offset = 0 }, stelle with { Offset = 1 });
+        Aendern(TdEdit.Ersetzen(_modell!, ganzes, TdFragment.Stuecke(neues)));
+        return true;
     }
 
     private void Zeiger_Bewegt(object? sender, PointerEventArgs e)

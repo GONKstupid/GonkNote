@@ -65,7 +65,15 @@ public partial class ChartDialog : Window
             ? [.. vorlage.Palette]
             : [.. TdChart.StandardPalette];
 
-        if (vorlage is not null) FelderFuellen(vorlage);
+        // **Ein Fenster, zwei Aufgaben — und es sagt, welche gerade gilt** (§4.83). Bis
+        // dahin stand ueber einer Aenderung "Diagramm einfuegen" und auf dem Knopf
+        // "Einfuegen": *am laufenden Programm gesehen, nicht im Bau.*
+        if (vorlage is not null)
+        {
+            FelderFuellen(vorlage);
+            Title = Loc.T("Chart.Title.Edit");
+            OkKnopf.Content = Loc.T("Dlg.Apply");
+        }
 
         FarbreiheBauen();
         Loaded += (_, _) => Neuzeichnen();

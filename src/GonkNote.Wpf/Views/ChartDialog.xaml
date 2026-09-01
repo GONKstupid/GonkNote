@@ -65,7 +65,7 @@
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
             <Button Content="{loc:T Dlg.Cancel}" Style="{StaticResource FlatButton}" MinWidth="90"
                     IsCancel="True" Margin="0,0,8,0"/>
-            <Button Content="{loc:T Ed.Tab.Insert}" Style="{StaticResource AccentButton}" MinWidth="110"
+            <Button x:Name="OkKnopf" Content="{loc:T Ed.Tab.Insert}" Style="{StaticResource AccentButton}" MinWidth="110"
                     Click="Ok_Click" IsDefault="True"/>
         </StackPanel>
     </StackPanel>

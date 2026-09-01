@@ -553,6 +553,7 @@ internal static class LocEnglish
             "Your existing data is not lost — the old database file is still in place, " +
             "unchanged. Details are in:\n{1}",
         ["Chart.Title"] = "Insert chart",
+        ["Chart.Title.Edit"] = "Edit chart",
         ["Chart.Type"] = "Type",
         ["Chart.Type.Column"] = "Column",
         ["Chart.Type.Bar"] = "Bar",

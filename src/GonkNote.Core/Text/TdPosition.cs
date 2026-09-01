@@ -260,6 +260,29 @@ public static class TdCursor
         return -1;
     }
 
+    /// <summary>
+    /// Das Stück, in dem eine Stelle steht — <c>null</c>, wenn dort keines ist (§4.83).
+    ///
+    /// <para>
+    /// <b>Wozu:</b> Ein Doppelklick auf ein Diagramm soll es zum Ändern öffnen und nicht ein
+    /// Wort auswählen. Dafür muss der Kopf fragen können, <i>worauf</i> geklickt wurde, und
+    /// das ist eine Frage ans Modell und nicht an die Oberfläche — der zweite Kopf stellt sie
+    /// sonst mit einer eigenen Schleife über <see cref="Stuecke"/>.
+    /// </para>
+    /// <para>
+    /// <b>Gefragt wird die flache Sicht</b>, dieselbe, in der <see cref="TdPosition.Inline"/>
+    /// zählt (§4.30): Ein Verweis erscheint darin nicht, seine Stücke schon. Wer hier
+    /// <c>Inlines</c> nähme, bekäme bei jedem Dokument mit Verweis das falsche Stück.
+    /// </para>
+    /// </summary>
+    public static TdInline? StueckAn(TdDocument doc, TdPosition stelle)
+    {
+        if (AbsatzAn(doc, stelle.Paragraph) is not { } absatz) return null;
+
+        var stuecke = Stuecke(absatz);
+        return stelle.Inline >= 0 && stelle.Inline < stuecke.Count ? stuecke[stelle.Inline] : null;
+    }
+
     // ---------------------------------------------------------------- Umrechnen
 
     /// <summary>

@@ -11682,223 +11682,137 @@ Lies dort Docs/HANDOFF.md (NICHT in der Wurzel, §5 Nr. 21). Lies §5e
 Zieh zuerst den Stand: git pull. Dann bauen und testen, BEVOR du etwas
 anfasst. Erwartet sind 0 Fehler, 0 Warnungen und 1158 Tests
 (1093 Core + 65 WPF) -- stimmt eine der Zahlen nicht, IST DAS DER ERSTE
-BEFUND. UND SIEH IN git log NACH, OB DER LETZTE EINTRAG ZU DEM PASST,
-WAS HIER STEHT: in V2-100 lagen sechs Runden ungesichert im
-Arbeitsbaum (§4.77). Der letzte Eintrag muss V2-108 sein.
+BEFUND. Der letzte Eintrag in git log muss V2-108 sein.
 
-M2 IST ERREICHT UND AUSGERUFEN. DER MEILENSTEIN TRAEGT EIN BENANNTES
-LOCH: die Rechtschreibpruefung fehlt im Linux-Kopf. Bei JEDER
-Veroeffentlichungsnotiz zu erwaehnen. Die zweite Stift-Taste NICHT --
-die darf verschieden bleiben (§5 Nr. 17).
+DEIN AUFTRAG: SCHRITT ① ZU ENDE BRINGEN. Aber NICHT sofort bauen.
 
-DIE ORDNUNG VON PHASE 5 STEHT IN §6 UND NUR DORT:
+⛔ FANG MIT RUECKFRAGEN AN. Es liegen SIEBEN Entscheidungen beim
+Nutzer, und mehrere davon aendern, WAS ueberhaupt gebaut wird. Sie
+stehen vollstaendig in §5e unter "Was der Nutzer entscheiden muss".
+Stell sie ihm, BEVOR du die erste Zeile aenderst -- gebuendelt und mit
+deiner Empfehlung, nicht einzeln nacheinander. Miss vorher nach, was
+zu jeder Frage im Code schon dasteht, damit die Fragen auf Messungen
+stehen und nicht auf der Liste.
 
-  (1a) Vermessen    ERLEDIGT -- alle fuenf Flaechen
-  (1b) Angleichen   weitgehend erledigt (§4.72-§4.75)
-  (1c) Werkzeuge    LAEUFT <-- HIER WEITER
-  (2)  Rueckmeldung VERSCHOBEN hinter 1c (§5 Nr. 28)
-  (3)  Flatpak/AppImage  (braucht den Laptop)
-  (4)  Rest des Aufraeumens + VOLLSTAENDIGER Prueflauf
-  (5)  Veroeffentlichen (1.0.0)
+DIE SIEBEN, IN KURZFORM (Einzelheiten in §5e):
+ (1) FORMATPINSEL: uebertraegt er die ABWEICHUNG eines Stuecks oder
+     sein WIRKSAMES Format? Core unterscheidet beides (§4.14). Keine
+     Umsetzung, sondern eine Entscheidung -- §4.84 hat ihn deshalb
+     ausdruecklich liegen gelassen.
+ (2) TABELLENENTWURF: der groesste Posten, braucht zuerst neue
+     Handgriffe in TdTableEdit (verbinden/teilen, Rahmen, Fuellung,
+     sortieren, Formel, in Text). Realistisch ZWEI Runden -- in
+     welchem Zuschnitt?
+ (3) BILD / INFOBOX / SYMBOLAUSWAHL, samt Objekt-Anordnung
+     (Ed.Object.*) und Beschriftung (Ed.Caption). Zusammen oder
+     getrennt?
+ (4) LINEAL im Editor -- als einziger Posten steht dafuer NICHTS in
+     Core. Lohnt es vor 1.0.0?
+ (5) MARKENAUSWAHL fuer Aufzaehlung/Nummerierung -- der letzte Rest
+     dessen, was die Liste "Galerie" nannte. Klein.
+ (6) DAS VIOLETT AN DER WURZEL statt an den Blaettern: sechs Runden,
+     sechs Stellen. FluentTheme.Palettes waere die Antwort auf die
+     URSACHE -- faerbt aber alles auf einmal um und verlangt einen
+     vollen Durchgang durch beide Koepfe. Eigene Runde: jetzt oder in
+     Schritt ④?
+ (7) STRG+F WIRKT NUR MIT FOKUS AUF DER LEINWAND. Betrifft vermutlich
+     ALLE Editor-Kuerzel. ERST MESSEN, dann fragen, wie weit die
+     Reparatur gehen soll.
 
-DEIN AUFTRAG IST 1c: DIE FEHLENDEN WERKZEUGE BAUEN.
-
-DAS IST KEINE ANGLEICHARBEIT, SONDERN PHASE-4.5-ARBEIT UNTER NEUEM
-NAMEN. §5 Nr. 26 sagt: was einer Seite GANZ fehlt, wird DORT gebaut --
-nicht drueben geloescht. DER ZUSCHNITT DER RUNDEN GEHOERT DEM NUTZER,
-also frag ihn, bevor du eine grosse Runde anfaengst.
-
-WAS IN 1c SCHON ZU IST (fuenf Runden, alles in beiden Koepfen am
-laufenden Programm geprueft):
-  §4.77  Tafel-Export      -> Core/Rendering/WbExport.cs, +12 Waechter
-  §4.78  Formen-Stift      -> Core/Editing/WbFormen.cs,   +23 Waechter
-  §4.79  die zwei Funde daraus (Schwellen, Vorgabetinte)
-  §4.80  Suchen & Ersetzen -> Core/Text/TdSuche.cs,       +20 Waechter
-  §4.81  Cover-Werkzeug    -> Core/Services/CoverLibrary.cs, +8 Waechter
-  §4.82  Diagramm-Werkzeug -> Core/Text/TdChartEingabe.cs,   +29 Waechter
-  §4.83  Diagramm AENDERN  -> TdCursor.StueckAn,              +6 Waechter
-  §4.84  Format loeschen +  -> TdCharFormat.Zuruecksetzen,     +3 Waechter
-         Undo/Redo-Knoepfe
-  §4.85  Navigator         -> TdToc.Eintraege war schon da
-
-DIE TAFEL IST VOLLSTAENDIG (§4.82). Die Einstellungsleiste des
-Linux-Kopfs hat ALLE Abschnitte des WPF-Kopfs.
-
-WAS WIRKLICH NOCH FEHLT -- in §4.82 nachgemessen:
-  Tafel:  nichts mehr.
-  Editor: Tabellenentwurf (Stil, Rahmen, Fuellung, Groesse,
-          AutoAnpassen, Zellenabstand, verbinden/teilen, sortieren,
-          Formel, in Text), Formatpinsel + Formatierung loeschen,
-          Bild, Infobox, Symbolauswahl, Lineal, dazu
-          zwei Posten, die in der alten Liste FEHLTEN:
-          Objekt-Anordnung (Ed.Object.*) und Beschriftung (Ed.Caption).
-
-⛔ UND EINE FRAGE, DIE GEMESSEN WERDEN WILL, BEVOR SIE GEBAUT WIRD:
-Der FORMATPINSEL sieht klein aus und ist eine Entscheidung. Core
-unterscheidet die ABWEICHUNG eines Stuecks von seinem WIRKSAMEN Format
-(§4.14): TdFormatEdit.Gemeinsam liefert die Abweichung, der WPF-Kopf
-nimmt das wirksame. Ein Wort, das nur wegen seines Absatzstils fett
-aussieht, hat KEINE Abweichung -- uebertraegt man die, kommt nichts
-mit; uebertraegt man das wirksame, brennt man eine Absatzeigenschaft
-ins Zeichenformat ein. §4.84 hat ihn deshalb ausdruecklich LIEGEN
-GELASSEN.
-
-⛔ NICHT AUF DER LISTE, WEIL ES SIE GAR NICHT IST (§4.82 gemessen):
-Stilgalerie und Aufzaehlungs-/Nummerierungsgalerie FEHLEN NICHT --
-der Linux-Kopf hat die Klappliste aus TdStil und beide Schalter; es
-fehlt allein die Markenauswahl. Das ist Form und damit (1b).
-
-⛔ MISS NACH, BEVOR DU BAUST. Die Liste im HANDOFF hat ZWEIMAL Arbeit
-versprochen, die laengst dastand:
- - §4.77: "7 Klappgruppen gegen 1" war 7 gegen 5; Zahlenblock,
-   Schnellaktionen, Import und Texterkennung GIBT ES im Linux-Kopf
-   laengst.
- - §4.81: "Wortzahl" fehlt NICHT -- der Linux-Editor zeigt
-   "Woerter - Zeichen" seit jeher (Ed.Status.Counts.Format).
-Eine Aufgabenliste, die niemand nachmisst, waechst nur -- erledigte
-Punkte tragen sich nicht von selbst aus (§4.56, dreimal bestaetigt).
-
-⛔ UND MISS AUCH NACH, OB DER CODE WIRKLICH IM FALSCHEN PROJEKT LIEGT.
-Zweimal lag er es (§4.77 Tafel-Export, §4.78 Formen-Stift: beide hingen
-an NICHTS, was WPF gewesen waere). Beim dritten Mal lag er zu Recht
-drueben (§4.80: TextEditorView.Find.cs steht auf TextPointer/TextRange,
-eine echte Windows-Schranke). WER NACH ZWEI FUNDEN DERSELBEN SORTE
-ANFAENGT, SIE UEBERALL ZU VERMUTEN, SPART SICH DAS NACHSEHEN.
-
-ZWEI OFFENE PUNKTE, DIE DEM NUTZER GEHOEREN (§5e, "Zwei offene Punkte
-aus §4.80") -- BEIDE NICHT NEBENBEI MACHEN:
- (a) DAS VIOLETT AN DER WURZEL STATT AN DEN BLAETTERN. Sechs Runden,
-     sechs Stellen. Fluent laesst sich die Akzentfarbe an EINER Stelle
-     vorgeben (FluentTheme.Palettes / ColorPaletteResources.Accent),
-     gespeist aus ThemeColor.Accent in Core. Das waere die Antwort auf
-     die URSACHE statt auf ihre Erscheinungen -- aber es faerbt jede
-     Flaeche auf einmal um und verlangt einen vollen Durchgang durch
-     beide Koepfe. Eigene Runde.
- (b) STRG+F WIRKT NUR MIT FOKUS AUF DER LEINWAND. Der Tastenweg des
-     Editors haengt am Canvas; nach einem Doppelklick im Ordnerbaum
-     drueckt man ins Leere. Betrifft vermutlich ALLE Editor-Kuerzel --
-     erst messen, dann bauen.
-
-WAS 1b NOCH OFFEN LAESST, ZWEI BENANNTE RESTE -- BEIDE MIT
-GESCHEITERTEN VERSUCHEN IM CODE, FANG NICHT BEI ANLAUF EINS AN:
+DAZU DIE ZWEI RESTE AUS ①b, BEIDE MIT GESCHEITERTEN VERSUCHEN IM CODE
+-- FANG NICHT BEI ANLAUF EINS AN:
  - Der WPF-Kopf klappt seine Menues am LINKEN RAND der Leiste auf
    statt unter dem Eintrag (§4.73). PlacementTarget hilft nicht --
    weder ElementName noch TemplatedParent; danach oeffnet das Menue
    GAR NICHT MEHR.
  - Am Strichstaerke-Regler bleibt links vom Griff ein violetter
    Stummel (§4.74). Ein Setter auf den Thumb hilft nicht, die ganze
-   Slider-Vorlage zu ersetzen hilft auch nicht (Fluents ControlTheme
+   Slider-Vorlage zu ersetzen auch nicht (Fluents ControlTheme
    gewinnt) -- nur eine Vorlage NUR fuer den Thumb traegt.
 
-WIE GEMESSEN UND GEPRUEFT WIRD -- daran sind frueher Runden verloren
-gegangen:
- - BEIDE KOEPFE LAUFEN UNTER WINDOWS, an DERSELBEN frisch gezogenen
-   DB-Kopie (--db, Dauerregel 4). Verglichen wird NUR unter Windows
-   (§5 Nr. 25).
- - FOTOGRAFIERT WIRD MIT tools/foto.ps1 (§8). fenster.ps1 ist KEINE
-   Anwendung, sondern der gemeinsame Unterbau.
- - IMMER NUR EIN KOPF SICHTBAR. Stehen beide deckungsgleich,
-   fotografiert kette.ps1 den ANDEREN Kopf -- §4.50 zum zweiten Mal.
- - FANG MIT EINER LEEREN FLAECHE AN (§4.56).
- - DIE WAECHTER VOR DIE OBERFLAECHE SCHREIBEN. In §4.80 sind zwei
-   gefallen, und beide hatten recht: TdEdit.Ersetzen BAUT eine
-   Aenderung nur (Anwenden muss der Aufrufer rufen), und FormatBei
-   erbt nach LINKS. Kein Bau haette das gezeigt.
- - BEIDE KOEPFE NEBENEINANDER AN DERSELBEN DATEI. So sind gefunden
-   worden: zwei verschiedene Vorgabetinten (§4.78) und ein leeres
-   Schriftfeld, wo drueben "Space Grotesk" stand (§4.81).
+WAS IN ①c SCHON ZU IST -- sieben Runden, alle in beiden Koepfen am
+laufenden Programm geprueft:
+  §4.77  Tafel-Export      -> Core/Rendering/WbExport.cs,    +12 W.
+  §4.78  Formen-Stift      -> Core/Editing/WbFormen.cs,      +23 W.
+  §4.79  die zwei Funde daraus (Schwellen, Vorgabetinte)
+  §4.80  Suchen & Ersetzen -> Core/Text/TdSuche.cs,          +20 W.
+  §4.81  Cover-Werkzeug    -> Core/Services/CoverLibrary.cs,  +8 W.
+  §4.82  Diagramm-Werkzeug -> Core/Text/TdChartEingabe.cs,   +29 W.
+  §4.83  Diagramm AENDERN  -> TdCursor.StueckAn,              +6 W.
+  §4.84  Format loeschen + Undo/Redo-Knoepfe                  +3 W.
+  §4.85  Navigator         -> TdToc.Eintraege war schon da
 
-DIE REGEL, DIE SICH IN JEDER RUNDE BESTAETIGT HAT:
-JEDE FLAECHE, DIE NOCH NICHT ANGEFASST IST, HAT IHR EIGENES VIOLETT.
-Baum (§4.72), Klappliste (§4.73), Schieber (§4.74), Reiter,
-Auswahlpunkt (§4.77), Ribbon-Schalter und Eingabefeld (§4.80).
-SECHSMAL BESTAETIGT. §5 Nr. 27: die Auswahl sieht in BEIDEN Koepfen
-gleich aus und folgt dem Theme, also NIE ein fester Farbwert, immer
-ein Wert aus der Tabelle in Core. Den Namen des Template-Teils
-NACHMESSEN und nicht raten -- die Zeichenketten stehen in
-Avalonia.Themes.Fluent.dll (§4.42, §4.77, §4.80).
-⛔ UND IN §4.80 KAM EINE NEUE URSACHE DAZU: der Stil EXISTIERTE und
-galt nur nicht -- Button.ribbonknopf deckt einen ToggleButton nicht ab.
-Wer den Typ eines Steuerelements wechselt, verliert sein Aussehen
-STILL.
+DIE TAFEL IST VOLLSTAENDIG. Offen ist nur noch der Editor.
 
-WAS DU NICHT ANGLEICHST, WEIL ES ENTSCHIEDEN IST:
- (11) Tote Tasten unter Linux -- benannt lassen, Issue bei Avalonia
-      (gehoert zu Schritt 4).
- (15) Keine Seitenzahlen im WPF-Editor -- BLEIBT SO.
- (17) Die zweite Stift-Taste darf verschieden bleiben.
-  (3) PDF-Groesse bleibt bei (a).
- (16) (18)-(25) sind entschieden -- §5 lesen, nicht neu fragen.
- (26) Was einer Seite GANZ fehlt, wird dort NACHGEBAUT.
- (27) Die Auswahl folgt dem Theme, in beiden Koepfen.
- (28) Die Rueckmeldung folgt erst auf 1c.
- Die Startgroesse des Fensters wird NICHT angeglichen (§4.73, dort
- steht die Begruendung).
+⛔ MISS NACH, BEVOR DU BAUST. Die Liste im HANDOFF hat VIERMAL Arbeit
+versprochen, die laengst dastand: die "7 Klappgruppen gegen 1" waren
+7 gegen 5 (§4.77), "Wortzahl" fehlt gar nicht (§4.81), und Stil- wie
+Listengalerie gibt es auch schon (§4.82) -- dafuer FEHLTEN zwei
+Posten in der Liste (Objekt-Anordnung, Beschriftung). Und miss auch
+nach, OB der Code wirklich im falschen Projekt liegt: dreimal lag er
+es (§4.77, §4.78, §4.82), einmal zu Recht drueben (§4.80).
 
-FALLEN, DIE DICH IN GENAU DIESER ARBEIT ERWISCHEN (§7 vorher
-ueberfliegen, das ist Pflicht):
- - Avalonia: die ROUTING-STRATEGIE entscheidet, wer eine Taste zuerst
-   sieht. Drei von vier Fehlern in §4.55 und der Fehler in §4.62 hatten
-   diese eine Ursache, und DER BAU WAR JEDES MAL GRUEN.
- - Ein px-Suffix in einem XAML-Mass wirft zur LAUFZEIT (§4.53).
- - Die Einstellungsleiste ohne EinstellungenSpiegeln aufklappen ergibt
-   LAUTER LEERE UMSCHALTER (§4.53).
- - ⛔ EIN KNOPF, DEN DER EINGABEPFAD NICHT KENNT, TUT STILL NICHTS. In
-   §4.78 war der Formen-Stift sichtbar, waehlbar und wirkungslos: drei
-   switch-Weichen im Linux-Kopf zaehlten die Stifte einzeln auf. BAU
-   GRUEN, WAECHTER GRUEN. Gesehen hat es erst der Klick am laufenden
-   Programm, GEGEN EIN FUNKTIONIERENDES WERKZEUG GEHALTEN. Wer ein
-   Werkzeug einbaut, prueft es mit genau dieser Gegenprobe.
- - Avalonia: bei gesetztem ItemsSource ist Items NICHT die Liste,
-   gegen die man vergleicht -- ein Contains() darauf sagt immer
-   "nein", und die Auswahl bleibt leer (§4.81).
- - Ein Waechter im falschen Testprojekt ist fuer den anderen Kopf GAR
-   KEINER: der Linux-Kopf faehrt nur GonkNote.Core.Tests (§4.77).
- - Assets, die im Avalonia-csproj ausgenommen sind, weil "das Werkzeug
-   gibt es im Linux-Kopf nicht": DIE BEGRUENDUNG LAEUFT AB, sobald es
-   das Werkzeug gibt (§4.60). Bei den Cover-Vorlagen hat die Warnung
-   getragen (§4.81) -- sie kamen im selben Commit mit. NICHT die
-   Warnung war das Verdienst, sondern ihr ORT: sie stand dort, wo
-   gebaut wird, und nannte ihren eigenen Ablaufzeitpunkt.
- - Loc.T faellt bei einem fehlenden Schluessel AUF DEN SCHLUESSEL
-   SELBST zurueck (§4.68).
- - FEST VERDRAHTETE DEUTSCHE TEXTE IM WPF-KOPF, VIER RUNDEN IN FOLGE
-   (§4.74, §4.75, §4.80, §4.81). Wer im WPF-Kopf etwas anfasst, sieht
-   nach: Dialogtitel, Dateifilter, Statusmeldungen. BEIDE
-   Sprachtabellen zusammen (Dauerregel 1).
- - UND DIESELBE SORTE FUND EINE EBENE HOEHER (§4.81): §5 Nr. 14
-   ("Schriftlisten zusammenfuehren") war beim Editor umgesetzt und
-   beim Cover nicht. Eine Entscheidung, die an EINER Stelle umgesetzt
-   wird, ist nicht umgesetzt, sondern angefangen.
- - klick.ps1 holt DAS HAUPTFENSTER nach vorn, bevor es tippt. Steht
-   ein MODALER Dialog davor, gehen die Tasten ans Fenster DAHINTER
-   (§4.77). Vor einem modalen Fenster wird GEKLICKT, nicht getippt.
-   Und nach einem {ESC} liegt der Fokus im Ordnerbaum -- erst auf die
-   Flaeche klicken, dann ein Kuerzel druecken (§4.79).
- - Beim Fernsteuern: SetCursorPos verschiebt den Zeiger, erzeugt aber
-   KEINE verlaessliche Bewegungseingabe -- der Avalonia-Kopf hat einen
-   so gezogenen Zug GAR NICHT gesehen. mouse_event(MOVE|ABSOLUTE)
-   nehmen (§4.78).
- - Die Werkzeug-Kuerzel stehen in Core (WbLeiste.Kuerzel): S G B M E
-   L V T F N H. "P" ist keins.
- - Beim Schreiben mit einem Skript: NICHT die Kodierung und NICHT die
-   Zeilenenden aendern. Die Dateien sind gemischt (LF und CRLF, mit
-   und ohne BOM) -- vor dem Schreiben lesen, was dasteht.
- - Avalonia: x:Name an einem PINSEL erzeugt kein Feld.
- - Den Linux-Kopf NIE mit Stop-Process abschiessen (§4.55). Haengt ein
-   modales Fenster, hilft WM_CLOSE an ALLE Fenster des Prozesses.
+WIE GEMESSEN WIRD: beide Koepfe unter Windows an DERSELBEN frisch
+gezogenen DB-Kopie (--db), IMMER NUR EINER SICHTBAR (§4.50),
+fotografiert mit tools/foto.ps1, angefangen mit einer LEEREN Flaeche
+(§4.56). Die Waechter VOR die Oberflaeche schreiben.
 
-EIN GRUENER BAU BEWEIST AN EINER OBERFLAECHE FAST NICHTS. Was am
-laufenden Programm zu sehen ist, wird am laufenden Programm gesehen --
-in BEIDEN Koepfen, an DERSELBEN Datei.
+⛔ ZWEI WERKZEUGFALLEN, JEDE HAT SCHON EINEN DURCHGANG GEKOSTET:
+ - klick.ps1 erwartet PHYSISCHE Bildschirmpixel (fenster.ps1 ruft
+   SetProcessDPIAware(), ein eigener PowerShell-Aufruf NICHT). Wer
+   Koordinaten aus einem foto.ps1-Bild abliest, versetzt sie um den
+   Fensterursprung und halbiert sie NICHT (§4.82).
+ - dotnet test --no-build nach einem TEILBAU laeuft gegen eine
+   veraltete DLL -- in §4.82 waren das vier Scheinbefunde in einem
+   Lauf. Vor jedem Testlauf, dessen Ergebnis zaehlt: dotnet build
+   GonkNote.slnx.
+ - Und vor einem MODALEN Dialog wird GEKLICKT, nicht getippt:
+   klick.ps1 holt vorher das Hauptfenster nach vorn, die Tasten gehen
+   dann ans Fenster DAHINTER (§4.77, in §4.83 wieder passiert).
+
+EIN GRUENER BAU BEWEIST AN EINER OBERFLAECHE FAST NICHTS: In §4.78 war
+der Formen-Stift sichtbar, waehlbar und WIRKUNGSLOS, waehrend Bau und
+alle Waechter gruen waren. In §4.82 war die Diagramm-Vorschau gebaut,
+begruendet und UNLESBAR. Gesehen hat es beide Male erst der Blick aufs
+laufende Programm, gegen ein funktionierendes Werkzeug gehalten.
+
+⛔ UND WENN EIN NEUER KNOPF NICHTS TUT: halt ihn gegen ein
+FUNKTIONIERENDES Werkzeug, bevor du den Code verdaechtigst. In §4.82
+tat auch das Lineal nichts -- kaputt war die MESSUNG, nicht der Code.
+
+Die vollstaendige Fassung dieses Prompts steht in §5e und gilt --
+darin auch die Falleliste, die §7 ergaenzt.
 
 Arbeite auf Deutsch, halte Docs/HANDOFF.md nach, und sag mir am Ende,
 ob der Laptop dran ist.
 
-Fang an.
+Fang mit den Rueckfragen an.
 ```
 
-### ▶ Aktueller Auftrag — **▶ Phase 5, Schritt ①c: die fehlenden Werkzeuge bauen** (Stand 2026-08-31, nach Runde V2-104)
+### ⛔ Was der Nutzer entscheiden muss — **die sieben Fragen, mit denen die nächste Runde anfängt**
+
+> **▶ Stand 2026-09-01, nach Runde V2-108.** Schritt ① ist bis auf diese Punkte fertig. **Fünf
+> davon sind Zuschnitt** (was wird wann gebaut), **zwei sind echte Sachfragen**, deren Antwort
+> das Verhalten der App ändert. *Sie stehen hier gebündelt, damit sie in einem Zug beantwortet
+> werden können und nicht in fünf Runden einzeln nachgefragt werden.*
+
+| # | Frage | Was daran hängt |
+|---|---|---|
+| **1** | **Formatpinsel: Abweichung oder wirksames Format?** | **Eine Sachfrage, keine Umsetzung.** Core unterscheidet die **Abweichung** eines Stücks von seinem **wirksamen** Format (§4.14). `TdFormatEdit.Gemeinsam` liefert die Abweichung; der WPF-Kopf nimmt über `GetPropertyValue` das wirksame. Ein Wort, das nur wegen seines Absatzstils fett aussieht, hat **keine** Abweichung — überträgt der Pinsel sie, **kommt nichts mit**; überträgt er das wirksame Format, **brennt er eine Absatzeigenschaft ins Zeichenformat ein**. §4.84 hat ihn deshalb ausdrücklich liegen gelassen. ⚠ §6 sagt „beim Editor ist Windows die Vorlage" — das spräche für das wirksame Format und **gegen** die Trennung, auf der das Modell besteht |
+| **2** | **Tabellenentwurf — in welchem Zuschnitt?** | Der **größte** verbliebene Posten. `TdTable` kann im Modell alles (Rahmen an sechs Kanten, Zellabstände, Schattierung, `ColumnSpan`, `VerticalMerge`, `IsHeader`), aber **`TdTableEdit` hat nur sechs Handgriffe** — Zeile/Spalte ein und aus, Tabelle löschen. Es fehlen: verbinden/teilen, Rahmen, Füllung, Größe, AutoAnpassen, Zellabstand, sortieren, Formel, in Text. **Erst Core, dann Oberfläche — realistisch zwei Runden** |
+| **3** | **Bild / Infobox / Symbolauswahl — zusammen oder getrennt?** | `TdImage`/`ITdImages` stehen, die Bedienung fehlt ganz. **Daran hängen zwei Posten, die in der Aufgabenliste fehlten** und erst §4.82 gefunden hat: **Objekt-Anordnung** (`Ed.Object.*` — vorn/hinten, größer/kleiner, exakte Größe, neun Schlüssel) und **Beschriftung** (`Ed.Caption`) |
+| **4** | **Lineal — lohnt es vor 1.0.0?** | Der einzige Posten, für den **nichts** in Core steht. Der WPF-Kopf zeichnet es in `TextEditorView.Layout.cs` (`DrawRuler`) auf ein `Canvas`; im Linux-Kopf wäre es Neubau |
+| **5** | **Markenauswahl für Listen** | Der **letzte** Rest dessen, was die Liste „Aufzählungs- und Nummerierungsgalerie" nannte — die Schalter selbst gibt es längst (§4.82). Klein |
+| **6** | **Das Violett an der Wurzel statt an den Blättern — jetzt oder in ④?** | **Sechs Runden, sechs Stellen** (Baum §4.72, Klappliste §4.73, Schieber §4.74, Reiter, Auswahlpunkt §4.77, Ribbon-Schalter und Eingabefeld §4.80). `FluentTheme.Palettes` / `ColorPaletteResources.Accent`, gespeist aus `ThemeColor.Accent`, wäre die Antwort auf die **Ursache** statt auf ihre Erscheinungen — **färbt aber jede Fläche auf einmal um** und verlangt einen vollen Durchgang durch beide Köpfe |
+| **7** | **Strg+F wirkt nur mit Fokus auf der Leinwand — wie weit soll die Reparatur gehen?** | Der Tastenweg des Editors hängt am Canvas (`TextDocView.Eingabe.cs`). Wer ein Dokument gerade im Ordnerbaum doppelgeklickt hat, drückt ins Leere; der Ribbon-Knopf geht immer. **Das hat in §4.80 einen Messdurchgang gekostet.** Betrifft vermutlich **alle** Editor-Kürzel — ⚠ **erst messen, dann fragen** |
+
+> **⚠ Und zwei Reste aus ①b hängen mit dran**, beide mit **gescheiterten Versuchen im Code**:
+> der **Menü-Aufklapppunkt** im WPF-Kopf (§4.73 — `PlacementTarget` weder per `ElementName`
+> noch per `TemplatedParent`; danach öffnet das Menü **gar nicht mehr**) und der **violette
+> Stummel am Schieber** im Linux-Kopf (§4.74 — nur eine Vorlage **nur für den Thumb** trägt).
+> *Fang bei beiden nicht bei Anlauf eins an.*
+
+### ▶ Aktueller Auftrag — **▶ Phase 5, Schritt ①c: die fehlenden Werkzeuge bauen** (Stand 2026-09-01, nach Runde V2-108)
 
 > **✅ ①a ist erledigt** — **alle fünf Flächen sind vermessen** (§4.71 Rahmen und Editor,
 > §4.74 Symbole/Tooltips, §4.75 Dialoge).
@@ -11907,7 +11821,13 @@ Fang an.
 > Tafel (§4.72 bis §4.75), dazu **§5 Nr. 14** (Schriftlisten). **Zwei benannte Reste stehen
 > unten.**
 >
-> **▶ ①c ist neu und ist der Rest von ①** (§5 Nr. 28, §4.76): **was einer Seite ganz fehlt,
+> **▶ Stand nach V2-108: die Tafel ist vollständig, offen ist nur noch der Editor** — und
+> **sieben Punkte davon gehören dem Nutzer.** Sie stehen im Block darüber („Was der Nutzer
+> entscheiden muss"), und die nächste Runde fängt mit ihnen an, **bevor** sie die erste Zeile
+> ändert. *Fünf sind Zuschnitt, zwei sind Sachfragen, deren Antwort das Verhalten der App
+> ändert.*
+>
+> **▶ ①c ist der Rest von ①** (§5 Nr. 28, §4.76): **was einer Seite ganz fehlt,
 > wird dort gebaut** (§5 Nr. 26). **Das ist Phase-4.5-Arbeit unter neuem Namen** — Werkzeuge
 > bauen, nicht Oberflächen angleichen. **② rückt dahinter**, damit die Rückmeldung nicht in
 > der Mehrzahl Dinge nennt, die ohnehin auf der Liste stehen.
@@ -13150,7 +13070,7 @@ Veröffentlichen keinen Sinn: Was hinausgeht, soll auf Linux können, was es auf
 |---|---|---|
 | **①a** | **Vermessen** ✅ *erledigt (§4.71, §4.74, §4.75)* | Beide Köpfe Fläche für Fläche vergleichen und je Fläche eine **Befundtabelle** schreiben — **ohne anzugleichen**. *Wer misst und ändert zugleich, misst zum Teil seine eigene Änderung.* **Alle fünf Flächen sind vermessen.** |
 | **①b** | **Angleichen** — *weitgehend erledigt* | Jeden sichtbaren Unterschied beseitigen, **wo beide Köpfe etwas haben und es verschieden aussieht**: Symbole, Farben, Kürzel, Tooltips, Anordnung. **Vorlage ist der Linux-Kopf — Ausnahme: beim Editor ist Windows die Vorlage.** ✅ Flächen **1, 4, 5** und die **Werkzeugleiste** der Tafel (§4.72–§4.75), dazu §5 Nr. **14**. **Offen:** die zwei benannten Reste aus §4.73/§4.74 |
-| **①c** | **Die fehlenden Werkzeuge** ◀ *läuft* | **Wo einer nichts hat, wird es dort gebaut** (§5 Nr. **26**) — und das ist **Phase-4.5-Arbeit unter neuem Namen** und keine Angleicharbeit. ✅ **Tafel-Export** (§4.77) und ✅ **Formen-Stift** (§4.78), beide in Core und in beiden Köpfen. ✅ **Cover** (§4.81), ✅ **Suchen & Ersetzen** (§4.80), ✅ **Diagramm** (§4.82, beide Köpfe). **Die Tafel ist damit vollständig.** **Offen, nur noch Editor:** Tabellenentwurf, Formatpinsel, Bild/Infobox/Symbol, Navigator, Lineal, Rückgängig/Wiederholen als Knöpfe, Objekt-Anordnung und Beschriftung; dazu die **Markenauswahl** für Listen. **Der Zuschnitt der Runden gehört dem Nutzer** |
+| **①c** | **Die fehlenden Werkzeuge** ◀ *läuft* | **Wo einer nichts hat, wird es dort gebaut** (§5 Nr. **26**) — und das ist **Phase-4.5-Arbeit unter neuem Namen** und keine Angleicharbeit. ✅ **Tafel-Export** (§4.77) und ✅ **Formen-Stift** (§4.78), beide in Core und in beiden Köpfen. ✅ **Cover** (§4.81), ✅ **Suchen & Ersetzen** (§4.80), ✅ **Diagramm** samt Ändern (§4.82/§4.83), ✅ **Formatierung löschen und Undo/Redo-Knöpfe** (§4.84), ✅ **Navigator** (§4.85). **Die Tafel ist vollständig.** **Offen, nur noch Editor:** Tabellenentwurf, Formatpinsel, Bild/Infobox/Symbol, Lineal, Objekt-Anordnung, Beschriftung, Markenauswahl. **⛔ Sieben davon sind Entscheidungen des Nutzers und stehen gebündelt in §5e, „Was der Nutzer entscheiden muss"** — die nächste Runde fängt damit an |
 | **②** | **Rückmeldung** — *verschoben hinter ①c* | Was der Vergleich übersehen hat und was ① kaputt gemacht hat. **Eine eigene Runde und kein Anhängsel** — wer eine Oberfläche in einem Zug umbaut und nicht noch einmal hinsieht, hat sie nicht geprüft, sondern nur geändert. **⚠ Sie folgt erst auf ①c** (§5 Nr. **28**): Eine Rückmeldung über eine Oberfläche, an der die Hälfte der Werkzeuge fehlt, **listet in der Mehrzahl Dinge, die ohnehin geplant sind** — sie doppelt die Aufgabenliste, statt sie zu ergänzen |
 | **③** | **Auslieferung — vorgezogen** | **Flatpak/Flathub** als Hauptweg, **AppImage** als zweiter, abhängigkeitsfreier Kanal, `.deb`/AUR optional. Ins Manifest gehören `fontconfig`, `freetype` **und `tesseract`/`leptonica`** (§4.63, §5 Nr. 18) — sonst rendert SkiaSharp **keine Schrift** und die Texterkennung findet nichts. **Braucht den Laptop** (§5d) |
 | **④** | **Der Rest des Aufräumens, dann der vollständige Prüflauf** | Die Vorratsliste unten, dann der ganze Prüflauf |

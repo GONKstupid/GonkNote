@@ -380,6 +380,7 @@ internal static class LocGerman
         ["Zoom.In.Long"] = "Zoom vergrößern",
         ["Ed.Navigator.Tip"] = "Überschriften-Navigator",
         ["Ed.Navigator"] = "Überschriften",
+        ["Ed.Navigator.Empty"] = "Noch keine Überschriften — wer einen Absatz als Überschrift auszeichnet, sieht ihn hier.",
         ["Ed.Advanced"] = "Erweiterte Einstellungen",
         ["Ed.Margins.Preset"] = "Vorlage",
         ["Ed.Margins.Normal"] = "Normal (2 cm)",

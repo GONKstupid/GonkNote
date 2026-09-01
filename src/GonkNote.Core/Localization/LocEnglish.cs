@@ -366,6 +366,7 @@ internal static class LocEnglish
         ["Zoom.In.Long"] = "Zoom in",
         ["Ed.Navigator.Tip"] = "Heading navigator",
         ["Ed.Navigator"] = "Headings",
+        ["Ed.Navigator.Empty"] = "No headings yet — mark a paragraph as a heading to see it here.",
         ["Ed.Advanced"] = "Advanced settings",
         ["Ed.Margins.Preset"] = "Preset",
         ["Ed.Margins.Normal"] = "Normal (2 cm)",

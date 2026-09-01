@@ -240,6 +240,21 @@
                          TextPointer/TextRange, und die gibt es nur unter Windows. Die Suche
                          ist deshalb in Core **neu gegen das Modell** geschrieben
                          (`TdSuche`), nicht umgezogen. -->
+                    <!-- Navigator (§4.85). **Die Liste kommt aus Core** — `TdToc.Eintraege`
+                         rechnet sie fuer das Inhaltsverzeichnis ohnehin, und eine zweite
+                         Sammelschleife im Kopf waere eine zweite Antwort auf "was ist hier
+                         eine Ueberschrift". Der WPF-Kopf hat genau die (`CollectHeadings`
+                         ueber das FlowDocument), und deshalb steht sein Navigator auch nicht
+                         in Core. -->
+                    <ToggleButton x:Name="KnopfNavigator" Classes="ribbonknopf"
+                                  ToolTip.Tip="{loc:T Ed.Navigator.Tip}"
+                                  IsCheckedChanged="NavigatorUmschalten">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <views:Symbol Icon="List" Stroke="{DynamicResource Brush.Text}"/>
+                            <TextBlock Text="{loc:T Ed.Navigator}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </ToggleButton>
+
                     <ToggleButton x:Name="KnopfSuchen" Classes="ribbonknopf"
                                   ToolTip.Tip="{loc:T Ed.Find.Tip}"
                                   IsCheckedChanged="SuchleisteUmschalten">
@@ -758,6 +773,18 @@
                     <views:Symbol Icon="Close" Size="10" Stroke="{DynamicResource Brush.Text}"/>
                 </Button>
             </StackPanel>
+        </Border>
+
+        <!-- ==================== Navigator (§4.85) ====================
+             **Links angedockt und nicht schwebend**, wie drüben (`NavPanel`): Eine
+             Überschriftenliste ist zum Danebenlegen da, nicht zum Draufschauen — wer springt,
+             will danach weiterlesen und nicht erst ein Fenster wegklicken. -->
+        <Border x:Name="Navigator" DockPanel.Dock="Left" IsVisible="False" Width="240"
+                Background="{DynamicResource Brush.SidebarBg}"
+                BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,0,1,0">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel x:Name="NavigatorListe" Margin="6,8"/>
+            </ScrollViewer>
         </Border>
 
         <!-- ==================== Die Blätter ==================== -->

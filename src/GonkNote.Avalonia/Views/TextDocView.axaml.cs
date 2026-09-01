@@ -251,6 +251,12 @@ public partial class TextDocView : UserControl
         // frisch gebauter Kontext trüge sie sonst nicht.
         MarkeNachziehen();
         Beschriftungen();
+
+        // **Am Umbruch und nicht am Tastendruck** (§4.85): Der Navigator zeigt Seitenzahlen,
+        // die sich beim Schreiben verschieben — eine Liste, die bei jedem Zeichen neu entsteht,
+        // kostet genau dort Zeit, wo es auffiele. Und `NavigatorNachziehen` kehrt sofort um,
+        // solange die Leiste zu ist.
+        NavigatorNachziehen();
     }
 
     /// <summary>

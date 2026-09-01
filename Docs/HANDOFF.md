@@ -10293,6 +10293,96 @@ Stück**), ein zweiter im Fließtext daneben:
 **Bau 0/0. 1165 Tests (1100 Core + 65 WPF), +7.**
 
 
+### 4.88 Markenauswahl und Sonderzeichen — zwei Tabellen, die im falschen Projekt lagen
+
+**V2-111, 2026-09-01.** Frage (5) aus §5e und die Symbolauswahl aus Frage (3) — zusammen
+gebaut, weil beides dasselbe ist: **ein Raster, aus dem man ein Zeichen klickt.**
+
+#### Der Befund, der den Zuschnitt bestimmt hat
+
+**Beide Vorräte standen fest verdrahtet im WPF-Kopf** (`BulletStyles`/`NumberStyles` in
+`TextEditorView.Lists.cs`, `Symbols` in `TextEditorView.Insert.cs`). Der Linux-Kopf hätte sie
+ein zweites Mal gebraucht — **zum vierten Mal derselbe Fall** (§4.77, §4.78, §4.82).
+
+> **Sie rechnen nichts, aber sie sind Entscheidungen**, und Entscheidungen gehören dorthin, wo
+> beide Köpfe sie lesen. *Zwei Listen sind zwei, von denen später eine einen Eintrag mehr hat.*
+
+Neu in Core: **`TdMarkenvorrat`** (sechs Aufzählungszeichen, fünf Nummerierungsarten) und
+**`TdSonderzeichen`** (57 Zeichen in fünf Gruppen). Der WPF-Kopf liest die Sonderzeichen jetzt
+von dort; seine Aufzählungsbibliothek bleibt, wo sie ist — sie steht auf WPFs
+`TextMarkerStyle` und kann kein freies Zeichen setzen. **Das ist ein benannter Unterschied und
+kein Versehen:** Der Linux-Kopf bietet sechs Zeichen an, der WPF-Kopf vier feste Formen.
+
+> **⛔ Und ein Rest ist beim Umzug herausgefallen.** Die alte Symbolliste endete auf den Text
+> `"None"`, den die Schleife danach ausdrücklich übersprang (`if (sym == "None") continue;`).
+> **Ein Wert, der nur da ist, um übergangen zu werden, ist ein Rest und kein Zeichen** — ein
+> Wächter hält das jetzt fest.
+
+#### Die Entscheidung in `TdListEdit.Marke`
+
+**Es wird eine Definition gesucht oder angelegt, nicht die vorhandene umgestellt.**
+`TdDocument.Lists` ist eine Vorlagensammlung (§4.17): An der Definition zu drehen träfe
+**jeden** Absatz, der auf sie zeigt — auch die drei Seiten weiter oben, die niemand ausgewählt
+hat. Und der Verlauf bekäme nichts davon mit, denn er führt Blöcke und keine Definitionen
+(§4.32). *Eine Änderung, die zu viel trifft und sich nicht zurücknehmen lässt.* Der Absatz
+wechselt stattdessen die Vorlage, und das ist ein Blocktausch wie jeder andere.
+
+> **⛔ Der Wächter hat sofort einen Fehler gefunden, den der Kommentar daneben bestritt.**
+> Geschrieben stand: *„Zwei Sucher für zwei Fragen — der Aufzählungsknopf kann keine Definition
+> mit ▫ erwischen."* **`Der_Knopf_bleibt_beim_Standardzeichen` ist rot geworden.** Der alte
+> Sucher nahm die *erste* Definition, die überhaupt aufzählte, und sobald jemand einmal „▫" aus
+> der Auswahl genommen hatte, war das diese: **der Aufzählungsknopf setzte danach „▫", ohne
+> dass ihn jemand darum gebeten hatte.** Jetzt fragt er nach der Marke, die
+> `TdListLevel.Punkt` ohnehin setzt.
+>
+> *Der Kommentar war die Behauptung, der Wächter die Messung.* **Und er stand vor der
+> Oberfläche** — sonst wäre der Fehler erst jemandem aufgefallen, der sich wunderte, warum sein
+> Aufzählungspunkt eckig ist.
+
+**Der Preis ist benannt:** Ein DOCX, dessen Aufzählung mit einem anderen Zeichen ankommt,
+bekommt beim Druck auf den Knopf eine *zweite* Definition. Das kostet ein paar Bytes in einer
+Sammlung, in der ohnehin Definitionen liegenbleiben dürfen — und ist der Preis dafür, dass ein
+Knopf berechenbar bleibt.
+
+#### Zwei Fehler, die nur das laufende Programm gezeigt hat
+
+**Beide Male war der Bau grün und alle Wächter auch.** Das ist §4.78 und §4.82 zum dritten und
+vierten Mal: *ein grüner Bau beweist an einer Oberfläche fast nichts.*
+
+| | |
+|---|---|
+| **Die Leiste brach zwischen Schalter und Pfeil um** | Schalter und Markenauswahl lagen einzeln in der `WrapPanel`, und die Leiste hat **genau dazwischen** umgebrochen: Der Pfeil für die Aufzählung stand eine Zeile tiefer neben der Nummerierung und sah aus, als gehöre er zu ihr. Jetzt steht jedes Paar in einem eigenen `StackPanel` — ein Umbruch kann es nicht mehr trennen |
+| **Die Gruppenüberschriften standen unsichtbar im Flyout** | `this.FindResource("Brush.TextMuted")` lieferte `null`: Das Feld wird im **Konstruktor** gebaut, und da hängt das Control an keinem Baum. Der `TextBlock` bekam keinen Pinsel, und das Raster sah aus wie das des WPF-Kopfs — ein Block ohne Ordnung, nur mit Lücken darin. Jetzt über `DynamicResourceExtension`, wie `MarkdownView` es längst tut |
+
+> **▶ Der zweite ist der lehrreichere:** Er sah nicht kaputt aus, sondern **unfertig**. Eine
+> fehlende Überschrift ist genau die Sorte Fehler, die ein Bau nicht finden kann und ein
+> Wächter nicht sieht — und die man beim flüchtigen Hinsehen für die Absicht hält.
+
+#### Was gebaut ist
+
+| | |
+|---|---|
+| **Markenauswahl** | Zwei schmale Pfeilknöpfe neben den zwei Listenschaltern, je ein Flyout mit Kacheln. **Die Kachel zeigt das Zeichen selbst**; drüben stehen drei Vorschauzeilen darin, und bei sechs Punkten, die sich nur im Zeichen unterscheiden, sagt die dritte Zeile nichts, was die erste nicht schon sagt |
+| **Die Kachelbeschriftung wird gerechnet** | „1.", „a.", „I." kommen aus `TdListNumbering.Formatiert` — derselben Rechnung, mit der die Liste später gezeichnet wird. Eine zweite Tabelle mit „a." darin wäre die erste, die davon abweicht (§4.13) |
+| **Sonderzeichen** | Im Reiter „Einfügen", **nach fünf Gruppen geordnet** mit Überschrift. Drüben liegen 57 Zeichen in einem einzigen Raster — wer darin „≠" sucht, liest alle 57 |
+| **Ein Sonderzeichen ist getippter Text** | Deshalb `TdEdit.Tippen` und kein eigener Handgriff: Es ersetzt eine gezogene Auswahl wie jede Eingabe, und der Verlauf fasst mehrere zu einem Schritt zusammen (§4.33) |
+
+#### Was am laufenden Programm geprüft ist (Dauerregel 1 und 4)
+
+*Beide Köpfe unter Windows, immer nur einer sichtbar (§4.50), dieselbe frisch gezogene
+DB-Kopie.*
+
+| Handgriff | Ergebnis |
+|---|---|
+| **Linux:** Markenauswahl geöffnet | ✅ sechs Zeichen — • ◦ ▪ ▫ ‣ – |
+| **Linux:** „▪" gewählt | ✅ der Absatz wird eine Aufzählung mit **eckigem** Punkt |
+| **Linux:** Sonderzeichen geöffnet | ✅ fünf Gruppen mit lesbaren Überschriften (Satzzeichen, Pfeile, Mathematik, Griechisch, Weiteres) |
+| **Linux:** „≠" geklickt | ✅ steht im Dokument |
+| **WPF:** Symbol-Flyout geöffnet | ✅ unverändert, jetzt aus `TdSonderzeichen` gespeist — **kein leerer Platz mehr**, wo der Rest „None" stand |
+
+**Bau 0/0. 1182 Tests (1117 Core + 65 WPF), +17.**
+
+
 ## 5. Entscheidungen
 
 **Getroffen, alle umgesetzt:**
@@ -11997,7 +12087,7 @@ Fang mit den Rueckfragen an.
 | **2** | **Tabellenentwurf — in welchem Zuschnitt?** | Der **größte** verbliebene Posten. `TdTable` kann im Modell alles (Rahmen an sechs Kanten, Zellabstände, Schattierung, `ColumnSpan`, `VerticalMerge`, `IsHeader`), aber **`TdTableEdit` hat nur sechs Handgriffe** — Zeile/Spalte ein und aus, Tabelle löschen. Es fehlen: verbinden/teilen, Rahmen, Füllung, Größe, AutoAnpassen, Zellabstand, sortieren, Formel, in Text. **Erst Core, dann Oberfläche — realistisch zwei Runden** |
 | **3** | **Bild / Infobox / Symbolauswahl — zusammen oder getrennt?** | `TdImage`/`ITdImages` stehen, die Bedienung fehlt ganz. **Daran hängen zwei Posten, die in der Aufgabenliste fehlten** und erst §4.82 gefunden hat: **Objekt-Anordnung** (`Ed.Object.*` — vorn/hinten, größer/kleiner, exakte Größe, neun Schlüssel) und **Beschriftung** (`Ed.Caption`) |
 | **4** | **Lineal — lohnt es vor 1.0.0?** | Der einzige Posten, für den **nichts** in Core steht. Der WPF-Kopf zeichnet es in `TextEditorView.Layout.cs` (`DrawRuler`) auf ein `Canvas`; im Linux-Kopf wäre es Neubau |
-| **5** | **Markenauswahl für Listen** | Der **letzte** Rest dessen, was die Liste „Aufzählungs- und Nummerierungsgalerie" nannte — die Schalter selbst gibt es längst (§4.82). Klein |
+| **5** | ✅ **Erledigt (§4.88, V2-111)** | Zusammen mit der **Symbolauswahl** aus Frage (3) gebaut — beides ist dasselbe: ein Raster, aus dem man ein Zeichen klickt. **Beide Vorräte lagen fest verdrahtet im WPF-Kopf** und stehen jetzt als `TdMarkenvorrat` und `TdSonderzeichen` in Core (zum vierten Mal derselbe Fall). **+17 Wächter** — einer davon hat sofort einen Fehler gefunden, den der Kommentar daneben bestritt |
 | **6** | ✅ **Erledigt (§4.86, V2-109)** | Nicht „eine eigene Runde“, sondern **sieben Schlüssel und ein Setzer**: `AvaloniaThemeHost.AkzentSetzen` gibt Fluents `Palettes[variante].Accent` die Farbe aus `ThemeColor.Accent`; die sechs Abstufungen rechnet `ColorPaletteResources` selbst. **An der gebundenen Assembly gemessen** (Avalonia 12.1.1). **Und der violette Stummel am Schieber aus §4.74 ist ohne eigenen Handgriff mitgekommen** |
 | **7** | ✅ **Erledigt (§4.86, V2-109)** | **Die Messung hat die Frage beantwortet, statt sie zu stellen:** es waren **alle** Kürzel — vierzehn Strg-Kürzel und die ganze Navigation hingen in **einem** Handler an `Skia.KeyDown`. Gebaut ist das Muster der Tafel, ganz: `Tunnel`-Handler an der Ansicht + `FokusHolen()` beim Anhängen, mit einer Wache auf den **Fokus** (nicht auf die Sichtbarkeit — der Editor hat sechs Eingabefelder, nicht eines) |
 
@@ -12047,7 +12137,7 @@ Fang mit den Rueckfragen an.
 | **Tabellenentwurf** | Stil, Rahmen, Füllung, Größe, AutoAnpassen, Zellenabstand — der ganze Abschnitt |
 | **Zellen verbinden/teilen, Tabelle teilen/sortieren/Formel/in Text** | fehlt ganz |
 | ~~**Formatpinsel**~~, ~~Formatierung löschen~~ | ✅ **Beide erledigt** (§4.84 Löschen, §4.87 Pinsel). Der Pinsel überträgt das **wirksame** Format, schreibt aber nur, was von der Unterlage des Ziels abweicht — `TdFormatEdit.Uebertragen` in Core, **+7 Wächter**. ⛔ Die Frage in §5e stand auf einer falschen Prämisse: `Gemeinsam` liefert nicht die Abweichung, sondern das Wirksame |
-| ~~**Stil-, Aufzählungs- und Nummerierungsgalerie**~~ | ⛔ **Fehlen nicht** (§4.82 nachgemessen, drittes Mal nach §4.77/§4.81). Der Linux-Kopf hat die **Absatzvorlagen-Klappliste aus `TdStil`** und **beide Listenschalter**. Klappliste gegen Kachel ist **Form** und damit ①b; wirklich offen ist allein die **Markenauswahl** (`Ed.List.BulletPick`/`NumberPick`) |
+| ~~**Stil-, Aufzählungs- und Nummerierungsgalerie**~~ | ✅ **Vollständig zu** (§4.82 nachgemessen, §4.88 gebaut). Die Absatzvorlagen-Klappliste und beide Listenschalter gab es längst; die **Markenauswahl** (`Ed.List.BulletPick`/`NumberPick`) ist in §4.88 dazugekommen, gespeist aus `TdMarkenvorrat` in Core |
 | **Bild, Infobox, Symbolauswahl** | fehlen |
 | ~~**Diagramm**~~ | ✅ **Erledigt (§4.82, §4.83).** Ein bestehendes Diagramm lässt sich per **Doppelklick ändern** — in beiden Köpfen. `Core/Text/TdChartEingabe.cs` + `TdRenderer.DiagrammPng`, **+29 Wächter** — in **beiden** Köpfen, Tafel **und** Editor. **`ChartDialog` 435 → 235 Zeilen**: er rechnete die sieben Arten selbst, die Core seit §4.25 kann, und lieferte eine **Bitmap** ab. Beide Köpfe legen jetzt ein `TdChart` ins Dokument — **die Zahlen bleiben** |
 | ~~**Navigator**~~ | ✅ **Erledigt (§4.85).** `TdToc.Eintraege` lieferte die Liste bereits fertig — gebaut werden musste **nur die Anzeige**. Der WPF-Kopf sammelt seine Überschriften dagegen selbst (`CollectHeadings`), weil sein Editor kein Modell kennt |

@@ -7,6 +7,7 @@ using GonkNote.Services;
 using Microsoft.Win32;
 
 using GonkNote.Core.Platform;
+using GonkNote.Core.Text;
 
 namespace GonkNote.Views;
 
@@ -253,20 +254,16 @@ public partial class TextEditorView
 
     // ==================== Sonderzeichen ====================
 
-    private static readonly string[] Symbols =
-    {
-        "–", "—", "…", "„", "“", "‚", "‘", "»", "«", "§", "¶", "•",
-        "→", "←", "↔", "⇒", "⇔", "↑", "↓", "±", "×", "÷", "≈", "≠",
-        "≤", "≥", "∞", "√", "∑", "∫", "π", "Δ", "Ω", "µ", "α", "β",
-        "γ", "δ", "λ", "φ", "°", "‰", "½", "⅓", "¼", "¾", "²", "³",
-        "€", "©", "®", "™", "✓", "✗", "★", "☆", "♦", "None",
-    };
+    // Der Vorrat steht seit §4.88 als `TdSonderzeichen` in Core und nicht mehr hier: Der
+    // Linux-Kopf hätte ihn sonst ein zweites Mal gebraucht, und das ist der Fall, der schon
+    // dreimal eingetreten ist (§4.77, §4.78, §4.82). **Dabei ist ein Rest herausgefallen:**
+    // die alte Liste endete auf den Text "None", den die Schleife unten ausdrücklich
+    // übersprang -- ein Wert, der nur da ist, um übergangen zu werden.
 
     private void BuildSymbolGrid()
     {
-        foreach (var sym in Symbols)
+        foreach (var sym in TdSonderzeichen.Alle)
         {
-            if (sym == "None") continue;
             var btn = new Button
             {
                 Style = (Style)FindResource("FlatButton"),

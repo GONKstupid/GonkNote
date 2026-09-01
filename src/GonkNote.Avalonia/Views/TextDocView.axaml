@@ -226,14 +226,40 @@
                     <!-- Aufzählung und Nummerierung (§4.39). Zwei Schalter, nicht einer mit zwei
                          Zuständen: Ein Absatz kann keins von beidem sein, und das ist der
                          häufigste Zustand. -->
-                    <ToggleButton x:Name="SchalterPunkte" Classes="ribbonschalter"
-                                  Click="Aufzaehlung_Click" ToolTip.Tip="{loc:T Ed.List.Bullet}">
-                        <views:Symbol Icon="List"
-                                      Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ToggleButton}}"/>
-                    </ToggleButton>
-                    <ToggleButton x:Name="SchalterNummern" Classes="ribbonschalter"
-                                  Click="Nummerierung_Click" ToolTip.Tip="{loc:T Ed.List.Number}"
-                                  Content="№"/>
+                    <!-- Schalter und Markenauswahl (§4.88) stehen **paarweise in einem
+                         StackPanel** und nicht einzeln in der WrapPanel. Beim ersten Anlauf
+                         lagen sie einzeln darin, und die Leiste hat genau zwischen Schalter
+                         und zugehörigem Pfeil umgebrochen: der Pfeil für die Aufzählung stand
+                         eine Zeile tiefer neben der Nummerierung. **Am laufenden Programm
+                         gesehen; der Bau war grün** (§4.88). -->
+                    <StackPanel Orientation="Horizontal">
+                        <ToggleButton x:Name="SchalterPunkte" Classes="ribbonschalter"
+                                      Click="Aufzaehlung_Click" ToolTip.Tip="{loc:T Ed.List.Bullet}">
+                            <views:Symbol Icon="List"
+                                          Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ToggleButton}}"/>
+                        </ToggleButton>
+                        <Button x:Name="KnopfPunktwahl" Classes="flach" Width="14" Padding="0"
+                                ToolTip.Tip="{loc:T Ed.List.BulletPick}" Content="⌄" FontSize="11">
+                            <Button.Flyout>
+                                <Flyout Placement="BottomEdgeAlignedLeft">
+                                    <WrapPanel x:Name="PunktwahlFeld" Width="200"/>
+                                </Flyout>
+                            </Button.Flyout>
+                        </Button>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <ToggleButton x:Name="SchalterNummern" Classes="ribbonschalter"
+                                      Click="Nummerierung_Click" ToolTip.Tip="{loc:T Ed.List.Number}"
+                                      Content="№"/>
+                        <Button x:Name="KnopfNummernwahl" Classes="flach" Width="14" Padding="0"
+                                ToolTip.Tip="{loc:T Ed.List.NumberPick}" Content="⌄" FontSize="11">
+                            <Button.Flyout>
+                                <Flyout Placement="BottomEdgeAlignedLeft">
+                                    <WrapPanel x:Name="NummernwahlFeld" Width="200"/>
+                                </Flyout>
+                            </Button.Flyout>
+                        </Button>
+                    </StackPanel>
 
                     <Button Classes="flach symbol" Click="EinzugRaus_Click" ToolTip.Tip="{loc:T Ed.Indent.Less}">
                         <views:Symbol Icon="IndentDecrease" Stroke="{DynamicResource Brush.Text}"/>
@@ -314,6 +340,24 @@
                          Blocktyp; die Begründung steht bei `TdBlockEdit.Trennlinie`. -->
                     <Button Classes="ribbonknopf" Click="Trennlinie_Click">
                         <TextBlock Text="{loc:T Ed.Rule}" VerticalAlignment="Center"/>
+                    </Button>
+
+                    <!-- Sonderzeichen (§4.88). Der Vorrat steht als `TdSonderzeichen` in Core,
+                         **nach Gruppen geordnet**: drüben lagen 57 Zeichen in einem einzigen
+                         Raster, und wer darin das Ungleich-Zeichen sucht, liest alle 57. -->
+                    <Button x:Name="KnopfSonderzeichen" Classes="ribbonknopf"
+                            ToolTip.Tip="{loc:T Ed.Symbol.Insert}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <TextBlock Text="Ω" VerticalAlignment="Center" FontSize="14"/>
+                            <TextBlock Text="{loc:T Ed.Symbol}" VerticalAlignment="Center"/>
+                            <views:Symbol Icon="ChevronDown" Size="10"
+                                          Stroke="{DynamicResource Brush.TextMuted}"/>
+                        </StackPanel>
+                        <Button.Flyout>
+                            <Flyout Placement="BottomEdgeAlignedLeft">
+                                <StackPanel x:Name="SonderzeichenFeld" Width="320" Spacing="4"/>
+                            </Flyout>
+                        </Button.Flyout>
                     </Button>
 
                     <Border Classes="trenner"/>

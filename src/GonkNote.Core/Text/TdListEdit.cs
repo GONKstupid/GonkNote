@@ -55,6 +55,63 @@ public static class TdListEdit
     }
 
     /// <summary>
+    /// <b>Die Markenauswahl</b> (§4.88): setzt für die berührten Absätze eine Liste mit genau
+    /// dieser Marke — ein anderes Aufzählungszeichen oder eine andere Zählart.
+    ///
+    /// <para>
+    /// <b>Es wird eine Definition gesucht oder angelegt, nicht die vorhandene umgestellt</b>,
+    /// und das ist der Punkt, an dem man es falsch machen würde. <see cref="TdDocument.Lists"/>
+    /// ist eine Vorlagensammlung: An der Definition zu drehen träfe **jeden** Absatz, der auf
+    /// sie zeigt — auch die drei Seiten weiter oben, die niemand ausgewählt hat. Und der
+    /// Verlauf bekäme davon nichts mit, denn er führt Blöcke und keine Definitionen (§4.32).
+    /// Beides zusammen ergäbe eine Änderung, die zu viel trifft und sich nicht zurücknehmen
+    /// lässt. <b>Der Absatz wechselt stattdessen die Vorlage</b>, und das ist ein Blocktausch
+    /// wie jeder andere.
+    /// </para>
+    /// <para>
+    /// <b>Absätze, die noch keine Liste sind, werden eine.</b> Wer im Fließtext steht und ein
+    /// Zeichen aus der Auswahl nimmt, meint „mach daraus eine Liste damit" — sonst wäre die
+    /// Auswahl nur erreichbar, nachdem man den Knopf daneben schon gedrückt hat.
+    /// </para>
+    /// </summary>
+    public static TdChange? Marke(
+        TdDocument doc, TdSelection auswahl, TdListMarker art, string zeichen)
+    {
+        var absaetze = Beruehrte(doc, auswahl);
+        if (absaetze.Count == 0) return null;
+
+        int id = Definition(doc, art, zeichen);
+
+        return TdFormatEdit.Absatzweise(doc, auswahl, stil =>
+            stil.List = new TdListRef(id, stil.List?.Level ?? 0));
+    }
+
+    /// <summary>
+    /// Die Marke, die alle berührten Absätze gemeinsam haben — <c>null</c>, wo sie sich
+    /// uneinig sind oder gar keine Liste sind. <b>Damit die Auswahl zeigen kann, welche Kachel
+    /// gerade gilt</b>, dieselbe Regel wie bei <see cref="Gemeinsam"/>.
+    /// </summary>
+    public static (TdListMarker Art, string Zeichen)? GemeinsameMarke(
+        TdDocument doc, TdSelection auswahl)
+    {
+        (TdListMarker, string)? gemeinsam = null;
+
+        foreach (var absatz in Beruehrte(doc, auswahl))
+        {
+            if (absatz.List is not { } verweis) return null;
+            if (doc.Lists.FirstOrDefault(l => l.Id == verweis.ListId) is not { } definition)
+                return null;
+            if (definition.Level(verweis.Level) is not { } ebene) return null;
+
+            var hier = (ebene.Marker, ebene.Text);
+            if (gemeinsam is null) gemeinsam = hier;
+            else if (!gemeinsam.Equals(hier)) return null;
+        }
+
+        return gemeinsam;
+    }
+
+    /// <summary>
     /// Eine Ebene tiefer oder höher. <b>Nur für Absätze, die schon in einer Liste sind</b> —
     /// für alle anderen ist „Ebene" ohne Bedeutung, und der Einzug ist der richtige Handgriff.
     ///
@@ -201,15 +258,61 @@ public static class TdListEdit
     /// </summary>
     private static int Definition(TdDocument doc, bool nummeriert)
     {
+        var vorgabe = nummeriert ? TdListLevel.Nummer(0) : TdListLevel.Punkt(0);
+
+        return Definition(doc, vorgabe.Marker, vorgabe.Text);
+    }
+
+    /// <summary>
+    /// Dasselbe für eine <b>bestimmte</b> Marke (§4.88) — gesucht wird auf Übereinstimmung in
+    /// Art <i>und</i> Zeichen, nicht bloß in „zählt oder zählt nicht".
+    ///
+    /// <para>
+    /// <b>⛔ Die Fassung darüber sucht seit §4.88 hierüber mit, und dafür hat es einen Wächter
+    /// gebraucht.</b> Vorher nahm sie die <i>erste</i> Definition, die überhaupt aufzählte —
+    /// und sobald jemand einmal „▫" aus der Auswahl genommen hatte, war das diese. Der
+    /// Aufzählungsknopf setzte danach „▫", ohne dass ihn jemand darum gebeten hatte. <b>Er soll
+    /// immer dasselbe tun</b>, also fragt er jetzt nach der Marke, die
+    /// <see cref="TdListLevel.Punkt"/> ohnehin setzt.
+    /// </para>
+    /// <para>
+    /// <b>Der Preis, und er ist benannt:</b> Ein Dokument aus DOCX, dessen Aufzählung mit einem
+    /// anderen Zeichen ankommt, bekommt beim Druck auf den Knopf eine <i>zweite</i> Definition
+    /// statt die vorhandene weiterzubenutzen. Das kostet ein paar Bytes in
+    /// <see cref="TdDocument.Lists"/> — einer Vorlagensammlung, in der ohnehin Definitionen
+    /// liegenbleiben dürfen (siehe <see cref="Umschalten"/>) — und ist der Preis dafür, dass
+    /// ein Knopf berechenbar bleibt.
+    /// </para>
+    /// </summary>
+    private static int Definition(TdDocument doc, TdListMarker art, string zeichen)
+    {
         foreach (var vorhanden in doc.Lists)
-            if (vorhanden.Level(0) is { } ebene && Nummerierend(ebene.Marker) == nummeriert)
+            if (vorhanden.Level(0) is { } ebene && ebene.Marker == art && ebene.Text == zeichen)
                 return vorhanden.Id;
 
         int id = doc.NextListId();
-        doc.Lists.Add(nummeriert
-            ? TdListDefinition.Nummern(id)
-            : TdListDefinition.Punkte(id));
+        var neu = new TdListDefinition { Id = id };
 
+        for (int ebene = 0; ebene < 9; ebene++)
+        {
+            var stufe = art == TdListMarker.Bullet
+                ? TdListLevel.Punkt(ebene)
+                : TdListLevel.Nummer(ebene);
+
+            stufe.Marker = art;
+
+            // **Nur die erste Ebene bekommt das gewählte Zeichen.** Bei den Nummerierungen ist
+            // das Muster je Ebene ein anderes („%1.", „%2." …), und ein „%1." auf Ebene drei
+            // zählte die falsche Stufe mit. Bei den Punkten sind alle Ebenen gleich, deshalb
+            // steht dort dasselbe Zeichen überall.
+            stufe.Text = art == TdListMarker.Bullet ? zeichen
+                       : ebene == 0 ? zeichen
+                       : TdMarkenvorrat.Muster(ebene);
+
+            neu.Levels.Add(stufe);
+        }
+
+        doc.Lists.Add(neu);
         return id;
     }
 

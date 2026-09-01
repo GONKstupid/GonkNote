@@ -374,4 +374,168 @@ public sealed class ListenUndVorlagenTests
         Assert.Equal(TdStil.Alle.Count, TdStil.Alle.Select(s => s.Name).Distinct().Count());
         Assert.Equal(TdStil.Alle.Count, TdStil.Alle.Select(s => s.Key).Distinct().Count());
     }
+    // ==================== Die Markenauswahl (§4.88) ====================
+
+    /// <summary>Ein anderes Aufzählungszeichen — und die Absätze sind trotzdem eine Aufzählung.</summary>
+    [Fact]
+    public void Marke_setzt_das_gewaehlte_Zeichen()
+    {
+        var doc = Dok(Text("eins"), Text("zwei"));
+
+        TdListEdit.Marke(doc, Von(doc, 0, 0, 1, 4), TdListMarker.Bullet, "▪")!.Anwenden();
+
+        Assert.Equal((TdListMarker.Bullet, "▪"), TdListEdit.GemeinsameMarke(doc, Von(doc, 0, 0, 1, 4)));
+        Assert.True(TdListEdit.IstArt(doc, Absatz(doc, 0), nummeriert: false));
+    }
+
+    /// <summary>
+    /// <b>Ein Absatz, der noch keine Liste ist, wird eine.</b> Sonst wäre die Auswahl erst
+    /// erreichbar, nachdem man den Knopf daneben schon gedrückt hat.
+    /// </summary>
+    [Fact]
+    public void Marke_macht_aus_Fliesstext_eine_Liste()
+    {
+        var doc = Dok(Text("eins"));
+
+        TdListEdit.Marke(doc, Bei(doc, 0, 2), TdListMarker.UpperRoman, "%1.")!.Anwenden();
+
+        Assert.True(TdListEdit.IstArt(doc, Absatz(doc, 0), nummeriert: true));
+    }
+
+    /// <summary>
+    /// <b>Die vorhandene Definition wird nicht umgestellt, sondern die Vorlage gewechselt.</b>
+    /// Ein Absatz, den niemand ausgewählt hat, behält seine Marke — sonst träfe ein Klick in
+    /// der Auswahl jeden Listenabsatz des Dokuments, und der Verlauf bekäme nichts davon mit.
+    /// </summary>
+    [Fact]
+    public void Marke_laesst_die_nicht_ausgewaehlten_Absaetze_in_Ruhe()
+    {
+        var doc = Dok(Text("eins"), Text("zwei"));
+        TdListEdit.Umschalten(doc, Von(doc, 0, 0, 1, 4), nummeriert: false)!.Anwenden();
+
+        TdListEdit.Marke(doc, Bei(doc, 1, 1), TdListMarker.Bullet, "▫")!.Anwenden();
+
+        Assert.Equal((TdListMarker.Bullet, "•"), TdListEdit.GemeinsameMarke(doc, Bei(doc, 0, 1)));
+        Assert.Equal((TdListMarker.Bullet, "▫"), TdListEdit.GemeinsameMarke(doc, Bei(doc, 1, 1)));
+    }
+
+    /// <summary>Dieselbe Marke zweimal legt keine zweite Definition an.</summary>
+    [Fact]
+    public void Dieselbe_Marke_teilt_sich_eine_Definition()
+    {
+        var doc = Dok(Text("eins"), Text("zwei"));
+
+        TdListEdit.Marke(doc, Bei(doc, 0, 1), TdListMarker.Bullet, "‣")!.Anwenden();
+        TdListEdit.Marke(doc, Bei(doc, 1, 1), TdListMarker.Bullet, "‣")!.Anwenden();
+
+        Assert.Single(doc.Lists);
+    }
+
+    /// <summary>
+    /// <b>Der Aufzählungsknopf tut immer dasselbe</b>, auch nachdem jemand in der Auswahl war —
+    /// er sucht seine Definition über „zählt oder zählt nicht" und darf dabei keine mit „▫"
+    /// erwischen. Deshalb sind es zwei Sucher und nicht einer.
+    /// </summary>
+    [Fact]
+    public void Der_Knopf_bleibt_beim_Standardzeichen()
+    {
+        var doc = Dok(Text("eins"), Text("zwei"));
+        TdListEdit.Marke(doc, Bei(doc, 0, 1), TdListMarker.Bullet, "▫")!.Anwenden();
+
+        TdListEdit.Umschalten(doc, Bei(doc, 1, 1), nummeriert: false)!.Anwenden();
+
+        Assert.Equal((TdListMarker.Bullet, "•"), TdListEdit.GemeinsameMarke(doc, Bei(doc, 1, 1)));
+    }
+
+    /// <summary>Uneinigkeit meldet sich als <c>null</c> — wie überall sonst (§4.36).</summary>
+    [Fact]
+    public void GemeinsameMarke_meldet_Uneinigkeit_als_null()
+    {
+        var doc = Dok(Text("eins"), Text("zwei"));
+        TdListEdit.Marke(doc, Bei(doc, 0, 1), TdListMarker.Bullet, "•")!.Anwenden();
+        TdListEdit.Marke(doc, Bei(doc, 1, 1), TdListMarker.Bullet, "▪")!.Anwenden();
+
+        Assert.Null(TdListEdit.GemeinsameMarke(doc, Von(doc, 0, 0, 1, 4)));
+    }
+
+    /// <summary>Kein Listenabsatz, keine Marke.</summary>
+    [Fact]
+    public void GemeinsameMarke_meldet_Fliesstext_als_null()
+    {
+        var doc = Dok(Text("eins"));
+
+        Assert.Null(TdListEdit.GemeinsameMarke(doc, Bei(doc, 0, 1)));
+    }
+
+    // ==================== Der Vorrat (§4.88) ====================
+
+    /// <summary>
+    /// <b>Das erste angebotene Zeichen ist das, was der Knopf ohnehin setzt.</b> Wer die
+    /// Auswahl öffnet und den ersten nimmt, darf keine Überraschung erleben.
+    /// </summary>
+    [Fact]
+    public void Der_erste_Punkt_im_Vorrat_ist_der_Standardpunkt()
+    {
+        Assert.Equal(TdListLevel.Punkt(0).Text, TdMarkenvorrat.Punkte[0]);
+    }
+
+    /// <summary>
+    /// Die Beschriftung der Kacheln wird <b>gerechnet</b> und steht nicht als zweite Tabelle
+    /// daneben — sonst wiche sie irgendwann von der Zählung ab, die wirklich gezeichnet wird.
+    /// </summary>
+    [Theory]
+    [InlineData(TdListMarker.Decimal, "1.")]
+    [InlineData(TdListMarker.LowerLetter, "a.")]
+    [InlineData(TdListMarker.UpperLetter, "A.")]
+    [InlineData(TdListMarker.LowerRoman, "i.")]
+    [InlineData(TdListMarker.UpperRoman, "I.")]
+    public void Das_Beispiel_kommt_aus_der_Zaehlung(TdListMarker art, string erwartet)
+    {
+        Assert.Equal(erwartet, TdMarkenvorrat.Beispiel(art));
+    }
+
+    /// <summary><see cref="TdListMarker.Bullet"/> ist keine Zählung und steht nicht im Vorrat.</summary>
+    [Fact]
+    public void Der_Punkt_steht_nicht_unter_den_Nummerierungen()
+    {
+        Assert.DoesNotContain(TdListMarker.Bullet, TdMarkenvorrat.Nummern);
+    }
+
+    // ==================== Die Sonderzeichen (§4.88) ====================
+
+    /// <summary>
+    /// Der Vorrat ist doppelfrei. <b>Ein Zeichen, das zweimal im Raster steht, ist ein
+    /// Tippfehler und kein Angebot</b> — und in einer von Hand gepflegten Liste die
+    /// wahrscheinlichste Art, sich zu vertun.
+    /// </summary>
+    [Fact]
+    public void Kein_Sonderzeichen_steht_zweimal()
+    {
+        var alle = TdSonderzeichen.Alle.ToList();
+
+        Assert.Equal(alle.Count, alle.Distinct().Count());
+    }
+
+    /// <summary>
+    /// <b>Der Rest aus dem WPF-Kopf ist nicht mitgekommen:</b> Dort endete die Liste auf den
+    /// Text „None", den die Schleife danach ausdrücklich übersprang. Ein Wert, der nur da ist,
+    /// um übergangen zu werden, gehört nicht in die Tabelle.
+    /// </summary>
+    [Fact]
+    public void Kein_Platzhalter_im_Sonderzeichenvorrat()
+    {
+        Assert.All(TdSonderzeichen.Alle, z => Assert.True(z.Length is > 0 and <= 2));
+        Assert.DoesNotContain("None", TdSonderzeichen.Alle);
+    }
+
+    /// <summary>Jede Gruppe hat einen Schlüssel und Zeichen darin.</summary>
+    [Fact]
+    public void Jede_Sonderzeichengruppe_ist_belegt()
+    {
+        Assert.All(TdSonderzeichen.Gruppen, g =>
+        {
+            Assert.StartsWith("Ed.Symbol.Group.", g.Schluessel);
+            Assert.NotEmpty(g.Zeichen);
+        });
+    }
 }

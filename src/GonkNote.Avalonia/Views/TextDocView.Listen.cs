@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using Avalonia.Markup.Xaml.MarkupExtensions;
 using Avalonia.Interactivity;
 using GonkNote.Core.Text;
 using GonkNote.Services;
@@ -50,6 +51,9 @@ public partial class TextDocView
             GroesseWahl.ItemsSource = Groessen
                 .Select(g => new ComboBoxItem { Content = $"{g:0.#}", Tag = g })
                 .ToList();
+
+            MarkenAufbauen();
+            SonderzeichenAufbauen();
         }
         finally
         {
@@ -61,6 +65,148 @@ public partial class TextDocView
 
     private void Aufzaehlung_Click(object? s, RoutedEventArgs e) => Liste(nummeriert: false);
     private void Nummerierung_Click(object? s, RoutedEventArgs e) => Liste(nummeriert: true);
+
+    // ==================== Die Markenauswahl (§4.88) ====================
+
+    /// <summary>
+    /// Baut die beiden Kachelfelder. <b>Aus <see cref="TdMarkenvorrat"/> in Core</b> — bis
+    /// §4.88 stand die Liste fest verdrahtet im WPF-Kopf, und dieser hier hätte sie ein zweites
+    /// Mal gebraucht. Das ist zum vierten Mal derselbe Fall (§4.77, §4.78, §4.82).
+    ///
+    /// <para>
+    /// <b>Die Kachel zeigt das Zeichen selbst und keine Vorschauzeile.</b> Drüben stehen drei
+    /// Zeilen aus Marke und Strich in jeder Kachel — bei sechs Punkten, die sich nur im Zeichen
+    /// unterscheiden, sagt die dritte Zeile nichts, was die erste nicht schon sagt.
+    /// </para>
+    /// </summary>
+    private void MarkenAufbauen()
+    {
+        PunktwahlFeld.Children.Clear();
+        NummernwahlFeld.Children.Clear();
+
+        foreach (var zeichen in TdMarkenvorrat.Punkte)
+            PunktwahlFeld.Children.Add(
+                Markenkachel(zeichen, () => Marke(TdListMarker.Bullet, zeichen)));
+
+        foreach (var art in TdMarkenvorrat.Nummern)
+            NummernwahlFeld.Children.Add(
+                Markenkachel(TdMarkenvorrat.Beispiel(art),
+                             () => Marke(art, TdMarkenvorrat.Muster(0))));
+    }
+
+    private static Button Markenkachel(string beschriftung, Action gewaehlt)
+    {
+        var kachel = new Button
+        {
+            Width = 30,
+            Height = 30,
+            Margin = new Avalonia.Thickness(1),
+            Padding = new Avalonia.Thickness(0),
+            CornerRadius = new Avalonia.CornerRadius(5),
+            Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Hand),
+            Content = new TextBlock
+            {
+                Text = beschriftung,
+                FontSize = 14,
+                HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center,
+                VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
+            },
+        };
+
+        kachel.Click += (_, _) => gewaehlt();
+        return kachel;
+    }
+
+    private void Marke(TdListMarker art, string zeichen)
+    {
+        if (!Schreibbar) return;
+
+        Aendern(TdListEdit.Marke(_modell!, _auswahl, art, zeichen));
+        RibbonNachziehen();
+
+        // Das Flyout schließt sich von selbst; der Fokus muss zurück auf die Fläche, sonst
+        // gilt danach kein Kürzel mehr (§4.86).
+        Skia.Focus();
+    }
+
+    // ==================== Die Sonderzeichen (§4.88) ====================
+
+    /// <summary>
+    /// Baut das Sonderzeichen-Feld — <b>nach Gruppen</b>, mit einer Überschrift je Gruppe.
+    ///
+    /// <para>
+    /// Der Vorrat steht als <see cref="TdSonderzeichen"/> in Core. Drüben lagen 57 Zeichen in
+    /// **einem** Raster: Wer darin „≠" sucht, liest alle 57. Die Gruppen kosten nichts, und
+    /// ihre Namen kommen aus <see cref="Loc.T"/> — deshalb wird das Feld beim Sprachwechsel
+    /// neu gebaut wie die Vorlagenliste darüber.
+    /// </para>
+    /// </summary>
+    private void SonderzeichenAufbauen()
+    {
+        SonderzeichenFeld.Children.Clear();
+
+        foreach (var gruppe in TdSonderzeichen.Gruppen)
+        {
+            var ueberschrift = new TextBlock
+            {
+                Text = Loc.T(gruppe.Schluessel),
+                FontSize = 11,
+                Margin = new Avalonia.Thickness(2, 4, 0, 0),
+            };
+
+            // **Über `DynamicResource` und nicht über `FindResource`** (§4.88): Dieses Feld wird
+            // im Konstruktor gebaut, und da hängt das Control noch an keinem Baum — `FindResource`
+            // lieferte `null`, und die Überschriften standen **unsichtbar** im Flyout. Der Bau war
+            // grün, die Wächter auch; gesehen hat es erst der Blick aufs laufende Programm.
+            ueberschrift[!TextBlock.ForegroundProperty] =
+                new DynamicResourceExtension("Brush.TextMuted");
+
+            SonderzeichenFeld.Children.Add(ueberschrift);
+
+            var feld = new WrapPanel();
+            foreach (var zeichen in gruppe.Zeichen)
+                feld.Children.Add(Sonderzeichenkachel(zeichen));
+
+            SonderzeichenFeld.Children.Add(feld);
+        }
+    }
+
+    private Button Sonderzeichenkachel(string zeichen)
+    {
+        var kachel = new Button
+        {
+            Width = 30,
+            Height = 30,
+            Margin = new Avalonia.Thickness(1),
+            Padding = new Avalonia.Thickness(0),
+            CornerRadius = new Avalonia.CornerRadius(5),
+            Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Hand),
+            Content = new TextBlock
+            {
+                Text = zeichen,
+                FontSize = 15,
+                HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center,
+                VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
+            },
+        };
+
+        kachel.Click += (_, _) => Sonderzeichen(zeichen);
+        return kachel;
+    }
+
+    /// <summary>
+    /// <b>Ein Sonderzeichen ist getippter Text und nichts weiter</b> — deshalb
+    /// <see cref="TdEdit.Tippen"/> und kein eigener Handgriff. Es ersetzt eine gezogene Auswahl
+    /// wie jede andere Eingabe, und der Verlauf fasst mehrere hintereinander zu einem Schritt
+    /// zusammen (§4.33), genau wie bei der Tastatur.
+    /// </summary>
+    private void Sonderzeichen(string zeichen)
+    {
+        if (!Schreibbar) return;
+
+        Aendern(TdEdit.Tippen(_modell!, _auswahl, zeichen));
+        Skia.Focus();
+    }
 
     private void Liste(bool nummeriert)
     {
@@ -118,6 +264,8 @@ public partial class TextDocView
             GroesseWahl.IsEnabled = an;
             SchalterPunkte.IsEnabled = an;
             SchalterNummern.IsEnabled = an;
+            KnopfPunktwahl.IsEnabled = an;
+            KnopfNummernwahl.IsEnabled = an;
 
             if (!an)
             {

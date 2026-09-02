@@ -303,5 +303,8 @@ public partial class TextDocView
             KnopfZeileWeg.IsEnabled = drin.Tabelle.Rows.Count > 1;
             KnopfSpalteWeg.IsEnabled = drin.Tabelle.Spaltenzahl() > 1;
         }
+
+        // Seit §4.90 hängt der Entwurf mit dran — er stellt sich auf dieselbe Zelle ein.
+        EntwurfNachziehen(ort?.Tabelle, ort?.Zeile ?? -1, ort?.Spalte ?? -1);
     }
 }

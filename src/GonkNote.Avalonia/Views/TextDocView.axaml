@@ -675,8 +675,12 @@
                                MaxWidth="520"
                                Foreground="{DynamicResource Brush.TextMuted}"/>
 
-                    <StackPanel x:Name="TabelleWerkzeuge" Orientation="Horizontal"
-                                IsVisible="False">
+                    <!-- **Eine WrapPanel und kein StackPanel** (§4.90). Bis zum Entwurf passten
+                         die sieben Knöpfe knapp in eine Zeile; mit den drei neuen ragten sie
+                         über den Fensterrand hinaus und waren **nicht mehr anklickbar** — ein
+                         StackPanel bricht nie um. Der Bau war grün, die Fläche nicht; gesehen
+                         hat es erst der Blick aufs laufende Programm (§4.88 zum zweiten Mal). -->
+                    <WrapPanel x:Name="TabelleWerkzeuge" IsVisible="False">
                         <Button Classes="ribbonknopf" Click="ZeileDarueber_Click">
                             <TextBlock Text="{loc:T Ed.Table.Row.Above}" VerticalAlignment="Center"/>
                         </Button>
@@ -702,6 +706,100 @@
                             <TextBlock Text="{loc:T Ed.Table.Delete}" VerticalAlignment="Center"/>
                         </Button>
 
+                        <Border Classes="trenner"/>
+
+                        <!-- Der Entwurf (§4.90). **Verbinden und Teilen als Knöpfe, alles
+                             Übrige hinter einem Flyout:** Rahmen, Füllung, Abstand und
+                             Spaltenbreite sind Einstellungen zu einem Werkzeug und keine
+                             Werkzeuge — dieselbe Regel wie bei der Tabellengröße (§4.38).
+                             ⚠ Verbunden wird mit der RECHTEN Nachbarin und nicht „die
+                             Auswahl“: der Editor kennt kein Rechteck aus Zellen (§4.90). -->
+                        <Button x:Name="KnopfVerbinden" Classes="ribbonknopf"
+                                Click="ZellenVerbinden_Click"
+                                ToolTip.Tip="{loc:T Ed.Table.Merge.Tip}">
+                            <TextBlock Text="{loc:T Ed.Table.Merge}" VerticalAlignment="Center"/>
+                        </Button>
+                        <Button x:Name="KnopfTeilen" Classes="ribbonknopf"
+                                Click="ZelleTeilen_Click">
+                            <TextBlock Text="{loc:T Ed.Table.SplitCell}" VerticalAlignment="Center"/>
+                        </Button>
+
+                        <Button x:Name="KnopfEntwurf" Classes="ribbonknopf"
+                                ToolTip.Tip="{loc:T Ed.Table.Design.Tip}">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <TextBlock Text="{loc:T Ed.Table.Design}" VerticalAlignment="Center"/>
+                                <views:Symbol Icon="ChevronDown" Size="10"
+                                              Stroke="{DynamicResource Brush.TextMuted}"/>
+                            </StackPanel>
+                            <Button.Flyout>
+                                <Flyout Placement="BottomEdgeAlignedLeft">
+                                    <StackPanel Width="290" Spacing="10">
+
+                                        <TextBlock Text="{loc:T Ed.Table.Borders}" FontSize="11"
+                                                   Foreground="{DynamicResource Brush.TextMuted}"/>
+                                        <WrapPanel>
+                                            <Button Classes="flach" Margin="1" Tag="Alle"
+                                                    Click="Rahmen_Click"
+                                                    Content="{loc:T Ed.Table.Border.All}"/>
+                                            <Button Classes="flach" Margin="1" Tag="Aussen"
+                                                    Click="Rahmen_Click"
+                                                    Content="{loc:T Ed.Table.Border.Outside}"/>
+                                            <Button Classes="flach" Margin="1" Tag="Innen"
+                                                    Click="Rahmen_Click"
+                                                    Content="{loc:T Ed.Table.Border.Inside}"/>
+                                            <Button Classes="flach" Margin="1" Tag="Keine"
+                                                    Click="Rahmen_Click"
+                                                    Content="{loc:T Ed.Table.Border.None}"/>
+                                        </WrapPanel>
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <TextBlock Text="{loc:T Ed.Table.Border.Width}"
+                                                       FontSize="11" VerticalAlignment="Center"/>
+                                            <ComboBox x:Name="RahmenStaerke" Width="90"
+                                                      FontSize="12" SelectedIndex="0">
+                                                <ComboBoxItem Content="{loc:T Ed.Table.Border.Thin}" Tag="0.5"/>
+                                                <ComboBoxItem Content="{loc:T Ed.Table.Border.Normal}" Tag="1"/>
+                                                <ComboBoxItem Content="{loc:T Ed.Table.Border.Thick}" Tag="1.5"/>
+                                                <ComboBoxItem Content="{loc:T Ed.Table.Border.Strong}" Tag="2.5"/>
+                                            </ComboBox>
+                                        </StackPanel>
+
+                                        <TextBlock Text="{loc:T Ed.Table.Fill}" FontSize="11"
+                                                   Foreground="{DynamicResource Brush.TextMuted}"/>
+                                        <WrapPanel x:Name="ZellfarbenFeld"/>
+
+                                        <CheckBox x:Name="SchalterKopfzeile" FontSize="12"
+                                                  Content="{loc:T Ed.Table.HeaderRow}"
+                                                  IsCheckedChanged="Kopfzeile_Geaendert"/>
+
+                                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="6"
+                                              RowDefinitions="Auto,Auto" RowSpacing="6">
+                                            <TextBlock Grid.Row="0" Grid.Column="0" FontSize="11"
+                                                       VerticalAlignment="Center"
+                                                       Text="{loc:T Ed.Table.CellPadding}"/>
+                                            <NumericUpDown x:Name="Zellabstand" Grid.Row="0"
+                                                           Grid.Column="1" Minimum="0" Maximum="2"
+                                                           Increment="0.05" FormatString="0.##"
+                                                           FontSize="12"
+                                                           ValueChanged="Zellabstand_Geaendert"/>
+                                            <TextBlock Grid.Row="1" Grid.Column="0" FontSize="11"
+                                                       VerticalAlignment="Center"
+                                                       Text="{loc:T Ed.Table.ColumnWidth}"/>
+                                            <NumericUpDown x:Name="Spaltenbreite" Grid.Row="1"
+                                                           Grid.Column="1" Minimum="0.5" Maximum="50"
+                                                           Increment="0.5" FormatString="0.##"
+                                                           FontSize="12"
+                                                           ValueChanged="Spaltenbreite_Geaendert"/>
+                                        </Grid>
+
+                                        <Button HorizontalAlignment="Stretch"
+                                                Click="AutoAnpassen_Click"
+                                                ToolTip.Tip="{loc:T Ed.Table.AutoFit.Content.Tip}"
+                                                Content="{loc:T Ed.Table.AutoFit}"/>
+                                    </StackPanel>
+                                </Flyout>
+                            </Button.Flyout>
+                        </Button>
+
                         <!-- <inheritdoc/> — dasselbe „i" wie im Reiter „Verweise". -->
                         <Button Classes="flach symbol" ToolTip.Tip="{loc:T Ed.Table.Note}"
                                 ToolTip.ShowDelay="150"
@@ -714,7 +812,7 @@
                                 </Flyout>
                             </Button.Flyout>
                         </Button>
-                    </StackPanel>
+                    </WrapPanel>
                 </WrapPanel>
 
                 <!-- ============ Die Warnung, wenn das Altformat noch führt ============ -->

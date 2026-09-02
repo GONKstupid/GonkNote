@@ -28,7 +28,7 @@ namespace GonkNote.Core.Text;
 /// Sorte benannte Lücke wie die Tabellengrenze in §4.32.
 /// </para>
 /// </summary>
-public static class TdTableEdit
+public static partial class TdTableEdit
 {
     // ---------------------------------------------------------------- Wo steht der Cursor?
 
@@ -289,7 +289,12 @@ public static class TdTableEdit
     {
         var neu = new TdTable
         {
-            Format = vorlage.Format,
+            // **Das Format wird kopiert und nicht weitergereicht** (§4.90). Es ist eine Klasse:
+            // Bis zum Tabellenentwurf fasste kein Handgriff es an, und die geteilte Referenz
+            // fiel nicht auf. Sobald einer es anfasst, aendert er die Sicherung im Verlauf mit,
+            // und das erste Strg+Z bringt nichts zurueck -- genau der Fehler aus §4.32. Ein
+            // Waechter hat ihn gefunden, bevor die Oberflaeche dazu gebaut war.
+            Format = vorlage.Format.Kopie(),
             ColumnWidthsCm = [.. vorlage.ColumnWidthsCm],
         };
 

@@ -54,6 +54,7 @@ public partial class TextDocView
 
             MarkenAufbauen();
             SonderzeichenAufbauen();
+            ZellfarbenAufbauen();
         }
         finally
         {

@@ -10474,6 +10474,102 @@ erzeugtes Probebild (600 × 400).*
 **Bau 0/0. 1195 Tests (1130 Core + 65 WPF), +13.**
 
 
+### 4.90 Der Tabellenentwurf, erste Hälfte — und drei Funde im Bestand
+
+**V2-113, 2026-09-01.** Frage (2) aus §5e, **Runde A**: alles, was das Modell schon kann.
+
+#### Der Zuschnitt, und warum er nicht der aus §5e ist
+
+§5e schlug vor: *„erst Core, dann Oberfläche — realistisch zwei Runden."* **Geschnitten ist
+stattdessen nach Nutzen:**
+
+| | |
+|---|---|
+| **Runde A** (diese) | Was `TdTable` **schon kann** — Rahmen, Füllung, Kopfzeile, Zellabstand, Spaltenbreite, verbinden und teilen. Core **und** Oberfläche in einem Zug |
+| **Runde B** (offen) | Was Core erst rechnen lernen muss — sortieren, Formel, Text↔Tabelle, Tabelle teilen |
+
+> **Warum nicht „erst Core":** Eine Runde, die nur Core baut, endet an einem grünen Bau — und
+> dieses Projekt hat sich viermal aufgeschrieben, dass ein grüner Bau an einer Oberfläche fast
+> nichts beweist (§4.78, §4.82, §4.88, §4.89). **Diese Runde hat das ein fünftes Mal bestätigt:
+> zwei ihrer drei Funde wären bei „erst Core" erst eine Runde später aufgefallen.**
+
+#### ⛔ Fund 1: `TdTableEdit.Kopie` kopierte das Format nicht — gefunden vom Wächter
+
+`TdTableFormat` ist eine **Klasse**, und `Kopie` reichte dieselbe Referenz an die neue Tabelle
+weiter. Alte und neue Tabelle teilten sich also ihr Format.
+
+> **Bis heute fiel es nicht auf, weil kein einziger Handgriff das Format anfasste** — Zeile und
+> Spalte ein- und ausfügen rühren es nicht an. **Mit dem Entwurf fassen es fünf an**, und ab da
+> hätte jede Rahmen- oder Abstandsänderung die **Sicherung im Rückgängig-Stapel mitgeändert**:
+> Strg+Z hätte nichts zurückgebracht. Das ist §4.32 wörtlich.
+>
+> **Gefunden hat es `Ein_Ruecklauf_stellt_die_alte_Tabelle_her`, geschrieben vor der
+> Oberfläche.** `TdTableFormat.Kopie()` gab es längst — sie wurde nur nicht gerufen.
+
+#### ⛔ Fund 2: die Leiste ragte aus dem Fenster — gefunden am laufenden Programm
+
+`TabelleWerkzeuge` war ein `StackPanel`, und ein `StackPanel` bricht **nie** um. Die sieben
+alten Knöpfe passten knapp in eine Zeile; mit den drei neuen ragten sie über den Fensterrand
+hinaus und waren **nicht mehr anklickbar**.
+
+> **Der Bau war grün, alle Wächter auch.** Das ist §4.88 zum zweiten Mal — dort hatte eine
+> `WrapPanel` zwischen Schalter und zugehörigem Pfeil umgebrochen, hier bricht ein
+> `StackPanel` gar nicht um. *Beide Male ist die Ursache dieselbe: Wer eine Leiste erweitert,
+> ändert ihren Umbruch mit, und kein Wächter sieht eine Leiste.*
+
+#### ⛔ Fund 3: vier Sprachtexte trugen `&amp;` wörtlich — und der WPF-Kopf zeigt sie seit jeher falsch
+
+Auf dem neuen Knopf stand **„Design &amp;amp; Rahmen…"**. In der Sprachtabelle steht der Text
+als C#-Zeichenkette — die XML-Entität ist beim Übernehmen aus dem WPF-XAML mitgekommen, wo sie
+richtig war.
+
+| Betroffen | |
+|---|---|
+| `Ed.Table.Design` | „Design &amp;amp; Rahmen…" |
+| `Ed.Find.Tip` | „Suchen &amp;amp; Ersetzen (Strg+F)" |
+| `Tool.SmoothPen` | „…Rechtecke &amp;amp; Co.…" |
+| `Wb.InsertFile.Tip` | „…Drag &amp;amp; Drop" |
+
+> **Alle vier stehen seit Monaten so da, in beiden Sprachen, und der WPF-Kopf zeigt sie
+> genauso.** Aufgefallen ist es erst, als der Linux-Kopf `Ed.Table.Design` zum **ersten Mal**
+> anzeigte. *Ein Text, den kein Kopf benutzt, wird von keinem Auge geprüft* — und drei der vier
+> werden sehr wohl benutzt, nur eben in einem Tooltip, den man nicht liest. **Ein Wächter hält
+> XML-Entitäten in beiden Tabellen jetzt fest.**
+
+#### Zwei benannte Einschränkungen gegenüber dem WPF-Kopf
+
+Beide haben dieselbe Ursache: **Die Auswahl des Editors ist eine Spanne über Absätze (§4.30)
+und kennt kein Rechteck aus Zellen.**
+
+| | |
+|---|---|
+| **Verbunden wird mit der rechten Nachbarin** | Nicht „die markierten Zellen". **Mehrmals gedrückt verbindet weiter**, damit ist jede Breite erreichbar. Ein „markierte Zellen verbinden" müsste erst eine zweite Art von Auswahl geben — das ist ein eigener Handgriff und keine Nebenwirkung dieses hier |
+| **Gefüllt wird die Zelle unter der Marke** | Nicht die berührten. Ein Befehl, der „alle berührten Zellen" behauptete, träfe je nach Ziehrichtung verschiedene |
+
+> **Und eine Vereinfachung, die keine Einschränkung ist:** „AutoAnpassen" ist **das Weglassen
+> einer Zahl** und kein eigener Rechenweg — ohne Angabe teilt `TdTable.Spaltenbreiten` den Platz
+> an der Breite auf, die beim Umbruch wirklich zur Verfügung steht (§4.19). Der WPF-Kopf hat
+> dafür drei Knöpfe; hier ist es einer, und er tut mehr.
+
+> **⚠ Die Rahmenfarbe kommt aus `Themes.Light`**, auch im dunklen Erscheinungsbild — dieselbe
+> Regel wie bei der Infobox (§4.89): Sie geht ins **Dokument** und damit in PDF und DOCX. *Ein
+> Dokument ist Papier* (§1).
+
+#### Was am laufenden Programm geprüft ist (Dauerregel 1 und 4)
+
+| Handgriff | Ergebnis |
+|---|---|
+| Reiter „Tabelle" mit Marke in einer Zelle | ✅ die Leiste **bricht um**, alle zehn Knöpfe erreichbar |
+| „Zelle teilen…" bei gewöhnlicher Zelle | ✅ ausgegraut — es gibt nichts zu teilen |
+| „Design & Rahmen…" geöffnet | ✅ Rahmenwahl, Dicke, sechs Füllfarben, Kopfzeile, Zellenränder (0,19), Spaltenbreite **leer** (= automatisch) |
+| Füllfarbe geklickt | ✅ nur die Zelle unter der Marke wird türkis |
+| „Kopfzeile" angehakt | ✅ ohne sichtbare Wirkung auf einer Seite — sie wiederholt sich erst über den Umbruch (durch Wächter gedeckt) |
+| „Verbinden" | ✅ die Zelle reicht über beide Spalten, die Trennlinie ist weg, die Füllung geht mit |
+| Beschriftung des Knopfs | ✅ „Design **&** Rahmen…" statt „&amp;amp;" |
+
+**Bau 0/0. 1220 Tests (1155 Core + 65 WPF), +25.**
+
+
 ## 5. Entscheidungen
 
 **Getroffen, alle umgesetzt:**
@@ -12175,7 +12271,7 @@ Fang mit den Rueckfragen an.
 | # | Frage | Was daran hängt |
 |---|---|---|
 | **1** | ✅ **Entschieden am 2026-09-01: das wirksame Format aufnehmen, aber minimal schreiben** | ⛔ **Die Frage stand auf einer falschen Prämisse** (§4.86): `TdFormatEdit.Gemeinsam` liefert **nicht** die Abweichung, sondern das **wirksame** Format — eine Methode für die gemeinsame *Abweichung* gibt es in Core gar nicht. Damit gab es eine dritte Antwort: Quelle wirksam auflösen, am Ziel aber nur die Eigenschaften in die Abweichung schreiben, die vom Ziel-Absatz **nicht ohnehin** kommen. Sieht aus wie „wirksam“, verhält sich wie „Abweichung“ — und brennt nichts ein |
-| **2** | **Tabellenentwurf — in welchem Zuschnitt?** | Der **größte** verbliebene Posten. `TdTable` kann im Modell alles (Rahmen an sechs Kanten, Zellabstände, Schattierung, `ColumnSpan`, `VerticalMerge`, `IsHeader`), aber **`TdTableEdit` hat nur sechs Handgriffe** — Zeile/Spalte ein und aus, Tabelle löschen. Es fehlen: verbinden/teilen, Rahmen, Füllung, Größe, AutoAnpassen, Zellabstand, sortieren, Formel, in Text. **Erst Core, dann Oberfläche — realistisch zwei Runden** |
+| **2** | ▶ **Runde A erledigt (§4.90, V2-113), Runde B offen** | **Geschnitten nach Nutzen statt nach Schicht:** Runde A ist alles, was `TdTable` schon kann — Rahmen, Füllung, Kopfzeile, Zellabstand, Spaltenbreite, verbinden und teilen, **Core und Oberfläche in einem Zug**, +25 Wächter. **Runde B** ist, was Core erst rechnen lernen muss: **sortieren, Formel, Text↔Tabelle, Tabelle teilen**. ⚠ Zwei benannte Einschränkungen — verbunden wird mit der rechten Nachbarin, gefüllt die Zelle unter der Marke (die Auswahl kennt kein Rechteck aus Zellen) |
 | **3** | ✅ **Erledigt (§4.89, V2-112)** | **Zusammen** — Beschriftung und Objekt-Anordnung haben ohne ein Bild im Dokument nichts zu tun. `TdGrafikEdit` + `TdBlockEdit.Infobox` in Core, **+13 Wächter**. Die Symbolauswahl ist mit (5) in §4.88 gekommen. ⚠ **Zwei der neun `Ed.Object.*` sind nicht gebaut:** „vor/hinter den Text“ verlangt eine freigestellte Grafik, und die kennt das Modell nicht — benannt statt als Knopf, der nichts tut |
 | **4** | **Lineal — lohnt es vor 1.0.0?** | Der einzige Posten, für den **nichts** in Core steht. Der WPF-Kopf zeichnet es in `TextEditorView.Layout.cs` (`DrawRuler`) auf ein `Canvas`; im Linux-Kopf wäre es Neubau |
 | **5** | ✅ **Erledigt (§4.88, V2-111)** | Zusammen mit der **Symbolauswahl** aus Frage (3) gebaut — beides ist dasselbe: ein Raster, aus dem man ein Zeichen klickt. **Beide Vorräte lagen fest verdrahtet im WPF-Kopf** und stehen jetzt als `TdMarkenvorrat` und `TdSonderzeichen` in Core (zum vierten Mal derselbe Fall). **+17 Wächter** — einer davon hat sofort einen Fehler gefunden, den der Kommentar daneben bestritt |
@@ -12225,8 +12321,8 @@ Fang mit den Rueckfragen an.
 | ~~**Cover-Werkzeug**~~ | ✅ **Erledigt (§4.81).** `Core/Services/CoverLibrary.cs` + Abschnitt in der Einstellungsleiste, **+8 Wächter** — und **die Cover-Vorlagen sind im selben Commit ins Avalonia-csproj gekommen**, die Warnung von §4.60 hat getragen. **Die Einstellungsleiste hat damit alle Abschnitte des WPF-Kopfs** |
 | ~~**Formen-Stift** (`Tool.SmoothPen`)~~ | ✅ **Erledigt (§4.78).** Die Geometrie liegt als `Core/Editing/WbFormen.cs` in Core, der Knopf steht in der Leiste, **+23 Wächter** — vorher war sie durch **keinen einzigen** gedeckt. **⛔ Und dabei sind zwei Fehler aufgefallen, die nicht repariert sind — sie stehen unten** |
 | ~~**Suchen & Ersetzen**~~ | ✅ **Erledigt (§4.80).** `Core/Text/TdSuche.cs` gegen das Modell — **nicht umgezogen**: der WPF-Weg steht auf `TextPointer` und ist eine echte Windows-Schranke. **+20 Wächter**, und der Linux-Kopf findet dabei mehr als der WPF-Kopf (Treffer über Formatgrenzen) |
-| **Tabellenentwurf** | Stil, Rahmen, Füllung, Größe, AutoAnpassen, Zellenabstand — der ganze Abschnitt |
-| **Zellen verbinden/teilen, Tabelle teilen/sortieren/Formel/in Text** | fehlt ganz |
+| ▶ **Tabellenentwurf** | ✅ **Runde A erledigt (§4.90):** Rahmen, Füllung, Kopfzeile, Zellabstand, Spaltenbreite, AutoAnpassen. **Offen (Runde B):** sortieren, Formel, Text↔Tabelle, Tabelle teilen |
+| ▶ **Zellen verbinden/teilen, Tabelle teilen/sortieren/Formel/in Text** | ✅ **Verbinden und Teilen sind gebaut** (§4.90, Runde A). **Offen (Runde B):** Tabelle teilen, sortieren, Formel, in Text umwandeln — das ist, was Core erst rechnen lernen muss |
 | ~~**Formatpinsel**~~, ~~Formatierung löschen~~ | ✅ **Beide erledigt** (§4.84 Löschen, §4.87 Pinsel). Der Pinsel überträgt das **wirksame** Format, schreibt aber nur, was von der Unterlage des Ziels abweicht — `TdFormatEdit.Uebertragen` in Core, **+7 Wächter**. ⛔ Die Frage in §5e stand auf einer falschen Prämisse: `Gemeinsam` liefert nicht die Abweichung, sondern das Wirksame |
 | ~~**Stil-, Aufzählungs- und Nummerierungsgalerie**~~ | ✅ **Vollständig zu** (§4.82 nachgemessen, §4.88 gebaut). Die Absatzvorlagen-Klappliste und beide Listenschalter gab es längst; die **Markenauswahl** (`Ed.List.BulletPick`/`NumberPick`) ist in §4.88 dazugekommen, gespeist aus `TdMarkenvorrat` in Core |
 | ~~**Bild, Infobox, Symbolauswahl**~~ | ✅ **Erledigt** (§4.88 Symbolauswahl, §4.89 Bild und Infobox) |

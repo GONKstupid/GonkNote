@@ -114,4 +114,38 @@ public sealed class SprachtabellenTests
             .FirstOrDefault(a => a.Key == "ProjektOrdner")?.Value
         ?? throw new InvalidOperationException(
             "Assembly-Metadatum „ProjektOrdner\" fehlt — siehe GonkNote.Core.Tests.csproj.");
+
+    /// <summary>
+    /// <b>Keine XML-Entitäten im Klartext</b> (§4.90).
+    ///
+    /// <para>
+    /// Vier Texte trugen wörtlich <c>&amp;amp;</c> statt <c>&amp;</c> — beim Übernehmen aus dem
+    /// WPF-XAML mitgekommen, wo die Entität richtig war. In der C#-Tabelle ist sie es nicht:
+    /// Was hier steht, geht als <b>Text</b> auf einen Knopf, und dort las man
+    /// „Design &amp;amp; Rahmen…".
+    /// </para>
+    /// <para>
+    /// <b>Aufgefallen ist es erst am laufenden Programm</b>, als der Linux-Kopf denselben
+    /// Schlüssel zum ersten Mal anzeigte — der WPF-Kopf zeigt ihn seit jeher genauso falsch.
+    /// <i>Ein Text, den kein Kopf benutzt, wird von keinem Auge geprüft.</i>
+    /// </para>
+    /// </summary>
+    [Theory]
+    [InlineData("LocGerman.cs")]
+    [InlineData("LocEnglish.cs")]
+    public void Keine_XML_Entitaeten_im_Klartext(string datei)
+    {
+        var quelle = File.ReadAllText(Path.Combine(Quellordner, datei));
+
+        var treffer = Regex.Matches(quelle, @"&(amp|lt|gt|quot|apos|#\d+);")
+            .Select(m => m.Value)
+            .Distinct()
+            .ToList();
+
+        Assert.True(
+            treffer.Count == 0,
+            $"{datei} enthält XML-Entitäten im Klartext: {string.Join(", ", treffer)}. "
+            + "Sie gehen als Text auf die Oberfläche und werden dort wörtlich gelesen.");
+    }
+
 }

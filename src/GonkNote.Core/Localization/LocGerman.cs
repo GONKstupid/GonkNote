@@ -124,7 +124,7 @@ internal static class LocGerman
         ["Tool.Hand"] = "Hand",
         ["Tool.Hand.Tip"] = "Hand (H) – Leinwand verschieben (oder mittlere Maustaste)",
         ["Tool.Pen"] = "Stift (S)",
-        ["Tool.SmoothPen"] = "Formen-Stift (G) – erkennt Linien, Kreise, Rechtecke &amp; Co., glättet Kurven",
+        ["Tool.SmoothPen"] = "Formen-Stift (G) – erkennt Linien, Kreise, Rechtecke & Co., glättet Kurven",
         ["Tool.Pencil"] = "Bleistift (B)",
         ["Tool.Highlighter"] = "Textmarker (M)",
         ["Tool.Eraser"] = "Radiergummi (E)",
@@ -157,7 +157,7 @@ internal static class LocGerman
         ["Zoom.Reset"] = "Zoom zurücksetzen",
         ["Zoom.In"] = "Vergrößern",
         ["Wb.InsertFile"] = "Datei einfügen",
-        ["Wb.InsertFile.Tip"] = "Datei einfügen – Bild, PDF oder Word (bei PDF/Word Seiten auswählbar; im Notizbuch als neue Seiten, im Whiteboard als Bild-Seiten); auch per Strg+V oder Drag &amp; Drop",
+        ["Wb.InsertFile.Tip"] = "Datei einfügen – Bild, PDF oder Word (bei PDF/Word Seiten auswählbar; im Notizbuch als neue Seiten, im Whiteboard als Bild-Seiten); auch per Strg+V oder Drag & Drop",
         ["Wb.Settings"] = "Einstellungen",
         ["Wb.Settings.Tip"] = "Einstellungen (Seite, Formen, Text, Cover)",
         // Eigener Text für den Linux-Kopf: dessen Leiste hat nur den Seiten-Abschnitt, weil
@@ -359,7 +359,7 @@ internal static class LocGerman
         ["Ed.Table.ToText"] = "In Text…",
         ["Ed.Table.ToText.Tip"] = "Tabelle in Text umwandeln",
         ["Ed.Table.Design.Tip"] = "Formatvorlage, Rahmen, Füllung und Größe in der Seitenleiste",
-        ["Ed.Table.Design"] = "Design &amp; Rahmen…",
+        ["Ed.Table.Design"] = "Design & Rahmen…",
         ["Ed.Table.Delete"] = "Tabelle löschen",
         ["Ed.Table.NoteName"] = "Hinweis Tabelle",
         ["Ed.Table.Note"] = "Technische Grenzen der Textengine: Zellränder sind immer durchgezogen (keine Stricharten), Text lässt sich in Zellen nur waagerecht ausrichten (senkrechte Ausrichtung/Zeilenhöhe über Zellenränder annähern), keine Excel-Einbettung und keine Kopfzeilen-Wiederholung beim Seitenumbruch.",
@@ -369,7 +369,7 @@ internal static class LocGerman
         ["Ed.Find.Replace"] = "Ersetzen",
         ["Ed.Find.ReplaceAll"] = "Alle ersetzen",
         ["Ed.Find.Close"] = "Schließen (Esc)",
-        ["Ed.Find.Tip"] = "Suchen &amp; Ersetzen (Strg+F)",
+        ["Ed.Find.Tip"] = "Suchen & Ersetzen (Strg+F)",
         ["Ed.Find"] = "Suchen",
         // Die zwei Meldungen der Suchleiste. **Sie standen bis §4.80 fest verdrahtet auf
         // Deutsch im WPF-Kopf** („Nicht gefunden", „{0} ersetzt") — ein englisches Programm

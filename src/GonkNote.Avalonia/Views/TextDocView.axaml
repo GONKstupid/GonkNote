@@ -409,6 +409,14 @@
                         </Button.Flyout>
                     </Button>
 
+                    <!-- Text in Tabelle (§4.91). **Hier und nicht im Tabellen-Reiter:** Er
+                         wirkt auf ausgewählten *Text* — im Tabellen-Reiter stünde er dort, wo
+                         es schon eine Tabelle gibt, und wäre nie erreichbar. -->
+                    <Button x:Name="KnopfAusText" Classes="ribbonknopf" Click="AusText_Click"
+                            ToolTip.Tip="{loc:T Ed.Table.FromText.Tip}">
+                        <TextBlock Text="{loc:T Ed.Table.FromText}" VerticalAlignment="Center"/>
+                    </Button>
+
                     <!-- Sonderzeichen (§4.88). Der Vorrat steht als `TdSonderzeichen` in Core,
                          **nach Gruppen geordnet**: drüben lagen 57 Zeichen in einem einzigen
                          Raster, und wer darin das Ungleich-Zeichen sucht, liest alle 57. -->
@@ -722,6 +730,84 @@
                         <Button x:Name="KnopfTeilen" Classes="ribbonknopf"
                                 Click="ZelleTeilen_Click">
                             <TextBlock Text="{loc:T Ed.Table.SplitCell}" VerticalAlignment="Center"/>
+                        </Button>
+
+                        <!-- Runde B (§4.91): teilen, sortieren, rechnen, in Text.
+                             **Sortieren und Formel hinter einem Flyout**, weil beide eine
+                             Angabe brauchen (Richtung bzw. Rechenart); teilen und in Text
+                             sind Knöpfe, weil sie keine haben. -->
+                        <Button x:Name="KnopfTabelleTeilen" Classes="ribbonknopf"
+                                Click="TabelleTeilen_Click"
+                                ToolTip.Tip="{loc:T Ed.Table.SplitTable}">
+                            <TextBlock Text="{loc:T Ed.Table.SplitTable}" VerticalAlignment="Center"/>
+                        </Button>
+                        <Button x:Name="KnopfInText" Classes="ribbonknopf"
+                                Click="InText_Click"
+                                ToolTip.Tip="{loc:T Ed.Table.ToText.Tip}">
+                            <TextBlock Text="{loc:T Ed.Table.ToText}" VerticalAlignment="Center"/>
+                        </Button>
+
+                        <Button x:Name="KnopfSortieren" Classes="ribbonknopf"
+                                ToolTip.Tip="{loc:T Ed.Table.Sort.Tip}">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <TextBlock Text="{loc:T Ed.Table.Sort}" VerticalAlignment="Center"/>
+                                <views:Symbol Icon="ChevronDown" Size="10"
+                                              Stroke="{DynamicResource Brush.TextMuted}"/>
+                            </StackPanel>
+                            <Button.Flyout>
+                                <Flyout Placement="BottomEdgeAlignedLeft">
+                                    <StackPanel Width="200" Spacing="6">
+                                        <TextBlock Text="{loc:T Ed.Table.Sort.Tip}" FontSize="11"
+                                                   TextWrapping="Wrap"
+                                                   Foreground="{DynamicResource Brush.TextMuted}"/>
+                                        <Button HorizontalAlignment="Stretch" Tag="Auf"
+                                                Click="Sortieren_Click" Content="A → Z  /  1 → 9"/>
+                                        <Button HorizontalAlignment="Stretch" Tag="Ab"
+                                                Click="Sortieren_Click" Content="Z → A  /  9 → 1"/>
+                                    </StackPanel>
+                                </Flyout>
+                            </Button.Flyout>
+                        </Button>
+
+                        <Button x:Name="KnopfFormel" Classes="ribbonknopf"
+                                ToolTip.Tip="{loc:T Ed.Table.Formula.Tip}">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <TextBlock Text="{loc:T Ed.Table.Formula}" VerticalAlignment="Center"/>
+                                <views:Symbol Icon="ChevronDown" Size="10"
+                                              Stroke="{DynamicResource Brush.TextMuted}"/>
+                            </StackPanel>
+                            <Button.Flyout>
+                                <Flyout Placement="BottomEdgeAlignedLeft">
+                                    <StackPanel Width="230" Spacing="8">
+                                        <Grid ColumnDefinitions="*,*" ColumnSpacing="6">
+                                            <ComboBox x:Name="FormelArt" Grid.Column="0"
+                                                      HorizontalAlignment="Stretch" FontSize="12"
+                                                      SelectedIndex="0">
+                                                <ComboBoxItem Content="SUMME" Tag="Summe"/>
+                                                <ComboBoxItem Content="MITTELWERT" Tag="Mittelwert"/>
+                                                <ComboBoxItem Content="ANZAHL" Tag="Anzahl"/>
+                                                <ComboBoxItem Content="MIN" Tag="Kleinstwert"/>
+                                                <ComboBoxItem Content="MAX" Tag="Groesstwert"/>
+                                                <ComboBoxItem Content="PRODUKT" Tag="Produkt"/>
+                                            </ComboBox>
+                                            <ComboBox x:Name="FormelRichtung" Grid.Column="1"
+                                                      HorizontalAlignment="Stretch" FontSize="12"
+                                                      SelectedIndex="0">
+                                                <ComboBoxItem Content="↑" Tag="Oben"/>
+                                                <ComboBoxItem Content="↓" Tag="Unten"/>
+                                                <ComboBoxItem Content="←" Tag="Links"/>
+                                                <ComboBoxItem Content="→" Tag="Rechts"/>
+                                            </ComboBox>
+                                        </Grid>
+                                        <TextBlock x:Name="FormelHinweis" FontSize="11"
+                                                   TextWrapping="Wrap"
+                                                   Foreground="{DynamicResource Brush.TextMuted}"/>
+                                        <Button HorizontalAlignment="Stretch"
+                                                Click="Formel_Click"
+                                                Content="{loc:T Action.Apply}"/>
+                                    </StackPanel>
+                                </Flyout>
+                            </Button.Flyout>
                         </Button>
 
                         <Button x:Name="KnopfEntwurf" Classes="ribbonknopf"

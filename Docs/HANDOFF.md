@@ -10570,6 +10570,82 @@ und kennt kein Rechteck aus Zellen.**
 **Bau 0/0. 1220 Tests (1155 Core + 65 WPF), +25.**
 
 
+### 4.91 Der Tabellenentwurf, zweite Hälfte — und eine Werkzeugfalle, die drei Anläufe gekostet hat
+
+**V2-114, 2026-09-01.** Frage (2) aus §5e, **Runde B**: das, was Core erst rechnen lernen
+musste — teilen, sortieren, rechnen, Tabelle ↔ Text.
+
+#### Was dazugekommen ist
+
+| | |
+|---|---|
+| **`TdTabellenformel`** | Die Rechnung hinter „Formel" — sechs Arten (Summe, Mittelwert, Anzahl, Min, Max, Produkt) mal vier Richtungen. **Getrennt von `TdTableEdit`, weil sie nichts am Dokument ändert:** Zahlen lesen und addieren ist das, was sich am billigsten prüfen lässt |
+| **`TdTableEdit.TabelleTeilen`** | Zwei Tabellen mit einem leeren Absatz dazwischen |
+| **`TdTableEdit.Sortieren`** | Nach der Spalte unter der Marke, Datum vor Zahl vor Text |
+| **`TdTableEdit.InText`** / **`TdBlockEdit.AusText`** | Tabelle ↔ Absätze, getrennt durch Tabulator |
+
+#### Die Entscheidungen, die dabei fielen
+
+| | |
+|---|---|
+| **Das Formelergebnis geht als Text in die Zelle, nicht als Feld** | §4.20 sagt „ein Feld speichert seine Art, nicht seinen Wert" — dafür bräuchte es eine neue `TdFieldKind`, einen Auswertungsschritt im Umbruch und einen Weg durch DOCX. **Der WPF-Kopf schreibt seit jeher ebenfalls nur das Ergebnis**, und beim Editor ist Windows die Vorlage (§6). **Benanntes Zugeständnis:** Wer die Zahlen ändert, drückt den Knopf noch einmal |
+| **Eine leere Zelle beendet die Reihe nicht** | Word hört dort auf. Das ist eine Regel, die man kennen muss, um sie vorherzusagen — und wer eine Zwischenüberschrift in der Spalte hat, bekommt dort eine halbe Summe, ohne dass etwas danach aussieht |
+| **Beide Zahlenschreibweisen** | „1.234,56" und „1,234.56". Ein Dokument kann aus beiden Welten kommen, und eine Tabelle, deren Summe von der Systemsprache abhängt, rechnet auf dem nächsten Rechner anders |
+| **Der leere Absatz beim Teilen ist kein Rest** | Zwei Tabellen unmittelbar hintereinander sind in DOCX **eine**. Ohne ihn wäre das Teilen beim nächsten Öffnen wieder rückgängig |
+| **Gemischte Spalten werden alphabetisch sortiert** | Eine Zeile-für-Zeile-Entscheidung ergäbe eine Ordnung, die nicht durchgängig ist: a < b und b < c, aber c < a |
+
+> **⛔ Und eine Ergänzung, die erst der Tooltip erzwungen hat:** Der Text zu `Ed.Table.Sort.Tip`
+> verspricht **„Text/Zahl/Datum"**, und der WPF-Kopf kann das auch (`TableSortDialog`, Typ
+> wählbar). Die erste Fassung hier konnte nur Text und Zahl. **Datum wird jetzt vor Zahl
+> geprüft, und das ist keine Geschmacksfrage:** „01.03.2026" liest sich als Zahl 1.032.026 und
+> „15.02.2026" als 15.022.026 — die Reihenfolge kehrt sich um und sieht trotzdem plausibel aus.
+> *Ein Tooltip ist eine Zusage; wer ihn übernimmt, übernimmt sie mit.*
+
+#### ⛔ Die Werkzeugfalle: ein Flyout-Ort gilt nur für die Aufnahme, aus der er gelesen ist
+
+**„Sortieren" hat drei Anläufe gekostet, und jedes Mal war die Messung schuld.**
+
+| Anlauf | Was passierte |
+|---|---|
+| **1** | Formel meldete „keine Zahlen". **Die Marke saß in Spalte 0** — die Spaltengrenze lag 180 Bildpunkte weiter rechts, als ich aus einem groben Ausschnitt geschätzt hatte |
+| **2** | Sortieren tat nichts. Koordinaten aus einer **älteren** Aufnahme des Flyouts benutzt |
+| **3** | Sortieren tat wieder nichts. **Das Flyout geht je nach Zustand der Leiste an einer anderen Stelle auf** — es war um 200 Bildpunkte gewandert, weil der Knopf nach dem vorigen Handgriff woanders stand |
+
+> **Erst als der Ort aus der *aktuellen* Aufnahme gelesen war, drehte sich die Reihenfolge.**
+> Das ist §4.82 wörtlich: *wenn ein neuer Knopf nichts tut, halt ihn gegen ein funktionierendes
+> Werkzeug, bevor du den Code verdächtigst.* Hier war das funktionierende Werkzeug „Tabelle
+> teilen" — es lag im selben Flyout-Muster und wirkte sofort, und damit war klar, dass der Weg
+> trägt und die Koordinate nicht.
+>
+> **▶ Die Regel für §7 und §8:** *Koordinaten aus einem Flyout gelten nur für die Aufnahme, aus
+> der sie stammen.* Ein Ribbon, das umbricht, verschiebt seine Knöpfe — und mit ihnen jedes
+> Flyout, das daran hängt. **Vor jedem Klick in ein Flyout: neu fotografieren.**
+
+> **✅ Und ein Handgriff, der sich dabei bezahlt gemacht hat:** Der Hinweis „Im gewählten
+> Bereich stehen keine Zahlen" im Formel-Flyout hat den ersten Anlauf überhaupt erst
+> diagnostizierbar gemacht — ohne ihn hätte der Knopf still nichts getan, und ich hätte den
+> Code verdächtigt. *Ein Knopf, der sagt, warum er nichts tut, ist billiger als der
+> Fehlerbericht, den er erspart.*
+
+#### Was am laufenden Programm geprüft ist (Dauerregel 1 und 4)
+
+| Handgriff | Ergebnis |
+|---|---|
+| Reiter „Tabelle", Marke in Zeile 0 | ✅ „Tabelle teilen (oberhalb der Zeile)" **ausgegraut** — über der ersten Zeile bliebe eine Tabelle ohne Zeilen |
+| Marke in Zeile 3 | ✅ derselbe Knopf **aktiv** |
+| „Tabelle teilen" | ✅ zwei Tabellen mit einem Absatz dazwischen |
+| „Formel…" → SUMME / ↑ mit 10 und 5 darüber | ✅ **15** steht in der Zelle |
+| Formel ohne Zahlen in der Richtung | ✅ Hinweis im Flyout statt stiller Wirkungslosigkeit |
+| „Sortieren…" → Z → A | ✅ die Reihenfolge dreht sich |
+
+**Bau 0/0. 1256 Tests (1191 Core + 65 WPF), +36.**
+
+> **⚠ Was in dieser Runde bewusst nicht gebaut ist:** die **Schnelltabellen** des WPF-Kopfs
+> (`Ed.Table.Quick.Calendar`, `…List`). Sie sind zwei fest verdrahtete Vorlagen und keine
+> Funktion — sie gehören zu einer Vorlagensammlung, die es hier noch nicht gibt, und stünden
+> sonst als zwei Sonderfälle im Code. **Benannt statt gebaut.**
+
+
 ## 5. Entscheidungen
 
 **Getroffen, alle umgesetzt:**
@@ -12271,7 +12347,7 @@ Fang mit den Rueckfragen an.
 | # | Frage | Was daran hängt |
 |---|---|---|
 | **1** | ✅ **Entschieden am 2026-09-01: das wirksame Format aufnehmen, aber minimal schreiben** | ⛔ **Die Frage stand auf einer falschen Prämisse** (§4.86): `TdFormatEdit.Gemeinsam` liefert **nicht** die Abweichung, sondern das **wirksame** Format — eine Methode für die gemeinsame *Abweichung* gibt es in Core gar nicht. Damit gab es eine dritte Antwort: Quelle wirksam auflösen, am Ziel aber nur die Eigenschaften in die Abweichung schreiben, die vom Ziel-Absatz **nicht ohnehin** kommen. Sieht aus wie „wirksam“, verhält sich wie „Abweichung“ — und brennt nichts ein |
-| **2** | ▶ **Runde A erledigt (§4.90, V2-113), Runde B offen** | **Geschnitten nach Nutzen statt nach Schicht:** Runde A ist alles, was `TdTable` schon kann — Rahmen, Füllung, Kopfzeile, Zellabstand, Spaltenbreite, verbinden und teilen, **Core und Oberfläche in einem Zug**, +25 Wächter. **Runde B** ist, was Core erst rechnen lernen muss: **sortieren, Formel, Text↔Tabelle, Tabelle teilen**. ⚠ Zwei benannte Einschränkungen — verbunden wird mit der rechten Nachbarin, gefüllt die Zelle unter der Marke (die Auswahl kennt kein Rechteck aus Zellen) |
+| **2** | ✅ **Erledigt (§4.90 Runde A, §4.91 Runde B)** | **Geschnitten nach Nutzen statt nach Schicht.** Runde A: Rahmen, Füllung, Kopfzeile, Zellabstand, Spaltenbreite, verbinden und teilen. Runde B: Tabelle teilen, sortieren (Datum/Zahl/Text), Formel, Tabelle ↔ Text. **+61 Wächter.** ⚠ Drei benannte Einschränkungen — verbunden wird mit der rechten Nachbarin, gefüllt die Zelle unter der Marke (die Auswahl kennt kein Rechteck aus Zellen), und die Formel schreibt ihr **Ergebnis** und kein Feld (wie drüben) |
 | **3** | ✅ **Erledigt (§4.89, V2-112)** | **Zusammen** — Beschriftung und Objekt-Anordnung haben ohne ein Bild im Dokument nichts zu tun. `TdGrafikEdit` + `TdBlockEdit.Infobox` in Core, **+13 Wächter**. Die Symbolauswahl ist mit (5) in §4.88 gekommen. ⚠ **Zwei der neun `Ed.Object.*` sind nicht gebaut:** „vor/hinter den Text“ verlangt eine freigestellte Grafik, und die kennt das Modell nicht — benannt statt als Knopf, der nichts tut |
 | **4** | **Lineal — lohnt es vor 1.0.0?** | Der einzige Posten, für den **nichts** in Core steht. Der WPF-Kopf zeichnet es in `TextEditorView.Layout.cs` (`DrawRuler`) auf ein `Canvas`; im Linux-Kopf wäre es Neubau |
 | **5** | ✅ **Erledigt (§4.88, V2-111)** | Zusammen mit der **Symbolauswahl** aus Frage (3) gebaut — beides ist dasselbe: ein Raster, aus dem man ein Zeichen klickt. **Beide Vorräte lagen fest verdrahtet im WPF-Kopf** und stehen jetzt als `TdMarkenvorrat` und `TdSonderzeichen` in Core (zum vierten Mal derselbe Fall). **+17 Wächter** — einer davon hat sofort einen Fehler gefunden, den der Kommentar daneben bestritt |
@@ -12321,8 +12397,8 @@ Fang mit den Rueckfragen an.
 | ~~**Cover-Werkzeug**~~ | ✅ **Erledigt (§4.81).** `Core/Services/CoverLibrary.cs` + Abschnitt in der Einstellungsleiste, **+8 Wächter** — und **die Cover-Vorlagen sind im selben Commit ins Avalonia-csproj gekommen**, die Warnung von §4.60 hat getragen. **Die Einstellungsleiste hat damit alle Abschnitte des WPF-Kopfs** |
 | ~~**Formen-Stift** (`Tool.SmoothPen`)~~ | ✅ **Erledigt (§4.78).** Die Geometrie liegt als `Core/Editing/WbFormen.cs` in Core, der Knopf steht in der Leiste, **+23 Wächter** — vorher war sie durch **keinen einzigen** gedeckt. **⛔ Und dabei sind zwei Fehler aufgefallen, die nicht repariert sind — sie stehen unten** |
 | ~~**Suchen & Ersetzen**~~ | ✅ **Erledigt (§4.80).** `Core/Text/TdSuche.cs` gegen das Modell — **nicht umgezogen**: der WPF-Weg steht auf `TextPointer` und ist eine echte Windows-Schranke. **+20 Wächter**, und der Linux-Kopf findet dabei mehr als der WPF-Kopf (Treffer über Formatgrenzen) |
-| ▶ **Tabellenentwurf** | ✅ **Runde A erledigt (§4.90):** Rahmen, Füllung, Kopfzeile, Zellabstand, Spaltenbreite, AutoAnpassen. **Offen (Runde B):** sortieren, Formel, Text↔Tabelle, Tabelle teilen |
-| ▶ **Zellen verbinden/teilen, Tabelle teilen/sortieren/Formel/in Text** | ✅ **Verbinden und Teilen sind gebaut** (§4.90, Runde A). **Offen (Runde B):** Tabelle teilen, sortieren, Formel, in Text umwandeln — das ist, was Core erst rechnen lernen muss |
+| ~~**Tabellenentwurf**~~ | ✅ **Erledigt** (§4.90 Runde A, §4.91 Runde B) |
+| ~~**Zellen verbinden/teilen, Tabelle teilen/sortieren/Formel/in Text**~~ | ✅ **Alles erledigt** (§4.90, §4.91). ⚠ Nicht gebaut und benannt: die **Schnelltabellen** (`Ed.Table.Quick.*`) — zwei fest verdrahtete Vorlagen, die zu einer Vorlagensammlung gehören, die es hier noch nicht gibt |
 | ~~**Formatpinsel**~~, ~~Formatierung löschen~~ | ✅ **Beide erledigt** (§4.84 Löschen, §4.87 Pinsel). Der Pinsel überträgt das **wirksame** Format, schreibt aber nur, was von der Unterlage des Ziels abweicht — `TdFormatEdit.Uebertragen` in Core, **+7 Wächter**. ⛔ Die Frage in §5e stand auf einer falschen Prämisse: `Gemeinsam` liefert nicht die Abweichung, sondern das Wirksame |
 | ~~**Stil-, Aufzählungs- und Nummerierungsgalerie**~~ | ✅ **Vollständig zu** (§4.82 nachgemessen, §4.88 gebaut). Die Absatzvorlagen-Klappliste und beide Listenschalter gab es längst; die **Markenauswahl** (`Ed.List.BulletPick`/`NumberPick`) ist in §4.88 dazugekommen, gespeist aus `TdMarkenvorrat` in Core |
 | ~~**Bild, Infobox, Symbolauswahl**~~ | ✅ **Erledigt** (§4.88 Symbolauswahl, §4.89 Bild und Infobox) |

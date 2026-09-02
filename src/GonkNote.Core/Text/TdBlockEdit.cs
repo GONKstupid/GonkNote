@@ -179,6 +179,57 @@ public static class TdBlockEdit
         return Einfuegen(doc, auswahl, tabelle);
     }
 
+    /// <summary>
+    /// <b>Wandelt die berührten Absätze in eine Tabelle um</b> (§4.91) — ein Absatz wird eine
+    /// Zeile, das Trennzeichen darin trennt die Zellen.
+    ///
+    /// <para>
+    /// <b>Die Spaltenzahl richtet sich nach dem Absatz mit den meisten Feldern</b>, und kürzere
+    /// Zeilen werden mit leeren Zellen aufgefüllt. Nach dem kürzesten zu gehen hieße, Text
+    /// wegzuwerfen; nach dem ersten zu gehen hieße, dass die Kopfzeile die Tabelle bestimmt,
+    /// auch wenn sie die kürzeste ist.
+    /// </para>
+    /// <para>
+    /// <b>Ein einzelner Absatz ohne Trennzeichen ergibt keine Tabelle</b>, sondern <c>null</c>:
+    /// Eine Tabelle mit einer Zelle ist das, was „Infobox" tut, und wer sie hier bekäme, hätte
+    /// sie nicht bestellt.
+    /// </para>
+    /// </summary>
+    public static TdChange? AusText(TdDocument doc, TdSelection auswahl, char trennzeichen)
+    {
+        var gezogen = TdCursor.Normalisieren(doc, auswahl);
+
+        if (TdEdit.Bereich(doc, gezogen.Start, gezogen.End) is not { } bereich) return null;
+        var (container, iA, iB, _, _) = bereich;
+
+        var zeilen = container.GetRange(iA, iB - iA + 1)
+            .OfType<TdParagraph>()
+            .Select(a => a.PlainText().Split(trennzeichen))
+            .ToList();
+
+        if (zeilen.Count == 0) return null;
+        if (zeilen.Count == 1 && zeilen[0].Length < 2) return null;
+
+        int spalten = zeilen.Max(f => f.Length);
+
+        var tabelle = new TdTable();
+        foreach (var felder in zeilen)
+        {
+            var zeile = new TdTableRow();
+            for (int i = 0; i < spalten; i++)
+                zeile.Cells.Add(new TdTableCell(
+                    new TdParagraph(i < felder.Length ? felder[i].Trim() : "")));
+            tabelle.Rows.Add(zeile);
+        }
+
+        var alt = container.GetRange(iA, iB - iA + 1);
+
+        return new TdChange(
+            container, iA, alt, [tabelle], gezogen,
+            new TdSelection(new TdPosition(gezogen.Start.Paragraph, 0, 0)),
+            TdEditArt.Struktur, schliesstGruppe: true);
+    }
+
     // ---------------------------------------------------------------- Kleinteile
 
     /// <summary>

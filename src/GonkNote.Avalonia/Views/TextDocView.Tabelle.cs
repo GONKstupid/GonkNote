@@ -207,6 +207,15 @@ public partial class TextDocView
                                     spalte < tabelle.Rows[zeile].Cells.Count &&
                                     tabelle.Rows[zeile].Cells[spalte].ColumnSpan > 1;
 
+            // Runde B (§4.91). **Die erste Zeile lässt sich nicht abteilen**, und sortieren
+            // braucht mindestens zwei Datenzeilen — sonst sähen die Knöpfe aus, als täten sie
+            // etwas (§4.78).
+            KnopfTabelleTeilen.IsEnabled = an && zeile > 0;
+            KnopfInText.IsEnabled = an;
+            KnopfFormel.IsEnabled = an;
+            KnopfSortieren.IsEnabled = an &&
+                tabelle!.Rows.Count - (tabelle.Rows.Count > 0 && tabelle.Rows[0].IsHeader ? 1 : 0) >= 2;
+
             if (tabelle is null) return;
 
             SchalterKopfzeile.IsChecked = tabelle.Rows.Count > 0 && tabelle.Rows[0].IsHeader;
@@ -224,4 +233,87 @@ public partial class TextDocView
             _fuelltEntwurf = false;
         }
     }
+    // ==================== Runde B: teilen, sortieren, rechnen, in Text (§4.91) ====================
+
+    private void TabelleTeilen_Click(object? s, RoutedEventArgs e)
+    {
+        if (!Schreibbar) return;
+
+        Aendern(TdTableEdit.TabelleTeilen(_modell!, _auswahl));
+        ReiterNachziehen();
+        Skia.Focus();
+    }
+
+    /// <summary>
+    /// <b>Was nicht Text ist, geht dabei verloren</b> — ein Bild in einer Zelle hat in einem
+    /// Absatz aus Zelltexten keinen Ort. Deshalb ist es <b>ein</b> Schritt im Verlauf: Strg+Z
+    /// bringt die Tabelle ganz zurück (§4.91).
+    /// </summary>
+    private void InText_Click(object? s, RoutedEventArgs e)
+    {
+        if (!Schreibbar) return;
+
+        Aendern(TdTableEdit.InText(_modell!, _auswahl));
+        ReiterNachziehen();
+        Skia.Focus();
+    }
+
+    /// <summary>
+    /// Sortiert nach der Spalte, in der die Marke steht. <b>Die Richtung steht am Knopf</b> und
+    /// nicht in einem Dialog — zwei Möglichkeiten sind zwei Knöpfe und keine Frage.
+    /// </summary>
+    private void Sortieren_Click(object? s, RoutedEventArgs e)
+    {
+        if (!Schreibbar || s is not Control knopf) return;
+
+        Aendern(TdTableEdit.Sortieren(
+            _modell!, _auswahl, aufsteigend: (string?)knopf.Tag != "Ab"));
+
+        ReiterNachziehen();
+        Skia.Focus();
+    }
+
+    private void Formel_Click(object? s, RoutedEventArgs e)
+    {
+        if (!Schreibbar) return;
+
+        var art = Wahl(FormelArt, TdFormelArt.Summe);
+        var richtung = Wahl(FormelRichtung, TdFormelRichtung.Oben);
+
+        var aenderung = TdTableEdit.Formel(_modell!, _auswahl, art, richtung);
+
+        // **Ohne Zahl passiert nichts, und der Nutzer erfährt warum.** Ein Knopf, der still
+        // nichts tut, sieht kaputt aus (§4.78).
+        if (aenderung is null)
+        {
+            FormelHinweis.Text = Loc.T("Msg.NoNumbers");
+            return;
+        }
+
+        FormelHinweis.Text = "";
+        Aendern(aenderung);
+        ReiterNachziehen();
+        Skia.Focus();
+    }
+
+    /// <summary>
+    /// <b>Text in Tabelle</b> — die Gegenrichtung zu <c>InText</c>. Sie steht im Reiter
+    /// „Einfügen" und nicht bei den Tabellenwerkzeugen: Sie wirkt auf ausgewählten *Text*, und
+    /// im Tabellen-Reiter wäre sie nur dort erreichbar, wo es schon eine Tabelle gibt.
+    /// </summary>
+    private void AusText_Click(object? s, RoutedEventArgs e)
+    {
+        if (!Schreibbar) return;
+
+        Aendern(TdBlockEdit.AusText(_modell!, _auswahl, TdTableEdit.Trennzeichen));
+        ReiterNachziehen();
+        Skia.Focus();
+    }
+
+    /// <summary>Der <c>Tag</c> des gewählten Eintrags als Aufzählungswert.</summary>
+    private static T Wahl<T>(ComboBox liste, T rueckfall) where T : struct, Enum =>
+        liste.SelectedItem is ComboBoxItem eintrag &&
+        Enum.TryParse<T>((string?)eintrag.Tag, out var wert)
+            ? wert
+            : rueckfall;
 }

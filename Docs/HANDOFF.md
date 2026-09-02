@@ -10383,6 +10383,97 @@ DB-Kopie.*
 **Bau 0/0. 1182 Tests (1117 Core + 65 WPF), +17.**
 
 
+### 4.89 Bild, Infobox, Beschriftung, Objekt-Anordnung — und der Posten, der auf keiner Liste stand
+
+**V2-112, 2026-09-01.** Frage (3) aus §5e, zusammen gebaut, weil Beschriftung und
+Objekt-Anordnung ohne ein Bild im Dokument nichts zu tun haben.
+
+#### ⛔ Zuerst die Richtigstellung: zwei meiner eigenen drei Funde waren Fehlalarm
+
+§4.86 hat drei Posten gemeldet, die dem Linux-Editor fehlten und auf keiner Liste standen.
+**Nachgemessen sind es zwei weniger** — und das ist §4.56 zum fünften Mal, diesmal an einer
+Liste, die diese Runde selbst geschrieben hat.
+
+| Gemeldet | Nachgemessen |
+|---|---|
+| **Seitenhintergrund / Wasserzeichen** | ✅ **Fehlte wirklich.** In dieser Runde gebaut |
+| **Inhaltsverzeichnis aktualisieren** (`Ed.Toc.Update`) | ⛔ **Fehlt nicht — es ist gegenstandslos.** Der Linux-Kopf setzt ein `TdField(TableOfContents)`, und das rechnet sich bei **jedem** Umbruch neu (§4.20, „kein zwischengespeichertes Ergebnis"). Der WPF-Kopf braucht den Knopf, weil er statische Absätze baut. **Ein Aktualisieren-Knopf wäre hier ein Knopf, der nichts tut** |
+| **Umbruchzeichen anzeigen** (`Ed.Layout.PageBreaks`) | ⛔ **Fehlt nicht — es ist eine WPF-Krücke.** Drüben zeichnet es gestrichelte **Näherungslinien**, wo der PDF-Export *voraussichtlich* umbricht, weil ein `FlowDocument` keine Seiten kennt. Der Linux-Editor **zeigt echte Seiten** (`TdLayout` rechnet sie, der Zeichner malt Blatt für Blatt). Eine Näherung wäre schlechter als das, was schon dasteht |
+
+> **▶ Und derselbe Fehler beinahe ein drittes Mal:** `Ed.PageNumbers` stand ebenfalls auf der
+> Liste. Der Linux-Kopf hat die Platzhalter `{SEITE}`/`{SEITEN}` in Kopf- und Fußzeile
+> (§4.15) — **echte** Seitenzahlen. Der WPF-Knopf ist der Ersatz für etwas, das hier richtig
+> gelöst ist, und §5 Nr. 15 sagt ausdrücklich, dass diese Richtung nicht übernommen wird.
+
+> **Die Lehre steht seit §4.56 im HANDOFF und hat trotzdem wieder zugeschlagen:** *Ein Auftrag
+> ist keine Messung, auch wenn er im HANDOFF steht* — **auch dann nicht, wenn man ihn selbst
+> eine Runde vorher hineingeschrieben hat.** Ein Schlüssel, den ein Kopf nicht kennt, ist
+> nicht dasselbe wie eine Funktion, die ihm fehlt.
+
+#### Was in Core dazugekommen ist
+
+**`TdGrafikEdit`** — einfügen, Größe ändern, beschriften. *Sie rechnet fast nichts, und
+trotzdem gehört sie dorthin:* Was darin steht, sind **Regeln** — welcher Absatz eine
+Beschriftung bekommt, wo die Untergrenze liegt, dass eine Grafik einen eigenen Absatz bekommt.
+Stünde das im Kopf, stünde es beim nächsten Kopf ein zweites Mal (§4.77, §4.78, §4.82, §4.88).
+
+| Entscheidung | Warum |
+|---|---|
+| **Die Grafik wird links *und* an der Stelle gesucht** | Sie ist einen Schritt breit, und ein Klick landet je nach Bildhälfte davor oder dahinter (§4.30). Nur an der Stelle zu suchen hieße: der Knopf tut mal etwas und mal nicht |
+| **Untergrenze 0,5 cm** | Ohne sie schrumpft ein Bild bei genug Klicks auf null — danach unsichtbar und nicht mehr anklickbar, also **weg**, ohne dass jemand es gelöscht hätte |
+| **Der ganze Schritt wird ersetzt, nicht die Grafik umgestellt** | Derselbe Weg wie beim Ändern eines Diagramms (§4.83) und aus demselben Grund (§4.32): die Sicherung im Verlauf zeigt sonst auf dasselbe Objekt |
+| **Die Beschriftungsnummer wird gezählt, nicht gespeichert** | Wer eine Abbildung dazwischenschiebt, will nicht alle folgenden von Hand nachziehen. **Benannte Vereinfachung:** Die Zählung steckt im Text und nicht neben ihm — ein echtes `SEQ`-Feld wäre mehr |
+| **Der Vorsatz kommt von außen** | Ein festes „Abbildung" stünde in der englischen Fassung genauso da |
+
+**`TdBlockEdit.Infobox`** — eine 1×1-Tabelle mit Füllung und Rahmen, wie drüben. Dieselbe
+Entscheidung wie bei der Trennlinie (§4.40): Das Modell kann eine gefüllte, gerahmte Fläche
+bereits, und ein eigener Blocktyp müsste durch jeden Export, jeden Umbruch und jede
+Trefferrechnung eigens hindurch.
+
+#### ⛔ Der Fehler, den nur das laufende Programm gezeigt hat
+
+**Die Infobox nahm ihre Farben aus dem laufenden Erscheinungsbild.** Im dunklen Modus entstand
+ein **dunkelblauer** Kasten mit schwarzem Text darin — und genau so wäre er ins PDF und ins
+DOCX gegangen.
+
+> **Es betrifft nicht das Aussehen, sondern die gespeicherten Daten:** derselbe Klick hätte je
+> nach Theme ein anderes **Dokument** ergeben. **Das ist §4.79 (b) zum zweiten Mal**, und die
+> Regel dagegen steht seit §4.14 wörtlich in `TdCharFormat.Standard`: *„Die Farbe steht bewusst
+> als null-freies Schwarz da und nicht als Theme-Farbe — **ein Dokument ist Papier**."*
+>
+> Die Farben kommen jetzt aus `Themes.Light`, also aus der **Papier**-Variante der Tabelle in
+> Core (§5 Nr. 27 bleibt gewahrt: nie ein fester Wert, immer einer aus der Tabelle). **Bau und
+> Wächter waren grün, als der Kasten dunkelblau war.**
+
+#### ⚠ Zwei der neun `Ed.Object.*`-Schlüssel sind nicht gebaut, und das ist eine Modellfrage
+
+`Ed.Object.Behind` und `Ed.Object.Front` legen drüben ein WPF-`Figure` mit
+`WrapDirection.None` an — eine **freigestellte** Grafik, über die der Text hinwegfließt.
+**Das Modell kennt so etwas nicht:** `TdGraphic` erbt von `TdInline` und steht strikt im
+Textfluss, genau wie DOCX es in einem `w:drawing` führt (§4.14). Ein „hinter den Text legen"
+verlangte ein neues Feld im Modell, einen zweiten Pfad im Umbruch und eine DOCX-Entsprechung.
+
+> **Es ist deshalb nicht gebaut und hier benannt, statt als Knopf dazustehen, der nichts tut**
+> — das wäre §4.78 zum zweiten Mal. Die sieben übrigen Schlüssel (größer, kleiner, breiter,
+> schmaler, höher, flacher, exakte Größe) sind gebaut.
+
+#### Was am laufenden Programm geprüft ist (Dauerregel 1 und 4)
+
+*Linux-Kopf unter Windows, allein sichtbar (§4.50), frisch gezogene DB-Kopie, dazu ein
+erzeugtes Probebild (600 × 400).*
+
+| Handgriff | Ergebnis |
+|---|---|
+| „Bild" → Datei gewählt | ✅ steht im Dokument, **auf die Textbreite gedeckelt** (600 px bei 96 dpi = 15,9 cm) |
+| „Beschriftung" | ✅ „Abbildung 1:" zentriert und kursiv **unter** dem Bild, der Absatz darüber bleibt ganz |
+| „Genaue Größe…" geöffnet | ✅ sechs Knöpfe und zwei Zahlenfelder, alle **aktiv**, weil eine Grafik unter der Marke steht |
+| „Kleiner" | ✅ 15,9 × 10,6 → 13,8 × 9,2 — und die Zahlenfelder ziehen mit |
+| „Infobox" | ✅ hellblauer Kasten mit blauem Rahmen, Marke steht darin |
+| Layout → „Hintergrundbild" → Datei gewählt | ✅ blass hinter dem Inhalt, Deckkraft-Schieber steht auf 35 % |
+
+**Bau 0/0. 1195 Tests (1130 Core + 65 WPF), +13.**
+
+
 ## 5. Entscheidungen
 
 **Getroffen, alle umgesetzt:**
@@ -12085,7 +12176,7 @@ Fang mit den Rueckfragen an.
 |---|---|---|
 | **1** | ✅ **Entschieden am 2026-09-01: das wirksame Format aufnehmen, aber minimal schreiben** | ⛔ **Die Frage stand auf einer falschen Prämisse** (§4.86): `TdFormatEdit.Gemeinsam` liefert **nicht** die Abweichung, sondern das **wirksame** Format — eine Methode für die gemeinsame *Abweichung* gibt es in Core gar nicht. Damit gab es eine dritte Antwort: Quelle wirksam auflösen, am Ziel aber nur die Eigenschaften in die Abweichung schreiben, die vom Ziel-Absatz **nicht ohnehin** kommen. Sieht aus wie „wirksam“, verhält sich wie „Abweichung“ — und brennt nichts ein |
 | **2** | **Tabellenentwurf — in welchem Zuschnitt?** | Der **größte** verbliebene Posten. `TdTable` kann im Modell alles (Rahmen an sechs Kanten, Zellabstände, Schattierung, `ColumnSpan`, `VerticalMerge`, `IsHeader`), aber **`TdTableEdit` hat nur sechs Handgriffe** — Zeile/Spalte ein und aus, Tabelle löschen. Es fehlen: verbinden/teilen, Rahmen, Füllung, Größe, AutoAnpassen, Zellabstand, sortieren, Formel, in Text. **Erst Core, dann Oberfläche — realistisch zwei Runden** |
-| **3** | **Bild / Infobox / Symbolauswahl — zusammen oder getrennt?** | `TdImage`/`ITdImages` stehen, die Bedienung fehlt ganz. **Daran hängen zwei Posten, die in der Aufgabenliste fehlten** und erst §4.82 gefunden hat: **Objekt-Anordnung** (`Ed.Object.*` — vorn/hinten, größer/kleiner, exakte Größe, neun Schlüssel) und **Beschriftung** (`Ed.Caption`) |
+| **3** | ✅ **Erledigt (§4.89, V2-112)** | **Zusammen** — Beschriftung und Objekt-Anordnung haben ohne ein Bild im Dokument nichts zu tun. `TdGrafikEdit` + `TdBlockEdit.Infobox` in Core, **+13 Wächter**. Die Symbolauswahl ist mit (5) in §4.88 gekommen. ⚠ **Zwei der neun `Ed.Object.*` sind nicht gebaut:** „vor/hinter den Text“ verlangt eine freigestellte Grafik, und die kennt das Modell nicht — benannt statt als Knopf, der nichts tut |
 | **4** | **Lineal — lohnt es vor 1.0.0?** | Der einzige Posten, für den **nichts** in Core steht. Der WPF-Kopf zeichnet es in `TextEditorView.Layout.cs` (`DrawRuler`) auf ein `Canvas`; im Linux-Kopf wäre es Neubau |
 | **5** | ✅ **Erledigt (§4.88, V2-111)** | Zusammen mit der **Symbolauswahl** aus Frage (3) gebaut — beides ist dasselbe: ein Raster, aus dem man ein Zeichen klickt. **Beide Vorräte lagen fest verdrahtet im WPF-Kopf** und stehen jetzt als `TdMarkenvorrat` und `TdSonderzeichen` in Core (zum vierten Mal derselbe Fall). **+17 Wächter** — einer davon hat sofort einen Fehler gefunden, den der Kommentar daneben bestritt |
 | **6** | ✅ **Erledigt (§4.86, V2-109)** | Nicht „eine eigene Runde“, sondern **sieben Schlüssel und ein Setzer**: `AvaloniaThemeHost.AkzentSetzen` gibt Fluents `Palettes[variante].Accent` die Farbe aus `ThemeColor.Accent`; die sechs Abstufungen rechnet `ColorPaletteResources` selbst. **An der gebundenen Assembly gemessen** (Avalonia 12.1.1). **Und der violette Stummel am Schieber aus §4.74 ist ohne eigenen Handgriff mitgekommen** |
@@ -12138,10 +12229,10 @@ Fang mit den Rueckfragen an.
 | **Zellen verbinden/teilen, Tabelle teilen/sortieren/Formel/in Text** | fehlt ganz |
 | ~~**Formatpinsel**~~, ~~Formatierung löschen~~ | ✅ **Beide erledigt** (§4.84 Löschen, §4.87 Pinsel). Der Pinsel überträgt das **wirksame** Format, schreibt aber nur, was von der Unterlage des Ziels abweicht — `TdFormatEdit.Uebertragen` in Core, **+7 Wächter**. ⛔ Die Frage in §5e stand auf einer falschen Prämisse: `Gemeinsam` liefert nicht die Abweichung, sondern das Wirksame |
 | ~~**Stil-, Aufzählungs- und Nummerierungsgalerie**~~ | ✅ **Vollständig zu** (§4.82 nachgemessen, §4.88 gebaut). Die Absatzvorlagen-Klappliste und beide Listenschalter gab es längst; die **Markenauswahl** (`Ed.List.BulletPick`/`NumberPick`) ist in §4.88 dazugekommen, gespeist aus `TdMarkenvorrat` in Core |
-| **Bild, Infobox, Symbolauswahl** | fehlen |
+| ~~**Bild, Infobox, Symbolauswahl**~~ | ✅ **Erledigt** (§4.88 Symbolauswahl, §4.89 Bild und Infobox) |
 | ~~**Diagramm**~~ | ✅ **Erledigt (§4.82, §4.83).** Ein bestehendes Diagramm lässt sich per **Doppelklick ändern** — in beiden Köpfen. `Core/Text/TdChartEingabe.cs` + `TdRenderer.DiagrammPng`, **+29 Wächter** — in **beiden** Köpfen, Tafel **und** Editor. **`ChartDialog` 435 → 235 Zeilen**: er rechnete die sieben Arten selbst, die Core seit §4.25 kann, und lieferte eine **Bitmap** ab. Beide Köpfe legen jetzt ein `TdChart` ins Dokument — **die Zahlen bleiben** |
 | ~~**Navigator**~~ | ✅ **Erledigt (§4.85).** `TdToc.Eintraege` lieferte die Liste bereits fertig — gebaut werden musste **nur die Anzeige**. Der WPF-Kopf sammelt seine Überschriften dagegen selbst (`CollectHeadings`), weil sein Editor kein Modell kennt |
-| **Objekt-Anordnung und Beschriftung** | ⚠ **In der Liste vergessen, in §4.82 gefunden:** `Ed.Object.*` (vorn/hinten, größer/kleiner, exakte Größe — neun Schlüssel) und `Ed.Caption`. Beide hängen an „Bild“ |
+| ~~**Objekt-Anordnung und Beschriftung**~~ | ✅ **Erledigt (§4.89).** Sieben der neun `Ed.Object.*`-Schlüssel und `Ed.Caption`. ⚠ **Zwei sind benannt und nicht gebaut** — „vor/hinter den Text“ braucht eine freigestellte Grafik, die das Modell nicht kennt |
 | ~~**Wortzahl**~~ | ⛔ **Fehlt nicht** — der Linux-Editor zeigt „Wörter · Zeichen" seit jeher (`Ed.Status.Counts.Format`, in der Statusleiste). **In §4.81 nachgemessen**; die Zeile stand hier zu Unrecht (§4.56, zweites Mal nach §4.77) |
 | ~~**Rückgängig/Wiederholen im Editor**~~ | ✅ **Erledigt (§4.84).** Die Funktion gab es längst über Strg+Z/Y; es fehlte allein der Griff für den, der nicht mit Tasten arbeitet |
 | **Lineal im Editor** | fehlt |

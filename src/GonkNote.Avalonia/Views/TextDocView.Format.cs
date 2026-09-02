@@ -355,6 +355,7 @@ public partial class TextDocView
             FarbenNachziehen(new TdCharFormat());
             ReiterNachziehen();
             SeiteNachziehen();
+            ObjekteNachziehen();
             return;
         }
 
@@ -380,6 +381,7 @@ public partial class TextDocView
         FarbenNachziehen(zeichen);
         ReiterNachziehen();
         SeiteNachziehen();
+        ObjekteNachziehen();
     }
 
     private IEnumerable<ToggleButton> Formatschalter()

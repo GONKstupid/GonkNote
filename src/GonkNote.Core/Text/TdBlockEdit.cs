@@ -135,6 +135,50 @@ public static class TdBlockEdit
         return Einfuegen(doc, auswahl, tabelle);
     }
 
+    /// <summary>
+    /// <b>Eine Infobox — ein gefüllter, gerahmter Kasten für einen Hinweis</b> (§4.89).
+    ///
+    /// <para>
+    /// <b>Es ist eine Tabelle mit einer Zelle, und das ist dieselbe Entscheidung wie bei der
+    /// Trennlinie</b> (§4.40): Das Modell kann eine gefüllte, gerahmte Fläche bereits
+    /// (<see cref="TdTableFormat"/>, <see cref="TdTableCell.Shading"/>), DOCX schreibt sie so,
+    /// und der Umbruch zeichnet sie seit §4.19. Ein eigener Blocktyp dafür müsste durch jeden
+    /// Export, jeden Umbruch und jede Trefferrechnung eigens hindurch — für einen Kasten, den
+    /// es als Tabelle schon gibt. Der WPF-Kopf tut seit jeher dasselbe.
+    /// </para>
+    /// <para>
+    /// <b>Die zwei Farben kommen von außen</b> und stehen nicht hier: Sie gehören der
+    /// Farbtabelle des Kopfs (§5 Nr. 27), und ein fester Wert an dieser Stelle stünde im
+    /// Dokument und wäre in einem anderen Erscheinungsbild falsch.
+    /// </para>
+    /// <para>
+    /// <b>Die Innenränder sind großzügiger als bei einer gewöhnlichen Tabelle.</b> Eine
+    /// Infobox ist zum Lesen da und nicht zum Vergleichen — Text, der am Rahmen klebt, sieht
+    /// aus wie ein Versehen.
+    /// </para>
+    /// </summary>
+    public static TdChange? Infobox(
+        TdDocument doc, TdSelection auswahl, string fuellung, string rahmen)
+    {
+        var linie = new TdBorder(1, rahmen);
+
+        var zelle = new TdTableCell(new TdParagraph()) { Shading = fuellung };
+
+        var tabelle = new TdTable
+        {
+            Format =
+            {
+                Top = linie, Left = linie, Bottom = linie, Right = linie,
+                InsideH = TdBorder.Keine, InsideV = TdBorder.Keine,
+                CellPaddingLeftCm = 0.35, CellPaddingRightCm = 0.35,
+                CellPaddingTopCm = 0.25, CellPaddingBottomCm = 0.25,
+            },
+        };
+        tabelle.Rows.Add(new TdTableRow { Cells = { zelle } });
+
+        return Einfuegen(doc, auswahl, tabelle);
+    }
+
     // ---------------------------------------------------------------- Kleinteile
 
     /// <summary>

@@ -334,6 +334,8 @@ internal static class LocGerman
         ["Ed.Caption.Tip"] = "Bildunterschrift „Abbildung N: …“ unter dem Bild/Absatz einfügen",
         ["Ed.Caption.Insert"] = "Beschriftung einfügen",
         ["Ed.Caption"] = "Beschriftung",
+        ["Ed.Caption.Prefix"] = "Abbildung",
+        ["Action.Apply"] = "Übernehmen",
         ["Ed.References.NoteName"] = "Hinweis Verweise",
         ["Ed.References.Note"] = "Beim DOCX-Export wird das Inhaltsverzeichnis zu einem echten Word-Feld (mit Seitenzahlen, aktualisiert sich beim Öffnen). Überschriften 1–4 erscheinen automatisch im Verzeichnis.",
         ["Ed.Table.Row"] = "Zeile",

@@ -323,6 +323,8 @@ internal static class LocEnglish
         ["Ed.Caption.Tip"] = "Insert a caption “Figure N: …” below the image/paragraph",
         ["Ed.Caption.Insert"] = "Insert caption",
         ["Ed.Caption"] = "Caption",
+        ["Ed.Caption.Prefix"] = "Figure",
+        ["Action.Apply"] = "Apply",
         ["Ed.References.NoteName"] = "References note",
         ["Ed.References.Note"] = "On DOCX export the table of contents becomes a real Word field (with page numbers, updated on opening). Headings 1–4 appear in it automatically.",
         ["Ed.Table.Row"] = "Row",

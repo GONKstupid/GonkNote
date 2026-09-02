@@ -342,6 +342,73 @@
                         <TextBlock Text="{loc:T Ed.Rule}" VerticalAlignment="Center"/>
                     </Button>
 
+                    <!-- Bild und Infobox (§4.89). Beide fehlten diesem Kopf ganz, während
+                         `TdImage`/`ITdImages` und der Zeichner sie längst konnten — es fehlte
+                         allein die Bedienung. Die Infobox ist eine 1×1-Tabelle, wie drüben:
+                         das Modell kann eine gefüllte, gerahmte Fläche bereits (§4.18). -->
+                    <Button Classes="ribbonknopf" Click="Bild_Click"
+                            ToolTip.Tip="{loc:T Ed.Image.Insert}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <views:Symbol Icon="Image" Stroke="{DynamicResource Brush.Text}"/>
+                            <TextBlock Text="{loc:T Ed.Image}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Classes="ribbonknopf" Click="Infobox_Click"
+                            ToolTip.Tip="{loc:T Ed.InfoBox.Tip}">
+                        <TextBlock Text="{loc:T Ed.InfoBox}" VerticalAlignment="Center"/>
+                    </Button>
+                    <Button Classes="ribbonknopf" Click="Beschriftung_Click"
+                            ToolTip.Tip="{loc:T Ed.Caption.Tip}">
+                        <TextBlock Text="{loc:T Ed.Caption}" VerticalAlignment="Center"/>
+                    </Button>
+
+                    <!-- Objekt-Anordnung (§4.89, `Ed.Object.*`). **Sieben der neun Schlüssel
+                         sind gebaut, zwei nicht** — „vor/hinter den Text" braucht eine
+                         freigestellte Grafik, und die kennt das Modell nicht (§4.89). Ein
+                         Knopf, der nichts tut, wäre §4.78 zum zweiten Mal. -->
+                    <Button x:Name="KnopfObjekt" Classes="ribbonknopf"
+                            ToolTip.Tip="{loc:T Ed.Object.ExactSize}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <TextBlock Text="{loc:T Ed.Object.ExactSize}" VerticalAlignment="Center"/>
+                            <views:Symbol Icon="ChevronDown" Size="10"
+                                          Stroke="{DynamicResource Brush.TextMuted}"/>
+                        </StackPanel>
+                        <Button.Flyout>
+                            <Flyout Placement="BottomEdgeAlignedLeft">
+                                <StackPanel Width="260" Spacing="8">
+                                    <WrapPanel x:Name="ObjektKnoepfe">
+                                        <Button Classes="flach" Tag="Bigger" Click="Objekt_Click"
+                                                Margin="1" Content="{loc:T Ed.Object.Bigger}"/>
+                                        <Button Classes="flach" Tag="Smaller" Click="Objekt_Click"
+                                                Margin="1" Content="{loc:T Ed.Object.Smaller}"/>
+                                        <Button Classes="flach" Tag="Wider" Click="Objekt_Click"
+                                                Margin="1" Content="{loc:T Ed.Object.Wider}"/>
+                                        <Button Classes="flach" Tag="Narrower" Click="Objekt_Click"
+                                                Margin="1" Content="{loc:T Ed.Object.Narrower}"/>
+                                        <Button Classes="flach" Tag="Taller" Click="Objekt_Click"
+                                                Margin="1" Content="{loc:T Ed.Object.Taller}"/>
+                                        <Button Classes="flach" Tag="Shorter" Click="Objekt_Click"
+                                                Margin="1" Content="{loc:T Ed.Object.Shorter}"/>
+                                    </WrapPanel>
+                                    <Grid ColumnDefinitions="Auto,*,Auto,*" ColumnSpacing="6">
+                                        <TextBlock Grid.Column="0" Text="{loc:T Ed.Table.Size}"
+                                                   VerticalAlignment="Center" FontSize="11"/>
+                                        <NumericUpDown x:Name="ObjektBreite" Grid.Column="1"
+                                                       Minimum="0.5" Maximum="100" Increment="0.5"
+                                                       FormatString="0.##" FontSize="12"/>
+                                        <TextBlock Grid.Column="2" Text="×"
+                                                   VerticalAlignment="Center"/>
+                                        <NumericUpDown x:Name="ObjektHoehe" Grid.Column="3"
+                                                       Minimum="0.5" Maximum="100" Increment="0.5"
+                                                       FormatString="0.##" FontSize="12"/>
+                                    </Grid>
+                                    <Button HorizontalAlignment="Stretch" Click="GenaueGroesse_Click"
+                                            Content="{loc:T Action.Apply}"/>
+                                </StackPanel>
+                            </Flyout>
+                        </Button.Flyout>
+                    </Button>
+
                     <!-- Sonderzeichen (§4.88). Der Vorrat steht als `TdSonderzeichen` in Core,
                          **nach Gruppen geordnet**: drüben lagen 57 Zeichen in einem einzigen
                          Raster, und wer darin das Ungleich-Zeichen sucht, liest alle 57. -->
@@ -497,6 +564,43 @@
                                 <TextBlock x:Name="FeldKopfFuss" Classes="feldwert"/>
                             </StackPanel>
                         </StackPanel>
+                    </Button>
+
+                    <Border Classes="trenner"/>
+
+                    <!-- Seitenhintergrund / Wasserzeichen (§4.89). **Er stand auf keiner
+                         Aufgabenliste und ist trotzdem gefehlt** — `TdPageSetup.Watermark` gibt
+                         es seit §4.15, `TdRenderer` zeichnet ihn, und `AvaloniaDocumentIo`
+                         bewahrt ihn beim Aufräumen: Ein vorhandenes Wasserzeichen sah man also,
+                         ein neues bekam man nicht. -->
+                    <Button x:Name="KnopfWasserzeichen" Classes="ribbonknopf"
+                            ToolTip.Tip="{loc:T Ed.Layout.Background.Tip}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <views:Symbol Icon="Image" Stroke="{DynamicResource Brush.Text}"/>
+                            <TextBlock Text="{loc:T Ed.Layout.Background}" VerticalAlignment="Center"/>
+                            <views:Symbol Icon="ChevronDown" Size="10"
+                                          Stroke="{DynamicResource Brush.TextMuted}"/>
+                        </StackPanel>
+                        <Button.Flyout>
+                            <Flyout Placement="BottomEdgeAlignedLeft">
+                                <StackPanel Width="250" Spacing="8">
+                                    <Button HorizontalAlignment="Stretch"
+                                            Click="Wasserzeichen_Click"
+                                            Content="{loc:T Ed.Background.Choose}"/>
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <TextBlock Text="{loc:T Ed.Opacity}" FontSize="11"
+                                                   VerticalAlignment="Center"/>
+                                        <Slider x:Name="WasserzeichenDeckkraft" Width="140"
+                                                Minimum="5" Maximum="100"
+                                                ValueChanged="WasserzeichenDeckkraft_Geaendert"/>
+                                    </StackPanel>
+                                    <Button x:Name="KnopfWasserzeichenWeg"
+                                            HorizontalAlignment="Stretch"
+                                            Click="WasserzeichenWeg_Click"
+                                            Content="{loc:T Ed.Remove}"/>
+                                </StackPanel>
+                            </Flyout>
+                        </Button.Flyout>
                     </Button>
                 </WrapPanel>
 

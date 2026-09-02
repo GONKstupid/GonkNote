@@ -348,6 +348,174 @@ public sealed class GrafikTests
         Assert.Null(new TdMemoryImages().Lesen(BildId));
     }
 
+    // ==================== Grafiken anfassen (§4.89) ====================
+
+    private static TdSelection Bei(TdDocument doc, int absatz, int linear)
+    {
+        var a = TdCursor.AbsatzAn(doc, absatz)!;
+        return new TdSelection(TdCursor.AusLinear(a, absatz, linear));
+    }
+
+    /// <summary>
+    /// <b>Gefunden wird auch von rechts.</b> Eine Grafik ist einen Schritt breit, und ein Klick
+    /// darauf landet je nach Bildhälfte davor oder dahinter (§4.30). Suchte der Knopf nur an
+    /// der Stelle selbst, täte er mal etwas und mal nicht.
+    /// </summary>
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    public void Die_Grafik_wird_von_beiden_Seiten_gefunden(int linear)
+    {
+        var doc = Dok(new TdParagraph([Bild()]));
+
+        Assert.NotNull(TdGrafikEdit.GrafikAn(doc, Bei(doc, 0, linear)));
+    }
+
+    /// <summary>Wo keine Grafik steht, gibt es auch keine.</summary>
+    [Fact]
+    public void Ohne_Grafik_kein_Fund()
+    {
+        var doc = Dok(new TdParagraph("nur Text"));
+
+        Assert.Null(TdGrafikEdit.GrafikAn(doc, Bei(doc, 0, 3)));
+    }
+
+    /// <summary>„Größer" behält das Seitenverhältnis, „breiter" nicht.</summary>
+    [Fact]
+    public void Groesser_behaelt_das_Verhaeltnis()
+    {
+        var doc = Dok(new TdParagraph([Bild(8, 6)]));
+
+        TdGrafikEdit.Groesse(doc, Bei(doc, 0, 1), 1.5, 1.5)!.Anwenden();
+
+        var neu = (TdImage)TdCursor.Stuecke(TdCursor.AbsatzAn(doc, 0)!).First();
+        Assert.Equal(12, neu.WidthCm, 3);
+        Assert.Equal(9, neu.HeightCm, 3);
+    }
+
+    [Fact]
+    public void Breiter_laesst_die_Hoehe_stehen()
+    {
+        var doc = Dok(new TdParagraph([Bild(8, 6)]));
+
+        TdGrafikEdit.Groesse(doc, Bei(doc, 0, 1), 1.5, 1.0)!.Anwenden();
+
+        var neu = (TdImage)TdCursor.Stuecke(TdCursor.AbsatzAn(doc, 0)!).First();
+        Assert.Equal(12, neu.WidthCm, 3);
+        Assert.Equal(6, neu.HeightCm, 3);
+    }
+
+    /// <summary>
+    /// <b>Ein Bild darf nicht auf null schrumpfen.</b> Es wäre danach unsichtbar und nicht mehr
+    /// anklickbar — also weg, ohne dass jemand es gelöscht hätte.
+    /// </summary>
+    [Fact]
+    public void Kleiner_hoert_bei_der_Untergrenze_auf()
+    {
+        var doc = Dok(new TdParagraph([Bild(8, 6)]));
+
+        for (int i = 0; i < 60; i++)
+            TdGrafikEdit.Groesse(doc, Bei(doc, 0, 1), 0.5, 0.5)?.Anwenden();
+
+        var neu = (TdImage)TdCursor.Stuecke(TdCursor.AbsatzAn(doc, 0)!).First();
+        Assert.True(neu.WidthCm >= TdGrafikEdit.MindestCm);
+        Assert.True(neu.HeightCm >= TdGrafikEdit.MindestCm);
+    }
+
+    /// <summary>Eine Größe, die sich nicht ändert, ist keine Änderung — und kommt nicht in den Verlauf.</summary>
+    [Fact]
+    public void Dieselbe_Groesse_ist_keine_Aenderung()
+    {
+        var doc = Dok(new TdParagraph([Bild(8, 6)]));
+
+        Assert.Null(TdGrafikEdit.GroesseSetzen(doc, Bei(doc, 0, 1), 8, 6));
+    }
+
+    /// <summary>
+    /// <b>Was am Bild hängt, überlebt die Größenänderung</b> — Kennung, Dateityp und
+    /// Alternativtext. Ein Bild, das beim Vergrößern seinen Blob-Verweis verliert, ist weg.
+    /// </summary>
+    [Fact]
+    public void Die_Groessenaenderung_laesst_alles_andere_stehen()
+    {
+        var bild = Bild(8, 6);
+        bild.AltText = "Ein Hund";
+        var doc = Dok(new TdParagraph([bild]));
+
+        TdGrafikEdit.Groesse(doc, Bei(doc, 0, 1), 1.15, 1.15)!.Anwenden();
+
+        var neu = (TdImage)TdCursor.Stuecke(TdCursor.AbsatzAn(doc, 0)!).First();
+        Assert.Equal(BildId, neu.BlobId);
+        Assert.Equal("png", neu.Extension);
+        Assert.Equal("Ein Hund", neu.AltText);
+    }
+
+    /// <summary>Dasselbe für ein Diagramm — seine Zahlen dürfen beim Ziehen nicht verlorengehen.</summary>
+    [Fact]
+    public void Ein_Diagramm_behaelt_seine_Zahlen()
+    {
+        var doc = Dok(new TdParagraph([Diagramm()]));
+
+        TdGrafikEdit.Groesse(doc, Bei(doc, 0, 1), 1.15, 1.15)!.Anwenden();
+
+        var neu = (TdChart)TdCursor.Stuecke(TdCursor.AbsatzAn(doc, 0)!).First();
+        Assert.Equal("Woche", neu.Title);
+        Assert.Equal(["Mo", "Di", "Mi"], neu.Categories);
+        Assert.Equal([4, 7, 3], neu.Series[0].Values);
+        Assert.Equal(3, neu.Palette.Count);
+    }
+
+    /// <summary>Ein Bild kommt als eigener Absatz und nicht mitten in eine Textzeile.</summary>
+    [Fact]
+    public void Ein_eingefuegtes_Bild_bekommt_einen_eigenen_Absatz()
+    {
+        var doc = Dok(new TdParagraph("Text davor"));
+
+        TdGrafikEdit.Einfuegen(doc, Bei(doc, 0, 10), Bild())!.Anwenden();
+
+        var mitBild = doc.Paragraphs().Single(
+            a => TdCursor.Stuecke(a).Any(x => x is TdImage));
+        Assert.Equal("", mitBild.PlainText());
+    }
+
+    /// <summary>Die Beschriftung steht unter dem Absatz und zählt sich selbst hoch.</summary>
+    [Fact]
+    public void Beschriftungen_zaehlen_hoch()
+    {
+        var doc = Dok(new TdParagraph([Bild()]), new TdParagraph([Bild()]));
+
+        TdGrafikEdit.Beschriftung(doc, Bei(doc, 0, 1), "Abbildung")!.Anwenden();
+        TdGrafikEdit.Beschriftung(doc, Bei(doc, 2, 1), "Abbildung")!.Anwenden();
+
+        var texte = doc.Paragraphs().Select(a => a.PlainText()).Where(t => t.Length > 0).ToList();
+        Assert.Equal(["Abbildung 1: ", "Abbildung 2: "], texte);
+    }
+
+    /// <summary>
+    /// <b>Der Vorsatz kommt von außen</b> — ein festes „Abbildung" stünde in der englischen
+    /// Fassung genauso da.
+    /// </summary>
+    [Fact]
+    public void Der_Beschriftungsvorsatz_ist_uebersetzbar()
+    {
+        var doc = Dok(new TdParagraph([Bild()]));
+
+        TdGrafikEdit.Beschriftung(doc, Bei(doc, 0, 1), "Figure")!.Anwenden();
+
+        Assert.Contains("Figure 1: ", doc.Paragraphs().Select(a => a.PlainText()));
+    }
+
+    /// <summary>Die Beschriftung lässt den Absatz darüber ganz.</summary>
+    [Fact]
+    public void Die_Beschriftung_teilt_den_Absatz_nicht()
+    {
+        var doc = Dok(new TdParagraph("Ein Satz mit Text"));
+
+        TdGrafikEdit.Beschriftung(doc, Bei(doc, 0, 3), "Abbildung")!.Anwenden();
+
+        Assert.Equal("Ein Satz mit Text", TdCursor.AbsatzAn(doc, 0)!.PlainText());
+    }
+
     // ==================== Hilfsmittel ====================
 
     internal static TdChart Diagramm() => new(TdChartKind.Column, 8, 6)

@@ -280,6 +280,8 @@ public partial class TextDocView
             if (!FusszeileFeld.IsFocused) FusszeileFeld.Text = seite.FooterText;
             ErsteSeiteOhne.IsChecked = seite.SuppressOnFirstPage;
 
+            WasserzeichenNachziehen();
+
             RandLinks.Value = (decimal)seite.MarginLeftCm;
             RandOben.Value = (decimal)seite.MarginTopCm;
             RandRechts.Value = (decimal)seite.MarginRightCm;

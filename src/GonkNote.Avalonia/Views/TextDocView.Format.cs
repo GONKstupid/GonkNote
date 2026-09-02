@@ -36,12 +36,16 @@ namespace GonkNote.Views;
 public partial class TextDocView
 {
     /// <summary>
-    /// Die Schriftgrößen, die „größer" und „kleiner" durchlaufen — dieselbe Leiter wie im
-    /// WPF-Editor. <b>Keine feste Schrittweite:</b> Von 8 auf 9 ist ein sichtbarer Sprung, von
-    /// 48 auf 49 keiner.
+    /// Die Schriftgrade, die „größer" und „kleiner" durchlaufen — <b>seit §4.93 aus Core</b>
+    /// (<see cref="GonkNote.Core.Theming.Schriftliste.Schriftgrade"/>).
+    ///
+    /// <para>
+    /// <b>Vorher stand hier eine eigene Leiter</b>, und die des WPF-Kopfs war eine andere:
+    /// keine enthielt alle Werte der anderen. Ein Dokument mit Grad 15 zeigte hier ein
+    /// **leeres** Größenfeld.
+    /// </para>
     /// </summary>
-    private static readonly double[] Groessen =
-        [8, 9, 10, 11, 12, 14, 16, 18, 20, 22, 24, 28, 32, 36, 40, 48, 56, 64, 72];
+    private static IReadOnlyList<double> Groessen => GonkNote.Core.Theming.Schriftliste.Schriftgrade;
 
     /// <summary>
     /// Wie weit ein Klick auf „Einzug vergrößern" rückt: 1,25 cm — Words Standardtabulator,
@@ -252,11 +256,11 @@ public partial class TextDocView
 
         if (richtung > 0)
         {
-            int i = Array.FindIndex(Groessen, g => g > jetzt + 0.01);
+            int i = Groessen.ToList().FindIndex(g => g > jetzt + 0.01);
             return i < 0 ? Groessen[^1] : Groessen[i];
         }
 
-        int j = Array.FindLastIndex(Groessen, g => g < jetzt - 0.01);
+        int j = Groessen.ToList().FindLastIndex(g => g < jetzt - 0.01);
         return j < 0 ? Groessen[0] : Groessen[j];
     }
 

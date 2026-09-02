@@ -76,4 +76,24 @@ public static class Schriftliste
     /// </para>
     /// </summary>
     public static int MitgelieferteZahl => Fonts.Mitgeliefert.Count;
+    /// <summary>
+    /// <b>Die Schriftgrade, die beide Köpfe anbieten</b> (§4.93) — die Leiter hinter der
+    /// Größenliste und hinter „eine Stufe größer/kleiner".
+    ///
+    /// <para>
+    /// <b>Sie steht hier, weil es sie zweimal gab.</b> Der WPF-Kopf führte
+    /// <c>8…15…72</c> (sechzehn Werte), der Linux-Kopf <c>8…22…64…72</c> (neunzehn) — und
+    /// <b>keine der beiden enthielt alle Werte der anderen</b>. Ein Dokument mit Grad **15**
+    /// zeigte im Linux-Kopf ein **leeres** Größenfeld: was die Liste nicht hat, wird nicht
+    /// behauptet (§4.36) — richtig gehandelt, falsche Liste. <b>Das ist §5 Nr. 14 noch einmal,
+    /// für Grade statt Familien.</b>
+    /// </para>
+    /// <para>
+    /// <b>Keine feste Schrittweite:</b> Von 8 auf 9 ist ein sichtbarer Sprung, von 48 auf 49
+    /// keiner. Die Vereinigung beider Leitern, aufsteigend.
+    /// </para>
+    /// </summary>
+    public static IReadOnlyList<double> Schriftgrade { get; } =
+        [8, 9, 10, 11, 12, 14, 15, 16, 18, 20, 22, 24, 28, 32, 36, 40, 48, 56, 64, 72];
+
 }

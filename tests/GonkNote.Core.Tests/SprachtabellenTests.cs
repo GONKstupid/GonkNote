@@ -148,4 +148,52 @@ public sealed class SprachtabellenTests
             + "Sie gehen als Text auf die Oberfläche und werden dort wörtlich gelesen.");
     }
 
+    /// <summary>
+    /// <b>Die Schriftgrad-Leiter steht in Core und in keinem Kopf</b> (§4.93).
+    ///
+    /// <para>
+    /// Sie gab es zweimal, und <b>keine der beiden enthielt alle Werte der anderen</b>: im
+    /// WPF-Kopf fehlten 22, 40, 56 und 64, im Linux-Kopf fehlte <b>15</b>. Ein Dokument mit
+    /// Grad 15 zeigte dort ein leeres Größenfeld — richtig gehandelt (§4.36), falsche Liste.
+    /// </para>
+    /// <para>
+    /// <b>Dieser Wächter sucht nach einer zweiten Leiter im Quelltext</b>, nicht nach ihrem
+    /// Inhalt: Wer eine anlegt, tut es als Literal mit „8, 9, 10, 11" am Anfang.
+    /// </para>
+    /// </summary>
+    [Theory]
+    [InlineData("GonkNote.Wpf")]
+    [InlineData("GonkNote.Avalonia")]
+    public void Keine_zweite_Schriftgrad_Leiter_im_Kopf(string projekt)
+    {
+        var ordner = Path.Combine(ProjektWurzel, "src", projekt);
+
+        var treffer = Directory
+            .EnumerateFiles(ordner, "*.cs", SearchOption.AllDirectories)
+            .Where(f => !f.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}")
+                     && !f.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}"))
+            .Where(f => Regex.IsMatch(File.ReadAllText(f), @"8,\s*9,\s*10,\s*11,\s*12"))
+            .Select(Path.GetFileName)
+            .ToList();
+
+        Assert.True(
+            treffer.Count == 0,
+            $"{projekt} traegt wieder eine eigene Schriftgrad-Leiter: {string.Join(", ", treffer)}. "
+            + "Sie steht in Schriftliste.Schriftgrade, damit beide Koepfe dieselbe anbieten.");
+    }
+
+    /// <summary>Die Leiter ist aufsteigend und doppelfrei — sonst springt „groesser" zurueck.</summary>
+    [Fact]
+    public void Die_Schriftgrad_Leiter_steigt_und_ist_doppelfrei()
+    {
+        var grade = GonkNote.Core.Theming.Schriftliste.Schriftgrade;
+
+        Assert.Equal(grade.OrderBy(g => g).ToList(), grade);
+        Assert.Equal(grade.Count, grade.Distinct().Count());
+    }
+
+    /// <summary>Der Quellordner des Projekts — zwei Ebenen ueber dem Testprojekt.</summary>
+    private static string ProjektWurzel =>
+        Path.GetFullPath(Path.Combine(Projektordner, "..", ".."));
+
 }

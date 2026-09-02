@@ -25,8 +25,10 @@ namespace GonkNote.Views;
 /// </summary>
 public partial class TextEditorView : UserControl
 {
-    private static readonly double[] FontSizes =
-        { 8, 9, 10, 11, 12, 14, 15, 16, 18, 20, 24, 28, 32, 36, 48, 72 };
+    // Seit §4.93 aus Core: Es gab die Leiter zweimal, und keine der beiden enthielt alle
+    // Werte der anderen (hier fehlten 22, 40, 56, 64; drueben fehlte 15). Das ist §5 Nr. 14
+    // noch einmal, fuer Grade statt Familien.
+    private static IReadOnlyList<double> FontSizes => Core.Theming.Schriftliste.Schriftgrade;
 
     private TextTabViewModel? _vm;
     private bool _loading;

@@ -126,19 +126,48 @@ public partial class TextDocView
 
     // ==================== Seitenränder ====================
 
+    /// <summary>
+    /// <b>Nur reagieren, wenn sich wirklich etwas ändert</b> (§4.93).
+    ///
+    /// <para>
+    /// <b>Der Schutz über <c>_fuellt</c> allein reicht hier nicht.</b> Ein
+    /// <c>NumericUpDown</c> meldet seinen Wert nicht immer im selben Zug, in dem er gesetzt
+    /// wird — kommt die Meldung einen Takt später, steht <c>_fuellt</c> längst wieder auf
+    /// <c>false</c>, und das bloße Öffnen eines Dokuments markierte es als
+    /// <b>geändert</b>. Am laufenden Programm gemessen: der Reiter trug sofort den Punkt für
+    /// „ungespeichert“, ohne dass jemand etwas angefasst hatte — <b>und der WPF-Kopf tat es
+    /// bei demselben Dokument nicht.</b>
+    /// </para>
+    /// <para>
+    /// <b>Ein Vergleich vor dem Schreiben ist der Schutz, der kein Zeitfenster braucht</b> —
+    /// dieselbe Regel wie in §4.90 („dieselbe Füllung zweimal ist keine Änderung“).
+    /// </para>
+    /// </summary>
     private void Rand_Geaendert(object? sender, NumericUpDownValueChangedEventArgs e)
     {
         if (_fuellt || !Schreibbar) return;
         if (Abschnitt() is not { } abschnitt) return;
 
         var seite = abschnitt.Page;
-        seite.MarginLeftCm = (double)(RandLinks.Value ?? 0);
-        seite.MarginTopCm = (double)(RandOben.Value ?? 0);
-        seite.MarginRightCm = (double)(RandRechts.Value ?? 0);
-        seite.MarginBottomCm = (double)(RandUnten.Value ?? 0);
+
+        double links = (double)(RandLinks.Value ?? 0);
+        double oben = (double)(RandOben.Value ?? 0);
+        double rechts = (double)(RandRechts.Value ?? 0);
+        double unten = (double)(RandUnten.Value ?? 0);
+
+        if (Gleich(seite.MarginLeftCm, links) && Gleich(seite.MarginTopCm, oben) &&
+            Gleich(seite.MarginRightCm, rechts) && Gleich(seite.MarginBottomCm, unten)) return;
+
+        seite.MarginLeftCm = links;
+        seite.MarginTopCm = oben;
+        seite.MarginRightCm = rechts;
+        seite.MarginBottomCm = unten;
 
         SeiteGeaendert();
     }
+
+    /// <summary>Zwei Zentimeterangaben, die auf einen hundertstel Millimeter gleich sind.</summary>
+    private static bool Gleich(double a, double b) => Math.Abs(a - b) < 0.0001;
 
     // ==================== Absatzabstände ====================
 
@@ -148,6 +177,12 @@ public partial class TextDocView
 
         double davor = (double)(AbstandDavor.Value ?? 0);
         double danach = (double)(AbstandDanach.Value ?? 0);
+
+        // Dieselbe Vorsorge wie bei den Rändern (§4.93): Ein spät gemeldeter Wert, der sich
+        // gar nicht unterscheidet, darf kein Verlaufsschritt werden.
+        var jetzt = TdFormatEdit.GemeinsamerAbsatz(_modell!, _auswahl);
+        if (Gleich(jetzt.SpaceBeforePt ?? 0, davor) && Gleich(jetzt.SpaceAfterPt ?? 0, danach))
+            return;
 
         // **`null` statt `0`, wo nichts gesetzt ist** (§4.14): Eine ausdrückliche Null am Absatz
         // überschriebe einen Abstand, der aus dem Dokumentstandard kommt.

@@ -192,6 +192,44 @@ public sealed class SprachtabellenTests
         Assert.Equal(grade.Count, grade.Distinct().Count());
     }
 
+    /// <summary>
+    /// Ein Grad, den die Leiter nicht hat, kommt <b>einsortiert</b> dazu — damit ein Dokument
+    /// mit krummer Groesse seine Groesse zeigen kann (§4.95).
+    /// </summary>
+    [Theory]
+    [InlineData(11.25)]   // die Vorlage „Standard" selbst
+    [InlineData(13)]
+    [InlineData(7)]       // kleiner als der kleinste Eintrag
+    [InlineData(96)]      // groesser als der groesste
+    public void Ein_fremder_Schriftgrad_kommt_einsortiert_dazu(double grad)
+    {
+        var grade = GonkNote.Core.Theming.Schriftliste.GradeMit(grad);
+        var leiter = GonkNote.Core.Theming.Schriftliste.Schriftgrade;
+
+        Assert.Contains(grad, grade);
+        Assert.Equal(leiter.Count + 1, grade.Count);
+        Assert.Equal(grade.OrderBy(g => g).ToList(), grade);
+
+        // **Die Leiter selbst bleibt unberuehrt** — sonst verlaengerte ein einziges fremdes
+        // Dokument die Liste fuer alle folgenden.
+        Assert.DoesNotContain(grad, leiter);
+    }
+
+    /// <summary>
+    /// Einen Grad, den die Leiter schon hat, gibt es danach <b>nicht zweimal</b> — und die
+    /// Liste ist dieselbe Instanz, damit ein Kopf sie am Bezug wiedererkennt.
+    /// </summary>
+    [Theory]
+    [InlineData(11)]
+    [InlineData(15)]
+    [InlineData(72)]
+    public void Ein_bekannter_Schriftgrad_verlaengert_die_Leiter_nicht(double grad)
+    {
+        var grade = GonkNote.Core.Theming.Schriftliste.GradeMit(grad);
+
+        Assert.Same(GonkNote.Core.Theming.Schriftliste.Schriftgrade, grade);
+    }
+
     /// <summary>Der Quellordner des Projekts — zwei Ebenen ueber dem Testprojekt.</summary>
     private static string ProjektWurzel =>
         Path.GetFullPath(Path.Combine(Projektordner, "..", ".."));

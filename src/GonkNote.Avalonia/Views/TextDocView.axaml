@@ -454,10 +454,18 @@
                     <!-- Tabelle. **Die Größe steht im Flyout und nicht in der Leiste** (§4.38):
                          Eine Werkzeugleiste trägt Werkzeuge, keine Einstellungen zu ihnen — zwei
                          Zahlenfelder, die dauerhaft danebenstehen, sind eine Einstellung, die
-                         man neunundneunzig Mal sieht und einmal braucht. Drüben löst es ein
-                         Raster zum Aufziehen; zwei Zahlen sagen dasselbe und hängen nicht an
-                         einem Schwebe-Zustand. -->
-                    <Button Classes="ribbonknopf" ToolTip.Tip="{loc:T Ed.Table.Insert}">
+                         man neunundneunzig Mal sieht und einmal braucht.
+
+                         **Seit §4.95 stehen beide Wege darin: das Raster wie drüben UND die
+                         zwei Zahlen** — und das ist kein Zaudern, sondern der Grund, aus dem
+                         hier bis dahin nur die Zahlen standen. *Das Raster hängt an einem
+                         Schwebe-Zustand*, und diese App wird mit dem **Stift** bedient; wer
+                         nicht schwebt, sieht dort nichts. Drüben führt derselbe Knopf ebenso
+                         beides (Raster + „Tabelle einfügen …"). **Vorlage ist beim Editor
+                         Windows** (§6) — aber eine Vorlage kopiert man nicht so, dass dabei
+                         etwas verlorengeht, das der Nachbau besser konnte. -->
+                    <Button x:Name="KnopfTabelle" Classes="ribbonknopf"
+                            ToolTip.Tip="{loc:T Ed.Table.Insert}">
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <views:Symbol Icon="Table" Stroke="{DynamicResource Brush.Text}"/>
                             <TextBlock Text="{loc:T Ed.Table.Insert}" VerticalAlignment="Center"/>
@@ -467,6 +475,15 @@
                         <Button.Flyout>
                             <Flyout Placement="BottomEdgeAlignedLeft">
                                 <StackPanel Width="220" Spacing="8">
+                                    <!-- Das 8×10-Raster wie drüben. **Die Zellen entstehen im
+                                         Code** (`TabellenrasterAufbauen`), weil achtzig
+                                         gleiche Kästchen in der XAML achtzig Zeilen wären, die
+                                         niemand liest. -->
+                                    <TextBlock x:Name="RasterAnzeige" FontSize="12"
+                                               Foreground="{DynamicResource Brush.TextMuted}"
+                                               Text="{loc:T Ed.Table.Insert}"/>
+                                    <UniformGrid x:Name="Tabellenraster" Columns="10" Rows="8"/>
+                                    <Border Height="1" Background="{DynamicResource Brush.Border}"/>
                                     <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto"
                                           ColumnSpacing="8" RowSpacing="6">
                                         <TextBlock Grid.Row="0" Grid.Column="0" FontSize="12"

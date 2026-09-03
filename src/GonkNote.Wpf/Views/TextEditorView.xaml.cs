@@ -286,8 +286,21 @@ public partial class TextEditorView : UserControl
 
             FontCombo.SelectedItem = sel.GetPropertyValue(TextElement.FontFamilyProperty) is FontFamily ff
                 ? ff.Source : null;
-            SizeCombo.SelectedItem = sel.GetPropertyValue(TextElement.FontSizeProperty) is double fs
-                ? FontSizes.FirstOrDefault(s => Math.Abs(s - fs) < 0.1) : null;
+            // **Einen Grad, den die Leiter nicht hat, trotzdem zeigen** (§4.95). Vorher
+            // lieferte `FirstOrDefault` hier `null`, und das Feld blieb leer: richtig
+            // gehandelt, aber der Nutzer konnte die geltende Groesse weder ablesen noch
+            // wiederherstellen. Die Ergaenzung steht in Core und gilt fuer beide Koepfe.
+            if (sel.GetPropertyValue(TextElement.FontSizeProperty) is double fs)
+            {
+                var grade = Core.Theming.Schriftliste.GradeMit(fs);
+                if (!ReferenceEquals(SizeCombo.ItemsSource, grade)) SizeCombo.ItemsSource = grade;
+                SizeCombo.SelectedItem = grade.FirstOrDefault(s => Math.Abs(s - fs) < 0.1);
+            }
+            else
+            {
+                if (!ReferenceEquals(SizeCombo.ItemsSource, FontSizes)) SizeCombo.ItemsSource = FontSizes;
+                SizeCombo.SelectedItem = null;
+            }
 
             BtnBold.IsChecked = sel.GetPropertyValue(TextElement.FontWeightProperty) is FontWeight w &&
                                 w >= FontWeights.Bold;

@@ -3,6 +3,7 @@ using Avalonia.Markup.Xaml.MarkupExtensions;
 using Avalonia.Media;
 using Avalonia.Interactivity;
 using GonkNote.Core.Text;
+using GonkNote.Core.Theming;
 using GonkNote.Services;
 
 namespace GonkNote.Views;
@@ -47,13 +48,12 @@ public partial class TextDocView
         {
             VorlagenAufbauen();
 
-            GroesseWahl.ItemsSource = Groessen
-                .Select(g => new ComboBoxItem { Content = $"{g:0.#}", Tag = g })
-                .ToList();
+            GroessenlisteSetzen(Groessen);
 
             MarkenAufbauen();
             SonderzeichenAufbauen();
             ZellfarbenAufbauen();
+            TabellenrasterAufbauen();
         }
         finally
         {
@@ -340,6 +340,11 @@ public partial class TextDocView
         if (_fuelltListen || !Schreibbar) return;
         if ((sender as ComboBox)?.SelectedItem is not ComboBoxItem { Tag: double punkte }) return;
 
+        // Derselbe Vergleich wie bei Schriftart und Papierformat (§4.95) — eine nachgetragene
+        // Auswahl darf kein Verlaufsschritt werden.
+        if (TdFormatEdit.Gemeinsam(_modell!, _auswahl).FontSize is { } gilt
+            && Math.Abs(gilt - punkte) < 0.01) return;
+
         Aendern(TdFormatEdit.Zeichen(_modell!, _auswahl,
             (abweichung, _) => abweichung.FontSize = punkte));
 
@@ -385,6 +390,15 @@ public partial class TextDocView
             VorlageMarkieren(TdListEdit.GemeinsameVorlage(_modell!, _auswahl)?.Name);
 
             double? groesse = TdFormatEdit.Gemeinsam(_modell!, _auswahl).FontSize;
+
+            // **Einen Grad, den die Leiter nicht hat, trotzdem zeigen** (§4.95). Bis dahin
+            // blieb das Feld leer — richtig gehandelt (§4.36: was die Liste nicht hat, wird
+            // nicht behauptet), aber der Nutzer konnte die geltende Größe weder ablesen noch
+            // wiederherstellen, nachdem er einmal eine andere gewählt hatte.
+            GroessenlisteSetzen(groesse is { } grad
+                ? Schriftliste.GradeMit(grad)
+                : Groessen);
+
             GroesseWahl.SelectedItem = groesse is { } pt
                 ? Eintrag(GroesseWahl, i => i.Tag is double g && Math.Abs(g - pt) < 0.01)
                 : null;
@@ -413,6 +427,28 @@ public partial class TextDocView
             if (gilt) kachel.Classes.Add("gilt");
             else kachel.Classes.Remove("gilt");
         }
+    }
+
+    /// <summary>
+    /// Füllt die Größenliste — <b>und lässt sie in Ruhe, wenn schon dasselbe darin steht.</b>
+    ///
+    /// <para>
+    /// Der Vergleich ist nicht Sparsamkeit: <see cref="ListenNachziehen"/> läuft nach jedem
+    /// Klick und jeder Pfeiltaste. Würde die Liste jedes Mal neu gebaut, verlöre die
+    /// <c>ComboBox</c> bei jedem Aufbau ihre Auswahl und meldete das — und eine gemeldete
+    /// Auswahl, die niemand getroffen hat, ist genau der Fehler aus §4.95.
+    /// </para>
+    /// </summary>
+    private void GroessenlisteSetzen(IReadOnlyList<double> grade)
+    {
+        if (GroesseWahl.ItemsSource is IReadOnlyList<ComboBoxItem> bisher
+            && bisher.Count == grade.Count
+            && bisher.Select((i, k) => i.Tag is double g && Math.Abs(g - grade[k]) < 0.01).All(x => x))
+            return;
+
+        GroesseWahl.ItemsSource = grade
+            .Select(g => new ComboBoxItem { Content = $"{g:0.##}", Tag = g })
+            .ToList();
     }
 
     private static ComboBoxItem? Eintrag(ComboBox liste, Func<ComboBoxItem, bool> passt) =>

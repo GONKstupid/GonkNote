@@ -103,8 +103,26 @@ public partial class TextDocView
 
         // Ränder, Kopf- und Fußzeile gehören nicht zum Papier — sie bleiben stehen.
         var seite = abschnitt.Page;
-        seite.WidthCm = quer ? neu.HeightCm : neu.WidthCm;
-        seite.HeightCm = quer ? neu.WidthCm : neu.HeightCm;
+        double breite = quer ? neu.HeightCm : neu.WidthCm;
+        double hoehe = quer ? neu.WidthCm : neu.HeightCm;
+
+        // **⛔ Hier saß der „ungespeichert"-Punkt beim bloßen Öffnen** (§4.93, gefunden in
+        // §4.95). Der Schutz über `_fuellt` deckt nur den Fall ab, in dem die Meldung im
+        // selben Zug kommt wie das Setzen. Diese hier kommt **einen Takt später**: Avalonia
+        // trägt den `SelectedItem` einer `ComboBox` nach, wenn ihr Template beim ersten
+        // Layoutdurchgang entsteht (`OnDataContextEndUpdate` → `EndUpdating` →
+        // `SelectionChanged`), und da steht `_fuellt` längst wieder auf `false`. Das
+        // Dokument war damit „geändert", bevor es jemand angesehen hatte.
+        //
+        // **§4.93 hatte diese Vermutung schon und hielt sie für widerlegt** — der Vergleich
+        // war dort in `Rand_Geaendert` und `Abstand_Geaendert` eingebaut worden, und der
+        // Punkt kam trotzdem. *Eine Vermutung, die am falschen Steuerelement geprüft wird,
+        // gilt danach als widerlegt.* Gefunden hat es erst eine Wegwerf-Sonde im Setter von
+        // `IsDirty`, die aufgeschrieben hat, **wer** ihn setzt.
+        if (Gleich(seite.WidthCm, breite) && Gleich(seite.HeightCm, hoehe)) return;
+
+        seite.WidthCm = breite;
+        seite.HeightCm = hoehe;
 
         SeiteGeaendert();
     }
@@ -193,12 +211,21 @@ public partial class TextDocView
         }));
     }
 
+    /// <summary>
+    /// <b>Der Vergleich davor gehört zum Muster und nicht zur Sparsamkeit</b> (§4.95): Eine
+    /// <c>ComboBox</c> meldet ihre Auswahl auch dann, wenn Avalonia sie beim Entstehen des
+    /// Templates nachträgt — dann steht <c>_fuellt</c> schon wieder auf <c>false</c>, und aus
+    /// dem Nachtragen würde ein Verlaufsschritt.
+    /// </summary>
     private void Zeilenabstand_Gewechselt(object? sender, SelectionChangedEventArgs e)
     {
         if (_fuellt || !Schreibbar) return;
         if ((sender as ComboBox)?.SelectedItem is not ComboBoxItem { Tag: string tag }) return;
         if (!double.TryParse(tag, System.Globalization.CultureInfo.InvariantCulture, out double wert))
             return;
+
+        if (TdFormatEdit.GemeinsamerAbsatz(_modell!, _auswahl).LineSpacing is { } gilt
+            && Gleich(gilt, wert)) return;
 
         Aendern(TdFormatEdit.Absatz(_modell!, _auswahl, f => f.LineSpacing = wert));
     }

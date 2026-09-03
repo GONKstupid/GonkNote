@@ -60,6 +60,8 @@ public sealed class AvaloniaThemeHost : IThemeHost
             farben[$"Color.{name}"] = wert.ToAvalonia();
         }
 
+        EingabefelderSetzen(farben, theme);
+
         var zusammen = app.Resources.MergedDictionaries;
         while (zusammen.Count <= ThemenPlatz) zusammen.Add(new ResourceDictionary());
         zusammen[ThemenPlatz] = farben;
@@ -73,6 +75,73 @@ public sealed class AvaloniaThemeHost : IThemeHost
         AkzentSetzen(app, variante, theme[ThemeColor.Accent]);
 
         ThemeChanged?.Invoke();
+    }
+
+    /// <summary>
+    /// Gibt Fluent die <b>Fläche eines Eingabefelds</b> an der Wurzel statt an jedem Blatt
+    /// (§4.95) — dasselbe Muster wie <see cref="AkzentSetzen"/>, nur für eine Fläche statt
+    /// für eine Farbe.
+    ///
+    /// <para>
+    /// <b>Fluent nimmt für Textfelder <c>TextControlBackground</c>, und das ist im dunklen
+    /// Bild fast schwarz</b> — ein Eingabefeld stand damit als schwarzer Kasten auf
+    /// <c>CardBg</c> (<c>#1A2233</c>). Sichtbar im Aufklappfeld „Tabelle einfügen", im
+    /// Zielfeld der Verweise und in jedem Zahlenfeld der Seiteneinrichtung.
+    /// </para>
+    /// <para>
+    /// <b>⛔ Und es ist zum dritten Mal dieselbe Regel, jedes Mal eine Ebene höher:</b> erst
+    /// eine <b>Farbe</b> (das Violett, §4.72–§4.86), dann eine <b>Fläche</b> (die
+    /// Aufklappfelder, §4.94), jetzt die Fläche einer ganzen <b>Steuerelementklasse</b>.
+    /// <i>Jede Fläche, die noch nicht angefasst ist, trägt Fluents Vorgabe.</i>
+    /// </para>
+    /// <para>
+    /// <b>Warum hier und nicht als Selektor in <c>Styles.axaml</c>:</b> Ein
+    /// <c>NumericUpDown</c> trägt seine <c>TextBox</c> im <b>eigenen</b> Template, und ein
+    /// Selektor <c>TextBox /template/ …</c> erreicht sie nicht — verschachtelte
+    /// <c>/template/</c>-Stufen gibt es nicht. <b>Am laufenden Programm gemessen:</b> Der
+    /// Selektor hat das Suchfeld erwischt und die Zahlenfelder daneben nicht. Ein Schlüssel,
+    /// den Fluent selbst nachschlägt, erreicht beide — und alles, was später dazukommt.
+    /// </para>
+    /// <para>
+    /// <b>Ein Eingabefeld ist Content und nicht Chrome</b> (Design-Konzept 7.3), deshalb
+    /// <c>CardBg</c> und nicht <c>ToolbarBg</c>. Im hellen Bild sind beide weiß; der
+    /// Unterschied zeigt sich erst im dunklen, und dort soll das Feld <b>heller</b> sein als
+    /// das Gerüst und nicht dunkler.
+    /// </para>
+    /// </summary>
+    private static void EingabefelderSetzen(ResourceDictionary farben, ThemeDefinition theme)
+    {
+        var flaeche = theme[ThemeColor.CardBg].ToBrush();
+        var rand = theme[ThemeColor.Border].ToBrush();
+        var text = theme[ThemeColor.Text].ToBrush();
+
+        // Die Namen stammen aus Fluent 12.1.1 und sind an der gebundenen Fassung
+        // nachgeschlagen, nicht geraten — dieselbe Methode wie bei `PART_BorderElement`.
+        // Trifft einer eines Tages nicht mehr, wirkt er **still gar nicht**: dann steht das
+        // Feld wieder in Fluents Vorgabe da, und niemand bekommt einen Fehler.
+        foreach (var name in new[]
+                 {
+                     "TextControlBackground",
+                     "TextControlBackgroundPointerOver",
+                     "TextControlBackgroundFocused",
+                     "TextControlBackgroundDisabled",
+                 })
+            farben[name] = flaeche;
+
+        foreach (var name in new[]
+                 {
+                     "TextControlBorderBrush",
+                     "TextControlBorderBrushPointerOver",
+                 })
+            farben[name] = rand;
+
+        foreach (var name in new[]
+                 {
+                     "TextControlForeground",
+                     "TextControlForegroundPointerOver",
+                     "TextControlForegroundFocused",
+                 })
+            farben[name] = text;
     }
 
     /// <summary>

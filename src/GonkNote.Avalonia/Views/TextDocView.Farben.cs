@@ -118,6 +118,12 @@ public partial class TextDocView
         if (_fuellt || !Schreibbar) return;
         if ((sender as ComboBox)?.SelectedItem is not ComboBoxItem { Tag: string familie }) return;
 
+        // **Nur reagieren, wenn sich wirklich etwas ändert** (§4.95): Eine `ComboBox` meldet
+        // ihre Auswahl auch dann, wenn Avalonia sie beim Entstehen des Templates nachträgt —
+        // und dann steht `_fuellt` schon wieder auf `false`. Genau daran hing der
+        // „ungespeichert"-Punkt beim bloßen Öffnen, nur am Papierformat statt hier.
+        if (TdFormatEdit.Gemeinsam(_modell!, _auswahl).FontFamily == familie) return;
+
         Aendern(TdFormatEdit.Zeichen(_modell!, _auswahl,
             (abweichung, _) => abweichung.FontFamily = familie));
 

@@ -86,6 +86,92 @@ public partial class TextDocView
             ? pt
             : 0.5;
 
+    // ==================== Das Einfüge-Raster (§4.95) ====================
+
+    /// <summary>
+    /// Baut das 8×10-Raster im Aufklappfeld „Tabelle einfügen" — <b>derselbe Handgriff wie
+    /// drüben</b> (<c>BuildTableGrid</c>): Überfahren zeigt „3 × 4", ein Klick fügt ein.
+    ///
+    /// <para>
+    /// <b>Es steht neben den zwei Zahlenfeldern und nicht an ihrer Stelle.</b> Ein Raster
+    /// verlangt einen Zeiger, der schwebt — mit dem Stift gibt es das nicht, und dann bliebe
+    /// nur Raten. Die Zahlen sind der Weg, der ohne Schweben trägt; das Raster der, der
+    /// schneller ist, wenn ein Zeiger da ist. <i>Zwei Wege zu demselben Ziel sind nur dann
+    /// zwei zu viel, wenn sie verschiedene Ergebnisse liefern</i> — beide rufen hier
+    /// dieselbe eine Stelle.
+    /// </para>
+    /// <para>
+    /// <b>Gerufen aus <c>ListenAufbauen</c></b>, also auch bei jedem Sprachwechsel: Die Zeile
+    /// über dem Raster kommt aus <see cref="Loc.T"/>.
+    /// </para>
+    /// </summary>
+    private void TabellenrasterAufbauen()
+    {
+        Tabellenraster.Children.Clear();
+        RasterAnzeige.Text = Loc.T("Ed.Table.Insert");
+
+        for (int z = 1; z <= 8; z++)
+            for (int sp = 1; sp <= 10; sp++)
+                Tabellenraster.Children.Add(Rasterzelle(z, sp));
+    }
+
+    private Border Rasterzelle(int zeilen, int spalten)
+    {
+        var zelle = new Border
+        {
+            Width = 17,
+            Height = 17,
+            Margin = new Avalonia.Thickness(1),
+            CornerRadius = new Avalonia.CornerRadius(2),
+            BorderThickness = new Avalonia.Thickness(1),
+            Background = Brushes.Transparent,
+            Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Hand),
+            Tag = (zeilen, spalten),
+        };
+
+        // **Über `DynamicResource` und nicht über `FindResource`** — dasselbe wie bei den
+        // Sonderzeichen-Überschriften (§4.88): Das Feld entsteht im Konstruktor, und da hängt
+        // die Zelle an keinem Baum. `FindResource` lieferte `null`, und das Raster stünde
+        // ohne Rahmen da.
+        zelle[!Border.BorderBrushProperty] =
+            new Avalonia.Markup.Xaml.MarkupExtensions.DynamicResourceExtension("Brush.Border");
+
+        zelle.PointerEntered += (_, _) => RasterZeigen(zeilen, spalten);
+        zelle.PointerPressed += (_, _) =>
+        {
+            KnopfTabelle.Flyout?.Hide();
+            Tabelle(zeilen, spalten);
+        };
+
+        return zelle;
+    }
+
+    /// <summary>
+    /// Malt die Vorschau: alles links oben von der überfahrenen Zelle bekommt die
+    /// Akzentfläche, der Rest wird wieder leer. <b>Und die Zeile darüber sagt die Zahlen</b> —
+    /// ein Raster ohne sie lässt einen die Kästchen zählen.
+    /// </summary>
+    private void RasterZeigen(int zeilen, int spalten)
+    {
+        RasterAnzeige.Text = Loc.T("Msg.TableSize", spalten, zeilen);
+
+        var flaeche = this.FindResource("Brush.AccentSoft") as IBrush ?? Brushes.Transparent;
+
+        foreach (var kind in Tabellenraster.Children)
+            if (kind is Border { Tag: ValueTuple<int, int> lage } b)
+                b.Background = lage.Item1 <= zeilen && lage.Item2 <= spalten
+                    ? flaeche
+                    : Brushes.Transparent;
+    }
+
+    private void Tabelle(int zeilen, int spalten)
+    {
+        if (!Schreibbar) return;
+
+        Aendern(TdBlockEdit.Tabelle(_modell!, _auswahl, zeilen, spalten));
+        Skia.Focus();
+    }
+
     // ==================== Füllung ====================
 
     /// <summary>

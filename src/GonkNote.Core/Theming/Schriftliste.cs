@@ -96,4 +96,33 @@ public static class Schriftliste
     public static IReadOnlyList<double> Schriftgrade { get; } =
         [8, 9, 10, 11, 12, 14, 15, 16, 18, 20, 22, 24, 28, 32, 36, 40, 48, 56, 64, 72];
 
+    /// <summary>
+    /// Die Leiter, <b>ergänzt um einen Grad, den sie nicht hat</b> — an der richtigen Stelle
+    /// einsortiert. Steht der Grad schon darin, kommt die Leiter unverändert zurück
+    /// (§4.95).
+    ///
+    /// <para>
+    /// <b>Warum es das gibt.</b> §4.93 hat gemessen, dass ein leeres Größenfeld über einem
+    /// Absatz mit Grad 15 <i>richtig gehandelt</i> war — *was die Liste nicht hat, wird nicht
+    /// behauptet* (§4.36). Es war trotzdem schlecht bedient: Der Nutzer konnte die geltende
+    /// Größe **weder ablesen noch wiederherstellen**, nachdem er einmal etwas anderes gewählt
+    /// hatte. Ein Dokument aus einer fremden Quelle bringt krumme Grade mit (11,25 pt sind
+    /// die Vorlage „Standard" selbst), und die Leiter kann nicht alle enthalten.
+    /// </para>
+    /// <para>
+    /// <b>Die Leiter selbst bleibt unangetastet</b>, und das ist der Punkt: Der Zusatz gilt
+    /// nur, solange die Marke dort steht. Ihn dauerhaft aufzunehmen hieße, dass ein einziges
+    /// fremdes Dokument die Liste für alle folgenden verlängert — und nach zehn solchen
+    /// Dokumenten wäre die Leiter keine Leiter mehr, sondern ein Verlauf.
+    /// </para>
+    /// </summary>
+    public static IReadOnlyList<double> GradeMit(double grad)
+    {
+        foreach (double g in Schriftgrade)
+            if (Math.Abs(g - grad) < 0.01) return Schriftgrade;
+
+        var liste = new List<double>(Schriftgrade) { grad };
+        liste.Sort();
+        return liste;
+    }
 }

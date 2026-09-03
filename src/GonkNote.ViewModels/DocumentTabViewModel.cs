@@ -22,6 +22,24 @@ public abstract class DocumentTabViewModel : ObservableObject
     public string Title => Item.Name;
     public ItemKind Kind => Item.Kind;
 
+    /// <summary>
+    /// „Es gibt Ungespeichertes." <b>Wer das setzt, sagt damit auch: dieses Dokument sieht
+    /// jetzt anders aus als in der Datenbank</b> — und der Reiter trägt einen Punkt.
+    ///
+    /// <para>
+    /// <b>⛔ Und deshalb darf es niemand setzen, der nur etwas *nachträgt*.</b> Der Fund aus
+    /// §4.95 saß genau da: Avalonia meldet die Auswahl einer <c>ComboBox</c> auch dann, wenn
+    /// es sie beim Entstehen des Templates nachträgt — ein Handler, der daraufhin ins Modell
+    /// schreibt, markiert ein Dokument als geändert, das niemand angefasst hat. **Der Schutz
+    /// ist ein Vergleich vor dem Schreiben und keine Sperre auf Zeit**: Eine Sperre deckt nur
+    /// den Takt ab, in dem sie steht.
+    /// </para>
+    /// <para>
+    /// <b>Gefunden hat es eine Wegwerf-Sonde an dieser Stelle</b>, die den Aufrufweg
+    /// mitgeschrieben hat — nachdem drei Vermutungen am Code gescheitert waren (§4.93).
+    /// <i>Wer wissen will, wer etwas setzt, fragt die Stelle, an der es gesetzt wird.</i>
+    /// </para>
+    /// </summary>
     public bool IsDirty
     {
         get => _isDirty;

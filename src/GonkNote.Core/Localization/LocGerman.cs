@@ -502,12 +502,12 @@ internal static class LocGerman
         // Zeile war seitdem eine Zusicherung, die nicht mehr stimmte. Abgerufen hat sie
         // zuletzt niemand. `Ed.TextOnly` darunter ist ihr *lebender* Nachbar und bleibt —
         // der beschreibt eine Ansicht, die es wirklich gibt.
-        ["Ed.TextOnly"] = "Nur Text",
-        ["Ed.TextOnly.Tip"] =
-            "Hier lässt sich der Text schreiben: tippen, löschen, auswählen, rückgängig " +
-            "machen. Formate, Tabellen und Bilder setzt weiterhin die Windows-Fassung. " +
-            "Angezeigt wird genau das, was auch exportiert würde — derselbe Umbruch, " +
-            "derselbe Zeichner.",
+        // **Und in Phase 5, Schritt ② ist `Ed.TextOnly` seinem Nachbarn gefolgt.** Er
+        // versprach: „Formate, Tabellen und Bilder setzt weiterhin die Windows-Fassung."
+        // Formate kann dieser Kopf seit §4.36, Bilder seit §4.89, Tabellen seit §4.90/§4.91
+        // — der Satz war beim Vermessen die einzige Zeile im Linux-Ribbon, die etwas
+        // Falsches behauptete. *Zum zweiten Mal an derselben Stelle: ein Satz über das, was
+        // ein Kopf noch nicht kann, altert mit jeder Runde, die etwas dazubaut.*
         // ---- Die drei neuen Reiter des Linux-Ribbons (HANDOFF §4.37, Schritt 6) ----
         // Was es drüben schon gibt, benutzt die vorhandenen Schlüssel (Ed.Table.*, Ed.Link.*,
         // Ed.Toc.*); hier stehen nur die, die der WPF-Kopf nicht braucht, weil er es anders

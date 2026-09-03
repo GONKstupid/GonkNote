@@ -29,15 +29,18 @@
                      hier wären es drei leere Flächen — ein halbes Feature ist schlechter als
                      ein fehlendes, weil niemand ihm ansieht, dass es halb ist (§4.12). -->
                 <DockPanel>
-                    <!-- **„Nur Ansicht" ist seit Schritt 5 falsch** (§4.35): getippt wird
-                         hier. Was weiterhin fehlt, sind die Formate — und das steht als Satz
-                         da und nicht als ausgegrauter Knopf. Die drei fehlenden Reiter kommen
-                         mit Schritt 6, und erst dann stünden sie nicht leer da. -->
-                    <TextBlock DockPanel.Dock="Right" VerticalAlignment="Center"
-                               Margin="0,0,14,0" FontSize="11.5"
-                               Text="{loc:T Ed.TextOnly}"
-                               ToolTip.Tip="{loc:T Ed.TextOnly.Tip}"
-                               Foreground="{DynamicResource Brush.TextMuted}"/>
+                    <!-- **Hier stand bis Phase 5, Schritt ② der Hinweis „Nur Text"**
+                         (`Ed.TextOnly`): „Formate, Tabellen und Bilder setzt weiterhin die
+                         Windows-Fassung." Das war seit ①c falsch — Formate kann dieser Kopf
+                         seit §4.36, Tabellen seit §4.90/§4.91, Bilder seit §4.89.
+
+                         ⛔ **Zum zweiten Mal derselbe Fall an derselben Stelle:** §4.35 hat
+                         hier schon einmal `Ed.ViewOnly` gestrichen, weil aus „Nur Ansicht"
+                         längst „hier wird getippt" geworden war. *Ein Satz, der beschreibt,
+                         was der Kopf noch nicht kann, altert mit jeder Runde, die etwas
+                         dazubaut — und niemand liest ihn nach.* Deshalb steht an dieser
+                         Stelle jetzt gar nichts mehr und kein dritter Satz. -->
+
 
                     <StackPanel Orientation="Horizontal" Margin="6,0,0,0">
                         <!-- Rückgängig und Wiederholen als Knöpfe (§4.84). **Die Funktion gab
@@ -77,10 +80,39 @@
                     <!-- Absatzvorlage (§4.39). **Die Tabelle steht in Core** (`TdStil`), damit
                          beide Köpfe dieselben Überschriften setzen — dieselbe Lage wie bei
                          Farben (§4.9), Schriften (§4.26) und Symbolen (§4.31), zum vierten Mal.
-                         Die Einträge entstehen im Code, weil sie aus der Tabelle kommen. -->
-                    <ComboBox x:Name="VorlageWahl" Width="150" VerticalAlignment="Center"
-                              FontSize="12" SelectionChanged="Vorlage_Gewechselt"
-                              ToolTip.Tip="{loc:T Ed.Styles}"/>
+                         Die Kacheln entstehen im Code, weil sie aus der Tabelle kommen.
+
+                         **Drei Kacheln in der Leiste, alle zehn im Aufklappfeld** — derselbe
+                         Zuschnitt wie drüben (`StyleGallery` + `StylePopup`, §7.4 des
+                         Design-Konzepts). Bis Phase 5, Schritt ② stand hier eine Klappliste;
+                         sie nannte die Vorlagen, zeigte sie aber nicht, und genau das Zeigen
+                         ist der Zweck einer Vorlage. -->
+                    <StackPanel Orientation="Horizontal">
+                        <StackPanel x:Name="Vorlagenkacheln" Orientation="Horizontal"/>
+                        <!-- **Der Pfeil als Symbol und nicht als Zeichen „⌄"**: Das Zeichen
+                             sitzt in seinem Schriftkasten hoch und stand dadurch am oberen
+                             Rand der 44 px hohen Kachelreihe statt daneben. Dieselbe Form wie
+                             drüben (`Icon ChevronDown`) und wie am Knopf „Exportieren". -->
+                        <Button x:Name="KnopfVorlagen" Classes="flach" Width="20" Height="44"
+                                Padding="0" ToolTip.Tip="{loc:T Ed.Styles.All}">
+                            <views:Symbol Icon="ChevronDown" Size="10"
+                                          Stroke="{DynamicResource Brush.TextMuted}"/>
+                            <Button.Flyout>
+                                <Flyout Placement="BottomEdgeAlignedLeft">
+                                    <StackPanel>
+                                        <TextBlock Text="{loc:T Ed.Styles}" FontWeight="SemiBold"
+                                                   Margin="2,0,0,8"
+                                                   Foreground="{DynamicResource Brush.Text}"/>
+                                        <!-- 340 und nicht die 320 von drüben: drei Kacheln je Zeile, und
+                                             die sind hier 104 breit statt 96 (siehe `stilkachel`).
+                                             Bei 320 standen zwei nebeneinander und das Feld wurde
+                                             so hoch, dass es die halbe Seite verdeckte. -->
+                                        <WrapPanel x:Name="VorlagenFeld" Width="340"/>
+                                    </StackPanel>
+                                </Flyout>
+                            </Button.Flyout>
+                        </Button>
+                    </StackPanel>
 
                     <Border Classes="trenner"/>
 
@@ -276,29 +308,11 @@
                          TextPointer/TextRange, und die gibt es nur unter Windows. Die Suche
                          ist deshalb in Core **neu gegen das Modell** geschrieben
                          (`TdSuche`), nicht umgezogen. -->
-                    <!-- Navigator (§4.85). **Die Liste kommt aus Core** — `TdToc.Eintraege`
-                         rechnet sie fuer das Inhaltsverzeichnis ohnehin, und eine zweite
-                         Sammelschleife im Kopf waere eine zweite Antwort auf "was ist hier
-                         eine Ueberschrift". Der WPF-Kopf hat genau die (`CollectHeadings`
-                         ueber das FlowDocument), und deshalb steht sein Navigator auch nicht
-                         in Core. -->
-                    <ToggleButton x:Name="KnopfNavigator" Classes="ribbonknopf"
-                                  ToolTip.Tip="{loc:T Ed.Navigator.Tip}"
-                                  IsCheckedChanged="NavigatorUmschalten">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <views:Symbol Icon="List" Stroke="{DynamicResource Brush.Text}"/>
-                            <TextBlock Text="{loc:T Ed.Navigator}" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </ToggleButton>
-
-                    <ToggleButton x:Name="KnopfSuchen" Classes="ribbonknopf"
-                                  ToolTip.Tip="{loc:T Ed.Find.Tip}"
-                                  IsCheckedChanged="SuchleisteUmschalten">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <views:Symbol Icon="Search" Stroke="{DynamicResource Brush.Text}"/>
-                            <TextBlock Text="{loc:T Ed.Find}" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </ToggleButton>
+                    <!-- **Navigator (§4.85) und Suche (§4.80) stehen nicht mehr hier**, sondern
+                         in der linken Icon-Leiste unten in dieser Datei — Design-Konzept 7.5
+                         und derselbe Ort wie drüben. Sie ändern die *Ansicht* und nicht den
+                         Text; zwischen Fett, Aufzählung und Einzug standen sie an der Stelle,
+                         an der §4.38 schon einmal Zoom und Zählung weggeräumt hat. -->
 
                     <Button x:Name="KnopfExport" Classes="ribbonknopf"
                             ToolTip.Tip="{loc:T Ed.Export.Tip}">
@@ -1038,8 +1052,13 @@
 
              Sie verschwindet mit den Seiten: „Zurück / Vor" über einem Dokument, das gar nicht
              angezeigt wird, sind zwei Knöpfe, die nichts tun können. -->
+        <!-- **`Brush.SidebarBg` und nicht `Brush.ToolbarBg`** (Design-Konzept 7.8, und
+             drüben genauso): Die Statusleiste gehört zum Fenstergerüst und nicht zur
+             Werkzeugleiste. Im hellen Erscheinungsbild fiel das nicht auf — dort sind
+             `CardBg` und `ToolbarBg` beide weiß —, im dunklen stand sie als hellerer
+             Streifen unter der dunkleren Seitenleiste daneben. -->
         <Border x:Name="Seitenleiste" DockPanel.Dock="Bottom" IsVisible="False"
-                Background="{DynamicResource Brush.ToolbarBg}"
+                Background="{DynamicResource Brush.SidebarBg}"
                 BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,1,0,0"
                 Padding="10,3">
             <DockPanel>
@@ -1114,6 +1133,35 @@
                         ToolTip.Tip="{loc:T Ed.Find.Close}">
                     <views:Symbol Icon="Close" Size="10" Stroke="{DynamicResource Brush.Text}"/>
                 </Button>
+            </StackPanel>
+        </Border>
+
+        <!-- ==================== Linke Icon-Leiste (Design-Konzept 7.5) ====================
+             **Nur Symbole, keine Beschriftungen** — dieselbe Leiste wie drüben (42 px,
+             `SideIconButton`). Sie trägt, was die Ansicht öffnet und zuklappt: Suche und
+             Navigator. Beide standen bis Phase 5, Schritt ② beschriftet im Reiter „Start".
+
+             **Sie steht vor dem Navigator im DockPanel** und ist deshalb die äußere der
+             beiden linken Flächen — das Panel, das der Knopf aufklappt, schiebt sich neben
+             den Knopf und nicht darüber. -->
+        <Border x:Name="Symbolleiste" DockPanel.Dock="Left" Width="42" IsVisible="False"
+                Background="{DynamicResource Brush.SidebarBg}"
+                BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,0,1,0">
+            <StackPanel Margin="0,6,0,0">
+                <ToggleButton x:Name="KnopfSuchen" Classes="seitensymbol"
+                              ToolTip.Tip="{loc:T Ed.Find.Tip}"
+                              ToolTip.Placement="Right"
+                              IsCheckedChanged="SuchleisteUmschalten">
+                    <views:Symbol Icon="Search"
+                                  Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ToggleButton}}"/>
+                </ToggleButton>
+                <ToggleButton x:Name="KnopfNavigator" Classes="seitensymbol"
+                              ToolTip.Tip="{loc:T Ed.Navigator.Tip}"
+                              ToolTip.Placement="Right"
+                              IsCheckedChanged="NavigatorUmschalten">
+                    <views:Symbol Icon="Outline"
+                                  Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ToggleButton}}"/>
+                </ToggleButton>
             </StackPanel>
         </Border>
 

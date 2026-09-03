@@ -59,6 +59,23 @@ public sealed class Symbol : Control
     {
         AffectsRender<Symbol>(IconProperty, StrokeProperty, FillProperty, WeightProperty);
         AffectsMeasure<Symbol>(SizeProperty);
+
+        // **Mittig statt gestreckt** (Phase 5, Schritt ②). Avalonias Vorgabe für ein
+        // `Control` ist `Stretch`: Der Kasten wuchs auf die Höhe seines Nachbarn, gezeichnet
+        // wurde aber weiter ab (0,0) — und damit stand in jedem Knopf aus Symbol **und**
+        // Beschriftung das Symbol **oben** und der Text mittig. Sichtbar an neun Stellen
+        // („Überschriften", „Suchen", „Exportieren", „Bild", „Diagramm", „Tabelle einfügen",
+        // „Ränder", „Abstände", „Hintergrundbild") und an jedem Aufklapp-Pfeil.
+        //
+        // **Hier und nicht an den Fundstellen:** Ein `VerticalAlignment="Center"` je Symbol
+        // wären über dreißig Stellen, von denen die nächste wieder vergessen wird — dieselbe
+        // Überlegung wie bei Größe und Strichstärke weiter oben. Der WPF-Kopf hat das Problem
+        // nicht, weil sein `Symbol` von `FrameworkElement` erbt und in einem `StackPanel`
+        // ohnehin auf seine Wunschgröße schrumpft.
+        HorizontalAlignmentProperty.OverrideDefaultValue<Symbol>(
+            global::Avalonia.Layout.HorizontalAlignment.Center);
+        VerticalAlignmentProperty.OverrideDefaultValue<Symbol>(
+            global::Avalonia.Layout.VerticalAlignment.Center);
     }
 
     /// <summary>Wofür das Symbol steht.</summary>

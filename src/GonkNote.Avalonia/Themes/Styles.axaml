@@ -669,4 +669,138 @@
         <Setter Property="Padding" Value="10,5"/>
     </Style>
 
+    <!-- ==== Aufklappflächen (Phase 5, Schritt ②) ====================================== -->
+
+    <!-- **Ein Flyout ist ein Popover und damit `Brush.CardBg`** (Design-Konzept 5 und 8) —
+         bis Schritt ② trug jedes Flyout dieses Kopfs Fluents Vorgabefläche, ein Grau, das in
+         keiner der beiden Farbtabellen steht. Sichtbar an allem, was ①c gebaut hat:
+         Markenauswahl und Sonderzeichen (§4.88), „Tabelle einfügen", „Genaue Größe",
+         Zellfarben (§4.90).
+
+         ⛔ **Das ist dieselbe Regel wie beim Violett, nur eine Ebene höher:** *Jede Fläche,
+         die noch nicht angefasst ist, trägt Fluents Vorgabe.* Beim Akzent war es eine Farbe
+         und ließ sich an der Wurzel setzen (§4.86); hier ist es eine **Fläche**, und die
+         Wurzel dafür ist dieser eine Selektor. Der WPF-Kopf schreibt seine Popups seit jeher
+         von Hand aus (`Brush.CardBg` + `Brush.Border` + 8 px + Schatten, TextEditorView.xaml)
+         — hier steht dasselbe einmal statt neunmal. -->
+    <Style Selector="FlyoutPresenter">
+        <Setter Property="Background" Value="{DynamicResource Brush.CardBg}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="8"/>
+        <Setter Property="Padding" Value="10"/>
+    </Style>
+
+    <!-- Eine Kachel in einem Aufklappfeld: Marken, Sonderzeichen, Zellfarben.
+         **Flach wie drüben** (`FlatButton` in BuildSymbolGrid) — sie standen bis Schritt ②
+         als graue Fluent-Knöpfe im Feld, und ein Raster aus 57 grauen Kästen sagt weniger
+         als eines aus 57 Zeichen. -->
+    <Style Selector="Button.kachel">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="CornerRadius" Value="5"/>
+        <Setter Property="Foreground" Value="{DynamicResource Brush.Text}"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="Cursor" Value="Hand"/>
+    </Style>
+    <Style Selector="Button.kachel:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource Brush.Hover}"/>
+    </Style>
+    <Style Selector="Button.kachel:pressed /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource Brush.Pressed}"/>
+    </Style>
+
+    <!-- ==== Formatvorlagen-Kachel (Design-Konzept 7.4) ================================ -->
+
+    <!-- **Eine Vorschau der echten Seite und kein Listeneintrag.** Bis Schritt ② stand hier
+         eine Klappliste: zehn Zeilen Text, aus denen nicht hervorging, wie „Überschrift 2"
+         aussieht — genau die Auskunft, für die es eine Vorlage gibt. Drüben stehen seit jeher
+         Kacheln (`StyleCard` in TextEditorView.xaml), und **beim Editor ist Windows die
+         Vorlage** (§6).
+
+         **Die Fläche ist das Papier und nicht `Brush.CardBg`** — die Kachel zeigt, wie der
+         Absatz auf der Seite aussehen wird, und die Seite ist in beiden Erscheinungsbildern
+         weiß (`TdRenderer.Papier`, §1: ein Dokument ist Papier). Deshalb steht hier ein
+         fester Wert und keiner aus der Farbtabelle; **es ist die eine Stelle, an der §5
+         Nr. 27 nicht gilt**, und sie gilt hier nicht, weil die Kachel gar keine
+         Bedienfläche ist, sondern ein Ausschnitt des Dokuments. Derselbe feste Wert steht
+         drüben als `PageBgBrush`. -->
+    <Style Selector="Button.stilkachel">
+        <!-- **104 und nicht die 96 von drüben.** Die Zahl ist keine Abweichung um ihrer
+             selbst willen: Der WPF-Kopf setzt seine Vorschau in „Segoe UI", dieser hier in
+             der mitgelieferten Schrift, und die ist breiter — „Überschrift 1" brach bei 96
+             auf zwei Zeilen um, während „Überschrift 2" einzeilig blieb. **Gleich aussehen
+             heißt hier gleich umbrechen, nicht gleich breit sein**; die Schriftgröße der
+             Vorschau ist deshalb dieselbe geblieben. -->
+        <Setter Property="Width" Value="104"/>
+        <Setter Property="Height" Value="44"/>
+        <Setter Property="Margin" Value="2,0"/>
+        <Setter Property="Padding" Value="2,0"/>
+        <Setter Property="CornerRadius" Value="4"/>
+        <Setter Property="Background" Value="#FFFFFF"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border}"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="Cursor" Value="Hand"/>
+    </Style>
+    <Style Selector="Button.stilkachel:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="#FFFFFF"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource Brush.Accent}"/>
+    </Style>
+    <Style Selector="Button.stilkachel:pressed /template/ ContentPresenter">
+        <Setter Property="Background" Value="#FFFFFF"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource Brush.Accent}"/>
+    </Style>
+    <!-- Die geltende Vorlage: 2 px Akzentrahmen. **Linie statt Fläche** (Design-Konzept 4,
+         Punkt 3) — eine gefüllte Kachel verdeckte die Vorschau, die ihr Zweck ist. -->
+    <Style Selector="Button.stilkachel.gilt">
+        <Setter Property="BorderThickness" Value="2"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource Brush.Accent}"/>
+    </Style>
+    <Style Selector="Button.stilkachel.gilt:pointerover /template/ ContentPresenter">
+        <Setter Property="BorderBrush" Value="{DynamicResource Brush.Accent}"/>
+    </Style>
+
+    <!-- ==== Linke Icon-Leiste des Editors (Design-Konzept 7.5) ======================== -->
+
+    <!-- **Ohne Beschriftung, mit 3-px-Balken am linken Rand, wenn der Bereich offen ist** —
+         derselbe Entwurf wie `SideIconButton` im WPF-Kopf. Bis Schritt ② standen Navigator
+         und Suche als beschriftete Knöpfe **im Reiter „Start"**: zwei Ansichtsschalter
+         zwischen lauter Werkzeugen, die den Text ändern — dieselbe Verwechslung, die §4.38
+         schon einmal für Zoom und Zählung aufgelöst hat. -->
+    <Style Selector="ToggleButton.seitensymbol">
+        <Setter Property="Width" Value="42"/>
+        <Setter Property="Height" Value="40"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="CornerRadius" Value="0"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Foreground" Value="{DynamicResource Brush.TextMuted}"/>
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Panel Background="Transparent">
+                    <Border Name="Flaeche" Background="Transparent" CornerRadius="6"
+                            Margin="6,4"/>
+                    <Rectangle Name="Balken" Width="3" HorizontalAlignment="Left"
+                               IsVisible="False" Fill="{DynamicResource Brush.Accent}"/>
+                    <ContentPresenter Content="{TemplateBinding Content}"
+                                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Panel>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <Style Selector="ToggleButton.seitensymbol:pointerover /template/ Border#Flaeche">
+        <Setter Property="Background" Value="{DynamicResource Brush.Hover}"/>
+    </Style>
+    <Style Selector="ToggleButton.seitensymbol:checked /template/ Border#Flaeche">
+        <Setter Property="Background" Value="{DynamicResource Brush.Hover}"/>
+    </Style>
+    <Style Selector="ToggleButton.seitensymbol:checked /template/ Rectangle#Balken">
+        <Setter Property="IsVisible" Value="True"/>
+    </Style>
+
 </Styles>

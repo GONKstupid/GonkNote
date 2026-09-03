@@ -101,12 +101,12 @@ public partial class TextDocView
         {
             var kachel = new Button
             {
+                // Wie die Marken- und Sonderzeichenkacheln: `kachel` liefert Form und
+                // Zeiger, die Farbe setzt die Zeile darunter (Schritt ②).
+                Classes = { "kachel" },
                 Width = 26,
                 Height = 26,
                 Margin = new Avalonia.Thickness(1),
-                Padding = new Avalonia.Thickness(0),
-                CornerRadius = new Avalonia.CornerRadius(5),
-                Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Hand),
                 Background = farbe.Hex is { } hex
                     ? new SolidColorBrush(Color.Parse(hex))
                     : Brushes.Transparent,

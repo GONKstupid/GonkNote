@@ -471,13 +471,9 @@ internal static class LocEnglish
         // Shown inside a table of contents with no headings yet — otherwise the
         // container would have no height and the field would be there but unfindable.
         ["Td.Toc.Empty"] = "Table of contents — no headings in this document yet",
-        // Gegenstuecke zu Ed.ViewOnly* in LocGerman -- in Phase 5 zusammen entfallen, weil
-        // im Linux-Kopf seit §4.35 geschrieben wird (siehe dort).
-        ["Ed.TextOnly"] = "Text only",
-        ["Ed.TextOnly.Tip"] =
-            "You can write the text here: type, delete, select, undo. Formatting, tables and " +
-            "pictures are still set in the Windows edition. What you see is exactly what " +
-            "would be exported — same layout, same renderer.",
+        // Gegenstuecke zu Ed.ViewOnly* und Ed.TextOnly* in LocGerman -- in Phase 5 zusammen
+        // entfallen, weil der Linux-Kopf seit §4.35 schreibt und seit ①c auch formatiert
+        // (siehe dort).
         // Gegenstuecke zu den drei neuen Reitern in LocGerman (§4.37, siehe dort).
         ["Ed.Break.Page"] = "Page break",
         ["Ed.Break.Page.Tip"] = "Continue on a new page from here",

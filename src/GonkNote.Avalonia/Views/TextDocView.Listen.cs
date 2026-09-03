@@ -1,5 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml.MarkupExtensions;
+using Avalonia.Media;
 using Avalonia.Interactivity;
 using GonkNote.Core.Text;
 using GonkNote.Services;
@@ -44,9 +45,7 @@ public partial class TextDocView
         _fuelltListen = true;
         try
         {
-            VorlageWahl.ItemsSource = TdStil.Alle
-                .Select(s => new ComboBoxItem { Content = Loc.T(s.Key), Tag = s.Name })
-                .ToList();
+            VorlagenAufbauen();
 
             GroesseWahl.ItemsSource = Groessen
                 .Select(g => new ComboBoxItem { Content = $"{g:0.#}", Tag = g })
@@ -99,12 +98,13 @@ public partial class TextDocView
     {
         var kachel = new Button
         {
+            // `kachel` statt der Fluent-Vorgabe (Schritt ②): ohne die Klasse standen hier
+            // graue Kästen, und ein Raster aus grauen Kästen zeigt seine Zeichen schlechter
+            // als eines ohne. Drüben ist es `FlatButton` (BuildSymbolGrid).
+            Classes = { "kachel" },
             Width = 30,
             Height = 30,
             Margin = new Avalonia.Thickness(1),
-            Padding = new Avalonia.Thickness(0),
-            CornerRadius = new Avalonia.CornerRadius(5),
-            Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Hand),
             Content = new TextBlock
             {
                 Text = beschriftung,
@@ -176,12 +176,13 @@ public partial class TextDocView
     {
         var kachel = new Button
         {
+            // `kachel` statt der Fluent-Vorgabe (Schritt ②): ohne die Klasse standen hier
+            // graue Kästen, und ein Raster aus grauen Kästen zeigt seine Zeichen schlechter
+            // als eines ohne. Drüben ist es `FlatButton` (BuildSymbolGrid).
+            Classes = { "kachel" },
             Width = 30,
             Height = 30,
             Margin = new Avalonia.Thickness(1),
-            Padding = new Avalonia.Thickness(0),
-            CornerRadius = new Avalonia.CornerRadius(5),
-            Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Hand),
             Content = new TextBlock
             {
                 Text = zeichen,
@@ -217,16 +218,119 @@ public partial class TextDocView
         RibbonNachziehen();
     }
 
-    // ==================== Vorlagen ====================
+    // ==================== Vorlagen (Design-Konzept 7.4) ====================
 
-    private void Vorlage_Gewechselt(object? sender, SelectionChangedEventArgs e)
+    /// <summary>
+    /// Alle Kacheln, die eine Vorlage zeigen — <b>die drei in der Leiste und die zehn im
+    /// Aufklappfeld zusammen</b>. Die Liste dient nur dem Nachziehen des Akzentrahmens:
+    /// „Überschrift 1" steht zweimal da und muss beide Male gleich aussehen.
+    /// </summary>
+    private readonly List<Button> _stilkacheln = [];
+
+    /// <summary>
+    /// Die drei Vorlagen, die <b>ohne Aufklappen</b> erreichbar sind. <b>Dieselben drei wie
+    /// drüben</b> (<c>InlineStyleNames</c> im WPF-Kopf): Standard und die beiden obersten
+    /// Überschriften decken ab, was beim Schreiben ständig gebraucht wird; alles Weitere ist
+    /// einen Klick entfernt. Verglichen wird am <b>internen</b> Namen und nicht am
+    /// übersetzten — <see cref="TdStil.Name"/> steht dafür in der Tabelle.
+    /// </summary>
+    private static readonly string[] VorlagenInLeiste =
+        ["Standard", "Überschrift 1", "Überschrift 2"];
+
+    /// <summary>
+    /// Baut beide Kachelfelder aus <see cref="TdStil.Alle"/>. <b>Wie die Listen wird auch das
+    /// beim Sprachwechsel wiederholt</b> — die Beschriftung einer Kachel ist der übersetzte
+    /// Name der Vorlage.
+    /// </summary>
+    private void VorlagenAufbauen()
     {
-        if (_fuelltListen || !Schreibbar) return;
-        if ((sender as ComboBox)?.SelectedItem is not ComboBoxItem { Tag: string name }) return;
-        if (TdStil.MitNamen(name) is not { } stil) return;
+        Vorlagenkacheln.Children.Clear();
+        VorlagenFeld.Children.Clear();
+        _stilkacheln.Clear();
+
+        foreach (var stil in TdStil.Alle)
+        {
+            if (VorlagenInLeiste.Contains(stil.Name))
+                Vorlagenkacheln.Children.Add(Stilkachel(stil, imFeld: false));
+
+            VorlagenFeld.Children.Add(Stilkachel(stil, imFeld: true));
+        }
+    }
+
+    /// <summary>
+    /// Eine Kachel: die Vorlage, gezeigt statt genannt.
+    ///
+    /// <para>
+    /// <b>Die Vorschau übernimmt Farbe, Fett und Kursiv der Vorlage, aber nicht ihre
+    /// Größe</b> — „Titel" sind 25,5 pt, und eine Kachel von 44 px Höhe kann die nicht
+    /// zeigen. Gestaucht wird nach derselben Formel wie drüben
+    /// (<c>Math.Min(14, Size * 0,5 + 4)</c>), damit die Abstufung erhalten bleibt: Die
+    /// Kachel soll die Rangfolge zeigen, nicht die Punktzahl.
+    /// </para>
+    /// <para>
+    /// <b>Die Tinte ist fest und kommt nicht aus der Farbtabelle</b> — sie liegt auf der
+    /// Papierfläche der Kachel, und die ist in beiden Erscheinungsbildern weiß
+    /// (<c>TdRenderer.Papier</c>). Ein <c>Brush.Text</c> wäre im dunklen Bild hell und
+    /// stünde unsichtbar auf Weiß. Derselbe feste Wert steht drüben als <c>InkBrush</c>.
+    /// </para>
+    /// </summary>
+    private Button Stilkachel(TdStil stil, bool imFeld)
+    {
+        var vorschau = new TextBlock
+        {
+            Text = Loc.T(stil.Key),
+            FontSize = Math.Min(14, stil.SizePt * 0.5 + 4),
+            FontWeight = stil.Bold ? Avalonia.Media.FontWeight.SemiBold
+                                   : Avalonia.Media.FontWeight.Normal,
+            FontStyle = stil.Italic ? Avalonia.Media.FontStyle.Italic
+                                    : Avalonia.Media.FontStyle.Normal,
+            TextAlignment = Avalonia.Media.TextAlignment.Center,
+            TextWrapping = TextWrapping.Wrap,
+            Foreground = new SolidColorBrush(Color.Parse(stil.ColorHex ?? Papierschrift)),
+        };
+
+        var kachel = new Button
+        {
+            Classes = { "stilkachel" },
+            Content = vorschau,
+            Tag = stil.Name,
+        };
+
+        if (imFeld) kachel.Margin = new Avalonia.Thickness(2, 2);
+
+        ToolTip.SetTip(kachel, stil.Heading > 0
+            ? Loc.T("Msg.HeadingTip", Loc.T(stil.Key), stil.Heading)
+            : Loc.T(stil.Key));
+
+        Avalonia.Automation.AutomationProperties.SetName(
+            kachel, Loc.T("Msg.StyleName", Loc.T(stil.Key)));
+
+        kachel.Click += (_, _) =>
+        {
+            Vorlage(stil);
+
+            // Das Aufklappfeld schließt sich nicht von selbst, wenn der Klick auf einem
+            // Knopf darin landet — und ein Feld, das nach der Wahl offen stehen bleibt,
+            // verdeckt genau den Absatz, den es gerade geändert hat.
+            if (imFeld) KnopfVorlagen.Flyout?.Hide();
+        };
+
+        _stilkacheln.Add(kachel);
+        return kachel;
+    }
+
+    /// <summary>Die Schreibfarbe auf der Papierfläche einer Kachel — <c>Brush.Text</c> hell.</summary>
+    private const string Papierschrift = "#1B2B4B";
+
+    private void Vorlage(TdStil stil)
+    {
+        if (!Schreibbar) return;
 
         Aendern(TdListEdit.Vorlage(_modell!, _auswahl, stil));
         RibbonNachziehen();
+
+        // Wie bei den Marken (§4.86): ohne den Rücksprung gilt danach kein Kürzel mehr.
+        Skia.Focus();
     }
 
     // ==================== Schriftgröße ====================
@@ -255,13 +359,14 @@ public partial class TextDocView
     /// </summary>
     private void ListenNachziehen()
     {
-        if (VorlageWahl is null) return;
+        if (GroesseWahl is null) return;
 
         _fuelltListen = true;
         try
         {
             bool an = Schreibbar;
-            VorlageWahl.IsEnabled = an;
+            foreach (var kachel in _stilkacheln) kachel.IsEnabled = an;
+            KnopfVorlagen.IsEnabled = an;
             GroesseWahl.IsEnabled = an;
             SchalterPunkte.IsEnabled = an;
             SchalterNummern.IsEnabled = an;
@@ -270,17 +375,14 @@ public partial class TextDocView
 
             if (!an)
             {
-                VorlageWahl.SelectedItem = null;
+                VorlageMarkieren(null);
                 GroesseWahl.SelectedItem = null;
                 SchalterPunkte.IsChecked = false;
                 SchalterNummern.IsChecked = false;
                 return;
             }
 
-            var vorlage = TdListEdit.GemeinsameVorlage(_modell!, _auswahl);
-            VorlageWahl.SelectedItem = vorlage is { } gefunden
-                ? Eintrag(VorlageWahl, i => (string?)i.Tag == gefunden.Name)
-                : null;
+            VorlageMarkieren(TdListEdit.GemeinsameVorlage(_modell!, _auswahl)?.Name);
 
             double? groesse = TdFormatEdit.Gemeinsam(_modell!, _auswahl).FontSize;
             GroesseWahl.SelectedItem = groesse is { } pt
@@ -293,6 +395,23 @@ public partial class TextDocView
         finally
         {
             _fuelltListen = false;
+        }
+    }
+
+    /// <summary>
+    /// Setzt den Akzentrahmen auf die Kachel dieser Vorlage — und nimmt ihn von allen
+    /// anderen. <b><c>null</c> heißt „uneinig oder keine"</b>, und dann trägt keine Kachel
+    /// ihn: Dieselbe Regel wie bei der Klappliste davor (§4.36). Ein Rahmen, der über einer
+    /// gemischten Auswahl auf „Standard" liegt, behauptet etwas Falsches.
+    /// </summary>
+    private void VorlageMarkieren(string? name)
+    {
+        foreach (var kachel in _stilkacheln)
+        {
+            bool gilt = name != null && (string?)kachel.Tag == name;
+
+            if (gilt) kachel.Classes.Add("gilt");
+            else kachel.Classes.Remove("gilt");
         }
     }
 

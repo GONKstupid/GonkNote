@@ -182,6 +182,7 @@ public partial class TextDocView : UserControl
         HinweisUebernahme.IsVisible = _modell == null;
         Blaetter.IsVisible = _modell != null;
         Seitenleiste.IsVisible = _modell != null;
+        Symbolleiste.IsVisible = _modell != null;
         KnopfExport.IsEnabled = _modell != null;
 
         // **Der Warnstreifen „Windows-Fassung führt" ist mit Schritt 7 entfallen** (§4.48):

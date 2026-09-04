@@ -1,0 +1,146 @@
+# Das Flatpak-Manifest des Linux-Kopfs (HANDOFF §6, Phase 5, Schritt ③).
+#
+# ▶ Es baut NICHT aus dem Quelltext. Gebaut wird vorher mit `dotnet publish` (siehe
+#   bauen.sh), und dieses Manifest packt das Ergebnis ein. Der Grund ist der Ordner
+#   ~/.nuget: flatpak-builder baut ohne Netz, und ein NuGet-Wiederherstellen im Sandkasten
+#   verlangt entweder Netzfreigabe oder einen mitgelieferten Paketspiegel. Beides ist mehr
+#   Maschinerie, als eine Erprobung braucht — und beides verdeckt, was hier gemessen werden
+#   soll: läuft der fertige Kopf in der Sandbox.
+#
+# ▶ Selbstenthalten veröffentlicht (`--self-contained`). Damit steckt die .NET-Laufzeit im
+#   Paket, und die Freedesktop-Plattform muss keine mitbringen — es gibt keine
+#   `org.freedesktop.Sdk.Extension.dotnet` für net10.0.
+#
+# ▶ Tesseract und Leptonica werden hier MITGEBAUT und nicht vorausgesetzt. Sie stehen in
+#   keiner Freedesktop-Plattform, und ohne sie meldet die Texterkennung ehrlich „nicht
+#   verfügbar" (HANDOFF §4.63, §5 Nr. 18). `TesseractBindung.Suchpfade` in Core hat
+#   `/app/lib` seit jeher an erster Stelle — genau für diesen Fall.
+#
+# ▶ fontconfig und freetype bringt die Plattform mit. Ohne sie zeichnet SkiaSharp KEINE
+#   Schrift (HANDOFF §6, Schritt ③) — deshalb steht es hier, obwohl nichts zu tun ist.
+id: io.github.gonkstupid.GonkNote
+runtime: org.freedesktop.Platform
+runtime-version: '25.08'
+sdk: org.freedesktop.Sdk
+command: gonknote
+
+finish-args:
+  # ⛔ `--socket=x11` und NICHT `--socket=fallback-x11`. Gemessen, nicht gewählt:
+  #
+  #    Avalonia 12 hat unter Linux nur den X11-Rücken (`UsePlatformDetect` → `UseX11`),
+  #    auch in einer Wayland-Sitzung — draußen läuft der Kopf über XWayland. `fallback-x11`
+  #    gibt den X11-Socket aber NUR frei, wenn kein Wayland-Socket da ist. In einer
+  #    GNOME-Wayland-Sitzung heißt das: kein X11, und der Kopf stirbt beim Start mit
+  #    „XOpenDisplay failed". Genau so ist er beim ersten Lauf gestorben.
+  #
+  #    ▶ `--socket=wayland` bleibt trotzdem stehen: kostet nichts, und sobald Avalonia
+  #      einen Wayland-Rücken mitbringt, ist das hier nicht die Stelle, die es aufhält.
+  - --socket=wayland
+  - --socket=x11
+  - --share=ipc
+  - --device=dri
+  # Der Stift. `--device=dri` reicht dafür nicht: Avalonia liest unter X11 über XInput2,
+  # unter Wayland über das Tablet-Protokoll des Verbunds — beides läuft über den Socket,
+  # nicht über /dev/input. Steht hier als Erinnerung, dass hier NICHTS zu öffnen ist:
+  # `--device=input` wäre die falsche Antwort und gäbe rohen evdev-Zugriff.
+  #
+  # ▶ Dateien: bewusst KEIN --filesystem=home. Öffnen, Importieren und Exportieren laufen
+  #   über das Portal (Avalonias StorageProvider), und das Portal gibt genau die eine
+  #   gewählte Datei frei. Ob das im Alltag trägt, ist eine der Fragen von Schritt ③ und
+  #   wird gemessen, nicht angenommen.
+  - --talk-name=org.freedesktop.portal.Desktop
+
+modules:
+
+  # ---------------------------------------------------------------- Leptonica
+  # Die Bildbibliothek unter Tesseract. Der Kopf sucht `libleptonica.so.6`
+  # (TesseractBindung.LeptonicaHauptversion) — 1.85.0 liefert genau diese SOVERSION.
+  - name: leptonica
+    buildsystem: cmake-ninja
+    # ⛔ Pflicht: Leptonicas CMakeLists bricht ab, wenn im Quellordner gebaut wird.
+    builddir: true
+    config-opts:
+      - -DCMAKE_BUILD_TYPE=Release
+      - -DBUILD_SHARED_LIBS=ON
+      - -DBUILD_PROG=OFF   # die Kommandozeilenwerkzeuge braucht niemand im Paket
+      - -DSW_BUILD=OFF
+    sources:
+      - type: archive
+        url: https://github.com/DanBloomberg/leptonica/releases/download/1.85.0/leptonica-1.85.0.tar.gz
+        sha256: 3745ae3bf271a6801a2292eead83ac926e3a9bc1bf622e9cd4dd0f3786e17205
+    cleanup:
+      - /include
+      - /lib/cmake
+      - /lib/pkgconfig
+      - /lib/*.la
+
+  # ---------------------------------------------------------------- Tesseract
+  # Der Kopf sucht `libtesseract.so.5` (TesseractBindung.TesseractHauptversion). 5.5.1
+  # liefert sie. Die Trainingswerkzeuge bleiben draußen: sie ziehen Pango, Cairo und ICU
+  # nach und werden zur Laufzeit nicht gebraucht.
+  #
+  # Die SPRACHDATEN kommen NICHT von hier, sondern aus dem Repo (tessdata/, deu+eng) —
+  # auf dem Laptop gemessen (HANDOFF §4.63): Systempakete liefern `deu` nicht mit.
+  - name: tesseract
+    buildsystem: cmake-ninja
+    builddir: true
+    config-opts:
+      - -DCMAKE_BUILD_TYPE=Release
+      - -DBUILD_SHARED_LIBS=ON
+      - -DBUILD_TRAINING_TOOLS=OFF
+      - -DDISABLE_CURL=ON
+      - -DDISABLE_ARCHIVE=ON
+    # ⛔ Der CMake-Bau vergibt SOVERSION **5.5** und legt damit `libtesseract.so.5.5` an —
+    #    Arch und Debian bauen mit Autotools und bekommen `libtesseract.so.5`. Genau die
+    #    sucht `TesseractBindung.SonameWaehlen` (Stufe 1, TesseractHauptversion = 5).
+    #
+    #    Ohne diese Zeile fiele die Wahl auf Stufe 3 — die unversionierte `libtesseract.so`,
+    #    die nur zufällig noch dasteht, weil unten kein `/lib/*.so` aufgeräumt wird. Das
+    #    ginge, wäre aber ein Zusammenhang zwischen zwei Stellen, den niemand sieht:
+    #    **wer irgendwann `/lib/*.so` in `cleanup` schreibt, schaltet die Texterkennung
+    #    still ab.** Der Verweis hier macht Stufe 1 wahr und den Fall unmöglich.
+    post-install:
+      - ln -sf libtesseract.so.5.5 /app/lib/libtesseract.so.5
+    sources:
+      - type: archive
+        url: https://github.com/tesseract-ocr/tesseract/archive/refs/tags/5.5.1.tar.gz
+        sha256: a7a3f2a7420cb6a6a94d80c24163e183cf1d2f1bed2df3bbc397c81808a57237
+    cleanup:
+      - /include
+      - /lib/cmake
+      - /lib/pkgconfig
+      - /share/tessdata   # leer, aber es sähe aus wie ein zweiter Sprachdaten-Ort
+
+  # ---------------------------------------------------------------- Gonk Note
+  - name: gonknote
+    buildsystem: simple
+    build-commands:
+      # Das Programm liegt unter /app/gonknote und nicht in /app/bin: es sind 240 Dateien,
+      # und /app/bin ist im PATH.
+      - mkdir -p /app/gonknote
+      - cp -a publish/. /app/gonknote/
+      # ⛔ Die Windows-Bibliotheken der Tesseract-Bindung. `dotnet publish -r linux-x64`
+      #    nimmt sie trotzdem mit (das NuGet-Paket legt sie als Inhaltsdateien ab, nicht
+      #    unter runtimes/) — 12 MB PE32+-DLLs in einem Linux-Paket. Hier fliegen sie raus.
+      - rm -rf /app/gonknote/x64 /app/gonknote/x86
+      - install -Dm755 gonknote.sh /app/bin/gonknote
+      - install -Dm644 io.github.gonkstupid.GonkNote.desktop
+                       /app/share/applications/io.github.gonkstupid.GonkNote.desktop
+      - install -Dm644 io.github.gonkstupid.GonkNote.metainfo.xml
+                       /app/share/metainfo/io.github.gonkstupid.GonkNote.metainfo.xml
+      - install -Dm644 gonk-note-Icon.png
+                       /app/share/icons/hicolor/256x256/apps/io.github.gonkstupid.GonkNote.png
+    sources:
+      # Wird von bauen.sh angelegt. Ohne den Lauf gibt es diesen Ordner nicht — und
+      # flatpak-builder sagt das dann auch deutlich.
+      - type: dir
+        path: build/publish
+        dest: publish
+      - type: file
+        path: gonknote.sh
+      - type: file
+        path: io.github.gonkstupid.GonkNote.desktop
+      - type: file
+        path: io.github.gonkstupid.GonkNote.metainfo.xml
+      - type: file
+        path: ../../Assets/gonk-note-Icon.png

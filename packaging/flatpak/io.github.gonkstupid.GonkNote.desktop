@@ -1,0 +1,18 @@
+[Desktop Entry]
+Type=Application
+Name=Gonk Note
+GenericName=Notes
+GenericName[de]=Notizen
+Comment=Notebooks, whiteboards and text documents — offline, stylus-friendly
+Comment[de]=Notizbücher, Whiteboards und Textdokumente — offline, stiftfreundlich
+Exec=gonknote
+Icon=io.github.gonkstupid.GonkNote
+Terminal=false
+# NUR eine Hauptkategorie. Mit `Office;Graphics;` meldet `desktop-file-validate`, dass die
+# App in zwei Menuegruppen zugleich auftaucht -- und in GNOMEs Uebersicht steht sie dann
+# doppelt. Notizen und Tafel sind beides, aber der Schwerpunkt ist Office.
+Categories=Office;
+Keywords=notes;notebook;whiteboard;stylus;handwriting;
+Keywords[de]=Notizen;Notizbuch;Whiteboard;Stift;Handschrift;
+StartupNotify=true
+StartupWMClass=GonkNote.Avalonia

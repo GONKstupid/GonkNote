@@ -1,0 +1,10 @@
+#!/bin/sh
+# Der Startknopf des AppImage. Er läuft aus dem eingehängten Abbild heraus, also ist
+# `readlink -f` nötig: $0 ist ein Pfad im Einhängepunkt, der bei jedem Start anders heißt.
+#
+# `exec`, damit kein Zwischenprozess stehen bleibt — sonst hängt das Aushängen des
+# Abbilds am Ende an einer `sh`, die auf ihr Kind wartet.
+#
+# "$@" wird durchgereicht: der Kopf nimmt `--db <pfad>` (HANDOFF Dauerregel 4).
+HIER="$(dirname "$(readlink -f "$0")")"
+exec "$HIER/usr/bin/GonkNote.Avalonia" "$@"

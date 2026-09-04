@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Die AppStream-Beschreibung. Sie ist das, was ein Software-Zentrum anzeigt, und für
+     Flathub Pflicht.
+
+     ⚠ Unvollständig, und zwar mit Absicht: <screenshots> fehlen. Schritt ③ ist eine
+     Erprobung und keine Auslieferung (HANDOFF §6) — Bildschirmfotos brauchen eine
+     erreichbare URL, und die entsteht erst in Schritt ⑤ mit den GitHub Pages. Bis dahin
+     wäre jeder Eintrag hier eine Angabe, die ins Leere zeigt.
+
+     ⚠ Ebenso die <release>-Zeile: sie steht auf 0.3.0, dem heutigen Stand aus
+     Directory.Build.props. Auf 1.0.0 geht sie in Schritt ⑤ (§5 Nr. 23), und wer sie
+     dort anhebt, zieht Directory.Build.props und About.Version mit. -->
+<component type="desktop-application">
+  <!-- ⚠ `appstreamcli validate` merkt im pedantischen Lauf den Großbuchstaben an
+       (cid-contains-uppercase-letter). Das ist ein Stilhinweis und kein Fehler: für
+       `io.github.*` verlangt Flathub, dass das MITTLERE Stück dem Kontonamen in
+       Kleinschreibung entspricht (GONKstupid → gonkstupid, stimmt), das letzte darf
+       der Programmname bleiben. Absichtlich so gelassen — wer es ändert, ändert den
+       Ordner unter ~/.var/app und damit den Datenordner jeder Installation. -->
+  <id>io.github.gonkstupid.GonkNote</id>
+
+  <name>Gonk Note</name>
+  <summary>Notebooks, whiteboards and text documents — offline</summary>
+  <summary xml:lang="de">Notizbücher, Whiteboards und Textdokumente — offline</summary>
+
+  <metadata_license>MIT</metadata_license>
+  <project_license>MIT</project_license>
+
+  <developer id="io.github.gonkstupid">
+    <name>GONKstupid</name>
+  </developer>
+
+  <description>
+    <p>
+      Gonk Note is an offline note-taking app for handwriting and typing: notebooks with
+      pen, pencil and highlighter (pressure and tilt), whiteboards with shapes, sticky
+      notes, stickers and text recognition, and text documents with sections, lists,
+      tables, fields, charts and a table of contents.
+    </p>
+    <p>
+      Everything stays on the machine — no cloud, no account, no installation. Documents
+      export to PDF, DOCX, Markdown and images.
+    </p>
+
+    <p xml:lang="de">
+      Gonk Note ist eine Notiz-App ohne Cloud, für Handschrift und Tastatur: Notizbücher
+      mit Stift, Bleistift und Textmarker (Druck und Neigung), Whiteboards mit Formen,
+      Notizzetteln, Stickern und Texterkennung, und Textdokumente mit Abschnitten, Listen,
+      Tabellen, Feldern, Diagrammen und Inhaltsverzeichnis.
+    </p>
+    <p xml:lang="de">
+      Alles bleibt auf dem Gerät — keine Cloud, kein Konto, keine Installation. Dokumente
+      gehen als PDF, DOCX, Markdown und Bild hinaus.
+    </p>
+
+    <!-- ⛔ Die Liste steht EINMAL da, mit `xml:lang` an den <li> und nicht am <ul>.
+         `appstreamcli validate` lehnt eine übersetzte Aufzählungs-Gruppe ab
+         (description-enum-group-translated) — die Übersetzung gehört an den Eintrag. -->
+    <p>Known limitations of this Linux edition:</p>
+    <p xml:lang="de">Bekannte Einschränkungen dieser Linux-Ausgabe:</p>
+    <ul>
+      <li>No spell checking yet (planned as the first item after this release).</li>
+      <li xml:lang="de">Keine Rechtschreibprüfung (als erster Punkt danach eingeplant).</li>
+      <li>Composed characters (dead keys) do not arrive; plain letters and umlauts do.</li>
+      <li xml:lang="de">Zusammengesetzte Zeichen (tote Tasten) kommen nicht an; Buchstaben und Umlaute schon.</li>
+    </ul>
+  </description>
+
+  <launchable type="desktop-id">io.github.gonkstupid.GonkNote.desktop</launchable>
+
+  <url type="homepage">https://github.com/GONKstupid/GonkNote</url>
+  <url type="bugtracker">https://github.com/GONKstupid/GonkNote/issues</url>
+
+  <content_rating type="oars-1.1" />
+
+  <supports>
+    <control>pointing</control>
+    <control>keyboard</control>
+    <control>touch</control>
+    <control>tablet</control>
+  </supports>
+
+  <requires>
+    <display_length compare="ge">768</display_length>
+  </requires>
+
+  <releases>
+    <release version="0.3.0" date="2026-09-04">
+      <description>
+        <p>Test build of the Linux edition (packaging trial, not a release).</p>
+        <p xml:lang="de">Erprobungsbau der Linux-Ausgabe (Auslieferungsprobe, keine Auslieferung).</p>
+      </description>
+    </release>
+  </releases>
+</component>

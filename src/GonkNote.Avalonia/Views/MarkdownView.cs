@@ -45,7 +45,7 @@ public static class MarkdownView
     /// angeklickt wird — so landet „Erste Schritte" im README beim passenden Fenster statt
     /// im Nichts. Ohne Handler bleiben solche Verweise Text.
     /// </param>
-    public static Control Bauen(string markdown, Action<string>? onDocumentLink = null)
+    public static Control Bauen(string markdown, Dokumentverweise? onDocumentLink = null)
     {
         var stapel = new StackPanel();
         foreach (var block in Markdown.Parse(markdown))
@@ -55,7 +55,7 @@ public static class MarkdownView
 
     // ---------------------------------------------------------------- Blöcke
 
-    private static Control Block(MdBlock block, Action<string>? link) => block switch
+    private static Control Block(MdBlock block, Dokumentverweise? link) => block switch
     {
         MdHeading h => Ueberschrift(h, link),
         MdParagraph p => Absatz(p.Inlines, link, new Thickness(0, 0, 0, 8)),
@@ -67,7 +67,7 @@ public static class MarkdownView
         _ => new TextBlock(),
     };
 
-    private static Control Ueberschrift(MdHeading h, Action<string>? link)
+    private static Control Ueberschrift(MdHeading h, Dokumentverweise? link)
     {
         var tb = Absatz(h.Inlines, link, new Thickness(0, h.Level == 1 ? 0 : 16, 0, 6));
         tb.FontSize = h.Level switch { 1 => 21, 2 => 17, 3 => 15, _ => 13.5 };
@@ -77,7 +77,7 @@ public static class MarkdownView
         return tb;
     }
 
-    private static TextBlock Absatz(IReadOnlyList<MdInline> inlines, Action<string>? link, Thickness rand)
+    private static TextBlock Absatz(IReadOnlyList<MdInline> inlines, Dokumentverweise? link, Thickness rand)
     {
         var tb = new TextBlock { TextWrapping = TextWrapping.Wrap, Margin = rand, LineHeight = 19 };
         Farbe(tb, TextBlock.ForegroundProperty, "Brush.Text");
@@ -120,7 +120,7 @@ public static class MarkdownView
         return b;
     }
 
-    private static Control Zitat(MdQuote q, Action<string>? link)
+    private static Control Zitat(MdQuote q, Dokumentverweise? link)
     {
         var inhalt = new StackPanel();
         foreach (var b in q.Blocks) inhalt.Children.Add(Block(b, link));
@@ -136,7 +136,7 @@ public static class MarkdownView
         return rahmen;
     }
 
-    private static Control Liste(MdList liste, Action<string>? link)
+    private static Control Liste(MdList liste, Dokumentverweise? link)
     {
         var stapel = new StackPanel { Margin = new Thickness(0, 4, 0, 8) };
 
@@ -176,7 +176,7 @@ public static class MarkdownView
         return stapel;
     }
 
-    private static Control Tabelle(MdTable t, Action<string>? link)
+    private static Control Tabelle(MdTable t, Dokumentverweise? link)
     {
         var gitter = new Grid { Margin = new Thickness(0, 6, 0, 10) };
         for (int c = 0; c < t.Columns; c++)
@@ -196,7 +196,7 @@ public static class MarkdownView
     }
 
     private static void Zeile(Grid gitter, int r, IReadOnlyList<IReadOnlyList<MdInline>> zellen,
-        int spalten, bool fett, Action<string>? link)
+        int spalten, bool fett, Dokumentverweise? link)
     {
         for (int c = 0; c < spalten; c++)
         {
@@ -220,7 +220,7 @@ public static class MarkdownView
     // ---------------------------------------------------------------- Textstücke
 
     private static void Fuellen(InlineCollection ziel, IReadOnlyList<MdInline> stuecke,
-        Action<string>? link)
+        Dokumentverweise? link)
     {
         foreach (var s in stuecke)
         {
@@ -299,19 +299,30 @@ public static class MarkdownView
     /// ins Gewicht.
     /// </para>
     /// </summary>
-    private static Inline Verweis(MdLink l, Action<string>? handler)
+    private static Inline Verweis(MdLink l, Dokumentverweise? handler)
     {
         bool web = l.Target.StartsWith("http", StringComparison.OrdinalIgnoreCase);
-        bool dok = handler != null && l.Target.EndsWith(".md", StringComparison.OrdinalIgnoreCase);
+
+        // **Erst fragen, dann zeichnen** (Phase 5, Schritt ④): `Kann` sagt, ob dieses Ziel
+        // überhaupt jemand öffnet — siehe `Dokumentverweise` für den Fund dahinter.
+        // ⛔ Hier stand zusätzlich `l.Target.EndsWith(".md")` — und
+        // `README.md#zwei-ausgaben-eine-app` endet nicht auf `.md`. Weg damit: `Kann`
+        // beantwortet die Frage genauer, und zwei Stellen, die dasselbe entscheiden,
+        // entscheiden es verschieden.
+        bool dok = handler != null && handler.Kann(l.Target);
 
         if (!web && !dok)
         {
-            // Ein Sprungziel innerhalb des Dokuments (`#abschnitt`) oder ein Verweis, für
-            // den es keinen Handler gibt: eingefärbt, damit er als Verweis zu erkennen ist,
-            // aber ohne Versprechen. Genau so hält es der WPF-Kopf.
-            var schlicht = new Run(l.Text);
-            Farbe(schlicht, TextElement.ForegroundProperty, "Brush.Accent");
-            return schlicht;
+            // **Schlichter Text, ohne Akzentfarbe** — ein Sprungziel im Dokument
+            // (`#abschnitt`) oder ein Ziel, das niemand annimmt.
+            //
+            // ⛔ Hier stand bis Schritt ④ „eingefärbt, damit er als Verweis zu erkennen ist,
+            // aber ohne Versprechen. Genau so hält es der WPF-Kopf." **Der zweite Satz stimmte,
+            // und deshalb war der erste in beiden Köpfen falsch:** Ein Verweis, der wie einer
+            // aussieht und keiner ist, ist kein Hinweis, sondern eine Zusage, die niemand
+            // einlöst. Und dieser Kopf ging noch weiter als der andere — unten bekam dasselbe
+            // tote Ziel Unterstreichung, Handzeiger und Tooltip.
+            return new Run(l.Text);
         }
 
         var tb = new TextBlock
@@ -328,7 +339,7 @@ public static class MarkdownView
         tb.PointerPressed += (_, e) =>
         {
             if (web) App.Platform.Shell.OpenExternal(ziel);
-            else handler!(ziel);
+            else handler!.Oeffnen(ziel);
             e.Handled = true;
         };
 

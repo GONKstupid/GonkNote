@@ -18,34 +18,39 @@ Gonk Note gibt es als **Windows-Ausgabe** (WPF) und als **Linux-Ausgabe** (Avalo
 lesen dieselbe Datenbank, benutzen dieselbe Kernbibliothek und zeichnen mit demselben
 Renderer — ein Notizbuch sieht auf beiden gleich aus.
 
-**Die Windows-Ausgabe ist vollständig.** Alles, was auf dieser Seite steht, gilt für sie.
+**Beide Ausgaben können dasselbe** — alles, was auf dieser Seite steht, gilt für beide.
+Ordnerbaum samt Drag & Drop, Anpinnen und Favoriten, Galerie, zwei Sprachen, Dark/Light,
+die einblendbare Titelleiste, Hilfe und Über-Dialog; die Zeichenfläche für **Notizbuch und
+Whiteboard** mit Stift, Bleistift und Textmarker samt Druck und Neigung, punktgenauem
+Radieren, Lasso und Verschieben, Formen-Stift, Textfeldern, Notizzetteln, Stickern, Import,
+Lineal und Geodreieck, Zahlenblock, Schnellaktionen und **Texterkennung**; Seiten blättern,
+anlegen und löschen, Seiteneinstellungen, Zoom, Finger-Gesten, Rückgängig und Speichern —
+und der **Textdokument-Editor**.
 
-**Die Linux-Ausgabe kann heute:** Ordnerbaum samt Drag & Drop, Anpinnen und Favoriten,
-Galerie, zwei Sprachen, Dark/Light, die einblendbare Titelleiste, Hilfe und Über-Dialog —
-die Zeichenfläche für **Notizbuch und Whiteboard**: Stift, Bleistift und Textmarker mit
-Druck und Neigung, punktgenaues Radieren, Lasso und Verschieben, Seiten blättern, anlegen
-und löschen, Seiteneinstellungen (Muster, Farbton, Format), Zoom, Finger-Gesten,
-Rückgängig und Speichern.
+Die kurze Liste darunter sagt, wo sie sich trotzdem unterscheiden. **Sie ist vollständig:**
+Jeder Punkt darin ist gemessen, keiner geschätzt.
 
-**Neu: Textdokumente werden angezeigt.** Ein Textdokument öffnet sich als gesetztes Papier —
-mit Überschriften, Zeichenformaten, Listen, Tabellen, Bildern, Diagrammen sowie Kopf- und
-Fußzeile, seitenweise zum Blättern, mit Zoom, „Seitenbreite" und „Ganze Seite". **Angezeigt
-wird dabei genau das, was auch exportiert würde** — derselbe Umbruch, derselbe Zeichner.
-Dazu **Import** (DOCX) und **Export** (PDF, DOCX, Markdown, PNG).
+**Textdokumente werden angezeigt und beschrieben.** Ein Textdokument öffnet sich als
+gesetztes Papier — mit Überschriften, Zeichenformaten, Listen, Tabellen, Bildern, Diagrammen
+sowie Kopf- und Fußzeile, seitenweise zum Blättern, mit Zoom, „Seitenbreite" und „Ganze
+Seite". **Angezeigt wird dabei genau das, was auch exportiert würde** — derselbe Umbruch,
+derselbe Zeichner. Dazu **Import** (DOCX, Markdown) und **Export** (PDF, DOCX, Markdown, PNG).
 
 **Was der Linux-Ausgabe noch fehlt** — jeweils mit Grund, keines davon ist vergessen:
 
 | Fehlt | Warum |
 |---|---|
-| **Schreiben in Textdokumenten** (anzeigen und exportieren geht, tippen noch nicht) | Cursor, Auswahl und Eingabe sind der nächste Schritt der eigenen Dokument-Engine |
-| **Markdown importieren** (DOCX geht) | Der Markdown-Leser steht noch auf einem Windows-Baustein |
-| **Tafeln exportieren** (PDF/PNG eines Whiteboards oder Notizbuchs) | Der Weg zeichnet über die Windows-Zeichenfläche und zieht mit den fehlenden Werkzeugen um |
+| **Rechtschreibprüfung** | Sie hängt in der Windows-Ausgabe an einem Windows-Dienst. Ein Gegenstück ist der **erste Punkt nach der Portierung** und fest eingeplant |
+| **Zusammengesetzte Zeichen** (`´` + `e` → `é`) kommen nicht an | Ein Fehler im Fenster-Baustein von Avalonia unter Linux, nicht in Gonk Note. Er ist dort gemeldet; einfache Zeichen und Umlaute sind nicht betroffen |
+| **Lineal** über dem Textdokument | Bewusst weggelassen: In der Windows-Ausgabe ist es eine Zierleiste ohne Funktion — die Ränder lassen sich dort nicht ziehen. Was es zeigt, steht im Reiter „Layout" in Zahlen und ist dort auch änderbar |
 | **Bestandsdokumente aus der Windows-Ausgabe** erscheinen erst, nachdem sie dort einmal geöffnet und gespeichert wurden | Ihr altes Format liest nur Windows. Der Inhalt bleibt dabei unangetastet |
-| Formen-Stift, Textfelder, Notizzettel, Sticker, Zahlenblock, Quick-Options-Menü, Lineal und Geodreieck | Kommen nach der Dokument-Engine |
-| Texterkennung (OCR) und Rechtschreibprüfung | Brauchen Gegenstücke zu den Windows-Diensten |
 
-Nichts davon geht dabei verloren: was die Linux-Ausgabe noch nicht anzeigen kann, wird auch
-nicht angefasst — eine Datei, die du unter Windows angelegt hast, kommt dort unverändert
+Und umgekehrt fehlt der **Windows**-Ausgabe eines: Ihr Texteditor zeigt **keine Seitenzahlen**.
+Er rechnet keine Seiten, sondern lässt Windows den Text fließen; die Linux-Ausgabe setzt
+echte Seiten und weiß deshalb, auf welcher man steht.
+
+Nichts davon geht dabei verloren: was eine Ausgabe nicht anzeigen kann, wird auch nicht
+angefasst — eine Datei, die du unter Windows angelegt hast, kommt unter Linux unverändert
 wieder heraus.
 
 ## Features

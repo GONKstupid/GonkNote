@@ -44,7 +44,7 @@ public static class MarkdownFlow
     /// Wird mit dem Linkziel aufgerufen, wenn im Text ein Verweis auf eine andere
     /// <c>.md</c>-Datei angeklickt wird. Ohne Handler bleiben solche Verweise Text.
     /// </param>
-    public static FlowDocument ToFlowDocument(string markdown, Action<string>? onDocumentLink = null)
+    public static FlowDocument ToFlowDocument(string markdown, Dokumentverweise? onDocumentLink = null)
     {
         var doc = new FlowDocument
         {
@@ -66,7 +66,7 @@ public static class MarkdownFlow
 
     // ---------------------------------------------------------------- Blöcke
 
-    private static Block Block(MdBlock block, Action<string>? link) => block switch
+    private static Block Block(MdBlock block, Dokumentverweise? link) => block switch
     {
         MdHeading h => Heading(h, link),
         MdParagraph p => new Paragraph(Inline(p.Inlines, link)) { Margin = new Thickness(0, 0, 0, 8) },
@@ -78,7 +78,7 @@ public static class MarkdownFlow
         _ => new Paragraph(),
     };
 
-    private static Block Heading(MdHeading h, Action<string>? link)
+    private static Block Heading(MdHeading h, Dokumentverweise? link)
     {
         var p = new Paragraph(Inline(h.Inlines, link))
         {
@@ -114,7 +114,7 @@ public static class MarkdownFlow
     /// Ein Zitat ist wieder ein ganzes Dokument — <see cref="Markdown"/> hat seinen Inhalt
     /// schon als Blockliste geliefert, hier wird sie nur eingerückt und eingefärbt.
     /// </summary>
-    private static Block Quote(MdQuote q, Action<string>? link)
+    private static Block Quote(MdQuote q, Dokumentverweise? link)
     {
         var section = new Section { Padding = new Thickness(12, 2, 0, 2), Margin = new Thickness(0, 6, 0, 10) };
         section.SetResourceReference(TextElement.ForegroundProperty, "Brush.TextMuted");
@@ -125,7 +125,7 @@ public static class MarkdownFlow
         return section;
     }
 
-    private static Block BuildList(MdList liste, Action<string>? link)
+    private static Block BuildList(MdList liste, Dokumentverweise? link)
     {
         var list = new List
         {
@@ -149,7 +149,7 @@ public static class MarkdownFlow
         return list;
     }
 
-    private static Block BuildTable(MdTable t, Action<string>? link)
+    private static Block BuildTable(MdTable t, Dokumentverweise? link)
     {
         var table = new Table { CellSpacing = 0, Margin = new Thickness(0, 6, 0, 10) };
         for (int c = 0; c < t.Columns; c++) table.Columns.Add(new TableColumn());
@@ -162,7 +162,7 @@ public static class MarkdownFlow
     }
 
     private static TableRow Row(IReadOnlyList<IReadOnlyList<MdInline>> cells, int cols, bool header,
-        Action<string>? link)
+        Dokumentverweise? link)
     {
         var row = new TableRow();
         if (header) row.FontWeight = FontWeights.SemiBold;
@@ -181,7 +181,7 @@ public static class MarkdownFlow
 
     // ---------------------------------------------------------------- Textstücke
 
-    private static Span Inline(IReadOnlyList<MdInline> stuecke, Action<string>? link)
+    private static Span Inline(IReadOnlyList<MdInline> stuecke, Dokumentverweise? link)
     {
         var span = new Span();
         foreach (var s in stuecke)
@@ -258,7 +258,7 @@ public static class MarkdownFlow
     /// Handler aus <see cref="ToFlowDocument"/> — so landet „Erste Schritte" im README
     /// beim passenden Dialog statt im Nichts. Alles Übrige bleibt Text.
     /// </summary>
-    private static Inline Link(MdLink l, Action<string>? handler)
+    private static Inline Link(MdLink l, Dokumentverweise? handler)
     {
         if (l.Target.StartsWith("http", StringComparison.OrdinalIgnoreCase))
         {
@@ -268,18 +268,28 @@ public static class MarkdownFlow
             return web;
         }
 
-        if (handler != null && l.Target.EndsWith(".md", StringComparison.OrdinalIgnoreCase))
+        // **Erst fragen, dann zeichnen** (Phase 5, Schritt ④): `Kann` sagt, ob dieses Ziel
+        // überhaupt jemand öffnet. Vorher wurde jedes `.md`-Ziel eingefärbt, auch wenn es
+        // niemand annahm — fünf Verweise in den mitgelieferten Dokumenten sahen aus wie
+        // Verweise und taten nichts (siehe `Dokumentverweise`).
+        // ⛔ Hier stand zusätzlich `l.Target.EndsWith(".md")`, und das war beim ersten Anlauf
+        // von ④ genau derselbe Fehler eine Etage höher: `README.md#zwei-ausgaben-eine-app`
+        // endet **nicht** auf `.md`. Die Prüfung ist ersatzlos weg — `Kann` beantwortet die
+        // Frage „ist das ein Dokumentverweis?" ohnehin genauer als eine Endung, und zwei
+        // Stellen, die dasselbe entscheiden, entscheiden es verschieden.
+        if (handler != null && handler.Kann(l.Target))
         {
             string target = l.Target;
             var doc = new Hyperlink(new Run(l.Text));
             doc.SetResourceReference(TextElement.ForegroundProperty, "Brush.Accent");
-            doc.Click += (_, _) => handler(target);
+            doc.Click += (_, _) => handler.Oeffnen(target);
             return doc;
         }
 
-        var plain = new Run(l.Text);
-        plain.SetResourceReference(TextElement.ForegroundProperty, "Brush.Accent");
-        return plain;
+        // **Text und keine Akzentfarbe.** Hier stand bis Schritt ④ ein eingefärbter Run —
+        // und der war die eigentliche Ursache: Er ließ ein totes Ziel wie ein lebendes
+        // aussehen, und niemand klickt zweimal, um sich zu vergewissern.
+        return new Run(l.Text);
     }
 
     private static void OnNavigate(object sender, RequestNavigateEventArgs e)

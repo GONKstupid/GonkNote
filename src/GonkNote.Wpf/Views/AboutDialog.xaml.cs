@@ -1,3 +1,4 @@
+using GonkNote.Core.Text;
 using System.Reflection;
 using System.Windows;
 using GonkNote.Core.Platform;
@@ -28,16 +29,20 @@ public partial class AboutDialog : Window
         // ohne diese Zeile fehlte die Angabe unter Windows ganz.
         DataFolderText.Text = AppPaths.Current.DataFolder;
 
-        ReadmeView.Document = MarkdownFlow.ToFlowDocument(EmbeddedDocs.Readme(), OpenDocument);
+        ReadmeView.Document = MarkdownFlow.ToFlowDocument(
+            EmbeddedDocs.Readme(), new Dokumentverweise(EmbeddedDocs.IsGuideLink, OpenDocument));
     }
 
     /// <summary>
     /// Verweise im README auf andere Dokumente. „Erste Schritte" öffnet den zugehörigen
     /// Dialog, statt ins Leere zu zeigen — die Datei liegt im Repo, nicht neben der Exe.
+    ///
+    /// <para>
+    /// <b>Was hier nicht steht, wird seit Phase 5, Schritt ④ auch nicht mehr wie ein Verweis
+    /// gezeichnet</b> (<see cref="Dokumentverweise"/>): Das README zeigt zweimal auf
+    /// <c>THIRD-PARTY-NOTICES.md</c>, und <b>diese Datei ist in keinem Kopf eingebettet</b> —
+    /// die zwei Verweise konnten nie funktionieren und sahen trotzdem aus wie welche.
+    /// </para>
     /// </summary>
-    private void OpenDocument(string target)
-    {
-        if (!EmbeddedDocs.IsGuideLink(target)) return;
-        new GuideDialog { Owner = this }.ShowDialog();
-    }
+    private void OpenDocument(string target) => new GuideDialog { Owner = this }.ShowDialog();
 }

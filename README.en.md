@@ -18,32 +18,38 @@ Gonk Note comes as a **Windows edition** (WPF) and a **Linux edition** (Avalonia
 the same database, use the same core library and draw with the same renderer — a notebook
 looks identical on either.
 
-**The Windows edition is complete.** Everything on this page applies to it.
+**Both editions can do the same** — everything on this page applies to both. Folder tree
+including drag & drop, pinning and favourites, gallery, two languages, dark/light, the
+sliding title bar, help and about dialog; the canvas for **notebooks and whiteboards** with
+pen, pencil and highlighter including pressure and tilt, precise erasing, lasso and move,
+shape pen, text boxes, sticky notes, stickers, import, ruler and set square, numpad, quick
+actions and **text recognition**; page navigation, adding and deleting pages, page settings,
+zoom, touch gestures, undo and saving — and the **text document editor**.
 
-**The Linux edition can do today:** folder tree including drag & drop, pinning and
-favourites, gallery, two languages, dark/light, the sliding title bar, help and about
-dialog — the canvas for **notebooks and whiteboards**: pen, pencil and highlighter with
-pressure and tilt, precise erasing, lasso and move, page navigation, adding and deleting
-pages, page settings (pattern, shade, size), zoom, touch gestures, undo and saving.
+The short list below says where they still differ. **It is complete:** every entry in it has
+been measured, none estimated.
 
-**New: text documents are displayed.** A text document opens as typeset paper — with
+**Text documents are displayed and written.** A text document opens as typeset paper — with
 headings, character formats, lists, tables, images, charts and running heads, page by page,
 with zoom, "Fit width" and "Whole page". **What you see is exactly what would be exported** —
-same layout, same renderer. Plus **import** (DOCX) and **export** (PDF, DOCX, Markdown, PNG).
+same layout, same renderer. Plus **import** (DOCX, Markdown) and **export** (PDF, DOCX,
+Markdown, PNG).
 
 **What the Linux edition still lacks** — each with a reason, none of it forgotten:
 
 | Missing | Why |
 |---|---|
-| **Writing in text documents** (viewing and exporting work, typing does not) | Caret, selection and input are the next step of the in-house document engine |
-| **Importing Markdown** (DOCX works) | The Markdown reader still rests on a Windows building block |
-| **Exporting boards** (PDF/PNG of a whiteboard or notebook) | That path draws through the Windows canvas and moves over with the missing tools |
+| **Spell checking** | On Windows it rides on a Windows service. A counterpart is the **first item after the port** and firmly scheduled |
+| **Composed characters** (`´` + `e` → `é`) do not arrive | A bug in Avalonia's window layer on Linux, not in Gonk Note. It is reported there; plain characters and umlauts are unaffected |
+| **Ruler** above the text document | Deliberately left out: in the Windows edition it is decoration without function — the margins cannot be dragged there. What it shows is in the "Layout" tab as numbers, and changeable |
 | **Existing documents from the Windows edition** appear only after being opened and saved there once | Their old format is readable on Windows only. Their contents stay untouched |
-| Shape pen, text boxes, sticky notes, stickers, numpad, quick-options menu, ruler and set square | Follow after the document engine |
-| Text recognition (OCR) and spell checking | Need counterparts to the Windows services |
 
-Nothing is lost along the way: whatever the Linux edition cannot display yet, it does not
-touch either — a file you created on Windows comes back out unchanged.
+And the **Windows** edition lacks one thing in return: its text editor shows **no page
+numbers**. It does not compute pages but lets Windows flow the text; the Linux edition
+typesets real pages and therefore knows which one you are on.
+
+Nothing is lost along the way: whatever one edition cannot display, it does not touch either
+— a file you created on Windows comes back out unchanged on Linux.
 
 ## Features
 

@@ -39,11 +39,10 @@ nicht getestet) **oder Linux**, dazu das
 Adminrechte brauchst du nicht.
 
 > **Gonk Note gibt es in zwei Ausgaben** — eine für Windows und eine für Linux.
-> Beide lesen dieselben Dateien und sehen fast gleich aus. Die **Linux-Ausgabe ist
-> noch nicht vollständig**: Notizbuch und Whiteboard laufen, Textdokumente lassen
-> sich **anzeigen und exportieren, aber noch nicht beschreiben**, und ein
-> Whiteboard lässt sich dort nicht exportieren. Was genau fehlt, steht im
-> [README](README.md#zwei-ausgaben-eine-app).
+> Beide lesen dieselben Dateien, können dasselbe und sehen fast gleich aus.
+> **Die wenigen Unterschiede, die bleiben**, stehen namentlich im
+> [README](README.md#zwei-ausgaben-eine-app) — der größte ist die
+> **Rechtschreibprüfung**, die es unter Linux noch nicht gibt.
 
 > Es gibt (noch) kein fertiges Release zum Herunterladen — du baust dir das
 > Programm in zwei Befehlen selbst.
@@ -258,11 +257,15 @@ Mindmaps, Skizzen und alles, was nicht in A4 passt.
 **Textdokument** (`Datei → Neues Textdokument`) — ein Rich-Text-Editor im
 Ribbon-Layout (`Start`, `Einfügen`, `Layout`, `Verweise`).
 
-> **Schreiben geht nur in der Windows-Ausgabe.** Die Linux-Ausgabe **zeigt** ein
-> Textdokument vollständig an — als gesetztes Papier mit Tabellen, Bildern,
-> Diagrammen und Kopfzeile, zum Blättern und Zoomen — und exportiert es. Tippen
-> geht dort noch nicht; das Ribbon sagt „Nur Ansicht". Deine Texte bleiben dabei
-> unangetastet.
+> **Beide Ausgaben schreiben.** Die Linux-Ausgabe zeigt ein Textdokument als
+> gesetztes Papier mit Tabellen, Bildern, Diagrammen und Kopfzeile, zum Blättern
+> und Zoomen — und lässt dich darin tippen, formatieren, suchen und exportieren.
+> **Zwei Unterschiede bleiben:** Die **Rechtschreibprüfung** gibt es dort noch
+> nicht, und **zusammengesetzte Zeichen** (`´` dann `e` für `é`) kommen nicht an —
+> das liegt an Avalonia und nicht an Gonk Note. Umlaute sind nicht betroffen.
+>
+> Dafür zeigt die **Linux**-Ausgabe **Seitenzahlen**, die es in der Windows-Ausgabe
+> nicht gibt: Sie setzt echte Seiten, während Windows den Text nur fließen lässt.
 >
 > **Ein Dokument aus der Windows-Ausgabe** erscheint unter Linux erst, nachdem es
 > dort einmal geöffnet und gespeichert wurde: sein altes Format liest nur Windows.
@@ -296,11 +299,10 @@ dunkler Schrift heraus. Fehlen zu einem Bild die Originaldaten, sagt Gonk Note
 das nach dem Export — statt stillschweigend in schlechterer Qualität zu
 exportieren.
 
-> **In der Linux-Ausgabe: Textdokumente ja, Tafeln noch nicht.** Ein Textdokument
-> geht dort in alle vier Formate — der Knopf **Exportieren** sitzt im Ribbon des
-> Dokuments und wählt das Format gleich vor. Der Export eines Whiteboards oder
-> Notizbuchs hängt noch am Windows-Baustein; die Linux-Ausgabe sagt das ehrlich,
-> statt eine leere Datei zu schreiben.
+> **In beiden Ausgaben gleich.** Ein Textdokument geht in alle vier Formate — der
+> Knopf **Exportieren** sitzt im Ribbon des Dokuments und wählt das Format gleich
+> vor. Ein Whiteboard oder Notizbuch geht ebenso in beiden Ausgaben hinaus; beide
+> rechnen dafür denselben Weg.
 
 ---
 
@@ -351,9 +353,10 @@ den mitgelieferten:
 | Notizbuch-Cover | `Covers/` — erscheinen unter „Individuell" |
 | Geodreieck-Grafik | `Geodreieck-Light.svg` bzw. `-Dark.svg` |
 
-> **Dieser Abschnitt gilt heute nur für die Windows-Ausgabe.** Sticker, eigene
-> Cover-Vorlagen und das Geodreieck gibt es in der Linux-Ausgabe noch nicht; die
-> Dateien liegen dort ungenutzt herum, bis die Werkzeuge nachgezogen sind.
+> **Dieser Abschnitt gilt für beide Ausgaben.** Sticker, eigene Cover-Vorlagen und
+> das Geodreieck werden unter Linux aus denselben Ordnern gelesen — nur liegen die
+> Ordner dort unter `~/.config/GonkNote` statt unter `%APPDATA%`. Wo genau, sagt
+> dir der Über-Dialog.
 
 Sticker und Cover kannst du auch bequem über die **„+"-Kachel** im jeweiligen
 Werkzeug hochladen; Gonk Note kopiert sie dann selbst an die richtige Stelle.
@@ -477,12 +480,15 @@ in einen Bug-Report gehört.
 **Die Rechtschreibprüfung streicht nichts an.** Die Markierungen kommen von
 Windows, nicht von Gonk Note. Fehlt für eine Sprache das Wörterbuch (typisch:
 Englisch auf einem rein deutschen Windows), erscheint in der Statusleiste ein
-Warndreieck. Abhilfe: die Sprache in den Windows-Einstellungen ergänzen. In der
-Linux-Ausgabe gibt es die Prüfung noch nicht.
+Warndreieck. Abhilfe: die Sprache in den Windows-Einstellungen ergänzen. **In der
+Linux-Ausgabe gibt es die Prüfung noch nicht** — sie ist der erste Punkt, der nach
+der Portierung nachgezogen wird.
 
 **OCR findet keinen Text / meldet fehlende Sprachdaten.** Der Ordner `tessdata`
 muss neben `GonkNote.exe` liegen (siehe [Abschnitt 1](#1-gonk-note-auf-den-rechner-holen)).
-Die Linux-Ausgabe hat noch keine Texterkennung und sagt das auch.
+**Das gilt für beide Ausgaben:** `tessdata` gehört neben das Programm, nicht in den
+Datenordner. Der Bau legt den Ordner selbst dorthin; wer die Datei anschließend
+verschiebt, muss ihn mitnehmen. Flatpak und AppImage bringen ihn ohnehin mit.
 
 **Unter Linux bleibt jeder gezeichnete Text leer.** Dann fehlen `fontconfig` oder
 eine Schrift — siehe [Abschnitt 1](#1-gonk-note-auf-den-rechner-holen).

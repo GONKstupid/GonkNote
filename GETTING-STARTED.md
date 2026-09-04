@@ -38,10 +38,10 @@ plus the [.NET SDK 10](https://dotnet.microsoft.com/download/dotnet/10.0) or new
 not need admin rights.
 
 > **Gonk Note comes in two editions** — one for Windows and one for Linux. Both read the
-> same files and look almost identical. The **Linux edition is not complete yet**: notebooks
-> and whiteboards work, text documents can be **viewed and exported but not written in**,
-> and a whiteboard cannot be exported there. Exactly what is missing is listed in the
-> [README](README.en.md#two-editions-one-app).
+> same files, can do the same things and look almost identical. **The few differences that
+> remain** are listed by name in the
+> [README](README.en.md#two-editions-one-app) — the biggest is **spell checking**, which
+> does not exist on Linux yet.
 
 > There is no ready-made release to download (yet) — you build the program yourself with two
 > commands.
@@ -241,10 +241,14 @@ does not fit on A4.
 **Text document** (`File → New text document`) — a rich-text editor in a ribbon layout
 (`Home`, `Insert`, `Layout`, `References`).
 
-> **Writing is Windows-only.** The Linux edition **displays** a text document in full — as
-> typeset paper with tables, images, charts and a running head, page by page and with zoom —
-> and exports it. Typing is not possible there yet; the ribbon says "View only". Your texts
-> stay untouched meanwhile.
+> **Both editions write.** The Linux edition shows a text document as typeset paper with
+> tables, images, charts and a running head, page by page and with zoom — and lets you type,
+> format, search and export in it. **Two differences remain:** there is no **spell checking**
+> there yet, and **composed characters** (`´` then `e` for `é`) do not arrive — that is
+> Avalonia's doing, not Gonk Note's. Umlauts are unaffected.
+>
+> In return the **Linux** edition shows **page numbers** that the Windows edition does not
+> have: it typesets real pages, while Windows merely flows the text.
 >
 > **A document from the Windows edition** shows up under Linux only after being opened and
 > saved there once: its old format is readable on Windows only. Until then the tab tells you
@@ -275,10 +279,9 @@ Exports are always "on paper": even in dark mode you get a light sheet with dark
 original data for an image is missing, Gonk Note tells you after the export — instead of quietly
 exporting at lower quality.
 
-> **In the Linux edition: text documents yes, boards not yet.** A text document goes out in
-> all four formats there — the **Export** button sits in the document's ribbon and preselects
-> the format. Exporting a whiteboard or notebook still rests on the Windows building block;
-> the Linux edition says so honestly rather than writing an empty file.
+> **The same in both editions.** A text document goes out in all four formats — the
+> **Export** button sits in the document's ribbon and preselects the format. A whiteboard or
+> notebook goes out in both editions too; they compute the same path for it.
 
 ---
 
@@ -326,9 +329,9 @@ ones:
 | Notebook covers | `Covers/` — appear under "Individuell" |
 | Set-square graphic | `Geodreieck-Light.svg` or `-Dark.svg` |
 
-> **This section applies to the Windows edition only today.** Stickers, your own cover
-> templates and the set square do not exist in the Linux edition yet; the files sit there
-> unused until those tools follow.
+> **This section applies to both editions.** Stickers, your own cover templates and the set
+> square are read from the same folders on Linux — they just live under
+> `~/.config/GonkNote` instead of `%APPDATA%`. The about dialog tells you exactly where.
 
 Stickers and covers can also be uploaded conveniently via the **"+" tile** in the respective
 tool; Gonk Note then copies them to the right place itself.
@@ -445,12 +448,15 @@ reported once per session. That file is the first thing that belongs in a bug re
 
 **The spell checker marks nothing.** The markings come from Windows, not from Gonk Note. If the
 dictionary for a language is missing (typically English on a German-only Windows), a warning
-triangle appears in the status bar. The fix: add the language in the Windows settings. The
-Linux edition has no spell checking yet.
+triangle appears in the status bar. The fix: add the language in the Windows settings.
+**The Linux edition has no spell checking yet** — it is the first item to be added after the
+port.
 
 **OCR finds no text / reports missing language data.** The `tessdata` folder has to sit next to
-`GonkNote.exe` (see [section 1](#1-getting-gonk-note-onto-your-machine)). The Linux edition
-has no text recognition yet, and says so.
+`GonkNote.exe` (see [section 1](#1-getting-gonk-note-onto-your-machine)). **This applies to
+both editions:** `tessdata` belongs next to the program, not in the data folder. The build
+puts it there itself; move the program and you have to take it along. Flatpak and AppImage
+bring it with them anyway.
 
 **On Linux every drawn piece of text stays blank.** Then `fontconfig` or a font is missing —
 see [section 1](#1-getting-gonk-note-onto-your-machine).

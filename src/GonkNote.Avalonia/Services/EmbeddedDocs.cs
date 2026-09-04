@@ -35,8 +35,28 @@ public static class EmbeddedDocs
 
     /// <summary>Zeigt der Verweis <paramref name="target"/> auf die Erste-Schritte-Anleitung?</summary>
     public static bool IsGuideLink(string target) =>
-        target.EndsWith(GuideLinkDe, StringComparison.OrdinalIgnoreCase) ||
-        target.EndsWith(GuideLinkEn, StringComparison.OrdinalIgnoreCase);
+        ZeigtAuf(target, GuideLinkDe) || ZeigtAuf(target, GuideLinkEn);
+
+    /// <summary>
+    /// <inheritdoc cref="GonkNote.Services.EmbeddedDocs.ZeigtAuf" path="/summary/para[1]"/>
+    /// </summary>
+    private static bool ZeigtAuf(string target, string datei)
+    {
+        int marke = target.IndexOf('#');
+        var ohne = marke < 0 ? target.AsSpan() : target.AsSpan(0, marke);
+
+        return ohne.EndsWith(datei, StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>Dateiname des Verweisziels, unter dem die Anleitung auf das README zeigt.</summary>
+    public const string ReadmeLinkDe = "README.md";
+    public const string ReadmeLinkEn = "README.en.md";
+
+    /// <summary>
+    /// <inheritdoc cref="GonkNote.Services.EmbeddedDocs.IsReadmeLink" path="/summary"/>
+    /// </summary>
+    public static bool IsReadmeLink(string target) =>
+        ZeigtAuf(target, ReadmeLinkDe) || ZeigtAuf(target, ReadmeLinkEn);
 
     private static string Load(string english, string german)
     {

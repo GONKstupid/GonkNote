@@ -155,13 +155,73 @@ public static class TesseractLinux
     }
 
     /// <summary>
-    /// Sucht die System-Bibliothek in den üblichen Ordnern und liefert den vollen Pfad.
+    /// Wo eine <b>mitgelieferte</b> Fassung läge: <c>&lt;AppFolder&gt;/lib</c>, also neben
+    /// dem Programm. Gibt es den Ordner nicht, kommt <c>null</c> zurück und gesucht wird nur
+    /// im System.
+    ///
+    /// <para>
+    /// <b>Ermittelt wird der Pfad hier und nicht in Core</b> (§5 Nr. 29):
+    /// <see cref="TesseractBindung"/> ist bewusst ohne Dateisystem prüfbar. Dort steht die
+    /// <i>Rangfolge</i>, hier steht das Nachsehen.
+    /// </para>
+    ///
+    /// <para>
+    /// ⚠ <b>Das ist nicht der Ordner, in den die Verweise gelegt werden.</b> Der liegt in den
+    /// Nutzerdaten, weil hier geschrieben wird und <see cref="IAppPaths.AppFolder"/>
+    /// schreibgeschützt sein kann — im AppImage ist er es immer (SquashFS, nur lesbar).
+    /// </para>
+    /// </summary>
+    private static string? EigenerLibOrdner()
+    {
+        try
+        {
+            string ordner = AppPaths.AppSubfolder(TesseractBindung.EigenerUnterordner);
+            return Directory.Exists(ordner) ? ordner : null;
+        }
+        catch
+        {
+            return null;   // Kein Lesezugriff neben dem Programm — dann eben nur das System.
+        }
+    }
+
+    /// <summary>
+    /// Sucht die Bibliothek in den üblichen Ordnern und liefert den vollen Pfad.
     /// <b>Der erste Ordner, der überhaupt etwas Passendes hat, gewinnt</b> — die Reihenfolge
-    /// in <see cref="TesseractBindung.Suchpfade"/> ist die Rangfolge.
+    /// in <see cref="TesseractBindung.SuchpfadeMit"/> ist die Rangfolge, und ganz vorn steht
+    /// die <b>mitgelieferte</b> Fassung (§5 Nr. 29).
+    ///
+    /// <para>
+    /// ⛔ <b>Damit eine mitgelieferte Fassung wirklich lädt, reicht dieser Fund nicht.</b> Der
+    /// Verweis zeigt auf <c>libtesseract.so.5</c>; deren <i>eigene</i> Abhängigkeiten
+    /// (<c>libleptonica</c>, <c>libpng</c>, …) löst danach der Systemlader auf, und der sucht
+    /// sie <b>nicht</b> neben dem Verweisziel. Dafür setzt das AppImage in seinem
+    /// <c>AppRun</c> ein <c>LD_LIBRARY_PATH</c> auf denselben Ordner.
+    /// <b>Das widerspricht §4.63 nicht:</b> dort half <c>LD_LIBRARY_PATH</c> nichts, weil der
+    /// Lader des NuGet-Pakets die Datei <i>am Pfad prüft, bevor er <c>dlopen</c> ruft</i> —
+    /// eine andere Stufe. <i>Zwei Stufen, zwei Regeln; wer die eine Messung auf die andere
+    /// überträgt, sucht danach am falschen Ende.</i>
+    /// </para>
+    ///
+    /// <para>
+    /// ⚠ <b>Benannte Grenze: der erste Ordner mit einem Treffer gewinnt, und „Treffer" heißt
+    /// hier „passender Dateiname" und nicht „lädt".</b> Liegt im mitgelieferten Ordner ein
+    /// <c>libtesseract.so.5</c>, das auf dem fremden Rechner nicht lädt, wird das
+    /// <b>Wirtssystem nicht mehr gefragt</b> — auf einem Rechner <i>mit</i> Tesseract wäre das
+    /// ein Rückschritt gegenüber einem AppImage ohne Beipack.
+    ///
+    /// <b>Bewusst so gelassen</b> (§5 Nr. 29): Eine Rangfolge kann nach Namen entscheiden,
+    /// nicht nach Ladbarkeit — dafür müsste hier probeweise <c>dlopen</c> gerufen und wieder
+    /// aufgeräumt werden, und zwar in genau der Naht, an der §4.63 drei Anläufe gekostet hat.
+    /// <b>Der Preis ist stattdessen an den Bau geknüpft:</b> <c>packaging/appimage/bauen.sh</c>
+    /// sammelt die Abhängigkeiten mit <c>ldd</c> ein, statt die Datei allein zu kopieren, und
+    /// der Auftrag in §5d prüft <b>beide</b> Fälle — mit und ohne System-Tesseract.
+    /// <i>Eine Grenze, die man kennt und beim Bau schließt, ist billiger als eine Prüfung, die
+    /// bei jedem Start läuft.</i>
+    /// </para>
     /// </summary>
     private static string? QuelleSuchen(string stamm, int hauptversion)
     {
-        foreach (string ordner in TesseractBindung.Suchpfade)
+        foreach (string ordner in TesseractBindung.SuchpfadeMit(EigenerLibOrdner()))
         {
             if (!Directory.Exists(ordner)) continue;
 

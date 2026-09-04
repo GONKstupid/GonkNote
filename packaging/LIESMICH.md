@@ -54,11 +54,31 @@ cd packaging/appimage
 ./build/GonkNote-x86_64.AppImage --db /tmp/gonk-test/gonknote.sqlite
 ```
 
-**⚠ Die Texterkennung hängt hier am Wirtssystem.** Ein AppImage hat keinen eigenen
-Namensraum: `/usr/lib` ist der des Wirts, ein mitgeliefertes `libtesseract` würde von
-`TesseractBindung.Suchpfade` nicht gefunden. Hat der Wirt Tesseract, geht die Erkennung; hat
-er keines, meldet die App ehrlich „nicht verfügbar" und **blendet den Knopf aus** (§4.64).
-Alles andere — Schrift, Skia, PDF — steckt im Paket.
+**✅ Die Texterkennung kommt seit dem 2026-09-04 mit** — Nutzer-Entscheidung, §5 „Noch offen"
+**29**: *„nicht jede Linux-Verteilung hat eine."*
+
+`bauen.sh` sucht `libtesseract`/`libleptonica` auf dem **Baurechner**, holt mit `ldd` ihre
+Abhängigkeiten dazu und legt alles nach `usr/bin/lib` im Abbild. Zwei Stellen machen daraus
+eine ladbare Kette, und **beide werden gebraucht**:
+
+| | |
+|---|---|
+| `TesseractBindung.SuchpfadeMit` (Core) | sucht `<AppFolder>/lib` **vor** allen Systempfaden — dort findet die App die Datei, auf die sie ihren Verweis legt |
+| `AppRun` (`LD_LIBRARY_PATH`) | damit **Tesseracts eigene** Abhängigkeiten geladen werden. Der Systemlader sucht sie **nicht** neben dem Verweisziel |
+
+> ⛔ **Das widerspricht §4.63 nicht.** Dort wurde gemessen, dass `LD_LIBRARY_PATH` nicht hilft
+> — das galt für den Lader **des NuGet-Pakets**, der die Datei *am Pfad prüft, bevor er
+> `dlopen` ruft*. Hier geht es um die Stufe danach. *Zwei Stufen, zwei Regeln.*
+
+**Was das nicht ändert:** Findet sich nichts zum Mitnehmen — oder lädt es auf dem fremden
+Rechner nicht —, fällt die App auf das Wirtssystem zurück und meldet sonst weiterhin ehrlich
+„nicht verfügbar" und **blendet den Knopf aus** (§4.64). *Mitliefern ist eine zusätzliche
+Stufe, keine Ablösung.* **`glibc`, `libstdc++` und der Grafikstapel kommen bewusst NICHT mit**
+— die Begründung steht als Ausschlussliste in `bauen.sh`.
+
+> ⛔ **Noch nicht am Gerät geprüft** (Stand 2026-09-04, V2-121 — geschrieben unter Windows).
+> Und der aussagekräftige Test ist **nicht der Baurechner**: dort ist Tesseract installiert,
+> die App fände es also auch ohne das Mitgelieferte. Wie geprüft wird, steht in §5d.
 
 ## Wo die Befunde stehen
 

@@ -28,6 +28,15 @@ namespace GonkNote.Core.Platform;
 /// eigene <c>.so</c> auszuliefern. Das Flatpak-Manifest muss <c>tesseract</c> und
 /// <c>leptonica</c> ohnehin als Abhängigkeit nennen (§4.63); dort liegt die Version fest.
 /// </para>
+///
+/// <para>
+/// <b>Ergänzt am 2026-09-04 (§5 „Noch offen" 29, Nutzer): das AppImage bringt seine eigene
+/// Fassung mit.</b> Der Satz oben bleibt der Normalfall — <b>er hatte nur eine Lücke</b>: ein
+/// AppImage hat keinen eigenen Namensraum, <c>/usr/lib</c> ist der des <i>Wirts</i>, und
+/// „nicht jede Linux-Verteilung hat eine Texterkennung". <b>Verwiesen wird also weiterhin,
+/// mitgeliefert nur dort, wo es sonst nichts gäbe</b>, und der mitgelieferte Ordner steht in
+/// <see cref="SuchpfadeMit"/> ganz vorn.
+/// </para>
 /// </summary>
 public static class TesseractBindung
 {
@@ -77,6 +86,45 @@ public static class TesseractBindung
         "/lib/x86_64-linux-gnu",
         "/usr/local/lib",
     ];
+
+    /// <summary>
+    /// Der Ordner <b>neben dem Programm</b>, in dem ein Paket seine eigene Fassung ablegen
+    /// kann — <c>&lt;AppFolder&gt;/lib</c>, also <see cref="AppPaths.AppSubfolder"/>.
+    /// </summary>
+    public const string EigenerUnterordner = "lib";
+
+    /// <summary>
+    /// <see cref="Suchpfade"/> mit dem <b>mitgelieferten</b> Ordner an erster Stelle.
+    ///
+    /// <para>
+    /// <b>Nutzer-Entscheidung 2026-09-04 (§5 „Noch offen" 29): das AppImage bringt seine
+    /// eigene Texterkennung mit</b> — „nicht jede Linux-Verteilung hat eine". Damit ist
+    /// §5 Nr. 18 („verwiesen wird, nicht mitgeliefert") <b>nicht aufgehoben, sondern um einen
+    /// Fall ergänzt</b>: das Flatpak verweist weiter auf <c>/app/lib</c> aus seinem Manifest,
+    /// ein Lauf aus dem Quellordner weiter auf das System — <b>mitgeliefert wird nur dort, wo
+    /// es sonst gar nichts gibt.</b>
+    /// </para>
+    ///
+    /// <para>
+    /// <b>Warum der eigene Ordner ganz vorn steht, noch vor <c>/app/lib</c>:</b> Wer eine
+    /// Fassung mitliefert, hat sie gegen genau diese App gebaut. Fände zuerst das
+    /// Wirtssystem etwas, wäre die mitgelieferte Fassung totes Gewicht — und schlimmer, das
+    /// Verhalten hinge davon ab, was auf dem fremden Rechner zufällig installiert ist.
+    /// <i>Ein Paket, das sein eigenes Zeug mitbringt und trotzdem das des Wirts nimmt, ist
+    /// unvorhersagbarer als eines, das gar nichts mitbringt.</i>
+    /// </para>
+    ///
+    /// <para>
+    /// <b>Der Ordner wird als Zeichenkette hereingereicht und nicht hier ermittelt</b> —
+    /// diese Klasse ist bewusst ohne Dateisystem prüfbar (siehe Klassenkommentar). Wer
+    /// <c>null</c> oder Leer übergibt, bekommt <see cref="Suchpfade"/> unverändert; das ist
+    /// der Fall „kein eigener Ordner vorhanden".
+    /// </para>
+    /// </summary>
+    public static IReadOnlyList<string> SuchpfadeMit(string? eigenerOrdner) =>
+        string.IsNullOrWhiteSpace(eigenerOrdner)
+            ? Suchpfade
+            : [eigenerOrdner, .. Suchpfade];
 
     /// <summary>
     /// Welcher der vorhandenen Dateinamen der richtige Verweisgeber ist.

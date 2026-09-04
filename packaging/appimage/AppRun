@@ -7,4 +7,39 @@
 #
 # "$@" wird durchgereicht: der Kopf nimmt `--db <pfad>` (HANDOFF Dauerregel 4).
 HIER="$(dirname "$(readlink -f "$0")")"
+
+# ---- Die mitgelieferte Texterkennung (HANDOFF §5 „Noch offen" 29, Nutzer 2026-09-04) ----
+#
+# WARUM DIESE ZEILE NÖTIG IST, obwohl die App den Ordner selbst durchsucht:
+# Die App legt einen Verweis auf `libtesseract.so.5` an und lässt den Lader des NuGet-Pakets
+# ihn per `dlopen` öffnen. Damit ist Tesseract selbst gefunden — aber SEINE EIGENEN
+# Abhängigkeiten (libleptonica, libpng, libtiff, …) löst danach der SYSTEMLADER auf, und der
+# sucht sie NICHT neben dem Verweisziel. Ohne diese Zeile scheitert das Öffnen also, obwohl
+# alle Dateien im Abbild liegen — und es sähe aus wie „Tesseract fehlt".
+#
+# ⛔ DAS WIDERSPRICHT §4.63 NICHT. Dort wurde gemessen, dass LD_LIBRARY_PATH nichts hilft:
+# das galt für den Lader DES PAKETS, der die Datei am Pfad prüft, BEVOR er `dlopen` ruft.
+# Hier geht es um die Stufe danach. Zwei Stufen, zwei Regeln — wer die eine Messung auf die
+# andere überträgt, sucht danach am falschen Ende.
+#
+# ⚠ VORANGESTELLT UND NICHT ANGEHÄNGT, und das ist eine Entscheidung mit einem Preis:
+# Der Ordner enthält die Fassung, die MIT DIESER APP gebaut wurde. Käme das Wirtssystem
+# zuerst, hinge das Verhalten davon ab, was dort zufällig installiert ist — und ein Paket,
+# das sein eigenes Zeug mitbringt und trotzdem das des Wirts nimmt, ist unvorhersagbarer als
+# eines, das gar nichts mitbringt. Dieselbe Begründung wie bei `TesseractBindung.SuchpfadeMit`
+# in Core, und beide Stellen müssen dasselbe tun, sonst sucht man den Unterschied nie hier.
+#
+# Der Preis: Wer selbst ein LD_LIBRARY_PATH gesetzt hat, wird für die Namen überstimmt, die
+# in unserem Ordner liegen (die Texterkennungs-Kette und ihre Bildcodecs). Ein bestehender
+# Wert bleibt sonst vollständig erhalten und gilt für alles Übrige.
+#
+# Der Ordnername `lib` steht an DREI Stellen: hier, in `TesseractBindung.EigenerUnterordner`
+# (Core) und in `bauen.sh`. Ein Wächter in `TesseractBindungTests` hält ihn fest — wer ihn an
+# einer Stelle ändert, schaltet die Texterkennung sonst STILL ab (der Bau bliebe grün, der
+# Knopf verschwände nur, §4.64).
+if [ -d "$HIER/usr/bin/lib" ]; then
+    LD_LIBRARY_PATH="$HIER/usr/bin/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+    export LD_LIBRARY_PATH
+fi
+
 exec "$HIER/usr/bin/GonkNote.Avalonia" "$@"

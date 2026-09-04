@@ -147,4 +147,58 @@ public class TesseractBindungTests
         Assert.Equal("/app/lib", TesseractBindung.Suchpfade[0]);
         Assert.Contains("/usr/lib", TesseractBindung.Suchpfade);
     }
+
+    // ==================== Die mitgelieferte Fassung (§5 Nr. 29) ====================
+
+    [Fact]
+    public void Die_mitgelieferte_Fassung_gewinnt_gegen_JEDEN_Systempfad()
+    {
+        // Nutzer-Entscheidung 2026-09-04: das AppImage bringt seine eigene Texterkennung mit,
+        // weil nicht jede Verteilung eine hat. Wer eine Fassung mitliefert, hat sie gegen
+        // genau diese App gebaut -- sie muss auch dann gewinnen, wenn der Wirt etwas hat.
+        var pfade = TesseractBindung.SuchpfadeMit("/tmp/.mount_Gonk1234/usr/bin/lib");
+
+        Assert.Equal("/tmp/.mount_Gonk1234/usr/bin/lib", pfade[0]);
+
+        // ... und zwar auch gegen /app/lib, das sonst die erste Stelle hat.
+        Assert.True(pfade.ToList().IndexOf("/app/lib") > 0);
+    }
+
+    [Fact]
+    public void Ohne_eigenen_Ordner_bleibt_die_Liste_genau_die_alte()
+    {
+        // Der Normalfall: Flatpak und der Lauf aus dem Quellordner. §5 Nr. 18 gilt dort
+        // unveraendert weiter -- verwiesen wird, nicht mitgeliefert.
+        Assert.Same(TesseractBindung.Suchpfade, TesseractBindung.SuchpfadeMit(null));
+        Assert.Same(TesseractBindung.Suchpfade, TesseractBindung.SuchpfadeMit(""));
+        Assert.Same(TesseractBindung.Suchpfade, TesseractBindung.SuchpfadeMit("   "));
+    }
+
+    [Fact]
+    public void Der_eigene_Ordner_haengt_die_Systempfade_an_und_ersetzt_sie_nicht()
+    {
+        // Damit ein AppImage, dessen lib-Ordner LEER oder unpassend bestueckt ist, noch auf
+        // das Wirtssystem faellt statt gar nichts zu finden.
+        //
+        // ⚠ WAS DIESER WAECHTER NICHT ZUSICHERT, und die erste Fassung dieses Kommentars hat
+        // genau das behauptet: Er deckt NICHT den Fall ab, dass die mitgelieferte Datei DA
+        // IST und trotzdem nicht LAEDT. TesseractLinux.QuelleSuchen nimmt den ERSTEN Ordner
+        // mit einem Treffer; steht dort etwas Unbrauchbares, wird das System nie gefragt.
+        // Eine Rangfolge kann nur nach Namen entscheiden, nicht nach Ladbarkeit -- die
+        // benannte Grenze steht bei TesseractLinux.QuelleSuchen.
+        var pfade = TesseractBindung.SuchpfadeMit("/irgendwo/lib");
+
+        Assert.Equal(TesseractBindung.Suchpfade.Count + 1, pfade.Count);
+        Assert.Equal(TesseractBindung.Suchpfade, pfade.Skip(1));
+    }
+
+    [Fact]
+    public void Der_Name_des_mitgelieferten_Ordners_steht_fest()
+    {
+        // Er steht an DREI Stellen: hier, im AppRun (LD_LIBRARY_PATH) und in bauen.sh des
+        // AppImage. Wer ihn hier aendert, ohne die zwei anderen mitzuziehen, schaltet die
+        // Texterkennung im AppImage STILL ab -- der Bau bliebe gruen und der Knopf
+        // verschwaende nur (§4.64). Deshalb ein Waechter darauf.
+        Assert.Equal("lib", TesseractBindung.EigenerUnterordner);
+    }
 }

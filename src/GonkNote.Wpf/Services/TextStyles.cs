@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Media;
+using GonkNote.Core.Theming;                   // Themes/ThemeColor/HexColor — die Tintenquelle
 using TextDoc = GonkNote.Core.Models.TextDoc;  // Models.TextElement würde mit WPF kollidieren
 
 namespace GonkNote.Services;
@@ -19,9 +20,30 @@ public static class TextStyles
     /// <summary>Grundschriftgröße des Fließtexts (DIP).</summary>
     public const double BodySize = 15;
 
-    /// <summary>Standard-Schreibfarben je Theme (entsprechen Color.DefaultInk).</summary>
-    public static readonly Color InkLight = Color.FromRgb(0x1B, 0x2B, 0x4B);
-    public static readonly Color InkDark = Color.FromRgb(0xE6, 0xEC, 0xF7);
+    /// <summary>
+    /// Standard-Schreibfarben je Theme — <b>abgeleitet</b> aus <see cref="ThemeColor.DefaultInk"/>
+    /// in Core und nicht abgeschrieben.
+    ///
+    /// <para>
+    /// ⛔ <b>Hier standen bis Phase 5, Schritt (4) zwei feste Werte:</b> <c>#1B2B4B</c> und
+    /// <c>#E6ECF7</c>, mit dem Kommentar „entsprechen Color.DefaultInk". Sie entsprachen ihnen
+    /// auch — <b>aber nur, solange niemand die Tabelle in Core anfasst.</b> Das ist derselbe
+    /// Fall wie §4.79 (b) eine Etage weiter: dort schrieb die Zeichenfläche des WPF-Kopfs mit
+    /// derselben Kachel „auto" eine <i>andere</i> Farbe als der Linux-Kopf, weil die Werte
+    /// hier fest verdrahtet waren. <b>Und es betrifft nicht das Aussehen, sondern die
+    /// gespeicherten Daten</b> — die Tinte steht im Dokument.
+    /// </para>
+    /// <para>
+    /// Ein Wächter wäre hier der falsche Griff gewesen: er hätte die Doppelung eingefroren
+    /// statt sie zu beseitigen. Abgeleitet braucht es keinen.
+    /// </para>
+    /// </summary>
+    public static readonly Color InkLight = Wpf(Themes.Light[ThemeColor.DefaultInk]);
+
+    /// <inheritdoc cref="InkLight"/>
+    public static readonly Color InkDark = Wpf(Themes.Dark[ThemeColor.DefaultInk]);
+
+    private static Color Wpf(HexColor c) => Color.FromArgb(c.A, c.R, c.G, c.B);
 
     /// <summary>Titel des generierten Inhaltsverzeichnisses (dient auch als Marker).</summary>
     public const string TocTitle = "Inhaltsverzeichnis";

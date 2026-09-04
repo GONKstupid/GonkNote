@@ -534,9 +534,9 @@ internal static class LocEnglish
         // §4.48 den Grund beseitigt hat und nicht nur die Warnung (siehe dort).
         ["Ed.Export"] = "Export",
         ["Ed.Export.Tip"] = "Write this document as PDF, Word, Markdown or PNG",
-        ["Ed.FitWidth"] = "Fit width",
+        // Gegenstuecke zu Ed.FitWidth / Ed.FitPage in LocGerman -- in Phase 5, Schritt (4)
+        // zusammen entfallen: es sind reine Symbolknoepfe, die Beschriftung stand nie irgendwo.
         ["Ed.FitWidth.Tip"] = "Set the zoom so the page fits the width",
-        ["Ed.FitPage"] = "Whole page",
         ["Ed.FitPage.Tip"] = "Set the zoom so a whole page is visible",
         ["Td.HeaderFooter.Both"] = "both",
         ["Td.HeaderFooter.HeaderOnly"] = "header only",

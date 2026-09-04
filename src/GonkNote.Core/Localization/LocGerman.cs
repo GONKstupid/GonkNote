@@ -590,9 +590,12 @@ internal static class LocGerman
         // sondern ein Rätsel.
         ["Ed.Export"] = "Exportieren",
         ["Ed.Export.Tip"] = "Dieses Dokument als PDF, Word, Markdown oder PNG schreiben",
-        ["Ed.FitWidth"] = "Seitenbreite",
+        // Ed.FitWidth und Ed.FitPage (die BESCHRIFTUNGEN "Seitenbreite" / "Ganze Seite") sind
+        // in Phase 5, Schritt (4) entfallen -- die zwei Knoepfe in der Statusleiste des
+        // Linux-Editors sind reine Symbolknoepfe und zeigen nur den Tooltip. Die .Tip-Zeilen
+        // bleiben, sie werden gerufen. Wer die Knoepfe je beschriftet, holt die Texte hier
+        // aus der Historie zurueck, statt neue zu erfinden.
         ["Ed.FitWidth.Tip"] = "Zoom so setzen, dass die Seite in die Breite passt",
-        ["Ed.FitPage"] = "Ganze Seite",
         ["Ed.FitPage.Tip"] = "Zoom so setzen, dass eine ganze Seite zu sehen ist",
         // Ablesewerte unter der Beschriftung „Kopf- und Fußzeile" — sie dürfen die
         // Beschriftung nicht wiederholen, sonst steht dort zweimal dasselbe.

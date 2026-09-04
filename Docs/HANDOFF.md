@@ -304,7 +304,27 @@ angezeigt, importiert (DOCX) und in alle vier Formate exportiert. **Damit ist Ph
 abgeschlossen.** Der Anschluss hat sofort einen Fehler gezeigt, den vier Runden lang kein
 Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — behoben.
 
-### ▶ Hier geht es weiter (Stand 2026-09-04, nach Runde V2-121)
+### ▶ Hier geht es weiter (Stand 2026-09-04, nach Runde V2-122)
+
+> **▶ DER BEIPACK TRÄGT — auf dem Laptop gemessen** (§4.98 „Was der Laptop gefunden hat",
+> V2-122). Der Auftrag aus §5d ist abgearbeitet: **die Texterkennung im AppImage kommt aus
+> dem Beipack und aus nichts sonst**, zeichengenau bei **verstecktem System-Tesseract**
+> (`bwrap`), und `/proc/self/maps` nennt beide Bibliotheken namentlich. **Der Beipack kostet
+> 24,5 MiB** (61 → 85 MiB), **die Hälfte davon ICU** — es kommt über
+> `libtesseract → libarchive → libxml2` mit und **kann nicht weggelassen werden**.
+>
+> **⛔ Zwei Funde, beide nicht im Auftrag:** Die **benannte Grenze aus §4.98 ist jetzt
+> gemessen** — ein unbrauchbarer Beipack schaltet ein vorhandenes System-Tesseract **aus**
+> (nicht behoben, gehört nach Windows). Und **.NET nimmt sein ICU aus dem Beipack**
+> (`LD_DEBUG=libs`); das ist harmlos, weil .NET abwärts auf die Fassung des Wirts zurückfällt,
+> **aber der `AppRun`-Kommentar sagte etwas anderes** und ist berichtigt.
+>
+> **⛔ Und §4.98 hatte denselben falschen Satz an zwei Stellen und nur eine berichtigt** — die
+> zweite steht jetzt richtig in §5 Nr. 29. *Wer einen falschen Satz findet, sucht seine
+> Zwillinge.*
+>
+> **▶ Der Laptop ist damit wieder nicht dran.** Weiter geht es unter Windows mit dem **Rest
+> von ④ und dem vollständigen Prüflauf** (§5e).
 
 > **▶ ZWEI ENTSCHEIDUNGEN DES NUTZERS SIND GEFALLEN** (§4.98, 2026-09-04).
 >
@@ -317,10 +337,10 @@ Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — beh
 >
 > Gebaut sind drei Stellen: `TesseractBindung.SuchpfadeMit` in Core (**+4 Wächter**),
 > `TesseractLinux.EigenerLibOrdner`, und in `packaging/appimage` das Einsammeln per `ldd`
-> samt `LD_LIBRARY_PATH` im `AppRun`. **⛔ Keine Zeile davon ist gelaufen** — der Bau geht nur
-> unter Linux. **Der Auftrag steht in §5d und hat vier Schritte; nur der dritte beweist
-> etwas** (mit **verstecktem** System-Tesseract messen, sonst kann das Ergebnis auch vom Wirt
-> kommen — dieselbe Falle wie §4.96).
+> samt `LD_LIBRARY_PATH` im `AppRun`. **✅ Am 2026-09-04 auf dem Laptop gelaufen und gemessen**
+> (V2-122, Kasten oben) — *als dieser Absatz geschrieben wurde, war keine Zeile davon je
+> gelaufen, und der Auftrag in §5d bestand deshalb auf der Messung mit verstecktem
+> System-Tesseract.*
 >
 > **§5 Nr. 30 → (a): `UndoStack` und `TdUndo` bleiben getrennt.** Wie empfohlen. **Der
 > Handgriff war nicht das Nein, sondern der Ort:** der Grund steht jetzt in **§7**, wo jemand
@@ -637,7 +657,7 @@ möglich) gelten unverändert weiter — siehe `gonk-note\HANDOFF.md` §1.
 | | |
 |---|---|
 | **Version** | 0.3.0 · `net10.0` · SkiaSharp 3.119.4 · Avalonia 12.1.1 · SQLite |
-| **Tests** | **1270** — 1205 in `GonkNote.Core.Tests`, 65 in `GonkNote.Wpf.Tests` (alles, was am `FlowDocument` hängt) · Stand V2-121. ✅ **Der Widerspruch aus §4.96 ist aufgelöst: die 1201, die der Laptop gezählt hat, sind richtig** — unter Windows am 2026-09-04 nachgezählt, **dieselbe Zahl in beiden Systemen**. Die „1194" war der Stand von V2-117 und ist eine Runde lang nicht nachgezogen worden |
+| **Tests** | **1270** — 1205 in `GonkNote.Core.Tests`, 65 in `GonkNote.Wpf.Tests` (alles, was am `FlowDocument` hängt) · Stand V2-122 (auf dem Laptop nachgemessen: **1205/1205** in Core). ✅ **Der Widerspruch aus §4.96 ist aufgelöst: die 1201, die der Laptop gezählt hat, sind richtig** — unter Windows am 2026-09-04 nachgezählt, **dieselbe Zahl in beiden Systemen**. Die „1194" war der Stand von V2-117 und ist eine Runde lang nicht nachgezogen worden |
 | **Bau** | Debug und Release je 0 Fehler / 0 Warnungen; CI mit zwei Läufen (Windows, Ubuntu) |
 | **Meilensteine** | ✅ **M0** (Core baut auf Linux) · ✅ **M1** (Notizbuch und Whiteboard laufen unter Linux) · ✅ **M2** (Funktionsgleichheit Linux ↔ Windows) — **ausgerufen am 2026-08-28**, Nutzer-Entscheidung, **mit einem benannten Loch**: die Rechtschreibprüfung fehlt im Linux-Kopf (§6, bewusst so entschieden am 2026-08-22). Die zweite Stift-Taste darf verschieden bleiben und ist **kein** Loch (§5 Nr. 17) · ⏳ **M3** (veröffentlicht) hängt an Phase 5 |
 
@@ -651,7 +671,7 @@ möglich) gelten unverändert weiter — siehe `gonk-note\HANDOFF.md` §1.
 | **3** — Avalonia-Shell für Linux · **M1** | ✅ | §4.9 – §4.12, die zwei Schulden in §4.13 |
 | **4** — eigene Dokument-Engine | ✅ **abgeschlossen 2026-08-11** | §4.14 – §4.28 |
 | **4.5** — die fehlenden Werkzeuge des Linux-Kopfs · **trägt M2** | ✅ **abgeschlossen 2026-08-28** — sechs von sechs Stücken, auf **beiden** Systemen gegengeprüft (§4.64) | §4.51 – §4.64, §6 |
-| **5** — ① UI/UX angleichen · ② Rückmeldung · ③ Flatpak/AppImage · ④ aufräumen und prüfen · ⑤ veröffentlichen · **M3** | ▶ **an der Reihe, Schritt ②** — ① ist **zu** (①a §4.71/§4.74/§4.75, ①b §4.72–§4.75, ①c §4.77–§4.92); ② hat mit §4.93 angefangen worden (§4.70) | §6 |
+| **5** — ① UI/UX angleichen · ② Rückmeldung · ③ Flatpak/AppImage · ④ aufräumen und prüfen · ⑤ veröffentlichen · **M3** | ▶ **an der Reihe, Schritt ④ (zweite Hälfte)** — ① ist **zu** (①a §4.71/§4.74/§4.75, ①b §4.72–§4.75, ①c §4.77–§4.92), **② ist zu** (§4.93, §4.94, Reparaturen §4.95), **③ ist gebaut und gestartet** (§4.96 — Flatpak **und** AppImage, ⛔ **Erprobung, keine Auslieferung**), **④ zur Hälfte** (§4.97; der Beipack des AppImage ist in §4.98/V2-122 auf dem Laptop gemessen). **Es fehlt der Rest von ④ und der vollständige Prüflauf** | §6 |
 | **5.6** — Rechtschreibprüfung im Linux-Kopf | ⏳ **fest eingeplant als erster Punkt nach M3** (§5 Nr. 22) | §6 |
 | **6** — iPadOS, Apple Pencil, TestFlight · **M4** | ⏳ offen | §6 |
 

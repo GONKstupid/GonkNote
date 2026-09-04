@@ -248,11 +248,42 @@ public static class MarkdownView
                     ziel.Add(kursiv);
                     break;
 
+                case MdStrike d:
+                    var durch = new Span { TextDecorations = TextDecorations.Strikethrough };
+                    Fuellen(durch.Inlines, d.Inner, link);
+                    ziel.Add(durch);
+                    break;
+
+                case MdImage bild:
+                    ziel.Add(Bildersatz(bild));
+                    break;
+
                 case MdLink l:
                     ziel.Add(Verweis(l, link));
                     break;
             }
         }
+    }
+
+    /// <summary>
+    /// <inheritdoc cref="GonkNote.Services.MarkdownFlow" path="/summary"/>
+    /// <b>Ein Bild wird hier nicht geladen, sondern durch seinen Ersatztext vertreten</b> —
+    /// dieselbe Entscheidung wie im WPF-Kopf, und die Begründung steht dort
+    /// (<c>MarkdownFlow.Bildersatz</c>): Dieses Fenster zeigt vier mitgelieferte Dokumente aus
+    /// der eigenen Assembly, deren Bildpfade sich gegen keine Datei auflösen lassen.
+    ///
+    /// <para>
+    /// <b>Der Punkt ist, dass überhaupt etwas dasteht.</b> Seit Schritt ④ kennt der Zerleger
+    /// <see cref="MdImage"/>, und dieser Maler hätte es sonst stillschweigend weggelassen —
+    /// mit Schritt ⑤ und den Bildschirmfotos in den READMEs wäre daraus eine Lücke geworden,
+    /// die aussieht, als fehlte im Dokument etwas.
+    /// </para>
+    /// </summary>
+    private static Inline Bildersatz(MdImage bild)
+    {
+        var run = new Run(bild.Alt.Length > 0 ? $"[{bild.Alt}]" : "[Bild]");
+        Farbe(run, TextElement.ForegroundProperty, "Brush.TextMuted");
+        return run;
     }
 
     /// <summary>

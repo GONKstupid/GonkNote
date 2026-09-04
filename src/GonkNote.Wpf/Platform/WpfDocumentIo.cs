@@ -25,13 +25,20 @@ public sealed class WpfDocumentIo : IDocumentIo
     // Loc.Current, und ein Sprachwechsel würde sonst still an ihnen vorbeigehen
     // (HANDOFF §7, „Texte, die der Code setzt").
 
-    public IReadOnlyList<FileFilter> ImportFormats =>
-    [
-        new(Loc.T("Filter.Documents"), ".docx", ".md"),
-        new(Loc.T("Filter.Word"), ".docx"),
-        new(Loc.T("Filter.Markdown"), ".md"),
-        new(Loc.T("Filter.AllFiles"), ".*"),
-    ];
+    /// <summary>
+    /// <b>Die Liste steht seit Phase 5, Schritt ④ in Core</b> (<see cref="TdExport.Importformate"/>)
+    /// — genau wie die des Exports seit §4.28, und aus demselben Grund: Der Linux-Kopf führte
+    /// hier eine zweite, <i>kürzere</i> Fassung (nur DOCX), und das ist niemandem aufgefallen.
+    ///
+    /// <para>
+    /// <b>„Alle Dateien" ist dabei weggefallen</b>, und das ist eine Entscheidung und kein
+    /// Versehen: Der Eintrag bot jede Datei zum Öffnen an, während <see cref="Import"/> an der
+    /// Endung entscheidet und alles außer <c>.docx</c> und <c>.md</c> in eine Ausnahme laufen
+    /// lässt. <b>Ein Filter, der mehr anbietet, als der Leser hält</b> — dasselbe Muster wie
+    /// die leere Tafel-Exportliste in §4.77, nur andersherum.
+    /// </para>
+    /// </summary>
+    public IReadOnlyList<FileFilter> ImportFormats => TdExport.Importformate;
 
     // Die Liste steht seit §4.28 in Core (TdExport.Formate) — alle vier Wege stehen dort, und
     // eine zweite Aufzählung im Linux-Kopf wäre die Falle aus §4.13.
@@ -52,13 +59,29 @@ public sealed class WpfDocumentIo : IDocumentIo
     /// der Editor anzeigt. <b>Beide Felder werden dabei gefüllt</b> — <c>Model</c> aus der
     /// Datei, <c>Rtf</c> aus dem Modell —, denn <c>Rtf</c> führt weiter (§4.22).
     /// </para>
+    /// <para>
+    /// <b>Und seit Phase 5, Schritt ④ gilt derselbe Satz für Markdown</b>
+    /// (<see cref="TdMarkdown.Lesen(string, ITdImages)"/>). Vorher stand hier eine Abzweigung
+    /// in <c>MarkdownImporter</c> — <b>394 Zeilen eigene Grammatik im Kopf</b>, obwohl Core
+    /// seit §4.12 einen Zerleger hat. <b>Der Unterschied ist nicht nur, wo der Code liegt:</b>
+    /// Jener Weg schrieb <b>nur</b> Altformat-Bytes und ließ <c>Model</c> leer, womit die
+    /// frisch importierte Datei nach <c>TdFuehrung.UebernahmeStehtAus</c> aussah wie ein
+    /// Dokument aus der Windows-Zeit — und unter Linux erst lesbar war, nachdem sie hier
+    /// einmal offen gewesen ist.
+    /// </para>
+    /// <para>
+    /// <b>Übrig bleibt eine Zeile Unterschied zwischen den Formaten: welcher Leser.</b> Alles
+    /// dahinter ist für beide dasselbe.
+    /// </para>
     /// </summary>
     public byte[] Import(string path, TextDoc target)
     {
-        if (Path.GetExtension(path).Equals(".md", StringComparison.OrdinalIgnoreCase))
-            return MarkdownImporter.ToXamlPackage(path, target);
+        var bilder = new TdBlobImages(BlobStore.Current!);
 
-        var modell = TdDocx.Lesen(path, new TdBlobImages(BlobStore.Current!));
+        var modell = Path.GetExtension(path).Equals(".md", StringComparison.OrdinalIgnoreCase)
+            ? TdMarkdown.Lesen(path, bilder)
+            : TdDocx.Lesen(path, bilder);
+
         var flow = TdZuFlow.Umwandeln(modell, BlobStore.Current!, target);   // samt Seiteneinrichtung
 
         target.Model = TdFormatIo.Schreiben(modell);

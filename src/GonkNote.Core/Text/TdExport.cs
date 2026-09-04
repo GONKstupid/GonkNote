@@ -43,6 +43,33 @@ public static class TdExport
     ];
 
     /// <summary>
+    /// Die Formate, aus denen ein Textdokument <b>gelesen</b> werden kann — <b>in beiden
+    /// Köpfen dieselben</b>, seit Phase 5, Schritt ④.
+    ///
+    /// <para>
+    /// <b>Sie steht aus demselben Grund hier wie <see cref="Formate"/>:</b> Die Exportliste
+    /// wanderte in §4.28 nach Core, weil zwei Aufzählungen zwei sind, von denen später eine
+    /// jemand ändert — <b>die Importliste stand danach trotzdem weiter in beiden Köpfen
+    /// einzeln</b>, und sie <i>war</i> auseinandergelaufen: Der Linux-Kopf bot nur DOCX an
+    /// (siehe <c>AvaloniaDocumentIo.ImportFormats</c>). <b>Genau der Fall, den §4.77 mit der
+    /// leeren Tafel-Exportliste schon einmal hatte</b>, und er ist beide Male niemandem
+    /// aufgefallen, weil eine kürzere Liste nach einer Entscheidung aussieht.
+    /// </para>
+    /// <para>
+    /// <b>„Alle Dateien" steht bewusst nicht darin.</b> Der Leser entscheidet an der Endung;
+    /// was weder <c>.docx</c> noch <c>.md</c> ist, läuft in eine Ausnahme. Ein Filter, der
+    /// alles anbietet, verspricht mehr als der Leser hält — dieselbe Überlegung wie beim
+    /// leeren Tafel-Filter (§4.77), nur andersherum.
+    /// </para>
+    /// </summary>
+    public static IReadOnlyList<FileFilter> Importformate =>
+    [
+        new(Loc.T("Filter.Documents"), ".docx", ".md"),
+        new(Loc.T("Filter.Word"), ".docx"),
+        new(Loc.T("Filter.Markdown"), ".md"),
+    ];
+
+    /// <summary>
     /// Schreibt <paramref name="modell"/> nach <paramref name="pfad"/>; das Format ergibt
     /// sich aus der Endung, alles Unbekannte wird ein PDF.
     /// </summary>

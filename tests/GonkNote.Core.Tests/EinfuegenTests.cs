@@ -154,6 +154,74 @@ public sealed class EinfuegenTests
     }
 
     /// <summary>
+    /// <b>Eine Tabelle in eine Tabelle geht nicht — und der Knopf tut deshalb nichts</b>
+    /// (Phase 5, Schritt ④).
+    ///
+    /// <para>
+    /// <b>Der Anlass war ein Fund und keine Vorsichtsmaßnahme.</b> Die benannte Lücke aus
+    /// §4.19 („der Umbruch setzt eine Tabelle *in* einer Zelle nicht") las sich wie eine
+    /// Grenze des Modells — <b>sie war aber von der Oberfläche aus erreichbar</b>: Cursor in
+    /// eine Zelle, „Tabelle einfügen", und die neue Tabelle stand in <c>zelle.Blocks</c>, wo
+    /// der Umbruch sie wegließ. Der Nutzer legte Inhalt an, den niemand je zu sehen bekam.
+    /// </para>
+    /// <para>
+    /// <b>Dieser Wächter hält die Sperre fest, nicht die Lücke</b> — die hat ihren eigenen in
+    /// <c>TabellenUmbruchTests</c>. Wer die Lücke schließt, macht <i>beide</i> rot und muss
+    /// sich zu beiden äußern: erst dann darf der Knopf wieder etwas tun.
+    /// </para>
+    /// </summary>
+    [Fact]
+    public void Eine_Tabelle_in_einer_Zelle_laesst_sich_nicht_einfuegen()
+    {
+        var doc = Dok(Text("davor"));
+        TdBlockEdit.Tabelle(doc, Bei(doc, 0, 5), 2, 2)!.Anwenden();
+
+        // Absatz 1 ist die erste Zelle der eben eingefügten Tabelle.
+        string vorher = Umriss(doc);
+
+        Assert.Null(TdBlockEdit.Tabelle(doc, Bei(doc, 1, 0), 2, 2));
+        Assert.Equal(vorher, Umriss(doc));
+    }
+
+    /// <summary>
+    /// <b>Die Infobox ist eine Tabelle mit einer Zelle</b> (§4.89) und fällt deshalb unter
+    /// dieselbe Sperre — <b>ohne dass sie eigens genannt werden müsste</b>.
+    ///
+    /// <para>
+    /// Der Wächter steht trotzdem da: Er beweist, dass die Regel an der Stelle sitzt, die
+    /// einfügt, und nicht in <see cref="TdBlockEdit.Tabelle"/> allein. Wer sie dorthin
+    /// zurückschöbe, machte genau diesen Test rot.
+    /// </para>
+    /// </summary>
+    [Fact]
+    public void Auch_eine_Infobox_geht_nicht_in_eine_Zelle()
+    {
+        var doc = Dok(Text("davor"));
+        TdBlockEdit.Tabelle(doc, Bei(doc, 0, 5), 2, 2)!.Anwenden();
+
+        Assert.Null(TdBlockEdit.Infobox(doc, Bei(doc, 1, 0), "#EEF2F8", "#D4DEEA"));
+    }
+
+    /// <summary>
+    /// <b>Die Trennlinie ist von der Sperre nicht betroffen</b> — sie ist ein Absatz mit
+    /// Rahmen und keine Tabelle (§4.40).
+    ///
+    /// <para>
+    /// <b>Eine Sperre, die zu viel sperrt, fällt niemandem auf</b>: Der Knopf tut dann still
+    /// nichts, und das sieht aus wie ein Knopf, den man falsch bedient hat. Dieser Wächter
+    /// zieht die Grenze von der anderen Seite.
+    /// </para>
+    /// </summary>
+    [Fact]
+    public void Eine_Trennlinie_geht_sehr_wohl_in_eine_Zelle()
+    {
+        var doc = Dok(Text("davor"));
+        TdBlockEdit.Tabelle(doc, Bei(doc, 0, 5), 2, 2)!.Anwenden();
+
+        Assert.NotNull(TdBlockEdit.Trennlinie(doc, Bei(doc, 1, 0)));
+    }
+
+    /// <summary>
     /// Ein Seitenumbruch bringt keinen Absatz mit — dann steht die Marke am Anfang der unteren
     /// Hälfte, und zwar an deren **richtiger Nummer**.
     /// </summary>

@@ -105,6 +105,61 @@ public readonly record struct TdStil(
     /// <summary>Die Vorlage „Standard" — die, auf die „Formatierung zurücksetzen" führt.</summary>
     public static TdStil Standard => Alle[0];
 
+    /// <summary>
+    /// <b>Setzt diese Vorlage auf einen Absatz</b> — Größe, Fett, Kursiv, Farbe, die vier
+    /// Abstände und die Gliederungsebene.
+    ///
+    /// <para>
+    /// <b>Die Gliederungsebene geht mit</b> (<see cref="TdParaFormat.OutlineLevel"/>): Daran
+    /// hängt das Inhaltsverzeichnis (§4.20). Ohne sie sähe eine Überschrift wie eine aus und
+    /// stünde trotzdem nicht darin.
+    /// </para>
+    /// <para>
+    /// <b>Eine Überschrift hebt die Listenzugehörigkeit auf</b>, „Standard" nicht: Sie ist
+    /// das, worauf man landet, wenn man eine Überschrift zurücknimmt, und dabei einen
+    /// Aufzählungspunkt zu verlieren wäre eine Überraschung.
+    /// </para>
+    /// <para>
+    /// <b>Warum das hier steht und nicht in <c>TdListEdit.Vorlage</c></b>, wo es bis Phase 5,
+    /// Schritt ④ allein stand: Der Markdown-Import (<see cref="TdMarkdown.Lesen(string,
+    /// ITdImages)"/>) braucht dieselben zwölf Zuweisungen für einen Absatz, den es noch gar
+    /// nicht gibt — er kann also nicht über eine <c>TdSelection</c> gehen. <b>Zwei Fassungen
+    /// wären zwei, von denen später eine jemand ändert</b>, und das Fehlerbild wäre eine
+    /// importierte Überschrift, die nicht im Inhaltsverzeichnis steht.
+    /// </para>
+    /// </summary>
+    public void AufAbsatz(TdParagraph ziel) =>
+        Setzen(ziel.Format, ziel.CharFormat, () => ziel.List = null);
+
+    /// <summary>
+    /// <inheritdoc cref="AufAbsatz(TdParagraph)" path="/summary/para[1]"/>
+    /// <para>
+    /// <b>Zwei Überladungen, weil es zwei Träger desselben Trios gibt:</b>
+    /// <see cref="TdParagraph"/> ist der Absatz selbst, <see cref="TdAbsatzStil"/> die
+    /// Abweichung, die <c>TdFormatEdit.Absatzweise</c> herumreicht. Beide führen
+    /// <c>Format</c>, <c>CharFormat</c> und <c>List</c> — <b>die zwölf Zuweisungen stehen
+    /// trotzdem nur einmal</b>, in <see cref="Setzen"/>.
+    /// </para>
+    /// </summary>
+    public void AufAbsatz(TdAbsatzStil ziel) =>
+        Setzen(ziel.Format, ziel.CharFormat, () => ziel.List = null);
+
+    private void Setzen(TdParaFormat format, TdCharFormat zeichen, Action listeLoeschen)
+    {
+        zeichen.FontSize = SizePt;
+        zeichen.Bold = Bold;
+        zeichen.Italic = Italic;
+        zeichen.Color = ColorHex;
+
+        format.SpaceBeforePt = BeforePt == 0 ? null : BeforePt;
+        format.SpaceAfterPt = AfterPt == 0 ? null : AfterPt;
+        format.LeftIndentCm = LeftCm == 0 ? null : LeftCm;
+        format.RightIndentCm = RightCm == 0 ? null : RightCm;
+        format.OutlineLevel = Heading == 0 ? null : Heading;
+
+        if (Heading > 0) listeLoeschen();
+    }
+
     /// <summary>Die Vorlage zu einer Gliederungsebene; <c>null</c>, wenn es keine gibt.</summary>
     public static TdStil? ZurEbene(int ebene)
     {

@@ -29,9 +29,112 @@ public sealed class MarkdownTests
             MdCodeSpan c => c.Text,
             MdBold b => Text(b.Inner),
             MdItalic k => Text(k.Inner),
+            MdStrike d => Text(d.Inner),
             MdLink l => l.Text,
             _ => "",
         }));
+
+    // ==================== Die vier Formen aus Phase 5, Schritt ④ ====================
+    //
+    // Sie sind mit dem Umzug des Markdown-Imports nach Core dazugekommen (TdMarkdown.Lesen):
+    // Der Importer des WPF-Kopfs kannte sie, der Zerleger hier nicht.
+
+    /// <summary>
+    /// <c>~~durchgestrichen~~</c> — und der Wächter ist nicht nur wegen des Imports da:
+    /// <b><see cref="TdMarkdown.Schreiben"/> schreibt seit jeher <c>~~</c></b>, und bis Schritt
+    /// ④ las der Zerleger es als gewöhnlichen Text zurück. <b>Der eigene Export war also
+    /// keine Rundreise durch den eigenen Leser.</b>
+    /// </summary>
+    [Fact]
+    public void Durchgestrichenes_wird_erkannt()
+    {
+        var p = Assert.IsType<MdParagraph>(Markdown.Parse("a ~~weg~~ b").Single());
+
+        Assert.Equal("a weg b", Text(p.Inlines));
+        Assert.Contains(p.Inlines, i => i is MdStrike);
+    }
+
+    /// <summary>
+    /// <c>***fett und kursiv***</c> — <b>als Fett um Kursiv und nicht als dritte Form.</b>
+    /// Das Modell kennt zwei Schalter; ein eigener Knoten müsste durch jede Stelle hindurch,
+    /// die über Stücke läuft.
+    /// </summary>
+    [Fact]
+    public void Fett_und_kursiv_zugleich_wird_geschachtelt()
+    {
+        var p = Assert.IsType<MdParagraph>(Markdown.Parse("***beides***").Single());
+
+        var fett = Assert.IsType<MdBold>(Assert.Single(p.Inlines));
+        var kursiv = Assert.IsType<MdItalic>(Assert.Single(fett.Inner));
+
+        Assert.Equal("beides", Text(kursiv.Inner));
+    }
+
+    /// <summary>Word und viele Editoren schreiben Fett als <c>__…__</c> statt <c>**…**</c>.</summary>
+    [Fact]
+    public void Unterstriche_gelten_als_fett()
+    {
+        var p = Assert.IsType<MdParagraph>(Markdown.Parse("__fett__").Single());
+
+        Assert.Equal("fett", Text(Assert.IsType<MdBold>(Assert.Single(p.Inlines)).Inner));
+    }
+
+    /// <summary>
+    /// <b><c>![alt](x)</c> ist ein Bild und kein Verweis mit Ausrufezeichen davor</b> — die
+    /// Reihenfolge im Muster entscheidet das, und sie ist die einzige Stelle, an der ein
+    /// falscher Vorrang <i>zwei</i> Formen zugleich verdirbt (§7, dieselbe Erbfolge wie beim
+    /// Verweis).
+    /// </summary>
+    [Fact]
+    public void Ein_Bild_ist_kein_Verweis()
+    {
+        var p = Assert.IsType<MdParagraph>(Markdown.Parse("![Foto](bild.png)").Single());
+
+        var bild = Assert.IsType<MdImage>(Assert.Single(p.Inlines));
+        Assert.Equal("Foto", bild.Alt);
+        Assert.Equal("bild.png", bild.Source);
+    }
+
+    /// <summary>Und die Gegenprobe: ein gewöhnlicher Verweis bleibt einer.</summary>
+    [Fact]
+    public void Ein_Verweis_neben_einem_Bild_bleibt_ein_Verweis()
+    {
+        var p = Assert.IsType<MdParagraph>(
+            Markdown.Parse("![a](x.png) und [b](y.md)").Single());
+
+        Assert.Contains(p.Inlines, i => i is MdImage);
+        Assert.Equal("y.md", Assert.IsType<MdLink>(p.Inlines[^1]).Target);
+    }
+
+    /// <summary>
+    /// <b>Der eigene Export geht jetzt durch den eigenen Leser</b> — die Rundreise, die es
+    /// vor Schritt ④ nicht gab. Geprüft wird an dem, was <see cref="TdMarkdown.Schreiben"/>
+    /// wirklich schreibt, und nicht an einem von Hand getippten Text.
+    /// </summary>
+    [Fact]
+    public void Was_der_eigene_Export_schreibt_liest_der_eigene_Zerleger()
+    {
+        var doc = new TdDocument
+        {
+            Sections =
+            {
+                new TdSection(new TdParagraph(new TdInline[]
+                {
+                    new TdRun("normal "),
+                    new TdRun("weg") { Format = { Strikethrough = true } },
+                    new TdRun(" und "),
+                    new TdRun("beides") { Format = { Bold = true, Italic = true } },
+                })),
+            },
+        };
+
+        var gelesen = Markdown.Parse(TdMarkdown.Schreiben(doc));
+        var p = Assert.IsType<MdParagraph>(gelesen.Single());
+
+        Assert.Equal("normal weg und beides", Text(p.Inlines));
+        Assert.Contains(p.Inlines, i => i is MdStrike);
+        Assert.Contains(p.Inlines, i => i is MdBold);
+    }
 
     // ==================== Blöcke ====================
 

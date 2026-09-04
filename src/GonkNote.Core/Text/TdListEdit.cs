@@ -180,22 +180,13 @@ public static class TdListEdit
     /// und stünde trotzdem nicht darin.
     /// </para>
     /// </summary>
+    /// <remarks>
+    /// <b>Was gesetzt wird, steht seit Phase 5, Schritt ④ in <see cref="TdStil.AufAbsatz"/></b>
+    /// — der Markdown-Import braucht dieselben Zuweisungen für einen Absatz, den es noch nicht
+    /// gibt, und damit über keine Auswahl.
+    /// </remarks>
     public static TdChange? Vorlage(TdDocument doc, TdSelection auswahl, TdStil stil) =>
-        TdFormatEdit.Absatzweise(doc, auswahl, ziel =>
-        {
-            ziel.CharFormat.FontSize = stil.SizePt;
-            ziel.CharFormat.Bold = stil.Bold;
-            ziel.CharFormat.Italic = stil.Italic;
-            ziel.CharFormat.Color = stil.ColorHex;
-
-            ziel.Format.SpaceBeforePt = stil.BeforePt == 0 ? null : stil.BeforePt;
-            ziel.Format.SpaceAfterPt = stil.AfterPt == 0 ? null : stil.AfterPt;
-            ziel.Format.LeftIndentCm = stil.LeftCm == 0 ? null : stil.LeftCm;
-            ziel.Format.RightIndentCm = stil.RightCm == 0 ? null : stil.RightCm;
-            ziel.Format.OutlineLevel = stil.Heading == 0 ? null : stil.Heading;
-
-            if (stil.Heading > 0) ziel.List = null;
-        });
+        TdFormatEdit.Absatzweise(doc, auswahl, stil.AufAbsatz);
 
     /// <summary>
     /// Welche Vorlage die Auswahl zeigt — <c>null</c>, wenn keine passt oder die Auswahl sich

@@ -42,8 +42,34 @@ public sealed record MdBold(IReadOnlyList<MdInline> Inner) : MdInline;
 
 public sealed record MdItalic(IReadOnlyList<MdInline> Inner) : MdInline;
 
+/// <summary>
+/// <c>~~durchgestrichen~~</c>.
+///
+/// <para>
+/// <b>Nachgereicht in Phase 5, Schritt ④</b>, zusammen mit <see cref="MdImage"/>: Der
+/// Markdown-<i>Import</i> des WPF-Kopfs führte bis dahin seine eigene Grammatik und kannte
+/// beides — der Zerleger hier nicht. Damit der Import hierher ziehen konnte, ohne unterwegs
+/// etwas zu verlieren, fehlten genau diese zwei Formen.
+/// </para>
+/// </summary>
+public sealed record MdStrike(IReadOnlyList<MdInline> Inner) : MdInline;
+
 /// <param name="Target">Das Ziel, wörtlich wie im Text — ein relativer Verweis bleibt relativ.</param>
 public sealed record MdLink(string Text, string Target) : MdInline;
+
+/// <summary>
+/// <c>![alt](pfad)</c> — ein Bild.
+///
+/// <para>
+/// <b>Der Zerleger lädt nichts.</b> Hier steht der Pfad, wörtlich wie im Text; ob es die
+/// Datei gibt und was in ihr steht, entscheidet erst, wer das Ergebnis verarbeitet
+/// (<see cref="TdMarkdown.Lesen(string, ITdImages)"/>). <b>Das ist dieselbe Trennung wie bei
+/// <see cref="MdLink"/></b> — zerlegen heißt lesen, nicht auflösen.
+/// </para>
+/// </summary>
+/// <param name="Alt">Der Ersatztext; leer, wenn keiner dasteht.</param>
+/// <param name="Source">Der Pfad, wörtlich wie im Text — relativ zur Markdown-Datei.</param>
+public sealed record MdImage(string Alt, string Source) : MdInline;
 
 // ==================== Der Zerleger ====================
 
@@ -254,10 +280,18 @@ public static partial class Markdown
 
             if (m.Groups["code"].Success)
                 stuecke.Add(new MdCodeSpan(m.Groups["codeIn"].Value));
+            else if (m.Groups["img"].Success)
+                stuecke.Add(new MdImage(m.Groups["imgAlt"].Value, m.Groups["imgSrc"].Value));
             else if (m.Groups["link"].Success)
                 stuecke.Add(new MdLink(m.Groups["linkText"].Value, m.Groups["linkUrl"].Value));
+            else if (m.Groups["bi"].Success)
+                stuecke.Add(new MdBold([new MdItalic(Inline(m.Groups["biIn"].Value))]));
             else if (m.Groups["bold"].Success)
                 stuecke.Add(new MdBold(Inline(m.Groups["boldIn"].Value)));
+            else if (m.Groups["bold2"].Success)
+                stuecke.Add(new MdBold(Inline(m.Groups["bold2In"].Value)));
+            else if (m.Groups["strike"].Success)
+                stuecke.Add(new MdStrike(Inline(m.Groups["strikeIn"].Value)));
             else
                 stuecke.Add(new MdItalic(Inline(m.Groups["emIn"].Value)));
 
@@ -299,10 +333,23 @@ public static partial class Markdown
     // kursiv, sonst reißt ** in zwei * auseinander. Fett darf Sternchen enthalten
     // („**fett mit *kursiv* darin**") — es läuft bis zum nächsten **, nicht bis zum
     // nächsten Sternchen.
+    //
+    // **Das Bild steht vor dem Verweis**, und das ist keine Geschmacksfrage: `![alt](x)` ist
+    // ein `[alt](x)` mit einem `!` davor. Stünde der Verweis zuerst, würde er den Rumpf
+    // schlucken und das `!` als gewöhnlichen Text stehen lassen — aus einem Bild würde ein
+    // Link mit einem Ausrufezeichen davor. Aus demselben Grund steht `***` vor `**` vor `*`.
+    //
+    // `***` wird als **fett um kursiv** gelesen und nicht als eigene Form: Das Modell kennt
+    // zwei Schalter und keinen dritten, und ein `MdBoldItalic` müsste durch jede Stelle
+    // hindurch, die über Stücke läuft (§4.17, dieselbe Überlegung wie beim Listenpunkt).
     [GeneratedRegex(
         @"(?<code>`(?<codeIn>[^`]+)`)" +
+        @"|(?<img>!\[(?<imgAlt>[^\]]*)\]\((?<imgSrc>[^)]*)\))" +
         @"|(?<link>\[(?<linkText>[^\]]+)\]\((?<linkUrl>[^)]+)\))" +
+        @"|(?<bi>\*\*\*(?<biIn>(?:(?!\*\*\*).)+?)\*\*\*)" +
         @"|(?<bold>\*\*(?<boldIn>(?:(?!\*\*).)+?)\*\*)" +
+        @"|(?<bold2>__(?<bold2In>(?:(?!__).)+?)__)" +
+        @"|(?<strike>~~(?<strikeIn>(?:(?!~~).)+?)~~)" +
         @"|(?<em>(?<!\*)\*(?!\*)(?<emIn>[^*]+)\*(?!\*))")]
     private static partial Regex InlineRegex();
 }

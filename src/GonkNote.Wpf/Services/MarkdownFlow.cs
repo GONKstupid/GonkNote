@@ -206,12 +206,51 @@ public static class MarkdownFlow
                     span.Inlines.Add(new Italic(Inline(k.Inner, link)));
                     break;
 
+                case MdStrike d:
+                    var durch = new Span(Inline(d.Inner, link))
+                    {
+                        TextDecorations = TextDecorations.Strikethrough,
+                    };
+                    span.Inlines.Add(durch);
+                    break;
+
+                case MdImage bild:
+                    span.Inlines.Add(Bildersatz(bild));
+                    break;
+
                 case MdLink l:
                     span.Inlines.Add(Link(l, link));
                     break;
             }
         }
         return span;
+    }
+
+    /// <summary>
+    /// <b>Ein Bild wird hier nicht geladen, sondern durch seinen Ersatztext vertreten</b> —
+    /// <c>[Bildschirmfoto]</c> in der gedämpften Farbe.
+    ///
+    /// <para>
+    /// <b>Warum überhaupt etwas dasteht</b> (Phase 5, Schritt ④): Seit der Markdown-Import
+    /// nach Core gezogen ist (<see cref="TdMarkdown"/>), kennt der Zerleger
+    /// <see cref="MdImage"/> — und dieser Maler hätte es <b>stillschweigend weggelassen</b>.
+    /// Das fällt heute niemandem auf, weil keines der vier mitgelieferten Dokumente ein Bild
+    /// enthält; <b>Schritt ⑤ setzt aber Bildschirmfotos in beide READMEs</b>, und dann stünde
+    /// im Hilfe-Fenster eine Lücke, wo ein Bild sein sollte.
+    /// </para>
+    /// <para>
+    /// <b>Der Ersatztext und nicht das Bild</b>, und das ist eine Entscheidung: Dieses Fenster
+    /// zeigt vier mitgelieferte Dokumente aus der eigenen Exe, kein fremdes Markdown. Ein
+    /// Bildlader müsste den Pfad relativ zu einer Datei auflösen, die es als Datei gar nicht
+    /// gibt (die Dokumente liegen als eingebettete Resource, §7). <b>Der Ersatztext sagt, dass
+    /// dort etwas ist</b> — das Weglassen behauptete, dort sei nichts.
+    /// </para>
+    /// </summary>
+    private static Inline Bildersatz(MdImage bild)
+    {
+        var run = new Run(bild.Alt.Length > 0 ? $"[{bild.Alt}]" : "[Bild]");
+        run.SetResourceReference(TextElement.ForegroundProperty, "Brush.TextMuted");
+        return run;
     }
 
     /// <summary>

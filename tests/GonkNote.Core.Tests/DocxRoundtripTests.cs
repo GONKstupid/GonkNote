@@ -717,6 +717,49 @@ public sealed class DocxRoundtripTests
     }
 
     /// <summary>
+    /// <b>Benannte Lücke, ab Phase 5 Schritt ④ auch festgehalten: eine Zeichnung, die weder
+    /// Bild noch Diagramm ist</b> — eine Form, ein SmartArt — <b>verschwindet beim Lesen</b>
+    /// (§4.21). Das Modell hat dafür keinen Ort, und ein leerer Kasten wäre eine Behauptung
+    /// über etwas, das wir nicht kennen.
+    ///
+    /// <para>
+    /// <b>Warum dieser Wächter nachgereicht wurde.</b> §6 führt drei „benannte Lücken", und
+    /// über sie steht dort, jede sei „mit einem Wächter festgehalten". <b>Für diese stimmte
+    /// das nicht</b> — es gab keine Zeile Test dazu, nur einen Kommentar im Leser. Ein
+    /// Kommentar sagt, was jemand vorhatte; nur ein Wächter merkt, wenn es sich ändert.
+    /// </para>
+    /// <para>
+    /// <b>Gebaut wird die fremde Zeichnung, indem dem geschriebenen Bild sein <c>a:blip</c>
+    /// genommen wird</b>: Übrig bleibt eine <c>w:drawing</c> mit Ausdehnung und Namen, auf die
+    /// weder <c>C.ChartReference</c> noch <c>A.Blip</c> passt — genau der Fall, den der Leser
+    /// mit <c>null</c> beantwortet. <b>Der Text ringsum muss stehen bleiben:</b> Ein Verlust,
+    /// der den Absatz mitnimmt, wäre kein benannter, sondern ein Fehler.
+    /// </para>
+    /// </summary>
+    [Fact]
+    public void Eine_fremde_Zeichnung_verschwindet_und_nimmt_nichts_mit()
+    {
+        using var werkbank = new Werkbank("fremde-zeichnung");
+        string pfad = werkbank.Datei("form.docx");
+
+        TdDocx.Schreiben(
+            MitStuecken(
+                new TdRun("davor"),
+                new TdImage(Bildkennung, "png", 6.5, 4.25),
+                new TdRun("dahinter")),
+            pfad, Bilder);
+
+        // So wird aus dem Bild eine Form: die Zeichnung bleibt, ihr Bildverweis geht weg.
+        XmlAendern(pfad, xml => System.Text.RegularExpressions.Regex.Replace(
+            xml, "<a:blip[^>]*/>", ""));
+
+        var absatz = TdDocx.Lesen(pfad, Bilder).Paragraphs().First();
+
+        Assert.DoesNotContain(absatz.Inlines, s => s is TdGraphic);
+        Assert.Equal("davordahinter", absatz.PlainText());
+    }
+
+    /// <summary>
     /// Ohne die Naht zu den Bilddaten **wirft** der Export, statt ein leeres Dokument zu
     /// schreiben. Ein Bild, das ohne Meldung verschwindet, ist die Sorte Fehler, die man erst
     /// am fertigen Ausdruck bemerkt (§7, „Was noch nicht geht, verschwindet nicht still").
@@ -788,6 +831,53 @@ public sealed class DocxRoundtripTests
         Assert.Equal(["Mo", "Di", "Mi"], zurueck.Categories);
         Assert.Equal([4.0, 7.0, 3.0], Assert.Single(zurueck.Series).Values);
         Assert.Equal(d.Palette, zurueck.Palette);
+    }
+
+    /// <summary>
+    /// <b>Benannte Lücke, ab Phase 5 Schritt ④ auch festgehalten: eine Farbe, die kein Element
+    /// benutzt, übersteht DOCX nicht</b> (§4.21). Sie hat dort keinen Ort — Farben stehen an
+    /// den Datenpunkten und an den Reihen, und ein siebter Wert ohne siebten Balken hat
+    /// nichts, woran er hängen könnte.
+    ///
+    /// <para>
+    /// <b>Warum dieser Wächter nachgereicht wurde, und er ist der unangenehmere der beiden.</b>
+    /// Die Lücke war nicht ungeprüft, sie war <i>umgangen</i>:
+    /// <c>Jede_Diagrammart_uebersteht_DOCX</c> kürzt die Palette mit
+    /// <c>if (!d.FarbeJeElement) d.Palette.RemoveRange(1, 2)</c> auf das, was durchpasst — und
+    /// ist deshalb grün, ohne über den Verlust etwas auszusagen. <b>Ein Test, der sich einer
+    /// Lücke anpasst, hält sie nicht fest; er verdeckt sie.</b>
+    /// </para>
+    /// <para>
+    /// <b>Die Gegenprobe steht daneben und ist der Punkt:</b> Im <i>eigenen</i> Format
+    /// überlebt dieselbe Palette vollständig. Der Verlust gehört DOCX und nicht dem Modell —
+    /// wer das eigene Format liest, bekommt alle sechs Farben zurück.
+    /// </para>
+    /// </summary>
+    [Fact]
+    public void Eine_ungenutzte_Palettenfarbe_uebersteht_DOCX_nicht_das_eigene_Format_schon()
+    {
+        // Drei Balken, eine Reihe -> Farbe je Element, also drei Farben mit einem Ort.
+        var d = new TdChart(TdChartKind.Column, 12, 8)
+        {
+            Categories = { "Mo", "Di", "Mi" },
+            Series = { new TdChartSeries("Umsatz", 4, 7, 3) },
+            Palette = { "#2563EB", "#14B8A6", "#EC4899", "#8B5CF6", "#F59E0B", "#10B981" },
+        };
+        Assert.Equal(3, d.FarbenGebraucht);
+
+        var durchDocx = Assert.IsType<TdChart>(
+            Zurueck(MitStuecken(d)).Paragraphs().First().Inlines[0]);
+
+        // Die drei hinteren haben in der Datei keinen Ort — und kommen deshalb nicht wieder.
+        Assert.Equal(["#2563EB", "#14B8A6", "#EC4899"], durchDocx.Palette);
+
+        // Im eigenen Format stehen alle sechs. Das ist der Unterschied, um den es geht.
+        var eigenes = TdFormatIo.Lesen(TdFormatIo.Schreiben(MitStuecken(d)));
+        Assert.NotNull(eigenes);
+
+        var durchEigenes = Assert.IsType<TdChart>(eigenes.Paragraphs().First().Inlines[0]);
+
+        Assert.Equal(d.Palette, durchEigenes.Palette);
     }
 
     /// <summary>

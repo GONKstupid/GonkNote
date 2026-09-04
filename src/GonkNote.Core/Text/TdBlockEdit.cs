@@ -43,10 +43,36 @@ public static class TdBlockEdit
     /// <c>null</c> heißt „nichts zu tun", mit denselben drei Gründen wie in
     /// <see cref="TdEdit.Ersetzen"/> — dazu einem vierten: <b>keine Blöcke übergeben.</b>
     /// </para>
+    /// <para>
+    /// <b>Und einem fünften: eine Tabelle in eine Tabelle</b> (Phase 5, Schritt ④). Die
+    /// benannte Lücke aus §4.19 sagt, dass der Umbruch eine Tabelle *in* einer Zelle nicht
+    /// setzt — <b>sie war aber von der Oberfläche aus erreichbar</b>: <see cref="TdEdit"/>
+    /// steigt beim Suchen des Absatzortes in Zellen ab (es muss das tun, damit man in einer
+    /// Zelle überhaupt tippen kann), also landete „Tabelle einfügen" bei Cursor in einer
+    /// Zelle klaglos in <c>zelle.Blocks</c> — und der Umbruch ließ sie weg. <b>Der Nutzer
+    /// legte Inhalt an, den niemand je zu sehen bekam.</b>
+    /// </para>
+    /// <para>
+    /// <b>Gesperrt wird hier und nicht in den zwei Aufrufern</b> (<see cref="Tabelle"/>,
+    /// <see cref="Infobox"/> — die Infobox *ist* eine Tabelle mit einer Zelle): Die Regel
+    /// gehört an die Stelle, die einfügt, sonst muss jede künftige Blockart, die eine Tabelle
+    /// mitbringt, noch einmal einsortiert werden. <b>Die Trennlinie ist nicht betroffen</b> —
+    /// sie ist ein Absatz mit Rahmen und keine Tabelle (§4.40).
+    /// </para>
+    /// <para>
+    /// <b>Das schließt die Lücke nicht, es macht sie nur ehrlich.</b> Das Modell trägt eine
+    /// verschachtelte Tabelle weiterhin, DOCX schreibt und liest sie (§4.18) — ein Dokument
+    /// von außen kann also eine haben, und dann bleibt sie unsichtbar. Der Wächter in
+    /// <c>TabellenUmbruchTests</c> hält diesen Zustand fest.
+    /// </para>
     /// </summary>
     public static TdChange? Einfuegen(TdDocument doc, TdSelection auswahl, params TdBlock[] bloecke)
     {
         if (bloecke.Length == 0) return null;
+
+        if (Array.Exists(bloecke, b => b is TdTable)
+            && TdTableEdit.Ort(doc, TdCursor.Normalisieren(doc, auswahl).Start) is not null)
+            return null;
 
         var gezogen = TdCursor.Normalisieren(doc, auswahl);
         var start = gezogen.Start;

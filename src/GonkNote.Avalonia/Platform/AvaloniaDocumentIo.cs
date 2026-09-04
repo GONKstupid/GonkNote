@@ -34,16 +34,24 @@ namespace GonkNote.Platform;
 public sealed class AvaloniaDocumentIo : IDocumentIo
 {
     /// <summary>
-    /// <b>Nur DOCX</b>, und das ist der Unterschied zum WPF-Kopf: <c>TdDocx.Lesen</c> steht in
-    /// Core, der Markdown-<i>Import</i> geht drüben weiter über ein <c>FlowDocument</c>
-    /// (<c>MarkdownImporter</c>, §4.27). Ein <c>.md</c>-Eintrag hier führte in einen
-    /// Dateidialog, hinter dem eine Ausnahme wartet — ein Format anzubieten, das man nicht
-    /// lesen kann, ist schlimmer, als es nicht anzubieten.
+    /// <b>DOCX und Markdown — dieselbe Liste wie drüben, seit Phase 5, Schritt ④.</b>
+    ///
+    /// <para>
+    /// <b>Hier stand „nur DOCX", mit einer Begründung, die zu ihrer Zeit stimmte:</b> der
+    /// Markdown-<i>Import</i> ging drüben über ein <c>FlowDocument</c>
+    /// (<c>MarkdownImporter</c>, §4.27), und ein <c>.md</c>-Eintrag hätte in einen Dateidialog
+    /// geführt, hinter dem eine Ausnahme wartet. <b>Sie ist mit dem Umzug des Importers nach
+    /// Core hinfällig geworden</b> (<see cref="TdMarkdown.Lesen(string, ITdImages)"/>).
+    /// </para>
+    /// <para>
+    /// <b>Und sie hat ein Loch in M2 verdeckt, so wie der Kommentar am Tafel-Export es tat</b>
+    /// (§4.77): „Funktionsgleichheit Linux ↔ Windows" war ausgerufen, während dieser Kopf ein
+    /// Format nicht lesen konnte, das der andere las. <b>Der Unterschied zu §4.77 ist, dass
+    /// die Begründung diesmal nicht falsch war, sondern abgelaufen</b> — und eine abgelaufene
+    /// Begründung liest sich wie eine gültige (§4.60, §4.71).
+    /// </para>
     /// </summary>
-    public IReadOnlyList<FileFilter> ImportFormats =>
-    [
-        new(Loc.T("Filter.Word"), ".docx"),
-    ];
+    public IReadOnlyList<FileFilter> ImportFormats => TdExport.Importformate;
 
     /// <summary>Dieselbe Liste wie im WPF-Kopf — sie steht in Core (§4.28).</summary>
     public IReadOnlyList<FileFilter> TextExportFormats => TdExport.Formate;
@@ -90,7 +98,10 @@ public sealed class AvaloniaDocumentIo : IDocumentIo
     public byte[] Import(string path, TextDoc target)
     {
         var bilder = new TdBlobImages(BlobStore.Current!);
-        var modell = TdDocx.Lesen(path, bilder);
+
+        var modell = Path.GetExtension(path).Equals(".md", StringComparison.OrdinalIgnoreCase)
+            ? TdMarkdown.Lesen(path, bilder)
+            : TdDocx.Lesen(path, bilder);
 
         target.Model = TdFormatIo.Schreiben(modell);
         target.MigrationIssue = "";

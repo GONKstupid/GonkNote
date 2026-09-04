@@ -156,7 +156,9 @@ else
     done
 
     echo "   $(find "$LIBDIR" -maxdepth 1 -type f | wc -l) Dateien, $(du -sh "$LIBDIR" | cut -f1)"
-    echo "   $(ls -1 "$LIBDIR")" | sed 's/^/     /'
+    # `echo "$(ls)"` haengte die erste Zeile an die eigene Einrueckung an und schob sie um
+    # drei Zeichen ein -- die Liste sah aus, als faenge sie mit einem Sonderfall an.
+    ls -1 "$LIBDIR" | sed 's/^/     /'
 fi
 
 echo "▶ 6/6  appimagetool"

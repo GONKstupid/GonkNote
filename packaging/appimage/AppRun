@@ -30,8 +30,24 @@ HIER="$(dirname "$(readlink -f "$0")")"
 # in Core, und beide Stellen müssen dasselbe tun, sonst sucht man den Unterschied nie hier.
 #
 # Der Preis: Wer selbst ein LD_LIBRARY_PATH gesetzt hat, wird für die Namen überstimmt, die
-# in unserem Ordner liegen (die Texterkennungs-Kette und ihre Bildcodecs). Ein bestehender
-# Wert bleibt sonst vollständig erhalten und gilt für alles Übrige.
+# in unserem Ordner liegen. Ein bestehender Wert bleibt sonst vollständig erhalten und gilt
+# für alles Übrige.
+#
+# ⚠ UND DER PREIS IST GRÖSSER, ALS HIER BIS ZUM 2026-09-04 STAND — auf dem Laptop gemessen
+# (§4.98 „Was der Laptop gefunden hat", V2-122). Hier stand „die Texterkennungs-Kette und
+# ihre Bildcodecs", und das ist zu wenig: `ldd` zieht über
+# libtesseract → libarchive → libxml2 auch ICU herein, über libtesseract → libcurl dazu
+# OpenSSL und Kerberos. `LD_DEBUG=libs` zeigt, dass .NET danach SEIN EIGENES ICU von hier
+# nimmt (libicuuc.so.78 und libicudata.so.78 aus diesem Ordner, libicui18n.so.78 vom Wirt).
+#
+# ✅ Es ist trotzdem richtig so, und zwar gemessen und nicht abgewogen: .NET probiert die
+# ICU-Hauptversionen von 90 bis 60 ABWÄRTS und nimmt je Version nur ein VOLLSTÄNDIGES
+# Dreigespann. Fehlt dem Wirt unsere Fassung, fällt es auf seine eigene zurück. Und der
+# Ordner MUSS ICU enthalten: unser libxml2.so.16 verlangt namentlich libicuuc.so.78 — ohne
+# es lädt auf einer Verteilung mit anderer ICU-Version die ganze Kette nicht.
+#
+# ⛔ Wer hier etwas wegkürzt, prüft es mit `bwrap` gegen einen Wirt OHNE diese Dateien.
+# Ein Lauf auf dem Baurechner beweist nichts — dort liegt alles ohnehin in /usr/lib.
 #
 # Der Ordnername `lib` steht an DREI Stellen: hier, in `TesseractBindung.EigenerUnterordner`
 # (Core) und in `bauen.sh`. Ein Wächter in `TesseractBindungTests` hält ihn fest — wer ihn an

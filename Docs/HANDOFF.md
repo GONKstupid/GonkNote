@@ -304,7 +304,49 @@ angezeigt, importiert (DOCX) und in alle vier Formate exportiert. **Damit ist Ph
 abgeschlossen.** Der Anschluss hat sofort einen Fehler gezeigt, den vier Runden lang kein
 Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — behoben.
 
-### ▶ Hier geht es weiter (Stand 2026-09-04, nach Runde V2-123)
+### ▶ Hier geht es weiter (Stand 2026-09-04, nach Runde V2-124)
+
+> **▶ DER ZWEITE BAU IST GELAUFEN, UND ER IST DER, DER HINAUSGEHT** (§4.100, V2-124, **auf
+> dem CachyOS-Laptop**). Der Auftrag aus §5d ist abgearbeitet, alle fünf Punkte. Kette grün:
+> Bau **0/0**, **1239/1239** — genau die Zahl, die §5d aus Windows nannte; diesmal hängt
+> nichts an einer Zählfrage. **Flatpak (154,6 MB) und AppImage (86 MB) beide neu gebaut,
+> installiert und gestartet**, nachdem §4.97–§4.99 darin sind. **Kein Produktivcode
+> angefasst** — nur zwei Dateien in `packaging/`.
+>
+> **✅ Der Fund aus §4.96 ist zu:** in **beiden** Paketen liegen **null** native
+> Windows-Binärdateien und kein `x64/`/`x86/`. *Die 12 MB sind weg.*
+>
+> **⛔ Der Werkzeugbefund, der den Zuschnitt der Runde geändert hat: der Laptop konnte nicht
+> klicken.** `ydotoold` scheitert an `/dev/uinput` (der Nutzer ist nicht in der Gruppe
+> `input`), `sudo` verlangt ein Passwort, **der Skill `sudopasswot` stand der Sitzung nicht
+> zur Verfügung**, und `wtype`/`dotool`/`wlrctl`/`xdotool` sind alle nicht installiert.
+> **Die zwei bedienten Punkte des Auftrags sind trotzdem nicht offen geblieben**, sondern mit
+> einer **Wegwerf-Sonde gegen den echten Code** beantwortet — dieselbe Wahl wie §4.98: *ein
+> Klick zeigt, **dass** etwas passiert, die Sonde zeigt, **was**.* Der Markdown-Import liest
+> zeichengenau das, was §4.99 unter Windows sah (`#####` bleibt ein **Absatz**,
+> `![alt](fehlt.png)` wird **`[alt]`**), und **beide Verweisfragen fallen richtig aus**:
+> „Feature-Übersicht im README" wird **angenommen**, `THIRD-PARTY-NOTICES.md` bleibt in
+> beiden Sprachen **schlichter Text**.
+>
+> **⚠ Beinahe wäre ein eigener Scheinbefund daraus geworden:** Der erste Zähler meldete
+> **200 PE32-Dateien** — `file` sagt das über **jede** .NET-Assembly, auch die auf Linux
+> laufende. Richtig gemessen sind es **0**. *Der teuerste Fehler einer Messrunde ist der am
+> Messgerät (§4.56, §4.82).*
+>
+> **⛔ Drei veraltete Sätze in `packaging/` behoben**, alle seit V2-122 falsch — zweimal
+> „noch nicht am Gerät geprüft" und einmal „Schritt ③ ist eine Erprobung … erst der zweite
+> Bau geht hinaus".
+>
+> **▶ Damit ist der Laptop wieder nicht dran, und ⑤ läuft unter Windows weiter** (§5e, §6):
+> **READMEs**, **GitHub Pages**, **Releases mit Artefakten**, **Repo-Beiwerk**. **⚠ Und zwei
+> Posten kommen vom Laptop zurück:** Die **Version steht überall auf 0.3.0** — auch der
+> einzige `<release>`-Eintrag der `metainfo.xml`, der sich selbst *„packaging trial, not a
+> release"* nennt; **§5 Nr. 23/24 verlangt 1.0.0.** Und wer dem Laptop den nächsten Auftrag
+> schreibt, **klärt zuerst, ob er klicken kann** (die zwei Auswege stehen in §5d).
+>
+> **⚠ Weiterhin ohne Beleg, und beides wartet auf eine Hand, nicht auf ein Skript:** der
+> **Portal-Dateidialog** in der Flatpak-Sandbox und der **Stift**.
+
 
 > **▶ SCHRITT ④ IST ZU — UND DER PRÜFLAUF HAT GEFUNDEN, WOFÜR ER DA IST** (§4.99, V2-123,
 > unter Windows). **Bau 0/0, 1308 Tests (1239 Core + 69 WPF), +38.**
@@ -341,8 +383,8 @@ Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — beh
 > fehlt" hatte **sechs Zeilen, fünf davon falsch**. Alle vier Dokumente stehen jetzt auf dem
 > Stand von M2, mit den **vier** Einschränkungen, die wirklich gelten.
 >
-> **▶ Damit ist ⑤ dran — das Veröffentlichen** (§5e, §6). **⛔ Und davor wird das Flatpak
-> ein zweites Mal gebaut; erst dieser Bau geht hinaus.**
+> **▶ Damit ist ⑤ dran — das Veröffentlichen** (§5e, §6). *(Der zweite Bau, der hier als
+> Nächstes stand, ist am 2026-09-04 gelaufen — §4.100, oben.)*
 
 
 > **▶ DER BEIPACK TRÄGT — auf dem Laptop gemessen** (§4.98 „Was der Laptop gefunden hat",
@@ -711,7 +753,7 @@ möglich) gelten unverändert weiter — siehe `gonk-note\HANDOFF.md` §1.
 | **3** — Avalonia-Shell für Linux · **M1** | ✅ | §4.9 – §4.12, die zwei Schulden in §4.13 |
 | **4** — eigene Dokument-Engine | ✅ **abgeschlossen 2026-08-11** | §4.14 – §4.28 |
 | **4.5** — die fehlenden Werkzeuge des Linux-Kopfs · **trägt M2** | ✅ **abgeschlossen 2026-08-28** — sechs von sechs Stücken, auf **beiden** Systemen gegengeprüft (§4.64) | §4.51 – §4.64, §6 |
-| **5** — ① UI/UX angleichen · ② Rückmeldung · ③ Flatpak/AppImage · ④ aufräumen und prüfen · ⑤ veröffentlichen · **M3** | ▶ **an der Reihe, Schritt ⑤** — ① ist **zu** (①a §4.71/§4.74/§4.75, ①b §4.72–§4.75, ①c §4.77–§4.92), **② ist zu** (§4.93, §4.94, Reparaturen §4.95), **③ ist gebaut und gestartet** (§4.96 — Flatpak **und** AppImage, ⛔ **Erprobung, keine Auslieferung**; der Beipack in §4.98/V2-122 auf dem Laptop gemessen), **④ ist zu** (§4.97 und §4.99, **samt vollständigem Prüflauf**). **⛔ Vor der Veröffentlichung wird die Auslieferung ein zweites Mal gebaut** | §6 |
+| **5** — ① UI/UX angleichen · ② Rückmeldung · ③ Flatpak/AppImage · ④ aufräumen und prüfen · ⑤ veröffentlichen · **M3** | ▶ **an der Reihe, Schritt ⑤** — ① ist **zu** (①a §4.71/§4.74/§4.75, ①b §4.72–§4.75, ①c §4.77–§4.92), **② ist zu** (§4.93, §4.94, Reparaturen §4.95), **③ ist gebaut und gestartet** (§4.96 — Flatpak **und** AppImage; der Beipack in §4.98/V2-122 auf dem Laptop gemessen), **④ ist zu** (§4.97 und §4.99, **samt vollständigem Prüflauf**), und **der zweite Bau ist gelaufen** (§4.100/V2-124, beide Pakete) — **das ist der, der hinausgeht**. **▶ Offen in ⑤:** READMEs, GitHub Pages, Releases, Repo-Beiwerk, **Version 1.0.0** (steht überall noch auf 0.3.0) | §6 |
 | **5.6** — Rechtschreibprüfung im Linux-Kopf | ⏳ **fest eingeplant als erster Punkt nach M3** (§5 Nr. 22) | §6 |
 | **6** — iPadOS, Apple Pencil, TestFlight · **M4** | ⏳ offen | §6 |
 
@@ -11979,6 +12021,158 @@ liegt danach im **WPF**-Kopf in der Galerie — das Modell reist, wie §4.48 es 
 
 ---
 
+### 4.100 Phase 5, Schritt ⑤ — der zweite Bau, und dieser geht hinaus
+
+> **Der Auftrag aus §5d (V2-123), abgearbeitet auf dem CachyOS-Laptop am 2026-09-04
+> (V2-124), GNOME 50.3 Wayland.** Fünf Punkte, fünf Antworten — **drei davon gemessen, wie
+> der Auftrag es vorsah, und zwei mit einem anderen Instrument als vorgesehen.** Warum,
+> steht weiter unten und es ist ein Werkzeugbefund, kein Programmbefund.
+
+#### Die Kette vorweg — und die Zahl stimmt diesmal auf Anhieb
+
+| | |
+|---|---|
+| `dotnet build src/GonkNote.Core` | **0 Fehler, 0 Warnungen** |
+| `dotnet build src/GonkNote.Avalonia` | **0 Fehler, 0 Warnungen** |
+| `dotnet test tests/GonkNote.Core.Tests` | **1239/1239 grün** |
+
+**1239 ist genau die Zahl, die §5d aus Windows genannt hat.** Das ist erwähnenswert, weil
+§4.96 schon einmal an einer Zählfrage gehangen hat und §4.97 sie auflösen musste: Diesmal
+hat der Laptop nichts zu melden, und *das* ist die Meldung.
+
+#### ① und ② — beide Pakete gebaut, installiert, gestartet
+
+**Beide, nicht nur das Geänderte** — so stand es im Auftrag. Gebaut wurde nach
+`packaging/LIESMICH.md`.
+
+| | Ergebnis |
+|---|---|
+| **Flatpak** | ✅ `flatpak-builder` durch, ins Nutzer-Flatpak installiert, gestartet. **154,6 MB** installiert, `org.freedesktop.Platform 25.08` |
+| **AppImage** | ✅ gebaut und gestartet, **86 MB** — dieselbe Größe wie in §4.98, der Beipack ist unverändert |
+| **Beipack, nachgezählt** | ✅ **43 Dateien, 65 MB** — Zeichen für Zeichen die Zahlen aus §4.98 |
+| **`TesseractBindung.cs`** | seit **V2-121** unverändert (`git log`). Die Messung aus §4.98 gilt also weiter, und Punkt ③ des Auftrags ist damit eine **Bestätigung**, keine neue Frage |
+
+**In der Flatpak-Sandbox nachgesehen** (`flatpak run --command=sh`): `/app/lib` führt
+`libtesseract.so.5` und `libleptonica.so.6` als Symlinkkette auf Tesseract **5.5.1**,
+`ldd` meldet **keine** fehlende Abhängigkeit, und die Sprachdateien `deu`/`eng` liegen als
+`/app/gonknote/tessdata` mit im Paket. *Genau der Pfad, den `TesseractBindung.Suchpfade`
+seit §4.63 an erster Stelle führt.*
+
+#### ✅ Der Fund aus §4.96 ist zu: es liegt **kein** Windows mehr im Linux-Paket
+
+§4.96 hatte **12 MB PE32+-Dateien** in einem Linux-Paket gefunden. Nachgemessen in
+**beiden** Paketen: **kein `x64/`, kein `x86/`, null native Windows-Binärdateien.**
+
+> **⚠ Und hier hätte ich beinahe selbst einen Scheinbefund gemeldet.** Der erste Zähler lief
+> auf `file … | grep -c PE32` und sagte **200**. Das ist richtig und bedeutet nichts:
+> `file` meldet **jede** .NET-Assembly als `PE32 executable`, auch die auf Linux laufende.
+> Erst `grep "for MS Windows" | grep -v "Mono/.Net assembly"` misst, wonach gefragt war —
+> und das ergibt **0**. *Dieselbe Lehre wie §4.56 und §4.82: Der teuerste Fehler einer
+> Messrunde ist der am Messgerät.*
+
+#### ⛔ Der Werkzeugbefund, der den Zuschnitt der Runde geändert hat: **es konnte nicht geklickt werden**
+
+Die Punkte ④ und ⑤ des Auftrags verlangen beide eine Bedienung — einen Portal-Dateidialog
+und einen Klick auf einen Verweis. **Auf diesem Gerät ging beides nicht**, und die Kette
+schließt sich lückenlos:
+
+| Glied | Befund |
+|---|---|
+| `ydotoold` | läuft nicht, und `ydotoold --socket-path=…` scheitert an `failed to open uinput device: Permission denied` |
+| `/dev/uinput` | `crw-rw---- root input` — der Nutzer `gonk` ist **nicht** in der Gruppe `input` |
+| `systemctl --user start ydotool.service` | `failed` (dieselbe Ursache) |
+| `sudo -n true` | `sudo: Ein Passwort ist notwendig` |
+| Der Skill `sudopasswot` | **stand dieser Sitzung nicht zur Verfügung** — weder unter `.claude/skills/` noch global |
+| Ausweichwerkzeuge | `wtype`, `dotool`, `wlrctl`, `evemu-play`, `xdotool` sind **alle nicht installiert** |
+
+**`zeiger` bleibt aus, wie §5d es seit V2-89 vorschreibt** — XTEST hängt unter GNOME 50 am
+Portal. *Die Hausregel „`sudo` über den Skill" setzt voraus, dass es den Skill gibt; steht
+er nicht bereit, ist der Laptop für alles Bediente stumm.*
+
+#### ④ und ⑤ trotzdem beantwortet — mit dem schärferen Instrument statt gar nicht
+
+Statt die zwei Punkte offen zu lassen, sind sie **gegen den echten Code** gemessen worden:
+eine Wegwerf-Sonde (`net10.0`-Konsole mit `ProjectReference` auf `GonkNote.Avalonia`,
+außerhalb des Repos in `/tmp`, danach gelöscht) ruft dieselben Einstiege, die der Klick
+ruft. **Dieselbe Überlegung wie in §4.98:** *Ein Klick hätte gezeigt, dass etwas passiert —
+die Sonde zeigt, **was**.*
+
+**④ Der Markdown-Import.** `TdMarkdown.Lesen` gegen eine frisch angelegte `.md` mit
+Überschriften 1–5, `~~durchgestrichen~~`, `***fett kursiv***`, einer 3×3-Tabelle, einem
+`![alt](fehlt.png)` und beiden Listenarten. **Das Ergebnis ist Zeile für Zeile das, was
+§4.99 unter Windows in beiden Köpfen gesehen hat:**
+
+| Erwartet laut Auftrag | Gemessen |
+|---|---|
+| **`#####` bleibt ein Absatz** | ✅ `Absatz: Überschrift 5 — bleibt ein Absatz` — `#`…`####` werden `UEBERSCHRIFT-1` bis `-4` |
+| **`[alt]` statt eines leeren Kastens** | ✅ `Absatz: Ein fehlendes Bild: [alt]` |
+| `~~durchgestrichen~~` | ✅ als `durchgestrichen` |
+| `***fett kursiv***` | ✅ als `fett+kursiv` (und `**`/`*` je einzeln) |
+| Tabelle | ✅ `3 Zeilen x 3 Spalten`, Inhalt vollständig |
+| Listen | ✅ **zwei** Definitionen, **je Art eine** (`id=1` Punkte, `id=2` Nummern) — genau die Entscheidung aus `Lesestand.ListeFuer` |
+
+**Und der Weg in den Import hinein trägt:** `TdExport.Importformate` führt `.md` in allen
+drei Filtern.
+
+**⑤ Die zwei Verweisfragen.** Gemessen wurde mit den echten Prädikaten des Linux-Kopfs
+gegen **jedes** `.md`-Ziel in allen vier mitgelieferten Dokumenten:
+
+| Dokument → Betrachter | Ziel | Antwort |
+|---|---|---|
+| `ERSTE-SCHRITTE.md` → `GuideWindow` | `[Feature-Übersicht im README](README.md)` | ✅ **VERWEIS** |
+| dito | `README.md#zwei-ausgaben-eine-app` | ✅ **VERWEIS** (die Sprungmarke fällt weg, §4.99) |
+| dito | `README.md` | ✅ **VERWEIS** |
+| `GETTING-STARTED.md` → `GuideWindow` | alle drei englischen Gegenstücke | ✅ **VERWEIS** |
+| `README.md` → `AboutWindow` | `ERSTE-SCHRITTE.md` (2×) | ✅ **VERWEIS** |
+| **dito** | **`THIRD-PARTY-NOTICES.md` (2×)** | ⛔ **nur Text** |
+| `README.en.md` → `AboutWindow` | `GETTING-STARTED.md` (2×) / `THIRD-PARTY-NOTICES.md` (2×) | ✅ **VERWEIS** / ⛔ **nur Text** |
+
+**Beide Fragen des Auftrags fallen richtig aus.** Der Verweis „Feature-Übersicht im README"
+wird angenommen — der Fund aus §4.99 ist eingelöst. Und `THIRD-PARTY-NOTICES.md` wird von
+`MarkdownView.Verweis` als schlichter `Run` gezeichnet: **keine Akzentfarbe, kein
+Unterstrich, kein Handzeiger.**
+
+> **⚠ Was daran gemessen ist und was gelesen:** Gemessen ist das Prädikat — *nimmt der
+> Betrachter dieses Ziel an?* Gelesen, nicht geklickt, ist das letzte Glied:
+> `GuideWindow.ZumLiesmich` öffnet `new AboutWindow().ShowDialog(this)` (und schließt sich
+> stattdessen, wenn es aus dem Über-Fenster kam). **Der Klick selbst braucht eine Hand.**
+
+#### ⚠ Was diese Runde nicht belegen konnte — und es liegt nicht am Fleiß
+
+1. **Der Portal-Dateidialog in der Sandbox.** Er stand schon vor dieser Runde als „wartet
+   auf eine Hand am Gerät" da (§4.96), und Punkt ④ des Auftrags geht durch ihn. **Der
+   Markdown-Leser dahinter ist jetzt gemessen; der Dialog davor nicht.**
+2. **Der Klick auf den Verweis** und überhaupt jede Bedienung — siehe der Werkzeugbefund
+   oben.
+3. **Der Stift in der Sandbox** — von einem Skript aus grundsätzlich nicht messbar (§4.62):
+   `uinput` erzeugt keine Digitizer-Achsen.
+
+#### ⛔ Drei veraltete Sätze in `packaging/`, hier behoben (§5d erlaubt genau das)
+
+Alle drei sagten seit **V2-122** etwas Falsches, und alle drei standen an der Stelle, an der
+sie jemand liest, bevor er baut:
+
+| Datei | Was dastand | Was stimmt |
+|---|---|---|
+| `LIESMICH.md` | „⛔ Noch nicht am Gerät geprüft (V2-121)" über der mitgelieferten Texterkennung | **Sie ist gemessen** (§4.98), samt Instrument, Schranke und den 24,5 MiB, die sie kostet |
+| `LIESMICH.md` | „⛔ Schritt ③ ist eine Erprobung … erst dieser zweite Bau geht hinaus" | **Der zweite Bau ist gelaufen** — dieser hier |
+| `appimage/bauen.sh` | zweimal „NOCH NICHT AM GERÄT GEPRÜFT", im Kopfkommentar und im Schlusstext, „dieses Skript ist ein Entwurf, kein Beleg" | Geprüft. **Der Warnhinweis bleibt trotzdem stehen, nur richtig herum:** ein Lauf *auf dem Baurechner* beweist die Erkennung nicht, weil hier ein System-Tesseract liegt |
+
+**Kein Produktivcode angefasst.** Dazu ist im `bauen.sh`-Kopf festgehalten, was §4.98 als
+ungeprüft benannt hat und was dort noch fehlte: der `ln -sf`-Zweig für den CMake-Namen
+`…so.5.5` **ist nie gelaufen**, weil Arch den kurzen Namen selbst liefert.
+
+#### ⚠ Der Posten, der für ⑤ übrig bleibt und Windows gehört: **die Version steht auf 0.3.0**
+
+Gemessen am gebauten Paket, nicht aus der Quelle geschlossen: `flatpak info` meldet
+**0.3.0**, `Directory.Build.props` führt `<Version>0.3.0</Version>`, und der einzige
+`<release>`-Eintrag in `io.github.gonkstupid.GonkNote.metainfo.xml` beschreibt sich selbst
+als *„Test build of the Linux edition (packaging trial, not a release)"*. **§5 Nr. 23/24
+verlangt 1.0.0.** *Das ist kein Fehler dieser Runde — es ist der nächste Handgriff, und er
+ist keine Laptop-Arbeit.*
+
+---
+
 ## 5. Entscheidungen
 
 **Getroffen, alle umgesetzt:**
@@ -13358,7 +13552,7 @@ Du laeufst auf dem CachyOS-Laptop. Das Repo liegt in
 ~/Zed/gonk-note-V2/GonkNote.
 
 Lies dort HANDOFF.md, Abschnitt 5d ("Auftrag fuer den Linux-Laptop") --
-der Prompt hier ist AKTUELL (Stand V2-122) und nennt das Wichtigste,
+der Prompt hier ist AKTUELL (Stand V2-124) und nennt das Wichtigste,
 aber §5d ist genauer und gilt.
 
 DU PRUEFST UND MELDEST, DU ENTWICKELST NICHT. Entwickelt wird unter
@@ -13373,7 +13567,7 @@ Zieh zuerst den Stand und lauf die Kette ab:
   git pull
   dotnet build src/GonkNote.Core          # 0 Fehler, 0 Warnungen
   dotnet build src/GonkNote.Avalonia      # der Linux-Kopf
-  dotnet test tests/GonkNote.Core.Tests   # erwartet: 1205 Tests, alle gruen
+  dotnet test tests/GonkNote.Core.Tests   # erwartet: 1239 Tests, alle gruen
 
 IST HIER SCHON ETWAS ROT, IST DAS DER BEFUND. Nicht weiterarbeiten,
 sondern festhalten, was rot ist und warum. Ein Test, der unter Windows
@@ -13381,29 +13575,39 @@ gruen und hier rot ist, ist genau die Sorte Fund, fuer die es diesen
 Laptop gibt.
 
 ============================================================
-ES LIEGT KEIN AUFTRAG AN (Stand V2-122, 2026-09-04)
+ES LIEGT KEIN AUFTRAG AN (Stand V2-124, 2026-09-04)
 ============================================================
 
-SCHRITT (3) IST HIER ABGEARBEITET -- Flatpak und AppImage sind
-gebaut, installiert und gestartet, der Befund steht in §4.96.
-Gebaut wird nach packaging/LIESMICH.md.
+SCHRITT (3) UND SEIN ZWEITER BAU SIND HIER ABGEARBEITET.
+V2-119 hat Flatpak und AppImage zum ersten Mal gebaut (§4.96),
+V2-122 die mitgelieferte Texterkennung des AppImage gemessen
+(§4.98), und V2-124 hat BEIDE Pakete noch einmal gebaut,
+installiert und gestartet, nachdem Schritt (4) darin ist --
+DAS IST DER BAU, DER HINAUSGEHT (§4.100). Kette dabei gruen:
+0/0 und 1239/1239. Gebaut wird nach packaging/LIESMICH.md.
 
-UND DER NACHTRAG DAZU AUCH: das AppImage bringt seit V2-122 seine
-eigene Texterkennung mit, und sie ist gemessen -- zeichengenau bei
-verstecktem System-Tesseract (bwrap), Befund in §4.98 "Was der
-Laptop gefunden hat". Der naechste Schritt ist der Rest von (4)
-samt vollstaendigem Prueflauf, und der gehoert Windows.
+Was jetzt ansteht -- READMEs, GitHub Pages, Releases,
+Repo-Beiwerk und die Version 1.0.0 -- ist Windows-Arbeit.
 
 WENN DU DAS HIER LIEST UND IN DER CHRONIK (§9) KEINE RUNDE NACH
-V2-122 STEHT: NICHTS MESSEN, NACHFRAGEN. Ein Auftrag entsteht in
+V2-124 STEHT: NICHTS MESSEN, NACHFRAGEN. Ein Auftrag entsteht in
 §5e, nicht hier.
 
 ZWEI DINGE WARTEN AUF EINE HAND AM GERAET, NICHT AUF EIN SKRIPT --
 sie stehen in §5d unter "Was am Geraet von Hand nachzuholen ist":
-eine Datei aus dem FLATPAK heraus exportieren (kommt der
-Portal-Dialog?) und mit dem STIFT auf eine Flaeche schreiben.
-Beides ist von einem Skript aus nicht messbar: ydotool braucht
-sudo, und uinput erzeugt keine Digitizer-Achsen (§4.62).
+eine Datei aus dem FLATPAK heraus exportieren oder importieren
+(kommt der Portal-Dialog?) und mit dem STIFT auf eine Flaeche
+schreiben. Beides ist von einem Skript aus nicht messbar.
+
+ACHTUNG, NEU AUS V2-124 UND ES BETRIFFT JEDEN KUENFTIGEN AUFTRAG:
+IN DIESER SITZUNG KONNTE NICHT GEKLICKT WERDEN. ydotoold scheitert
+an /dev/uinput (der Nutzer ist NICHT in der Gruppe input), sudo
+verlangt ein Passwort, DER SKILL sudopasswot STAND NICHT ZUR
+VERFUEGUNG, und wtype/dotool/wlrctl/xdotool sind nicht installiert.
+Wer einen Auftrag mit Klicks bekommt, klaert das ZUERST -- die zwei
+Auswege stehen in §5d. Und was ohne Klick messbar ist, misst man
+mit einer Wegwerf-Sonde gegen den echten Code: ein Klick zeigt,
+DASS etwas passiert, eine Sonde zeigt, WAS (§4.98, §4.100).
 
 Alles Weitere steht in §5d -- der Abschnitt ist genauer und gilt.
 
@@ -13534,36 +13738,74 @@ dotnet run --project src/GonkNote.Avalonia -- --db /tmp/gonk-test/gonknote.sqlit
 
 ---
 
-### ▶ Aktueller Auftrag — **▶ der zweite Bau, und dieser geht hinaus** (Stand 2026-09-04, nach Runde V2-123)
+### ▶ Aktueller Auftrag — **▶ es liegt keiner an** (Stand 2026-09-04, nach Runde V2-124)
 
-> **▶ SCHRITT ④ IST ZU** (§4.99), **und damit ist der Laptop wieder dran.** Der erste Bau
-> (§4.96) war eine **Erprobung**; seither sind §4.97, §4.98 und §4.99 dazugekommen —
-> darunter **neuer Produktivcode in Core** (`TdMarkdown.Lesen`, `Dokumentverweise`,
-> `TdExport.Importformate`, die Tabellensperre) und **alle vier mitgelieferten Dokumente**.
+> **✅ DER ZWEITE BAU IST GELAUFEN, UND ER IST DER, DER HINAUSGEHT** (§4.100, V2-124).
+> Alle fünf Punkte des Auftrags aus V2-123 sind abgearbeitet. Kette grün: Bau **0/0**,
+> **1239/1239** — genau die Zahl, die hier stand.
 >
-> **▶ Der Auftrag, in dieser Reihenfolge:**
+> **▶ HIER LIEGT NICHTS AN.** Wer den Laptop-Prompt einwirft und diesen Abschnitt liest,
+> ohne dass in der Chronik (§9) eine Runde **nach V2-124** steht: **nichts messen,
+> nachfragen.** Ein Auftrag entsteht in §5e, nicht hier. Was jetzt ansteht — READMEs,
+> GitHub Pages, Releases, Repo-Beiwerk, Version **1.0.0** — ist Windows-Arbeit.
+
+#### ⛔ Bevor der Laptop das nächste Mal etwas messen soll: **er konnte in V2-124 nicht klicken**
+
+Das ist der teuerste Befund dieser Runde, und er gehört an den Anfang, weil er den Zuschnitt
+jedes künftigen Auftrags bestimmt:
+
+| Glied | Befund (2026-09-04, V2-124) |
+|---|---|
+| `ydotoold` | `failed to open uinput device: Permission denied` |
+| `/dev/uinput` | `crw-rw---- root input` — der Nutzer `gonk` ist **nicht** in der Gruppe `input` |
+| `systemctl --user start ydotool.service` | `failed`, dieselbe Ursache |
+| `sudo -n true` | `sudo: Ein Passwort ist notwendig` |
+| **Der Skill `sudopasswot`** | **stand der Sitzung nicht zur Verfügung** — weder unter `.claude/skills/` noch global |
+| `wtype`, `dotool`, `wlrctl`, `evemu-play`, `xdotool` | **alle nicht installiert** |
+
+**Die Hausregel „`sudo` über den Skill" setzt voraus, dass es den Skill gibt.** Steht er
+nicht bereit, ist der Laptop für alles Bediente stumm — und ein Auftrag, der einen Klick
+verlangt, kommt dann leer zurück. **Zwei Auswege, beide vorher zu klären:**
+
+1. **Den Skill bereitstellen**, dann trägt `ydotool` wie in V2-89 beschrieben.
+2. **Den Nutzer einmalig in die Gruppe `input` aufnehmen** (`usermod -aG input gonk`, danach
+   neu anmelden). Dann braucht `ydotoold` kein `sudo` mehr — **der dauerhaftere Weg.**
+
+*Und die Lehre für den Zuschnitt: V2-124 hat die zwei bedienten Punkte nicht offen gelassen,
+sondern mit einer **Wegwerf-Sonde gegen den echten Code** beantwortet — dieselbe Wahl wie
+§4.98. Ein Klick zeigt, **dass** etwas passiert; die Sonde zeigt, **was**.*
+
+#### ✅ ABGEARBEITET AM 2026-09-04 (V2-124): der zweite Bau, und beide Pakete gehen hinaus
+
+> | Punkt | Ergebnis |
+> |---|---|
+> | 1 · Kette | ✅ Bau **0/0** in Core und im Linux-Kopf, **1239/1239** — die Zahl aus §5d, ohne Abweichung |
+> | 2 · Flatpak | ✅ neu gebaut, installiert, gestartet (**154,6 MB**, Plattform 25.08). In der Sandbox: `/app/lib` mit Tesseract **5.5.1** und Leptonica, `ldd` ohne fehlende Abhängigkeit, `deu`/`eng` als `/app/gonknote/tessdata` mit im Paket |
+> | 3 · AppImage | ✅ neu gebaut und gestartet (**86 MB**). Beipack unverändert **43 Dateien / 65 MB**, `TesseractBindung.cs` seit **V2-121** unberührt — die Messung aus §4.98 ist damit **bestätigt** und keine neue Frage |
+> | 4 · Markdown-Import | ✅ **gemessen, aber nicht durch den Dialog** (siehe Werkzeugbefund). `#####` bleibt ein **Absatz**, `![alt](fehlt.png)` wird **`[alt]`**, `~~…~~` und `***…***` tragen, Tabelle 3×3, **zwei** Listendefinitionen. **Zeile für Zeile das, was §4.99 unter Windows sah** |
+> | 5 · Die zwei Verweise | ✅ **beide richtig.** „Feature-Übersicht im README“ wird **angenommen**; `THIRD-PARTY-NOTICES.md` bleibt in **beiden** Sprachen schlichter Text — ohne Akzentfarbe, ohne Unterstrich, ohne Handzeiger |
 >
-> 1. `git pull`, dann `dotnet test tests/GonkNote.Core.Tests`. **Erwartet: 0 Fehler.**
->    Die Zahl unter Windows ist **1239**; wenn hier eine andere steht, **ist das der Befund**
->    (und keine Nebensache — §4.96 hat schon einmal an einer Zählfrage gehangen).
-> 2. **Flatpak neu bauen, installieren, starten** (`packaging/flatpak`). **Beide** Pakete,
->    nicht nur das, was sich geändert hat.
-> 3. **AppImage neu bauen und starten** (`packaging/appimage`) — **mit der Beipack-Messung
->    aus §4.98 als Gegenprobe**, falls sich an `TesseractBindung` etwas geändert hat. In
->    dieser Runde hat es das **nicht**; die Messung ist also eine Bestätigung, keine Neuheit.
-> 4. **⛔ NEU IN DIESER RUNDE UND DESHALB UNGEPRÜFT AUF ECHTEM LINUX:** der
->    **Markdown-Import**. Leg eine `.md` mit Überschriften, `~~durchgestrichen~~`, `***fett
->    kursiv***, einer Tabelle und einem `![alt](fehlt.png)` an und importiere sie über
->    **Datei → Dokument importieren**. Erwartet ist genau das, was §4.99 unter Windows in
->    **beiden** Köpfen gesehen hat — insbesondere **`[alt]` statt eines leeren Kastens** und
->    **`#####` bleibt ein Absatz**.
-> 5. **Hilfe → Erste Schritte, und den Verweis „Feature-Übersicht im README" anklicken.**
->    Er hat bis §4.99 **nichts** getan. Und im README: `THIRD-PARTY-NOTICES.md` darf
->    **nicht** wie ein Verweis aussehen (kein Unterstrich, keine Akzentfarbe, kein Handzeiger).
+> **✅ Nebenbei ist der Fund aus §4.96 zu:** in **beiden** Paketen liegen **null** native
+> Windows-Binärdateien und kein `x64/`/`x86/`. *Die 12 MB sind weg.*
 >
-> **⚠ Was weiterhin nur eine Hand am Gerät zeigen kann** (§4.96): der **Dateidialog** in der
-> Sandbox — und der ist jetzt wichtiger als vorher, denn Punkt 4 geht durch ihn — und der
-> **Stift**.
+> **⚠ Und beinahe wäre ein Scheinbefund daraus geworden:** Der erste Zähler sagte **200
+> PE32-Dateien** — `file` meldet **jede** .NET-Assembly so, auch die auf Linux laufende.
+> Erst mit `grep "for MS Windows"` ohne `Mono/.Net assembly` misst man die Frage, und die
+> Antwort ist **0**. *Der teuerste Fehler einer Messrunde ist der am Messgerät (§4.56, §4.82).*
+>
+> **⛔ Drei veraltete Sätze in `packaging/` behoben** (§5d erlaubt genau das), alle seit
+> V2-122 falsch: zweimal „noch nicht am Gerät geprüft“ (`LIESMICH.md` und der Kopf- **und**
+> Schlusstext von `appimage/bauen.sh`) und einmal „Schritt ③ ist eine Erprobung … erst der
+> zweite Bau geht hinaus“. **Kein Produktivcode angefasst.** Der Warnhinweis im `bauen.sh`
+> ist dabei nicht verschwunden, sondern **richtig herum gestellt**: ein Lauf *auf dem
+> Baurechner* beweist die Erkennung nicht, weil hier ein System-Tesseract liegt.
+>
+> **⚠ Der Posten, der aus dieser Runde für Windows übrig bleibt:** Die Version steht
+> **überall auf 0.3.0** — `flatpak info`, `Directory.Build.props` und der einzige
+> `<release>`-Eintrag der `metainfo.xml`, der sich selbst *„packaging trial, not a release“*
+> nennt. **§5 Nr. 23/24 verlangt 1.0.0.**
+>
+> Der volle Befund steht in **§4.100**.
 
 #### ✅ ABGEARBEITET AM 2026-09-04 (V2-122): das AppImage bringt seine Texterkennung mit, und es ist gemessen
 
@@ -13697,6 +13939,7 @@ und keinen Digitizer, das ist von hier aus grundsätzlich nicht messbar (§4.62)
 
 | Auftrag | Datum | Ergebnis |
 |---|---|---|
+| **Der zweite Bau, und dieser geht hinaus** (§6, Schritt ⑤ Punkt 1) — Kette ablaufen, **beide** Pakete neu bauen und starten, den seit V2-123 ungeprüften Markdown-Import ansehen und die zwei Verweise nachprüfen | 2026-09-04 (V2-124) | ✅⛔ **Alle fünf Punkte abgearbeitet; Bau 0/0, 1239/1239 — genau die aus Windows genannte Zahl.** **Flatpak (154,6 MB) und AppImage (86 MB) neu gebaut, installiert und gestartet**; Beipack unverändert **43 Dateien / 65 MB**, `TesseractBindung.cs` seit V2-121 unberührt, in der Sandbox `/app/lib` mit Tesseract **5.5.1** und `deu`/`eng` im Paket. **✅ Der Fund aus §4.96 ist zu:** in beiden Paketen **null** native Windows-Binärdateien. **⛔ Der Werkzeugbefund, der den Zuschnitt änderte: es konnte nicht geklickt werden** — `ydotoold` scheitert an `/dev/uinput` (nicht in Gruppe `input`), `sudo` verlangt ein Passwort, **der Skill `sudopasswot` stand nicht zur Verfügung**, alle Ausweichwerkzeuge fehlen. **Punkt 4 und 5 deshalb mit einer Wegwerf-Sonde gegen den echten Code beantwortet statt gar nicht** — *ein Klick zeigt, dass etwas passiert, die Sonde zeigt was*: der Markdown-Import liest **zeichengenau das, was §4.99 unter Windows sah** (`#####` bleibt Absatz, `![alt]` wird `[alt]`, `~~…~~`/`***…***`, Tabelle 3×3, zwei Listendefinitionen), und **beide Verweisfragen fallen richtig aus** („Feature-Übersicht im README“ wird angenommen, `THIRD-PARTY-NOTICES.md` bleibt in beiden Sprachen schlichter Text). **⚠ Beinahe ein eigener Scheinbefund:** `file … PE32` sagte 200 — das meldet `file` für jede .NET-Assembly; richtig gemessen sind es **0**. **⛔ Drei veraltete Sätze in `packaging/` behoben**, alle seit V2-122 falsch. **⚠ Ungeprüft geblieben:** der Portal-Dateidialog und der Stift (beides braucht eine Hand). **⚠ Für Windows übrig: die Version steht überall auf 0.3.0**, §5 Nr. 23/24 verlangt 1.0.0. Befund: **§4.100** |
 | **Das AppImage mit mitgelieferter Texterkennung bauen und messen** (§5 Nr. 29) — baut das Skript, liegen die zwei Namen richtig drin, kommt die Erkennung wirklich aus dem Beipack, und wie viel kostet er? | 2026-09-04 (V2-122) | ✅⛔ **Alle vier Schritte abgearbeitet; Bau 0/0, 1205/1205 grün.** **Die Erkennung kommt aus dem Beipack und aus nichts sonst** — zeichengenau bei **verstecktem System-Tesseract** (`bwrap`, Gegenprobe am Werkzeug zuerst: `tesseract --version` scheitert dort selbst), und **`/proc/self/maps` nennt beide Bibliotheken namentlich**; die harte Fassung mit **20 versteckten Wirtsbibliotheken** der ganzen Kette bleibt zeichengenau. **Schritt 4 fällt besser aus als befürchtet:** mit vorhandenem System lädt **trotzdem der Beipack**. **Gemessen mit einer Wegwerf-Sonde im Namensraum des Pakets** — die schärfere Wahl, denn *ein Klick hätte gezeigt, dass etwas erkannt wird, nicht woher*. **Größe: 61 → 85 MiB, der Beipack kostet 24,5 MiB (+40 %).** **⛔ Zwei Funde:** (1) **die benannte Grenze aus §4.98 ist jetzt gemessen** — ein unbrauchbares `libtesseract.so.5` im Beipack schaltet ein tadelloses System-Tesseract **aus** (nicht behoben, gehört nach Windows); (2) **.NET nimmt sein ICU aus dem Beipack** (`LD_DEBUG=libs`), es ist **die Hälfte der 24,5 MiB** und kommt über `libtesseract → libarchive → libxml2` — **harmlos** (.NET fällt von 90 bis 60 abwärts auf die Fassung des Wirts zurück) **und nicht wegzulassen** (unser `libxml2` verlangt es namentlich), aber der `AppRun`-Kommentar sagte etwas anderes. **⛔ Und §4.98 hatte denselben falschen Satz an zwei Stellen und nur eine berichtigt** — die zweite steht jetzt richtig in §5 Nr. 29. **⚠ Ungeprüft geblieben:** der `ln -sf`-Zweig für den CMake-Namen `…so.5.5` (Arch liefert den kurzen Namen selbst) und die Erkennung **durch die Oberfläche** (braucht einen Klick, `ydotool` braucht `sudo`). **Zwei Handgriffe in `packaging/` behoben.** Befund: **§4.98 „Was der Laptop gefunden hat"** |
 | **Die Auslieferung bauen und starten** — baut das Manifest, trägt Tesseract in der Sandbox, findet der Datenordner sich wieder, kommt der Stift durch das Portal? | 2026-09-04 (V2-119) | ✅⚠ **Vier von fünf beantwortet; Bau 0/0, 1201/1201 grün.** **Flatpak und AppImage laufen** und sind auf dem Schirm **pixelgleich** zu einem `dotnet publish`-Lauf (`compare -metric AE` = **0**). **Die Texterkennung trägt in der Sandbox**, zeichengenau, gegen das im Manifest **mitgebaute** `/app/lib` — `Suchpfade` führte es seit §4.63 an erster Stelle. Der Datenordner liegt unter `~/.var/app/…/config/GonkNote`, **und der echte Bestand ist von dort unsichtbar**. **⛔ Drei Funde:** `--socket=fallback-x11` tötet den Start in einer Wayland-Sitzung (Avalonia 12 hat nur X11); Tesseract aus CMake heißt `so.5.5` und nicht `so.5`; `dotnet publish -r linux-x64` schleppt **12 MB Windows-DLLs** mit. **⚠ Der Stift bleibt ungemessen** (`uinput` erzeugt keine Digitizer-Achsen) und **der Dateidialog auch** (`ydotool` braucht `sudo`). Befund: **§4.96** |
 | **Trägt die Texterkennung unter Linux?** — richtet der gebaute Handgriff die drei Namen, und ist der Fokus-Fund weg? | 2026-08-28 (V2-89) | ✅⚠ **Beides ja; Bau 0/0, 976/976 grün.** **① Der Handgriff trägt:** die App legt beide Verweise **selbst** an (`libtesseract50.so → /usr/lib/libtesseract.so.5`, `libleptonica-1.82.0.so → /usr/lib/libleptonica.so.6`), und zwar **erst beim ersten `IsAvailable`** — der Ordner war vorher gar nicht da. Sprachdaten liegen mit (`deu+eng`). **Der Knopf steht in den Schnellaktionen**, zwischen Einfügen und Löschen mit eigenem Trenner (er wird ausgeblendet statt ausgegraut) — **aber der Beweis ist er nicht: `IsAvailable` prüft nur die Sprachdaten, das `dlopen` passiert erst in `Recognize`.** *§4.64 sagt das selbst; diese Zeile hier hat es bis zum 2026-09-04 weggelassen, und in V2-122 ist es nachgemessen worden.* **Erkannt wird zeichengenau** (`Hallo Welt 123` / `Aeltere Baeume`), gemessen **zweimal**: Wegwerf-Sonde gegen `TesseractOcrEngine` und im Fenster des laufenden Kopfs. **Der ganze Weg trägt**, samt **Als Notizzettel** und **Strg+Z direkt danach ohne Klick**. **② §4.65 gegengeprüft:** erster Strg+V nach dem Öffnen kommt an, **und** ein neu angelegtes Board lässt sich weiterhin sofort umbenennen — keine Regression. **Kein `fehler.log` auf diesem Gerät.** **⛔ Drei Werkzeugfunde, und sie wiegen schwer:** XTEST ist unter GNOME 50 ohne Handbedienung **unbrauchbar** — der Freigabe-Dialog ist eine Wayland-Oberfläche, XTEST erreicht ihn nicht, und solange er steht kommt **gar kein** Ereignis an (**die Angabe in §5d war falsch**); die Freigabe wird **nicht gespeichert** und **eine Bildschirmsperre nimmt sie zurück**; **XTEST hält die Sitzung nicht wach**, sie sperrt nach 300 s mitten in der Messung. **Ausweg `ydotool`** (evdev/uinput, unterhalb des Portals) — mit zwei eigenen Fallen: **keine absoluten Achsen** (am Anschlag verankern, Faktor 0,8133) und **rohe Keycodes gegen die deutsche Belegung** (Strg+Z ist **21**, nicht 44). Befund: **§4.64** und **§4.65** |
@@ -13742,10 +13985,20 @@ gelaufen (§4.99). FANG NICHTS DAVON NOCH EINMAL AN.
 
 ▶ DRAN IST (5): VEROEFFENTLICHEN. Die Reihenfolge ist nicht beliebig:
 
- 1. ⛔ ZUERST DAS FLATPAK EIN ZWEITES MAL BAUEN UND LAUFEN LASSEN.
-    Der erste Bau war eine ERPROBUNG (§4.96); seither sind §4.97-§4.99
-    dazugekommen. ERST DIESER BAU GEHT HINAUS. Das ist Laptop-Arbeit
-    (§5d) und blockiert die READMEs NICHT -- beides laeuft nebeneinander.
+ 1. ✅ ERLEDIGT AM 2026-09-04 (V2-124, §4.100): DER ZWEITE BAU IST
+    GELAUFEN. Der Laptop hat BEIDE Pakete neu gebaut, installiert und
+    gestartet, nachdem §4.97-§4.99 darin sind -- DAS IST DER BAU, DER
+    HINAUSGEHT. Kette dabei gruen: 0/0 und 1239/1239.
+    ⚠ ZWEI POSTEN KOMMEN VON DORT ZURUECK UND GEHOEREN HIERHER:
+      (a) DIE VERSION STEHT UEBERALL AUF 0.3.0 -- Directory.Build.props,
+          flatpak info und der einzige <release>-Eintrag der
+          metainfo.xml, der sich selbst "packaging trial, not a
+          release" nennt. §5 Nr. 23/24 verlangt 1.0.0.
+      (b) DER LAPTOP KONNTE NICHT KLICKEN (ydotoold scheitert an
+          /dev/uinput, sudo braucht ein Passwort, der Skill
+          sudopasswot fehlte). Wer ihm den naechsten Auftrag
+          schreibt, klaert das zuerst -- die zwei Auswege stehen
+          in §5d.
 
  2. READMEs ueberarbeiten. ⚠ EIN GUTER TEIL IST SCHON GETAN: §4.99 hat
     beide READMEs und beide Anleitungen auf den Stand von M2 gezogen,
@@ -13827,7 +14080,7 @@ ob der Laptop dran ist.
 > Stummel am Schieber** im Linux-Kopf (§4.74 — nur eine Vorlage **nur für den Thumb** trägt).
 > *Fang bei beiden nicht bei Anlauf eins an.*
 
-### ▶ Aktueller Auftrag — **▶ Schritt ⑤: veröffentlichen** (Stand 2026-09-04, nach Runde V2-123)
+### ▶ Aktueller Auftrag — **▶ Schritt ⑤: veröffentlichen** (Stand 2026-09-04, nach Runde V2-124)
 
 > **✅ ④ IST ZU (§4.99, V2-123).** Alle sieben Posten. **Bau 0/0, 1308 Tests
 > (1239 Core + 69 WPF).** Der Prüflauf ist gelaufen: beide Testprojekte, beide Köpfe mit
@@ -13842,9 +14095,15 @@ ob der Laptop dran ist.
 > Core **unmöglich gemacht** statt fünfmal geflickt.
 >
 > **▶ WAS JETZT ANSTEHT — ⑤, und die Reihenfolge ist nicht beliebig** (§6, „Was in ⑤ ansteht"):
-> 1. **⛔ ZUERST DAS FLATPAK EIN ZWEITES MAL BAUEN UND LAUFEN LASSEN.** Der erste Bau (§4.96)
->    war eine **Erprobung**; seither sind §4.97 bis §4.99 dazugekommen. **Erst dieser Bau
->    geht hinaus.** Das ist Laptop-Arbeit (§5d) — **und es blockiert die READMEs nicht.**
+> 1. **✅ ERLEDIGT (2026-09-04, V2-124, §4.100) — der zweite Bau ist gelaufen.** Der Laptop
+>    hat **beide** Pakete neu gebaut, installiert und gestartet, nachdem §4.97 bis §4.99
+>    darin sind; Kette dabei **0/0** und **1239/1239**. Nebenbei ist der Fund aus §4.96 zu:
+>    **null** native Windows-Binärdateien in beiden Paketen. **⚠ Zwei Posten kommen von dort
+>    zurück und gehören hierher:** (a) **die Version steht überall auf 0.3.0**, und der
+>    einzige `<release>`-Eintrag der `metainfo.xml` nennt sich selbst *„packaging trial, not
+>    a release"* — §5 Nr. 23/24 verlangt **1.0.0**; (b) **der Laptop konnte nicht klicken**
+>    (`ydotoold` scheitert an `/dev/uinput`, `sudo` braucht ein Passwort, der Skill
+>    `sudopasswot` fehlte) — wer ihm den nächsten Auftrag schreibt, klärt das **zuerst**.
 > 2. **READMEs überarbeiten.** ⚠ **Ein guter Teil ist schon getan:** §4.99 hat beide READMEs
 >    und beide Anleitungen auf den Stand von M2 gezogen, samt der **vier** Einschränkungen,
 >    die wirklich gelten (Rechtschreibprüfung, zusammengesetzte Zeichen, Lineal,
@@ -17157,6 +17416,7 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 | V2-121 | 2026-09-04 | **Zwei Entscheidungen des Nutzers — und eine davon widerlegt die Empfehlung** (§4.98 neu; `Core/Platform/TesseractBindung.cs`, `Ocr/TesseractLinux.cs`, `packaging/appimage/AppRun` und `bauen.sh`, `packaging/LIESMICH.md`; Bau 0/0, **1270 Tests, +4**). **⛔ §5 Nr. 29 → (b): DAS APPIMAGE BRINGT SEINE EIGENE TEXTERKENNUNG MIT.** Begruendung des Nutzers: *„nicht jede Linux-Distro hat Texterkennung."* **Die Empfehlung dieses Dokuments war (a)** und stellte darauf ab, dass das Flatpak der Hauptweg sei — **aber ein AppImage gibt es gerade fuer den Rechner, auf dem kein Flatpak laeuft**, und dort ist „hat der Wirt zufaellig Tesseract?" die schlechteste aller Antworten. *Eine Empfehlung, die den Hauptweg zum Massstab nimmt, misst den zweiten Kanal an der falschen Frage.* **Gebaut sind drei Stellen, und alle drei werden gebraucht:** `TesseractBindung.SuchpfadeMit` in Core legt den mitgelieferten Ordner **vor** alle Systempfade (der Pfad wird hereingereicht, nicht dort ermittelt — die Klasse bleibt ohne Dateisystem pruefbar); `TesseractLinux.EigenerLibOrdner` sieht neben dem Programm nach (dasselbe Muster wie `tessdata`); `bauen.sh` sucht die Bibliotheken nach **derselben Regel wie `SonameWaehlen`**, holt mit `ldd` die Abhaengigkeiten dazu und legt alles nach `usr/bin/lib`. **⛔ Und die Falle, die drei Kommentare gekostet hat:** Der Verweis findet Tesseract — aber **seine EIGENEN Abhaengigkeiten loest danach der Systemlader auf, und der sucht sie nicht neben dem Verweisziel**; ohne `LD_LIBRARY_PATH` im `AppRun` scheitert das Oeffnen, obwohl alle Dateien im Abbild liegen, *und es saehe aus wie „Tesseract fehlt"*. **Das widerspricht §4.63 nicht** — dort galt „LD_LIBRARY_PATH hilft nicht" fuer den Lader DES PAKETS, der die Datei am Pfad prueft, BEVOR er `dlopen` ruft. *Zwei Stufen, zwei Regeln; die alte Zeile ist scharf genug formuliert, dass sie diese Runde beinahe verhindert haette.* **✅ §5 Nr. 18 ist nicht aufgehoben, sondern um einen Fall ergaenzt:** verwiesen wird, mitgeliefert nur dort, wo es sonst nichts gaebe. **✅ Und der wechselnde Einhaengepunkt eines AppImage war schon geloest** — `VerweisAnlegen` setzt den Verweis bei jedem Start neu, aus einem anderen Grund (Systemupdates, §4.63). **⛔ DER FUND DER RUNDE STAMMT AUS DEM EIGENEN WAECHTER-KOMMENTAR, geschrieben eine Stunde vorher:** Er behauptete, das Anhaengen der Systempfade sei ein Rueckfall fuer den Fall, dass die mitgelieferte Fassung *nicht laedt*. **Falsch** — `QuelleSuchen` nimmt den ersten Ordner mit einem **passenden Dateinamen**, nicht den ersten, der **laedt**; ein unbrauchbarer Beipack schaltet das Wirtssystem damit **aus**, und das AppImage waere auf einem Rechner MIT Tesseract schlechter dran als vorher. **Benannt und an den Bau geknuepft statt behoben** (eine Rangfolge kann nach Namen entscheiden, nicht nach Ladbarkeit; ein Probe-`dlopen` laege in genau der Naht, die §4.63 drei Anlaeufe gekostet hat). *Ein Waechter beweist, was er prueft; der Kommentar daneben behauptet, wofuer er gut ist — nur das Erste haelt der Compiler nach. Das ist §4.95 an der eigenen Arbeit derselben Stunde.* **✅ §5 Nr. 30 → (a): `UndoStack` und `TdUndo` bleiben getrennt**, wie empfohlen. **Der Handgriff war nicht das Nein, sondern der Ort:** der Grund steht jetzt in **§7**, wo jemand nachsieht, der eine Doppelung sucht — in §4.33 stand er seit Phase 4, und die Frage ist trotzdem ein zweites Mal gestellt worden. *Eine Aehnlichkeit, deren Aufloesung nicht dort steht, wo man auf sie stoesst, wird in jeder Aufraeumrunde neu geprueft — und irgendwann raeumt sie jemand weg.* **⛔ Was diese Runde NICHT belegen kann, und es ist ihr ganzer Zweck:** keine Zeile der Verpackung ist gelaufen. Geprueft ist die **Syntax** beider Skripte (`bash -n`, `sh -n`), die **Rangfolge in Core** (4 Waechter) und dass der Bau 0/0 bleibt. ▶ **Der Laptop ist dran** (§5d, vier Schritte) — **und nur der dritte beweist etwas: gemessen wird mit VERSTECKTEM System-Tesseract** (`bwrap`), sonst kann das Ergebnis auch vom Wirt kommen, *dieselbe Falle wie §4.96*. **Er blockiert den Rest von ④ nicht.** ▶ **Unter Windows weiter mit §4.1, den benannten Luecken und dem VOLLSTAENDIGEN PRUEFLAUF** |
 | V2-122 | 2026-09-04 | **Der Beipack traegt — das AppImage bringt seine eigene Texterkennung mit, und es ist gemessen** (§4.98 „Was der Laptop gefunden hat" neu; **auf dem CachyOS-Laptop**; `packaging/appimage/AppRun` und `bauen.sh` je ein Handgriff, `Docs/HANDOFF.md` §4.98, §5 Nr. 29, §5d, §4.64-Kurzfassung; **kein Produktivcode angefasst**; Kette vorher gruen: Bau 0/0 in Core und im Linux-Kopf, **1205/1205** — §5d nannte 1201, das war der Stand vor den vier Waechtern aus §4.98). **✅ DIE KERNFRAGE IST BEANTWORTET, UND MIT DEM SCHAERFSTEN VERFUEGBAREN INSTRUMENT:** die Erkennung im AppImage kommt **aus dem Beipack und aus nichts sonst** — zeichengenau (`Hallo Welt 123` / `Aeltere Baeume`), waehrend das System-Tesseract im selben Namensraum tot war (`bwrap`, `/dev/null` ueber die Systemdateien; `tesseract --version` scheitert dort selbst — **die Gegenprobe am Werkzeug zuerst**), und **`/proc/self/maps` nennt beide Bibliotheken namentlich mit vollem Pfad**. **Dazu die harte Fassung mit 20 versteckten Wirtsbibliotheken der ganzen Kette: unveraendert zeichengenau.** Gemessen mit einer **Wegwerf-Sonde im Namensraum des Pakets** — und sie war hier nicht die bequeme, sondern die **schaerfere** Wahl: *ein Klick durch die Oberflaeche haette gezeigt, dass etwas erkannt wird, nicht woher.* **✅ Schritt 4, die Gegenprobe mit vorhandenem System, faellt besser aus als befuerchtet:** geladen wird **trotzdem der Beipack**. **⛔ ABER DIE BENANNTE GRENZE AUS §4.98 IST JETZT GEMESSEN STATT HERGELEITET:** ein unbrauchbares `libtesseract.so.5` im Beipack laesst die Erkennung scheitern, **obwohl ein tadelloses System-Tesseract danebenliegt** — `QuelleSuchen` nimmt den ersten passenden **Namen**, nicht den ersten, der **laedt**. *Eine Grenze, die man benennt und nicht misst, wird beim naechsten Lesen entweder ueberschaetzt oder vergessen.* **Nicht behoben, gehoert nach Windows.** **⛔ DER FUND, DER NICHT IM AUFTRAG STAND: .NET nimmt sein ICU aus dem Beipack.** Der `AppRun` stellt seinen Ordner **voran**, und das gilt fuer den ganzen Prozess — `LD_DEBUG=libs` zeigt `libicuuc.so.78` und `libicudata.so.78` aus dem Abbild, `libicui18n.so.78` vom Wirt, **die Globalisierung laeuft also aus zwei Quellen**, dazu OpenSSL, curl und Kerberos. **Der Kommentar im `AppRun` sagte „die Texterkennungs-Kette und ihre Bildcodecs" — ICU, OpenSSL und Kerberos sind keine Bildcodecs**; berichtigt. **✅ Es ist trotzdem richtig so, und beide Gruende sind gemessen und nicht abgewogen:** .NET probiert die ICU-Hauptversionen **von 90 bis 60 abwaerts** und nimmt je Version nur ein **vollstaendiges Dreigespann**, faellt also auf die Fassung des Wirts zurueck; **und der Ordner MUSS ICU enthalten**, weil unser `libxml2.so.16` namentlich `libicuuc.so.78` verlangt — ohne es reisst auf einer fremden Verteilung die Kette `libtesseract → libarchive → libxml2`. **Die Zahl, die in §4.98 fehlte: der Beipack kostet 24,5 MiB** (61 → 85 MiB, **+40 %**), **und die Haelfte davon ist ICU** (`libicudata.so.78` allein 11,7 MB von rund 27 MB komprimiert) — *es ist kein Versehen des Skripts, sondern der Preis dafuer, dass `ldd` transitiv aufloest, und genau deshalb richtig.* **⛔ UND EINE RICHTIGSTELLUNG AN §4.98 SELBST:** es hat den falschen Satz „faellt sonst aufs System zurueck, wenn es nicht laedt" im Waechter-Kommentar gefunden und berichtigt — **und ihn in §5 Nr. 29 woertlich stehen lassen**. *Wer einen falschen Satz findet, sucht seine Zwillinge; eine Richtigstellung, die nur eine von zwei Fundstellen erreicht, macht die verbliebene glaubwuerdiger, nicht unschaedlicher.* Dasselbe Muster wie §4.97 und §4.78. **⚠ Zwei Dinge sind ungeprueft und stehen so da:** der `ln -sf`-Zweig fuer den CMake-Namen `…so.5.5` ist **nie gelaufen** (Arch liefert den kurzen Namen selbst), und die Erkennung **durch die Oberflaeche** des AppImage braucht einen Klick — `zeiger`/XTEST ist unter GNOME 50 unbrauchbar, `ydotool` braucht `sudo`. **Zwei Handgriffe in `packaging/` behoben** (§5d erlaubt genau das): der `AppRun`-Kommentar und eine verrutschte erste Zeile in der Dateiliste von `bauen.sh`; beide Skripte danach wieder `bash -n`/`sh -n`. ▶ **Der Laptop ist wieder nicht dran** — der Rest von ④ und der VOLLSTAENDIGE PRUEFLAUF gehoeren Windows (§5e). ▶ **Danach zwingend hier:** die Auslieferung wird ein zweites Mal gebaut, **und erst dieser Bau geht hinaus** (§6) |
 | V2-123 | 2026-09-04 | **Phase 5, Schritt ④ ist zu — die letzte Doppelgrammatik, und der Prüflauf hat gefunden, wofür er da ist** (§4.99 neu; `Core/Text/` mit `TdMarkdown.Lesen`, `Markdown.cs`, `Dokumentverweise.cs` neu, `TdStil.AufAbsatz`, `TdBlockEdit.Einfuegen`, `TdExport.Importformate`, `TdListEdit`; beide Köpfe: `MarkdownFlow`/`MarkdownView`, `EmbeddedDocs`, `WpfDocumentIo`/`AvaloniaDocumentIo`, die vier Dialoge; **`Wpf/Services/MarkdownImporter.cs` gelöscht, 394 Zeilen**; alle vier mitgelieferten Dokumente; Bau 0/0, **1308 Tests, +38** = 1239 Core + 69 WPF). Die zweite Hälfte von ④. **POSTEN 1 — DIE NÄHTE, GEMESSEN STATT VERMUTET:** Von zwölf Diensten im WPF-Kopf **müssen elf dort stehen** (WPF-Typen oder Windows-API: ISpellCheckerFactory, DWM, WM_GETMINMAXINFO, pack-URI, XAML-Markup). **Der zwölfte war `MarkdownImporter` — 394 Zeilen eigene Markdown-Grammatik**, obwohl `Markdown.Parse` seit §4.12 in Core steht; **zum fünften Mal dieselbe Lage** nach Farben (§4.9), Schriften (§4.26), Symbolen (§4.31) und Vorlagen (§4.39), *und §4.13 hatte den **Betrachter** längst umgestellt, nur den **Importer** nicht.* **⛔ Zwei gemessene Folgen, nicht nur eine Doppelung:** der **Linux-Kopf konnte `.md` überhaupt nicht importieren** — ein **unbenanntes Loch in M2** wie der Tafel-Export in §4.77 — und ein importiertes `.md` bekam **kein `Model`**, sah nach `UebernahmeStehtAus` also aus wie ein Dokument aus der Windows-Zeit und **war unter Linux erst lesbar, nachdem es unter Windows einmal offen war**. **⛔ Der Unterschied zu §4.77 ist der eigentliche Lehrsatz:** dort war die Begründung im Kommentar **falsch**, hier war sie **abgelaufen** („der Markdown-Import geht drüben über ein FlowDocument") — *und eine abgelaufene Begründung liest sich wie eine gültige.* **Jetzt `TdMarkdown.Lesen` in Core**, beide Köpfe importieren `.md` über denselben Weg wie DOCX; im WPF-Kopf bleibt **eine Zeile Unterschied: welcher Leser.** **Der Grammatik fehlten dafür vier Formen** — `MdStrike`, `MdImage`, `***`, `__` —, **⛔ und sie fehlten ihr auch gegenüber dem eigenen Export:** `TdMarkdown.Schreiben` schreibt `~~` und `***` seit jeher, `Markdown.Parse` las beides als Text zurück. *Der eigene Export war keine Rundreise durch den eigenen Leser* — jetzt hält ein Wächter genau das fest. **Nebenbei: die Importliste stand in beiden Köpfen einzeln**, während beide Exportlisten seit §4.28/§4.77 in Core stehen — und sie **war auseinandergelaufen**. Jetzt `TdExport.Importformate`; **„Alle Dateien" fällt weg**, weil der Leser an der Endung entscheidet. **POSTEN 2 — DIE DREI BENANNTEN LÜCKEN: ⛔ die Tabelle *in* einer Zelle war von der Oberfläche aus ERREICHBAR.** §4.19 las sich wie eine Grenze des Umbruchs, aber `TdEdit.Ort` steigt in Zellen ab (es **muss** das, sonst könnte man dort nicht tippen) — „Tabelle einfügen" legte bei Cursor in einer Zelle klaglos eine an, **die der Umbruch wegließ**. *Der Nutzer legte Inhalt an, den niemand je zu sehen bekam.* **Nutzer-Entscheidung: Einfügen sperren**, in `TdBlockEdit.Einfuegen` und nicht in den zwei Aufrufern (die Infobox **ist** eine Tabelle, die Trennlinie nicht), **+3 Wächter**, einer zieht die Grenze von der anderen Seite. **⛔ Und §6 behauptete über alle drei Lücken, jede sei „mit einem Wächter festgehalten" — für die zwei aus §4.21 stimmte das nicht**, es gab keine Zeile Test. **Die Palettenlücke war sogar *umgangen*:** `Jede_Diagrammart_uebersteht_DOCX` kürzt die Palette auf das, was durchpasst, und ist deshalb grün, **ohne über den Verlust etwas auszusagen**. *Ein Test, der sich einer Lücke anpasst, hält sie nicht fest; er verdeckt sie.* Beide haben jetzt einen; gemessen: durch DOCX kommen **drei von sechs** Farben zurück, **durch das eigene Format alle sechs**. **⛔ UND DANN HAT DER PRÜFLAUF GEFUNDEN, WOFÜR ER DA IST: FÜNF TOTE VERWEISE, IN BEIDEN KÖPFEN UND IN BEIDEN SPRACHEN.** „Hilfe → Erste Schritte" sagt *„lies die Feature-Übersicht im README"* — **angeklickt geschah nichts**; dreimal Anleitung → README (die Dialoge übergaben **gar keinen** Behandler) und zweimal README → `THIRD-PARTY-NOTICES.md`, **eine Datei, die in keinem Kopf eingebettet ist und deren Verweise nie funktionieren konnten**. Alle fünf waren in der Akzentfarbe gezeichnet, im **Linux-Kopf zusätzlich unterstrichen, mit Handzeiger und Tooltip**. *Ein Verweis, der aussieht wie einer und keiner ist* — §4.83 in klein. **⛔ Und der Kommentar im Linux-Kopf nannte einen nachmessbar falschen Grund:** „das hier *ist* die Anleitung, ein Verweis von ihr auf sich selbst würde nur dasselbe Fenster öffnen" — **sie verweist dreimal aufs README und kein einziges Mal auf sich selbst**, in beiden Sprachen. *Ein Grund, der eine Prüfung erspart, wird selten nachgeprüft.* **Statt fünf Fälle zu flicken ist die Klasse unmöglich gemacht:** `Dokumentverweise` in Core, **`Kann` + `Oeffnen` — zwei Glieder, weil Fragen und Handeln zwei Zeitpunkte sind** (ein einzelner Behandler müsste beim **Bauen** gerufen werden, und das Bauen öffnete Fenster); ein Ziel, das niemand annimmt, wird **schlichter Text ohne Akzentfarbe**. **⛔ Derselbe Fehler saß dabei zweimal, eine Etage auseinander:** `EndsWith(".md")` sagt zu `README.md#zwei-ausgaben-eine-app` **nein** — in den Prädikaten fällt die Sprungmarke jetzt weg, **in den Malern ist die Prüfung ersatzlos gestrichen**, denn *zwei Stellen, die dasselbe entscheiden, entscheiden es verschieden*; **gefunden hat es ein Wächter, der drei Verweise erwartete und zwei bekam.** **⛔ ZWEITER FUND DES PRÜFLAUFS: die vier mitgelieferten Dokumente beschrieben eine App von VOR M2** — **elf Stellen**, obendrein **unsymmetrisch** verteilt (7 / 2 / 2 / **0**), was Dauerregel 1 schon für sich verletzt. Die README-Tabelle „Was der Linux-Ausgabe noch fehlt" hatte **sechs Zeilen, fünf davon falsch**: Schreiben (§4.35/§4.48), Markdown-Import (**diese Runde**), Tafel-Export (§4.77), die ganze Werkzeugzeile (§4.53–§4.62) und die Texterkennung (§4.64). *Eine Einschränkungsliste, die niemand nachmisst, wächst nur* (§4.77, §4.81, **zum dritten Mal**). **Alle vier Dokumente stehen jetzt auf dem Stand von M2**, mit den **vier** Einschränkungen, die wirklich gelten, und der Gegenrichtung, die nie dastand (**keine Seitenzahlen im WPF-Editor**) — **damit ist ein guter Teil des ⑤-Postens „bekannte Einschränkungen namentlich" vorweggenommen**. **⚠ Und beim Schreiben ist mir selbst eine Vermutung durchgerutscht** — „die Sprachdaten liegen unter Linux im Datenordner"; `AppSubfolder` zeigt auf den **Programm**ordner, nachgesehen und berichtigt, **bevor es hinausging** (§4.95 an der eigenen Arbeit). **✅ DER PRÜFLAUF SELBST:** beide Testprojekte (1308, 0 Fehler), beide Köpfe 0 Warnungen, **die vier Dokumente in beiden Sprachen am laufenden Programm in BEIDEN Köpfen** (2 × 2, dieselbe DB-Kopie, `tools/foto.ps1`, beide Richtungen der Querverweise geklickt), ein Durchgang auf einer **Kopie der echten Daten** (Bestand unberührt, Kopie danach **gelöscht** — Schulunterlagen), **und der neue Weg selbst: dieselbe Markdown-Probe in beide Köpfe importiert** — alle vier neuen Formen, Liste samt Unterliste, Tabelle mit aufgefüllter Kurzzeile, Zitat, Codeblock, Trennlinie, **`[Ersatztext]` für das fehlende Bild** und **`#####` bleibt ein Absatz**; beide Köpfe zeigen dasselbe. **Nebenbei bestätigt:** ein im **Linux**-Kopf importiertes Markdown liegt danach im **WPF**-Kopf in der Galerie. **⚠ Benannt und nicht getan:** die Tabelle in einer Zelle wird weiterhin nicht **gesetzt**; `DocumentImages.Remember` ist im Produktivpfad tot und wird nur noch vom Golden-File-Bauer gerufen; der Menü-Aufklapppunkt des WPF-Kopfs (§4.92) war im Prüflauf gut zu sehen. **Neu in §7: „Neu aus §4.99", sieben Einträge.** ▶ **Dran ist ⑤ — und ⛔ ZUERST wird die Auslieferung ein zweites Mal gebaut; erst dieser Bau geht hinaus.** ▶ **Der Laptop ist dran** (§5d): beide Pakete neu bauen und starten, **und den Markdown-Import auf echtem Linux prüfen — er ist neu und dort ungeprüft** |
+| V2-124 | 2026-09-04 | **Phase 5, Schritt ⑤ — der zweite Bau, und dieser geht hinaus** (§4.100 neu; **auf dem CachyOS-Laptop**, GNOME 50.3 Wayland; **kein Produktivcode angefasst** — nur `packaging/LIESMICH.md` und `packaging/appimage/bauen.sh`). Kette grün: Bau **0/0** in Core und im Linux-Kopf, **1239/1239** — **genau die Zahl, die §5d aus Windows nannte**, diesmal ohne Zählfrage. **Flatpak und AppImage beide neu gebaut, installiert und gestartet**, nachdem §4.97–§4.99 darin sind: 154,6 MB bzw. 86 MB, der Beipack unverändert **43 Dateien / 65 MB**, `TesseractBindung.cs` seit V2-121 unberührt — die Messung aus §4.98 gilt also weiter. In der Sandbox nachgesehen: `/app/lib` führt Tesseract **5.5.1** und Leptonica, `ldd` ohne fehlende Abhängigkeit, `deu`/`eng` liegen als `/app/gonknote/tessdata` mit im Paket. **✅ Der Fund aus §4.96 ist zu:** in **beiden** Paketen **null** native Windows-Binärdateien und kein `x64/`/`x86/`. **⛔ Der Werkzeugbefund, der den Zuschnitt geändert hat: auf diesem Gerät konnte nicht geklickt werden** — `ydotoold` scheitert an `/dev/uinput` (Nutzer nicht in Gruppe `input`), `sudo` verlangt ein Passwort, **der Skill `sudopasswot` stand der Sitzung nicht zur Verfügung**, und `wtype`, `dotool`, `wlrctl`, `xdotool` sind alle nicht installiert. **Punkt ④ und ⑤ des Auftrags trotzdem beantwortet, mit dem schärferen Instrument:** eine Wegwerf-Sonde in `/tmp` gegen den echten Code — *ein Klick hätte gezeigt, dass etwas passiert, die Sonde zeigt was*. **Der Markdown-Import liest Zeile für Zeile das, was §4.99 unter Windows sah:** `#####` bleibt ein **Absatz**, `![alt](fehlt.png)` wird **`[alt]`**, `~~…~~` und `***…***` tragen, Tabelle 3×3, **zwei** Listendefinitionen (je Art eine). **Und beide Verweisfragen fallen richtig aus:** „Feature-Übersicht im README“ wird **angenommen** (der Fund aus §4.99 ist eingelöst), `THIRD-PARTY-NOTICES.md` bleibt in beiden Sprachen **schlichter Text**. **⚠ Beinahe ein eigener Scheinbefund:** `file … grep -c PE32` sagte **200** — `file` meldet jede .NET-Assembly so; erst zusätzlich `grep "for MS Windows"` ohne `Mono/.Net assembly` misst die Frage, und das ergibt **0**. **⛔ Drei veraltete Sätze in `packaging/` behoben**, alle seit V2-122 falsch (zweimal „noch nicht am Gerät geprüft“, einmal „Schritt ③ ist eine Erprobung“). **⚠ Offen und Windows gehörend: die Version steht überall auf 0.3.0**, der `<release>`-Eintrag nennt sich selbst „packaging trial, not a release“ — §5 Nr. 23/24 verlangt **1.0.0**. **⚠ Weiterhin ohne Beleg, beides braucht eine Hand:** der Portal-Dateidialog und der Stift. |
 | V2-115 | 2026-09-01 | **Schritt ①c ist zu — das Lineal gestrichen, der Menü-Aufklapppunkt neu vermessen** (§4.92 neu; Bau 0/0, **1256 Tests unveraendert**). **(4) Lineal: bewusst gestrichen.** Gemessen: `DrawRuler` im WPF-Kopf hat **keinen einzigen Maus-Handler** — es ist eine cm-Skala mit zwei Dreiecken, eine Zierleiste und kein Werkzeug. Der einzige Posten ohne Rueckhalt in Core, und was er leistet, leisten die vier Randfelder im Layout-Reiter **in Zahlen** und aenderbar. Wird in ⑤ im README als bekannter Unterschied genannt. **⛔ Menü-Aufklapppunkt: dritter Anlauf gescheitert und zurueckgenommen — aber die Messung ist neu und mehr wert als der Versuch.** Bisher stand da "klappt am linken Rand der Leiste auf"; gemessen klappt es **ausserhalb des Fensters** auf, rund 170 px links vom Fensterrand. Und: **"Datei" und "Ansicht" klappen an DERSELBEN Stelle auf** — damit ist das Aufklappziel fuer beide **dasselbe Element**, also weder das MenuItem noch sein Grid. Der Anlauf (Popup aus dem Spaltengitter in ein umschliessendes Grid heben, weil die `SharedSizeGroup` das Gitter aufblaeht) war **ohne jede Wirkung** und ist zurueckgenommen. **Der einzige Weg, der zur Messung passt und den noch niemand versucht hat: ein eigenes Template nur fuer `Role=TopLevelHeader`** — WPF benutzt dafuer normalerweise drei verschiedene Vorlagen, hier dient eine fuer alle drei Rollen. **Damit sind alle sieben Entscheidungen aus §5e beantwortet** (§4.86–§4.92): fuenf gebaut, eine gestrichen, eine als Messung beantwortet statt als Frage gestellt. ▶ **Als Naechstes: Schritt ②, die Rueckmeldung** — eine eigene Runde (§5 Nr. 28). **Der Laptop ist nicht dran — aber bei ③ ist er es zwingend** (§5d) |
 | V2-114 | 2026-09-01 | **Der Tabellenentwurf, zweite Haelfte** (§4.91 neu; neu `Core/Text/TdTabellenformel.cs`, `TdTableUmbau.cs`, `Core.Tests/TabellenUmbauTests.cs`; Bau 0/0, **1256 Tests, +36**). Runde B von Frage (2): **teilen, sortieren, rechnen, Tabelle ↔ Text** — das, was Core erst rechnen lernen musste. **Das Formelergebnis geht als TEXT in die Zelle und nicht als Feld:** §4.20 verlangte sonst eine neue `TdFieldKind`, einen Auswertungsschritt im Umbruch und einen DOCX-Weg; **der WPF-Kopf schreibt seit jeher ebenfalls nur das Ergebnis**, und beim Editor ist Windows die Vorlage. Benanntes Zugestaendnis. **Eine leere Zelle beendet die Reihe NICHT** — Words Regel dort ergibt bei einer Zwischenueberschrift eine halbe Summe, ohne dass etwas danach aussieht. **Beide Zahlenschreibweisen** werden gelesen (deutsch und englisch): eine Tabelle, deren Summe von der Systemsprache abhaengt, rechnet auf dem naechsten Rechner anders. **Der leere Absatz beim Teilen ist kein Rest** — zwei Tabellen unmittelbar hintereinander sind in DOCX **eine**. **⛔ Der Tooltip hat eine Ergaenzung erzwungen:** `Ed.Table.Sort.Tip` verspricht "Text/Zahl/Datum", und der WPF-Kopf kann das; die erste Fassung hier konnte nur Text und Zahl. **Datum wird jetzt VOR Zahl geprueft**, und das ist keine Geschmacksfrage: "01.03.2026" liest sich als Zahl 1.032.026 und "15.02.2026" als 15.022.026 — die Reihenfolge kehrt sich um und sieht trotzdem plausibel aus. *Ein Tooltip ist eine Zusage; wer ihn uebernimmt, uebernimmt sie mit.* **⛔ Werkzeugfalle, drei Anlaeufe:** **Koordinaten aus einem Flyout gelten nur fuer die Aufnahme, aus der sie stammen.** Ein Ribbon, das umbricht, verschiebt seine Knoepfe — und mit ihnen jedes Flyout daran. Erst der Vergleich gegen ein **funktionierendes** Werkzeug ("Tabelle teilen", gleiches Muster, wirkte sofort) hat gezeigt, dass der Weg traegt und die Koordinate nicht (§4.82 woertlich). **✅ Und der eingebaute Hinweis "keine Zahlen im Bereich" hat den ersten Anlauf ueberhaupt erst diagnostizierbar gemacht** — *ein Knopf, der sagt, warum er nichts tut, ist billiger als der Fehlerbericht, den er erspart.* **Nicht gebaut und benannt:** die Schnelltabellen (`Ed.Table.Quick.*`) — zwei fest verdrahtete Vorlagen ohne Vorlagensammlung dahinter. **✅ Am laufenden Programm:** Teilen samt richtig ausgegrautem Knopf in Zeile 0, Summe 10+5=15, Hinweis ohne Zahlen, Sortieren dreht die Folge |
 | V2-113 | 2026-09-01 | **Der Tabellenentwurf, erste Haelfte** (§4.90 neu; neu `Core/Text/TdTableEntwurf.cs`, `Avalonia/Views/TextDocView.Tabelle.cs`, `Core.Tests/TabellenEntwurfTests.cs`; Bau 0/0, **1220 Tests, +25**). Runde A von Frage (2): **Rahmen, Fuellung, Kopfzeile, Zellabstand, Spaltenbreite, verbinden und teilen** — alles, was `TdTable` schon konnte. **Nicht "erst Core, dann Oberflaeche" wie §5e vorschlug, sondern nach Nutzen geschnitten:** eine Runde, die nur Core baut, endet an einem gruenen Bau — und **zwei der drei Funde dieser Runde waeren dann erst eine Runde spaeter aufgefallen**. **⛔ Fund 1, vom Waechter:** `TdTableEdit.Kopie` kopierte das **Format nicht**. `TdTableFormat` ist eine Klasse, alte und neue Tabelle teilten sich das Objekt. Bis heute fiel es nicht auf, weil **kein einziger Handgriff das Format anfasste**; mit dem Entwurf fassen es fuenf an, und ab da haette jede Rahmenaenderung die **Sicherung im Rueckgaengig-Stapel mitgeaendert** — Strg+Z haette nichts zurueckgebracht (§4.32 woertlich). `TdTableFormat.Kopie()` gab es laengst, sie wurde nur nicht gerufen. **⛔ Fund 2, am laufenden Programm:** `TabelleWerkzeuge` war ein `StackPanel` und bricht **nie** um — die drei neuen Knoepfe ragten aus dem Fenster und waren nicht anklickbar. Bau und Waechter gruen. **⛔ Fund 3, im Bestand:** **vier Sprachtexte tragen die XML-Entitaet `&amp;` woertlich**, beim Uebernehmen aus dem WPF-XAML mitgekommen — auf dem Knopf stand "Design &amp;amp; Rahmen...". Alle vier stehen seit Monaten so da, in **beiden** Sprachen, und **der WPF-Kopf zeigt sie genauso falsch**; aufgefallen ist es erst, als der Linux-Kopf den Schluessel zum **ersten Mal** anzeigte. *Ein Text, den kein Kopf benutzt, wird von keinem Auge geprueft.* Ein neuer Waechter haelt XML-Entitaeten in beiden Tabellen fest. **Zwei benannte Einschraenkungen, beide mit derselben Ursache** — die Auswahl des Editors ist eine Spanne ueber Absaetze und kennt kein Rechteck aus Zellen: **verbunden wird mit der rechten Nachbarin** (mehrmals gedrueckt zieht weiter), **gefuellt wird die Zelle unter der Marke**. **AutoAnpassen ist das Weglassen einer Zahl** und kein eigener Rechenweg |

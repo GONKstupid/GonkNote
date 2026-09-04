@@ -4,9 +4,14 @@ Hier stehen die zwei Wege, auf denen der Linux-Kopf das Gerät verlässt. Sie si
 **Phase 5, Schritt ③** entstanden (`Docs/HANDOFF.md`, §6) und **auf dem CachyOS-Laptop
 gebaut und gestartet**, nicht hergeleitet.
 
-> **⛔ Schritt ③ ist eine Erprobung und keine Auslieferung.** Nach dem Aufräumen (④) wird
-> beides noch einmal gebaut, und erst dieser zweite Bau geht hinaus. Wer hier ein fertiges
-> Release erwartet, liest den falschen Ordner.
+> **✅ Der zweite Bau ist gelaufen** (2026-09-04, V2-124, auf dem CachyOS-Laptop): **beide**
+> Pakete gebaut, installiert und gestartet, nachdem die Runden von Schritt ④ (§4.97–§4.99)
+> darin sind. Schritt ③ war eine **Erprobung**; **dieser Bau ist der, der hinausgeht.**
+>
+> ⚠ **Was vor dem Release trotzdem noch fehlt, und es gehört Windows:** Die Version steht in
+> `Directory.Build.props`, im Flatpak und in der `metainfo.xml` auf **0.3.0**, und der
+> `<release>`-Eintrag nennt sich selbst „packaging trial, not a release“ (§5 Nr. 23/24
+> verlangt **1.0.0**).
 
 | | Wofür | Ordner |
 |---|---|---|
@@ -76,9 +81,17 @@ Rechner nicht —, fällt die App auf das Wirtssystem zurück und meldet sonst w
 Stufe, keine Ablösung.* **`glibc`, `libstdc++` und der Grafikstapel kommen bewusst NICHT mit**
 — die Begründung steht als Ausschlussliste in `bauen.sh`.
 
-> ⛔ **Noch nicht am Gerät geprüft** (Stand 2026-09-04, V2-121 — geschrieben unter Windows).
-> Und der aussagekräftige Test ist **nicht der Baurechner**: dort ist Tesseract installiert,
-> die App fände es also auch ohne das Mitgelieferte. Wie geprüft wird, steht in §5d.
+> ✅ **Am Gerät geprüft** (2026-09-04, V2-122, CachyOS — der Befund steht in §4.98 „Was der
+> Laptop gefunden hat“). Und er ist **nicht** auf dem Baurechner im Normalzustand entstanden:
+> dort ist Tesseract installiert, die App fände es also auch ohne das Mitgelieferte. Gemessen
+> wurde deshalb mit **verstecktem System-Tesseract** (`bwrap`) und einer Wegwerf-Sonde im
+> Namensraum des Abbilds — sie sagt nicht nur, *dass* erkannt wird, sondern **welche Datei
+> geladen ist**: `/proc/self/maps` nennt `libtesseract.so.5` und `libleptonica.so.6`
+> namentlich aus `usr/bin/lib`. **Der Beipack kostet 24,5 MiB (61 → 85 MiB).**
+>
+> ⚠ **Die eine Schranke dabei ist gemessen und nicht hergeleitet:** Ist das mitgelieferte
+> `libtesseract.so.5` unbrauchbar, scheitert die Erkennung — **auch wenn ein tadelloses
+> System-Tesseract danebenliegt.** Das Wirtssystem wird nie gefragt.
 
 ## Wo die Befunde stehen
 

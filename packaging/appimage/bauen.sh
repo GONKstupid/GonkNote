@@ -17,10 +17,14 @@
 #    Findet sich hier nichts zum Einsammeln, bleibt das AppImage brauchbar: die App fällt auf
 #    das Wirtssystem zurück und meldet sonst ehrlich „nicht verfügbar" (§4.64).
 #
-# ⛔ NOCH NICHT AM GERÄT GEPRÜFT (Stand 2026-09-04, V2-121, geschrieben unter Windows).
-#    Schritt 5 und 6 sind hergeleitet und gegen §4.63/§4.96 gelesen, aber NICHT gelaufen.
-#    Was der Laptop zu prüfen hat, steht in §5d. Bis dahin gilt: dieses Skript ist ein
-#    Entwurf, kein Beleg.
+# ✅ AM GERÄT GEPRÜFT (2026-09-04, V2-122, CachyOS — Befund in §4.98). Schritt 5 und 6
+#    sind gelaufen: 43 Dateien, 65 MB, darunter libtesseract.so.5 und libleptonica.so.6
+#    unter genau diesen Namen. Die Erkennung kommt aus dem Beipack UND AUS NICHTS SONST —
+#    gemessen mit verstecktem System-Tesseract (bwrap) und /proc/self/maps, das beide
+#    Bibliotheken namentlich aus usr/bin/lib nennt. Der Beipack kostet 24,5 MiB.
+#
+# ⚠ NIE GELAUFEN IST DER ln -sf-ZWEIG für den CMake-Namen …so.5.5: Arch liefert den kurzen
+#    Namen selbst. Auf einer Verteilung, die das nicht tut, ist dieser Zweig ungeprüft.
 #
 # Voraussetzung: appimagetool. Es wird beim ersten Lauf nach build/ geladen.
 #
@@ -173,7 +177,8 @@ echo "⚠ Ohne --db greift der Lauf auf ~/.config/GonkNote zu — das AppImage h
 echo "   Sandbox, es ist derselbe echte Bestand wie beim Lauf aus dem Quellordner"
 echo "   (HANDOFF Dauerregel 4)."
 echo
-echo "⛔ Die mitgelieferte Texterkennung ist NOCH NICHT AM GERÄT GEPRÜFT (§5d)."
-echo "   Der aussagekräftige Test ist NICHT dieser Rechner — hier ist Tesseract installiert,"
-echo "   also kann die App auch ohne das Mitgelieferte erkennen und der Lauf beweist nichts."
-echo "   Geprüft wird mit verstecktem System-Tesseract, siehe §5d."
+echo "✅ Die mitgelieferte Texterkennung ist am Gerät geprüft (V2-122, §4.98)."
+echo "   ⚠ Ein Lauf AUF DIESEM RECHNER beweist sie trotzdem nicht — hier ist Tesseract"
+echo "   installiert, die App fände es also auch ohne den Beipack. Wer sie nachmessen will,"
+echo "   versteckt das System-Tesseract (bwrap) und liest /proc/self/maps: dort steht,"
+echo "   WELCHE Datei geladen ist. Siehe §5d."

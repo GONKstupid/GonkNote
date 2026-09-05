@@ -60,8 +60,60 @@ jobs:
         # Absichtserklärung, an die sich nach dem zehnten grünen Lauf niemand mehr hält.
         run: dotnet build GonkNote.slnx -c Release -warnaserror
 
+      # `tee` statt eines blossen Aufrufs, damit der naechste Schritt das Protokoll noch
+      # hat; `pipefail`, weil sonst der Rueckgabewert von `tee` zaehlt und ein
+      # fehlgeschlagener Testlauf als Erfolg durchginge.
       - name: Testen
-        run: dotnet test GonkNote.slnx -c Release --no-build --logger "console;verbosity=normal"
+        shell: bash
+        run: |
+          set -o pipefail
+          dotnet test GonkNote.slnx -c Release --no-build --logger "console;verbosity=normal" 2>&1 | tee test-output.txt
+
+      # ------------------------------------------------------------------
+      # Warum dieser Schritt existiert (§4.101, V2-125):
+      #
+      # Die CI war vier Tage lang rot, und **von außen war nicht zu erkennen, WAS fiel**.
+      # Die Protokolle eines Laufs verlangen `admin`-Rechte am Repo
+      # (`HTTP 403: Must have admin rights to Repository`) -- das gilt für den Lauf UND für
+      # den einzelnen Job, und es gilt auch bei einem öffentlichen Repo. Wer nicht am Konto
+      # sitzt, sieht nur „failure".
+      #
+      # `::error::` erzeugt dagegen eine **Annotation**, und die steht in der Check-Run-API,
+      # die bei einem öffentlichen Repo **ohne Anmeldung** lesbar ist:
+      #     /repos/:o/:r/check-runs/:id/annotations
+      # Damit ist der Name des gefallenen Wächters von überall zu holen, ohne Zugangsdaten.
+      #
+      # ⚠ GitHub zeigt je Schritt **höchstens zehn** Fehler-Annotationen -- deshalb `head`.
+      #   Die vollständige Liste geht zusätzlich in die Job-Zusammenfassung.
+      # ------------------------------------------------------------------
+      - name: Gefallene Waechter benennen
+        if: failure()
+        shell: bash
+        run: |
+          if [ ! -f test-output.txt ]; then
+            echo "::error::Kein Testprotokoll -- der Lauf ist vor dem Testschritt gescheitert."
+            exit 0
+          fi
+
+          # xUnit schreibt "[FAIL]", VSTest schreibt "  Failed <Name> [12 ms]".
+          # Beide Formen einsammeln, damit die Zeile nicht an einer Werkzeugfassung haengt.
+          grep -E '\[FAIL\]|^[[:space:]]*(Failed|Fehler)[[:space:]]+[A-Za-z]' test-output.txt \
+            | sed 's/^[[:space:]]*//' | sort -u > gefallen.txt || true
+
+          {
+            echo "### Gefallene Waechter"
+            echo ''
+            echo '```'
+            cat gefallen.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          # Die letzten Zeilen sagen, wie viele es waren -- ohne sie liest man zehn Namen
+          # und weiss nicht, ob es zehn oder hundert sind.
+          grep -E 'Failed!|Passed!|Bestanden!|Fehlgeschlagen!' test-output.txt | tail -3 \
+            | while IFS= read -r zeile; do echo "::error::$zeile"; done
+
+          head -10 gefallen.txt | while IFS= read -r zeile; do echo "::error::$zeile"; done
 
       # Bei einem Fehlschlag sind die erzeugten Dateien das Einzige, was weiterhilft: das
       # tatsächlich gezeichnete Bild eines abgewichenen Snapshots und der vollständige Text
@@ -124,10 +176,60 @@ jobs:
       - name: Avalonia-Kopf bauen (Meilenstein M1)
         run: dotnet build src/GonkNote.Avalonia/GonkNote.Avalonia.csproj -c Release -warnaserror
 
+      # Siehe den gleichnamigen Schritt im Windows-Job: `tee` samt `pipefail`, damit der
+      # Schritt darunter die gefallenen Waechter benennen kann.
       - name: Core-Tests
-        run: >
-          dotnet test tests/GonkNote.Core.Tests/GonkNote.Core.Tests.csproj
-          -c Release -warnaserror --logger "console;verbosity=normal"
+        shell: bash
+        run: |
+          set -o pipefail
+          dotnet test tests/GonkNote.Core.Tests/GonkNote.Core.Tests.csproj \
+            -c Release -warnaserror --logger "console;verbosity=normal" 2>&1 | tee test-output.txt
+
+      # ------------------------------------------------------------------
+      # Warum dieser Schritt existiert (§4.101, V2-125):
+      #
+      # Die CI war vier Tage lang rot, und **von außen war nicht zu erkennen, WAS fiel**.
+      # Die Protokolle eines Laufs verlangen `admin`-Rechte am Repo
+      # (`HTTP 403: Must have admin rights to Repository`) -- das gilt für den Lauf UND für
+      # den einzelnen Job, und es gilt auch bei einem öffentlichen Repo. Wer nicht am Konto
+      # sitzt, sieht nur „failure".
+      #
+      # `::error::` erzeugt dagegen eine **Annotation**, und die steht in der Check-Run-API,
+      # die bei einem öffentlichen Repo **ohne Anmeldung** lesbar ist:
+      #     /repos/:o/:r/check-runs/:id/annotations
+      # Damit ist der Name des gefallenen Wächters von überall zu holen, ohne Zugangsdaten.
+      #
+      # ⚠ GitHub zeigt je Schritt **höchstens zehn** Fehler-Annotationen -- deshalb `head`.
+      #   Die vollständige Liste geht zusätzlich in die Job-Zusammenfassung.
+      # ------------------------------------------------------------------
+      - name: Gefallene Waechter benennen
+        if: failure()
+        shell: bash
+        run: |
+          if [ ! -f test-output.txt ]; then
+            echo "::error::Kein Testprotokoll -- der Lauf ist vor dem Testschritt gescheitert."
+            exit 0
+          fi
+
+          # xUnit schreibt "[FAIL]", VSTest schreibt "  Failed <Name> [12 ms]".
+          # Beide Formen einsammeln, damit die Zeile nicht an einer Werkzeugfassung haengt.
+          grep -E '\[FAIL\]|^[[:space:]]*(Failed|Fehler)[[:space:]]+[A-Za-z]' test-output.txt \
+            | sed 's/^[[:space:]]*//' | sort -u > gefallen.txt || true
+
+          {
+            echo "### Gefallene Waechter"
+            echo ''
+            echo '```'
+            cat gefallen.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          # Die letzten Zeilen sagen, wie viele es waren -- ohne sie liest man zehn Namen
+          # und weiss nicht, ob es zehn oder hundert sind.
+          grep -E 'Failed!|Passed!|Bestanden!|Fehlgeschlagen!' test-output.txt | tail -3 \
+            | while IFS= read -r zeile; do echo "::error::$zeile"; done
+
+          head -10 gefallen.txt | while IFS= read -r zeile; do echo "::error::$zeile"; done
 
       - name: Beweisstücke einsammeln
         if: failure()

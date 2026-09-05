@@ -34,3 +34,8 @@ id_ed25519
 *.key
 *.pfx
 *.ppk
+
+# Protokoll des Testlaufs samt der daraus gezogenen Namen. Beides entsteht in der CI
+# (.github/workflows/ci.yml, Schritt "Gefallene Waechter benennen") und gehoert nicht ins Repo.
+test-output.txt
+gefallen.txt

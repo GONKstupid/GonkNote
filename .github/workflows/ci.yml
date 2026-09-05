@@ -89,7 +89,16 @@ jobs:
       - name: Gefallene Waechter benennen
         if: failure()
         shell: bash
+        # ⛔ `set +e` UND `set +o pipefail` IN DER ERSTEN ZEILE, und das ist kein Schludern:
+        #    GitHub startet jeden bash-Schritt mit `-eo pipefail`. Ein `grep` ohne Treffer
+        #    gibt 1 zurueck -- damit bricht der Schritt ab, der gerade erklaeren soll, warum
+        #    ein anderer abgebrochen ist. **Genau das ist beim ersten Anlauf passiert**
+        #    (V2-125): zwei Fehlschlaege je Job, und der zweite war dieser Schritt selbst.
+        #    Ein Schritt, der einen Fehler benennen soll, darf selbst keinen erzeugen.
         run: |
+          set +e
+          set +o pipefail
+
           if [ ! -f test-output.txt ]; then
             echo "::error::Kein Testprotokoll -- der Lauf ist vor dem Testschritt gescheitert."
             exit 0
@@ -98,22 +107,40 @@ jobs:
           # xUnit schreibt "[FAIL]", VSTest schreibt "  Failed <Name> [12 ms]".
           # Beide Formen einsammeln, damit die Zeile nicht an einer Werkzeugfassung haengt.
           grep -E '\[FAIL\]|^[[:space:]]*(Failed|Fehler)[[:space:]]+[A-Za-z]' test-output.txt \
-            | sed 's/^[[:space:]]*//' | sort -u > gefallen.txt || true
+            | sed 's/^[[:space:]]*//' | sort -u > gefallen.txt
 
+          # Das Ende des Protokolls geht IMMER mit, auch wenn oben nichts gefunden wurde.
+          # Beim ersten Anlauf fand der Griff nach der Zaehlzeile nichts -- und dass er
+          # nichts fand, war die eigentliche Auskunft: der Testschritt scheitert
+          # moeglicherweise, BEVOR ein einziger Waechter laeuft.
           {
             echo "### Gefallene Waechter"
             echo ''
             echo '```'
-            cat gefallen.txt
+            if [ -s gefallen.txt ]; then cat gefallen.txt; else echo '(keine [FAIL]-Zeile gefunden)'; fi
+            echo '```'
+            echo ''
+            echo '### Die letzten 60 Zeilen des Testprotokolls'
+            echo ''
+            echo '```'
+            tail -60 test-output.txt
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
-          # Die letzten Zeilen sagen, wie viele es waren -- ohne sie liest man zehn Namen
-          # und weiss nicht, ob es zehn oder hundert sind.
-          grep -E 'Failed!|Passed!|Bestanden!|Fehlgeschlagen!' test-output.txt | tail -3 \
-            | while IFS= read -r zeile; do echo "::error::$zeile"; done
+          # Annotationen: GitHub zeigt je Schritt hoechstens zehn. Erst die Namen, und wenn
+          # es keine gibt, die letzten Zeilen -- sonst stuende dort gar nichts.
+          if [ -s gefallen.txt ]; then
+            head -8 gefallen.txt | while IFS= read -r zeile; do echo "::error::$zeile"; done
+          else
+            grep -v '^[[:space:]]*$' test-output.txt | tail -8 \
+              | while IFS= read -r zeile; do echo "::error::${zeile:0:400}"; done
+          fi
 
-          head -10 gefallen.txt | while IFS= read -r zeile; do echo "::error::$zeile"; done
+          # Und die Zaehlzeile obendrauf, falls es sie gibt.
+          grep -E 'Failed!|Passed!|Bestanden!|Fehlgeschlagen!|error [A-Z]+[0-9]+' test-output.txt \
+            | tail -2 | while IFS= read -r zeile; do echo "::error::${zeile:0:400}"; done
+
+          exit 0
 
       # Bei einem Fehlschlag sind die erzeugten Dateien das Einzige, was weiterhilft: das
       # tatsächlich gezeichnete Bild eines abgewichenen Snapshots und der vollständige Text
@@ -205,7 +232,16 @@ jobs:
       - name: Gefallene Waechter benennen
         if: failure()
         shell: bash
+        # ⛔ `set +e` UND `set +o pipefail` IN DER ERSTEN ZEILE, und das ist kein Schludern:
+        #    GitHub startet jeden bash-Schritt mit `-eo pipefail`. Ein `grep` ohne Treffer
+        #    gibt 1 zurueck -- damit bricht der Schritt ab, der gerade erklaeren soll, warum
+        #    ein anderer abgebrochen ist. **Genau das ist beim ersten Anlauf passiert**
+        #    (V2-125): zwei Fehlschlaege je Job, und der zweite war dieser Schritt selbst.
+        #    Ein Schritt, der einen Fehler benennen soll, darf selbst keinen erzeugen.
         run: |
+          set +e
+          set +o pipefail
+
           if [ ! -f test-output.txt ]; then
             echo "::error::Kein Testprotokoll -- der Lauf ist vor dem Testschritt gescheitert."
             exit 0
@@ -214,22 +250,40 @@ jobs:
           # xUnit schreibt "[FAIL]", VSTest schreibt "  Failed <Name> [12 ms]".
           # Beide Formen einsammeln, damit die Zeile nicht an einer Werkzeugfassung haengt.
           grep -E '\[FAIL\]|^[[:space:]]*(Failed|Fehler)[[:space:]]+[A-Za-z]' test-output.txt \
-            | sed 's/^[[:space:]]*//' | sort -u > gefallen.txt || true
+            | sed 's/^[[:space:]]*//' | sort -u > gefallen.txt
 
+          # Das Ende des Protokolls geht IMMER mit, auch wenn oben nichts gefunden wurde.
+          # Beim ersten Anlauf fand der Griff nach der Zaehlzeile nichts -- und dass er
+          # nichts fand, war die eigentliche Auskunft: der Testschritt scheitert
+          # moeglicherweise, BEVOR ein einziger Waechter laeuft.
           {
             echo "### Gefallene Waechter"
             echo ''
             echo '```'
-            cat gefallen.txt
+            if [ -s gefallen.txt ]; then cat gefallen.txt; else echo '(keine [FAIL]-Zeile gefunden)'; fi
+            echo '```'
+            echo ''
+            echo '### Die letzten 60 Zeilen des Testprotokolls'
+            echo ''
+            echo '```'
+            tail -60 test-output.txt
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
-          # Die letzten Zeilen sagen, wie viele es waren -- ohne sie liest man zehn Namen
-          # und weiss nicht, ob es zehn oder hundert sind.
-          grep -E 'Failed!|Passed!|Bestanden!|Fehlgeschlagen!' test-output.txt | tail -3 \
-            | while IFS= read -r zeile; do echo "::error::$zeile"; done
+          # Annotationen: GitHub zeigt je Schritt hoechstens zehn. Erst die Namen, und wenn
+          # es keine gibt, die letzten Zeilen -- sonst stuende dort gar nichts.
+          if [ -s gefallen.txt ]; then
+            head -8 gefallen.txt | while IFS= read -r zeile; do echo "::error::$zeile"; done
+          else
+            grep -v '^[[:space:]]*$' test-output.txt | tail -8 \
+              | while IFS= read -r zeile; do echo "::error::${zeile:0:400}"; done
+          fi
 
-          head -10 gefallen.txt | while IFS= read -r zeile; do echo "::error::$zeile"; done
+          # Und die Zaehlzeile obendrauf, falls es sie gibt.
+          grep -E 'Failed!|Passed!|Bestanden!|Fehlgeschlagen!|error [A-Z]+[0-9]+' test-output.txt \
+            | tail -2 | while IFS= read -r zeile; do echo "::error::${zeile:0:400}"; done
+
+          exit 0
 
       - name: Beweisstücke einsammeln
         if: failure()

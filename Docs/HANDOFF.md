@@ -1,6 +1,6 @@
 # Gonk Note V2 — Projektübergabe
 
-**Stand: 2026-09-05 (V2-125) · Version 1.0.0, Ziel erreicht · net10.0 · SkiaSharp 3 · SQLite · Avalonia 12 · **▶ PHASE 5 IST ZU — SCHRITT ⑤ IST GELAUFEN, DAS REPO IST ÖFFENTLICH** (§4.101). **Die Version steht auf 1.0.0** — an allen fünf Stellen, und alle vier Über-Dialoge (zwei Köpfe × zwei Sprachen) sind am laufenden Programm gesehen. **READMEs** tragen jetzt die **drei Installationswege** und **sieben Bildschirmfotos**, die aus einer **erfundenen Demo-Datenbank** stammen (`tools/demo-db`, neu) und nicht aus dem echten Bestand. **Projektseite** unter `site/` samt `pages.yml`, **`release.yml`** an einem `v*`-Tag, **Beiwerk** (`CONTRIBUTING`, `SECURITY`, Issue- und PR-Vorlagen). **⛔ Der Fund der Runde saß im eigenen Über-Dialog:** Die längere Versionszeile wurde **abgeschnitten statt umgebrochen** — ein waagerechtes `StackPanel` misst mit **unendlicher** Breite, `TextWrapping` half daher nichts; **in beiden Köpfen** auf `DockPanel` umgestellt. **⛔ Dazu zwei weitere:** ein Wächter meldete den **vierten** README-Verweis der Anleitung, und eine **dreispaltige Tabelle** wird im Hilfe-Fenster abgeschnitten (ersetzt; **derselbe Verdacht steht benannt für Abschnitt 14 der Anleitung, ungeprüft**). **HANDOFF und ganze Git-Historie auf Privates durchgesehen — beides sauber.** **Bau 0/0, 1308 Tests (1239 Core + 69 WPF), unverändert.** **⛔ UND EIN BEFUND, DER NICHT AUS DIESER RUNDE STAMMT UND ALLES ANDERE ÜBERHOLT: DIE CI IST SEIT DEM 2026-09-03 ROT** — neun Läufe, **beide Jobs**, **nur der Testschritt** (alle Bauschritte grün). **Hier nicht reproduzierbar**, auch nicht in einem frischen Klon des gepushten Standes; **die Protokolle verlangen Adminrechte am Repo** und `gh` ist hier nicht angemeldet. **Das blockiert das Release** — `release.yml` testet vor dem Packen. ▶ **Vier Handgriffe bleiben beim Nutzer und gehören seinem Konto:** **⛔ zuerst den roten CI-Lauf ansehen** und die `[FAIL]`-Namen hierher tragen, dann den **Tag `v1.0.0` schieben** (er löst das Release aus), **Pages auf „GitHub Actions" stellen**, **Beschreibung und Topics** setzen. ▶ **Der Laptop ist nicht dran.**
+**Stand: 2026-09-05 (V2-125) · Version 1.0.0, Ziel erreicht · net10.0 · SkiaSharp 3 · SQLite · Avalonia 12 · **▶ PHASE 5 IST ZU — SCHRITT ⑤ IST GELAUFEN, DAS REPO IST ÖFFENTLICH** (§4.101). **Die Version steht auf 1.0.0** — an allen fünf Stellen, und alle vier Über-Dialoge (zwei Köpfe × zwei Sprachen) sind am laufenden Programm gesehen. **READMEs** tragen jetzt die **drei Installationswege** und **sieben Bildschirmfotos**, die aus einer **erfundenen Demo-Datenbank** stammen (`tools/demo-db`, neu) und nicht aus dem echten Bestand. **Projektseite** unter `site/` samt `pages.yml`, **`release.yml`** an einem `v*`-Tag, **Beiwerk** (`CONTRIBUTING`, `SECURITY`, Issue- und PR-Vorlagen). **⛔ Der Fund der Runde saß im eigenen Über-Dialog:** Die längere Versionszeile wurde **abgeschnitten statt umgebrochen** — ein waagerechtes `StackPanel` misst mit **unendlicher** Breite, `TextWrapping` half daher nichts; **in beiden Köpfen** auf `DockPanel` umgestellt. **⛔ Dazu zwei weitere:** ein Wächter meldete den **vierten** README-Verweis der Anleitung, und eine **dreispaltige Tabelle** wird im Hilfe-Fenster abgeschnitten (ersetzt; **derselbe Verdacht steht benannt für Abschnitt 14 der Anleitung, ungeprüft**). **HANDOFF und ganze Git-Historie auf Privates durchgesehen — beides sauber.**  **⛔ UND EIN BEFUND, DER NICHT AUS DIESER RUNDE STAMMT: DIE CI WAR SEIT DEM 2026-09-03 ROT** — neun Läufe, beide Jobs, nur der Testschritt, **hier nicht reproduzierbar** (auch nicht im frischen Klon), und **die Protokolle verlangen Adminrechte**. Statt zu raten, sagt die CI es jetzt selbst: **`::error::`-Annotationen sind bei einem öffentlichen Repo ohne Anmeldung lesbar** — *und der erste Anlauf dieses Schrittes ist selbst gefallen* (`-eo pipefail`; ein `grep` ohne Treffer). **✅ Der Wächter war einer, und er hatte recht:** `TdTableEdit.AlsDatum` las mit `CultureInfo.CurrentCulture` — auf `en-US` scheiterte „15.02.2026", die Spalte galt als **Zahlen**spalte, und daraus wurde **15.022.026**. *Genau die Umkehrung, vor der der Kommentar daneben warnt, und das Ergebnis sieht sortiert aus.* Jetzt fest `de-DE`, dann invariant — wie in `TdTabellenformel.AlsZahl`, **das die gleiche Frage seit jeher so beantwortet**. **Bau 0/0, 1313 Tests (1244 Core + 69 WPF), +5 — und beide CI-Jobs grün.** ▶ **Drei Handgriffe bleiben beim Nutzer und gehören seinem Konto:** den **Tag `v1.0.0` schieben** (er löst das Release aus), **Pages auf „GitHub Actions" stellen**, **Beschreibung und Topics** setzen. ▶ **Der Laptop ist nicht dran.**
 
 > **📌 Dauerregeln des Nutzers — gelten immer, ohne Nachfragen:**
 >
@@ -307,7 +307,7 @@ Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — beh
 ### ▶ Hier geht es weiter (Stand 2026-09-05, nach Runde V2-125)
 
 > **▶ PHASE 5 IST ZU. SCHRITT ⑤ IST GELAUFEN, UND DAS REPO IST ÖFFENTLICH** (§4.101,
-> V2-125, unter Windows). **Bau 0/0, 1308 Tests unverändert.** Der Nutzer hat das Repo auf
+> V2-125, unter Windows). **Bau 0/0, 1313 Tests (1244 Core + 69 WPF), +5.** Der Nutzer hat das Repo auf
 > „public" geschaltet; alles, was §6 unter „Was in ⑤ ansteht" führt, ist damit fällig
 > gewesen und getan: **Version 1.0.0** an allen fünf Stellen (samt allen vier Über-Dialogen
 > am laufenden Programm), **READMEs** mit den drei Installationswegen und sieben
@@ -336,30 +336,41 @@ Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — beh
 > erzeugt. *Und das Werkzeug hat beim ersten Anlauf Elemente unterhalb des sichtbaren
 > Seitendrittels gesetzt: auf dem Bild waren sie schlicht nicht da.*
 >
-> **⛔ UND EIN BEFUND, DER NICHT AUS DIESER RUNDE STAMMT, ABER ALLES ANDERE ÜBERHOLT:
-> DIE CI IST SEIT DEM 2026-09-03 ROT** — neun Läufe, **beide Jobs**, und **nur der
-> Testschritt**; alle Bauschritte sind grün. Angefangen hat es mit dem Push von neun
-> Commits auf einmal (V2-109 bis V2-116). **Hier ist es nicht reproduzierbar** — weder im
-> Arbeitsbaum noch **in einem frischen Klon des gepushten Standes** (dort 0/0 und
-> 1239 + 69 grün). **Die Protokolle verlangen Adminrechte am Repo** (`HTTP 403`), und `gh`
-> ist hier nicht angemeldet — **ohne den Namen des fallenden Wächters ist jede Ursache
-> eine Vermutung** (§4.101 nennt zwei und benennt sie als solche: Kultur, Schriften).
+> **⛔ UND EIN BEFUND, DER NICHT AUS DIESER RUNDE STAMMT: DIE CI WAR SEIT DEM 2026-09-03
+> ROT** — neun Läufe, **beide Jobs**, und **nur der Testschritt**; alle Bauschritte grün.
+> Angefangen hat es mit dem Push von neun Commits auf einmal (V2-109 bis V2-116). **Hier war
+> es nicht reproduzierbar** — weder im Arbeitsbaum noch **in einem frischen Klon des
+> gepushten Standes**. **Die Protokolle verlangen Adminrechte am Repo** (`HTTP 403`).
 >
-> **⛔ Das blockiert Punkt 1 unten:** `release.yml` lässt vor dem Packen dieselben Tests
-> laufen. **Erst den roten Lauf lesen, dann taggen** — sonst ist der erste öffentliche
-> Eindruck des Projekts ein fehlgeschlagenes Release. *Ein Netz, in das niemand
-> hineinsieht, meldet nichts; es hängt nur.*
+> **Statt zu raten, sagt die CI es jetzt selbst:** `::error::` erzeugt Annotationen, und die
+> sind bei einem öffentlichen Repo **ohne Anmeldung** lesbar. *Der erste Anlauf dieses
+> Schrittes ist dabei selbst gefallen — GitHub startet jeden `bash`-Schritt mit `-eo
+> pipefail`, und ein `grep` ohne Treffer gibt 1 zurück. **Ein Schritt, der einen Fehler
+> benennen soll, darf selbst keinen erzeugen.***
+>
+> **✅ ES WAR EIN EINZIGER WÄCHTER, UND ER HATTE RECHT:**
+> `TabellenUmbauTests.Datumsangaben_werden_als_Datum_sortiert`. **Kein Testfehler:**
+> `TdTableEdit.AlsDatum` las mit `CultureInfo.CurrentCulture` — auf `de-DE` ging
+> „15.02.2026" durch, auf `en-US` nicht (Monat 15), die Spalte galt damit als
+> **Zahlen**spalte, und daraus wurde **15.022.026**. *Genau die Umkehrung, vor der der
+> Kommentar über der Sortierung warnt — und niemand sieht sie, weil das Ergebnis sortiert
+> aussieht.* Jetzt fest **`de-DE`, dann invariant**, wie in `TdTabellenformel.AlsZahl`, **das
+> die gleiche Frage seit jeher so beantwortet**; die Kultur gilt für die **ganze Spalte**.
+> **+5 Wächter mit fest gesetzter Kultur** — der alte erbt die des Rechners und war deshalb
+> hier immer grün. **✅ Beide CI-Jobs grün.**
+>
+> **⛔ Und der Satz bleibt trotzdem stehen:** Das Netz hing **vier Tage** durch, und keine der
+> neun Runden dazwischen hat es bemerkt. *Ein Netz, in das niemand hineinsieht, meldet
+> nichts; es hängt nur.* **Zum Ablauf einer Runde gehört ab jetzt ein Blick auf den letzten
+> CI-Lauf** (§8).
 >
 > **▶ WAS JETZT NOCH ANSTEHT, UND ES GEHÖRT DEM KONTO DES NUTZERS — nicht diesem Baum:**
-> 0. **⛔ ZUERST: den roten CI-Lauf ansehen.**
->    `https://github.com/GONKstupid/GonkNote/actions` → obersten Lauf → Schritt „Testen"
->    bzw. „Core-Tests" → die Zeilen mit `[FAIL]`. **Die Namen genügen**, alles Weitere ist
->    dann eine gewöhnliche Runde.
 > 1. **Den Tag schieben:** `git tag -a v1.0.0 -m "Gonk Note 1.0.0"` und `git push origin
 >    v1.0.0`. **Das ist die Veröffentlichung** — `release.yml` baut daraufhin Windows-Zip,
 >    AppImage und Tarball und legt das Release an. ⚠ **Dieser Lauf ist nie gelaufen** (er
 >    lässt sich nur durch einen Tag auslösen); der AppImage-Zweig ist auf dem Laptop
->    gemessen, in einer CI nie.
+>    gemessen, in einer CI nie. **Die Tests, die er vorher laufen lässt, sind seit dem
+>    2026-09-05 wieder grün** — das war bis dahin die Sperre.
 > 2. **Pages einschalten:** Repo-Einstellungen → Pages → Quelle **GitHub Actions**. Ohne das
 >    läuft `pages.yml` und veröffentlicht nichts.
 > 3. **Beschreibung und Topics** des Repos setzen. **`gh` ist auf diesem Rechner nicht
@@ -768,13 +779,17 @@ steht in §4 — dort wird er gesucht — und in der Chronik §9.)*
 
 **Tests laufen lassen:**
 ```powershell
-dotnet test -c Release        # Windows: beide Projekte, 1308 Tests (1239 Core + 69 WPF)
+dotnet test -c Release        # Windows: beide Projekte, 1313 Tests (1244 Core + 69 WPF)
 ```
 
 ```bash
 dotnet test tests/GonkNote.Core.Tests   # Linux: nur Core. Zuletzt auf dem Laptop gemessen: 1201 (Stand V2-120);
-                                       # seither +38 unter Windows, davon laufen alle auch dort.
+                                       # seither +43 unter Windows, davon laufen alle auch dort.
 ```
+
+> **⛔ Und danach: was sagt die CI?** Ein grüner lokaler Lauf sagt darüber nichts — zwischen
+> dem 2026-09-01 und dem 2026-09-05 war sie **neun Läufe lang rot**, und keine der Runden
+> dazwischen hat es bemerkt (§4.101). Der Aufruf steht in **§8** und braucht keine Anmeldung.
 
 ---
 
@@ -811,8 +826,8 @@ möglich) gelten unverändert weiter — siehe `gonk-note\HANDOFF.md` §1.
 | | |
 |---|---|
 | **Version** | **1.0.0** · `net10.0` · SkiaSharp 3.119.4 · Avalonia 12.1.1 · SQLite — angehoben in V2-125 (§5 Nr. 23), fünf Stellen, alle vier Über-Dialoge gegengeprüft |
-| **Tests** | **1308** — 1239 in `GonkNote.Core.Tests`, 69 in `GonkNote.Wpf.Tests` (alles, was am `FlowDocument` hängt) · Stand V2-125, **unverändert gegenüber V2-123**: die Veröffentlichungsrunde hat einen Wächter *nachgezogen* und keinen dazugebaut. **+38 in dieser Runde**: der Markdown-Import in Core (23), die neue Grammatik (6), die Tabellensperre (3), die zwei nachgereichten Wächter für die Lücken aus §4.21, und vier für die Dokumentverweise im WPF-Projekt |
-| **Bau** | Debug und Release je 0 Fehler / 0 Warnungen **auf dem Entwicklungsrechner und in einem frischen Klon**; CI mit zwei Läufen (Windows, Ubuntu) — **⛔ und deren Testschritt fällt seit dem 2026-09-03 in beiden Jobs** (§4.101). Die Bauschritte sind auch dort grün; die Protokolle verlangen Adminrechte und sind von hier aus nicht lesbar |
+| **Tests** | **1313** — 1244 in `GonkNote.Core.Tests`, 69 in `GonkNote.Wpf.Tests` (alles, was am `FlowDocument` hängt) · Stand V2-125. **+5**, und alle fünf halten dieselbe Sache fest: **eine Sortierung darf nicht von der Kultur des Rechners abhängen** (§4.101). Einer wurde außerdem *nachgezogen* (der vierte README-Verweis der Anleitung). **+38 in dieser Runde**: der Markdown-Import in Core (23), die neue Grammatik (6), die Tabellensperre (3), die zwei nachgereichten Wächter für die Lücken aus §4.21, und vier für die Dokumentverweise im WPF-Projekt |
+| **Bau** | Debug und Release je 0 Fehler / 0 Warnungen; CI mit zwei Läufen (Windows, Ubuntu) — **beide grün seit dem 2026-09-05**. ⛔ **Sie waren es vier Tage lang nicht**, und keine der neun Runden dazwischen hat es bemerkt (§4.101): ein Wächter fiel nur auf `en-US`. **Die CI benennt jetzt bei jedem Fehlschlag die gefallenen Wächter als Annotation** — die ist ohne Anmeldung lesbar, die Protokolle sind es nicht |
 | **Meilensteine** | ✅ **M0** (Core baut auf Linux) · ✅ **M1** (Notizbuch und Whiteboard laufen unter Linux) · ✅ **M2** (Funktionsgleichheit Linux ↔ Windows) — **ausgerufen am 2026-08-28**, Nutzer-Entscheidung, **mit einem benannten Loch**: die Rechtschreibprüfung fehlt im Linux-Kopf (§6, bewusst so entschieden am 2026-08-22). Die zweite Stift-Taste darf verschieden bleiben und ist **kein** Loch (§5 Nr. 17) · ▶ **M3** (veröffentlicht) — **das Repo ist seit dem 2026-09-05 öffentlich**, Phase 5 ist zu; **ausgerufen wird M3 mit dem Tag `v1.0.0`**, und den setzt der Nutzer (§4.101) |
 
 **Wo das Projekt steht:**
@@ -11662,7 +11677,7 @@ soll: `release.yml` lässt vor dem Packen dieselben Tests laufen.
 | **Wo genau** | **Nur der Testschritt.** `Bauen (Release)` und alle vier Linux-Bauschritte sind **grün** — es ist kein Übersetzungsfehler |
 | **Artefakte** | **keine.** Beide Jobs sammeln bei Fehlschlag `Snapshots/ist/**` ein; dort lag nichts. **Es ist also sehr wahrscheinlich kein abgewichener Schnappschuss** |
 
-**Und hier hört das Gemessene auf.** Der Fehler ist **auf diesem Rechner nicht
+**Reproduzierbar war er hier nicht.** Der Fehler ist **auf diesem Rechner nicht
 reproduzierbar** — weder im Arbeitsbaum (1308 grün) noch, und das ist der eigentliche
 Versuch, **in einem frischen Klon des gepushten Standes**: `git clone` nach `%TEMP%`,
 `dotnet build -warnaserror` **0/0**, `dotnet test` **1239 + 69 grün**. *Ein leerer
@@ -11674,26 +11689,67 @@ diesem Rechner nicht angemeldet. Die Prüfläufe tragen weder Annotationen noch 
 Zusammenfassung. **Damit steht der Name des fallenden Wächters nicht fest, und ohne ihn ist
 jede Ursache eine Vermutung.**
 
-> **▶ Was der Nutzer in einem Klick tun kann, und nur er:** die Seite
-> `https://github.com/GONKstupid/GonkNote/actions` öffnen, den obersten roten Lauf anklicken,
-> im Schritt **„Testen"** bzw. **„Core-Tests"** die Zeilen mit `[FAIL]` heraussuchen — **die
-> Namen genügen.** Alles Weitere ist dann eine gewöhnliche Runde.
+#### Statt zu raten: die CI dazu gebracht, es selbst zu sagen
 
-**⚠ Zwei Vermutungen, ausdrücklich als solche benannt** (beide passen dazu, dass **beide**
-Jobs fallen, also ein **Core**-Wächter betroffen ist):
+**Zwei Vermutungen lagen nahe** — die Kultur (`de-DE` hier, `en-US` auf den Runnern) und die
+installierten Schriften. **Beide wären ungeprüft geblieben**, denn ohne den Namen des
+Wächters lässt sich keine bestätigen. *Und eine Vermutung, die man nicht prüfen kann, ist im
+Zweifel die falsche.*
 
-- **Die Kultur.** Dieser Rechner läuft auf `de-DE`, die Runner auf `en-US`. Ein Wächter, der
-  eine Zeichenkette sortiert oder eine Zahl formatiert, fällt dann dort und hier nicht.
-  *(Ein Gegenversuch mit `DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1` bringt 23 Fehlschläge —
-  **er beweist nichts**, denn die Runner haben ICU; er zeigt nur, dass es
-  kultur­abhängige Stellen gibt, etwa `TdTabellenformel..cctor`.)*
-- **Die installierten Schriften.** Ein Ubuntu-Runner hat nur DejaVu, ein Windows-Runner
-  weniger als dieser Rechner.
+**Der Ausweg steckt in einer Berechtigung, die niemand anfassen muss:** `::error::` erzeugt
+eine **Annotation**, und die steht in der Check-Run-API — die bei einem öffentlichen Repo
+**ohne Anmeldung** lesbar ist (`/repos/:o/:r/check-runs/:id/annotations`). Beide Jobs
+schreiben ihr Testprotokoll seither per `tee` mit, und ein Schritt mit `if: failure()` zieht
+die `[FAIL]`-Zeilen heraus: die ersten acht als Annotation, die volle Liste samt der letzten
+60 Protokollzeilen in die Job-Zusammenfassung.
 
-> **⛔ Und der Satz, der daraus für §2 folgt, ist unangenehm:** Dieses Dokument führt seit
-> Phase 1 „CI mit zwei Läufen" als Netz. **Das Netz hängt seit vier Tagen durch, und keine
-> der neun Runden dazwischen hat es bemerkt** — jede hat lokal grün gemessen und lokal ist
-> grün. *Ein Netz, in das niemand hineinsieht, meldet nichts; es hängt nur.*
+> **⛔ Und der erste Anlauf davon ist selbst gefallen** — in beiden Jobs standen danach
+> **zwei** Fehlschläge, und der zweite war der Schritt, der den ersten erklären sollte.
+> GitHub startet jeden `bash`-Schritt mit `-eo pipefail`; ein `grep` ohne Treffer gibt 1
+> zurück. *Ein Schritt, der einen Fehler benennen soll, darf selbst keinen erzeugen* — jetzt
+> `set +e`, `set +o pipefail` und `exit 0`. **Dass der Griff nach der Zählzeile ins Leere
+> ging, war dabei selbst eine Auskunft** und der Grund, warum das Protokollende seither
+> **immer** mitgeht.
+
+#### ✅ Der Wächter, und er hatte recht: **ein einziger, und es war kein Testfehler**
+
+Der zweite Lauf nannte ihn: **`TabellenUmbauTests.Datumsangaben_werden_als_Datum_sortiert`**
+— **einer**, in beiden Jobs.
+
+**`TdTableEdit.AlsDatum` las mit `CultureInfo.CurrentCulture`.** Auf `de-DE` ging
+„15.02.2026" durch; auf `en-US` nicht (Monat 15). Damit galt die Spalte als **Zahlen**spalte,
+und `TdTabellenformel.AlsZahl` machte aus „15.02.2026" die Zahl **15.022.026** —
+**das ist genau die Umkehrung, vor der der Kommentar über der Sortierung warnt**, nur dass
+niemand sie sieht: *das Ergebnis sieht sortiert aus.* **Dasselbe Dokument war auf einem
+deutschen und einem englischen Rechner verschieden sortiert**, und keiner der beiden hätte
+etwas gemerkt.
+
+**Behoben wie nebenan:** `Datumskulturen` liest fest **`de-DE`, dann invariant** — dieselbe
+Rangfolge wie in `TdTabellenformel.AlsZahl`, das die **gleiche Frage seit jeher so
+beantwortet**. *`AlsDatum` war der einzige Ort, der sie anders beantwortete.* Und die Kultur
+gilt für die **ganze Spalte** und nicht je Zelle: Läse eine Zelle deutsch und die nächste
+invariant, wäre „03.04.2026" einmal der 3. April und einmal der 4. März — eine Ordnung, die
+in sich nicht stimmt.
+
+**+5 Wächter, alle mit fest gesetzter `CultureInfo.CurrentCulture`** (`en-US`, `de-DE`,
+`fr-FR`), dazu die ISO-Schreibweise. **Der alte Wächter erbt die Kultur des Rechners und war
+deshalb hier immer grün** — *ein Wächter, der die Kultur des Rechners erbt, prüft den Rechner
+und nicht das Programm.* **✅ Danach beide CI-Jobs grün**, zum ersten Mal seit dem
+2026-09-01.
+
+> **⛔ Der Satz, der für §2 daraus folgt, bleibt trotzdem stehen:** Dieses Dokument führt seit
+> Phase 1 „CI mit zwei Läufen" als Netz. **Das Netz hing vier Tage durch, und keine der neun
+> Runden dazwischen hat es bemerkt** — jede hat lokal grün gemessen, und lokal war grün.
+> *Ein Netz, in das niemand hineinsieht, meldet nichts; es hängt nur.* **Zum Ablauf einer
+> Runde gehört ab jetzt ein Blick auf den letzten CI-Lauf** — er kostet einen Aufruf und
+> steht in §8.
+
+> **⚠ Eine Beobachtung nebenbei, benannt und nicht behoben:** `Schriftliste.Aufbauen` sortiert
+> mit `StringComparer.CurrentCulture`, und der Wächter darüber sagt in seiner eigenen
+> Begründung, die Ordnung sei dafür da, *„damit zwei Rechner dieselbe Liste zeigen"*. **Mit
+> der Kultur des Rechners tut sie das gerade nicht.** Zwischen `de-DE` und `en-US` fällt es
+> nicht auf, deshalb ist hier nichts geändert — *aber die Begründung verspricht mehr, als der
+> Code hält*, und das ist dieselbe Klasse wie oben.
 
 #### ⚠ Was diese Runde ausdrücklich **nicht** getan hat
 
@@ -12457,10 +12513,11 @@ Zwei Kleinigkeiten daran sind bewusst:
 abgesendet (§4.97), und am Gerät fehlen weiterhin der **Portal-Dateidialog** und der
 **Stift** (§4.100).
 
-**Zahlen:** Bau 0/0 in Debug und Release, **1308 Tests** (1239 Core + 69 WPF, unverändert —
-diese Runde hat einen Wächter *nachgezogen*, keinen dazugebaut). Angefasst:
-`Directory.Build.props`, beide Loc-Tabellen, beide Über-Dialoge, `metainfo.xml`,
-`packaging/LIESMICH.md`, die vier mitgelieferten Dokumente, `THIRD-PARTY-NOTICES.md`, neu
+**Zahlen:** Bau 0/0 in Debug und Release, **1313 Tests** (1244 Core + 69 WPF), **+5** —
+alle fünf aus dem CI-Befund, dazu **ein nachgezogener** (der vierte README-Verweis der
+Anleitung). **✅ Beide CI-Jobs grün.** Angefasst: `Directory.Build.props`, beide Loc-Tabellen,
+beide Über-Dialoge, `Core/Text/TdTableUmbau.cs`, `metainfo.xml`, `packaging/LIESMICH.md`, die
+vier mitgelieferten Dokumente, `THIRD-PARTY-NOTICES.md`, `.github/workflows/ci.yml`, neu
 `site/`, `tools/demo-db/`, `CONTRIBUTING.md`, `SECURITY.md`, `.github/workflows/pages.yml`,
 `.github/workflows/release.yml`, `.github/ISSUE_TEMPLATE/`, `.github/pull_request_template.md`.
 
@@ -14277,9 +14334,13 @@ Lies dort Docs/HANDOFF.md (NICHT in der Wurzel, §5 Nr. 21). Lies §5e
 ("Auftrag fuer den Windows-Rechner") und §6 ("Was in (5) ansteht").
 
 Zieh zuerst den Stand: git pull. Dann bauen und testen, BEVOR du etwas
-anfasst. Erwartet sind 0 Fehler, 0 Warnungen und 1308 Tests
-(1239 Core + 69 WPF) -- stimmt eine der Zahlen nicht, IST DAS DER ERSTE
-BEFUND. Der letzte Eintrag in git log muss V2-123 sein.
+anfasst. Erwartet sind 0 Fehler, 0 Warnungen und 1313 Tests
+(1244 Core + 69 WPF) -- stimmt eine der Zahlen nicht, IST DAS DER ERSTE
+BEFUND. Der letzte Eintrag in git log muss V2-125 sein.
+
+⛔ UND DANN: WAS SAGT DIE CI? Ein gruener lokaler Lauf sagt darueber
+nichts -- sie war neun Laeufe lang rot, ohne dass es jemand bemerkt hat
+(§4.101). Der Aufruf steht in §8 und braucht keine Anmeldung.
 
 ⛔ PHASE 5, SCHRITTE (1) BIS (4) SIND ZU. Dem Linux-Kopf fehlt kein
 Werkzeug mehr, die Oberflaeche ist geprueft, Flatpak und AppImage sind
@@ -14385,19 +14446,27 @@ ob der Laptop dran ist.
 
 ### ▶ Aktueller Auftrag — **▶ es liegt keiner an; Phase 5 ist zu** (Stand 2026-09-05, nach Runde V2-125)
 
-> **✅ SCHRITT ⑤ IST GELAUFEN, UND DAMIT PHASE 5** (§4.101, V2-125). **Bau 0/0, 1308 Tests
-> unverändert.** Das Repo ist öffentlich, die Version steht auf **1.0.0**, die READMEs tragen
+> **✅ SCHRITT ⑤ IST GELAUFEN, UND DAMIT PHASE 5** (§4.101, V2-125). **Bau 0/0, 1313 Tests
+> (1244 Core + 69 WPF), +5 — und beide CI-Jobs grün.** Das Repo ist öffentlich, die Version steht auf **1.0.0**, die READMEs tragen
 > die drei Installationswege und sieben Bildschirmfotos, die Projektseite liegt in `site/`,
 > `release.yml` wartet auf einen Tag, und das Beiwerk steht. Die Checkliste in §6 ist Punkt
 > für Punkt abgehakt — **einschließlich der zwei Prüfungen, die sich nicht nachholen
 > lassen**: `Docs/HANDOFF.md` und die **ganze Git-Historie** sind auf Privates durchgesehen
 > und **beide sauber**.
 >
-> **⛔ EIN BEFUND ÜBERHOLT ALLES ANDERE: DIE CI IST SEIT DEM 2026-09-03 ROT** — neun
-> Läufe, beide Jobs, **nur der Testschritt**. **Hier nicht reproduzierbar**, auch nicht in
-> einem frischen Klon; die Protokolle verlangen Adminrechte (§4.101). **Solange das gilt,
-> erzeugt der Tag kein Release**, denn `release.yml` testet vorher. *Der nächste Thread
-> fängt hier an, sobald ihm jemand die Namen der fallenden Wächter nennt.*
+> **✅ UND DER BEFUND, DER NICHT AUS DIESER RUNDE STAMMTE, IST ZU: DIE CI WAR SEIT DEM
+> 2026-09-03 ROT UND IST WIEDER GRÜN** (§4.101). Neun Läufe lang, beide Jobs, nur der
+> Testschritt — **hier nicht reproduzierbar**, auch nicht im frischen Klon, und die
+> Protokolle verlangen Adminrechte. **Gelöst, indem die CI es selbst sagt:**
+> `::error::`-Annotationen sind ohne Anmeldung lesbar. Es war **ein einziger** Wächter, und
+> **kein Testfehler**: `TdTableEdit.AlsDatum` las mit `CultureInfo.CurrentCulture`, auf
+> `en-US` wurde aus einer Datumsspalte eine Zahlenspalte. **+5 Wächter mit fest gesetzter
+> Kultur.**
+>
+> **⛔ Was davon bleibt, ist eine Gewohnheit und keine Zeile Code:** Das Netz hing **vier
+> Tage** durch, und keine der neun Runden dazwischen hat es bemerkt — jede hat lokal grün
+> gemessen. **Zum Ablauf einer Runde gehört ab jetzt ein Blick auf den letzten CI-Lauf**;
+> der Aufruf steht in §8.
 >
 > **▶ ES BLEIBEN DREI HANDGRIFFE, UND SIE GEHÖREN DEM NUTZER — nicht dem nächsten Thread:**
 > 1. **`git tag -a v1.0.0 -m "Gonk Note 1.0.0"` und `git push origin v1.0.0`.** Das löst
@@ -16013,10 +16082,10 @@ Vollständig in `gonk-note\HANDOFF.md` §5. Die Punkte, die für die Portierung 
 
 **▶ Und das ist der ganze Rest von Phase 5 — drei Handgriffe, alle am GitHub-Konto:**
 
-- [ ] **⛔ ZUERST: den roten CI-Lauf lesen.** Der Testschritt fällt seit dem 2026-09-03 in
-      **beiden** Jobs (§4.101), hier ist es **nicht reproduzierbar**, und die Protokolle
-      brauchen Adminrechte. **`release.yml` lässt dieselben Tests laufen** — ohne diesen
-      Punkt erzeugt der Tag kein Release, sondern einen roten Lauf.
+- [x] ✅ **Die CI ist wieder grün** (2026-09-05, §4.101). Sie war es vier Tage lang nicht,
+      und **`release.yml` lässt dieselben Tests laufen** — bis hierher hätte der Tag kein
+      Release erzeugt, sondern einen roten Lauf. Ursache war **ein** Wächter: eine
+      Datumsspalte wurde mit der Kultur des Rechners gelesen.
 - [ ] **Den Tag schieben:** `git tag -a v1.0.0 -m "Gonk Note 1.0.0"` und
       `git push origin v1.0.0`. **Das ist die Veröffentlichung** — `release.yml` baut
       daraufhin Windows-Zip, AppImage und Tarball und legt das Release samt Text an.
@@ -16085,6 +16154,32 @@ weil sie bei der Portierung direkt zuschlagen:
   wie eine gültige Messung aussieht*, dieselbe Sorte Falle wie das Foto ohne Menü in V2-55.
 
 **Neu aus §4.101 — was das Veröffentlichen gelehrt hat**
+
+- **⛔ Eine Sortierung darf nicht von der Kultur des Rechners abhängen.** `AlsDatum` las mit
+  `CultureInfo.CurrentCulture`: Auf `de-DE` war „15.02.2026" ein Datum, auf `en-US` nicht —
+  und die Spalte wurde damit als **Zahlen**spalte sortiert, `15.022.026`. **Der Fehler ist
+  still**, weil das Ergebnis sortiert aussieht. **Wo Daten *gelesen* werden, gehört eine
+  feste Kulturenliste hin** (`de-DE`, dann invariant — wie `TdTabellenformel.AlsZahl` es seit
+  jeher macht); `CurrentCulture` ist nur dort richtig, wo *Text für den Nutzer verglichen*
+  wird (Suche, alphabetische Ordnung).
+- **⛔ Und der Wächter dazu muss die Kultur selbst setzen.** Ein Test ohne
+  `CultureInfo.CurrentCulture = new CultureInfo("en-US")` erbt die des Rechners — *er prüft
+  dann den Rechner und nicht das Programm* und ist hier vier Tage lang grün geblieben,
+  während die CI rot war. Muster: `ZahlenblockTests`, `TabellenUmbauTests`.
+- **⛔ Die CI-Protokolle sind ohne Adminrechte am Repo nicht lesbar** — auch bei einem
+  **öffentlichen** Repo, und auch die eines einzelnen Jobs (`HTTP 403: Must have admin
+  rights to Repository`). **Lesbar sind Annotationen**
+  (`/repos/:o/:r/check-runs/:id/annotations`). Deshalb schreiben beide Jobs ihr Protokoll per
+  `tee` mit und benennen bei Fehlschlag die gefallenen Wächter per `::error::`. *Wer eine CI
+  baut, an die er selbst nicht herankommt, baut ein Netz mit verbundenen Augen.*
+- **⛔ GitHub startet jeden `bash`-Schritt mit `-eo pipefail`.** Ein `grep` ohne Treffer gibt
+  1 zurück und bricht den Schritt ab. **Ein Schritt, der einen Fehler benennen soll, darf
+  selbst keinen erzeugen** — `set +e`, `set +o pipefail`, `exit 0`. Beim ersten Anlauf standen
+  deshalb **zwei** Fehlschläge je Job, und der zweite war der Erklärschritt.
+- **⚠ Ein grüner lokaler Lauf sagt nichts über die CI.** Neun Runden hintereinander haben
+  lokal grün gemessen und nicht bemerkt, dass das Netz durchhing. **Zum Ablauf einer Runde
+  gehört ein Blick auf den letzten CI-Lauf** — der Aufruf steht in §8 und braucht keine
+  Anmeldung.
 
 - **⛔ Ein waagerechtes `StackPanel` schneidet Text ab, es bricht ihn nicht um.** Es misst
   seine Kinder mit **unendlicher Breite**; ein `TextBlock` darin erfährt nie, wie viel Platz
@@ -17617,7 +17712,20 @@ cd C:\Dev\Zed\gonk-note-V2
 dotnet build -c Release      # 0 Fehler / 0 Warnungen
 dotnet build -c Debug        # schneller, ohne Self-Contained/win-x64
 
-dotnet test -c Release       # beide Testprojekte, 1308 Tests (1239 Core + 69 WPF)
+dotnet test -c Release       # beide Testprojekte, 1313 Tests (1244 Core + 69 WPF)
+
+# ⛔ NACH JEDEM PUSH: WAS SAGT DIE CI? Ein gruener lokaler Lauf sagt darueber nichts --
+#    zwischen dem 2026-09-01 und dem 2026-09-05 war sie neun Laeufe lang rot, und keine der
+#    Runden dazwischen hat es bemerkt (§4.101). Der Aufruf braucht KEINE Anmeldung.
+curl -s "https://api.github.com/repos/GONKstupid/GonkNote/actions/runs?per_page=3&branch=main" |
+  python -c "import json,sys; [print(r['name'], r['status'], r['conclusion'], r['head_sha'][:8]) for r in json.load(sys.stdin)['workflow_runs']]"
+
+# ... und wenn er rot ist: WELCHE Waechter fielen. Die Protokolle brauchen Adminrechte,
+#     die Annotationen nicht -- deshalb benennt die CI sie dort selbst (§7).
+curl -s "https://api.github.com/repos/GONKstupid/GonkNote/commits/main/check-runs" |
+  python -c "import json,sys; [print(c['name'], c['conclusion'], c['id']) for c in json.load(sys.stdin)['check_runs']]"
+curl -s "https://api.github.com/repos/GONKstupid/GonkNote/check-runs/<ID>/annotations" |
+  python -c "import json,sys; [print('-', a['message'][:300]) for a in json.load(sys.stdin)]"
 
 # Golden-Files bewusst neu setzen (danach den Diff lesen, siehe §4.6)
 $env:GONK_SNAPSHOT_UPDATE=1; dotnet test tests\GonkNote.Core.Tests; $env:GONK_SNAPSHOT_UPDATE=$null
@@ -17804,7 +17912,7 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 | V2-122 | 2026-09-04 | **Der Beipack traegt — das AppImage bringt seine eigene Texterkennung mit, und es ist gemessen** (§4.98 „Was der Laptop gefunden hat" neu; **auf dem CachyOS-Laptop**; `packaging/appimage/AppRun` und `bauen.sh` je ein Handgriff, `Docs/HANDOFF.md` §4.98, §5 Nr. 29, §5d, §4.64-Kurzfassung; **kein Produktivcode angefasst**; Kette vorher gruen: Bau 0/0 in Core und im Linux-Kopf, **1205/1205** — §5d nannte 1201, das war der Stand vor den vier Waechtern aus §4.98). **✅ DIE KERNFRAGE IST BEANTWORTET, UND MIT DEM SCHAERFSTEN VERFUEGBAREN INSTRUMENT:** die Erkennung im AppImage kommt **aus dem Beipack und aus nichts sonst** — zeichengenau (`Hallo Welt 123` / `Aeltere Baeume`), waehrend das System-Tesseract im selben Namensraum tot war (`bwrap`, `/dev/null` ueber die Systemdateien; `tesseract --version` scheitert dort selbst — **die Gegenprobe am Werkzeug zuerst**), und **`/proc/self/maps` nennt beide Bibliotheken namentlich mit vollem Pfad**. **Dazu die harte Fassung mit 20 versteckten Wirtsbibliotheken der ganzen Kette: unveraendert zeichengenau.** Gemessen mit einer **Wegwerf-Sonde im Namensraum des Pakets** — und sie war hier nicht die bequeme, sondern die **schaerfere** Wahl: *ein Klick durch die Oberflaeche haette gezeigt, dass etwas erkannt wird, nicht woher.* **✅ Schritt 4, die Gegenprobe mit vorhandenem System, faellt besser aus als befuerchtet:** geladen wird **trotzdem der Beipack**. **⛔ ABER DIE BENANNTE GRENZE AUS §4.98 IST JETZT GEMESSEN STATT HERGELEITET:** ein unbrauchbares `libtesseract.so.5` im Beipack laesst die Erkennung scheitern, **obwohl ein tadelloses System-Tesseract danebenliegt** — `QuelleSuchen` nimmt den ersten passenden **Namen**, nicht den ersten, der **laedt**. *Eine Grenze, die man benennt und nicht misst, wird beim naechsten Lesen entweder ueberschaetzt oder vergessen.* **Nicht behoben, gehoert nach Windows.** **⛔ DER FUND, DER NICHT IM AUFTRAG STAND: .NET nimmt sein ICU aus dem Beipack.** Der `AppRun` stellt seinen Ordner **voran**, und das gilt fuer den ganzen Prozess — `LD_DEBUG=libs` zeigt `libicuuc.so.78` und `libicudata.so.78` aus dem Abbild, `libicui18n.so.78` vom Wirt, **die Globalisierung laeuft also aus zwei Quellen**, dazu OpenSSL, curl und Kerberos. **Der Kommentar im `AppRun` sagte „die Texterkennungs-Kette und ihre Bildcodecs" — ICU, OpenSSL und Kerberos sind keine Bildcodecs**; berichtigt. **✅ Es ist trotzdem richtig so, und beide Gruende sind gemessen und nicht abgewogen:** .NET probiert die ICU-Hauptversionen **von 90 bis 60 abwaerts** und nimmt je Version nur ein **vollstaendiges Dreigespann**, faellt also auf die Fassung des Wirts zurueck; **und der Ordner MUSS ICU enthalten**, weil unser `libxml2.so.16` namentlich `libicuuc.so.78` verlangt — ohne es reisst auf einer fremden Verteilung die Kette `libtesseract → libarchive → libxml2`. **Die Zahl, die in §4.98 fehlte: der Beipack kostet 24,5 MiB** (61 → 85 MiB, **+40 %**), **und die Haelfte davon ist ICU** (`libicudata.so.78` allein 11,7 MB von rund 27 MB komprimiert) — *es ist kein Versehen des Skripts, sondern der Preis dafuer, dass `ldd` transitiv aufloest, und genau deshalb richtig.* **⛔ UND EINE RICHTIGSTELLUNG AN §4.98 SELBST:** es hat den falschen Satz „faellt sonst aufs System zurueck, wenn es nicht laedt" im Waechter-Kommentar gefunden und berichtigt — **und ihn in §5 Nr. 29 woertlich stehen lassen**. *Wer einen falschen Satz findet, sucht seine Zwillinge; eine Richtigstellung, die nur eine von zwei Fundstellen erreicht, macht die verbliebene glaubwuerdiger, nicht unschaedlicher.* Dasselbe Muster wie §4.97 und §4.78. **⚠ Zwei Dinge sind ungeprueft und stehen so da:** der `ln -sf`-Zweig fuer den CMake-Namen `…so.5.5` ist **nie gelaufen** (Arch liefert den kurzen Namen selbst), und die Erkennung **durch die Oberflaeche** des AppImage braucht einen Klick — `zeiger`/XTEST ist unter GNOME 50 unbrauchbar, `ydotool` braucht `sudo`. **Zwei Handgriffe in `packaging/` behoben** (§5d erlaubt genau das): der `AppRun`-Kommentar und eine verrutschte erste Zeile in der Dateiliste von `bauen.sh`; beide Skripte danach wieder `bash -n`/`sh -n`. ▶ **Der Laptop ist wieder nicht dran** — der Rest von ④ und der VOLLSTAENDIGE PRUEFLAUF gehoeren Windows (§5e). ▶ **Danach zwingend hier:** die Auslieferung wird ein zweites Mal gebaut, **und erst dieser Bau geht hinaus** (§6) |
 | V2-123 | 2026-09-04 | **Phase 5, Schritt ④ ist zu — die letzte Doppelgrammatik, und der Prüflauf hat gefunden, wofür er da ist** (§4.99 neu; `Core/Text/` mit `TdMarkdown.Lesen`, `Markdown.cs`, `Dokumentverweise.cs` neu, `TdStil.AufAbsatz`, `TdBlockEdit.Einfuegen`, `TdExport.Importformate`, `TdListEdit`; beide Köpfe: `MarkdownFlow`/`MarkdownView`, `EmbeddedDocs`, `WpfDocumentIo`/`AvaloniaDocumentIo`, die vier Dialoge; **`Wpf/Services/MarkdownImporter.cs` gelöscht, 394 Zeilen**; alle vier mitgelieferten Dokumente; Bau 0/0, **1308 Tests, +38** = 1239 Core + 69 WPF). Die zweite Hälfte von ④. **POSTEN 1 — DIE NÄHTE, GEMESSEN STATT VERMUTET:** Von zwölf Diensten im WPF-Kopf **müssen elf dort stehen** (WPF-Typen oder Windows-API: ISpellCheckerFactory, DWM, WM_GETMINMAXINFO, pack-URI, XAML-Markup). **Der zwölfte war `MarkdownImporter` — 394 Zeilen eigene Markdown-Grammatik**, obwohl `Markdown.Parse` seit §4.12 in Core steht; **zum fünften Mal dieselbe Lage** nach Farben (§4.9), Schriften (§4.26), Symbolen (§4.31) und Vorlagen (§4.39), *und §4.13 hatte den **Betrachter** längst umgestellt, nur den **Importer** nicht.* **⛔ Zwei gemessene Folgen, nicht nur eine Doppelung:** der **Linux-Kopf konnte `.md` überhaupt nicht importieren** — ein **unbenanntes Loch in M2** wie der Tafel-Export in §4.77 — und ein importiertes `.md` bekam **kein `Model`**, sah nach `UebernahmeStehtAus` also aus wie ein Dokument aus der Windows-Zeit und **war unter Linux erst lesbar, nachdem es unter Windows einmal offen war**. **⛔ Der Unterschied zu §4.77 ist der eigentliche Lehrsatz:** dort war die Begründung im Kommentar **falsch**, hier war sie **abgelaufen** („der Markdown-Import geht drüben über ein FlowDocument") — *und eine abgelaufene Begründung liest sich wie eine gültige.* **Jetzt `TdMarkdown.Lesen` in Core**, beide Köpfe importieren `.md` über denselben Weg wie DOCX; im WPF-Kopf bleibt **eine Zeile Unterschied: welcher Leser.** **Der Grammatik fehlten dafür vier Formen** — `MdStrike`, `MdImage`, `***`, `__` —, **⛔ und sie fehlten ihr auch gegenüber dem eigenen Export:** `TdMarkdown.Schreiben` schreibt `~~` und `***` seit jeher, `Markdown.Parse` las beides als Text zurück. *Der eigene Export war keine Rundreise durch den eigenen Leser* — jetzt hält ein Wächter genau das fest. **Nebenbei: die Importliste stand in beiden Köpfen einzeln**, während beide Exportlisten seit §4.28/§4.77 in Core stehen — und sie **war auseinandergelaufen**. Jetzt `TdExport.Importformate`; **„Alle Dateien" fällt weg**, weil der Leser an der Endung entscheidet. **POSTEN 2 — DIE DREI BENANNTEN LÜCKEN: ⛔ die Tabelle *in* einer Zelle war von der Oberfläche aus ERREICHBAR.** §4.19 las sich wie eine Grenze des Umbruchs, aber `TdEdit.Ort` steigt in Zellen ab (es **muss** das, sonst könnte man dort nicht tippen) — „Tabelle einfügen" legte bei Cursor in einer Zelle klaglos eine an, **die der Umbruch wegließ**. *Der Nutzer legte Inhalt an, den niemand je zu sehen bekam.* **Nutzer-Entscheidung: Einfügen sperren**, in `TdBlockEdit.Einfuegen` und nicht in den zwei Aufrufern (die Infobox **ist** eine Tabelle, die Trennlinie nicht), **+3 Wächter**, einer zieht die Grenze von der anderen Seite. **⛔ Und §6 behauptete über alle drei Lücken, jede sei „mit einem Wächter festgehalten" — für die zwei aus §4.21 stimmte das nicht**, es gab keine Zeile Test. **Die Palettenlücke war sogar *umgangen*:** `Jede_Diagrammart_uebersteht_DOCX` kürzt die Palette auf das, was durchpasst, und ist deshalb grün, **ohne über den Verlust etwas auszusagen**. *Ein Test, der sich einer Lücke anpasst, hält sie nicht fest; er verdeckt sie.* Beide haben jetzt einen; gemessen: durch DOCX kommen **drei von sechs** Farben zurück, **durch das eigene Format alle sechs**. **⛔ UND DANN HAT DER PRÜFLAUF GEFUNDEN, WOFÜR ER DA IST: FÜNF TOTE VERWEISE, IN BEIDEN KÖPFEN UND IN BEIDEN SPRACHEN.** „Hilfe → Erste Schritte" sagt *„lies die Feature-Übersicht im README"* — **angeklickt geschah nichts**; dreimal Anleitung → README (die Dialoge übergaben **gar keinen** Behandler) und zweimal README → `THIRD-PARTY-NOTICES.md`, **eine Datei, die in keinem Kopf eingebettet ist und deren Verweise nie funktionieren konnten**. Alle fünf waren in der Akzentfarbe gezeichnet, im **Linux-Kopf zusätzlich unterstrichen, mit Handzeiger und Tooltip**. *Ein Verweis, der aussieht wie einer und keiner ist* — §4.83 in klein. **⛔ Und der Kommentar im Linux-Kopf nannte einen nachmessbar falschen Grund:** „das hier *ist* die Anleitung, ein Verweis von ihr auf sich selbst würde nur dasselbe Fenster öffnen" — **sie verweist dreimal aufs README und kein einziges Mal auf sich selbst**, in beiden Sprachen. *Ein Grund, der eine Prüfung erspart, wird selten nachgeprüft.* **Statt fünf Fälle zu flicken ist die Klasse unmöglich gemacht:** `Dokumentverweise` in Core, **`Kann` + `Oeffnen` — zwei Glieder, weil Fragen und Handeln zwei Zeitpunkte sind** (ein einzelner Behandler müsste beim **Bauen** gerufen werden, und das Bauen öffnete Fenster); ein Ziel, das niemand annimmt, wird **schlichter Text ohne Akzentfarbe**. **⛔ Derselbe Fehler saß dabei zweimal, eine Etage auseinander:** `EndsWith(".md")` sagt zu `README.md#zwei-ausgaben-eine-app` **nein** — in den Prädikaten fällt die Sprungmarke jetzt weg, **in den Malern ist die Prüfung ersatzlos gestrichen**, denn *zwei Stellen, die dasselbe entscheiden, entscheiden es verschieden*; **gefunden hat es ein Wächter, der drei Verweise erwartete und zwei bekam.** **⛔ ZWEITER FUND DES PRÜFLAUFS: die vier mitgelieferten Dokumente beschrieben eine App von VOR M2** — **elf Stellen**, obendrein **unsymmetrisch** verteilt (7 / 2 / 2 / **0**), was Dauerregel 1 schon für sich verletzt. Die README-Tabelle „Was der Linux-Ausgabe noch fehlt" hatte **sechs Zeilen, fünf davon falsch**: Schreiben (§4.35/§4.48), Markdown-Import (**diese Runde**), Tafel-Export (§4.77), die ganze Werkzeugzeile (§4.53–§4.62) und die Texterkennung (§4.64). *Eine Einschränkungsliste, die niemand nachmisst, wächst nur* (§4.77, §4.81, **zum dritten Mal**). **Alle vier Dokumente stehen jetzt auf dem Stand von M2**, mit den **vier** Einschränkungen, die wirklich gelten, und der Gegenrichtung, die nie dastand (**keine Seitenzahlen im WPF-Editor**) — **damit ist ein guter Teil des ⑤-Postens „bekannte Einschränkungen namentlich" vorweggenommen**. **⚠ Und beim Schreiben ist mir selbst eine Vermutung durchgerutscht** — „die Sprachdaten liegen unter Linux im Datenordner"; `AppSubfolder` zeigt auf den **Programm**ordner, nachgesehen und berichtigt, **bevor es hinausging** (§4.95 an der eigenen Arbeit). **✅ DER PRÜFLAUF SELBST:** beide Testprojekte (1308, 0 Fehler), beide Köpfe 0 Warnungen, **die vier Dokumente in beiden Sprachen am laufenden Programm in BEIDEN Köpfen** (2 × 2, dieselbe DB-Kopie, `tools/foto.ps1`, beide Richtungen der Querverweise geklickt), ein Durchgang auf einer **Kopie der echten Daten** (Bestand unberührt, Kopie danach **gelöscht** — Schulunterlagen), **und der neue Weg selbst: dieselbe Markdown-Probe in beide Köpfe importiert** — alle vier neuen Formen, Liste samt Unterliste, Tabelle mit aufgefüllter Kurzzeile, Zitat, Codeblock, Trennlinie, **`[Ersatztext]` für das fehlende Bild** und **`#####` bleibt ein Absatz**; beide Köpfe zeigen dasselbe. **Nebenbei bestätigt:** ein im **Linux**-Kopf importiertes Markdown liegt danach im **WPF**-Kopf in der Galerie. **⚠ Benannt und nicht getan:** die Tabelle in einer Zelle wird weiterhin nicht **gesetzt**; `DocumentImages.Remember` ist im Produktivpfad tot und wird nur noch vom Golden-File-Bauer gerufen; der Menü-Aufklapppunkt des WPF-Kopfs (§4.92) war im Prüflauf gut zu sehen. **Neu in §7: „Neu aus §4.99", sieben Einträge.** ▶ **Dran ist ⑤ — und ⛔ ZUERST wird die Auslieferung ein zweites Mal gebaut; erst dieser Bau geht hinaus.** ▶ **Der Laptop ist dran** (§5d): beide Pakete neu bauen und starten, **und den Markdown-Import auf echtem Linux prüfen — er ist neu und dort ungeprüft** |
 | V2-124 | 2026-09-04 | **Phase 5, Schritt ⑤ — der zweite Bau, und dieser geht hinaus** (§4.100 neu; **auf dem CachyOS-Laptop**, GNOME 50.3 Wayland; **kein Produktivcode angefasst** — nur `packaging/LIESMICH.md` und `packaging/appimage/bauen.sh`). Kette grün: Bau **0/0** in Core und im Linux-Kopf, **1239/1239** — **genau die Zahl, die §5d aus Windows nannte**, diesmal ohne Zählfrage. **Flatpak und AppImage beide neu gebaut, installiert und gestartet**, nachdem §4.97–§4.99 darin sind: 154,6 MB bzw. 86 MB, der Beipack unverändert **43 Dateien / 65 MB**, `TesseractBindung.cs` seit V2-121 unberührt — die Messung aus §4.98 gilt also weiter. In der Sandbox nachgesehen: `/app/lib` führt Tesseract **5.5.1** und Leptonica, `ldd` ohne fehlende Abhängigkeit, `deu`/`eng` liegen als `/app/gonknote/tessdata` mit im Paket. **✅ Der Fund aus §4.96 ist zu:** in **beiden** Paketen **null** native Windows-Binärdateien und kein `x64/`/`x86/`. **⛔ Der Werkzeugbefund, der den Zuschnitt geändert hat: auf diesem Gerät konnte nicht geklickt werden** — `ydotoold` scheitert an `/dev/uinput` (Nutzer nicht in Gruppe `input`), `sudo` verlangt ein Passwort, **der Skill `sudopasswot` stand der Sitzung nicht zur Verfügung**, und `wtype`, `dotool`, `wlrctl`, `xdotool` sind alle nicht installiert. **Punkt ④ und ⑤ des Auftrags trotzdem beantwortet, mit dem schärferen Instrument:** eine Wegwerf-Sonde in `/tmp` gegen den echten Code — *ein Klick hätte gezeigt, dass etwas passiert, die Sonde zeigt was*. **Der Markdown-Import liest Zeile für Zeile das, was §4.99 unter Windows sah:** `#####` bleibt ein **Absatz**, `![alt](fehlt.png)` wird **`[alt]`**, `~~…~~` und `***…***` tragen, Tabelle 3×3, **zwei** Listendefinitionen (je Art eine). **Und beide Verweisfragen fallen richtig aus:** „Feature-Übersicht im README“ wird **angenommen** (der Fund aus §4.99 ist eingelöst), `THIRD-PARTY-NOTICES.md` bleibt in beiden Sprachen **schlichter Text**. **⚠ Beinahe ein eigener Scheinbefund:** `file … grep -c PE32` sagte **200** — `file` meldet jede .NET-Assembly so; erst zusätzlich `grep "for MS Windows"` ohne `Mono/.Net assembly` misst die Frage, und das ergibt **0**. **⛔ Drei veraltete Sätze in `packaging/` behoben**, alle seit V2-122 falsch (zweimal „noch nicht am Gerät geprüft“, einmal „Schritt ③ ist eine Erprobung“). **⚠ Offen und Windows gehörend: die Version steht überall auf 0.3.0**, der `<release>`-Eintrag nennt sich selbst „packaging trial, not a release“ — §5 Nr. 23/24 verlangt **1.0.0**. **⚠ Weiterhin ohne Beleg, beides braucht eine Hand:** der Portal-Dateidialog und der Stift. |
-| V2-125 | 2026-09-05 | **Phase 5, Schritt ⑤ — veröffentlicht, und der Fund saß im eigenen Über-Dialog** (§4.101 neu; `Directory.Build.props`, beide Loc-Tabellen, `AboutDialog.xaml` und `AboutWindow.axaml`, `metainfo.xml`, `packaging/LIESMICH.md`, die vier mitgelieferten Dokumente, `THIRD-PARTY-NOTICES.md`, **neu** `site/` (zwei HTML-Seiten, eine CSS-Datei, sieben Bilder), `tools/demo-db/`, `CONTRIBUTING.md`, `SECURITY.md`, `.github/workflows/pages.yml`, `.github/workflows/release.yml`, `.github/ISSUE_TEMPLATE/`, `.github/pull_request_template.md`; Bau 0/0, **1308 Tests unverändert** — ein Wächter *nachgezogen*, keiner dazugebaut). **Der Nutzer hat das Repo auf „public" geschaltet**, und damit war ⑤ fällig. **Version 1.0.0 an fünf Stellen**, die keiner nachhält — `Directory.Build.props`, **beide** Loc-Tabellen, die `<release>`-Zeile, die vier Dokumente, der Tag; **die Liste steht jetzt im Kommentar von `Directory.Build.props`**. **`About.Version` sagt jetzt etwas anderes:** Die Zeile nannte bisher die **Portierungsphase** — eine Auskunft, die ihren Gegenstand verliert, sobald die Portierung ausgeliefert ist; sie nennt jetzt, **was als Nächstes kommt** (Rechtschreibprüfung, dann iPadOS). **⛔ DER FUND DER RUNDE SASS IM EIGENEN ÜBER-DIALOG:** Die längere Zeile wurde **abgeschnitten statt umgebrochen**, und der Bau war grün — ein **waagerechtes `StackPanel`** misst seine Kinder mit **unendlicher Breite**, `TextWrapping` hatte also gar keine Breite, an der es hätte brechen können. **Behoben ist der Behälter und nicht der Text** (`DockPanel`, in **beiden** Köpfen — im Linux-Kopf vorsorglich, obwohl dessen Zeile zufällig passte). *Ein Text, der abgeschnitten wird statt umzubrechen, ist kein Textproblem, sondern ein Layoutfehler, und er wartet auf den, der die Zeile das nächste Mal verlängert.* **⛔ Zweiter Fund, gemeldet vom Wächter:** Die Anleitung verweist jetzt ein **viertes** Mal aufs README, und `Die_Anleitung_verweist_klickbar_aufs_README` fiel — *das ist der Wächter, der tut, wofür er da ist*: Er zählt die genaue Liste und nicht „mindestens einen" (§4.99, der Rundreise-Test, der sich der Palettenlücke angepasst hatte). **⛔ Dritter Fund:** Die erste Fassung des Abschnitts „Installieren" war eine **dreispaltige Tabelle** — auf GitHub gut, **im Hilfe-Fenster war die dritte Spalte weg**; ersetzt durch drei Absätze, in beiden Sprachen. **⚠ Derselbe Verdacht steht benannt für Abschnitt 14 beider Anleitungen und ist ungeprüft**, weil `tools/klick.ps1` einen Dialog nicht blättern kann (es holt das **Haupt**fenster nach vorn). **Die Bildschirmfotos durften nicht aus dem echten Bestand kommen** (Dauerregel 4 — die Kopie ist zum *Prüfen* da und enthält Schulunterlagen), also **`tools/demo-db`**: erfundener Inhalt, deutsch und englisch, über `TdMarkdown.Lesen` erzeugt statt von Hand zusammengesteckt. **⚠ Und das Werkzeug war selbst prüfbedürftig:** Der erste Anlauf setzte Notizzettel und Haken bei y = 730…840 — **auf dem Bild waren sie nicht da**, denn bei 100 % zeigt das Fenster nur die oberen zwei Drittel der 1123 hohen Seite. **Die Projektseite liegt in `site/` und nicht in `docs/`**, und der Grund ist Windows: `docs` und `Docs` sind dort **dasselbe Verzeichnis**; veröffentlicht wird über `pages.yml` (Quelle: GitHub Actions). **`release.yml` baut an einem `v*`-Tag** Windows-Zip, AppImage und Tarball, prüft vorher beide Testprojekte — **⚠ und ist nie gelaufen**, weil ein Tag die Veröffentlichung *ist* und es keinen Probelauf gibt, der nichts hinausschickt; der **Tarball** ist die Rückfallebene, falls der AppImage-Zweig auf einem Runner bricht. **Das Beiwerk ist zweisprachig in je EINER Datei** — Dauerregel 1 wird hier bewusst **nicht** kopiert: Die vier mitgelieferten Dokumente gibt es paarweise, **weil die App sie anzeigt**; `CONTRIBUTING` und `SECURITY` zeigt niemand an, *und zwei Dateien, die niemand nebeneinander sieht, laufen auseinander*. **✅ Die Checkliste aus §6 ist Punkt für Punkt abgehakt**, einschließlich der zwei Prüfungen, die sich nicht nachholen lassen: `Docs/HANDOFF.md` **sauber** (kein Benutzerpfad, kein Token, kein Schlüssel; „Schulunterlagen" nur als Regel) und die **ganze Git-Historie sauber** — 633 Pfade, davon 124 nicht mehr im Baum und **alle 124 aus dem Umzug von Phase 0**. Nebenbei richtiggestellt: **62 Cover, nicht 53**, und §2 führte die Rechtschreibprüfung als Phase „5.6", während §5 Nr. 22 und §6 **5.1** sagen. **Neu in §7: „Neu aus §4.101", sechs Einträge.** **⛔ UND EIN BEFUND BEIM NACHSEHEN NACH DEM PUSH, DER NICHT AUS DIESER RUNDE STAMMT: DIE CI IST SEIT DEM 2026-09-03 ROT** — letzter grüner Lauf `b25dab32` (2026-09-01), erster roter `ff5a2a1e`, und **dazwischen liegen neun Commits in einem Push** (V2-109 bis V2-116); **welcher es war, sagt die CI nicht**. Seither **neun rote Läufe in Folge, in beiden Jobs, und immer nur im Testschritt** — `Bauen (Release)` und alle vier Linux-Bauschritte sind grün, **es ist kein Übersetzungsfehler**. Beide Jobs sammeln bei Fehlschlag `Snapshots/ist/**` ein und haben **null Artefakte** abgelegt: **sehr wahrscheinlich kein abgewichener Schnappschuss**. **⚠ Hier ist es nicht reproduzierbar** — nicht im Arbeitsbaum (1308 grün) und, was der eigentliche Versuch war, **auch nicht in einem frischen Klon des gepushten Standes** (`%TEMP%`, `dotnet build -warnaserror` 0/0, `dotnet test` 1239 + 69 grün); *ein verschmutzter Arbeitsbaum war die naheliegende Erklärung und ist damit ausgeschlossen*. **⛔ Die Protokolle sind von hier aus nicht lesbar** (`HTTP 403: Must have admin rights to Repository`, `gh` nicht angemeldet, keine Annotationen an den Prüfläufen) — **ohne den Namen des fallenden Wächters ist jede Ursache eine Vermutung**; zwei sind benannt und als Vermutung gekennzeichnet (Kultur `de-DE` gegen `en-US`, installierte Schriften). **Das blockiert das Release**, denn `release.yml` lässt vor dem Packen dieselben Tests laufen. *Ein Netz, in das niemand hineinsieht, meldet nichts; es hängt nur — und keine der neun Runden dazwischen hat es bemerkt, weil jede lokal grün gemessen hat.* ▶ **Phase 5 ist damit zu. Es bleiben vier Handgriffe, und alle vier gehören dem GitHub-Konto des Nutzers — der erste ist neu und geht vor:** **⛔ den roten CI-Lauf ansehen und die `[FAIL]`-Namen hierher tragen**, den **Tag `v1.0.0`** schieben (er löst das Release aus und **mit ihm ist M3 erreicht**), **Pages auf „GitHub Actions"** stellen, **Beschreibung und Topics** setzen — `gh` ist hier nicht angemeldet. ▶ **Der Laptop ist nicht dran.** |
+| V2-125 | 2026-09-05 | **Phase 5, Schritt ⑤ — veröffentlicht, und der Fund saß im eigenen Über-Dialog** (§4.101 neu; `Directory.Build.props`, beide Loc-Tabellen, `AboutDialog.xaml` und `AboutWindow.axaml`, `metainfo.xml`, `packaging/LIESMICH.md`, die vier mitgelieferten Dokumente, `THIRD-PARTY-NOTICES.md`, **neu** `site/` (zwei HTML-Seiten, eine CSS-Datei, sieben Bilder), `tools/demo-db/`, `CONTRIBUTING.md`, `SECURITY.md`, `.github/workflows/pages.yml`, `.github/workflows/release.yml`, `.github/ISSUE_TEMPLATE/`, `.github/pull_request_template.md`; `Core/Text/TdTableUmbau.cs`, `.github/workflows/ci.yml`; Bau 0/0, **1313 Tests, +5** = 1244 Core + 69 WPF). **Der Nutzer hat das Repo auf „public" geschaltet**, und damit war ⑤ fällig. **Version 1.0.0 an fünf Stellen**, die keiner nachhält — `Directory.Build.props`, **beide** Loc-Tabellen, die `<release>`-Zeile, die vier Dokumente, der Tag; **die Liste steht jetzt im Kommentar von `Directory.Build.props`**. **`About.Version` sagt jetzt etwas anderes:** Die Zeile nannte bisher die **Portierungsphase** — eine Auskunft, die ihren Gegenstand verliert, sobald die Portierung ausgeliefert ist; sie nennt jetzt, **was als Nächstes kommt** (Rechtschreibprüfung, dann iPadOS). **⛔ DER FUND DER RUNDE SASS IM EIGENEN ÜBER-DIALOG:** Die längere Zeile wurde **abgeschnitten statt umgebrochen**, und der Bau war grün — ein **waagerechtes `StackPanel`** misst seine Kinder mit **unendlicher Breite**, `TextWrapping` hatte also gar keine Breite, an der es hätte brechen können. **Behoben ist der Behälter und nicht der Text** (`DockPanel`, in **beiden** Köpfen — im Linux-Kopf vorsorglich, obwohl dessen Zeile zufällig passte). *Ein Text, der abgeschnitten wird statt umzubrechen, ist kein Textproblem, sondern ein Layoutfehler, und er wartet auf den, der die Zeile das nächste Mal verlängert.* **⛔ Zweiter Fund, gemeldet vom Wächter:** Die Anleitung verweist jetzt ein **viertes** Mal aufs README, und `Die_Anleitung_verweist_klickbar_aufs_README` fiel — *das ist der Wächter, der tut, wofür er da ist*: Er zählt die genaue Liste und nicht „mindestens einen" (§4.99, der Rundreise-Test, der sich der Palettenlücke angepasst hatte). **⛔ Dritter Fund:** Die erste Fassung des Abschnitts „Installieren" war eine **dreispaltige Tabelle** — auf GitHub gut, **im Hilfe-Fenster war die dritte Spalte weg**; ersetzt durch drei Absätze, in beiden Sprachen. **⚠ Derselbe Verdacht steht benannt für Abschnitt 14 beider Anleitungen und ist ungeprüft**, weil `tools/klick.ps1` einen Dialog nicht blättern kann (es holt das **Haupt**fenster nach vorn). **Die Bildschirmfotos durften nicht aus dem echten Bestand kommen** (Dauerregel 4 — die Kopie ist zum *Prüfen* da und enthält Schulunterlagen), also **`tools/demo-db`**: erfundener Inhalt, deutsch und englisch, über `TdMarkdown.Lesen` erzeugt statt von Hand zusammengesteckt. **⚠ Und das Werkzeug war selbst prüfbedürftig:** Der erste Anlauf setzte Notizzettel und Haken bei y = 730…840 — **auf dem Bild waren sie nicht da**, denn bei 100 % zeigt das Fenster nur die oberen zwei Drittel der 1123 hohen Seite. **Die Projektseite liegt in `site/` und nicht in `docs/`**, und der Grund ist Windows: `docs` und `Docs` sind dort **dasselbe Verzeichnis**; veröffentlicht wird über `pages.yml` (Quelle: GitHub Actions). **`release.yml` baut an einem `v*`-Tag** Windows-Zip, AppImage und Tarball, prüft vorher beide Testprojekte — **⚠ und ist nie gelaufen**, weil ein Tag die Veröffentlichung *ist* und es keinen Probelauf gibt, der nichts hinausschickt; der **Tarball** ist die Rückfallebene, falls der AppImage-Zweig auf einem Runner bricht. **Das Beiwerk ist zweisprachig in je EINER Datei** — Dauerregel 1 wird hier bewusst **nicht** kopiert: Die vier mitgelieferten Dokumente gibt es paarweise, **weil die App sie anzeigt**; `CONTRIBUTING` und `SECURITY` zeigt niemand an, *und zwei Dateien, die niemand nebeneinander sieht, laufen auseinander*. **✅ Die Checkliste aus §6 ist Punkt für Punkt abgehakt**, einschließlich der zwei Prüfungen, die sich nicht nachholen lassen: `Docs/HANDOFF.md` **sauber** (kein Benutzerpfad, kein Token, kein Schlüssel; „Schulunterlagen" nur als Regel) und die **ganze Git-Historie sauber** — 633 Pfade, davon 124 nicht mehr im Baum und **alle 124 aus dem Umzug von Phase 0**. Nebenbei richtiggestellt: **62 Cover, nicht 53**, und §2 führte die Rechtschreibprüfung als Phase „5.6", während §5 Nr. 22 und §6 **5.1** sagen. **Neu in §7: „Neu aus §4.101", sechs Einträge.** **⛔ UND EIN BEFUND BEIM NACHSEHEN NACH DEM PUSH, DER NICHT AUS DIESER RUNDE STAMMT: DIE CI WAR SEIT DEM 2026-09-03 ROT** — letzter grüner Lauf `b25dab32` (2026-09-01), erster roter `ff5a2a1e`, und **dazwischen liegen neun Commits in einem Push** (V2-109 bis V2-116); **welcher es war, sagt die CI nicht**. Seither **neun rote Läufe in Folge, in beiden Jobs, und immer nur im Testschritt** — `Bauen (Release)` und alle vier Linux-Bauschritte sind grün, **es ist kein Übersetzungsfehler**. Beide Jobs sammeln bei Fehlschlag `Snapshots/ist/**` ein und haben **null Artefakte** abgelegt: **sehr wahrscheinlich kein abgewichener Schnappschuss**. **⚠ Hier ist es nicht reproduzierbar** — nicht im Arbeitsbaum (1308 grün) und, was der eigentliche Versuch war, **auch nicht in einem frischen Klon des gepushten Standes** (`%TEMP%`, `dotnet build -warnaserror` 0/0, `dotnet test` 1239 + 69 grün); *ein verschmutzter Arbeitsbaum war die naheliegende Erklärung und ist damit ausgeschlossen*. **⛔ Die Protokolle sind von hier aus nicht lesbar** (`HTTP 403: Must have admin rights to Repository`, `gh` nicht angemeldet, keine Annotationen an den Prüfläufen) — **ohne den Namen des fallenden Wächters ist jede Ursache eine Vermutung**; zwei sind benannt und als Vermutung gekennzeichnet (Kultur `de-DE` gegen `en-US`, installierte Schriften). **Das blockierte das Release**, denn `release.yml` lässt vor dem Packen dieselben Tests laufen. **⛔ STATT ZU RATEN IST DIE CI DAZU GEBRACHT WORDEN, ES SELBST ZU SAGEN:** `::error::` erzeugt eine **Annotation**, und die steht in der Check-Run-API, **die bei einem öffentlichen Repo ohne Anmeldung lesbar ist** — die Protokolle sind es nicht. Beide Jobs schreiben ihr Testprotokoll seither per `tee` mit und benennen bei Fehlschlag die gefallenen Wächter. **⛔ Der erste Anlauf davon ist selbst gefallen** — danach standen je Job **zwei** Fehlschläge, und der zweite war der Schritt, der den ersten erklären sollte: GitHub startet jeden `bash`-Schritt mit `-eo pipefail`, und ein `grep` ohne Treffer gibt 1 zurück. *Ein Schritt, der einen Fehler benennen soll, darf selbst keinen erzeugen* — jetzt `set +e`, `set +o pipefail`, `exit 0`; und **dass der Griff nach der Zählzeile ins Leere ging, war selbst eine Auskunft**, weshalb das Protokollende seither immer mitgeht. **✅ DER ZWEITE LAUF NANNTE IHN, UND ES WAR EIN EINZIGER: `TabellenUmbauTests.Datumsangaben_werden_als_Datum_sortiert` — und KEIN Testfehler.** `TdTableEdit.AlsDatum` las mit `CultureInfo.CurrentCulture`: Auf `de-DE` ging „15.02.2026" durch, auf `en-US` nicht (Monat 15), **damit galt die Spalte als Zahlenspalte** und `TdTabellenformel.AlsZahl` machte daraus **15.022.026** — *genau die Umkehrung, vor der der Kommentar über der Sortierung warnt, und niemand sieht sie, weil das Ergebnis sortiert aussieht.* **Dasselbe Dokument war auf einem deutschen und einem englischen Rechner verschieden sortiert.** Jetzt liest `Datumskulturen` fest **`de-DE`, dann invariant** — **dieselbe Rangfolge, die `TdTabellenformel.AlsZahl` seit jeher verwendet**; *`AlsDatum` war der einzige Ort, der die gleiche Frage anders beantwortete*. Und die Kultur gilt für die **ganze Spalte** und nicht je Zelle, sonst wäre „03.04.2026" einmal der 3. April und einmal der 4. März. **+5 Wächter, alle mit fest gesetzter `CultureInfo.CurrentCulture`** (`en-US`, `de-DE`, `fr-FR`, dazu ISO) — *der alte erbt die Kultur des Rechners und war deshalb hier immer grün: ein Wächter, der die Kultur des Rechners erbt, prüft den Rechner und nicht das Programm.* **✅ Danach beide CI-Jobs grün, zum ersten Mal seit dem 2026-09-01.** *Ein Netz, in das niemand hineinsieht, meldet nichts; es hängt nur — und keine der neun Runden dazwischen hat es bemerkt, weil jede lokal grün gemessen hat. Zum Ablauf einer Runde gehört ab jetzt ein Blick auf den letzten CI-Lauf (§8).* ▶ **Phase 5 ist damit zu. Es bleiben drei Handgriffe, und alle drei gehören dem GitHub-Konto des Nutzers:** den **Tag `v1.0.0`** schieben (er löst das Release aus und **mit ihm ist M3 erreicht**), **Pages auf „GitHub Actions"** stellen, **Beschreibung und Topics** setzen — `gh` ist hier nicht angemeldet. ▶ **Der Laptop ist nicht dran.** |
 | V2-115 | 2026-09-01 | **Schritt ①c ist zu — das Lineal gestrichen, der Menü-Aufklapppunkt neu vermessen** (§4.92 neu; Bau 0/0, **1256 Tests unveraendert**). **(4) Lineal: bewusst gestrichen.** Gemessen: `DrawRuler` im WPF-Kopf hat **keinen einzigen Maus-Handler** — es ist eine cm-Skala mit zwei Dreiecken, eine Zierleiste und kein Werkzeug. Der einzige Posten ohne Rueckhalt in Core, und was er leistet, leisten die vier Randfelder im Layout-Reiter **in Zahlen** und aenderbar. Wird in ⑤ im README als bekannter Unterschied genannt. **⛔ Menü-Aufklapppunkt: dritter Anlauf gescheitert und zurueckgenommen — aber die Messung ist neu und mehr wert als der Versuch.** Bisher stand da "klappt am linken Rand der Leiste auf"; gemessen klappt es **ausserhalb des Fensters** auf, rund 170 px links vom Fensterrand. Und: **"Datei" und "Ansicht" klappen an DERSELBEN Stelle auf** — damit ist das Aufklappziel fuer beide **dasselbe Element**, also weder das MenuItem noch sein Grid. Der Anlauf (Popup aus dem Spaltengitter in ein umschliessendes Grid heben, weil die `SharedSizeGroup` das Gitter aufblaeht) war **ohne jede Wirkung** und ist zurueckgenommen. **Der einzige Weg, der zur Messung passt und den noch niemand versucht hat: ein eigenes Template nur fuer `Role=TopLevelHeader`** — WPF benutzt dafuer normalerweise drei verschiedene Vorlagen, hier dient eine fuer alle drei Rollen. **Damit sind alle sieben Entscheidungen aus §5e beantwortet** (§4.86–§4.92): fuenf gebaut, eine gestrichen, eine als Messung beantwortet statt als Frage gestellt. ▶ **Als Naechstes: Schritt ②, die Rueckmeldung** — eine eigene Runde (§5 Nr. 28). **Der Laptop ist nicht dran — aber bei ③ ist er es zwingend** (§5d) |
 | V2-114 | 2026-09-01 | **Der Tabellenentwurf, zweite Haelfte** (§4.91 neu; neu `Core/Text/TdTabellenformel.cs`, `TdTableUmbau.cs`, `Core.Tests/TabellenUmbauTests.cs`; Bau 0/0, **1256 Tests, +36**). Runde B von Frage (2): **teilen, sortieren, rechnen, Tabelle ↔ Text** — das, was Core erst rechnen lernen musste. **Das Formelergebnis geht als TEXT in die Zelle und nicht als Feld:** §4.20 verlangte sonst eine neue `TdFieldKind`, einen Auswertungsschritt im Umbruch und einen DOCX-Weg; **der WPF-Kopf schreibt seit jeher ebenfalls nur das Ergebnis**, und beim Editor ist Windows die Vorlage. Benanntes Zugestaendnis. **Eine leere Zelle beendet die Reihe NICHT** — Words Regel dort ergibt bei einer Zwischenueberschrift eine halbe Summe, ohne dass etwas danach aussieht. **Beide Zahlenschreibweisen** werden gelesen (deutsch und englisch): eine Tabelle, deren Summe von der Systemsprache abhaengt, rechnet auf dem naechsten Rechner anders. **Der leere Absatz beim Teilen ist kein Rest** — zwei Tabellen unmittelbar hintereinander sind in DOCX **eine**. **⛔ Der Tooltip hat eine Ergaenzung erzwungen:** `Ed.Table.Sort.Tip` verspricht "Text/Zahl/Datum", und der WPF-Kopf kann das; die erste Fassung hier konnte nur Text und Zahl. **Datum wird jetzt VOR Zahl geprueft**, und das ist keine Geschmacksfrage: "01.03.2026" liest sich als Zahl 1.032.026 und "15.02.2026" als 15.022.026 — die Reihenfolge kehrt sich um und sieht trotzdem plausibel aus. *Ein Tooltip ist eine Zusage; wer ihn uebernimmt, uebernimmt sie mit.* **⛔ Werkzeugfalle, drei Anlaeufe:** **Koordinaten aus einem Flyout gelten nur fuer die Aufnahme, aus der sie stammen.** Ein Ribbon, das umbricht, verschiebt seine Knoepfe — und mit ihnen jedes Flyout daran. Erst der Vergleich gegen ein **funktionierendes** Werkzeug ("Tabelle teilen", gleiches Muster, wirkte sofort) hat gezeigt, dass der Weg traegt und die Koordinate nicht (§4.82 woertlich). **✅ Und der eingebaute Hinweis "keine Zahlen im Bereich" hat den ersten Anlauf ueberhaupt erst diagnostizierbar gemacht** — *ein Knopf, der sagt, warum er nichts tut, ist billiger als der Fehlerbericht, den er erspart.* **Nicht gebaut und benannt:** die Schnelltabellen (`Ed.Table.Quick.*`) — zwei fest verdrahtete Vorlagen ohne Vorlagensammlung dahinter. **✅ Am laufenden Programm:** Teilen samt richtig ausgegrautem Knopf in Zeile 0, Summe 10+5=15, Hinweis ohne Zahlen, Sortieren dreht die Folge |
 | V2-113 | 2026-09-01 | **Der Tabellenentwurf, erste Haelfte** (§4.90 neu; neu `Core/Text/TdTableEntwurf.cs`, `Avalonia/Views/TextDocView.Tabelle.cs`, `Core.Tests/TabellenEntwurfTests.cs`; Bau 0/0, **1220 Tests, +25**). Runde A von Frage (2): **Rahmen, Fuellung, Kopfzeile, Zellabstand, Spaltenbreite, verbinden und teilen** — alles, was `TdTable` schon konnte. **Nicht "erst Core, dann Oberflaeche" wie §5e vorschlug, sondern nach Nutzen geschnitten:** eine Runde, die nur Core baut, endet an einem gruenen Bau — und **zwei der drei Funde dieser Runde waeren dann erst eine Runde spaeter aufgefallen**. **⛔ Fund 1, vom Waechter:** `TdTableEdit.Kopie` kopierte das **Format nicht**. `TdTableFormat` ist eine Klasse, alte und neue Tabelle teilten sich das Objekt. Bis heute fiel es nicht auf, weil **kein einziger Handgriff das Format anfasste**; mit dem Entwurf fassen es fuenf an, und ab da haette jede Rahmenaenderung die **Sicherung im Rueckgaengig-Stapel mitgeaendert** — Strg+Z haette nichts zurueckgebracht (§4.32 woertlich). `TdTableFormat.Kopie()` gab es laengst, sie wurde nur nicht gerufen. **⛔ Fund 2, am laufenden Programm:** `TabelleWerkzeuge` war ein `StackPanel` und bricht **nie** um — die drei neuen Knoepfe ragten aus dem Fenster und waren nicht anklickbar. Bau und Waechter gruen. **⛔ Fund 3, im Bestand:** **vier Sprachtexte tragen die XML-Entitaet `&amp;` woertlich**, beim Uebernehmen aus dem WPF-XAML mitgekommen — auf dem Knopf stand "Design &amp;amp; Rahmen...". Alle vier stehen seit Monaten so da, in **beiden** Sprachen, und **der WPF-Kopf zeigt sie genauso falsch**; aufgefallen ist es erst, als der Linux-Kopf den Schluessel zum **ersten Mal** anzeigte. *Ein Text, den kein Kopf benutzt, wird von keinem Auge geprueft.* Ein neuer Waechter haelt XML-Entitaeten in beiden Tabellen fest. **Zwei benannte Einschraenkungen, beide mit derselben Ursache** — die Auswahl des Editors ist eine Spanne ueber Absaetze und kennt kein Rechteck aus Zellen: **verbunden wird mit der rechten Nachbarin** (mehrmals gedrueckt zieht weiter), **gefuellt wird die Zelle unter der Marke**. **AutoAnpassen ist das Weglassen einer Zahl** und kein eigener Rechenweg |

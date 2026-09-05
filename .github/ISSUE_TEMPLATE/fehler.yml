@@ -1,0 +1,89 @@
+# Fehlervorlage. Zweisprachig in EINER Datei -- GitHub zeigt beim Anlegen eines Issues eine
+# Auswahl von Vorlagen, und zwei Vorlagen für dieselbe Sache wären eine Wahl, die niemand
+# treffen will. Die Beschriftungen stehen deutsch mit englischem Zusatz.
+#
+# ⚠ Die Felder sind kurz gehalten und nur die drei Pflicht, ohne die ein Bericht nicht
+#   verwertbar ist. Jedes weitere Pflichtfeld kostet Berichte -- und das Projekt lebt
+#   ausgerechnet von Berichten über Geräte, die es hier nicht gibt.
+
+name: Fehler melden · Report a bug
+description: Etwas funktioniert nicht wie beschrieben · Something does not work as described
+labels: ["fehler"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Danke fürs Melden. **Bitte keine eigenen Dokumente anhängen** — ein Bildschirmfoto
+        vom Fehler genügt fast immer.
+
+        *Thanks for reporting. **Please do not attach your own documents** — a screenshot of
+        the failure is almost always enough.*
+
+  - type: dropdown
+    id: ausgabe
+    attributes:
+      label: Ausgabe · Edition
+      options:
+        - Windows (WPF)
+        - Linux (Avalonia, AppImage)
+        - Linux (Avalonia, Flatpak)
+        - Linux (Avalonia, selbst gebaut · built from source)
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: "Hilfe → Über Gonk Note · Help → About Gonk Note"
+      placeholder: "1.0.0"
+    validations:
+      required: true
+
+  - type: textarea
+    id: schritte
+    attributes:
+      label: Was du getan hast · What you did
+      description: In der Reihenfolge, in der du es getan hast · In the order you did it
+      placeholder: |
+        1. Notizbuch „Test" angelegt
+        2. Mit dem Textmarker über eine Zeile gezogen
+        3. Strg+Z gedrückt
+    validations:
+      required: true
+
+  - type: textarea
+    id: erwartet
+    attributes:
+      label: Was passiert ist — und was du erwartet hättest · What happened, and what you expected
+    validations:
+      required: true
+
+  - type: input
+    id: system
+    attributes:
+      label: System
+      description: >
+        Unter Linux bitte Verteilung, Desktop und **Wayland oder X11** —
+        der Unterschied entscheidet hier öfter, als man denkt.
+        · On Linux please state distribution, desktop and **Wayland or X11**.
+      placeholder: "Windows 11 23H2  ·  oder: CachyOS, GNOME 50, Wayland"
+
+  - type: input
+    id: geraet
+    attributes:
+      label: Eingabegerät · Input device
+      description: >
+        Nur wenn es um Stift, Finger oder Grafiktablett geht.
+        · Only if pen, touch or a graphics tablet is involved.
+      placeholder: "Wacom Intuos S  ·  Surface Pen  ·  Maus"
+
+  - type: textarea
+    id: protokoll
+    attributes:
+      label: Aus fehler.log · From fehler.log
+      description: >
+        Nur bei einem Absturz oder einer Fehlermeldung. Die Datei liegt im Datenordner
+        (`%APPDATA%\GonkNote` bzw. `~/.config/GonkNote`) — die letzten Zeilen genügen.
+        · Only for a crash or an error dialog; the last few lines are enough.
+      render: text

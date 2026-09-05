@@ -1,0 +1,18 @@
+# `blank_issues_enabled: true` -- bewusst. Ein leeres Issue ist besser als ein Bericht, den
+# jemand wegen einer Vorlage nicht schreibt; die Vorlagen sind ein Angebot und keine Schranke.
+blank_issues_enabled: true
+
+contact_links:
+  - name: Sicherheitslücke melden · Report a vulnerability
+    url: https://github.com/GONKstupid/GonkNote/security/advisories/new
+    about: >
+      Nicht als öffentliches Issue -- der Weg hier ist privat.
+      Was hier als Lücke zählt, steht in SECURITY.md.
+      · Not as a public issue; this route stays private.
+
+  - name: Erste Schritte lesen · Read the getting-started guide
+    url: https://github.com/GONKstupid/GonkNote/blob/main/ERSTE-SCHRITTE.md
+    about: >
+      Vom Herunterladen bis zur ersten exportierten und gesicherten Notiz.
+      Englisch: GETTING-STARTED.md
+      · From download to your first exported and backed-up note.

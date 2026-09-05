@@ -12,6 +12,48 @@ Microsoft Pen, …), ohne Cloud, ohne Installation, ohne Adminrechte.
 *(Deutsche Fassung. Die englische ist `README.en.md`. Im Programm richtet sich diese Seite
 nach der Sprache, die du unter Ansicht → Sprache gewählt hast.)*
 
+![Eine Notizbuchseite mit Stift, Bleistift, Textmarker, Formen und einem Notizzettel](site/bilder/notizbuch.png)
+
+## Installieren
+
+**Drei Wege, und keiner davon braucht Adminrechte.** Alle Downloads liegen unter
+[Releases](https://github.com/GONKstupid/GonkNote/releases).
+
+**1. Windows 11** — `GonkNote-1.0.0-windows-x64.zip` herunterladen, entpacken,
+`GonkNote.exe` starten. Das ist eine **einzelne Exe**; ein installiertes .NET braucht sie
+nicht, und in die Registry schreibt sie nichts. **Der Ordner `tessdata` muss neben der Exe
+liegen bleiben** — er enthält die Sprachdaten für die Texterkennung; ohne ihn läuft alles
+außer OCR.
+
+**2. Linux, AppImage** — eine Datei, keine Abhängigkeiten, keine Sandbox:
+
+```bash
+chmod +x GonkNote-1.0.0-x86_64.AppImage
+./GonkNote-1.0.0-x86_64.AppImage
+```
+
+Dein System braucht **fontconfig und mindestens eine Schrift** — ohne sie bleibt jeder
+gezeichnete Text leer. Das ist die einzige Voraussetzung; alles andere steckt im Abbild,
+**auch die Texterkennung**: Sie funktioniert dort, wo gar kein Tesseract installiert ist.
+
+**3. Linux, Flatpak** — Sandbox und Software-Zentrum, und als Hauptweg vorgesehen. **Auf
+Flathub gibt es Gonk Note aber noch nicht**, der Eintrag steht aus. Bis dahin baust du das
+Paket selbst; die Voraussetzungen (Runtime und SDK von Flathub) und die zwei Befehle stehen
+in [`packaging/LIESMICH.md`](packaging/LIESMICH.md):
+
+```bash
+cd packaging/flatpak && ./bauen.sh
+flatpak run io.github.gonkstupid.GonkNote
+```
+
+**Lieber selbst bauen?** Der Abschnitt [Build](#build) weiter unten beschreibt beide Ausgaben
+aus dem Quellcode. Wer von vorn anfängt, ist mit
+[Erste Schritte](ERSTE-SCHRITTE.md) besser bedient.
+
+> **Deine Daten bleiben, wo sie sind.** Gonk Note legt beim ersten Start einen Ordner an —
+> `%APPDATA%\GonkNote` unter Windows, `~/.config/GonkNote` unter Linux — und schreibt sonst
+> nirgendwo hin. Zum Deinstallieren reicht es, das Programm und diesen Ordner zu löschen.
+
 ## Zwei Ausgaben, eine App
 
 Gonk Note gibt es als **Windows-Ausgabe** (WPF) und als **Linux-Ausgabe** (Avalonia). Beide
@@ -36,6 +78,8 @@ sowie Kopf- und Fußzeile, seitenweise zum Blättern, mit Zoom, „Seitenbreite"
 Seite". **Angezeigt wird dabei genau das, was auch exportiert würde** — derselbe Umbruch,
 derselbe Zeichner. Dazu **Import** (DOCX, Markdown) und **Export** (PDF, DOCX, Markdown, PNG).
 
+![Der Texteditor mit Überschriften, Listen und einer Tabelle](site/bilder/textdokument.png)
+
 **Was der Linux-Ausgabe noch fehlt** — jeweils mit Grund, keines davon ist vergessen:
 
 | Fehlt | Warum |
@@ -44,6 +88,11 @@ derselbe Zeichner. Dazu **Import** (DOCX, Markdown) und **Export** (PDF, DOCX, M
 | **Zusammengesetzte Zeichen** (`´` + `e` → `é`) kommen nicht an | Ein Fehler im Fenster-Baustein von Avalonia unter Linux, nicht in Gonk Note. Er ist dort gemeldet; einfache Zeichen und Umlaute sind nicht betroffen |
 | **Lineal** über dem Textdokument | Bewusst weggelassen: In der Windows-Ausgabe ist es eine Zierleiste ohne Funktion — die Ränder lassen sich dort nicht ziehen. Was es zeigt, steht im Reiter „Layout" in Zahlen und ist dort auch änderbar |
 | **Bestandsdokumente aus der Windows-Ausgabe** erscheinen erst, nachdem sie dort einmal geöffnet und gespeichert wurden | Ihr altes Format liest nur Windows. Der Inhalt bleibt dabei unangetastet |
+
+![Dieselbe Notizbuchseite in der Windows-Ausgabe](site/bilder/windows.png)
+
+*Dieselbe Seite, dieselbe Datenbank, die Windows-Ausgabe. Der Zeichner ist derselbe — was hier
+anders aussieht, ist die Werkzeugleiste und sonst nichts.*
 
 Und umgekehrt fehlt der **Windows**-Ausgabe eines: Ihr Texteditor zeigt **keine Seitenzahlen**.
 Er rechnet keine Seiten, sondern lässt Windows den Text fließen; die Linux-Ausgabe setzt
@@ -64,6 +113,9 @@ wieder heraus.
   in großen Kacheln (GoodNotes-artig) – farbige Ordnersymbole, Notizbuch-Cover als Vorschau,
   Karten für Whiteboard/Textdokument, jeweils mit Name, Datum und Kontextmenü. Ein Ordner im
   Baum wählen oder eine Ordnerkachel öffnen navigiert hinein (Breadcrumb + Zurück)
+
+  ![Die Galerie: Notizbuch, Whiteboard und Textdokument als Kacheln](site/bilder/galerie.png)
+
 - **Zwei Sprachen**: Die Oberfläche lässt sich unter **Ansicht → Sprache** zwischen
   **Deutsch** und **Englisch** umschalten — zur Laufzeit, ohne Neustart. Die Wahl wird
   gemerkt. Eigene Dokumentnamen bleiben unverändert; nur die Oberfläche wechselt.

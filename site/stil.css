@@ -1,0 +1,177 @@
+/* Die Projektseite. Eine Datei für beide Sprachen -- der Text steht im HTML, die Form hier.
+
+   ⚠ BEWUSST OHNE BAUSCHRITT UND OHNE FREMDE DATEIEN. Kein Framework, kein Webfont von einem
+     fremden Server, kein JavaScript. Zwei Gründe, und beide sind dieselben wie in der App:
+     Die Seite bewirbt ein Programm, das ohne Cloud auskommt -- eine Startseite, die drei
+     fremde Server anruft, widerspricht dem. Und was keinen Bauschritt hat, veraltet nicht
+     mit ihm (§4.26 für die Schriften, dasselbe Argument).
+
+   Die Farben sind die des hellen Designs aus GonkNote.Core/Theming -- von Hand übernommen
+   und nicht erzeugt. Wer sie dort ändert, ändert sie hier NICHT mit; das ist der Preis
+   dafür, dass die Seite ohne Bauschritt auskommt, und er ist hier klein: eine Startseite
+   folgt keinem Design-Wechsel zur Laufzeit. */
+
+:root {
+    --bg:        #F1F5F9;
+    --karte:     #FFFFFF;
+    --text:      #0F172A;
+    --gedaempft: #64748B;
+    --rand:      #E2E8F0;
+    --akzent:    #2563EB;
+    --akzent-dunkel: #1D4ED8;
+    --gruen:     #10B981;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg:        #0B1220;
+        --karte:     #131C2E;
+        --text:      #E6ECF7;
+        --gedaempft: #94A3B8;
+        --rand:      #1E293B;
+        --akzent:    #3B82F6;
+        --akzent-dunkel: #60A5FA;
+    }
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    padding: 0 20px 80px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Inter", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", sans-serif;
+    font-size: 17px;
+    line-height: 1.6;
+}
+
+.mitte { max-width: 940px; margin: 0 auto; }
+
+/* ---- Kopf ---- */
+
+header { padding: 56px 0 8px; }
+
+.sprache {
+    display: flex; justify-content: flex-end; gap: 14px;
+    font-size: 14px; padding-top: 18px;
+}
+
+h1 {
+    font-size: clamp(38px, 7vw, 60px);
+    line-height: 1.05;
+    margin: 0 0 12px;
+    letter-spacing: -0.02em;
+}
+
+.untertitel {
+    font-size: clamp(19px, 2.6vw, 23px);
+    color: var(--gedaempft);
+    margin: 0 0 28px;
+    max-width: 42em;
+}
+
+/* ---- Knöpfe ---- */
+
+.knopfreihe { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; }
+
+.knopf {
+    display: inline-block;
+    padding: 12px 22px;
+    border-radius: 8px;
+    background: var(--akzent);
+    color: #FFFFFF;
+    font-weight: 600;
+    text-decoration: none;
+    border: 1px solid transparent;
+}
+.knopf:hover { background: var(--akzent-dunkel); }
+
+.knopf.leise {
+    background: var(--karte);
+    color: var(--text);
+    border-color: var(--rand);
+}
+.knopf.leise:hover { border-color: var(--akzent); color: var(--akzent); }
+
+.kleingedruckt { font-size: 14px; color: var(--gedaempft); margin: 0 0 40px; }
+
+/* ---- Inhalt ---- */
+
+h2 {
+    font-size: 28px;
+    margin: 56px 0 16px;
+    letter-spacing: -0.01em;
+}
+
+h3 { font-size: 19px; margin: 28px 0 6px; }
+
+p { margin: 0 0 16px; }
+
+a { color: var(--akzent); }
+
+figure { margin: 0 0 40px; }
+
+figure img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border: 1px solid var(--rand);
+    border-radius: 10px;
+    background: var(--karte);
+}
+
+figcaption {
+    font-size: 14px;
+    color: var(--gedaempft);
+    padding-top: 10px;
+}
+
+.karten {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+}
+
+.karte {
+    background: var(--karte);
+    border: 1px solid var(--rand);
+    border-radius: 10px;
+    padding: 18px 20px;
+}
+.karte h3 { margin-top: 0; }
+.karte p  { margin-bottom: 0; font-size: 15px; color: var(--gedaempft); }
+
+code {
+    font-family: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+    font-size: 0.88em;
+    background: var(--karte);
+    border: 1px solid var(--rand);
+    border-radius: 5px;
+    padding: 1px 6px;
+}
+
+pre {
+    background: var(--karte);
+    border: 1px solid var(--rand);
+    border-radius: 8px;
+    padding: 14px 16px;
+    overflow-x: auto;
+    font-size: 14px;
+}
+pre code { background: none; border: none; padding: 0; }
+
+ul { padding-left: 22px; }
+li { margin-bottom: 6px; }
+
+table { border-collapse: collapse; width: 100%; font-size: 15px; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--rand); vertical-align: top; }
+th { color: var(--gedaempft); font-weight: 600; }
+
+footer {
+    margin-top: 64px;
+    padding-top: 24px;
+    border-top: 1px solid var(--rand);
+    font-size: 14px;
+    color: var(--gedaempft);
+}

@@ -21,9 +21,14 @@
 
     <DockPanel Margin="18">
 
-        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="12"
-                    Margin="0,0,0,12">
-            <Image Source="avares://GonkNote.Avalonia/Assets/gonk-note-Icon.png"
+        <!-- ⛔ Ein DockPanel und kein waagerechtes StackPanel — dieselbe Begründung wie im
+             WPF-Kopf, dort ausgeschrieben: ein waagerechtes StackPanel misst mit
+             unendlicher Breite, und die Versionszeile wird dann abgeschnitten statt
+             umgebrochen. Hier vorsorglich mitgeändert, damit die zwei Dialoge nicht
+             auseinanderlaufen (§4.9, §4.77: was in einem Kopf steht, steht im anderen). -->
+        <DockPanel DockPanel.Dock="Top" Margin="0,0,0,12">
+            <Image DockPanel.Dock="Left" Margin="0,0,12,0"
+                   Source="avares://GonkNote.Avalonia/Assets/gonk-note-Icon.png"
                    Width="40" Height="40" VerticalAlignment="Center"/>
             <StackPanel Spacing="2" VerticalAlignment="Center">
                 <TextBlock Text="Gonk Note" FontSize="19" FontWeight="SemiBold"
@@ -31,9 +36,10 @@
                 <!-- Der Text steht in Loc (About.Version, beide Tabellen) und nicht im
                      Code — bis 0.2.0 war er fest verdrahtet und erschien deshalb auch im
                      englischen Dialog deutsch (HANDOFF §4.5). -->
-                <TextBlock x:Name="VersionsZeile" Foreground="{DynamicResource Brush.TextMuted}"/>
+                <TextBlock x:Name="VersionsZeile" TextWrapping="Wrap"
+                           Foreground="{DynamicResource Brush.TextMuted}"/>
             </StackPanel>
-        </StackPanel>
+        </DockPanel>
 
         <TextBlock DockPanel.Dock="Top" Text="{loc:T About.Subtitle}" TextWrapping="Wrap"
                    Margin="0,0,0,8" Foreground="{DynamicResource Brush.TextMuted}"/>

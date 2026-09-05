@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Wegwerf-Werkzeug: legt die Demo-Datenbank an, aus der die Bildschirmfotos für
+       README, GitHub Pages und die AppStream-Beschreibung entstehen (Phase 5, Schritt ⑤).
+
+       ⛔ WARUM ES DAS GIBT, UND WARUM ES NICHT „von Hand" GEHT: Die Bilder gehen ins
+          öffentliche Repo. Dauerregel 4 erlaubt eine Kopie der echten Daten zum PRÜFEN;
+          dort stehen Schulunterlagen, und aus der Kopie darf nichts ins Repo. Ein
+          Bildschirmfoto der echten Datenbank wäre genau das. Also braucht es einen
+          Bestand, der veröffentlicht werden DARF, und der entsteht hier.
+
+       ⚠ Steht bewusst NICHT in GonkNote.slnx (HANDOFF §3, wie alles unter tools/): Es ist
+         kein Produktivcode, und die CI soll es nicht bauen. -->
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>GonkNote.Tools.DemoDb</RootNamespace>
+    <AssemblyName>demo-db</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\GonkNote.Core\GonkNote.Core.csproj" />
+  </ItemGroup>
+
+</Project>

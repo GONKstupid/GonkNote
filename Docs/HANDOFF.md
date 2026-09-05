@@ -1,6 +1,6 @@
 # Gonk Note V2 — Projektübergabe
 
-**Stand: 2026-09-04 (V2-123) · Version 0.3.0, Ziel 1.0.0 · net10.0 · SkiaSharp 3 · SQLite · Avalonia 12 · **▶ PHASE 5, SCHRITT ④ IST ZU — samt vollständigem Prüflauf** (§4.99). **Posten 1, gemessen:** Von zwölf Diensten im WPF-Kopf mussten **elf** dort stehen; der zwölfte war `MarkdownImporter` — **394 Zeilen eigene Markdown-Grammatik** neben dem Zerleger in Core, **zum fünften Mal dieselbe Lage**. Er liegt jetzt als `TdMarkdown.Lesen` in Core, und damit ist ein **unbenanntes Loch in M2** zu: der Linux-Kopf konnte `.md` **überhaupt nicht** importieren. ⛔ *Die Begründung im Kommentar war diesmal nicht falsch, sondern **abgelaufen** — und die liest sich wie eine gültige.* **Posten 2:** Die **Tabelle in einer Zelle** war von der Oberfläche aus **erreichbar** (`TdEdit.Ort` steigt in Zellen ab) — auf Nutzer-Entscheidung **gesperrt**, die Lücke bleibt benannt; ⛔ und **zwei der drei benannten Lücken hatten entgegen §6 gar keinen Wächter**, die Palettenlücke war im Rundreise-Test sogar **umgangen**. **⛔ Der Prüflauf fand fünf tote Verweise** in den mitgelieferten Dokumenten — in beiden Köpfen, in beiden Sprachen; die Klasse ist über `Dokumentverweise` in Core **unmöglich gemacht** statt fünfmal geflickt. **⛔ Und elf Stellen beschrieben eine App von vor M2** — alle vier Dokumente stehen jetzt auf dem heutigen Stand, mit den **vier** Einschränkungen, die wirklich gelten. **Bau 0/0, 1308 Tests (1239 Core + 69 WPF), +38.** ▶ **Dran ist ⑤ (veröffentlichen) — und ⛔ ZUERST wird die Auslieferung ein zweites Mal gebaut; erst dieser Bau geht hinaus.** ▶ **Der Laptop ist dran** (§5d): beide Pakete neu bauen und starten, und den **Markdown-Import auf echtem Linux prüfen** — er ist neu und dort ungeprüft.**
+**Stand: 2026-09-05 (V2-125) · Version 1.0.0, Ziel erreicht · net10.0 · SkiaSharp 3 · SQLite · Avalonia 12 · **▶ PHASE 5 IST ZU — SCHRITT ⑤ IST GELAUFEN, DAS REPO IST ÖFFENTLICH** (§4.101). **Die Version steht auf 1.0.0** — an allen fünf Stellen, und alle vier Über-Dialoge (zwei Köpfe × zwei Sprachen) sind am laufenden Programm gesehen. **READMEs** tragen jetzt die **drei Installationswege** und **sieben Bildschirmfotos**, die aus einer **erfundenen Demo-Datenbank** stammen (`tools/demo-db`, neu) und nicht aus dem echten Bestand. **Projektseite** unter `site/` samt `pages.yml`, **`release.yml`** an einem `v*`-Tag, **Beiwerk** (`CONTRIBUTING`, `SECURITY`, Issue- und PR-Vorlagen). **⛔ Der Fund der Runde saß im eigenen Über-Dialog:** Die längere Versionszeile wurde **abgeschnitten statt umgebrochen** — ein waagerechtes `StackPanel` misst mit **unendlicher** Breite, `TextWrapping` half daher nichts; **in beiden Köpfen** auf `DockPanel` umgestellt. **⛔ Dazu zwei weitere:** ein Wächter meldete den **vierten** README-Verweis der Anleitung, und eine **dreispaltige Tabelle** wird im Hilfe-Fenster abgeschnitten (ersetzt; **derselbe Verdacht steht benannt für Abschnitt 14 der Anleitung, ungeprüft**). **HANDOFF und ganze Git-Historie auf Privates durchgesehen — beides sauber.** **Bau 0/0, 1308 Tests (1239 Core + 69 WPF), unverändert.** ▶ **Drei Handgriffe bleiben beim Nutzer und gehören seinem Konto:** den **Tag `v1.0.0` schieben** (er löst das Release aus), **Pages auf „GitHub Actions" stellen**, **Beschreibung und Topics** setzen (`gh` ist hier nicht angemeldet). ▶ **Der Laptop ist nicht dran.**
 
 > **📌 Dauerregeln des Nutzers — gelten immer, ohne Nachfragen:**
 >
@@ -304,7 +304,56 @@ angezeigt, importiert (DOCX) und in alle vier Formate exportiert. **Damit ist Ph
 abgeschlossen.** Der Anschluss hat sofort einen Fehler gezeigt, den vier Runden lang kein
 Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — behoben.
 
-### ▶ Hier geht es weiter (Stand 2026-09-04, nach Runde V2-124)
+### ▶ Hier geht es weiter (Stand 2026-09-05, nach Runde V2-125)
+
+> **▶ PHASE 5 IST ZU. SCHRITT ⑤ IST GELAUFEN, UND DAS REPO IST ÖFFENTLICH** (§4.101,
+> V2-125, unter Windows). **Bau 0/0, 1308 Tests unverändert.** Der Nutzer hat das Repo auf
+> „public" geschaltet; alles, was §6 unter „Was in ⑤ ansteht" führt, ist damit fällig
+> gewesen und getan: **Version 1.0.0** an allen fünf Stellen (samt allen vier Über-Dialogen
+> am laufenden Programm), **READMEs** mit den drei Installationswegen und sieben
+> Bildschirmfotos, **Projektseite** in `site/`, **`release.yml`** an einem `v*`-Tag,
+> **Beiwerk**. Die Checkliste „Vor dem Öffentlich-Schalten" ist Punkt für Punkt abgehakt —
+> **HANDOFF und die ganze Git-Historie sind auf Privates durchgesehen und beide sauber**
+> (633 Pfade, 124 nicht mehr im Baum, alle 124 aus dem Umzug von Phase 0).
+>
+> **⛔ Der Fund der Runde saß im eigenen Über-Dialog, und er ist eine Klasse:** Die neue,
+> längere Versionszeile wurde **abgeschnitten statt umgebrochen**. Ein waagerechtes
+> `StackPanel` misst seine Kinder mit **unendlicher Breite** — `TextWrapping` hatte also
+> keine Breite, an der es hätte brechen können. **Nicht der Text ist gekürzt, der Behälter
+> ist getauscht** (`DockPanel`, in **beiden** Köpfen). *Ein Text, der abgeschnitten wird
+> statt umzubrechen, ist kein Textproblem, sondern ein Layoutfehler — und er wartet auf den,
+> der die Zeile das nächste Mal verlängert.*
+>
+> **⛔ Zwei weitere Funde:** Ein **Wächter** meldete den vierten README-Verweis der Anleitung
+> (er zählt bewusst die genaue Liste, §4.99). Und eine **dreispaltige Tabelle** wird im
+> Hilfe-Fenster abgeschnitten — die neue Installationstabelle ist deshalb zu drei Absätzen
+> geworden; **⚠ derselbe Verdacht steht benannt für Abschnitt 14 der Anleitung und ist
+> ungeprüft**, weil `tools/klick.ps1` das Hilfe-Fenster nicht blättern kann.
+>
+> **⚠ Die Bildschirmfotos durften nicht aus dem echten Bestand kommen** (Dauerregel 4: die
+> Kopie ist zum *Prüfen* da, sie enthält Schulunterlagen). Dafür gibt es jetzt
+> **`tools/demo-db`** — erfundener Inhalt, deutsch und englisch, über `TdMarkdown.Lesen`
+> erzeugt. *Und das Werkzeug hat beim ersten Anlauf Elemente unterhalb des sichtbaren
+> Seitendrittels gesetzt: auf dem Bild waren sie schlicht nicht da.*
+>
+> **▶ WAS JETZT NOCH ANSTEHT, UND ES GEHÖRT DEM KONTO DES NUTZERS — nicht diesem Baum:**
+> 1. **Den Tag schieben:** `git tag -a v1.0.0 -m "Gonk Note 1.0.0"` und `git push origin
+>    v1.0.0`. **Das ist die Veröffentlichung** — `release.yml` baut daraufhin Windows-Zip,
+>    AppImage und Tarball und legt das Release an. ⚠ **Dieser Lauf ist nie gelaufen** (er
+>    lässt sich nur durch einen Tag auslösen); der AppImage-Zweig ist auf dem Laptop
+>    gemessen, in einer CI nie.
+> 2. **Pages einschalten:** Repo-Einstellungen → Pages → Quelle **GitHub Actions**. Ohne das
+>    läuft `pages.yml` und veröffentlicht nichts.
+> 3. **Beschreibung und Topics** des Repos setzen. **`gh` ist auf diesem Rechner nicht
+>    angemeldet** (`HTTP 401: Bad credentials`) — beides ist eine Einstellung, keine Datei.
+>
+> **Dazu unverändert offen:** der **Flathub-Eintrag** (nicht eingereicht), das
+> **Avalonia-Issue** (geschrieben, nicht abgesendet — §4.97), der **Portal-Dateidialog** und
+> der **Stift** in der Sandbox (§4.100, beide brauchen eine Hand am Gerät).
+>
+> **▶ Danach ist M3 erreicht, und der nächste Punkt ist Phase 5.1** — die
+> Rechtschreibprüfung im Linux-Kopf (§5 Nr. 22), dann Phase 6 (iPadOS).
+
 
 > **▶ DER ZWEITE BAU IST GELAUFEN, UND ER IST DER, DER HINAUSGEHT** (§4.100, V2-124, **auf
 > dem CachyOS-Laptop**). Der Auftrag aus §5d ist abgearbeitet, alle fünf Punkte. Kette grün:
@@ -640,8 +689,13 @@ Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — beh
 ③ Auslieferung     Flatpak + AppImage       ✅ ERPROBT auf dem Laptop (§4.96)
 ④ Rest + Prüflauf  toter Code ✅ · §7 ✅ · Avalonia-Issue ✅ (§4.97)
                    §4.1 ✅ · benannte Lücken ✅ · PRÜFLAUF ✅ (§4.99)
-⑤ Veröffentlichen  READMEs, Pages, Releases, Beiwerk, public, 1.0.0  ◀── JETZT DRAN
+⑤ Veröffentlichen  zweiter Bau ✅ (§4.100) · READMEs ✅ · Pages ✅ · Beiwerk ✅
+                   1.0.0 ✅ · public ✅ (Nutzer) · Release ▶ wartet auf den Tag (§4.101)
 ```
+
+**▶ Damit ist Phase 5 zu.** Was noch aussteht, ist **kein Arbeitsschritt, sondern ein
+Handgriff am Konto des Nutzers**: der Tag `v1.0.0`, der Pages-Schalter und die Repo-Angaben
+— die drei stehen im Kasten ganz oben.
 
 **Der volle Zuschnitt steht in §6, „Phase 5 — die Ordnung", und nur dort.** §5e sagt, womit
 die nächste Runde anfängt, und trägt den Prompt. *Ein Plan an drei Stellen ist einer, der an
@@ -738,10 +792,10 @@ möglich) gelten unverändert weiter — siehe `gonk-note\HANDOFF.md` §1.
 
 | | |
 |---|---|
-| **Version** | 0.3.0 · `net10.0` · SkiaSharp 3.119.4 · Avalonia 12.1.1 · SQLite |
-| **Tests** | **1308** — 1239 in `GonkNote.Core.Tests`, 69 in `GonkNote.Wpf.Tests` (alles, was am `FlowDocument` hängt) · Stand V2-123. **+38 in dieser Runde**: der Markdown-Import in Core (23), die neue Grammatik (6), die Tabellensperre (3), die zwei nachgereichten Wächter für die Lücken aus §4.21, und vier für die Dokumentverweise im WPF-Projekt |
+| **Version** | **1.0.0** · `net10.0` · SkiaSharp 3.119.4 · Avalonia 12.1.1 · SQLite — angehoben in V2-125 (§5 Nr. 23), fünf Stellen, alle vier Über-Dialoge gegengeprüft |
+| **Tests** | **1308** — 1239 in `GonkNote.Core.Tests`, 69 in `GonkNote.Wpf.Tests` (alles, was am `FlowDocument` hängt) · Stand V2-125, **unverändert gegenüber V2-123**: die Veröffentlichungsrunde hat einen Wächter *nachgezogen* und keinen dazugebaut. **+38 in dieser Runde**: der Markdown-Import in Core (23), die neue Grammatik (6), die Tabellensperre (3), die zwei nachgereichten Wächter für die Lücken aus §4.21, und vier für die Dokumentverweise im WPF-Projekt |
 | **Bau** | Debug und Release je 0 Fehler / 0 Warnungen; CI mit zwei Läufen (Windows, Ubuntu) |
-| **Meilensteine** | ✅ **M0** (Core baut auf Linux) · ✅ **M1** (Notizbuch und Whiteboard laufen unter Linux) · ✅ **M2** (Funktionsgleichheit Linux ↔ Windows) — **ausgerufen am 2026-08-28**, Nutzer-Entscheidung, **mit einem benannten Loch**: die Rechtschreibprüfung fehlt im Linux-Kopf (§6, bewusst so entschieden am 2026-08-22). Die zweite Stift-Taste darf verschieden bleiben und ist **kein** Loch (§5 Nr. 17) · ⏳ **M3** (veröffentlicht) hängt an Phase 5 |
+| **Meilensteine** | ✅ **M0** (Core baut auf Linux) · ✅ **M1** (Notizbuch und Whiteboard laufen unter Linux) · ✅ **M2** (Funktionsgleichheit Linux ↔ Windows) — **ausgerufen am 2026-08-28**, Nutzer-Entscheidung, **mit einem benannten Loch**: die Rechtschreibprüfung fehlt im Linux-Kopf (§6, bewusst so entschieden am 2026-08-22). Die zweite Stift-Taste darf verschieden bleiben und ist **kein** Loch (§5 Nr. 17) · ▶ **M3** (veröffentlicht) — **das Repo ist seit dem 2026-09-05 öffentlich**, Phase 5 ist zu; **ausgerufen wird M3 mit dem Tag `v1.0.0`**, und den setzt der Nutzer (§4.101) |
 
 **Wo das Projekt steht:**
 
@@ -753,8 +807,8 @@ möglich) gelten unverändert weiter — siehe `gonk-note\HANDOFF.md` §1.
 | **3** — Avalonia-Shell für Linux · **M1** | ✅ | §4.9 – §4.12, die zwei Schulden in §4.13 |
 | **4** — eigene Dokument-Engine | ✅ **abgeschlossen 2026-08-11** | §4.14 – §4.28 |
 | **4.5** — die fehlenden Werkzeuge des Linux-Kopfs · **trägt M2** | ✅ **abgeschlossen 2026-08-28** — sechs von sechs Stücken, auf **beiden** Systemen gegengeprüft (§4.64) | §4.51 – §4.64, §6 |
-| **5** — ① UI/UX angleichen · ② Rückmeldung · ③ Flatpak/AppImage · ④ aufräumen und prüfen · ⑤ veröffentlichen · **M3** | ▶ **an der Reihe, Schritt ⑤** — ① ist **zu** (①a §4.71/§4.74/§4.75, ①b §4.72–§4.75, ①c §4.77–§4.92), **② ist zu** (§4.93, §4.94, Reparaturen §4.95), **③ ist gebaut und gestartet** (§4.96 — Flatpak **und** AppImage; der Beipack in §4.98/V2-122 auf dem Laptop gemessen), **④ ist zu** (§4.97 und §4.99, **samt vollständigem Prüflauf**), und **der zweite Bau ist gelaufen** (§4.100/V2-124, beide Pakete) — **das ist der, der hinausgeht**. **▶ Offen in ⑤:** READMEs, GitHub Pages, Releases, Repo-Beiwerk, **Version 1.0.0** (steht überall noch auf 0.3.0) | §6 |
-| **5.6** — Rechtschreibprüfung im Linux-Kopf | ⏳ **fest eingeplant als erster Punkt nach M3** (§5 Nr. 22) | §6 |
+| **5** — ① UI/UX angleichen · ② Rückmeldung · ③ Flatpak/AppImage · ④ aufräumen und prüfen · ⑤ veröffentlichen · **M3** | ▶ **an der Reihe, Schritt ⑤** — ① ist **zu** (①a §4.71/§4.74/§4.75, ①b §4.72–§4.75, ①c §4.77–§4.92), **② ist zu** (§4.93, §4.94, Reparaturen §4.95), **③ ist gebaut und gestartet** (§4.96 — Flatpak **und** AppImage; der Beipack in §4.98/V2-122 auf dem Laptop gemessen), **④ ist zu** (§4.97 und §4.99, **samt vollständigem Prüflauf**), und **der zweite Bau ist gelaufen** (§4.100/V2-124, beide Pakete) — **das ist der, der hinausgeht**. **⑤ ist gelaufen** (§4.101/V2-125): Version **1.0.0**, READMEs mit Installationswegen und Bildschirmfotos, **GitHub Pages** in `site/`, **`release.yml`**, Repo-Beiwerk — **und das Repo ist öffentlich**. **▶ Offen sind nur noch drei Handgriffe am Konto des Nutzers:** Tag `v1.0.0` schieben, Pages auf „GitHub Actions“ stellen, Beschreibung und Topics setzen | §6 |
+| **5.1** — Rechtschreibprüfung im Linux-Kopf | ⏳ **fest eingeplant als erster Punkt nach M3** (§5 Nr. 22) — **dran, sobald der Tag steht**. *(Diese Zeile hieß bis V2-125 „5.6“; §5 Nr. 22 und §6 sagen beide **5.1**, und zwei Nummern für dieselbe Phase sind eine zu viel.)* | §6 |
 | **6** — iPadOS, Apple Pencil, TestFlight · **M4** | ⏳ offen | §6 |
 
 > **⚠ Die Reihenfolge 5/6 ist am 2026-08-18 getauscht worden** (Nutzer): Veröffentlichung
@@ -12171,6 +12225,175 @@ als *„Test build of the Linux edition (packaging trial, not a release)"*. **§
 verlangt 1.0.0.** *Das ist kein Fehler dieser Runde — es ist der nächste Handgriff, und er
 ist keine Laptop-Arbeit.*
 
+### 4.101 Phase 5, Schritt ⑤ — veröffentlicht, und der Fund saß im eigenen Über-Dialog
+
+**Die Runde, mit der Phase 5 zu Ende geht.** Das Repo ist seit dem 2026-09-05 **öffentlich**
+(vom Nutzer geschaltet), und damit war alles fällig, was §6 unter „Was in ⑤ ansteht" führt:
+die Version, die READMEs, die Projektseite, die Releases und das Beiwerk.
+
+#### Die Version — fünf Stellen, und keine davon hält ein Compiler nach
+
+`Directory.Build.props`, **beide** Loc-Tabellen, die `<release>`-Zeile der `metainfo.xml`,
+die vier mitgelieferten Dokumente und der Tag. **Der Kommentar in `Directory.Build.props`
+führt die Liste jetzt selbst** — vorher stand dort nur der Hinweis auf `About.Version`.
+
+**`About.Version` sagt jetzt etwas anderes als bisher**, und das ist eine Entscheidung: Bis
+hierher nannte die Zeile die **Portierungsphase** — eine Auskunft, die ihren Gegenstand
+verliert, sobald die Portierung ausgeliefert ist. Sie nennt jetzt, **was als Nächstes
+kommt**: die Rechtschreibprüfung unter Linux (§5 Nr. 22) und danach iPadOS. Der Zweck der
+Zeile bleibt derselbe — sie sagt, woran gearbeitet wird, nicht was fertig ist.
+
+#### ⛔ Der Fund der Runde: die Versionszeile wurde abgeschnitten, nicht umgebrochen
+
+Die neue Zeile ist länger als die alte, und im Über-Dialog des WPF-Kopfs **fehlte hinten
+„danach iPadOS"**. Nicht abgekürzt, nicht umgebrochen — **weg**, und der Bau war grün.
+
+**Die Ursache ist ein waagerechtes `StackPanel`:** Es misst seine Kinder mit **unendlicher
+Breite**. Ein `TextBlock` darin bekommt also nie zu hören, wie viel Platz er hat; er wird so
+breit, wie sein Text ist, und was über den Fensterrand hinausragt, ist fort.
+**`TextWrapping` allein hätte daran nichts geändert** — es gibt keine Breite, an der
+umgebrochen werden könnte.
+
+Behoben ist deshalb nicht der Text, sondern **der Behälter**: In beiden Köpfen ist der
+Dialogkopf jetzt ein `DockPanel` mit dem Symbol links und der Textspalte im Rest. **Im
+Linux-Kopf vorsorglich mit**, obwohl dessen Zeile zufällig noch passte — *was in einem Kopf
+steht, steht im anderen* (§4.9, §4.77).
+
+> **Die Lehre ist nicht „Zeile kürzen".** Eine gekürzte Zeile hält bis zur nächsten
+> Übersetzung. *Ein Text, der abgeschnitten wird statt umzubrechen, ist kein Textproblem,
+> sondern ein Layoutfehler — und er wartet auf den, der die Zeile das nächste Mal
+> verlängert.*
+
+#### ⛔ Der zweite Fund, und ihn hat der Wächter gemeldet
+
+Die Anleitung verweist seit dieser Runde ein **viertes** Mal aufs README (Abschnitt 1, auf
+die neuen Installationswege). `Die_Anleitung_verweist_klickbar_aufs_README` zählt die genaue
+Liste und **fiel**. *Das ist der Wächter, der tut, wofür er da ist:* Er zählt bewusst nicht
+„mindestens einen" — eine Zahl, die mit dem mitwächst, was sie prüft, prüft nichts (§4.99,
+der Rundreise-Test, der sich der Palettenlücke angepasst hatte). Die Erwartung ist
+nachgezogen, mit dem Grund daneben.
+
+#### ⛔ Der dritte Fund: eine dreispaltige Tabelle wird im Hilfe-Fenster abgeschnitten
+
+Der erste Entwurf des Abschnitts „Installieren" war eine Tabelle mit drei Spalten. **Auf
+GitHub sieht sie gut aus; im Über-Dialog war die dritte Spalte weg** — dieselbe Klasse wie
+der Fund oben, nur eine Ebene höher. Ersetzt durch drei nummerierte Absätze, in **beiden**
+Sprachen.
+
+> **⚠ Und daraus folgt ein benannter Verdacht, der nicht geprüft ist:** In
+> `ERSTE-SCHRITTE.md` und `GETTING-STARTED.md` steht in Abschnitt 14 seit jeher eine
+> **dreispaltige** Tabelle, deren dritte Spalte lange Pfade trägt. Sie ist **sehr
+> wahrscheinlich genauso betroffen** — **gesehen ist sie nicht**: Das Hilfe-Fenster ließ
+> sich mit `tools/klick.ps1` nicht bis dorthin blättern (es holt das **Haupt**fenster in den
+> Vordergrund, der Dialog verliert dabei die Tastatur). *Ein Verdacht, der als Befund
+> aufgeschrieben wird, ist eine Behauptung; einer, der als Verdacht dasteht, ist eine
+> Aufgabe.*
+
+#### Die Bildschirmfotos — und warum es dafür ein Werkzeug brauchte
+
+**Sie gehen in ein öffentliches Repo, also durften sie nicht aus dem echten Bestand
+kommen.** Dauerregel 4 erlaubt eine Kopie zum **Prüfen**; ein Bildschirmfoto davon wäre die
+Veröffentlichung von Schulunterlagen. Deshalb gibt es jetzt **`tools/demo-db`**: ein
+Wegwerf-Werkzeug, das eine Datenbank mit **erfundenem** Inhalt anlegt — Ordner, ein
+beschriebenes Notizbuch, ein Whiteboard und ein Textdokument, deutsch und englisch.
+
+Zwei Dinge waren daran nicht offensichtlich:
+
+- **Der Inhalt entsteht durch `TdMarkdown.Lesen`** und nicht von Hand aus
+  `TdDocument`-Bausteinen. So ist er zwangsläufig ein gültiges Modell, und der Weg ist
+  derselbe, den ein Import geht.
+- **Alles auf der Notizbuchseite muss über Seiten-y 690 liegen.** Die Seite ist 1123 hoch,
+  bei 100 % zeigt das Fenster davon knapp zwei Drittel. Der erste Anlauf hatte Notizzettel
+  und Haken bei y = 730…840 — **auf dem Bild waren sie schlicht nicht da**, und das fiel erst
+  am laufenden Programm auf. *Ein Werkzeug, das Prüfbilder erzeugt, ist selbst
+  prüfbedürftig* (§4.56, §4.82: der teuerste Fehler einer Messrunde ist der am Messgerät).
+
+Sieben Bilder liegen unter `site/bilder/` — Notizbuch, Textdokument und Galerie je auf
+Deutsch und Englisch, dazu **dieselbe Seite im WPF-Kopf**. Ihre Herkunft steht in
+`THIRD-PARTY-NOTICES.md`, wie die jeder anderen eingecheckten Grafik.
+
+#### Die Projektseite steht in `site/` und nicht in `docs/`
+
+**Und der Grund ist kein Geschmack:** GitHub Pages kann einen Ordner `/docs` veröffentlichen
+— dieses Repo hat aber schon **`Docs/`** mit dem Arbeitsprotokoll, und **unter Windows sind
+`docs` und `Docs` dasselbe Verzeichnis**. Ein zweiter Ordner daneben wäre auf dem
+Entwicklungsrechner nicht anzulegen gewesen. Also ein eigener Name und der Weg über
+**`.github/workflows/pages.yml`** (Quelle: GitHub Actions).
+
+Die Seite ist **eine HTML-Datei je Sprache und eine CSS-Datei** — kein Bauwerkzeug, kein
+Framework, kein fremder Server. *Eine Startseite, die für ein Programm ohne Cloud wirbt und
+dabei drei fremde Server anruft, widerspricht sich.* **Dauerregel 1 gilt hier ebenso**, und
+schärfer als bei den vier mitgelieferten Dokumenten: Es gibt **keinen Rückfall auf Deutsch**
+— eine vergessene Übersetzung zeigt einfach den alten Stand.
+
+#### Die Auslieferung: `release.yml` an einem Tag, und was daran ungeprüft ist
+
+`.github/workflows/release.yml` baut auf `v*` die **Windows-Exe**, ein **AppImage** und
+einen **Tarball**, prüft vorher beide Testprojekte und legt das Release samt Text an.
+
+> **⚠ Was diese Runde nicht belegen kann, und es liegt nicht am Fleiß:** **Der Lauf ist nie
+> gelaufen.** Er lässt sich nur durch einen Tag auslösen, und ein Tag ist die
+> Veröffentlichung selbst — es gibt keinen Probelauf, der nichts hinausschickt. Der
+> **AppImage-Zweig** ist auf dem CachyOS-Laptop gebaut und gestartet (§4.96, §4.98, §4.100),
+> **in einer CI aber nie**; die zwei Stellen, an denen sich ein Runner von einem
+> Arbeitsplatz unterscheidet, sind im Kopf der Datei benannt und behandelt (FUSE für
+> `appimagetool`, Tesseract zum Einsammeln). **Der Tarball ist bewusst dabei**, damit ein
+> lauffähiger Linux-Download auch dann bereitsteht, wenn der AppImage-Zweig auf einer
+> künftigen Runner-Fassung bricht.
+
+#### Das Beiwerk — und eine Entscheidung, die Dauerregel 1 gerade **nicht** kopiert
+
+`CONTRIBUTING.md`, `SECURITY.md`, zwei Issue-Vorlagen und eine PR-Vorlage.
+**Alle zweisprachig in *einer* Datei**, und das ist die Entscheidung: Die vier
+mitgelieferten Dokumente gibt es paarweise, **weil die App sie anzeigt** und nach der
+eingestellten Sprache auswählt. Diese hier zeigt niemand an — *und zwei Dateien, die niemand
+nebeneinander sieht, laufen auseinander.*
+
+Zwei Kleinigkeiten daran sind bewusst:
+
+- **`blank_issues_enabled: true`.** Ein leeres Issue ist besser als ein Bericht, den jemand
+  wegen einer Vorlage nicht schreibt.
+- **Die Wunschvorlage fragt „Wie machst du es heute?"** Dieses Projekt hat **dreimal** eine
+  Zeile auf einer Aufgabenliste gehabt, die längst erledigt war (§4.77, §4.81, §4.82). Die
+  Frage kostet zwei Sätze und spart im Zweifel eine Runde.
+
+#### Die Checkliste aus §6, Punkt für Punkt
+
+| Punkt | Ergebnis |
+|---|---|
+| **`Docs/HANDOFF.md` auf Privates durchsehen** | ✅ **Sauber.** Gesucht wurde nach Windows-Benutzerpfaden, Zugangsdaten, Schlüsselmaterial und Inhalten aus den Schulunterlagen. **Kein `C:\Users\<Name>`**, kein Token, kein Schlüssel; „Schulunterlagen" kommt nur als **Regel** vor, nie als Inhalt. Der Laptop-Pfad `/home/gonk/…` steht drin und bleibt — er nennt den Datenordner der App und deckt sich mit dem öffentlichen Kontonamen |
+| **`git log --all --name-only` durchsehen** | ✅ **Sauber.** 633 Pfade über die ganze Historie, davon **124 nicht mehr im Baum** — und alle 124 sind Quelldateien aus dem Umzug von Phase 0 (`Views/…` → `src/GonkNote.Wpf/Views/…`). **Keine Datenbank, kein Blob, kein PDF, kein DOCX, kein Schlüssel.** Der Fall aus V1 („derselbe Inhalt lag ein zweites Mal in einem gelöschten Ordner") tritt hier nicht auf |
+| **Lizenzlage prüfen** | ✅ Die Tabelle in `THIRD-PARTY-NOTICES.md` deckt jetzt **alle** eingecheckten Grafiken: 62 Cover, zwei Geodreieck-SVGs, Icon und Symbol — **und neu die sieben Bildschirmfotos**. **Sticker liefert das Projekt weiterhin keine.** Die fünf Schriftfamilien liegen unverändert mit ihrer `OFL.txt` daneben |
+| **README-Paar und Anleitungs-Paar auf Stand** | ✅ §4.99 hatte sie auf M2 gezogen; hier kommen **Installationswege, Bildschirmfotos und der Verweis auf die Releases** dazu. Am laufenden Programm gegengeprüft |
+| **Version auf 1.0.0** | ✅ Fünf Stellen, und **alle vier Über-Dialoge** (zwei Köpfe × zwei Sprachen) am laufenden Programm gesehen |
+| **Der Klon-Befehl** | ✅ Er zeigt auf `https://github.com/GONKstupid/GonkNote.git` und **läuft jetzt ohne Zugriff** — das Repo meldet über die GitHub-API `"private": false`. **Nachgesehen, nicht angenommen** (§4.12 hatte genau das verlangt) |
+| **Pages, Releases, Beiwerk** | ✅ Angelegt — ⚠ **drei Handgriffe bleiben beim Nutzer**, siehe unten |
+
+#### ⚠ Was diese Runde ausdrücklich **nicht** getan hat
+
+**Drei Dinge, und alle drei gehören dem Konto des Nutzers, nicht diesem Baum:**
+
+1. **Kein Tag gesetzt und kein Release erzeugt.** Der Tag *ist* die Veröffentlichung, und
+   ein heruntergeladenes Artefakt lässt sich nicht zurücknehmen. Der Befehl steht im Kopf
+   von `release.yml`.
+2. **Pages ist nicht eingeschaltet.** In den Repo-Einstellungen muss unter „Pages" die
+   Quelle **GitHub Actions** stehen; der Lauf läuft sonst und veröffentlicht nichts.
+3. **Beschreibung und Topics des Repos sind unverändert.** Beides ist eine Einstellung und
+   keine Datei — `gh` ist auf diesem Rechner **nicht angemeldet** (`HTTP 401: Bad
+   credentials`), und ein Token einzurichten wäre eine Entscheidung des Nutzers.
+
+**Dazu unverändert offen** (nicht neu, aber sie gehören in dieselbe Liste): der
+**Flathub-Eintrag** ist nicht eingereicht, das **Avalonia-Issue** ist geschrieben und nicht
+abgesendet (§4.97), und am Gerät fehlen weiterhin der **Portal-Dateidialog** und der
+**Stift** (§4.100).
+
+**Zahlen:** Bau 0/0 in Debug und Release, **1308 Tests** (1239 Core + 69 WPF, unverändert —
+diese Runde hat einen Wächter *nachgezogen*, keinen dazugebaut). Angefasst:
+`Directory.Build.props`, beide Loc-Tabellen, beide Über-Dialoge, `metainfo.xml`,
+`packaging/LIESMICH.md`, die vier mitgelieferten Dokumente, `THIRD-PARTY-NOTICES.md`, neu
+`site/`, `tools/demo-db/`, `CONTRIBUTING.md`, `SECURITY.md`, `.github/workflows/pages.yml`,
+`.github/workflows/release.yml`, `.github/ISSUE_TEMPLATE/`, `.github/pull_request_template.md`.
+
 ---
 
 ## 5. Entscheidungen
@@ -13738,7 +13961,17 @@ dotnet run --project src/GonkNote.Avalonia -- --db /tmp/gonk-test/gonknote.sqlit
 
 ---
 
-### ▶ Aktueller Auftrag — **▶ es liegt keiner an** (Stand 2026-09-04, nach Runde V2-124)
+### ▶ Aktueller Auftrag — **▶ es liegt keiner an** (Stand 2026-09-05, nach Runde V2-125)
+
+> **▶ V2-125 war eine reine Windows-Runde** (Phase 5, Schritt ⑤ — §4.101): Version 1.0.0,
+> READMEs, Projektseite, Auslieferungs-Workflow, Beiwerk. **Für den Laptop ist daraus
+> nichts entstanden.** Er wird das nächste Mal gebraucht, wenn ein **Release** existiert
+> und jemand das **fertige AppImage von der Release-Seite** auf echtem Linux startet —
+> bis dahin gilt der Stand aus V2-124.
+>
+> **⛔ Und der Werkzeugbefund von damals gilt weiter:** Er konnte in V2-124 **nicht
+> klicken**. Wer ihm den nächsten Auftrag schreibt, klärt das **zuerst** — die zwei
+> Auswege stehen gleich darunter.
 
 > **✅ DER ZWEITE BAU IST GELAUFEN, UND ER IST DER, DER HINAUSGEHT** (§4.100, V2-124).
 > Alle fünf Punkte des Auftrags aus V2-123 sind abgearbeitet. Kette grün: Bau **0/0**,
@@ -14080,46 +14313,37 @@ ob der Laptop dran ist.
 > Stummel am Schieber** im Linux-Kopf (§4.74 — nur eine Vorlage **nur für den Thumb** trägt).
 > *Fang bei beiden nicht bei Anlauf eins an.*
 
-### ▶ Aktueller Auftrag — **▶ Schritt ⑤: veröffentlichen** (Stand 2026-09-04, nach Runde V2-124)
+### ▶ Aktueller Auftrag — **▶ es liegt keiner an; Phase 5 ist zu** (Stand 2026-09-05, nach Runde V2-125)
 
-> **✅ ④ IST ZU (§4.99, V2-123).** Alle sieben Posten. **Bau 0/0, 1308 Tests
-> (1239 Core + 69 WPF).** Der Prüflauf ist gelaufen: beide Testprojekte, beide Köpfe mit
-> 0 Warnungen, **die vier mitgelieferten Dokumente in beiden Sprachen am laufenden Programm
-> in beiden Köpfen**, und ein ganzer Durchgang auf einer **Kopie** der echten Daten (danach
-> gelöscht — sie enthält Schulunterlagen).
+> **✅ SCHRITT ⑤ IST GELAUFEN, UND DAMIT PHASE 5** (§4.101, V2-125). **Bau 0/0, 1308 Tests
+> unverändert.** Das Repo ist öffentlich, die Version steht auf **1.0.0**, die READMEs tragen
+> die drei Installationswege und sieben Bildschirmfotos, die Projektseite liegt in `site/`,
+> `release.yml` wartet auf einen Tag, und das Beiwerk steht. Die Checkliste in §6 ist Punkt
+> für Punkt abgehakt — **einschließlich der zwei Prüfungen, die sich nicht nachholen
+> lassen**: `Docs/HANDOFF.md` und die **ganze Git-Historie** sind auf Privates durchgesehen
+> und **beide sauber**.
 >
-> **⛔ Und er hat zwei Dinge gefunden, die kein Wächter sehen konnte:** **fünf tote
-> Verweise** in den mitgelieferten Dokumenten (beide Köpfe, beide Sprachen) und **elf
-> Stellen, an denen die Dokumente eine App von vor M2 beschrieben**. Beides behoben; die
-> Klasse „Verweis, der aussieht wie einer und keiner ist" ist über `Dokumentverweise` in
-> Core **unmöglich gemacht** statt fünfmal geflickt.
+> **▶ ES BLEIBEN DREI HANDGRIFFE, UND SIE GEHÖREN DEM NUTZER — nicht dem nächsten Thread:**
+> 1. **`git tag -a v1.0.0 -m "Gonk Note 1.0.0"` und `git push origin v1.0.0`.** Das löst
+>    `release.yml` aus und **ist** die Veröffentlichung. Danach ist **M3 erreicht**.
+> 2. **Pages-Quelle auf „GitHub Actions" stellen** (Repo-Einstellungen → Pages).
+> 3. **Beschreibung und Topics** setzen. `gh` ist hier **nicht angemeldet**.
 >
-> **▶ WAS JETZT ANSTEHT — ⑤, und die Reihenfolge ist nicht beliebig** (§6, „Was in ⑤ ansteht"):
-> 1. **✅ ERLEDIGT (2026-09-04, V2-124, §4.100) — der zweite Bau ist gelaufen.** Der Laptop
->    hat **beide** Pakete neu gebaut, installiert und gestartet, nachdem §4.97 bis §4.99
->    darin sind; Kette dabei **0/0** und **1239/1239**. Nebenbei ist der Fund aus §4.96 zu:
->    **null** native Windows-Binärdateien in beiden Paketen. **⚠ Zwei Posten kommen von dort
->    zurück und gehören hierher:** (a) **die Version steht überall auf 0.3.0**, und der
->    einzige `<release>`-Eintrag der `metainfo.xml` nennt sich selbst *„packaging trial, not
->    a release"* — §5 Nr. 23/24 verlangt **1.0.0**; (b) **der Laptop konnte nicht klicken**
->    (`ydotoold` scheitert an `/dev/uinput`, `sudo` braucht ein Passwort, der Skill
->    `sudopasswot` fehlte) — wer ihm den nächsten Auftrag schreibt, klärt das **zuerst**.
-> 2. **READMEs überarbeiten.** ⚠ **Ein guter Teil ist schon getan:** §4.99 hat beide READMEs
->    und beide Anleitungen auf den Stand von M2 gezogen, samt der **vier** Einschränkungen,
->    die wirklich gelten (Rechtschreibprüfung, zusammengesetzte Zeichen, Lineal,
->    Bestandsübernahme) und der Gegenrichtung (keine Seitenzahlen im WPF-Editor). **Offen
->    bleiben: Screenshots beider Köpfe, die drei Installationswege, MIT-Text, Verweis auf
->    `THIRD-PARTY-NOTICES.md`.** ⚠ **Wer ein Bildschirmfoto einsetzt, prüfe es im
->    Hilfe-Fenster nach** — ein `![…]` wird dort als **Ersatztext** gezeigt und nicht als Bild
->    (§4.99, mit Begründung an Ort und Stelle).
-> 3. **GitHub Pages**, **Releases mit Artefakten**, **Repo-Beiwerk** — die Liste in §6.
-> 4. **`Docs/HANDOFF.md` einmal ganz auf Privates durchsehen** (§5 Nr. 21) und das Repo auf
->    **public**, Version **1.0.0** (§5 Nr. 23/24).
+> **⛔ WER ALS NÄCHSTES ETWAS ANFÄNGT, FÄNGT PHASE 5.1 AN** — die Rechtschreibprüfung im
+> Linux-Kopf (§5 Nr. 22, das eine benannte Loch in M2), danach Phase 6 (iPadOS). **Aber erst,
+> wenn der Tag steht:** Ein Stand, der nach dem Release weitergebaut wird, ist nicht mehr der,
+> den das Release enthält.
 >
-> **⛔ Nicht wieder aufmachen:** Der Menü-Aufklapppunkt des WPF-Kopfs (§4.92, drei Anläufe),
-> `Ed.Object.Behind`/`.Front` (§4.89), Schnelltabellen (§4.91), das Lineal (§4.92,
-> **gestrichen und im README benannt**), die Rechtschreibprüfung unter Linux (§5 Nr. 22,
-> Phase 5.1).
+> **⚠ Und drei Dinge sind benannt offen, keines davon eine Runde wert, alle drei
+> aufschreibenswert:**
+> - **Der dreispaltige-Tabellen-Verdacht** (§4.101): Abschnitt 14 beider Anleitungen trägt
+>   eine Tabelle mit drei Spalten und langen Pfaden. Im Hilfe-Fenster wird so etwas
+>   **abgeschnitten** — **gesehen ist es dort nicht**, weil `tools/klick.ps1` den Dialog
+>   nicht blättern kann. *Wer das Werkzeug einmal um „scrollen" erweitert, misst es in fünf
+>   Minuten nach.*
+> - **`release.yml` ist nie gelaufen** — es gibt keinen Probelauf, der nichts hinausschickt.
+> - **Flathub, das Avalonia-Issue, Portal-Dateidialog und Stift** — alle vier warten auf eine
+>   Hand und nicht auf einen Auftrag.
 
 ### ▶ Abgearbeitet — **Schritt ④, zweite Hälfte** (Stand 2026-09-04, nach Runde V2-120)
 
@@ -15475,7 +15699,7 @@ Veröffentlichen keinen Sinn: Was hinausgeht, soll auf Linux können, was es auf
 | **②** | **Rückmeldung** ✅ *erledigt* | Was der Vergleich übersehen hat und was ① kaputt gemacht hat. **Eine eigene Runde und kein Anhängsel** — wer eine Oberfläche in einem Zug umbaut und nicht noch einmal hinsieht, hat sie nicht geprüft, sondern nur geändert. **✅ Gefahren in zwei Runden:** §4.93 die beiden Beobachtungen aus §4.86 (**eine war keine**), §4.94 der Durchgang durch alle Flächen beider Köpfe — **sieben Funde, sechs repariert**, dazu **drei Unterschiede, die keine Löcher sind** und deshalb ausdrücklich benannt stehen. **Und das Design-Konzept gilt seither für beide Köpfe** (Nutzer-Auftrag 2026-09-03). ⚠ Der Rest ist klein und steht in §5e — keine eigene Runde wert |
 | **③** | **Auslieferung — vorgezogen** ✅ *gebaut und gestartet (§4.96)* | **Flatpak/Flathub** als Hauptweg, **AppImage** als zweiter, abhängigkeitsfreier Kanal, `.deb`/AUR optional. ✅ **Beides läuft auf dem Laptop** (2026-09-04, V2-119): `packaging/flatpak` und `packaging/appimage`, `fontconfig`/`freetype` aus der Plattform, **`tesseract`/`leptonica` im Manifest mitgebaut** — die Erkennung trägt **in der Sandbox** gemessen (§4.63, §5 Nr. 18). **⛔ Erprobung, keine Auslieferung** — der zweite Bau nach ④ geht hinaus. ⚠ Offen bleibt, was nur eine Hand am Gerät zeigen kann: **Dateidialog** und **Stift** in der Sandbox (§4.96) |
 | **④** | **Der Rest des Aufräumens, dann der vollständige Prüflauf** | Die Vorratsliste unten, dann der ganze Prüflauf |
-| **⑤** | **Veröffentlichen** | READMEs, GitHub Pages, Releases mit Artefakten, Repo-Beiwerk, `Docs/HANDOFF.md`-Prüfung, Repo auf „public", Version **1.0.0** (§5 Nr. 23/24). Checkliste: „Vor dem Öffentlich-Schalten" |
+| **⑤** | **Veröffentlichen** ✅ *erledigt (§4.101)* | READMEs (Installationswege, sieben Bildschirmfotos aus `tools/demo-db`), **GitHub Pages** in `site/` samt `pages.yml`, **`release.yml`** an einem `v*`-Tag, Repo-Beiwerk (`CONTRIBUTING`, `SECURITY`, Issue- und PR-Vorlagen), `Docs/HANDOFF.md` **und die ganze Git-Historie** auf Privates durchgesehen (beides sauber), Version **1.0.0** an fünf Stellen, **Repo auf „public" — vom Nutzer geschaltet**. ⚠ **Drei Handgriffe bleiben seinem Konto:** Tag `v1.0.0` schieben (er löst das Release aus), Pages-Quelle auf „GitHub Actions" stellen, Beschreibung und Topics setzen |
 
 > **▶ Warum ① in ①a und ①b zerfällt, und warum das keine zusätzliche Runde ist:** Beim
 > Messen hat sich gezeigt, dass ① **kein Zuschnitt für eine Runde** ist — dem Linux-Kopf
@@ -15538,14 +15762,17 @@ Aufräumen zu **ergänzen**, nicht abzuarbeiten wie ein Vertrag.)*
 > (Dauerregel 4). Aufräumen ist die Sorte Änderung, die nichts kaputt machen soll — und genau
 > deshalb prüft sie niemand nach.
 
-##### Was in ⑤ ansteht (§5 Nr. 24: alle vier)
+##### Was in ⑤ anstand (§5 Nr. 24: alle vier) — ✅ **abgearbeitet in §4.101**
+
+> **▶ Die vier Posten sind erledigt.** Was danach noch offen ist, steht am Ende dieses
+> Abschnitts und ist **kein Arbeitsschritt, sondern ein Handgriff am GitHub-Konto**.
 
 | | |
 |---|---|
-| **READMEs überarbeiten** | Beide Fassungen zusammen (Dauerregel 1): Screenshots **beider** Köpfe, die drei Installationswege, MIT-Text, Verweis auf `THIRD-PARTY-NOTICES.md`. **Und die bekannten Einschränkungen namentlich:** Rechtschreibprüfung fehlt unter Linux (§5 Nr. 22, **mit dem Hinweis, dass sie als erster Punkt nach M3 eingeplant ist**), zusammengesetzte Zeichen kommen unter Linux nicht an (§5 Nr. 11), keine Seitenzahlen im WPF-Editor (§5 Nr. 15) |
-| **GitHub Pages** | Projektseite aus dem Repo (`docs/`-Ordner oder `gh-pages`): Screenshots, Download, Kurzbeschreibung, **zweisprachig**. Sie ist die Seite, auf die ein Flathub-Eintrag verweisen kann |
-| **Releases mit Artefakten** | Ein Tag mit **AppImage und Windows-Build** zum Herunterladen, plus Changelog. **Ohne das führt das öffentliche Repo nur Quellcode**, und niemand kann die App ausprobieren, bevor Flathub durch ist. `.github/workflows/ci.yml` ist der Ansatzpunkt |
-| **Repo-Beiwerk** | Beschreibung, Topics, sichtbare `LICENSE`, `CONTRIBUTING`, Issue-Vorlagen. Kleinkram — aber es ist das, was ein Fremder als Erstes sieht |
+| ~~**READMEs überarbeiten**~~ ✅ | Beide Fassungen zusammen (Dauerregel 1): Screenshots **beider** Köpfe, die drei Installationswege, MIT-Text, Verweis auf `THIRD-PARTY-NOTICES.md`. **Und die bekannten Einschränkungen namentlich:** Rechtschreibprüfung fehlt unter Linux (§5 Nr. 22, **mit dem Hinweis, dass sie als erster Punkt nach M3 eingeplant ist**), zusammengesetzte Zeichen kommen unter Linux nicht an (§5 Nr. 11), keine Seitenzahlen im WPF-Editor (§5 Nr. 15) |
+| ~~**GitHub Pages**~~ ✅ | Projektseite aus dem Repo, **zweisprachig**: Screenshots, Download, Kurzbeschreibung — sie ist die Seite, auf die ein Flathub-Eintrag verweisen kann, und die `metainfo.xml` zeigt mit ihren `<screenshots>` bereits dorthin. **⛔ Sie liegt in `site/` und nicht in `docs/`:** Dieses Repo hat schon `Docs/`, und unter Windows sind `docs` und `Docs` **dasselbe Verzeichnis**. Veröffentlicht wird über `.github/workflows/pages.yml` (Quelle: GitHub Actions). ⚠ **Der Schalter dafür ist eine Repo-Einstellung und noch nicht gesetzt** |
+| ~~**Releases mit Artefakten**~~ ✅ *gebaut, ▶ nicht ausgelöst* | `.github/workflows/release.yml` baut an einem `v*`-Tag **Windows-Zip, AppImage und Tarball**, prüft vorher beide Testprojekte und legt das Release samt Text an. **⛔ Der Tag ist die Veröffentlichung und gehört dem Nutzer** — es gibt keinen Probelauf, der nichts hinausschickt, und **deshalb ist dieser Lauf nie gelaufen**. ⚠ Der AppImage-Zweig ist auf dem Laptop gemessen (§4.96–§4.100), **in einer CI nie**; der **Tarball** ist die Rückfallebene, falls er dort bricht |
+| ~~**Repo-Beiwerk**~~ ✅ *bis auf zwei Einstellungen* | `CONTRIBUTING.md`, `SECURITY.md`, zwei Issue-Vorlagen und eine PR-Vorlage — **alle zweisprachig in je einer Datei**, weil sie niemand nebeneinander sieht und zwei Dateien deshalb auseinanderlaufen. `LICENSE` lag schon sichtbar. ⚠ **Beschreibung und Topics fehlen noch**: das sind Einstellungen und keine Dateien, und `gh` ist auf diesem Rechner nicht angemeldet |
 
 > **⚠ Die Reihenfolge in ⑤ ist nicht beliebig:** Ein Release braucht ein gebautes Artefakt
 > (also ③ **und** dessen Wiederholung nach ④), und eine Projektseite, die auf einen Download
@@ -15643,11 +15870,16 @@ Vollständig in `gonk-note\HANDOFF.md` §5. Die Punkte, die für die Portierung 
 - Cover-Kennzeichen, Verpixelung ab Seite 12, Geodreieck auf dunkler Seite, gedrehte Elemente,
   Wasserzeichen im DOCX-Export.
 
-### Vor dem Öffentlich-Schalten des Repos
+### Vor dem Öffentlich-Schalten des Repos — ✅ **abgearbeitet, das Repo ist öffentlich**
 
-> **▶ Das ist Schritt ⑤ von Phase 5** (§6, „Die fünf Schritte"). Erst abarbeiten, **dann** in
-> den GitHub-Einstellungen auf „public" stellen. Vorher nicht — **die Reihenfolge lässt sich
-> nicht nachholen.** Und davor stehen ①–④, samt vollständigem Prüflauf.
+> **▶ Das war Schritt ⑤ von Phase 5.** **Der Nutzer hat das Repo am 2026-09-05 auf „public"
+> geschaltet**, und die Liste darunter ist in derselben Runde Punkt für Punkt abgearbeitet
+> worden (§4.101). *Die Reihenfolge — erst abarbeiten, dann umschalten — ist damit knapp
+> eingehalten: umgeschaltet wurde zuerst, abgearbeitet unmittelbar danach und **bevor ein
+> Release existiert**, das jemand herunterladen könnte.*
+>
+> **Was am Ende offen bleibt, sind drei Handgriffe am GitHub-Konto** und keine Arbeit an
+> diesem Baum. Sie stehen unten als einzige nicht abgehakte Punkte.
 
 - [x] ✅ **`HANDOFF.md` von der Startseite nehmen — erledigt in V2-93.** Nutzer-Entscheidung
       2026-08-28 (§5 Nr. 21): Die Datei liegt jetzt unter **`Docs/HANDOFF.md`** und wird
@@ -15660,28 +15892,70 @@ Vollständig in `gonk-note\HANDOFF.md` §5. Die Punkte, die für die Portierung 
       `git filter-repo --path HANDOFF.md --invert-paths`, danach `git reflog expire
       --expire=now --all` + `git gc --prune=now`, **und `git fsck` gegenprüfen** — in V1
       hingen nach einem Rewrite noch unerreichbare Commits herum. Er wird nicht gegangen.)*
-- [ ] **⚠ Daraus folgt eine Pflicht statt einer Entscheidung: `Docs/HANDOFF.md` einmal ganz
-      durchsehen.** Ohne Rewrite ist die Datei **in jeder Fassung öffentlich lesbar**, auch in
-      jeder früheren. Zu suchen ist, was die Kopfzeile seit jeher verbietet: **Pfade zu
-      privaten Daten, Zugangsdaten, Inhalte aus den Schulunterlagen.** *Die Regel war bisher
-      durch die Möglichkeit eines Rewrites abgesichert; diese Absicherung fällt jetzt weg.*
-- [ ] **`git log --all --name-only` durchsehen**, nicht nur den aktuellen Baum. In V1 lag
-      derselbe Inhalt ein zweites Mal in einem längst gelöschten Ordner.
-- [ ] **Lizenzlage prüfen** wie bei V1: jede eingecheckte Grafik braucht eine geklärte
-      Herkunft. „Selbst abgeändert" ist keine Lizenz, **NC ist mit MIT unvereinbar**. Betrifft
-      die 53 Cover, die Sticker, die Geodreieck-SVGs und die fünf Schriftfamilien.
-- [ ] **README-Paar und Erste-Schritte-Paar auf Stand** (Dauerregel 1) — beim
-      Öffentlich-Schalten liest das zum ersten Mal jemand anderes. **Mit den drei benannten
-      Einschränkungen** (§5 Nr. 22, 11, 15) und dem Hinweis, dass die Rechtschreibprüfung als
-      **erster Punkt nach M3** eingeplant ist.
-- [ ] **Version auf 1.0.0** (§5 Nr. 23): `Directory.Build.props`, `About.Version` in **beiden**
-      Sprachtabellen, die vier Dokumente, Tag und Release — danach beide Über-Dialoge in
-      beiden Sprachen und **in beiden Köpfen** gegenprüfen.
-- [ ] **Der Klon-Befehl in beiden Erste-Schritte-Fassungen** zeigt auf `GonkNote.git` und
-      **läuft heute nur mit Zugriff**, weil das Repo privat ist (§4.12). Mit dem Umschalten
-      wird er richtig — **nachsehen, nicht annehmen.**
-- [ ] **GitHub Pages, Releases mit Artefakten und das Repo-Beiwerk** (§5 Nr. 24) — der
-      Zuschnitt steht in §6, „Was in ⑤ ansteht".
+- [x] ✅ **`Docs/HANDOFF.md` einmal ganz durchgesehen — sauber** (V2-125). Gesucht war, was
+      die Kopfzeile seit jeher verbietet: **Pfade zu privaten Daten, Zugangsdaten, Inhalte
+      aus den Schulunterlagen.** Gefunden ist **nichts davon**: kein `C:\Users\<Name>`, kein
+      Token, kein Schlüsselmaterial; „Schulunterlagen" kommt ausschließlich als **Regel** vor
+      und nie als Inhalt. Der Laptop-Pfad `/home/gonk/…` bleibt stehen — er nennt den
+      Datenordner der App und deckt sich mit dem öffentlichen Kontonamen.
+      *Diese Prüfung war eine Pflicht und keine Entscheidung: Ohne Rewrite ist die Datei in
+      **jeder** Fassung öffentlich lesbar, auch in jeder früheren.*
+- [x] ✅ **`git log --all --name-only` durchgesehen — sauber** (V2-125), und zwar die ganze
+      Historie und nicht nur den aktuellen Baum. **633 Pfade, davon 124 nicht mehr im
+      Baum — und alle 124 sind Quelldateien aus dem Umzug von Phase 0**
+      (`Views/…` → `src/GonkNote.Wpf/Views/…`). **Keine Datenbank, kein Blob, kein PDF, kein
+      DOCX, kein Schlüssel.** *Der Fall aus V1 — derselbe Inhalt lag ein zweites Mal in einem
+      längst gelöschten Ordner — tritt hier nicht auf.*
+- [x] ✅ **Lizenzlage geprüft** (V2-125). Jede eingecheckte Grafik hat eine geklärte Herkunft,
+      und die Tabelle in `THIRD-PARTY-NOTICES.md` führt sie jetzt **vollständig**: **62
+      Cover** *(die Checkliste sagte bis hierher „53" — nachgezählt sind es 62)*, die zwei
+      Geodreieck-SVGs, `GonkNote.ico` und `gonk-note-Icon.png` — **und neu die sieben
+      Bildschirmfotos unter `site/bilder/`**, deren Inhalt aus der erfundenen Demo-Datenbank
+      stammt. **Sticker liefert das Projekt bewusst keine.** Die fünf Schriftfamilien stehen
+      unter der SIL OFL 1.1 und liegen unverändert mit ihrer `OFL.txt` daneben.
+      *„Selbst abgeändert" ist keine Lizenz, **NC ist mit MIT unvereinbar** — beides trifft
+      hier auf nichts zu.*
+- [x] ✅ **README-Paar und Erste-Schritte-Paar auf Stand** (Dauerregel 1). §4.99 hatte sie auf
+      den Stand von M2 gezogen, samt den **vier** Einschränkungen, die wirklich gelten
+      (§5 Nr. 22, 11, 15 und das Lineal) und dem Hinweis, dass die Rechtschreibprüfung als
+      **erster Punkt nach M3** eingeplant ist. V2-125 hat die **drei Installationswege**, die
+      **Bildschirmfotos** und den Verweis auf die Releases ergänzt — **am laufenden Programm
+      gegengeprüft**.
+- [x] ✅ **Version auf 1.0.0** (§5 Nr. 23), an fünf Stellen: `Directory.Build.props`,
+      `About.Version` in **beiden** Sprachtabellen, die `<release>`-Zeile der
+      `metainfo.xml`, die vier Dokumente — und der Tag, sobald er geschoben ist. **Alle vier
+      Über-Dialoge** (zwei Köpfe × zwei Sprachen) sind am laufenden Programm gesehen.
+      **⛔ Genau dabei fiel der Fund der Runde auf:** Die längere Zeile wurde
+      **abgeschnitten statt umgebrochen**; behoben ist der **Behälter**, nicht der Text
+      (§4.101).
+- [x] ✅ **Der Klon-Befehl in beiden Erste-Schritte-Fassungen läuft** — die GitHub-API meldet
+      für das Repo `"private": false`. **Nachgesehen, nicht angenommen** (§4.12 hatte genau
+      das verlangt).
+- [x] ✅ **GitHub Pages, Releases mit Artefakten und das Repo-Beiwerk angelegt** (§5 Nr. 24,
+      §4.101): `site/` samt `pages.yml`, `release.yml` an einem `v*`-Tag, `CONTRIBUTING.md`,
+      `SECURITY.md`, Issue- und PR-Vorlagen.
+
+**▶ Und das ist der ganze Rest von Phase 5 — drei Handgriffe, alle am GitHub-Konto:**
+
+- [ ] **Den Tag schieben:** `git tag -a v1.0.0 -m "Gonk Note 1.0.0"` und
+      `git push origin v1.0.0`. **Das ist die Veröffentlichung** — `release.yml` baut
+      daraufhin Windows-Zip, AppImage und Tarball und legt das Release samt Text an.
+      **⚠ Dieser Lauf ist nie gelaufen**, denn er lässt sich nur durch einen Tag auslösen und
+      ein Tag schickt hinaus. Geht der AppImage-Zweig schief, steht der **Tarball**
+      trotzdem bereit. **Mit dem Release ist M3 erreicht.**
+- [ ] **Pages einschalten:** Repo-Einstellungen → Pages → Quelle **GitHub Actions** (nicht
+      „Deploy from a branch"). Ohne das läuft `pages.yml` und veröffentlicht trotzdem nichts.
+      ⚠ Danach nachsehen, ob `https://gonkstupid.github.io/GonkNote/` steht — **die
+      `<screenshots>` der `metainfo.xml` zeigen dorthin**, und ein Flathub-Eintrag mit toten
+      Bild-URLs wird abgelehnt.
+- [ ] **Beschreibung und Topics** des Repos setzen. Beides ist eine Einstellung und keine
+      Datei; `gh` ist auf dem Windows-Rechner **nicht angemeldet** (`HTTP 401: Bad
+      credentials`), und ein Token einzurichten ist eine Entscheidung des Nutzers.
+
+**Nicht auf dieser Liste, aber in derselben Lage** — es wartet auf eine Hand und nicht auf
+eine Runde: der **Flathub-Eintrag** (nicht eingereicht), das **Avalonia-Issue** (geschrieben,
+nicht abgesendet — §4.97), sowie **Portal-Dateidialog** und **Stift** in der Flatpak-Sandbox
+(§4.100).
 
 ---
 
@@ -15729,6 +16003,39 @@ weil sie bei der Portierung direkt zuschlagen:
   `flat`. **Und `XQueryPointer` taugt nicht zum Nachmessen:** steht der Zeiger über einer
   Wayland-Oberfläche, liefert XWayland den letzten Wert von vorher — *eine veraltete Zahl, die
   wie eine gültige Messung aussieht*, dieselbe Sorte Falle wie das Foto ohne Menü in V2-55.
+
+**Neu aus §4.101 — was das Veröffentlichen gelehrt hat**
+
+- **⛔ Ein waagerechtes `StackPanel` schneidet Text ab, es bricht ihn nicht um.** Es misst
+  seine Kinder mit **unendlicher Breite**; ein `TextBlock` darin erfährt nie, wie viel Platz
+  er hat. **`TextWrapping` hilft dort nicht** — es gibt keine Breite, an der gebrochen werden
+  könnte. **Gefunden am Über-Dialog**, als `About.Version` mit 1.0.0 länger wurde: Der
+  Nachsatz war weg, der Bau grün. **Wer eine Textspalte neben ein Symbol setzt, nimmt ein
+  `DockPanel` oder ein `Grid`** — in beiden Köpfen. *Ein Text, der abgeschnitten wird statt
+  umzubrechen, ist kein Textproblem, sondern ein Layoutfehler, und er wartet auf den, der die
+  Zeile das nächste Mal verlängert.*
+- **⛔ Eine Markdown-Tabelle mit mehr als zwei Spalten wird im Hilfe-Fenster abgeschnitten.**
+  Auf GitHub sieht sie gut aus, im Über-Dialog fehlt die letzte Spalte. **In den vier
+  mitgelieferten Dokumenten also höchstens zwei Spalten** — oder nummerierte Absätze, wie im
+  Abschnitt „Installieren". ⚠ *Abschnitt 14 beider Anleitungen trägt weiterhin eine
+  dreispaltige; der Verdacht steht in §4.101 und ist ungeprüft.*
+- **Eine Versionsnummer steht an fünf Stellen, und kein Compiler hält eine davon nach:**
+  `Directory.Build.props`, `About.Version` in **beiden** Loc-Tabellen, die `<release>`-Zeile
+  der `metainfo.xml`, die vier mitgelieferten Dokumente, der Tag. **Die Liste steht jetzt im
+  Kommentar von `Directory.Build.props`** — dort sieht sie der nächste, der sie anhebt.
+- **Bildschirmfotos dürfen nicht aus dem echten Bestand kommen.** Dauerregel 4 erlaubt eine
+  Kopie zum **Prüfen**; ein Bild davon wäre die Veröffentlichung von Schulunterlagen. Dafür
+  gibt es **`tools/demo-db`** — und wer es erweitert, hält sich an dessen eigene Regel:
+  **alles auf einer Notizbuchseite muss über Seiten-y 690 liegen**, sonst steht es unterhalb
+  dessen, was das Fenster bei 100 % zeigt, und fehlt auf dem Bild.
+- **`site/` und nicht `docs/`, und der Grund ist Windows:** GitHub Pages kann `/docs`
+  veröffentlichen, dieses Repo hat aber `Docs/` — und **unter Windows sind `docs` und `Docs`
+  dasselbe Verzeichnis**. Veröffentlicht wird deshalb über `pages.yml`.
+- **`tools/klick.ps1` kann einen Dialog nicht blättern.** Es holt das **Hauptfenster** in den
+  Vordergrund; ein modaler Dialog verliert dabei die Tastatur, und `{PGDN}` läuft ins Leere.
+  Im **WPF**-Kopf geht es, solange man vorher in den Text klickt — im **Avalonia**-Kopf gar
+  nicht. *Wer weiter unten in einem Hilfe-Fenster etwas prüfen will, weiß das vorher besser
+  als hinterher.*
 
 **Neu aus §4.99 — was der Prüflauf von ④ gelehrt hat**
 
@@ -17417,6 +17724,7 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 | V2-122 | 2026-09-04 | **Der Beipack traegt — das AppImage bringt seine eigene Texterkennung mit, und es ist gemessen** (§4.98 „Was der Laptop gefunden hat" neu; **auf dem CachyOS-Laptop**; `packaging/appimage/AppRun` und `bauen.sh` je ein Handgriff, `Docs/HANDOFF.md` §4.98, §5 Nr. 29, §5d, §4.64-Kurzfassung; **kein Produktivcode angefasst**; Kette vorher gruen: Bau 0/0 in Core und im Linux-Kopf, **1205/1205** — §5d nannte 1201, das war der Stand vor den vier Waechtern aus §4.98). **✅ DIE KERNFRAGE IST BEANTWORTET, UND MIT DEM SCHAERFSTEN VERFUEGBAREN INSTRUMENT:** die Erkennung im AppImage kommt **aus dem Beipack und aus nichts sonst** — zeichengenau (`Hallo Welt 123` / `Aeltere Baeume`), waehrend das System-Tesseract im selben Namensraum tot war (`bwrap`, `/dev/null` ueber die Systemdateien; `tesseract --version` scheitert dort selbst — **die Gegenprobe am Werkzeug zuerst**), und **`/proc/self/maps` nennt beide Bibliotheken namentlich mit vollem Pfad**. **Dazu die harte Fassung mit 20 versteckten Wirtsbibliotheken der ganzen Kette: unveraendert zeichengenau.** Gemessen mit einer **Wegwerf-Sonde im Namensraum des Pakets** — und sie war hier nicht die bequeme, sondern die **schaerfere** Wahl: *ein Klick durch die Oberflaeche haette gezeigt, dass etwas erkannt wird, nicht woher.* **✅ Schritt 4, die Gegenprobe mit vorhandenem System, faellt besser aus als befuerchtet:** geladen wird **trotzdem der Beipack**. **⛔ ABER DIE BENANNTE GRENZE AUS §4.98 IST JETZT GEMESSEN STATT HERGELEITET:** ein unbrauchbares `libtesseract.so.5` im Beipack laesst die Erkennung scheitern, **obwohl ein tadelloses System-Tesseract danebenliegt** — `QuelleSuchen` nimmt den ersten passenden **Namen**, nicht den ersten, der **laedt**. *Eine Grenze, die man benennt und nicht misst, wird beim naechsten Lesen entweder ueberschaetzt oder vergessen.* **Nicht behoben, gehoert nach Windows.** **⛔ DER FUND, DER NICHT IM AUFTRAG STAND: .NET nimmt sein ICU aus dem Beipack.** Der `AppRun` stellt seinen Ordner **voran**, und das gilt fuer den ganzen Prozess — `LD_DEBUG=libs` zeigt `libicuuc.so.78` und `libicudata.so.78` aus dem Abbild, `libicui18n.so.78` vom Wirt, **die Globalisierung laeuft also aus zwei Quellen**, dazu OpenSSL, curl und Kerberos. **Der Kommentar im `AppRun` sagte „die Texterkennungs-Kette und ihre Bildcodecs" — ICU, OpenSSL und Kerberos sind keine Bildcodecs**; berichtigt. **✅ Es ist trotzdem richtig so, und beide Gruende sind gemessen und nicht abgewogen:** .NET probiert die ICU-Hauptversionen **von 90 bis 60 abwaerts** und nimmt je Version nur ein **vollstaendiges Dreigespann**, faellt also auf die Fassung des Wirts zurueck; **und der Ordner MUSS ICU enthalten**, weil unser `libxml2.so.16` namentlich `libicuuc.so.78` verlangt — ohne es reisst auf einer fremden Verteilung die Kette `libtesseract → libarchive → libxml2`. **Die Zahl, die in §4.98 fehlte: der Beipack kostet 24,5 MiB** (61 → 85 MiB, **+40 %**), **und die Haelfte davon ist ICU** (`libicudata.so.78` allein 11,7 MB von rund 27 MB komprimiert) — *es ist kein Versehen des Skripts, sondern der Preis dafuer, dass `ldd` transitiv aufloest, und genau deshalb richtig.* **⛔ UND EINE RICHTIGSTELLUNG AN §4.98 SELBST:** es hat den falschen Satz „faellt sonst aufs System zurueck, wenn es nicht laedt" im Waechter-Kommentar gefunden und berichtigt — **und ihn in §5 Nr. 29 woertlich stehen lassen**. *Wer einen falschen Satz findet, sucht seine Zwillinge; eine Richtigstellung, die nur eine von zwei Fundstellen erreicht, macht die verbliebene glaubwuerdiger, nicht unschaedlicher.* Dasselbe Muster wie §4.97 und §4.78. **⚠ Zwei Dinge sind ungeprueft und stehen so da:** der `ln -sf`-Zweig fuer den CMake-Namen `…so.5.5` ist **nie gelaufen** (Arch liefert den kurzen Namen selbst), und die Erkennung **durch die Oberflaeche** des AppImage braucht einen Klick — `zeiger`/XTEST ist unter GNOME 50 unbrauchbar, `ydotool` braucht `sudo`. **Zwei Handgriffe in `packaging/` behoben** (§5d erlaubt genau das): der `AppRun`-Kommentar und eine verrutschte erste Zeile in der Dateiliste von `bauen.sh`; beide Skripte danach wieder `bash -n`/`sh -n`. ▶ **Der Laptop ist wieder nicht dran** — der Rest von ④ und der VOLLSTAENDIGE PRUEFLAUF gehoeren Windows (§5e). ▶ **Danach zwingend hier:** die Auslieferung wird ein zweites Mal gebaut, **und erst dieser Bau geht hinaus** (§6) |
 | V2-123 | 2026-09-04 | **Phase 5, Schritt ④ ist zu — die letzte Doppelgrammatik, und der Prüflauf hat gefunden, wofür er da ist** (§4.99 neu; `Core/Text/` mit `TdMarkdown.Lesen`, `Markdown.cs`, `Dokumentverweise.cs` neu, `TdStil.AufAbsatz`, `TdBlockEdit.Einfuegen`, `TdExport.Importformate`, `TdListEdit`; beide Köpfe: `MarkdownFlow`/`MarkdownView`, `EmbeddedDocs`, `WpfDocumentIo`/`AvaloniaDocumentIo`, die vier Dialoge; **`Wpf/Services/MarkdownImporter.cs` gelöscht, 394 Zeilen**; alle vier mitgelieferten Dokumente; Bau 0/0, **1308 Tests, +38** = 1239 Core + 69 WPF). Die zweite Hälfte von ④. **POSTEN 1 — DIE NÄHTE, GEMESSEN STATT VERMUTET:** Von zwölf Diensten im WPF-Kopf **müssen elf dort stehen** (WPF-Typen oder Windows-API: ISpellCheckerFactory, DWM, WM_GETMINMAXINFO, pack-URI, XAML-Markup). **Der zwölfte war `MarkdownImporter` — 394 Zeilen eigene Markdown-Grammatik**, obwohl `Markdown.Parse` seit §4.12 in Core steht; **zum fünften Mal dieselbe Lage** nach Farben (§4.9), Schriften (§4.26), Symbolen (§4.31) und Vorlagen (§4.39), *und §4.13 hatte den **Betrachter** längst umgestellt, nur den **Importer** nicht.* **⛔ Zwei gemessene Folgen, nicht nur eine Doppelung:** der **Linux-Kopf konnte `.md` überhaupt nicht importieren** — ein **unbenanntes Loch in M2** wie der Tafel-Export in §4.77 — und ein importiertes `.md` bekam **kein `Model`**, sah nach `UebernahmeStehtAus` also aus wie ein Dokument aus der Windows-Zeit und **war unter Linux erst lesbar, nachdem es unter Windows einmal offen war**. **⛔ Der Unterschied zu §4.77 ist der eigentliche Lehrsatz:** dort war die Begründung im Kommentar **falsch**, hier war sie **abgelaufen** („der Markdown-Import geht drüben über ein FlowDocument") — *und eine abgelaufene Begründung liest sich wie eine gültige.* **Jetzt `TdMarkdown.Lesen` in Core**, beide Köpfe importieren `.md` über denselben Weg wie DOCX; im WPF-Kopf bleibt **eine Zeile Unterschied: welcher Leser.** **Der Grammatik fehlten dafür vier Formen** — `MdStrike`, `MdImage`, `***`, `__` —, **⛔ und sie fehlten ihr auch gegenüber dem eigenen Export:** `TdMarkdown.Schreiben` schreibt `~~` und `***` seit jeher, `Markdown.Parse` las beides als Text zurück. *Der eigene Export war keine Rundreise durch den eigenen Leser* — jetzt hält ein Wächter genau das fest. **Nebenbei: die Importliste stand in beiden Köpfen einzeln**, während beide Exportlisten seit §4.28/§4.77 in Core stehen — und sie **war auseinandergelaufen**. Jetzt `TdExport.Importformate`; **„Alle Dateien" fällt weg**, weil der Leser an der Endung entscheidet. **POSTEN 2 — DIE DREI BENANNTEN LÜCKEN: ⛔ die Tabelle *in* einer Zelle war von der Oberfläche aus ERREICHBAR.** §4.19 las sich wie eine Grenze des Umbruchs, aber `TdEdit.Ort` steigt in Zellen ab (es **muss** das, sonst könnte man dort nicht tippen) — „Tabelle einfügen" legte bei Cursor in einer Zelle klaglos eine an, **die der Umbruch wegließ**. *Der Nutzer legte Inhalt an, den niemand je zu sehen bekam.* **Nutzer-Entscheidung: Einfügen sperren**, in `TdBlockEdit.Einfuegen` und nicht in den zwei Aufrufern (die Infobox **ist** eine Tabelle, die Trennlinie nicht), **+3 Wächter**, einer zieht die Grenze von der anderen Seite. **⛔ Und §6 behauptete über alle drei Lücken, jede sei „mit einem Wächter festgehalten" — für die zwei aus §4.21 stimmte das nicht**, es gab keine Zeile Test. **Die Palettenlücke war sogar *umgangen*:** `Jede_Diagrammart_uebersteht_DOCX` kürzt die Palette auf das, was durchpasst, und ist deshalb grün, **ohne über den Verlust etwas auszusagen**. *Ein Test, der sich einer Lücke anpasst, hält sie nicht fest; er verdeckt sie.* Beide haben jetzt einen; gemessen: durch DOCX kommen **drei von sechs** Farben zurück, **durch das eigene Format alle sechs**. **⛔ UND DANN HAT DER PRÜFLAUF GEFUNDEN, WOFÜR ER DA IST: FÜNF TOTE VERWEISE, IN BEIDEN KÖPFEN UND IN BEIDEN SPRACHEN.** „Hilfe → Erste Schritte" sagt *„lies die Feature-Übersicht im README"* — **angeklickt geschah nichts**; dreimal Anleitung → README (die Dialoge übergaben **gar keinen** Behandler) und zweimal README → `THIRD-PARTY-NOTICES.md`, **eine Datei, die in keinem Kopf eingebettet ist und deren Verweise nie funktionieren konnten**. Alle fünf waren in der Akzentfarbe gezeichnet, im **Linux-Kopf zusätzlich unterstrichen, mit Handzeiger und Tooltip**. *Ein Verweis, der aussieht wie einer und keiner ist* — §4.83 in klein. **⛔ Und der Kommentar im Linux-Kopf nannte einen nachmessbar falschen Grund:** „das hier *ist* die Anleitung, ein Verweis von ihr auf sich selbst würde nur dasselbe Fenster öffnen" — **sie verweist dreimal aufs README und kein einziges Mal auf sich selbst**, in beiden Sprachen. *Ein Grund, der eine Prüfung erspart, wird selten nachgeprüft.* **Statt fünf Fälle zu flicken ist die Klasse unmöglich gemacht:** `Dokumentverweise` in Core, **`Kann` + `Oeffnen` — zwei Glieder, weil Fragen und Handeln zwei Zeitpunkte sind** (ein einzelner Behandler müsste beim **Bauen** gerufen werden, und das Bauen öffnete Fenster); ein Ziel, das niemand annimmt, wird **schlichter Text ohne Akzentfarbe**. **⛔ Derselbe Fehler saß dabei zweimal, eine Etage auseinander:** `EndsWith(".md")` sagt zu `README.md#zwei-ausgaben-eine-app` **nein** — in den Prädikaten fällt die Sprungmarke jetzt weg, **in den Malern ist die Prüfung ersatzlos gestrichen**, denn *zwei Stellen, die dasselbe entscheiden, entscheiden es verschieden*; **gefunden hat es ein Wächter, der drei Verweise erwartete und zwei bekam.** **⛔ ZWEITER FUND DES PRÜFLAUFS: die vier mitgelieferten Dokumente beschrieben eine App von VOR M2** — **elf Stellen**, obendrein **unsymmetrisch** verteilt (7 / 2 / 2 / **0**), was Dauerregel 1 schon für sich verletzt. Die README-Tabelle „Was der Linux-Ausgabe noch fehlt" hatte **sechs Zeilen, fünf davon falsch**: Schreiben (§4.35/§4.48), Markdown-Import (**diese Runde**), Tafel-Export (§4.77), die ganze Werkzeugzeile (§4.53–§4.62) und die Texterkennung (§4.64). *Eine Einschränkungsliste, die niemand nachmisst, wächst nur* (§4.77, §4.81, **zum dritten Mal**). **Alle vier Dokumente stehen jetzt auf dem Stand von M2**, mit den **vier** Einschränkungen, die wirklich gelten, und der Gegenrichtung, die nie dastand (**keine Seitenzahlen im WPF-Editor**) — **damit ist ein guter Teil des ⑤-Postens „bekannte Einschränkungen namentlich" vorweggenommen**. **⚠ Und beim Schreiben ist mir selbst eine Vermutung durchgerutscht** — „die Sprachdaten liegen unter Linux im Datenordner"; `AppSubfolder` zeigt auf den **Programm**ordner, nachgesehen und berichtigt, **bevor es hinausging** (§4.95 an der eigenen Arbeit). **✅ DER PRÜFLAUF SELBST:** beide Testprojekte (1308, 0 Fehler), beide Köpfe 0 Warnungen, **die vier Dokumente in beiden Sprachen am laufenden Programm in BEIDEN Köpfen** (2 × 2, dieselbe DB-Kopie, `tools/foto.ps1`, beide Richtungen der Querverweise geklickt), ein Durchgang auf einer **Kopie der echten Daten** (Bestand unberührt, Kopie danach **gelöscht** — Schulunterlagen), **und der neue Weg selbst: dieselbe Markdown-Probe in beide Köpfe importiert** — alle vier neuen Formen, Liste samt Unterliste, Tabelle mit aufgefüllter Kurzzeile, Zitat, Codeblock, Trennlinie, **`[Ersatztext]` für das fehlende Bild** und **`#####` bleibt ein Absatz**; beide Köpfe zeigen dasselbe. **Nebenbei bestätigt:** ein im **Linux**-Kopf importiertes Markdown liegt danach im **WPF**-Kopf in der Galerie. **⚠ Benannt und nicht getan:** die Tabelle in einer Zelle wird weiterhin nicht **gesetzt**; `DocumentImages.Remember` ist im Produktivpfad tot und wird nur noch vom Golden-File-Bauer gerufen; der Menü-Aufklapppunkt des WPF-Kopfs (§4.92) war im Prüflauf gut zu sehen. **Neu in §7: „Neu aus §4.99", sieben Einträge.** ▶ **Dran ist ⑤ — und ⛔ ZUERST wird die Auslieferung ein zweites Mal gebaut; erst dieser Bau geht hinaus.** ▶ **Der Laptop ist dran** (§5d): beide Pakete neu bauen und starten, **und den Markdown-Import auf echtem Linux prüfen — er ist neu und dort ungeprüft** |
 | V2-124 | 2026-09-04 | **Phase 5, Schritt ⑤ — der zweite Bau, und dieser geht hinaus** (§4.100 neu; **auf dem CachyOS-Laptop**, GNOME 50.3 Wayland; **kein Produktivcode angefasst** — nur `packaging/LIESMICH.md` und `packaging/appimage/bauen.sh`). Kette grün: Bau **0/0** in Core und im Linux-Kopf, **1239/1239** — **genau die Zahl, die §5d aus Windows nannte**, diesmal ohne Zählfrage. **Flatpak und AppImage beide neu gebaut, installiert und gestartet**, nachdem §4.97–§4.99 darin sind: 154,6 MB bzw. 86 MB, der Beipack unverändert **43 Dateien / 65 MB**, `TesseractBindung.cs` seit V2-121 unberührt — die Messung aus §4.98 gilt also weiter. In der Sandbox nachgesehen: `/app/lib` führt Tesseract **5.5.1** und Leptonica, `ldd` ohne fehlende Abhängigkeit, `deu`/`eng` liegen als `/app/gonknote/tessdata` mit im Paket. **✅ Der Fund aus §4.96 ist zu:** in **beiden** Paketen **null** native Windows-Binärdateien und kein `x64/`/`x86/`. **⛔ Der Werkzeugbefund, der den Zuschnitt geändert hat: auf diesem Gerät konnte nicht geklickt werden** — `ydotoold` scheitert an `/dev/uinput` (Nutzer nicht in Gruppe `input`), `sudo` verlangt ein Passwort, **der Skill `sudopasswot` stand der Sitzung nicht zur Verfügung**, und `wtype`, `dotool`, `wlrctl`, `xdotool` sind alle nicht installiert. **Punkt ④ und ⑤ des Auftrags trotzdem beantwortet, mit dem schärferen Instrument:** eine Wegwerf-Sonde in `/tmp` gegen den echten Code — *ein Klick hätte gezeigt, dass etwas passiert, die Sonde zeigt was*. **Der Markdown-Import liest Zeile für Zeile das, was §4.99 unter Windows sah:** `#####` bleibt ein **Absatz**, `![alt](fehlt.png)` wird **`[alt]`**, `~~…~~` und `***…***` tragen, Tabelle 3×3, **zwei** Listendefinitionen (je Art eine). **Und beide Verweisfragen fallen richtig aus:** „Feature-Übersicht im README“ wird **angenommen** (der Fund aus §4.99 ist eingelöst), `THIRD-PARTY-NOTICES.md` bleibt in beiden Sprachen **schlichter Text**. **⚠ Beinahe ein eigener Scheinbefund:** `file … grep -c PE32` sagte **200** — `file` meldet jede .NET-Assembly so; erst zusätzlich `grep "for MS Windows"` ohne `Mono/.Net assembly` misst die Frage, und das ergibt **0**. **⛔ Drei veraltete Sätze in `packaging/` behoben**, alle seit V2-122 falsch (zweimal „noch nicht am Gerät geprüft“, einmal „Schritt ③ ist eine Erprobung“). **⚠ Offen und Windows gehörend: die Version steht überall auf 0.3.0**, der `<release>`-Eintrag nennt sich selbst „packaging trial, not a release“ — §5 Nr. 23/24 verlangt **1.0.0**. **⚠ Weiterhin ohne Beleg, beides braucht eine Hand:** der Portal-Dateidialog und der Stift. |
+| V2-125 | 2026-09-05 | **Phase 5, Schritt ⑤ — veröffentlicht, und der Fund saß im eigenen Über-Dialog** (§4.101 neu; `Directory.Build.props`, beide Loc-Tabellen, `AboutDialog.xaml` und `AboutWindow.axaml`, `metainfo.xml`, `packaging/LIESMICH.md`, die vier mitgelieferten Dokumente, `THIRD-PARTY-NOTICES.md`, **neu** `site/` (zwei HTML-Seiten, eine CSS-Datei, sieben Bilder), `tools/demo-db/`, `CONTRIBUTING.md`, `SECURITY.md`, `.github/workflows/pages.yml`, `.github/workflows/release.yml`, `.github/ISSUE_TEMPLATE/`, `.github/pull_request_template.md`; Bau 0/0, **1308 Tests unverändert** — ein Wächter *nachgezogen*, keiner dazugebaut). **Der Nutzer hat das Repo auf „public" geschaltet**, und damit war ⑤ fällig. **Version 1.0.0 an fünf Stellen**, die keiner nachhält — `Directory.Build.props`, **beide** Loc-Tabellen, die `<release>`-Zeile, die vier Dokumente, der Tag; **die Liste steht jetzt im Kommentar von `Directory.Build.props`**. **`About.Version` sagt jetzt etwas anderes:** Die Zeile nannte bisher die **Portierungsphase** — eine Auskunft, die ihren Gegenstand verliert, sobald die Portierung ausgeliefert ist; sie nennt jetzt, **was als Nächstes kommt** (Rechtschreibprüfung, dann iPadOS). **⛔ DER FUND DER RUNDE SASS IM EIGENEN ÜBER-DIALOG:** Die längere Zeile wurde **abgeschnitten statt umgebrochen**, und der Bau war grün — ein **waagerechtes `StackPanel`** misst seine Kinder mit **unendlicher Breite**, `TextWrapping` hatte also gar keine Breite, an der es hätte brechen können. **Behoben ist der Behälter und nicht der Text** (`DockPanel`, in **beiden** Köpfen — im Linux-Kopf vorsorglich, obwohl dessen Zeile zufällig passte). *Ein Text, der abgeschnitten wird statt umzubrechen, ist kein Textproblem, sondern ein Layoutfehler, und er wartet auf den, der die Zeile das nächste Mal verlängert.* **⛔ Zweiter Fund, gemeldet vom Wächter:** Die Anleitung verweist jetzt ein **viertes** Mal aufs README, und `Die_Anleitung_verweist_klickbar_aufs_README` fiel — *das ist der Wächter, der tut, wofür er da ist*: Er zählt die genaue Liste und nicht „mindestens einen" (§4.99, der Rundreise-Test, der sich der Palettenlücke angepasst hatte). **⛔ Dritter Fund:** Die erste Fassung des Abschnitts „Installieren" war eine **dreispaltige Tabelle** — auf GitHub gut, **im Hilfe-Fenster war die dritte Spalte weg**; ersetzt durch drei Absätze, in beiden Sprachen. **⚠ Derselbe Verdacht steht benannt für Abschnitt 14 beider Anleitungen und ist ungeprüft**, weil `tools/klick.ps1` einen Dialog nicht blättern kann (es holt das **Haupt**fenster nach vorn). **Die Bildschirmfotos durften nicht aus dem echten Bestand kommen** (Dauerregel 4 — die Kopie ist zum *Prüfen* da und enthält Schulunterlagen), also **`tools/demo-db`**: erfundener Inhalt, deutsch und englisch, über `TdMarkdown.Lesen` erzeugt statt von Hand zusammengesteckt. **⚠ Und das Werkzeug war selbst prüfbedürftig:** Der erste Anlauf setzte Notizzettel und Haken bei y = 730…840 — **auf dem Bild waren sie nicht da**, denn bei 100 % zeigt das Fenster nur die oberen zwei Drittel der 1123 hohen Seite. **Die Projektseite liegt in `site/` und nicht in `docs/`**, und der Grund ist Windows: `docs` und `Docs` sind dort **dasselbe Verzeichnis**; veröffentlicht wird über `pages.yml` (Quelle: GitHub Actions). **`release.yml` baut an einem `v*`-Tag** Windows-Zip, AppImage und Tarball, prüft vorher beide Testprojekte — **⚠ und ist nie gelaufen**, weil ein Tag die Veröffentlichung *ist* und es keinen Probelauf gibt, der nichts hinausschickt; der **Tarball** ist die Rückfallebene, falls der AppImage-Zweig auf einem Runner bricht. **Das Beiwerk ist zweisprachig in je EINER Datei** — Dauerregel 1 wird hier bewusst **nicht** kopiert: Die vier mitgelieferten Dokumente gibt es paarweise, **weil die App sie anzeigt**; `CONTRIBUTING` und `SECURITY` zeigt niemand an, *und zwei Dateien, die niemand nebeneinander sieht, laufen auseinander*. **✅ Die Checkliste aus §6 ist Punkt für Punkt abgehakt**, einschließlich der zwei Prüfungen, die sich nicht nachholen lassen: `Docs/HANDOFF.md` **sauber** (kein Benutzerpfad, kein Token, kein Schlüssel; „Schulunterlagen" nur als Regel) und die **ganze Git-Historie sauber** — 633 Pfade, davon 124 nicht mehr im Baum und **alle 124 aus dem Umzug von Phase 0**. Nebenbei richtiggestellt: **62 Cover, nicht 53**, und §2 führte die Rechtschreibprüfung als Phase „5.6", während §5 Nr. 22 und §6 **5.1** sagen. **Neu in §7: „Neu aus §4.101", sechs Einträge.** ▶ **Phase 5 ist damit zu. Es bleiben drei Handgriffe, und alle drei gehören dem GitHub-Konto des Nutzers:** den **Tag `v1.0.0`** schieben (er löst das Release aus und **mit ihm ist M3 erreicht**), **Pages auf „GitHub Actions"** stellen, **Beschreibung und Topics** setzen — `gh` ist hier nicht angemeldet. ▶ **Der Laptop ist nicht dran.** |
 | V2-115 | 2026-09-01 | **Schritt ①c ist zu — das Lineal gestrichen, der Menü-Aufklapppunkt neu vermessen** (§4.92 neu; Bau 0/0, **1256 Tests unveraendert**). **(4) Lineal: bewusst gestrichen.** Gemessen: `DrawRuler` im WPF-Kopf hat **keinen einzigen Maus-Handler** — es ist eine cm-Skala mit zwei Dreiecken, eine Zierleiste und kein Werkzeug. Der einzige Posten ohne Rueckhalt in Core, und was er leistet, leisten die vier Randfelder im Layout-Reiter **in Zahlen** und aenderbar. Wird in ⑤ im README als bekannter Unterschied genannt. **⛔ Menü-Aufklapppunkt: dritter Anlauf gescheitert und zurueckgenommen — aber die Messung ist neu und mehr wert als der Versuch.** Bisher stand da "klappt am linken Rand der Leiste auf"; gemessen klappt es **ausserhalb des Fensters** auf, rund 170 px links vom Fensterrand. Und: **"Datei" und "Ansicht" klappen an DERSELBEN Stelle auf** — damit ist das Aufklappziel fuer beide **dasselbe Element**, also weder das MenuItem noch sein Grid. Der Anlauf (Popup aus dem Spaltengitter in ein umschliessendes Grid heben, weil die `SharedSizeGroup` das Gitter aufblaeht) war **ohne jede Wirkung** und ist zurueckgenommen. **Der einzige Weg, der zur Messung passt und den noch niemand versucht hat: ein eigenes Template nur fuer `Role=TopLevelHeader`** — WPF benutzt dafuer normalerweise drei verschiedene Vorlagen, hier dient eine fuer alle drei Rollen. **Damit sind alle sieben Entscheidungen aus §5e beantwortet** (§4.86–§4.92): fuenf gebaut, eine gestrichen, eine als Messung beantwortet statt als Frage gestellt. ▶ **Als Naechstes: Schritt ②, die Rueckmeldung** — eine eigene Runde (§5 Nr. 28). **Der Laptop ist nicht dran — aber bei ③ ist er es zwingend** (§5d) |
 | V2-114 | 2026-09-01 | **Der Tabellenentwurf, zweite Haelfte** (§4.91 neu; neu `Core/Text/TdTabellenformel.cs`, `TdTableUmbau.cs`, `Core.Tests/TabellenUmbauTests.cs`; Bau 0/0, **1256 Tests, +36**). Runde B von Frage (2): **teilen, sortieren, rechnen, Tabelle ↔ Text** — das, was Core erst rechnen lernen musste. **Das Formelergebnis geht als TEXT in die Zelle und nicht als Feld:** §4.20 verlangte sonst eine neue `TdFieldKind`, einen Auswertungsschritt im Umbruch und einen DOCX-Weg; **der WPF-Kopf schreibt seit jeher ebenfalls nur das Ergebnis**, und beim Editor ist Windows die Vorlage. Benanntes Zugestaendnis. **Eine leere Zelle beendet die Reihe NICHT** — Words Regel dort ergibt bei einer Zwischenueberschrift eine halbe Summe, ohne dass etwas danach aussieht. **Beide Zahlenschreibweisen** werden gelesen (deutsch und englisch): eine Tabelle, deren Summe von der Systemsprache abhaengt, rechnet auf dem naechsten Rechner anders. **Der leere Absatz beim Teilen ist kein Rest** — zwei Tabellen unmittelbar hintereinander sind in DOCX **eine**. **⛔ Der Tooltip hat eine Ergaenzung erzwungen:** `Ed.Table.Sort.Tip` verspricht "Text/Zahl/Datum", und der WPF-Kopf kann das; die erste Fassung hier konnte nur Text und Zahl. **Datum wird jetzt VOR Zahl geprueft**, und das ist keine Geschmacksfrage: "01.03.2026" liest sich als Zahl 1.032.026 und "15.02.2026" als 15.022.026 — die Reihenfolge kehrt sich um und sieht trotzdem plausibel aus. *Ein Tooltip ist eine Zusage; wer ihn uebernimmt, uebernimmt sie mit.* **⛔ Werkzeugfalle, drei Anlaeufe:** **Koordinaten aus einem Flyout gelten nur fuer die Aufnahme, aus der sie stammen.** Ein Ribbon, das umbricht, verschiebt seine Knoepfe — und mit ihnen jedes Flyout daran. Erst der Vergleich gegen ein **funktionierendes** Werkzeug ("Tabelle teilen", gleiches Muster, wirkte sofort) hat gezeigt, dass der Weg traegt und die Koordinate nicht (§4.82 woertlich). **✅ Und der eingebaute Hinweis "keine Zahlen im Bereich" hat den ersten Anlauf ueberhaupt erst diagnostizierbar gemacht** — *ein Knopf, der sagt, warum er nichts tut, ist billiger als der Fehlerbericht, den er erspart.* **Nicht gebaut und benannt:** die Schnelltabellen (`Ed.Table.Quick.*`) — zwei fest verdrahtete Vorlagen ohne Vorlagensammlung dahinter. **✅ Am laufenden Programm:** Teilen samt richtig ausgegrautem Knopf in Zeile 0, Summe 10+5=15, Hinweis ohne Zahlen, Sortieren dreht die Folge |
 | V2-113 | 2026-09-01 | **Der Tabellenentwurf, erste Haelfte** (§4.90 neu; neu `Core/Text/TdTableEntwurf.cs`, `Avalonia/Views/TextDocView.Tabelle.cs`, `Core.Tests/TabellenEntwurfTests.cs`; Bau 0/0, **1220 Tests, +25**). Runde A von Frage (2): **Rahmen, Fuellung, Kopfzeile, Zellabstand, Spaltenbreite, verbinden und teilen** — alles, was `TdTable` schon konnte. **Nicht "erst Core, dann Oberflaeche" wie §5e vorschlug, sondern nach Nutzen geschnitten:** eine Runde, die nur Core baut, endet an einem gruenen Bau — und **zwei der drei Funde dieser Runde waeren dann erst eine Runde spaeter aufgefallen**. **⛔ Fund 1, vom Waechter:** `TdTableEdit.Kopie` kopierte das **Format nicht**. `TdTableFormat` ist eine Klasse, alte und neue Tabelle teilten sich das Objekt. Bis heute fiel es nicht auf, weil **kein einziger Handgriff das Format anfasste**; mit dem Entwurf fassen es fuenf an, und ab da haette jede Rahmenaenderung die **Sicherung im Rueckgaengig-Stapel mitgeaendert** — Strg+Z haette nichts zurueckgebracht (§4.32 woertlich). `TdTableFormat.Kopie()` gab es laengst, sie wurde nur nicht gerufen. **⛔ Fund 2, am laufenden Programm:** `TabelleWerkzeuge` war ein `StackPanel` und bricht **nie** um — die drei neuen Knoepfe ragten aus dem Fenster und waren nicht anklickbar. Bau und Waechter gruen. **⛔ Fund 3, im Bestand:** **vier Sprachtexte tragen die XML-Entitaet `&amp;` woertlich**, beim Uebernehmen aus dem WPF-XAML mitgekommen — auf dem Knopf stand "Design &amp;amp; Rahmen...". Alle vier stehen seit Monaten so da, in **beiden** Sprachen, und **der WPF-Kopf zeigt sie genauso falsch**; aufgefallen ist es erst, als der Linux-Kopf den Schluessel zum **ersten Mal** anzeigte. *Ein Text, den kein Kopf benutzt, wird von keinem Auge geprueft.* Ein neuer Waechter haelt XML-Entitaeten in beiden Tabellen fest. **Zwei benannte Einschraenkungen, beide mit derselben Ursache** — die Auswahl des Editors ist eine Spanne ueber Absaetze und kennt kein Rechteck aus Zellen: **verbunden wird mit der rechten Nachbarin** (mehrmals gedrueckt zieht weiter), **gefuellt wird die Zelle unter der Marke**. **AutoAnpassen ist das Weglassen einer Zahl** und kein eigener Rechenweg |

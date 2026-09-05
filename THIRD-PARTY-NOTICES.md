@@ -234,6 +234,12 @@ Gonk Note setzt auf .NET 10 und WPF (MIT-Lizenz, Microsoft). Beim Single-File-Pu
 | `Assets/Covers/**` (Basic, Muster, Pixel Art) | eigene Werke des Autors, MIT wie das Projekt |
 | `Assets/Geodreieck-Light.svg`, `Assets/Geodreieck-Dark.svg` | eigene Werke des Autors, MIT wie das Projekt |
 | `Assets/GonkNote.ico`, `Assets/gonk-note-Icon.png` | eigene Werke des Autors, MIT wie das Projekt |
+| `site/bilder/*.png` | Bildschirmfotos der eigenen App, MIT wie das Projekt |
+
+**Zu den Bildschirmfotos:** Sie gehen mit **nicht** hinaus — sie liegen im Repo und auf der
+Projektseite, nicht im Programm. Ihr Inhalt stammt aus einer **erfundenen Demo-Datenbank**
+(`tools/demo-db`) und nicht aus einem echten Bestand; das ist keine Feinheit, sondern die
+Bedingung dafür, dass sie veröffentlicht werden dürfen.
 
 Das ist alles, was Gonk Note an Grafik mitbringt. **Sticker werden bewusst nicht
 mitgeliefert:** das Sticker-Werkzeug arbeitet ausschließlich mit Bildern, die du selbst unter

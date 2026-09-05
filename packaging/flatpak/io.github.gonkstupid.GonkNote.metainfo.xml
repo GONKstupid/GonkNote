@@ -2,14 +2,17 @@
 <!-- Die AppStream-Beschreibung. Sie ist das, was ein Software-Zentrum anzeigt, und für
      Flathub Pflicht.
 
-     ⚠ Unvollständig, und zwar mit Absicht: <screenshots> fehlen. Schritt ③ ist eine
-     Erprobung und keine Auslieferung (HANDOFF §6) — Bildschirmfotos brauchen eine
-     erreichbare URL, und die entsteht erst in Schritt ⑤ mit den GitHub Pages. Bis dahin
-     wäre jeder Eintrag hier eine Angabe, die ins Leere zeigt.
+     ✅ Vollständig seit Schritt ⑤ (2026-09-05): <screenshots> zeigen auf die GitHub Pages
+     des Projekts, die in derselben Runde entstanden sind — vorher wäre jeder Eintrag hier
+     eine Angabe gewesen, die ins Leere zeigt.
 
-     ⚠ Ebenso die <release>-Zeile: sie steht auf 0.3.0, dem heutigen Stand aus
-     Directory.Build.props. Auf 1.0.0 geht sie in Schritt ⑤ (§5 Nr. 23), und wer sie
-     dort anhebt, zieht Directory.Build.props und About.Version mit. -->
+     ⛔ DIE BILD-URLS MÜSSEN ERREICHBAR SEIN, SONST LEHNT FLATHUB DEN EINTRAG AB. Sie zeigen
+     auf https://gonkstupid.github.io/GonkNote/… und damit auf den `site/`-Ordner dieses
+     Repos, den .github/workflows/pages.yml veröffentlicht. Wer eine Datei dort umbenennt,
+     bricht diesen Eintrag — und es fällt erst bei der Flathub-Einreichung auf.
+
+     ✅ Die <release>-Zeile steht auf 1.0.0 (§5 Nr. 23). Wer sie anhebt, zieht
+     Directory.Build.props und About.Version in beiden Loc-Tabellen mit. -->
 <component type="desktop-application">
   <!-- ⚠ `appstreamcli validate` merkt im pedantischen Lauf den Großbuchstaben an
        (cid-contains-uppercase-letter). Das ist ein Stilhinweis und kein Fehler: für
@@ -73,6 +76,27 @@
 
   <content_rating type="oars-1.1" />
 
+  <!-- Die Bilder liegen im `site/`-Ordner des Repos und werden über GitHub Pages
+       ausgeliefert. `caption` ist übersetzbar; die Reihenfolge bestimmt, was ein
+       Software-Zentrum zuerst zeigt. -->
+  <screenshots>
+    <screenshot type="default">
+      <image>https://gonkstupid.github.io/GonkNote/bilder/notizbuch.png</image>
+      <caption>A notebook page with pen, pencil and highlighter</caption>
+      <caption xml:lang="de">Eine Notizbuchseite mit Stift, Bleistift und Textmarker</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://gonkstupid.github.io/GonkNote/bilder/textdokument.png</image>
+      <caption>The text editor with headings, lists and tables</caption>
+      <caption xml:lang="de">Der Texteditor mit Überschriften, Listen und Tabellen</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://gonkstupid.github.io/GonkNote/bilder/galerie.png</image>
+      <caption>The gallery: folders, notebooks, whiteboards and text documents</caption>
+      <caption xml:lang="de">Die Galerie: Ordner, Notizbücher, Whiteboards und Textdokumente</caption>
+    </screenshot>
+  </screenshots>
+
   <supports>
     <control>pointing</control>
     <control>keyboard</control>
@@ -85,7 +109,16 @@
   </requires>
 
   <releases>
-    <release version="0.3.0" date="2026-09-04">
+    <release version="1.0.0" date="2026-09-05">
+      <description>
+        <p>First public release. The Linux edition does everything the Windows edition
+           does, apart from spell checking — that is the next item.</p>
+        <p xml:lang="de">Erste öffentliche Ausgabe. Die Linux-Ausgabe kann alles, was die
+           Windows-Ausgabe kann, bis auf die Rechtschreibprüfung — sie ist der nächste
+           Punkt.</p>
+      </description>
+    </release>
+    <release version="0.3.0" date="2026-09-04" type="development">
       <description>
         <p>Test build of the Linux edition (packaging trial, not a release).</p>
         <p xml:lang="de">Erprobungsbau der Linux-Ausgabe (Auslieferungsprobe, keine Auslieferung).</p>

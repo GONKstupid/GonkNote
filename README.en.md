@@ -12,6 +12,47 @@ Pen, …), no cloud, no installer, no admin rights.
 *(English version. The German original is `README.md`. Inside the app this page follows the
 language you picked under View → Language.)*
 
+![A notebook page with pen, pencil, highlighter, shapes and a sticky note](site/bilder/notizbuch.en.png)
+
+## Install
+
+**Three ways, and none of them needs admin rights.** All downloads are under
+[Releases](https://github.com/GONKstupid/GonkNote/releases).
+
+**1. Windows 11** — download `GonkNote-1.0.0-windows-x64.zip`, unpack it, run
+`GonkNote.exe`. It is a **single exe**; it needs no installed .NET and writes nothing to the
+registry. **The `tessdata` folder has to stay next to the exe** — it holds the language data
+for text recognition; without it everything works except OCR.
+
+**2. Linux, AppImage** — one file, no dependencies, no sandbox:
+
+```bash
+chmod +x GonkNote-1.0.0-x86_64.AppImage
+./GonkNote-1.0.0-x86_64.AppImage
+```
+
+Your system needs **fontconfig and at least one font** — without them every drawn piece of
+text stays blank. That is the only prerequisite; everything else is inside the image,
+**including text recognition**: it works on a machine where no Tesseract is installed at all.
+
+**3. Linux, Flatpak** — sandbox and software centre, and intended as the main channel.
+**Gonk Note is not on Flathub yet**, though; that entry is still outstanding. Until then you
+build the package yourself; the prerequisites (runtime and SDK from Flathub) and the two
+commands are in [`packaging/LIESMICH.md`](packaging/LIESMICH.md) (German):
+
+```bash
+cd packaging/flatpak && ./bauen.sh
+flatpak run io.github.gonkstupid.GonkNote
+```
+
+**Rather build it yourself?** The [Build](#build) section further down covers both editions
+from source. If you are starting from scratch, [Getting started](GETTING-STARTED.md) is the
+better place.
+
+> **Your data stays where it is.** On first start Gonk Note creates one folder —
+> `%APPDATA%\GonkNote` on Windows, `~/.config/GonkNote` on Linux — and writes nowhere else.
+> To uninstall, delete the program and that folder.
+
 ## Two editions, one app
 
 Gonk Note comes as a **Windows edition** (WPF) and a **Linux edition** (Avalonia). Both read
@@ -35,6 +76,8 @@ with zoom, "Fit width" and "Whole page". **What you see is exactly what would be
 same layout, same renderer. Plus **import** (DOCX, Markdown) and **export** (PDF, DOCX,
 Markdown, PNG).
 
+![The text editor with headings, lists and a table](site/bilder/textdokument.en.png)
+
 **What the Linux edition still lacks** — each with a reason, none of it forgotten:
 
 | Missing | Why |
@@ -43,6 +86,12 @@ Markdown, PNG).
 | **Composed characters** (`´` + `e` → `é`) do not arrive | A bug in Avalonia's window layer on Linux, not in Gonk Note. It is reported there; plain characters and umlauts are unaffected |
 | **Ruler** above the text document | Deliberately left out: in the Windows edition it is decoration without function — the margins cannot be dragged there. What it shows is in the "Layout" tab as numbers, and changeable |
 | **Existing documents from the Windows edition** appear only after being opened and saved there once | Their old format is readable on Windows only. Their contents stay untouched |
+
+![The same notebook page in the Windows edition](site/bilder/windows.png)
+
+*The same page, the same database, the Windows edition. The renderer is the same — what looks
+different here is the toolbar and nothing else. (The screenshot is in German; the Windows
+edition speaks both languages just like the Linux one.)*
 
 And the **Windows** edition lacks one thing in return: its text editor shows **no page
 numbers**. It does not compute pages but lets Windows flow the text; the Linux edition
@@ -62,6 +111,9 @@ Nothing is lost along the way: whatever one edition cannot display, it does not 
   tiles (GoodNotes-style) – coloured folder icons, notebook covers as previews, cards for
   whiteboards and text documents, each with name, date and context menu. Selecting a folder in
   the tree or opening a folder tile navigates into it (breadcrumb + back)
+
+  ![The gallery: notebook, whiteboard and text document as tiles](site/bilder/galerie.en.png)
+
 - **Two languages**: the interface can be switched between **German** and **English** under
   **View → Language** — at runtime, without restarting. The choice is remembered. Your own
   document names stay untouched; only the interface changes.

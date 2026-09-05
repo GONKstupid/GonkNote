@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<!--
+  The English project page. Its German counterpart is ../index.html.
+
+  ⛔ Dauerregel 1 applies here exactly as it does to the four bundled documents: never change
+     one language only. Unlike there it does not even fail quietly -- there is no fallback to
+     German, the English page simply shows the older state.
+
+  ⚠ The images live one level up (../bilder/) and come from the DEMO database
+    (tools/demo-db), never from the real one.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gonk Note — notebooks, whiteboards and text documents, offline</title>
+<meta name="description" content="Offline note-taking app for Windows 11 and Linux: notebooks, whiteboards and text documents. Stylus-friendly, no cloud, no account, no installer.">
+<link rel="stylesheet" href="../stil.css">
+<link rel="icon" href="../bilder/icon.png">
+</head>
+<body>
+<div class="mitte">
+
+<div class="sprache"><a href="../">Deutsch</a> · <strong>English</strong></div>
+
+<header>
+  <h1>Gonk Note</h1>
+  <p class="untertitel">
+    Notebooks, whiteboards and text documents — on <strong>Windows 11 and Linux</strong>.
+    Stylus-friendly, no cloud, no account, no installer.
+  </p>
+
+  <div class="knopfreihe">
+    <a class="knopf" href="https://github.com/GONKstupid/GonkNote/releases/latest">Download</a>
+    <a class="knopf leise" href="https://github.com/GONKstupid/GonkNote">Source on GitHub</a>
+    <a class="knopf leise" href="https://github.com/GONKstupid/GonkNote/blob/main/GETTING-STARTED.md">Getting started</a>
+  </div>
+  <p class="kleingedruckt">
+    Version 1.0.0 · MIT licence · the Windows exe and the Linux AppImage run without an installed .NET
+  </p>
+</header>
+
+<figure>
+  <img src="../bilder/notizbuch.en.png" alt="A notebook page with pen, pencil, highlighter, shapes and a sticky note">
+  <figcaption>
+    A notebook page: pen with pressure and tilt, pencil, highlighter, recognised shapes,
+    text boxes and a sticky note — all on the same page.
+  </figcaption>
+</figure>
+
+<h2>What it does</h2>
+
+<div class="karten">
+  <div class="karte">
+    <h3>Notebooks</h3>
+    <p>A4 and A3 pages with a customisable cover, pen, pencil and highlighter including
+       pressure and tilt, precise erasing, lasso and a shape pen.</p>
+  </div>
+  <div class="karte">
+    <h3>Whiteboards</h3>
+    <p>An endless canvas with a dot grid, sticky notes, stickers, ruler and set square —
+       and <strong>text recognition</strong> for handwriting.</p>
+  </div>
+  <div class="karte">
+    <h3>Text documents</h3>
+    <p>An editor that <strong>typesets real pages</strong>: headings, lists, tables, fields,
+       charts, a table of contents, headers and footers.</p>
+  </div>
+  <div class="karte">
+    <h3>In and out</h3>
+    <p>Import from DOCX, Markdown and PDF; export to PDF, DOCX, Markdown and PNG. What is on
+       screen is what the export writes.</p>
+  </div>
+</div>
+
+<figure style="margin-top:40px">
+  <img src="../bilder/textdokument.en.png" alt="The text editor with headings, lists and a table">
+  <figcaption>
+    The text editor lays out the page itself — the same line breaking and the same renderer
+    that write the PDF.
+  </figcaption>
+</figure>
+
+<figure>
+  <img src="../bilder/galerie.en.png" alt="The gallery: notebook, whiteboard and text document as tiles">
+  <figcaption>
+    The gallery shows the current folder as large tiles — notebook cover, whiteboard and
+    text document.
+  </figcaption>
+</figure>
+
+<h2>Download</h2>
+
+<table>
+  <tr><th>System</th><th>File</th><th>What to do</th></tr>
+  <tr>
+    <td><strong>Windows 11</strong></td>
+    <td><code>GonkNote-1.0.0-windows-x64.zip</code></td>
+    <td>Unpack, run <code>GonkNote.exe</code>. Keep the <code>tessdata</code> folder next to it.</td>
+  </tr>
+  <tr>
+    <td><strong>Linux</strong></td>
+    <td><code>GonkNote-1.0.0-x86_64.AppImage</code></td>
+    <td><code>chmod +x</code>, run it. Needs only fontconfig and one font.</td>
+  </tr>
+  <tr>
+    <td><strong>Linux, Flatpak</strong></td>
+    <td>— not on Flathub yet —</td>
+    <td>Until then, build it yourself: <code>packaging/flatpak/bauen.sh</code></td>
+  </tr>
+</table>
+
+<p style="margin-top:16px">
+  <a class="knopf" href="https://github.com/GONKstupid/GonkNote/releases/latest">Go to releases</a>
+</p>
+
+<h2>What has to be said honestly</h2>
+
+<p>
+  Gonk Note comes in two editions — one for Windows (WPF) and one for Linux (Avalonia).
+  <strong>Both do the same things</strong>, read the same database and draw with the same
+  renderer. Four differences remain, and they are named:
+</p>
+
+<ul>
+  <li>The Linux edition has no <strong>spell checking</strong>. It is the first item after
+      this release.</li>
+  <li>On Linux, <strong>composed characters</strong> (<code>´</code> + <code>e</code> →
+      <code>é</code>) do not arrive — a reported bug in the window layer, not in Gonk Note.
+      Plain letters and umlauts are unaffected.</li>
+  <li>There is no <strong>ruler</strong> above the text document on Linux — deliberately, as
+      it is decoration without function in the Windows edition.</li>
+  <li>The <strong>Windows</strong> editor in turn shows <strong>no page numbers</strong>.</li>
+</ul>
+
+<p>
+  The complete list with reasons is in the
+  <a href="https://github.com/GONKstupid/GonkNote/blob/main/README.en.md#two-editions-one-app">README</a>.
+</p>
+
+<h2>Your data</h2>
+
+<p>
+  Everything stays on the machine. On first start Gonk Note creates <strong>one</strong>
+  folder — <code>%APPDATA%\GonkNote</code> on Windows, <code>~/.config/GonkNote</code> on
+  Linux — and writes nowhere else: no cloud, no account, no registry, no telemetry. To
+  uninstall, delete the program and that folder. That folder is also your backup.
+</p>
+
+<footer>
+  <p>
+    Gonk Note is licensed under the
+    <a href="https://github.com/GONKstupid/GonkNote/blob/main/LICENSE">MIT licence</a> ·
+    © 2026 Manuel Toegel ·
+    <a href="https://github.com/GONKstupid/GonkNote/blob/main/THIRD-PARTY-NOTICES.md">Third-party notices</a> ·
+    <a href="https://github.com/GONKstupid/GonkNote/issues">Report a bug</a>
+  </p>
+</footer>
+
+</div>
+</body>
+</html>

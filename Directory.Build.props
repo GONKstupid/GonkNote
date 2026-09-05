@@ -11,11 +11,20 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>14</LangVersion>
-    <!-- 0.3.0 seit Phase 2, Schritt 3: der Umbau von LiteDB auf SQLite betrifft das
-         **Dateiformat**, und dafür ist eine neue Minor-Version die übliche Ansage.
-         Wer sie anhebt, zieht About.Version in **beiden** Loc-Tabellen nach — dort steht
-         auch die Portierungsphase (HANDOFF §4.5, Dauerregel 1). -->
-    <Version>0.3.0</Version>
+    <!-- 1.0.0 seit Phase 5, Schritt ⑤ (HANDOFF §5 Nr. 23, Nutzer-Entscheidung 2026-08-28):
+         die Zahl gehört an die **Auslieferung** und nicht an ihren Anfang. Bis dahin stand
+         hier 0.3.0 — seit Phase 2, Schritt 3, wo der Umbau von LiteDB auf SQLite das
+         **Dateiformat** änderte.
+
+         ⛔ WER SIE ANHEBT, ZIEHT VIER WEITERE STELLEN NACH, und keine davon fällt beim
+         Bauen auf (HANDOFF §4.5, Dauerregel 1):
+           * About.Version in **beiden** Loc-Tabellen (LocGerman, LocEnglish) — dort steht
+             auch die Portierungsphase,
+           * die <release>-Zeile in packaging/flatpak/…metainfo.xml,
+           * die vier mitgelieferten Dokumente, wo sie eine Version nennen,
+           * Tag und Release auf GitHub.
+         Danach beide Über-Dialoge in beiden Sprachen und in **beiden Köpfen** gegenprüfen. -->
+    <Version>1.0.0</Version>
     <Company>GonkNote</Company>
     <Product>Gonk Note</Product>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>

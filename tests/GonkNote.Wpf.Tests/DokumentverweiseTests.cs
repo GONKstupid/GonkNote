@@ -145,9 +145,17 @@ public sealed class DokumentverweiseTests
             Anleitung(),
             new Dokumentverweise(EmbeddedDocs.IsReadmeLink, _ => { }));
 
-        // Drei Stellen zeigen aufs README — gemessen an der Datei, nicht angenommen.
+        // Vier Stellen zeigen aufs README — gemessen an der Datei, nicht angenommen.
+        //
+        // Die vierte ist in Phase 5, Schritt ⑤ dazugekommen: Abschnitt 1 der Anleitung
+        // verweist seither auf „README.md#installieren", weil es die drei Installationswege
+        // vorher gar nicht gab. **Dieser Wächter hat den Zusatz gemeldet** — er zählt
+        // absichtlich die genaue Liste und nicht „mindestens eine": Eine Zahl, die mit
+        // wächst, was sie prüft, prüft nichts (§4.99, der Rundreise-Test, der sich der
+        // Palettenlücke angepasst hat). Wer hier eine Zeile ergänzt, ergänzt sie also hier
+        // mit — und sieht dabei nach, ob der neue Verweis im Programm wirklich klickbar ist.
         Assert.Equal(
-            "Feature-Übersicht im README | README | README",
+            "Feature-Übersicht im README | README | README | README",
             string.Join(" | ", verweise.Where(v => !v.Netz).Select(v => v.Text)));
     });
 

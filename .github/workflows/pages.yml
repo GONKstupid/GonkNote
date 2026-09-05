@@ -1,0 +1,63 @@
+# Die Projektseite veröffentlichen (Phase 5, Schritt ⑤ -- HANDOFF §6, „Was in ⑤ ansteht").
+#
+# Was hier NICHT passiert: gebaut wird nichts. Der Ordner `site/` ist fertiges HTML samt
+# einer CSS-Datei und den Bildschirmfotos; dieser Lauf lädt ihn hoch. Das ist Absicht --
+# eine Startseite mit Bauschritt veraltet mit ihrem Bauwerkzeug, und diese hier soll noch
+# stehen, wenn niemand mehr hinsieht.
+#
+# ⛔ EINMALIG VON HAND: In den Repo-Einstellungen muss unter „Pages" als Quelle
+#    **GitHub Actions** stehen (nicht „Deploy from a branch"). Ohne das läuft dieser Job und
+#    veröffentlicht trotzdem nichts -- und er meldet es als Fehler erst im Deploy-Schritt.
+#
+# ⚠ WARUM `site/` UND NICHT `docs/`: GitHub Pages kann einen Ordner namens `/docs`
+#   veröffentlichen -- aber dieses Repo hat bereits `Docs/` mit dem Arbeitsprotokoll, und
+#   unter Windows sind `docs` und `Docs` DASSELBE VERZEICHNIS. Ein Ordner `docs/` daneben
+#   wäre auf dem Entwicklungsrechner nicht anzulegen. Deshalb ein eigener Name und der Weg
+#   über Actions.
+#
+# ⚠ Die AppStream-Beschreibung (packaging/flatpak/*.metainfo.xml) verweist mit ihren
+#   <screenshots> auf genau diese Seite. Wer hier eine Bilddatei umbenennt, bricht den
+#   Flathub-Eintrag -- und das fällt erst bei der Einreichung auf.
+
+name: Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'site/**'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+# Die Rechte, die das Hochladen braucht -- und nicht mehr.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Ein Deploy zur Zeit. `cancel-in-progress: false`, anders als in der CI: ein abgebrochener
+# Deploy hinterlässt die Seite in einem halben Zustand.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Projektseite veroeffentlichen
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/configure-pages@v5
+
+      - name: Ordner hochladen
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: site
+
+      - name: Veroeffentlichen
+        id: deployment
+        uses: actions/deploy-pages@v4

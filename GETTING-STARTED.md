@@ -43,8 +43,12 @@ not need admin rights.
 > [README](README.en.md#two-editions-one-app) — the biggest is **spell checking**, which
 > does not exist on Linux yet.
 
-> There is no ready-made release to download (yet) — you build the program yourself with two
-> commands.
+> **The quickest route is a ready-made download.**
+> **[Releases](https://github.com/GONKstupid/GonkNote/releases)** carries the Windows exe and
+> the Linux AppImage — both run **without an installed .NET**, so you need none of what
+> follows below. The three ways are described in the [README](README.en.md#install).
+> **This guide builds the program from source** — the route for anyone who wants to
+> contribute or run the latest state.
 
 **Step by step:**
 
@@ -388,7 +392,11 @@ Gonk Note does **not** update itself — there is no updater and no internet con
 the new state and rebuild. It takes less than a minute.
 
 **Which version is running?** `Help → About Gonk Note` shows it at the top
-(e.g. "Version 0.1.0 – Phase 3").
+(e.g. "Version 1.0.0 · Windows and Linux").
+
+> **If you use a ready-made download**, this section does not apply: just fetch the new file
+> from [Releases](https://github.com/GONKstupid/GonkNote/releases) and replace the old one.
+> **Your data folder is not touched** — it lives elsewhere (section 2).
 
 **Step by step:**
 

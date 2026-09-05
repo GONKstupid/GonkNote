@@ -10,15 +10,24 @@
         ShowInTaskbar="False">
     <DockPanel Margin="18">
 
-        <!-- Kopf -->
-        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,12">
-            <Image Source="/Assets/gonk-note-Icon.png" Width="40" Height="40"
+        <!-- Kopf.
+
+             ⛔ EIN DockPanel UND KEIN waagerechtes StackPanel, und das ist keine
+                Geschmacksfrage: Ein waagerechtes StackPanel misst seine Kinder mit
+                UNENDLICHER Breite. Die Versionszeile wurde darin nicht umgebrochen, sondern
+                am Fensterrand ABGESCHNITTEN — gefunden am laufenden Programm, als
+                About.Version mit 1.0.0 länger wurde (Phase 5, Schritt ⑤). Der Fehler ist
+                still: Bau grün, Text da, Ende weg. Im DockPanel bekommt die Textspalte den
+                Rest der Fensterbreite, und `TextWrapping` wirkt. -->
+        <DockPanel DockPanel.Dock="Top" Margin="0,0,0,12">
+            <Image DockPanel.Dock="Left" Source="/Assets/gonk-note-Icon.png" Width="40" Height="40"
                    RenderOptions.BitmapScalingMode="HighQuality" VerticalAlignment="Center"/>
             <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
                 <TextBlock Text="Gonk Note" FontSize="19" FontWeight="SemiBold"/>
-                <TextBlock x:Name="VersionText" Foreground="{DynamicResource Brush.TextMuted}"/>
+                <TextBlock x:Name="VersionText" TextWrapping="Wrap"
+                           Foreground="{DynamicResource Brush.TextMuted}"/>
             </StackPanel>
-        </StackPanel>
+        </DockPanel>
 
         <TextBlock DockPanel.Dock="Top" Foreground="{DynamicResource Brush.TextMuted}"
                    TextWrapping="Wrap" Margin="0,0,0,8"

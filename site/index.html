@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<!--
+  Die deutsche Projektseite. Das englische Gegenstück ist en/index.html.
+
+  ⛔ DAUERREGEL 1 GILT HIER GENAUSO WIE FÜR DIE VIER MITGELIEFERTEN DOKUMENTE: nie nur eine
+     Sprache ändern. Anders als dort fällt es hier nicht einmal still auf -- es gibt keinen
+     Rückfall auf Deutsch, die englische Seite zeigt einfach den alten Stand.
+
+  ⚠ Die Bilder unter bilder/ entstehen aus der DEMO-Datenbank (tools/demo-db), nicht aus dem
+    echten Bestand. Wer sie erneuert, erneuert sie von dort -- der echte Bestand enthält
+    Schulunterlagen und darf nicht ins Repo (HANDOFF, Dauerregel 4).
+
+  ⚠ Die Versionsnummer steht hier von Hand. Sie ist die fünfte Stelle nach
+    Directory.Build.props, den zwei Loc-Tabellen und der metainfo.xml -- und die einzige,
+    die kein Compiler und kein Wächter nachhält.
+-->
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gonk Note — Notizbücher, Whiteboards und Textdokumente, offline</title>
+<meta name="description" content="Offline-Notiz-App für Windows 11 und Linux: Notizbücher, Whiteboards und Textdokumente. Stylus-freundlich, ohne Cloud, ohne Konto, ohne Installation.">
+<link rel="stylesheet" href="stil.css">
+<link rel="icon" href="bilder/icon.png">
+</head>
+<body>
+<div class="mitte">
+
+<div class="sprache"><strong>Deutsch</strong> · <a href="en/">English</a></div>
+
+<header>
+  <h1>Gonk Note</h1>
+  <p class="untertitel">
+    Notizbücher, Whiteboards und Textdokumente — auf <strong>Windows 11 und Linux</strong>.
+    Stylus-freundlich, ohne Cloud, ohne Konto, ohne Installation.
+  </p>
+
+  <div class="knopfreihe">
+    <a class="knopf" href="https://github.com/GONKstupid/GonkNote/releases/latest">Herunterladen</a>
+    <a class="knopf leise" href="https://github.com/GONKstupid/GonkNote">Quellcode auf GitHub</a>
+    <a class="knopf leise" href="https://github.com/GONKstupid/GonkNote/blob/main/ERSTE-SCHRITTE.md">Erste Schritte</a>
+  </div>
+  <p class="kleingedruckt">
+    Version 1.0.0 · MIT-Lizenz · Windows-Exe und Linux-AppImage laufen ohne installiertes .NET
+  </p>
+</header>
+
+<figure>
+  <img src="bilder/notizbuch.png" alt="Eine Notizbuchseite mit Stift, Bleistift, Textmarker, Formen und einem Notizzettel">
+  <figcaption>
+    Eine Notizbuchseite: Stift mit Druck und Neigung, Bleistift, Textmarker, erkannte Formen,
+    Textfelder und ein Notizzettel — alles auf derselben Seite.
+  </figcaption>
+</figure>
+
+<h2>Was es kann</h2>
+
+<div class="karten">
+  <div class="karte">
+    <h3>Notizbücher</h3>
+    <p>A4- und A3-Seiten mit anpassbarem Cover, Stift, Bleistift und Textmarker samt Druck
+       und Neigung, punktgenauem Radieren, Lasso und Formen-Stift.</p>
+  </div>
+  <div class="karte">
+    <h3>Whiteboards</h3>
+    <p>Unendliche Zeichenfläche mit Punktraster, Notizzetteln, Stickern, Lineal und
+       Geodreieck — und <strong>Texterkennung</strong> für Handgeschriebenes.</p>
+  </div>
+  <div class="karte">
+    <h3>Textdokumente</h3>
+    <p>Ein eigener Editor, der <strong>echte Seiten setzt</strong>: Überschriften, Listen,
+       Tabellen, Felder, Diagramme, Inhaltsverzeichnis, Kopf- und Fußzeile.</p>
+  </div>
+  <div class="karte">
+    <h3>Ein- und Ausgang</h3>
+    <p>Import aus DOCX, Markdown und PDF; Export nach PDF, DOCX, Markdown und PNG. Was auf
+       dem Schirm steht, schreibt auch der Export.</p>
+  </div>
+</div>
+
+<figure style="margin-top:40px">
+  <img src="bilder/textdokument.png" alt="Der Texteditor mit Überschriften, Listen und einer Tabelle">
+  <figcaption>
+    Der Texteditor setzt die Seite selbst — derselbe Umbruch und derselbe Zeichner, die auch
+    das PDF schreiben.
+  </figcaption>
+</figure>
+
+<figure>
+  <img src="bilder/galerie.png" alt="Die Galerie: Notizbuch, Whiteboard und Textdokument als Kacheln">
+  <figcaption>
+    Die Galerie zeigt den aktuellen Ordner in großen Kacheln — Notizbuch-Cover, Whiteboard
+    und Textdokument.
+  </figcaption>
+</figure>
+
+<h2>Herunterladen</h2>
+
+<table>
+  <tr><th>System</th><th>Datei</th><th>Was zu tun ist</th></tr>
+  <tr>
+    <td><strong>Windows 11</strong></td>
+    <td><code>GonkNote-1.0.0-windows-x64.zip</code></td>
+    <td>Entpacken, <code>GonkNote.exe</code> starten. Der Ordner <code>tessdata</code> bleibt daneben liegen.</td>
+  </tr>
+  <tr>
+    <td><strong>Linux</strong></td>
+    <td><code>GonkNote-1.0.0-x86_64.AppImage</code></td>
+    <td><code>chmod +x</code>, starten. Braucht nur fontconfig und eine Schrift.</td>
+  </tr>
+  <tr>
+    <td><strong>Linux, Flatpak</strong></td>
+    <td>— noch nicht auf Flathub —</td>
+    <td>Bis dahin selbst bauen: <code>packaging/flatpak/bauen.sh</code></td>
+  </tr>
+</table>
+
+<p style="margin-top:16px">
+  <a class="knopf" href="https://github.com/GONKstupid/GonkNote/releases/latest">Zu den Releases</a>
+</p>
+
+<h2>Was ehrlich gesagt sein muss</h2>
+
+<p>
+  Gonk Note gibt es in zwei Ausgaben — einer für Windows (WPF) und einer für Linux
+  (Avalonia). <strong>Beide können dasselbe</strong>, lesen dieselbe Datenbank und zeichnen
+  mit demselben Renderer. Vier Unterschiede bleiben, und sie stehen namentlich da:
+</p>
+
+<ul>
+  <li>Der Linux-Ausgabe fehlt die <strong>Rechtschreibprüfung</strong>. Sie ist der erste
+      Punkt nach dieser Ausgabe.</li>
+  <li>Unter Linux kommen <strong>zusammengesetzte Zeichen</strong> (<code>´</code> +
+      <code>e</code> → <code>é</code>) nicht an — ein gemeldeter Fehler im Fenster-Baustein,
+      nicht in Gonk Note. Buchstaben und Umlaute sind nicht betroffen.</li>
+  <li>Über dem Textdokument gibt es unter Linux <strong>kein Lineal</strong> — bewusst, denn
+      in der Windows-Ausgabe ist es eine Zierleiste ohne Funktion.</li>
+  <li>Der <strong>Windows</strong>-Editor zeigt umgekehrt <strong>keine Seitenzahlen</strong>.</li>
+</ul>
+
+<p>
+  Die vollständige Liste samt Begründung steht im
+  <a href="https://github.com/GONKstupid/GonkNote#zwei-ausgaben-eine-app">README</a>.
+</p>
+
+<h2>Deine Daten</h2>
+
+<p>
+  Alles bleibt auf dem Rechner. Gonk Note legt beim ersten Start <strong>einen</strong>
+  Ordner an — <code>%APPDATA%\GonkNote</code> unter Windows,
+  <code>~/.config/GonkNote</code> unter Linux — und schreibt sonst nirgendwo hin: keine
+  Cloud, kein Konto, keine Registry, keine Telemetrie. Zum Deinstallieren reicht es, das
+  Programm und diesen Ordner zu löschen. Der Ordner ist gleichzeitig deine Sicherung.
+</p>
+
+<footer>
+  <p>
+    Gonk Note steht unter der
+    <a href="https://github.com/GONKstupid/GonkNote/blob/main/LICENSE">MIT-Lizenz</a> ·
+    © 2026 Manuel Toegel ·
+    <a href="https://github.com/GONKstupid/GonkNote/blob/main/THIRD-PARTY-NOTICES.md">Fremde Bestandteile</a> ·
+    <a href="https://github.com/GONKstupid/GonkNote/issues">Fehler melden</a>
+  </p>
+</footer>
+
+</div>
+</body>
+</html>

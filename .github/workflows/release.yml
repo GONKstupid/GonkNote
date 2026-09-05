@@ -1,0 +1,184 @@
+# Ein Release mit Artefakten bauen (Phase 5, Schritt ⑤ -- HANDOFF §6, „Was in ⑤ ansteht":
+# *„Ohne das führt das öffentliche Repo nur Quellcode, und niemand kann die App ausprobieren"*).
+#
+# Ausgelöst wird er von einem **Tag**, nicht von einem Push auf main:
+#
+#     git tag -a v1.0.0 -m "Gonk Note 1.0.0"
+#     git push origin v1.0.0
+#
+# ⛔ DER TAG IST DIE VERÖFFENTLICHUNG. Es gibt danach kein Zurück, das niemand gesehen hat --
+#    ein Release lässt sich löschen, ein heruntergeladenes Artefakt nicht. Vorher gehört die
+#    Kette grün: Bau 0/0 und beide Testprojekte (die CI macht genau das bei jedem Push).
+#
+# ⚠ DIE VERSION KOMMT AUS DEM TAG UND NICHT AUS Directory.Build.props. Das ist bewusst so:
+#   Der Dateiname eines Artefakts soll das sagen, was am Tag steht. Beide auseinanderlaufen
+#   zu lassen ist trotzdem ein Fehler -- wer taggt, hebt vorher Directory.Build.props,
+#   About.Version in **beiden** Loc-Tabellen und die <release>-Zeile der metainfo.xml an
+#   (der Kommentar in Directory.Build.props führt die Liste).
+#
+# ⚠ WAS HIER NOCH NIE GELAUFEN IST: der AppImage-Zweig. Auf dem CachyOS-Laptop ist er
+#   gebaut und gestartet (HANDOFF §4.96, §4.98, §4.100) -- **in dieser CI nicht**. Zwei
+#   Dinge unterscheiden sich dort von einem Arbeitsplatz, und beide sind hier behandelt:
+#   appimagetool ist selbst ein AppImage und braucht FUSE (deshalb
+#   `APPIMAGE_EXTRACT_AND_RUN`), und Tesseract muss erst installiert werden, damit
+#   `bauen.sh` etwas zum Einsammeln findet. Schlägt er fehl, schlägt der Lauf fehl und es
+#   entsteht **kein halbes Release** -- das ist die richtige Reihenfolge.
+
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  # ---------------------------------------------------------------- Windows
+  windows:
+    name: Windows-Exe
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Version aus dem Tag lesen
+        id: v
+        shell: bash
+        run: echo "nr=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      # Erst prüfen, dann packen. Ein Release aus einem ungeprüften Baum ist genau der
+      # Stand, den nie jemand gesehen hat (HANDOFF §6, Grundregel von 2026-08-05).
+      - name: Bauen und testen (Release)
+        run: |
+          dotnet build GonkNote.slnx -c Release -warnaserror
+          dotnet test GonkNote.slnx -c Release --no-build
+
+      - name: Veroeffentlichen (Single-File, selbstenthalten)
+        run: dotnet publish src/GonkNote.Wpf -c Release
+
+      # Die losen .pdb der nativen Bibliotheken fallen weg: sie sind Symboldateien für
+      # SkiaSharp und HarfBuzz, kein Bestandteil der App, und sie wiegen mehr als die Exe.
+      # Die eigenen Symbole stecken in der Exe (DebugType=embedded, Directory.Build.props).
+      - name: Zip schnueren
+        shell: pwsh
+        run: |
+          $quelle = "src/GonkNote.Wpf/bin/Release/net10.0-windows10.0.19041.0/win-x64/publish"
+          Get-ChildItem "$quelle" -Filter *.pdb | Remove-Item
+          New-Item -ItemType Directory -Force artefakte | Out-Null
+          Compress-Archive -Path "$quelle/*" -DestinationPath "artefakte/GonkNote-${{ steps.v.outputs.nr }}-windows-x64.zip"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: windows
+          path: artefakte/*
+          if-no-files-found: error
+
+  # ---------------------------------------------------------------- Linux
+  linux:
+    name: Linux-AppImage und Tarball
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Version aus dem Tag lesen
+        id: v
+        run: echo "nr=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      # fontconfig und eine Schrift für die Core-Tests (siehe ci.yml, dieselbe Begründung),
+      # Tesseract und Leptonica für den Beipack des AppImage (HANDOFF §4.98, §5 Nr. 29:
+      # „nicht jede Linux-Verteilung hat Texterkennung").
+      - name: Systempakete
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            libfontconfig1 fonts-dejavu-core \
+            tesseract-ocr libtesseract-dev libleptonica-dev
+
+      - name: Core-Tests
+        run: dotnet test tests/GonkNote.Core.Tests/GonkNote.Core.Tests.csproj -c Release -warnaserror
+
+      # Der zweite, einfachere Kanal: derselbe publish-Ordner ohne Verpackung. Er ist hier,
+      # weil er nicht schiefgehen kann -- schlägt der AppImage-Bau auf einer künftigen
+      # Runner-Fassung fehl, steht trotzdem ein lauffähiger Linux-Download bereit.
+      - name: Tarball
+        run: |
+          dotnet publish src/GonkNote.Avalonia -c Release -r linux-x64 --self-contained true -o publish-linux
+          # Dieselben 12 MB Windows-DLLs wie im Flatpak (packaging/LIESMICH.md).
+          rm -rf publish-linux/x64 publish-linux/x86
+          mkdir -p artefakte
+          tar -czf "artefakte/GonkNote-${{ steps.v.outputs.nr }}-linux-x64.tar.gz" -C publish-linux .
+
+      # APPIMAGE_EXTRACT_AND_RUN: appimagetool ist selbst ein AppImage. Auf einem Runner
+      # ohne FUSE könnte es sich sonst nicht einhängen und bräche mit einer Meldung ab, die
+      # nach einem Fehler im Paket aussieht statt nach einem fehlenden Kernelmodul.
+      - name: AppImage
+        env:
+          APPIMAGE_EXTRACT_AND_RUN: 1
+        run: |
+          cd packaging/appimage
+          ./bauen.sh
+          cd ../..
+          mv packaging/appimage/build/GonkNote-x86_64.AppImage \
+             "artefakte/GonkNote-${{ steps.v.outputs.nr }}-x86_64.AppImage"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: linux
+          path: artefakte/*
+          if-no-files-found: error
+
+  # ---------------------------------------------------------------- Release
+  release:
+    name: Release anlegen
+    needs: [windows, linux]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/download-artifact@v6
+        with:
+          path: artefakte
+          merge-multiple: true
+
+      - name: Was hochgeht
+        run: ls -lh artefakte
+
+      # `draft: false` und `generate_release_notes: true`: Der Text unten sagt, was einer
+      # herunterladen soll; die erzeugte Liste darunter sagt, was sich geändert hat. Beides
+      # von Hand zu schreiben hieße, es beim zweiten Mal nicht mehr zu tun.
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: artefakte/*
+          generate_release_notes: true
+          body: |
+            **Gonk Note ${{ github.ref_name }}** — Notizbücher, Whiteboards und Textdokumente,
+            offline, auf Windows 11 und Linux.
+
+            | Datei | Für | Was zu tun ist |
+            |---|---|---|
+            | `…-windows-x64.zip` | Windows 11 | Entpacken, `GonkNote.exe` starten. `tessdata` bleibt daneben liegen. Kein .NET nötig |
+            | `…-x86_64.AppImage` | Linux | `chmod +x`, starten. Braucht nur fontconfig und eine Schrift. Texterkennung ist mit drin |
+            | `…-linux-x64.tar.gz` | Linux | Entpacken und `GonkNote.Avalonia` starten — dasselbe ohne AppImage-Hülle |
+
+            Flatpak: noch nicht auf Flathub; bis dahin selbst bauen
+            (`packaging/flatpak/bauen.sh`).
+
+            **Bekannte Einschränkungen** stehen namentlich im
+            [README](https://github.com/GONKstupid/GonkNote#zwei-ausgaben-eine-app) — die
+            wichtigste: der Linux-Ausgabe fehlt die Rechtschreibprüfung, und sie ist der
+            erste Punkt danach.
+
+            Alles bleibt auf dem Rechner: keine Cloud, kein Konto, keine Telemetrie.

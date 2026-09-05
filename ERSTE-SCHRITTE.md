@@ -44,8 +44,12 @@ Adminrechte brauchst du nicht.
 > [README](README.md#zwei-ausgaben-eine-app) — der größte ist die
 > **Rechtschreibprüfung**, die es unter Linux noch nicht gibt.
 
-> Es gibt (noch) kein fertiges Release zum Herunterladen — du baust dir das
-> Programm in zwei Befehlen selbst.
+> **Der schnellste Weg ist ein fertiger Download.** Unter
+> **[Releases](https://github.com/GONKstupid/GonkNote/releases)** liegen die Windows-Exe
+> und das Linux-AppImage — beide laufen **ohne installiertes .NET**, du brauchst dafür
+> also nichts von dem, was gleich unten steht. Die drei Wege stehen im
+> [README](README.md#installieren). **Diese Anleitung baut das Programm aus dem
+> Quellcode** — der Weg für alle, die mitentwickeln oder den neuesten Stand wollen.
 
 **Schritt für Schritt:**
 
@@ -416,7 +420,12 @@ Internetverbindung. Du holst dir den neuen Stand und baust neu. Das dauert unter
 einer Minute.
 
 **Welche Version läuft gerade?** `Hilfe → Über Gonk Note` zeigt sie oben
-(z. B. „Version 0.1.0 – Phase 3").
+(z. B. „Version 1.0.0 · Windows und Linux").
+
+> **Wenn du einen fertigen Download benutzt**, gilt dieser Abschnitt nicht: Dann lädst du
+> unter [Releases](https://github.com/GONKstupid/GonkNote/releases) einfach die neue Datei
+> herunter und ersetzt die alte. **Dein Datenordner wird dabei nicht angefasst** — er liegt
+> woanders (Abschnitt 2).
 
 **Schritt für Schritt:**
 

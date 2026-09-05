@@ -8,10 +8,16 @@ gebaut und gestartet**, nicht hergeleitet.
 > Pakete gebaut, installiert und gestartet, nachdem die Runden von Schritt ④ (§4.97–§4.99)
 > darin sind. Schritt ③ war eine **Erprobung**; **dieser Bau ist der, der hinausgeht.**
 >
-> ⚠ **Was vor dem Release trotzdem noch fehlt, und es gehört Windows:** Die Version steht in
-> `Directory.Build.props`, im Flatpak und in der `metainfo.xml` auf **0.3.0**, und der
-> `<release>`-Eintrag nennt sich selbst „packaging trial, not a release“ (§5 Nr. 23/24
-> verlangt **1.0.0**).
+> ✅ **Und der Posten, der dazu noch offen war, ist erledigt** (2026-09-05, V2-125, Schritt ⑤):
+> Die Version steht in `Directory.Build.props`, in `About.Version` (beide Sprachtabellen) und
+> in der `metainfo.xml` auf **1.0.0**; der `<release>`-Eintrag beschreibt eine Ausgabe und
+> nennt sich nicht mehr selbst „packaging trial“. Der alte 0.3.0-Eintrag bleibt als
+> `type="development"` stehen — eine Fassung, die es gab, wird nicht nachträglich weggelassen.
+>
+> ⛔ **Neu und leicht zu übersehen:** Die `metainfo.xml` trägt jetzt `<screenshots>`, und die
+> zeigen auf **GitHub Pages** (`site/bilder/*.png` dieses Repos). **Wer dort eine Datei
+> umbenennt, bricht den Flathub-Eintrag** — und es fällt erst bei der Einreichung auf, nicht
+> beim Bauen.
 
 | | Wofür | Ordner |
 |---|---|---|

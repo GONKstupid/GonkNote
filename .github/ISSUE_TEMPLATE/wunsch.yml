@@ -1,0 +1,49 @@
+# Wunschvorlage. Bewusst mit dem Feld „Wie machst du es heute?" -- die Erfahrung dieses
+# Projekts ist, dass ein Wunsch oft schon geht und nur nicht gefunden wird (HANDOFF §4.77,
+# §4.81: dieselbe Zeile stand zweimal auf einer Aufgabenliste und war beide Male längst
+# erledigt). Die Frage kostet den Melder zwei Sätze und spart im Zweifel eine Runde Arbeit.
+
+name: Wunsch oder Idee · Feature or idea
+description: Etwas fehlt oder ginge einfacher · Something is missing or could be simpler
+labels: ["wunsch"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Bitte zuerst kurz ins [README](https://github.com/GONKstupid/GonkNote#features)
+        sehen — es beschreibt einiges, was man nicht auf Anhieb findet.
+
+        *Please have a quick look at the [README](https://github.com/GONKstupid/GonkNote/blob/main/README.en.md#features)
+        first — it describes a fair amount that is not obvious at first glance.*
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Was du erreichen willst · What you are trying to do
+      description: >
+        Bitte das Ziel und nicht die Lösung — die Lösung fällt danach oft anders aus.
+        · The goal rather than the solution; the solution often turns out different.
+    validations:
+      required: true
+
+  - type: textarea
+    id: heute
+    attributes:
+      label: Wie machst du es heute? · How do you do it today?
+      description: >
+        Auch „gar nicht" ist eine Antwort. Manches geht schon und wird nur nicht gefunden —
+        dann ist der Fehler in der Oberfläche und nicht im Funktionsumfang.
+        · "Not at all" is a valid answer.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: ausgabe
+    attributes:
+      label: Betrifft · Applies to
+      options:
+        - Beide Ausgaben · Both editions
+        - Nur Windows · Windows only
+        - Nur Linux · Linux only
+    validations:
+      required: true

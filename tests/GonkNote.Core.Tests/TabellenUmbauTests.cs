@@ -1,3 +1,4 @@
+using System.Globalization;
 using GonkNote.Core.Text;
 
 namespace GonkNote.Core.Tests;
@@ -248,6 +249,73 @@ public sealed class TabellenUmbauTests
         Assert.Equal(
             ["20.01.2026", "15.02.2026", "01.03.2026"],
             new[] { Zelle(t, 0, 0), Zelle(t, 1, 0), Zelle(t, 2, 0) });
+    }
+
+    /// <summary>
+    /// <b>Und dasselbe auf einem englischen Rechner</b> — der Wächter, der vier Tage gefehlt
+    /// hat (§4.101).
+    ///
+    /// <para>
+    /// <b>Der Fehler, den er festhält, war ein echter und kein Testfehler:</b>
+    /// <c>AlsDatum</c> las mit <c>CultureInfo.CurrentCulture</c>. Auf <c>de-DE</c> ging
+    /// „15.02.2026" durch, auf <c>en-US</c> nicht (Monat 15) — die Spalte galt dann als
+    /// <b>Zahlen</b>spalte, und daraus wurde 15.022.026. <b>Genau die Umkehrung, vor der der
+    /// Kommentar über der Sortierung warnt</b>, nur dass sie niemand sah: Das Ergebnis sieht
+    /// sortiert aus.
+    /// </para>
+    /// <para>
+    /// <b>Gefunden hat es die CI und nicht dieser Wächter</b> — ihre Runner laufen auf
+    /// <c>en-US</c>, der Entwicklungsrechner auf <c>de-DE</c>, und der Test darüber erbt die
+    /// Kultur des Rechners. <i>Ein Wächter, der die Kultur des Rechners erbt, prüft den
+    /// Rechner und nicht das Programm.</i>
+    /// </para>
+    /// </summary>
+    [Theory]
+    [InlineData("en-US")]
+    [InlineData("de-DE")]
+    [InlineData("fr-FR")]
+    public void Datumsangaben_werden_unabhaengig_von_der_Systemsprache_sortiert(string kultur)
+    {
+        var vorher = CultureInfo.CurrentCulture;
+        try
+        {
+            CultureInfo.CurrentCulture = new CultureInfo(kultur);
+
+            var doc = Mit(Tab(["15.02.2026"], ["01.03.2026"], ["20.01.2026"]));
+            TdTableEdit.Sortieren(doc, In(doc, 0, 0), aufsteigend: true)!.Anwenden();
+
+            var t = Danach(doc);
+            Assert.Equal(
+                ["20.01.2026", "15.02.2026", "01.03.2026"],
+                new[] { Zelle(t, 0, 0), Zelle(t, 1, 0), Zelle(t, 2, 0) });
+        }
+        finally { CultureInfo.CurrentCulture = vorher; }
+    }
+
+    /// <summary>
+    /// <b>Auch die andere Schreibweise wird erkannt</b>, und zwar auf jedem Rechner: Die
+    /// invariante Kultur steht als zweite in <c>Datumskulturen</c> und fängt <c>2026-01-20</c>
+    /// ab, wenn Deutsch die Spalte nicht vollständig lesen konnte.
+    /// </summary>
+    [Theory]
+    [InlineData("en-US")]
+    [InlineData("de-DE")]
+    public void ISO_Datumsangaben_werden_als_Datum_sortiert(string kultur)
+    {
+        var vorher = CultureInfo.CurrentCulture;
+        try
+        {
+            CultureInfo.CurrentCulture = new CultureInfo(kultur);
+
+            var doc = Mit(Tab(["2026-02-15"], ["2026-03-01"], ["2026-01-20"]));
+            TdTableEdit.Sortieren(doc, In(doc, 0, 0), aufsteigend: true)!.Anwenden();
+
+            var t = Danach(doc);
+            Assert.Equal(
+                ["2026-01-20", "2026-02-15", "2026-03-01"],
+                new[] { Zelle(t, 0, 0), Zelle(t, 1, 0), Zelle(t, 2, 0) });
+        }
+        finally { CultureInfo.CurrentCulture = vorher; }
     }
 
     /// <summary>

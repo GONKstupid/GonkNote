@@ -99,13 +99,15 @@ public static partial class TdTableEdit
         // **Datum vor Zahl**, und das ist keine Geschmacksfrage: „01.03.2026“ liest sich als
         // Zahl 1.032.026 und „15.02.2026“ als 15.022.026 — die Reihenfolge wäre umgekehrt und
         // sähe trotzdem plausibel aus. Wer zuerst nach Zahlen fragt, sortiert Daten falsch.
-        bool alsDatum = befuellt.Count > 0 && befuellt.All(t => AlsDatum(t) is not null);
+        var datumskultur = Datumskultur(befuellt);
+        bool alsDatum = datumskultur is not null;
         bool numerisch = !alsDatum && befuellt.Count > 0
             && befuellt.All(t => TdTabellenformel.AlsZahl(t) is not null);
 
         var sortiert =
             alsDatum
-                ? daten.OrderBy(z => AlsDatum(Zelltext(z, spalte)) ?? DateTime.MinValue).ToList()
+                ? daten.OrderBy(z => AlsDatum(Zelltext(z, spalte), datumskultur!) ?? DateTime.MinValue)
+                       .ToList()
             : numerisch
                 ? daten.OrderBy(z => TdTabellenformel.AlsZahl(Zelltext(z, spalte)) ?? double.MinValue)
                        .ToList()
@@ -124,6 +126,54 @@ public static partial class TdTableEdit
     }
 
     /// <summary>
+    /// Die Kulturen, in denen ein Zelltext als Datum gelesen wird — <b>in dieser Reihenfolge
+    /// und unabhängig vom Rechner</b>.
+    ///
+    /// <para>
+    /// <b>⛔ Hier stand bis V2-125 <c>CultureInfo.CurrentCulture</c>, und das war ein Fehler
+    /// mit genau der Wirkung, vor der der Kommentar über der Sortierung warnt.</b> Auf einem
+    /// deutschen Rechner las sich „15.02.2026“ als Datum; auf einem englischen scheiterte es
+    /// (Monat 15), die Spalte galt damit als Zahlenspalte, und
+    /// <see cref="TdTabellenformel.AlsZahl"/> machte daraus 15.022.026 — <b>die Reihenfolge
+    /// kehrte sich um, und sie sah plausibel aus.</b> Dasselbe Dokument war auf zwei Rechnern
+    /// verschieden sortiert.
+    /// </para>
+    /// <para>
+    /// <b>Gefunden hat es die CI</b>, vier Tage nachdem sie rot geworden war: Ihre Runner
+    /// laufen auf <c>en-US</c>, der Entwicklungsrechner auf <c>de-DE</c> — und lokal war der
+    /// Wächter deshalb grün (§4.101). <i>Ein Wächter, der die Kultur des Rechners erbt, prüft
+    /// den Rechner und nicht das Programm.</i>
+    /// </para>
+    /// <para>
+    /// <b>Deutsch zuerst, invariant danach</b> — dieselbe Rangfolge wie in
+    /// <see cref="TdTabellenformel.AlsZahl"/>, und aus demselben Grund: Die App schreibt
+    /// Zahlen deutsch, also liest sie sie auch zuerst so. Die invariante Kultur fängt danach
+    /// <c>2026-03-01</c> und <c>03/01/2026</c> ab.
+    /// </para>
+    /// </summary>
+    private static readonly System.Globalization.CultureInfo[] Datumskulturen =
+    [
+        System.Globalization.CultureInfo.GetCultureInfo("de-DE"),
+        System.Globalization.CultureInfo.InvariantCulture,
+    ];
+
+    /// <summary>
+    /// Die erste Kultur, in der <b>jede</b> befüllte Zelle der Spalte ein Datum ist — oder
+    /// <c>null</c>, wenn es keine gibt.
+    ///
+    /// <para>
+    /// <b>Eine Kultur für die ganze Spalte und nicht je Zelle</b>, und das ist derselbe
+    /// Gedanke wie bei „gemischt entscheidet die Mehrheit“: Läse eine Zelle deutsch und die
+    /// nächste invariant, entstünde eine Ordnung, die in sich nicht stimmt — <c>03.04.2026</c>
+    /// wäre einmal der 3. April und einmal der 4. März.
+    /// </para>
+    /// </summary>
+    private static System.Globalization.CultureInfo? Datumskultur(IReadOnlyList<string> befuellt) =>
+        befuellt.Count == 0
+            ? null
+            : Array.Find(Datumskulturen, k => befuellt.All(t => AlsDatum(t, k) is not null));
+
+    /// <summary>
     /// Ein Datum aus einem Zelltext — oder <c>null</c>.
     ///
     /// <para>
@@ -132,9 +182,9 @@ public static partial class TdTableEdit
     /// und eine Spalte aus Zahlen wäre plötzlich eine Spalte aus Daten.
     /// </para>
     /// </summary>
-    private static DateTime? AlsDatum(string? text) =>
+    private static DateTime? AlsDatum(string? text, System.Globalization.CultureInfo kultur) =>
         !string.IsNullOrWhiteSpace(text) &&
-        DateTime.TryParse(text, System.Globalization.CultureInfo.CurrentCulture,
+        DateTime.TryParse(text, kultur,
                           System.Globalization.DateTimeStyles.NoCurrentDateDefault, out var wert) &&
         wert.Date != DateTime.MinValue.Date
             ? wert

@@ -75,8 +75,18 @@ not need admin rights.
    src\GonkNote.Wpf\bin\Release\net10.0-windows10.0.19041.0\win-x64\publish\GonkNote.exe
    ```
 
-   Copy it wherever you want it — **together with the `tessdata` folder** and, if present,
-   the `Assets` folder from the same directory. `tessdata` holds the language data for text
+   **Copy the whole folder contents**, not just the exe: `GonkNote.exe` belongs together
+   with **`Fonts`, `tessdata` and `Assets`**.
+
+   **`Fonts` in particular.** The interface fonts sit next to the exe as loose files
+   (Inter, Source Sans 3, JetBrains Mono, Space Grotesk, Geist). Without that folder
+   Gonk Note **still starts** — it just draws everything in the Windows system font, and
+   nothing tells you.
+
+   **The easiest route is the ready-made download** — there everything is already in one
+   folder.
+
+   `tessdata` holds the language data for text
    recognition; without it everything works except OCR.
 
    **Linux:**
@@ -417,7 +427,7 @@ the new state and rebuild. It takes less than a minute.
    | the Linux edition | `dotnet build src/GonkNote.Avalonia -c Release` | `src/GonkNote.Avalonia/bin/Release/net10.0/` |
 
    With the second route you then have to copy the new `GonkNote.exe` back to wherever your old
-   one was — **together with the `Assets` and `tessdata` folders** if those have changed.
+   one was — **together with the `Fonts`, `Assets` and `tessdata` folders** if those have changed.
 
    **Never `dotnet build` without naming a project.** That builds the whole solution, which
    contains both editions — on Linux it is bound to fail on the Windows one.

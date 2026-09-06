@@ -20,9 +20,13 @@ language you picked under View → Language.)*
 [Releases](https://github.com/GONKstupid/GonkNote/releases).
 
 **1. Windows 11** — download `GonkNote-1.0.0-windows-x64.zip`, unpack it, run
-`GonkNote.exe`. It is a **single exe**; it needs no installed .NET and writes nothing to the
-registry. **The `tessdata` folder has to stay next to the exe** — it holds the language data
-for text recognition; without it everything works except OCR.
+`GonkNote.exe`. It needs no installed .NET and writes nothing to the registry.
+
+⚠ **Keep the folder together.** Three folders sit next to the exe and each is needed:
+`Fonts` (interface and document fonts), `tessdata` (text-recognition language data) and
+`Assets` (cover templates, set square). **Without `Fonts` Gonk Note still starts** and draws
+everything in the Windows system font — with no hint that anything is missing. If you move
+the exe, take the three folders along.
 
 **2. Linux, AppImage** — one file, no dependencies, no sandbox:
 
@@ -38,7 +42,7 @@ text stays blank. That is the only prerequisite; everything else is inside the i
 **3. Linux, Flatpak** — sandbox and software centre, and intended as the main channel.
 **Gonk Note is not on Flathub yet**, though; that entry is still outstanding. Until then you
 build the package yourself; the prerequisites (runtime and SDK from Flathub) and the two
-commands are in [`packaging/LIESMICH.md`](packaging/LIESMICH.md) (German):
+commands are in [packaging/LIESMICH.md](packaging/LIESMICH.md) (German):
 
 ```bash
 cd packaging/flatpak && ./bauen.sh

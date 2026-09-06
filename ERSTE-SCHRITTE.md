@@ -77,10 +77,19 @@ Adminrechte brauchst du nicht.
    src\GonkNote.Wpf\bin\Release\net10.0-windows10.0.19041.0\win-x64\publish\GonkNote.exe
    ```
 
-   Kopiere sie dorthin, wo du sie haben willst — **zusammen mit dem Ordner
-   `tessdata`** und, falls vorhanden, dem Ordner `Assets` aus demselben
-   Verzeichnis. `tessdata` enthält die Sprachdaten für die Texterkennung; ohne
-   ihn funktioniert alles außer OCR.
+   **Kopiere den ganzen Ordnerinhalt**, nicht nur die Exe: neben `GonkNote.exe`
+   gehören **`Fonts`, `tessdata` und `Assets`** dorthin, wo du sie haben willst.
+
+   **Besonders `Fonts`.** Die Oberflächenschriften liegen als lose Dateien daneben
+   (Inter, Source Sans 3, JetBrains Mono, Space Grotesk, Geist). Fehlt der Ordner,
+   **startet Gonk Note trotzdem** — es zeichnet dann nur alles in der
+   Windows-Systemschrift, und nichts weist darauf hin.
+
+   `tessdata` enthält die Sprachdaten für die Texterkennung; ohne ihn funktioniert
+   alles außer OCR. `Assets` trägt die Cover-Vorlagen und die Geodreieck-Zeichnungen.
+
+   **Am einfachsten ist der fertige Download** — dort liegt alles schon beisammen
+   in einem Ordner.
 
    **Linux:**
 
@@ -446,7 +455,7 @@ einer Minute.
    | die Linux-Ausgabe | `dotnet build src/GonkNote.Avalonia -c Release` | `src/GonkNote.Avalonia/bin/Release/net10.0/` |
 
    Beim zweiten Weg musst du die neue `GonkNote.exe` anschließend wieder dorthin
-   kopieren, wo deine alte lag — **zusammen mit den Ordnern `Assets` und `tessdata`**,
+   kopieren, wo deine alte lag — **zusammen mit den Ordnern `Fonts`, `Assets` und `tessdata`**,
    falls die sich geändert haben.
 
    **Nie `dotnet build` ohne Projektangabe.** Das baut die ganze Solution, und die

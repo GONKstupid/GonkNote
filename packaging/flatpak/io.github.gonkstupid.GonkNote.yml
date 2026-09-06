@@ -7,9 +7,30 @@
 #   Maschinerie, als eine Erprobung braucht — und beides verdeckt, was hier gemessen werden
 #   soll: läuft der fertige Kopf in der Sandbox.
 #
+#   ⛔ UND GENAU DAS GEHT SO NICHT AUF FLATHUB (HANDOFF §4.102, nachgelesen 2026-09-06):
+#      „All source available submissions must be built entirely from source code" und
+#      „There is no network access during the build process". Ein `type: dir` mit einem
+#      fertigen publish-Ordner wird abgelehnt. Die Begründung oben bleibt richtig — aber
+#      NUR FÜR IHREN ZWECK, die Erprobung. Für eine Einreichung ist dieses Manifest auf
+#      einen Quellbau umzubauen; der Zuschnitt steht in §6, „Vorgemerkt: Flathub".
+#
 # ▶ Selbstenthalten veröffentlicht (`--self-contained`). Damit steckt die .NET-Laufzeit im
-#   Paket, und die Freedesktop-Plattform muss keine mitbringen — es gibt keine
-#   `org.freedesktop.Sdk.Extension.dotnet` für net10.0.
+#   Paket, und die Freedesktop-Plattform muss keine mitbringen.
+#
+#   ⛔ HIER STAND BIS ZUM 2026-09-06: „es gibt keine `org.freedesktop.Sdk.Extension.dotnet`
+#      für net10.0". DAS IST FALSCH. `flathub/org.freedesktop.Sdk.Extension.dotnet10` gibt
+#      es, mit `branch/25.08` — genau der Runtime-Fassung unten — und dem SDK 10.0.300 (GA).
+#      Nachgesehen über die GitHub-API, nicht angenommen: dotnet8/9/10 antworten mit 200,
+#      dotnet11 mit 404. Ob der Satz je stimmte, ist von hier aus nicht zu sagen; er liest
+#      sich in beiden Fällen wie eine gültige Begründung (§4.102, sechstes Mal dieses
+#      Muster). Der Quellbau oben nimmt genau diese Erweiterung.
+#
+# ▶ Weitere Punkte, die Flathub verlangt und die hier bewusst NOCH NICHT geändert sind —
+#   sie gehören in den Umbau und nicht in eine Erprobung, die am Gerät gemessen ist:
+#     * `--talk-name=org.freedesktop.portal.Desktop` streichen (Portale sind ohnehin erlaubt,
+#       flatpak-builder-lint flaggt die Zeile),
+#     * `--socket=wayland` streichen (Avalonia hat keinen Wayland-Rücken, siehe unten),
+#     * `flathub.json` mit `{"only-arches": ["x86_64"]}` danebenlegen.
 #
 # ▶ Tesseract und Leptonica werden hier MITGEBAUT und nicht vorausgesetzt. Sie stehen in
 #   keiner Freedesktop-Plattform, und ohne sie meldet die Texterkennung ehrlich „nicht

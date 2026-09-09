@@ -70,6 +70,26 @@ public sealed class SkiaCanvas : Control
     /// </summary>
     public event Action<SkiaPaintArgs>? Paint;
 
+    /// <summary>
+    /// Erwartet diese Fläche Text, sobald sie den Fokus hat?
+    ///
+    /// <para>
+    /// <b>Wofür das da ist</b> (2026-09-09): Die eingebaute Bildschirmtastatur muss aufgehen,
+    /// wenn der Nutzer irgendwo hineinschreiben kann. Bei einem <c>TextBox</c> ist das offen
+    /// sichtbar; eine selbstgezeichnete Fläche sieht dagegen immer gleich aus — die Tafel
+    /// nimmt hier <b>keinen</b> Text an (sie beschriftet über ein echtes Eingabefeld darüber),
+    /// der Textdokument-Editor <b>schon</b>. Von außen ist das nicht zu unterscheiden.
+    /// </para>
+    /// <para>
+    /// <b>Eine gesetzte Eigenschaft und keine Frage an die Eingabemethode.</b> Man könnte
+    /// <c>TextInputMethodClientRequested</c> erheben und schauen, ob jemand antwortet — aber
+    /// ein Ereignis als Frage zu missbrauchen heißt, bei jedem Fokuswechsel einen Vorgang
+    /// auszulösen, den Avalonia für etwas anderes vorgesehen hat. Wer sich als Eingabeziel
+    /// anmeldet, setzt hier gleich mit; das ist eine Zeile an derselben Stelle.
+    /// </para>
+    /// </summary>
+    public bool ErwartetText { get; set; }
+
     public SkiaCanvas()
     {
         // Die Fläche nimmt die Tastatur selbst. Es genügt **nicht**, das umgebende

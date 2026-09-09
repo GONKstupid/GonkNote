@@ -82,6 +82,12 @@ public partial class TextDocView
         TextInputOptions.SetContentType(Skia, TextInputContentType.Normal);
 
         Skia.TextInputMethodClientRequested += (_, e) => e.Client = Ziel;
+
+        // Und im selben Zug die Auskunft für die eingebaute Bildschirmtastatur: Diese Fläche
+        // nimmt Text an, die der Tafel nicht (dort liegt ein echtes Eingabefeld darüber).
+        // **An derselben Stelle wie die Anmeldung**, damit beides nicht auseinanderlaufen
+        // kann — wer sich als Eingabeziel abmeldet, muss auch hier zurücknehmen.
+        Skia.ErwartetText = true;
     }
 
     /// <summary>

@@ -804,6 +804,37 @@
         <Setter Property="IsVisible" Value="True"/>
     </Style>
 
+    <!-- ==== Taste der eingebauten Bildschirmtastatur (Nutzerwunsch 2026-09-09) ========
+         **Maße wie beim Zahlenblock** (`Button.zifferntaste`, 44 Punkte hoch): Das Ding wird
+         mit dem Finger oder der Stiftspitze bedient, nicht mit dem Mauszeiger — und es ist
+         für genau die Lage gebaut, in der es keine Hardware-Tastatur gibt. Kleinere Tasten
+         wären auf dem Gerät, für das die App da ist, unbrauchbar. -->
+    <Style Selector="Button.taste">
+        <Setter Property="Height" Value="46"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="FontSize" Value="15"/>
+        <Setter Property="CornerRadius" Value="7"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border}"/>
+        <Setter Property="Background" Value="{DynamicResource Brush.CardBg}"/>
+        <Setter Property="Foreground" Value="{DynamicResource Brush.Text}"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="Cursor" Value="Hand"/>
+    </Style>
+    <Style Selector="Button.taste:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource Brush.Hover}"/>
+    </Style>
+    <Style Selector="Button.taste:pressed /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource Brush.Pressed}"/>
+    </Style>
+    <!-- Ein gehaltener Umschalter. **Er muss sichtbar sein:** auf einer Tastatur ohne
+         fühlbare Tasten ist das die einzige Auskunft darüber, welche Ebene gerade gilt. -->
+    <Style Selector="Button.taste.gedrueckt /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource Brush.Accent}"/>
+        <Setter Property="TextElement.Foreground" Value="White"/>
+    </Style>
+
     <!-- ==== Klappbarer Abschnitt der Einstellungsleiste (Nutzerwunsch 2026-09-09) ======
          Die Kopfzeile einer Einstellungsgruppe: Beschriftung links, Winkel rechts, die
          ganze Zeile ist der Schalter.

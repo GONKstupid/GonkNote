@@ -119,6 +119,10 @@ public partial class WhiteboardView
             $"Werkzeug {_tool} → wirksam {EffectiveTool}",
             $"Invertiert {(_stylusInverted ? "ja" : "nein")}   IsEraser {(_letztesEraserFlag ? "ja" : "nein")}",
             $"Finger   {_finger.Count}   Tipp {(_tippMoeglich ? "möglich" : "nein")}",
+            // Das Ereignisprotokoll (2026-09-09). Ein Trennstrich davor, damit erkennbar
+            // bleibt, wo der **Zustand** aufhört und der **Ablauf** anfängt.
+            "───────────────────────────",
+            .. _spur,
         ];
 
         using var schrift = new SKFont(WbFonts.Regular, 12);

@@ -116,6 +116,36 @@ public partial class WhiteboardView
     private bool _stiftAnzeige;
 
     /// <summary>
+    /// Die letzten Ereignisse, neueste zuletzt — <b>das Protokoll unter der F9-Anzeige.</b>
+    ///
+    /// <para>
+    /// <b>Warum ein Protokoll und nicht nur Zustände.</b> Die Anzeige darüber sagt, wie die
+    /// Welt <i>gerade</i> aussieht. Der Fehler, für den sie 2026-09-09 gebraucht wurde, ist
+    /// aber ein <b>Ablauf</b>: „das Feld kommt kurz und schließt sofort wieder". Wenn es
+    /// wieder zu ist, steht im Zustand nichts mehr — die Frage ist, <b>was dazwischen
+    /// passiert ist</b>, und die beantwortet nur eine Reihenfolge.
+    /// </para>
+    /// <para>
+    /// <b>Sie kostet nichts, wenn niemand hinsieht:</b> <see cref="Spur"/> steigt bei
+    /// ausgeschalteter Anzeige sofort aus. Ein Messgerät, das immer mitschreibt, wäre ein
+    /// Messgerät, das den Messgegenstand verändert.
+    /// </para>
+    /// </summary>
+    private readonly System.Collections.Generic.Queue<string> _spur = new();
+
+    /// <summary>Wie viele Zeilen das Protokoll behält — so viele, wie neben die Fläche passen.</summary>
+    private const int SpurTiefe = 8;
+
+    /// <summary>Schreibt eine Zeile ins Protokoll der F9-Anzeige. Aus = kostenlos.</summary>
+    private void Spur(string was)
+    {
+        if (!_stiftAnzeige) return;
+        _spur.Enqueue($"{DateTime.Now:HH:mm:ss.fff}  {was}");
+        while (_spur.Count > SpurTiefe) _spur.Dequeue();
+        Neuzeichnen();
+    }
+
+    /// <summary>
     /// Was <c>PointerPointProperties.IsEraser</c> beim letzten Aufsetzen des Stifts gemeldet
     /// hat — <b>roh, vor jeder Verrechnung</b>. Nur für die F9-Anzeige; getrennt von
     /// <see cref="_stylusInverted"/> gehalten, weil dort die Stifttaste mit hineinläuft und
@@ -158,6 +188,8 @@ public partial class WhiteboardView
         var punkt = e.GetCurrentPoint(Skia);
         var art = e.Pointer.Type;
         _letzteZeigerart = art;
+
+        Spur($"Druck {art} id={e.Pointer.Id} eraser={punkt.Properties.IsEraser} wz={_tool}");
 
         if (art == PointerType.Touch)
         {
@@ -278,6 +310,7 @@ public partial class WhiteboardView
 
         e.Pointer.Capture(null);
         DruckAbbrechen();
+        Spur($"Los   {e.Pointer.Type} id={e.Pointer.Id}");
 
         if (e.Pointer.Type == PointerType.Pen) _stiftLiegtAuf = false;
 

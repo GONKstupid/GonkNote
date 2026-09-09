@@ -337,23 +337,24 @@ Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — beh
 > | | Punkt | Stand |
 > |---|---|---|
 > | 1 | Seitenleiste schließt nicht (nur der Inhalt verschwand) | ✅ **behoben und am laufenden Programm belegt** |
-> | 2 | Bildschirmtastatur geht nicht auf | ⛔ **Sackgasse, gemessen — Entscheidung des Nutzers steht aus** |
+> | 2 | Bildschirmtastatur geht nicht auf | ✅ **gebaut (§4.105) — ⚠ vom Nutzer zu prüfen** |
 > | 3 | Textfeld-Werkzeug (T) mit Finger | ✅ behoben — ⚠ **vom Nutzer mit dem Finger gegenzuprüfen** |
-> | 3 | Textfeld-Werkzeug (T) mit Stift | ⚠ **eingekreist, nicht bewiesen — F9-Messung steht aus** |
+> | 3 | Textfeld-Werkzeug (T) mit Stift | ⚠ **zwei Regeln gebaut (§4.105) — Ursache ungemessen, F9-Protokoll steht bereit** |
 > | 4 | Einstellungsleiste soll klappen | ✅ **gebaut und am laufenden Programm belegt** |
 >
-> **⛔ Punkt 2 ist der wichtigste, und er ist keine Lücke, sondern eine Sackgasse.** Gemessen:
-> `Avalonia.X11` 12.1.1 kennt **kein** `InputPane` (die App kann nie von selbst eine Tastatur
-> holen), der Kopf ist **XWayland**-Client — **und von Hand hervorholen hilft auch nicht:**
-> Tasten über `zwp_virtual_keyboard_v1` (das Protokoll von `wvkbd` und `squeekboard`) kommen
-> **nicht an** und **zerstören obendrein die offene Bearbeitung**. Eine externe Tastatur ist
-> damit kein Weg. **Empfohlen: eine eigene Tastatur im Fenster**, nach dem Muster des
-> Zahlenblocks. *Das ist die nächste Entscheidung, die der Nutzer treffen muss.*
+> **⛔ Zu Punkt 2 gehört eine Richtigstellung, und sie steht in §4.105.** Der Satz „eine
+> externe Bildschirmtastatur ist stumm" war **falsch** — er stammte aus einer Messung mit
+> `wtype`, und mit der Tastatur, die der Nutzer wirklich benutzt, kommen die Tasten sehr wohl
+> an. **Stehen bleibt:** `Avalonia.X11` kennt kein `InputPane`, eine fremde Tastatur kann
+> tippen, aber **nicht von selbst aufgehen**. Gebaut ist deshalb beides: eine **eingebaute**
+> Tastatur (Ansicht → Bildschirmtastatur → Eingebaut) und ein **einstellbarer Umschaltbefehl**
+> für die des Systems.
 >
-> **▶ Zwei Messungen liegen beim Nutzer, bevor die nächste Runde anfängt:** (a) mit dem
-> **Finger** ein Textfeld setzen — geht es? (b) **F9** drücken, T wählen, mit dem **Stift**
-> aufsetzen: steht dort `Invertiert ja`, ohne dass das Radiergummi benutzt wurde, ist die
-> Ursache von Punkt 3 gefunden.
+> **▶ Drei Proben liegen beim Nutzer, bevor die nächste Runde anfängt:** (a) mit dem
+> **Finger** ein Textfeld setzen — geht es? (b) **Ansicht → Bildschirmtastatur → Eingebaut**,
+> dann in ein Textfeld tippen — kommt alles an, in beiden Sprachen? (c) **F9** drücken, T
+> wählen, mit dem **Stift** aufsetzen: bleibt das Feld jetzt stehen? Wenn nicht, steht im
+> Protokoll unter der Anzeige, **was** es schließt.
 >
 > **▶ Danach:** der **Flathub-Umbau** (§4.102, §6) und **Phase 5.1** (Rechtschreibprüfung,
 > §5 Nr. 22).
@@ -12970,6 +12971,119 @@ Gesteuert mit `ydotool` (uinput) — **`wtype` scheidet aus, siehe (4)**; Bilder
 mehr sein** — es gibt keinen Windows-Rechner mehr (§0). Angefasst wurde an gemeinsamem Code
 nur `WbLeiste` (rein additiv).
 
+### 4.105 Die Tastatur ist doch keine Sackgasse — und der Stift ist eingekreist
+
+**Zweite Bug-Runde am Gerät** (V2-129b). Sie enthält eine **Richtigstellung an einem Befund
+aus §4.104**, und die dreht die Entscheidung, die daran hing.
+
+#### ⛔ Die Richtigstellung: „eine fremde Tastatur kann nicht tippen" war falsch
+
+§4.104 hat gemessen, dass Tasten über `zwp_virtual_keyboard_v1` **nicht ankommen** — belegt
+mit `wtype`, zweimal, mit Fokusnachweis und einer Gegenprobe über `ydotool`. Der Schluss
+daraus lautete: *eine externe Bildschirmtastatur ist stumm und obendrein schädlich.*
+
+**Mit der Tastatur, die der Nutzer wirklich benutzt, ist das nicht so.** Das Plugin
+`io.github.mtolhuys.onscreen-keyboard` bringt einen eigenen nativen Helfer mit
+(`native/osk-input.c`), der **dasselbe Protokoll** spricht — und dessen `hello` steht im
+Textfeld. Direkt danach `ydotool` als Gegenprobe: auch da.
+
+> **Der Unterschied liegt am Werkzeug und nicht am Protokoll.** `wtype` baut die virtuelle
+> Tastatur auf, schickt und verschwindet sofort; der Helfer wartet nach **jedem** Schritt auf
+> den Rundlauf (`wl_display_roundtrip`). *Ein Ersatzwerkzeug beweist über den echten Fall nur
+> so viel, wie es ihm gleicht* — und `wtype` gleicht ihm in genau dem Punkt nicht, auf den es
+> ankam. **Die Lehre ist nicht „schlechter messen", sondern: wenn der echte Gegenstand
+> greifbar ist, wird an ihm gemessen und nicht an seinem Stellvertreter.**
+
+**Was von §4.104 stehen bleibt, ist der andere Teil, und der ist unverändert:**
+`Avalonia.X11` 12.1.1 kennt **kein** `InputPane`, `TopLevel.InputPane` ist `null`. Eine
+fremde Tastatur **kann** also tippen — **von selbst aufgehen kann sie nicht**, und dafür gibt
+es keinen einheitlichen Weg: `wvkbd` hört auf ein Signal, `squeekboard` auf D-Bus, jede
+weitere auf etwas Drittes.
+
+#### Daraus: drei Zustände statt eines Hakens (Nutzer-Entscheidung)
+
+**Ansicht → Bildschirmtastatur**: *Eingebaut · System-Tastatur · Aus*.
+
+- **Eingebaut** — die App bringt ihre eigene mit, unten im Fenster angedockt. Sie geht auf,
+  sobald ein Textfeld den Fokus bekommt; **damit ist der eigentliche Wunsch erfüllt**, ohne
+  dass der Kopf eine Liste fremder Tastaturen pflegen müsste.
+- **System-Tastatur** — GonkNote ruft **einen einstellbaren Umschaltbefehl**
+  (`keyboard.command`; beim Start wird nach `omarchy-toggle-osk` gesucht). Damit geht auch
+  eine fremde Tastatur automatisch auf — nur muss ihr Befehl einmal dastehen.
+- **Aus** — GonkNote fasst nichts an.
+
+*Ein Haken hätte das nicht gekonnt: „aus" heißt für den einen „ich will gar keine", für den
+anderen „ich will meine eigene". Das sind zwei Wünsche, und ein Schalter hält sie nicht
+auseinander.*
+
+#### Die eingebaute Tastatur — vier Entscheidungen
+
+1. **Die Belegung steht in Core** (`Bildschirmtastatur`), das Aussehen im Kopf — dieselbe
+   Trennung wie bei `WbZahlenblock` und `WbLeiste`. Der iPadOS-Kopf liest dieselbe Tabelle;
+   zwei Tabellen liefen auseinander, und *eine Tastatur, die auf zwei Plattformen
+   verschiedene Umlaute schreibt, fällt erst dem Nutzer auf.*
+2. **Deutsch als QWERTZ, Englisch als QWERTY**, und sie folgen der **Oberflächensprache** und
+   nicht der Belegung des Rechners: Ein Gerät ohne Hardware-Tastatur hat gar keine, an der
+   man sich ausrichten könnte.
+3. ⛔ **Die Tasten nehmen keinen Fokus** (`Focusable = false`). Das ist keine Feinheit,
+   sondern die Voraussetzung: Eine Tastatur mit fokussierbaren Tasten nimmt dem Textfeld beim
+   ersten Druck den Fokus — im Whiteboard **verwirft** es sich dabei sogar —, und danach
+   schreibt sie ins Leere.
+4. **Sie schreibt über `TextInput`/`KeyDown` an das fokussierte Element**, also über denselben
+   Weg wie eine echte Tastatur. Dadurch trägt sie ohne eine Zeile Zusatzcode im
+   Textdokument-Editor **und** im Beschriftungsfeld der Tafel. Ein eigener Weg („schreibe in
+   den TextBox, den ich kenne") wäre die Falle aus §4.13.
+
+Dazu ein Wächtersatz, der **die eine Zusage prüft, auf die es ankommt: was draufsteht, kommt
+heraus** — für beide Sprachen und alle drei Ebenen. *Eine Tastatur, deren Beschriftung und
+deren Zeichen auseinanderlaufen, sieht auf jedem Foto richtig aus und schreibt trotzdem
+falsch.*
+
+#### ⚠ Der Stift: zwei Regeln gebaut, **die Ursache nicht gemessen**
+
+Die neue Meldung ist genauer als die alte: *„kommt kurz das Feld, schließt sich aber sofort
+wieder."* Das schließt den Radierer-Verdacht aus §4.104 **aus** — dann wäre gar nichts
+passiert. Ein Feld, das aufgeht und sofort verschwindet, hat genau eine Mechanik:
+`LostFocus` → `BearbeitungAbschliessen`, und weil ein frisches Feld leer ist, wird es dabei
+**verworfen**.
+
+**Zwei Regeln, die jeden Auslöser dieser Art unschädlich machen:**
+
+- **Fokusverlust ohne Nachfolger ist kein Weggehen.** Gefragt wird nicht mehr „ist der Fokus
+  weg?", sondern „ist er **woanders hin**?". Hat ihn niemand übernommen, holt das Feld ihn
+  zurück. Das normale Verhalten bleibt: Druck auf die Fläche, Esc, Strg+Eingabe, ein anderes
+  Fenster — überall gibt es einen neuen Besitzer.
+- **Zweimal öffnen an derselben Stelle ist eine Absicht, nicht zwei.** Trifft ein zweiter
+  Öffnungswunsch ein, während das frische, leere Feld dort steht, wird er verworfen statt das
+  Feld wegzuwerfen. Geprüft wird die **Stelle** und nicht eine Frist — eine Frist wäre
+  geraten und kippte auf einem anderen Gerät.
+
+**⚠ Und jetzt der Teil, der dazugehört: das ist nicht am Stift gemessen.** Ein **virtueller
+Stift über `uinput`** wurde gebaut (BTN_TOOL_PEN, ABS_X/Y/PRESSURE, INPUT_PROP_DIRECT);
+Hyprland nimmt ihn als **Werkzeug** an (`tablets → [..., type: tabletTool]`), stellt seine
+Ereignisse aber **nicht zu** — der Zeiger bewegt sich nicht, die App sieht nichts. Der echte
+Stift liegt beim Nutzer. **Die Regeln stehen deshalb nicht, weil sie einen gemessenen
+Auslöser treffen, sondern weil sie für sich genommen richtig sind.**
+
+**Damit die nächste Runde nicht wieder rät, führt die F9-Anzeige jetzt ein
+Ereignisprotokoll** — Druck (mit Zeigerart und `IsEraser`), Loslassen, „Feld gezeigt", „Text
+abgeschlossen", „Fokus → X". *Der Zustand sagt, wie die Welt gerade aussieht; die Frage war
+aber, was dazwischen passiert ist, und die beantwortet nur eine Reihenfolge.*
+
+#### ⛔ Ein Werkzeugbefund, der die Sitzung getroffen hat
+
+Beim Messen ist **`grim` hängengeblieben** — nach mehreren abgebrochenen Aufnahmen antwortet
+die Bildschirmkopie des Kompositors nicht mehr; Hyprland selbst läuft weiter. **Damit war der
+Augenschein für die eingebaute Tastatur in dieser Runde nicht mehr möglich.** *Ein
+Messwerkzeug, das man mitten im Bild abbricht, kann den Gegenstand mitnehmen* — künftig
+Aufnahmen auslaufen lassen statt sie zu killen.
+
+#### Stand
+
+**Bau 0/0, 1261 Core-Tests (+11).** Am laufenden Programm belegt ist **die fremde Tastatur**
+(sie tippt) — **nicht** belegt sind die eingebaute Tastatur, die zwei Stift-Regeln und der
+Finger-Tipp aus §4.104. Alle drei warten auf den Nutzer am Gerät.
+
 ---
 
 ## 5. Entscheidungen
@@ -18488,6 +18602,7 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 | V2-127 | 2026-09-06 | **Die Installationsprobe — und der `Fonts`-Ordner stand in keiner Anleitung** (§4.103 neu; beide READMEs, beide Anleitungen; **kein Produktivcode angefasst**; Bau 0/0, **1313 Tests unverändert**). Der Auftrag war eine Frage — ist das Repo bereit, dass jemand installiert? —, **also ist sie gemessen worden und nicht beantwortet.** **✅ Windows trägt:** `dotnet publish` genau wie in `release.yml`, `.pdb` der nativen Bibliotheken weg, `Compress-Archive` → **92,4 MB Zip**; entpackt liegen `GonkNote.exe` (85,1 MB), **`Fonts` (24), `tessdata` (deu+eng), `Assets` (62 Cover + 2 SVGs)** und `LICENSE` darin, **aus dem entpackten Ordner mit frischer Datenbank gestartet** — Fenster steht, Inter zeichnet. **⛔ DER FUND: Abschnitt 1 beider Anleitungen nannte `tessdata` und `Assets`, ABER NICHT `Fonts`** — und die Oberflächenschriften liegen als **lose Dateien** neben der Exe (`AppFonts.Family` baut den Pfad aus `AppContext.BaseDirectory`). **Nachgemessen statt hergeleitet:** genau diese drei Dinge in einen leeren Ordner kopiert, gestartet — **die App läuft und zeichnet alles in Segoe UI.** *Das ist §4.72 rückwärts, herbeigeführt von einer unvollständigen Kopieranweisung; und der Rückfall selbst bleibt richtig, `AppFonts` begründet ihn — ein Sicherheitsnetz, das niemand sieht, verdeckt genau den Fehler, gegen den es gespannt ist.* In **vier** Dateien behoben (beide Anleitungen in Abschnitt 1 **und** 14, beide READMEs). **Wer den fertigen Download nimmt, war nie betroffen.** **⛔ ZWEI FUNDE AM ZERLEGER, BEIDE BEIM GEGENPRÜFEN ENTSTANDEN:** Der erste war meiner — der Hinweis stand als **Blockzitat in einem Listenpunkt**, und im Hilfe-Fenster standen die `>` **wörtlich** im Text, mit ineinanderlaufenden Zeilen; `Markdown.Parse` kennt ein Blockzitat nur am Zeilenanfang. **Auf GitHub sieht dasselbe richtig aus — das ist der Punkt.** Der zweite ist älter: ``[`packaging/LIESMICH.md`](…)`` zeigt die **Backticks wörtlich**, weil ein nicht angenommenes `.md`-Ziel schlichter Text wird (§4.99) und der Linktext dabei nicht weiter ausgewertet wird; **es war die einzige solche Stelle** in allen vier Dokumenten. **✅ LINUX, soweit von hier aus prüfbar:** `dotnet publish -r linux-x64 --self-contained` läuft **als Kreuzbau von Windows aus** — genau der Aufruf aus `release.yml` und beiden `bauen.sh` — und liefert **341 Dateien / 155,1 MB** mit `GonkNote.Avalonia`, `libSkiaSharp.so`, `Fonts` (27), `tessdata` (2) und 62 Covern; `x64/` und `x86/` liegen drin und werden von **allen drei** Wegen weggeräumt (am Gerät **null** gemessen, §4.100). **Die drei Startpfade sind gegengelesen und stimmen überein** (`gonknote.sh`, `AppRun`, `.desktop`). **⚠ Was die Probe NICHT beantwortet:** den Linux-**Start** (Kreuzbau, hier nicht startbar), `release.yml` (nie gelaufen, ein Tag ist der einzige Auslöser) und den Weg „Release-Seite → Herunterladen → Starten" auf **keiner** Plattform — *der eine Schritt, den auch die sorgfältigste Probe nicht vorwegnehmen kann.* **Neu in §7: „Neu aus §4.103", vier Einträge.** ▶ **Der Laptop ist nicht dran.** |
 | V2-128 | 2026-09-08 | **Neuer Entwicklungsrechner: Lenovo Yoga 7 2-in-1 14 IML9 unter Omarchy** (§0 „Hier geht es weiter"; **kein Produktivcode angefasst** — nur `Docs/HANDOFF.md`). Der Windows-Entwicklungsrechner ist vollständig ersetzt; auf den CachyOS-Laptop kommt wieder Windows als Gegenprobe-Gerät für den WPF-Kopf (umgekehrte Rollenverteilung zu §5b/§5d/§5e, **noch nicht eingerichtet**). **Die App läuft unter Omarchy über das installierte AppImage** — funktioniert bis auf ein paar bekannte Bugs. **Reihenfolge festgehalten:** zuerst diese Bugs beheben, erst danach der Flathub-Umbau (§4.102, §6) und Phase 5.1 (§5 Nr. 22). §5b/§5c/§5d/§5e mit datiertem Banner als „alter Aufbau" markiert; Nachziehen, wenn der Windows-Laptop steht. Dauerregel 3a ruht. |
 | V2-129 | 2026-09-09 | **Vier Bugmeldungen vom Gerät — und die Bildschirmtastatur ist eine Sackgasse, gemessen** (§4.104; `MainWindow.axaml(.cs)`, `WhiteboardView.Input/Einstellungen/Render/Cover/axaml(.cs)`, `Themes/Styles.axaml`, `WbLeiste` in Core; Bau 0/0, **1250 Core-Tests, +6**; Version **1.0.1**, Release `v1.0.1`). **Die erste Runde auf dem Gerät, an dem der Nutzer wirklich arbeitet.** **⛔ (1) Die Seitenleiste schloss nie, sie leerte sich nur:** `SeitenleisteUmschalten` war **eine Zeile** (`IsVisible`), die Rasterspalte stand als Kurzform `"260,4,*"` fest und blieb 260 Punkte breit, der Trenner sichtbar. **Der WPF-Kopf hat es von Anfang an vollständig gemacht** (`SetSidebarVisible`); dieser Kopf hatte ein Fünftel davon — und **§4.71 hat die zwei Flächen ausdrücklich verglichen, ohne es zu finden:** *gemessen wurde, was zu sehen ist, nicht, was passiert, wenn man darauf drückt.* Jetzt Spalte auf 0 **samt `MinWidth`** (180 hielte sie sonst offen), Trenner mit, Breite gemerkt, Stand gesichert unter **demselben Schlüssel wie drüben**. ⚠ **Neunte Stelle, an der Avalonia nicht wie WPF ist:** `x:Name` an einer `ColumnDefinition` erzeugt **kein Feld** — der Bau scheitert in der C#-Datei, also dort, wo es nach einem Tippfehler aussieht. **⛔ (2) Der Finger erreichte Textfeld und Notizzettel überhaupt nicht:** `OnPointerPressed` bog bei `PointerType.Touch` ab, **bevor das Werkzeug gefragt wurde** — beide Werkzeuge waren **auf genau dem Gerät unbedienbar, für das die App gebaut ist**. Eine richtige Regel war zu weit gefasst: aus „der Finger zeichnet nie" (Handballenabweisung, §4.10) war „der Finger tut sonst gar nichts" geworden. **Sie heißt jetzt „Zug oder Tipp"** (`WbLeiste.IstTippwerkzeug`, Core): ein Strich entsteht aus einer Bewegung und bleibt dem Stift, ein Textfeld entsteht aus einer **Stelle** — es gibt keinen Zug, den ein Handballen verderben könnte. Auswahl und Sticker stehen bewusst nicht dabei. ⚠ **Nicht am laufenden Programm belegt** — Berührungen lassen sich von hier aus nicht erzeugen. **⚠ (3) Der Stift ist eingekreist, nicht bewiesen:** es gibt **genau eine** Stelle, an der ein Stift woanders landet als eine Maus (`_stylusInverted = …IsEraser`) — danach schlägt `EffectiveTool` **lautlos jedes Werkzeug**. Am Rücken nachgelesen: `Avalonia.X11` führt `_currentSlaveIsEraser` **am Master**, setzt es aus dem Gerätenamen (`IndexOf("eraser")`) und aktualisiert **nur bei `XI_DeviceChanged`** — der Wert ist **klebrig**; „Barrel" kommt in der Assembly **kein einziges Mal** vor. Am Gerät gemessen: XWayland legt **dauerhaft alle drei** Tablett-Werkzeuge an (`stylus:1`, `eraser:1`, `cursor:1`), **alle mit Drucksensor**. **Statt zu reparieren ist das Messgerät geschärft worden:** die F9-Anzeige zeigt jetzt `Werkzeug → wirksam`, `Invertiert`/`IsEraser` und die Fingerzahl. *Eine Behebung auf eine unbewiesene Ursache sieht wie eine Lösung aus — §4.42/V2-59 hat das einmal gekostet.* **⛔ (4) Die Bildschirmtastatur ist keine Lücke, sondern eine Sackgasse:** `Avalonia.X11` 12.1.1 enthält `InputPane` **kein einziges Mal** (→ `TopLevel.InputPane` ist `null`, §4.43 bestätigt), der Kopf ist **XWayland**-Client (kein Wayland-Rücken im Paketsatz) — **und von Hand hervorholen hilft auch nicht, zweimal gemessen mit Fokusnachweis und Gegenprobe:** `ydotool` (uinput) tippt zuverlässig ins Textfeld, **`wtype` (`zwp_virtual_keyboard_v1` — dasselbe Protokoll, das `wvkbd` und `squeekboard` benutzen) bringt nichts an** und **zerstört obendrein die offene Bearbeitung samt Inhalt, während das Fenster den Fokus behält**. Empfohlen ist eine **eigene Tastatur im Fenster** nach dem Muster des Zahlenblocks; **Entscheidung liegt beim Nutzer**. **(5) Der Bedienwunsch:** die Einstellungsleiste klappt — alles zu, das Werkzeug klappt seinen Abschnitt auf; Zuordnung in Core (`WbLeiste.BereichVon`, vorher **zwei Aufzählungen derselben vier Werkzeuge in einer Methode**), **kein `Expander`** (Fluents Kachel ist im Dunklen ein fast schwarzer Kasten — §4.94/§4.55 zum dritten Mal), und die Leiste hieß `Settings.Page` statt `Wb.Settings`. **⛔ Zwei Funde außerhalb der Bugliste:** die **„vier weiteren Stellen" der Version waren sechs** — die **Projektseite `site/`** stand nie in der Liste, obwohl sie in §4.101 **im selben Zug wie die 1.0.0** entstand, und bot prompt Dateien an, die es nicht mehr gibt; und **die naheliegende Erklärung für 34.000 geänderte Zeilen war falsch** — das Repo ist seit jeher LF, CRLF stand nur in der **Arbeitskopie** (kopiert statt geklont), behoben hat es `git checkout -- .`. *Wer der ersten Erklärung folgt, schreibt die Historie um, um ein Problem zu lösen, das in der Arbeitskopie sitzt.* `.gitattributes` hält es künftig fern und fand **fünf echte Ausreißer** (Stylus-Prototyp). **Dazu gestrichen: Dauerregel 3a** — **den CachyOS-Laptop gibt es nicht mehr** (Nutzer); §5b/§5d/§5e sind damit vollständig Historie, **und der Preis ist benannt: es gibt keinen laufenden WPF-Kopf mehr**, der Zwei-Köpfe-Vergleich ist von hier aus nicht mehr prüfbar |
+| V2-129b | 2026-09-09 | **Die Tastatur ist doch keine Sackgasse — und der Stift ist eingekreist** (§4.105; neu `Core/Editing/Bildschirmtastatur.cs`, `Views/TastaturView.cs`, `MainWindow.Tastatur.cs`; Bau 0/0, **1261 Core-Tests, +11**). **⛔ RICHTIGSTELLUNG AN §4.104:** Dort war gemessen, Tasten über `zwp_virtual_keyboard_v1` kämen nicht an (mit `wtype`, zweimal, mit Gegenprobe) — daraus wurde „eine externe Bildschirmtastatur ist stumm". **Mit der Tastatur, die der Nutzer wirklich benutzt** (`io.github.mtolhuys.onscreen-keyboard`, eigener nativer Helfer über **dasselbe** Protokoll), **kommt sie sehr wohl an.** Der Unterschied liegt am Werkzeug: `wtype` schickt und verschwindet, der Helfer wartet nach jedem Schritt auf den Rundlauf. *Ein Ersatzwerkzeug beweist über den echten Fall nur so viel, wie es ihm gleicht — ist der echte Gegenstand greifbar, wird an ihm gemessen.* **Stehen bleibt der andere Teil:** `Avalonia.X11` hat kein `InputPane`, eine fremde Tastatur kann tippen, aber **nicht von selbst aufgehen**, und dafür gibt es keinen einheitlichen Weg. **Daraus drei Zustände statt eines Hakens** (Ansicht → Bildschirmtastatur): **Eingebaut** (mitgeliefert, unten angedockt, geht beim Fokus eines Textfelds auf), **System** (einstellbarer Umschaltbefehl `keyboard.command`, Vorgabe wird beim Start gesucht) und **Aus** — *„aus" heißt für den einen „gar keine", für den anderen „meine eigene", und ein Schalter hält das nicht auseinander.* **Die eingebaute:** Belegung in **Core** (deutsch QWERTZ, englisch QWERTY, drei Ebenen, Umschalter gelten für eine Taste), Aussehen im Kopf; **die Tasten nehmen keinen Fokus** — sonst nimmt die Tastatur dem Textfeld beim ersten Druck den Fokus, im Whiteboard verwirft es sich dabei sogar; geschrieben wird über `TextInput`/`KeyDown` ans fokussierte Element, also über denselben Weg wie eine echte Tastatur (trägt damit im Texteditor **und** auf der Tafel). Wächter prüfen die eine Zusage, auf die es ankommt: **was draufsteht, kommt heraus** — in beiden Sprachen und allen drei Ebenen. **⚠ Der Stift: zwei Regeln gebaut, die Ursache NICHT gemessen.** Die neue Meldung („Feld kommt kurz, schließt sofort") schließt den Radierer-Verdacht aus §4.104 aus; die Mechanik ist `LostFocus` → Abschließen, und ein frisches leeres Feld wird dabei **verworfen**. Neu: **Fokusverlust ohne Nachfolger ist kein Weggehen** (das Feld holt ihn zurück), und **zweimal öffnen an derselben Stelle ist eine Absicht** (der zweite Wunsch wird verworfen statt des Feldes) — geprüft wird die Stelle und nicht eine Frist. **Ein virtueller Stift über `uinput` wurde gebaut**, Hyprland nimmt ihn als Werkzeug an, **stellt seine Ereignisse aber nicht zu** — deshalb steht die Behebung auf „macht jeden Auslöser dieser Art unschädlich" und nicht auf einer gemessenen Ursache. **Die F9-Anzeige führt jetzt ein Ereignisprotokoll**, damit die nächste Runde nicht wieder rät. **⛔ Werkzeugbefund:** `grim` ist nach mehreren abgebrochenen Aufnahmen hängengeblieben — die Bildschirmkopie des Kompositors antwortet nicht mehr, Hyprland läuft; **der Augenschein für die eingebaute Tastatur war damit in dieser Runde nicht mehr möglich.** *Ein Messwerkzeug, das man mitten im Bild abbricht, kann den Gegenstand mitnehmen.* **Belegt ist die fremde Tastatur; eingebaute Tastatur, Stift-Regeln und Finger-Tipp warten auf den Nutzer am Gerät** |
 | V2-115 | 2026-09-01 | **Schritt ①c ist zu — das Lineal gestrichen, der Menü-Aufklapppunkt neu vermessen** (§4.92 neu; Bau 0/0, **1256 Tests unveraendert**). **(4) Lineal: bewusst gestrichen.** Gemessen: `DrawRuler` im WPF-Kopf hat **keinen einzigen Maus-Handler** — es ist eine cm-Skala mit zwei Dreiecken, eine Zierleiste und kein Werkzeug. Der einzige Posten ohne Rueckhalt in Core, und was er leistet, leisten die vier Randfelder im Layout-Reiter **in Zahlen** und aenderbar. Wird in ⑤ im README als bekannter Unterschied genannt. **⛔ Menü-Aufklapppunkt: dritter Anlauf gescheitert und zurueckgenommen — aber die Messung ist neu und mehr wert als der Versuch.** Bisher stand da "klappt am linken Rand der Leiste auf"; gemessen klappt es **ausserhalb des Fensters** auf, rund 170 px links vom Fensterrand. Und: **"Datei" und "Ansicht" klappen an DERSELBEN Stelle auf** — damit ist das Aufklappziel fuer beide **dasselbe Element**, also weder das MenuItem noch sein Grid. Der Anlauf (Popup aus dem Spaltengitter in ein umschliessendes Grid heben, weil die `SharedSizeGroup` das Gitter aufblaeht) war **ohne jede Wirkung** und ist zurueckgenommen. **Der einzige Weg, der zur Messung passt und den noch niemand versucht hat: ein eigenes Template nur fuer `Role=TopLevelHeader`** — WPF benutzt dafuer normalerweise drei verschiedene Vorlagen, hier dient eine fuer alle drei Rollen. **Damit sind alle sieben Entscheidungen aus §5e beantwortet** (§4.86–§4.92): fuenf gebaut, eine gestrichen, eine als Messung beantwortet statt als Frage gestellt. ▶ **Als Naechstes: Schritt ②, die Rueckmeldung** — eine eigene Runde (§5 Nr. 28). **Der Laptop ist nicht dran — aber bei ③ ist er es zwingend** (§5d) |
 | V2-114 | 2026-09-01 | **Der Tabellenentwurf, zweite Haelfte** (§4.91 neu; neu `Core/Text/TdTabellenformel.cs`, `TdTableUmbau.cs`, `Core.Tests/TabellenUmbauTests.cs`; Bau 0/0, **1256 Tests, +36**). Runde B von Frage (2): **teilen, sortieren, rechnen, Tabelle ↔ Text** — das, was Core erst rechnen lernen musste. **Das Formelergebnis geht als TEXT in die Zelle und nicht als Feld:** §4.20 verlangte sonst eine neue `TdFieldKind`, einen Auswertungsschritt im Umbruch und einen DOCX-Weg; **der WPF-Kopf schreibt seit jeher ebenfalls nur das Ergebnis**, und beim Editor ist Windows die Vorlage. Benanntes Zugestaendnis. **Eine leere Zelle beendet die Reihe NICHT** — Words Regel dort ergibt bei einer Zwischenueberschrift eine halbe Summe, ohne dass etwas danach aussieht. **Beide Zahlenschreibweisen** werden gelesen (deutsch und englisch): eine Tabelle, deren Summe von der Systemsprache abhaengt, rechnet auf dem naechsten Rechner anders. **Der leere Absatz beim Teilen ist kein Rest** — zwei Tabellen unmittelbar hintereinander sind in DOCX **eine**. **⛔ Der Tooltip hat eine Ergaenzung erzwungen:** `Ed.Table.Sort.Tip` verspricht "Text/Zahl/Datum", und der WPF-Kopf kann das; die erste Fassung hier konnte nur Text und Zahl. **Datum wird jetzt VOR Zahl geprueft**, und das ist keine Geschmacksfrage: "01.03.2026" liest sich als Zahl 1.032.026 und "15.02.2026" als 15.022.026 — die Reihenfolge kehrt sich um und sieht trotzdem plausibel aus. *Ein Tooltip ist eine Zusage; wer ihn uebernimmt, uebernimmt sie mit.* **⛔ Werkzeugfalle, drei Anlaeufe:** **Koordinaten aus einem Flyout gelten nur fuer die Aufnahme, aus der sie stammen.** Ein Ribbon, das umbricht, verschiebt seine Knoepfe — und mit ihnen jedes Flyout daran. Erst der Vergleich gegen ein **funktionierendes** Werkzeug ("Tabelle teilen", gleiches Muster, wirkte sofort) hat gezeigt, dass der Weg traegt und die Koordinate nicht (§4.82 woertlich). **✅ Und der eingebaute Hinweis "keine Zahlen im Bereich" hat den ersten Anlauf ueberhaupt erst diagnostizierbar gemacht** — *ein Knopf, der sagt, warum er nichts tut, ist billiger als der Fehlerbericht, den er erspart.* **Nicht gebaut und benannt:** die Schnelltabellen (`Ed.Table.Quick.*`) — zwei fest verdrahtete Vorlagen ohne Vorlagensammlung dahinter. **✅ Am laufenden Programm:** Teilen samt richtig ausgegrautem Knopf in Zeile 0, Summe 10+5=15, Hinweis ohne Zahlen, Sortieren dreht die Folge |
 | V2-113 | 2026-09-01 | **Der Tabellenentwurf, erste Haelfte** (§4.90 neu; neu `Core/Text/TdTableEntwurf.cs`, `Avalonia/Views/TextDocView.Tabelle.cs`, `Core.Tests/TabellenEntwurfTests.cs`; Bau 0/0, **1220 Tests, +25**). Runde A von Frage (2): **Rahmen, Fuellung, Kopfzeile, Zellabstand, Spaltenbreite, verbinden und teilen** — alles, was `TdTable` schon konnte. **Nicht "erst Core, dann Oberflaeche" wie §5e vorschlug, sondern nach Nutzen geschnitten:** eine Runde, die nur Core baut, endet an einem gruenen Bau — und **zwei der drei Funde dieser Runde waeren dann erst eine Runde spaeter aufgefallen**. **⛔ Fund 1, vom Waechter:** `TdTableEdit.Kopie` kopierte das **Format nicht**. `TdTableFormat` ist eine Klasse, alte und neue Tabelle teilten sich das Objekt. Bis heute fiel es nicht auf, weil **kein einziger Handgriff das Format anfasste**; mit dem Entwurf fassen es fuenf an, und ab da haette jede Rahmenaenderung die **Sicherung im Rueckgaengig-Stapel mitgeaendert** — Strg+Z haette nichts zurueckgebracht (§4.32 woertlich). `TdTableFormat.Kopie()` gab es laengst, sie wurde nur nicht gerufen. **⛔ Fund 2, am laufenden Programm:** `TabelleWerkzeuge` war ein `StackPanel` und bricht **nie** um — die drei neuen Knoepfe ragten aus dem Fenster und waren nicht anklickbar. Bau und Waechter gruen. **⛔ Fund 3, im Bestand:** **vier Sprachtexte tragen die XML-Entitaet `&amp;` woertlich**, beim Uebernehmen aus dem WPF-XAML mitgekommen — auf dem Knopf stand "Design &amp;amp; Rahmen...". Alle vier stehen seit Monaten so da, in **beiden** Sprachen, und **der WPF-Kopf zeigt sie genauso falsch**; aufgefallen ist es erst, als der Linux-Kopf den Schluessel zum **ersten Mal** anzeigte. *Ein Text, den kein Kopf benutzt, wird von keinem Auge geprueft.* Ein neuer Waechter haelt XML-Entitaeten in beiden Tabellen fest. **Zwei benannte Einschraenkungen, beide mit derselben Ursache** — die Auswahl des Editors ist eine Spanne ueber Absaetze und kennt kein Rechteck aus Zellen: **verbunden wird mit der rechten Nachbarin** (mehrmals gedrueckt zieht weiter), **gefuellt wird die Zelle unter der Marke**. **AutoAnpassen ist das Weglassen einer Zahl** und kein eigener Rechenweg |

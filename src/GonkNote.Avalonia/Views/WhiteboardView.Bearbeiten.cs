@@ -46,10 +46,36 @@ public partial class WhiteboardView
 
     // ==================== Anlegen und Treffen ====================
 
+    /// <summary>
+    /// Wie weit dürfen zwei Öffnungswünsche auseinanderliegen und trotzdem <b>einer</b> sein?
+    /// In Zeichenflächen-Einheiten, großzügig genug für den Versatz zwischen einem Stift- und
+    /// einem daraus abgeleiteten Zeigerereignis.
+    /// </summary>
+    private const float SelbeStelle = 24f;
+
     /// <summary>Textfeld unter dem Zeiger bearbeiten — sonst ein neues anlegen.</summary>
     private void BeginTextInput(SKPoint c)
     {
         if (_page == null) return;
+
+        // ⛔ **Zweimal öffnen an derselben Stelle ist EINE Absicht, nicht zwei** (Nutzer,
+        // 2026-09-09). Ein Stift kann für einen Tipp mehr als ein Ereignis erzeugen; träfe
+        // der zweite Wunsch hier ein, während das frische, noch leere Feld offen steht, dann
+        // würde `TextBearbeiten` es über `BearbeitungAbschliessen` **verwerfen** (leer und
+        // neu, siehe `TextAbschliessen`) und daneben ein zweites anlegen. Auf dem Schirm ist
+        // das ein Feld, das aufblitzt und weg ist.
+        //
+        // **Die Prüfung fragt nach der Stelle und nicht nach der Zeit.** Eine Frist wäre
+        // geraten; „derselbe Punkt, dasselbe leere Feld" ist nachprüfbar und hat keinen
+        // Zahlenwert, der auf einem anderen Gerät kippt.
+        if (_bearbeiteterText is { } offen && _bearbeitungIstNeu &&
+            string.IsNullOrEmpty(EditFeld.Text) &&
+            Math.Abs(offen.X - c.X) <= SelbeStelle && Math.Abs(offen.Y - c.Y) <= SelbeStelle)
+        {
+            Spur("zweiter Öffnungswunsch an derselben Stelle — verworfen");
+            FeldZeigen();          // nur den Fokus wiederholen, das Feld bleibt stehen
+            return;
+        }
 
         var treffer = _page.Elements.OfType<TextElement>()
             .LastOrDefault(t => WbRenderer.TextBounds(t).Contains(c));
@@ -203,6 +229,7 @@ public partial class WhiteboardView
     /// </summary>
     private void FeldZeigen()
     {
+        Spur("Feld gezeigt");
         EditFeld.IsVisible = true;
         EditFeld.CaretIndex = EditFeld.Text?.Length ?? 0;
         Neuzeichnen();
@@ -232,6 +259,7 @@ public partial class WhiteboardView
     private void TextAbschliessen()
     {
         if (_bearbeiteterText == null || _page == null || _vm == null) return;
+        Spur($"Text abgeschlossen (neu={_bearbeitungIstNeu}, leer={string.IsNullOrWhiteSpace(EditFeld.Text)})");
         var el = _bearbeiteterText;
         _bearbeiteterText = null;
 
@@ -316,7 +344,66 @@ public partial class WhiteboardView
         }
     }
 
-    private void EditFeld_Verlassen(object? sender, RoutedEventArgs e) => BearbeitungAbschliessen();
+    /// <summary>
+    /// Das Feld hat den Fokus verloren — <b>aber das heißt nicht zwingend, dass der Nutzer
+    /// weggegangen ist.</b>
+    ///
+    /// <para>
+    /// ⛔ <b>Der Anlass (Nutzer, 2026-09-09):</b> „Wenn man mit dem Stift das Textfeld
+    /// aktiviert, kommt kurz das Feld, schließt sich aber sofort wieder." Mit Maus und
+    /// Touchpad geht es. Ein Feld, das aufgeht und sofort wieder verschwindet, hat genau
+    /// <b>eine</b> Mechanik: <c>LostFocus</c> → <see cref="BearbeitungAbschliessen"/>, und
+    /// weil ein frisches Feld leer ist, wird es dabei <b>verworfen</b>
+    /// (<see cref="TextAbschliessen"/>) — es bleibt nicht einmal etwas stehen.
+    /// </para>
+    /// <para>
+    /// <b>Der Fokus ist unter XWayland kein verlässliches Zeichen für eine Absicht des
+    /// Nutzers.</b> Der Kopf ist XWayland-Client (§4.104); ein Stift erzeugt beim Aufsetzen
+    /// und beim Verlassen der Reichweite Ereignisse, die eine Maus nicht erzeugt, und ein
+    /// Fokusverlust ohne neuen Besitzer ist dann eine Meldung des Fenstersystems und keine
+    /// Handlung. <b>Deshalb wird hier nicht mehr gefragt „ist der Fokus weg?", sondern „ist
+    /// er woanders hin?"</b> — hat ihn niemand übernommen, holt das Feld ihn zurück.
+    /// </para>
+    /// <para>
+    /// <b>Das normale Verhalten bleibt unangetastet:</b> Wer auf die Fläche drückt, gibt
+    /// <c>Skia</c> den Fokus (<c>OnPointerPressed</c>), wer Esc oder Strg+Eingabe drückt
+    /// ebenfalls (<see cref="EditFeld_Taste"/>), und wer ein anderes Fenster anklickt, gibt
+    /// ihn dorthin. In allen drei Fällen gibt es einen neuen Besitzer, und die Bearbeitung
+    /// schließt wie bisher.
+    /// </para>
+    /// <para>
+    /// ⚠ <b>Ehrlich benannt: das ist nicht am Stift gemessen.</b> Ein virtueller Stift über
+    /// <c>uinput</c> wurde von Hyprland zwar als Werkzeug angenommen, aber nicht zugestellt;
+    /// der echte Stift liegt beim Nutzer. Die Regel steht deshalb <b>nicht</b>, weil sie
+    /// einen gemessenen Auslöser trifft, sondern weil sie <b>jeden</b> Auslöser dieser Art
+    /// unschädlich macht — und weil sie für sich genommen richtig ist. Bleibt der Fehler,
+    /// sagt die F9-Anzeige, was wirklich passiert (sie führt jetzt ein Ereignisprotokoll).
+    /// </para>
+    /// </summary>
+    private void EditFeld_Verlassen(object? sender, RoutedEventArgs e)
+    {
+        if (!EditFeld.IsVisible) { BearbeitungAbschliessen(); return; }
+
+        var oben = TopLevel.GetTopLevel(this);
+        var neuerBesitzer = oben?.FocusManager?.GetFocusedElement();
+
+        // Niemand hat übernommen → kein Weggehen, sondern ein Verlust. Zurückholen.
+        //
+        // **Hinten angestellt und nicht sofort:** Avalonia ist mitten im Zustellen des
+        // Fokuswechsels; ein `Focus()` von hier aus liefe in denselben Vorgang hinein.
+        if (neuerBesitzer == null)
+        {
+            Spur($"Fokus verloren ohne Nachfolger — zurückgeholt");
+            Dispatcher.UIThread.Post(() =>
+            {
+                if (EditFeld.IsVisible) EditFeld.Focus();
+            }, DispatcherPriority.Input);
+            return;
+        }
+
+        Spur($"Fokus → {neuerBesitzer.GetType().Name}, Bearbeitung schließt");
+        BearbeitungAbschliessen();
+    }
 
     /// <summary>
     /// Läuft gerade eine Beschriftung? Dann darf der Zeichner das Element <b>nicht</b> malen —

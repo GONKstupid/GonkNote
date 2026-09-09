@@ -78,6 +78,23 @@
                                   Header="{loc:TK Menu.View.Sidebar|Shortcut.Sidebar}"/>
                         <MenuItem Command="{Binding ToggleThemeCommand}"
                                   Header="{loc:TK Menu.View.Theme|Shortcut.Theme}"/>
+                        <!-- Die Bildschirmtastatur (Nutzerwunsch 2026-09-09). Drei Zustände
+                             statt eines Hakens: „aus" heißt für den einen „ich will gar
+                             keine", für den anderen „ich will meine eigene". Das sind zwei
+                             verschiedene Wünsche, und ein Schalter kann sie nicht
+                             auseinanderhalten. -->
+                        <MenuItem Header="{loc:T Menu.View.Keyboard}">
+                            <MenuItem x:Name="TastaturEingebaut" ToggleType="Radio" GroupName="Tastatur"
+                                      Tag="eingebaut" Click="Tastatur_Click"
+                                      Header="{loc:T Menu.View.Keyboard.Builtin}"/>
+                            <MenuItem x:Name="TastaturSystem" ToggleType="Radio" GroupName="Tastatur"
+                                      Tag="system" Click="Tastatur_Click"
+                                      ToolTip.Tip="{loc:T Keyboard.SystemHint}"
+                                      Header="{loc:T Menu.View.Keyboard.System}"/>
+                            <MenuItem x:Name="TastaturAus" ToggleType="Radio" GroupName="Tastatur"
+                                      Tag="aus" Click="Tastatur_Click"
+                                      Header="{loc:T Menu.View.Keyboard.Off}"/>
+                        </MenuItem>
                         <MenuItem Header="{loc:T Menu.View.Language}">
                             <MenuItem x:Name="SpracheDeutsch" Header="{loc:T Menu.View.Language.German}"
                                       ToggleType="Radio" GroupName="Sprache" Tag="de" Click="Sprache_Click"/>
@@ -114,6 +131,21 @@
              an einer Stelle, die nach einem Tippfehler aussieht. Deshalb trägt das **Raster**
              den Namen, und die Spalte wird darüber geholt (`SeitenleisteSpalte` im
              Code-Behind). Drüben steht der Name an der Spalte selbst. -->
+        <!-- ==================== Die eingebaute Bildschirmtastatur ====================
+             **Unten im Fenster und nicht als eigenes Fenster.** Ein eigenes Fenster müsste
+             sich um Fokus, Stapelreihenfolge und Position kümmern — und genau daran
+             scheitert jede fremde Tastatur unter XWayland (§4.104). Angedockt ist sie Teil
+             desselben Fensters: sie kann dem Textfeld den Fokus gar nicht wegnehmen, und
+             der Arbeitsbereich schrumpft um ihre Höhe, statt von ihr verdeckt zu werden.
+
+             Sie steht **vor** dem Arbeitsraster im DockPanel, damit `Dock="Bottom"` greift,
+             bevor das Raster den Rest füllt. -->
+        <Border x:Name="TastaturLeiste" DockPanel.Dock="Bottom" IsVisible="False"
+                Background="{DynamicResource Brush.ToolbarBg}"
+                BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,1,0,0">
+            <views:TastaturView x:Name="Tastatur"/>
+        </Border>
+
         <Grid x:Name="Hauptraster">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="260" MinWidth="180" MaxWidth="450"/>

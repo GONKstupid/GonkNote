@@ -45,6 +45,10 @@ public partial class MainWindow : Window
         SpracheHaken();
         Loc.LanguageChanged += SpracheHaken;
 
+        // Die Bildschirmtastatur (Nutzerwunsch 2026-09-09) — Modus wiederherstellen und den
+        // Fokus beobachten. Begründung in MainWindow.Tastatur.cs.
+        TastaturHerstellen();
+
         ZiehenEinhaengen();
         TitelleisteEinhaengen();
 

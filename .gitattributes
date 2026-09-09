@@ -1,0 +1,38 @@
+# Zeilenenden. **Im Repo immer LF, im Arbeitsbaum immer LF.**
+#
+# Der Anlass (2026-09-09): Auf dem Lenovo Yoga standen 160 Dateien mit rund 34.000
+# geaenderten Zeilen als „geaendert" da, ohne dass jemand sie angefasst hatte. In so einem
+# Arbeitsbaum ist keine echte Aenderung mehr zu sehen: `git diff` zeigt jede Datei
+# vollstaendig, und ein Commit waere nicht mehr pruefbar.
+#
+# ⛔ **Und die naheliegende Erklaerung war falsch.** „Beim Umzug von Windows ist CRLF zu LF
+# geworden" — nachgesehen statt geglaubt: **das Repo ist seit jeher LF** (`git show HEAD:…`
+# liefert \n). CRLF stand nur in der ARBEITSKOPIE auf diesem Rechner; sie ist offenbar
+# kopiert und nicht geklont worden. Der Unterschied ist nicht akademisch: die Behebung war
+# ein `git checkout -- .` und kein Historien-Eingriff, und wer der ersten Erklaerung folgt,
+# schreibt die Historie um, um ein Problem zu loesen, das in der Arbeitskopie sitzt.
+#
+# `text=auto eol=lf` heisst: Git entscheidet selbst, was Text ist, und legt Text immer mit
+# LF ab UND aus. Das haelt den Fall kuenftig fern, unabhaengig davon, wie der Baum auf einen
+# Rechner kommt und was dort in `core.autocrlf` steht — die Entscheidung gehoert ins Repo
+# und nicht in die Einstellung dessen, der gerade auscheckt.
+#
+# Nebenbei hat es fuenf echte Ausreisser gefunden: die Dateien des Stylus-Prototyps unter
+# `tools/stylus-prototyp/` lagen als EINZIGE mit CRLF in der Objektdatenbank.
+* text=auto eol=lf
+
+# Ausdruecklich binaer. `text=auto` raet sonst anhand des Inhalts, und ein falsch geratenes
+# Bild wird beim Auschecken zerschrieben — der Fehler faellt erst auf, wenn jemand das
+# Symbol oder eine Cover-Vorlage ansieht.
+*.png            binary
+*.jpg            binary
+*.jpeg           binary
+*.ico            binary
+*.pdf            binary
+*.docx           binary
+*.traineddata    binary
+*.ttf            binary
+*.otf            binary
+*.woff           binary
+*.woff2          binary
+*.AppImage       binary

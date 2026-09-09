@@ -1,6 +1,6 @@
 # Gonk Note V2 — Projektübergabe
 
-**Stand: 2026-09-06 (V2-127) · Version 1.0.0, Ziel erreicht · net10.0 · SkiaSharp 3 · SQLite · Avalonia 12 · **▶ PHASE 5 IST ZU — SCHRITT ⑤ IST GELAUFEN, DAS REPO IST ÖFFENTLICH** (§4.101). **Die Version steht auf 1.0.0** — an allen fünf Stellen, und alle vier Über-Dialoge (zwei Köpfe × zwei Sprachen) sind am laufenden Programm gesehen. **READMEs** tragen jetzt die **drei Installationswege** und **sieben Bildschirmfotos**, die aus einer **erfundenen Demo-Datenbank** stammen (`tools/demo-db`, neu) und nicht aus dem echten Bestand. **Projektseite** unter `site/` samt `pages.yml`, **`release.yml`** an einem `v*`-Tag, **Beiwerk** (`CONTRIBUTING`, `SECURITY`, Issue- und PR-Vorlagen). **⛔ Der Fund der Runde saß im eigenen Über-Dialog:** Die längere Versionszeile wurde **abgeschnitten statt umgebrochen** — ein waagerechtes `StackPanel` misst mit **unendlicher** Breite, `TextWrapping` half daher nichts; **in beiden Köpfen** auf `DockPanel` umgestellt. **⛔ Dazu zwei weitere:** ein Wächter meldete den **vierten** README-Verweis der Anleitung, und eine **dreispaltige Tabelle** wird im Hilfe-Fenster abgeschnitten (ersetzt; **derselbe Verdacht steht benannt für Abschnitt 14 der Anleitung, ungeprüft**). **HANDOFF und ganze Git-Historie auf Privates durchgesehen — beides sauber.**  **⛔ UND EIN BEFUND, DER NICHT AUS DIESER RUNDE STAMMT: DIE CI WAR SEIT DEM 2026-09-03 ROT** — neun Läufe, beide Jobs, nur der Testschritt, **hier nicht reproduzierbar** (auch nicht im frischen Klon), und **die Protokolle verlangen Adminrechte**. Statt zu raten, sagt die CI es jetzt selbst: **`::error::`-Annotationen sind bei einem öffentlichen Repo ohne Anmeldung lesbar** — *und der erste Anlauf dieses Schrittes ist selbst gefallen* (`-eo pipefail`; ein `grep` ohne Treffer). **✅ Der Wächter war einer, und er hatte recht:** `TdTableEdit.AlsDatum` las mit `CultureInfo.CurrentCulture` — auf `en-US` scheiterte „15.02.2026", die Spalte galt als **Zahlen**spalte, und daraus wurde **15.022.026**. *Genau die Umkehrung, vor der der Kommentar daneben warnt, und das Ergebnis sieht sortiert aus.* Jetzt fest `de-DE`, dann invariant — wie in `TdTabellenformel.AlsZahl`, **das die gleiche Frage seit jeher so beantwortet**. **Bau 0/0, 1313 Tests (1244 Core + 69 WPF), +5 — und beide CI-Jobs grün.** ▶ **Drei Handgriffe bleiben beim Nutzer und gehören seinem Konto:** den **Tag `v1.0.0` schieben** (er löst das Release aus), **Pages auf „GitHub Actions" stellen**, **Beschreibung und Topics** setzen. **⛔ NACHGETRAGEN AM 2026-09-06 (V2-126, §4.102): Flathub ist nicht bloß „noch nicht eingereicht" — das Manifest erfüllt die Anforderungen nicht.** Flathub baut **aus dem Quellcode und ohne Netz**; unseres packt ein fertiges `dotnet publish`-Ergebnis ein. **Das ist ein Umbau** (Zuschnitt in §6, „Vorgemerkt: Flathub") — *und er blockiert nichts.* **⛔ Dabei ist eine Begründung im Manifestkopf als falsch nachgewiesen:** `org.freedesktop.Sdk.Extension.dotnet10` **gibt es**, mit `branch/25.08` und SDK 10.0.300 GA. **⛔ UND DIE INSTALLATIONSPROBE HAT EINEN FUND (V2-127, §4.103):** Das Windows-Paket ist **gemessen** — wie `release.yml` gebaut, entpackt, aus fremdem Ordner mit frischer Datenbank gestartet. **Aber der Ordner `Fonts` stand in keiner Kopieranweisung**, und ohne ihn zeichnet der Kopf in **Segoe UI** — §4.72 rückwärts, ohne jeden Hinweis. In allen vier Dokumenten behoben. **⛔ Dazu zwei Zerleger-Funde:** ein **Blockzitat in einem Listenpunkt** wird nicht erkannt (die `>` stehen wörtlich da — *auf GitHub sieht es richtig aus*), und **Backticks im Linktext** überleben wörtlich. **Linux ist von hier aus geprüft, soweit es geht:** Kreuzbau 341 Dateien / 155 MB, alle Bestandteile da, die drei Startpfade stimmen überein — **der Start selbst wartet auf das erste Release.** ▶ **Der Laptop ist nicht dran** — der Flathub-Umbau bestellt ihn aber, sobald er gemacht wird.**
+**Stand: 2026-09-08 (V2-128)** · **▶ NEUER ENTWICKLUNGSRECHNER: LENOVO YOGA 7 2-IN-1 14 IML9 UNTER OMARCHY** (Arch-basiert) — er ersetzt den Windows-Entwicklungsrechner vollständig; auf den CachyOS-Laptop kommt wieder Windows als Gegenprobe-Gerät (noch nicht eingerichtet). **Die App läuft unter Omarchy über das installierte AppImage, mit ein paar bekannten Bugs. Reihenfolge: erst diese Bugs beheben, dann Flathub-Umbau (§4.102) und Phase 5.1.** §5b/§5c/§5d/§5e beschreiben weiterhin den alten Aufbau und sind als solcher markiert. Details in §0, „Hier geht es weiter". **Version 1.0.0, Ziel erreicht · net10.0 · SkiaSharp 3 · SQLite · Avalonia 12 · **▶ PHASE 5 IST ZU — SCHRITT ⑤ IST GELAUFEN, DAS REPO IST ÖFFENTLICH** (§4.101). **Die Version steht auf 1.0.0** — an allen fünf Stellen, und alle vier Über-Dialoge (zwei Köpfe × zwei Sprachen) sind am laufenden Programm gesehen. **READMEs** tragen jetzt die **drei Installationswege** und **sieben Bildschirmfotos**, die aus einer **erfundenen Demo-Datenbank** stammen (`tools/demo-db`, neu) und nicht aus dem echten Bestand. **Projektseite** unter `site/` samt `pages.yml`, **`release.yml`** an einem `v*`-Tag, **Beiwerk** (`CONTRIBUTING`, `SECURITY`, Issue- und PR-Vorlagen). **⛔ Der Fund der Runde saß im eigenen Über-Dialog:** Die längere Versionszeile wurde **abgeschnitten statt umgebrochen** — ein waagerechtes `StackPanel` misst mit **unendlicher** Breite, `TextWrapping` half daher nichts; **in beiden Köpfen** auf `DockPanel` umgestellt. **⛔ Dazu zwei weitere:** ein Wächter meldete den **vierten** README-Verweis der Anleitung, und eine **dreispaltige Tabelle** wird im Hilfe-Fenster abgeschnitten (ersetzt; **derselbe Verdacht steht benannt für Abschnitt 14 der Anleitung, ungeprüft**). **HANDOFF und ganze Git-Historie auf Privates durchgesehen — beides sauber.**  **⛔ UND EIN BEFUND, DER NICHT AUS DIESER RUNDE STAMMT: DIE CI WAR SEIT DEM 2026-09-03 ROT** — neun Läufe, beide Jobs, nur der Testschritt, **hier nicht reproduzierbar** (auch nicht im frischen Klon), und **die Protokolle verlangen Adminrechte**. Statt zu raten, sagt die CI es jetzt selbst: **`::error::`-Annotationen sind bei einem öffentlichen Repo ohne Anmeldung lesbar** — *und der erste Anlauf dieses Schrittes ist selbst gefallen* (`-eo pipefail`; ein `grep` ohne Treffer). **✅ Der Wächter war einer, und er hatte recht:** `TdTableEdit.AlsDatum` las mit `CultureInfo.CurrentCulture` — auf `en-US` scheiterte „15.02.2026", die Spalte galt als **Zahlen**spalte, und daraus wurde **15.022.026**. *Genau die Umkehrung, vor der der Kommentar daneben warnt, und das Ergebnis sieht sortiert aus.* Jetzt fest `de-DE`, dann invariant — wie in `TdTabellenformel.AlsZahl`, **das die gleiche Frage seit jeher so beantwortet**. **Bau 0/0, 1313 Tests (1244 Core + 69 WPF), +5 — und beide CI-Jobs grün.** ▶ **Drei Handgriffe bleiben beim Nutzer und gehören seinem Konto:** den **Tag `v1.0.0` schieben** (er löst das Release aus), **Pages auf „GitHub Actions" stellen**, **Beschreibung und Topics** setzen. **⛔ NACHGETRAGEN AM 2026-09-06 (V2-126, §4.102): Flathub ist nicht bloß „noch nicht eingereicht" — das Manifest erfüllt die Anforderungen nicht.** Flathub baut **aus dem Quellcode und ohne Netz**; unseres packt ein fertiges `dotnet publish`-Ergebnis ein. **Das ist ein Umbau** (Zuschnitt in §6, „Vorgemerkt: Flathub") — *und er blockiert nichts.* **⛔ Dabei ist eine Begründung im Manifestkopf als falsch nachgewiesen:** `org.freedesktop.Sdk.Extension.dotnet10` **gibt es**, mit `branch/25.08` und SDK 10.0.300 GA. **⛔ UND DIE INSTALLATIONSPROBE HAT EINEN FUND (V2-127, §4.103):** Das Windows-Paket ist **gemessen** — wie `release.yml` gebaut, entpackt, aus fremdem Ordner mit frischer Datenbank gestartet. **Aber der Ordner `Fonts` stand in keiner Kopieranweisung**, und ohne ihn zeichnet der Kopf in **Segoe UI** — §4.72 rückwärts, ohne jeden Hinweis. In allen vier Dokumenten behoben. **⛔ Dazu zwei Zerleger-Funde:** ein **Blockzitat in einem Listenpunkt** wird nicht erkannt (die `>` stehen wörtlich da — *auf GitHub sieht es richtig aus*), und **Backticks im Linktext** überleben wörtlich. **Linux ist von hier aus geprüft, soweit es geht:** Kreuzbau 341 Dateien / 155 MB, alle Bestandteile da, die drei Startpfade stimmen überein — **der Start selbst wartet auf das erste Release.** ▶ **Der Laptop ist nicht dran** — der Flathub-Umbau bestellt ihn aber, sobald er gemacht wird.**
 
 > **📌 Dauerregeln des Nutzers — gelten immer, ohne Nachfragen:**
 >
@@ -32,23 +32,12 @@
 >    bei offenen Fragen und Entscheidungen**, die der Nutzer treffen muss — die dafür klar
 >    begründen.
 > 3. **Sprache:** durchgehend Deutsch — UI, Kommentare, Commits, diese Datei.
-> 3a. **Am Ende jeder Antwort sagen, ob der Laptop dran ist** (Nutzer-Wunsch 2026-08-10).
->    **Immer eine Zeile — auch wenn die Antwort „nein" lautet.** Sie beantwortet:
->    (a) braucht der **nächste** Schritt den CachyOS-Laptop? (b) wenn ja: wofür genau?
->    (c) wenn nein: was ihn später fällig macht.
 >
->    Die Begründung steht in **§5b**: Entwickelt wird unter Windows — `Avalonia.Desktop` läuft
->    dort auch, die Fernsteuer-Werkzeuge in `tools\` funktionieren nur dort, und beide Köpfe
->    lassen sich nur dort an derselben Datenbank-Kopie vergleichen. **Der Laptop ist Messgerät
->    und kein Arbeitsplatz.** Er beantwortet Stift (Druck, Neigung, Handballen),
->    `~/.config/GonkNote`, fontconfig und die Rückfallschrift — und nur er.
->
->    **Faustregel:** „rechnet es richtig?" → Windows. „sieht oder fühlt es sich auf Linux
->    richtig an?" → Laptop.
->
->    **Lautet die Antwort „ja", gehört vor dem Wechsel der Auftrag in §5d nachgezogen** —
->    dort steht, was der Laptop tun soll, damit der Nutzer dort nur „lies das HANDOFF" sagen
->    muss.
+>    *(Die frühere **Dauerregel 3a** — „am Ende jeder Antwort sagen, ob der Laptop dran ist" —
+>    ist am **2026-09-09 vom Nutzer gestrichen**. **Den CachyOS-Laptop gibt es nicht mehr.**
+>    Damit gibt es kein zweites Gerät, an das ein Schritt gehen könnte, und die Schlusszeile
+>    beantwortet keine Frage mehr. Was sie einmal geregelt hat, steht in §9 unter V2-31 und
+>    V2-129; **§5b/§5d/§5e sind damit vollständig Historie** — siehe §0.)*
 > 4. **Kopie der echten Daten anlegen ist erlaubt, ohne zu fragen** (Nutzer-Entscheidung
 >    2026-07-30). Wenn echte Daten zum Prüfen gebraucht werden — Migration, Export, ein
 >    Fehlerbild, das nur mit Bestandsdokumenten auftritt —, darf der Inhalt von
@@ -101,10 +90,10 @@ Die Datei ist lang, und das bleibt sie: sie trägt die Begründungen, nicht nur 
 | **4** | **Warum es so ist, wie es ist** — eine Nummer je Runde (§4.1 – §4.41) | wenn eine Entscheidung fremd wirkt |
 | **5** | **Entscheidungen** — getroffene als Tabelle, offene als Liste | **vor jeder Rückfrage an den Nutzer** |
 | **5a** | Stylus unter Linux: was gemessen wurde und was offen ist | bei allem, was am Stift hängt |
-| **5b** | Wann und wie auf den CachyOS-Laptop gewechselt wird | bevor man ihn anfasst |
-| **5c** | GitHub-Zugang beider Rechner | wenn `git push` klemmt |
-| **5d** | 🐧 **Arbeitsanweisung für den Laptop** samt Prompt zum Kopieren | wenn du *auf* dem Laptop läufst |
-| **5e** | 🪟 **Arbeitsanweisung für den Windows-Rechner** samt Prompt zum Kopieren | wenn du *auf* Windows läufst — **das ist der Normalfall** |
+| **5b** | ⛔ **Historie** — wann auf den CachyOS-Laptop gewechselt wurde | nur noch als Begründung; **den Laptop gibt es nicht mehr** |
+| **5c** | GitHub-Zugang | wenn `git push` klemmt |
+| **5d** | ⛔ **Historie** — 🐧 Arbeitsanweisung für den Laptop | nur noch als Begründung |
+| **5e** | ⛔ **Historie** — 🪟 Arbeitsanweisung für den Windows-Rechner | nur noch als Begründung; **es gibt nur diesen einen Rechner** |
 | **6** | Arbeitsplan: Häkchen je Phase, Vorgemerktes, Veröffentlichung | „was kommt als Nächstes?" |
 | **7** | **Fallen** — was schon einmal weh getan hat | **vor jeder Code-Änderung überfliegen** |
 | **8** | Schnellstart-Befehle (Bauen, Testen, Fernsteuern, DB-Kopie) | zum Kopieren |
@@ -122,13 +111,17 @@ und iPadOS** — Greenfield-Solution, in die der wiederverwendbare Code aus V1 w
 
 | | |
 |---|---|
-| **V2 (hier gearbeitet)** | `C:\Dev\Zed\gonk-note-V2`, Branch `main` → <https://github.com/GONKstupid/GonkNote> (**privat**), Remote über **SSH** (§5c) |
+| **V2 (hier gearbeitet)** | **seit V2-128: Lenovo Yoga unter Omarchy, `/home/gonk/Projects/gonk-note-V2`** (der Windows-Pfad `C:\Dev\Zed\gonk-note-V2` ist Historie), Branch `main` → <https://github.com/GONKstupid/GonkNote>, Remote über **SSH** (§5c) |
 | **V2 auf dem Linux-Laptop** | `~/Zed/gonk-note-V2/GonkNote` (CachyOS) — **Messgerät, kein Arbeitsplatz.** Arbeitsanweisung: **§5d**, Begründung: §5b, Stift: §5a |
 | **V1 (Referenz, nicht anfassen)** | `C:\Dev\Zed\gonk-note`, Branch `main`, <https://github.com/GONKstupid/gonk-note> |
 | **Roadmap (die Vorgabe)** | `C:\Users\manue\Desktop\GonkNote-TM\gonk-note-port-RM.MD` — **umgezogen**, hier stand bis 2026-08-04 der Pfad direkt auf dem Desktop |
 | **V1-Handoff (alle Alt-Erfahrungen)** | `C:\Dev\Zed\gonk-note\HANDOFF.md` — **weiterhin gültig**, §4 Fallen und §7 Testen dort lesen |
 
 > ### Auf welchem Rechner läufst du?
+>
+> **⚠ Stand V2-128:** Entwickelt wird auf dem Lenovo Yoga unter Omarchy (§0-Block oben).
+> Die Zeilen 🪟 Windows / 🐧 CachyOS-Laptop unten beschreiben den alten Aufbau; sie gelten
+> wieder, sobald der Windows-Laptop steht.
 >
 > | | |
 > |---|---|
@@ -141,11 +134,9 @@ und iPadOS** — Greenfield-Solution, in die der wiederverwendbare Code aus V1 w
 
 1. **Wünsche und Fehlermeldungen des Nutzers zuerst.** Vorrang vor allem anderen.
 2. Sonst: **§5 Entscheidungen** — was dort offen steht, nachfragen statt raten.
-3. Sonst: **§5e** (auf Windows) bzw. **§5d** (auf dem Laptop) — dort steht, womit anzufangen
-   ist. Was gebaut wird, steht dahinter in **§6 Arbeitsplan**.
+3. Sonst: **§6 Arbeitsplan** — dort steht, was gebaut wird. *(Bis V2-128 stand hier §5e bzw.
+   §5d; **beide sind Historie**, es gibt nur noch diesen einen Rechner — §0.)*
 4. Vor jeder Code-Änderung **§7 Fallen** überfliegen.
-5. **Am Ende der Antwort** eine Zeile, ob der nächste Schritt an den Laptop gehört
-   (Dauerregel 3a). Wenn ja, gehört **§5d nachgezogen**, bevor der Nutzer wechselt.
 
 **Bauen und prüfen:**
 
@@ -153,6 +144,11 @@ und iPadOS** — Greenfield-Solution, in die der wiederverwendbare Code aus V1 w
 cd C:\Dev\Zed\gonk-note-V2
 dotnet build -c Release          # muss 0 Fehler, 0 Warnungen ergeben
 ```
+
+**⚠ Seit V2-128 wird unter Omarchy entwickelt, nicht unter Windows** (§0, „Neuer
+Entwicklungsrechner"). Dort **projektbezogen** bauen — `dotnet build src/GonkNote.Core`
+bzw. `dotnet build src/GonkNote.Avalonia` —, die Solution wegen des WPF-Kopfs **nicht als
+Ganzes**. Der PowerShell-Block oben ist der alte Windows-Weg.
 
 Auf dem **Linux-Laptop** stattdessen nur das Core-Projekt (die Solution enthält den
 WPF-Kopf und ist dort nicht baubar — das ist so gewollt):
@@ -305,6 +301,66 @@ abgeschlossen.** Der Anschluss hat sofort einen Fehler gezeigt, den vier Runden 
 Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — behoben.
 
 ### ▶ Hier geht es weiter (Stand 2026-09-05, nach Runde V2-125)
+
+> ### ▶ Neuer Entwicklungsrechner: der Lenovo Yoga unter Omarchy (Stand 2026-09-08, V2-128)
+>
+> **▶ DER ENTWICKLUNGSRECHNER HAT GEWECHSELT.** Entwickelt wird ab jetzt auf einem **Lenovo
+> Yoga 7 2-in-1 14 IML9** unter **Omarchy** (Arch-basiertes Linux). **Der bisherige
+> Windows-Entwicklungsrechner ist raus** — der Yoga ersetzt ihn vollständig. Das Repo liegt
+> hier unter **`/home/gonk/Projects/gonk-note-V2`**, Branch `main`, Remote über SSH
+> (`git@github.com:GONKstupid/GonkNote.git`).
+>
+> **⛔ DEN CACHYOS-LAPTOP GIBT ES NICHT MEHR** (Nutzer, 2026-09-09). Bis dahin stand hier, auf
+> ihn komme wieder Windows als Gegenprobe-Gerät — **das ist hinfällig.** Es gibt **einen**
+> Rechner, diesen, und daraus folgt dreierlei:
+>
+> - **Dauerregel 3a ist gestrichen** (Kopfzeile). Es gibt kein zweites Gerät, an das ein
+>   Schritt gehen könnte.
+> - **§5b, §5d und §5e sind vollständig Historie.** Sie beschreiben einen Aufbau aus zwei
+>   Rechnern (Windows entwickelt, CachyOS misst), den es nicht mehr gibt. Sie werden **nicht
+>   nachgezogen** und bleiben nur als Begründungsspeicher stehen — wer dort einen Auftrag
+>   liest, liest einen Auftrag an ein Gerät, das weg ist.
+> - **⚠ Und der Preis gehört dazugesagt: es gibt keinen laufenden WPF-Kopf mehr.** Alles, was
+>   nur der Windows-Kopf beantworten kann — der Zwei-Köpfe-Vergleich aus Phase 5, Schritt ①,
+>   die Gegenprobe „rechnet es dort auch so?", die 69 WPF-Wächter — ist von hier aus **nicht
+>   mehr prüfbar.** Der Code bleibt im Baum und wird in der CI gebaut; **gesehen** hat ihn
+>   danach niemand mehr. Das ist keine Lücke im Fleiß, sondern eine im Aufbau, und sie
+>   trifft jede künftige Runde, die „in beiden Köpfen" sagt.
+>
+> **▶ Die App läuft unter Omarchy — über das AppImage installiert, und sie funktioniert**
+> (bis auf ein paar Bugs). Erster echter Lauf auf einem fremden Linux außerhalb des
+> Baurechners.
+>
+> **▶ DIE ERSTE BUG-RUNDE IST GELAUFEN (2026-09-09, V2-129, §4.104) — Version 1.0.1.**
+> Vier Meldungen des Nutzers, dazu ein Bedienwunsch:
+>
+> | | Punkt | Stand |
+> |---|---|---|
+> | 1 | Seitenleiste schließt nicht (nur der Inhalt verschwand) | ✅ **behoben und am laufenden Programm belegt** |
+> | 2 | Bildschirmtastatur geht nicht auf | ⛔ **Sackgasse, gemessen — Entscheidung des Nutzers steht aus** |
+> | 3 | Textfeld-Werkzeug (T) mit Finger | ✅ behoben — ⚠ **vom Nutzer mit dem Finger gegenzuprüfen** |
+> | 3 | Textfeld-Werkzeug (T) mit Stift | ⚠ **eingekreist, nicht bewiesen — F9-Messung steht aus** |
+> | 4 | Einstellungsleiste soll klappen | ✅ **gebaut und am laufenden Programm belegt** |
+>
+> **⛔ Punkt 2 ist der wichtigste, und er ist keine Lücke, sondern eine Sackgasse.** Gemessen:
+> `Avalonia.X11` 12.1.1 kennt **kein** `InputPane` (die App kann nie von selbst eine Tastatur
+> holen), der Kopf ist **XWayland**-Client — **und von Hand hervorholen hilft auch nicht:**
+> Tasten über `zwp_virtual_keyboard_v1` (das Protokoll von `wvkbd` und `squeekboard`) kommen
+> **nicht an** und **zerstören obendrein die offene Bearbeitung**. Eine externe Tastatur ist
+> damit kein Weg. **Empfohlen: eine eigene Tastatur im Fenster**, nach dem Muster des
+> Zahlenblocks. *Das ist die nächste Entscheidung, die der Nutzer treffen muss.*
+>
+> **▶ Zwei Messungen liegen beim Nutzer, bevor die nächste Runde anfängt:** (a) mit dem
+> **Finger** ein Textfeld setzen — geht es? (b) **F9** drücken, T wählen, mit dem **Stift**
+> aufsetzen: steht dort `Invertiert ja`, ohne dass das Radiergummi benutzt wurde, ist die
+> Ursache von Punkt 3 gefunden.
+>
+> **▶ Danach:** der **Flathub-Umbau** (§4.102, §6) und **Phase 5.1** (Rechtschreibprüfung,
+> §5 Nr. 22).
+>
+> **▶ Die drei Handgriffe am Nutzer-Konto aus V2-125 gelten unverändert** (Tag `v1.0.0`,
+> Pages-Quelle, Repo-Beschreibung/Topics) — siehe den Block darunter.
+
 
 > **▶ PHASE 5 IST ZU. SCHRITT ⑤ IST GELAUFEN, UND DAS REPO IST ÖFFENTLICH** (§4.101,
 > V2-125, unter Windows). **Bau 0/0, 1313 Tests (1244 Core + 69 WPF), +5.** Der Nutzer hat das Repo auf
@@ -12762,6 +12818,158 @@ davor `LD_LIBRARY_PATH` auf den Beipack, die `.desktop`-Datei nennt `Exec=gonkno
 **Windows: ja, gemessen.** **Linux: alles, was von hier aus prüfbar ist, stimmt** — der Bau,
 die Nutzlast, die drei Startpfade —, **und der Start selbst wartet auf das erste Release**.
 
+### 4.104 Vier Bugmeldungen vom Gerät — und die Tastatur ist eine Sackgasse, gemessen
+
+**Die erste Runde auf dem Yoga, an dem der Nutzer wirklich arbeitet** (V2-129). Vier Punkte,
+drei behoben, einer als Entscheidung zurück an den Nutzer. Dazu: **Dauerregel 3a gestrichen**
+(den CachyOS-Laptop gibt es nicht mehr), Version auf **1.0.1**, Release `v1.0.1`.
+
+#### ⛔ (1) Die Seitenleiste schloss nie — sie leerte sich nur
+
+`SeitenleisteUmschalten` war **eine Zeile**: `Seitenleiste.IsVisible = !…`. Das blendet den
+**Inhalt** aus. Die Rasterspalte stand als Kurzform `ColumnDefinitions="260,4,*"` fest, blieb
+260 Punkte breit, der Trenner sichtbar, der Arbeitsbereich genauso schmal wie vorher.
+
+**Der WPF-Kopf hat es von Anfang an vollständig gemacht** (`SetSidebarVisible`: Inhalt,
+Spalte, `MinWidth`, Trenner, gesichert unter `sidebar`). Dieser Kopf hatte davon **ein
+Fünftel**. Und §4.71 hat die beiden Flächen ausdrücklich verglichen, ohne es zu finden:
+*gemessen wurde, was zu sehen ist, nicht, was passiert, wenn man darauf drückt.* Ein
+Oberflächenvergleich, der nur Bilder nebeneinanderlegt, findet keinen Bedienfehler.
+
+Drei Dinge gehören zusammen, und jedes einzeln weggelassen ergibt ein halb geschlossenes
+Bild: Inhalt weg, **Spalte auf 0 samt `MinWidth`** (eine Mindestbreite von 180 hält sie sonst
+offen), **Trenner weg**. Der Stand wird jetzt gesichert, mit **demselben Schlüssel wie
+drüben** — zwei Köpfe auf einer Datenbank dürfen sich darüber nicht widersprechen.
+
+⚠ **Die neunte Stelle, an der Avalonia nicht wie WPF ist:** Ein `x:Name` an einer
+`ColumnDefinition` erzeugt **kein Feld** im Code-Behind — der Erzeuger legt nur für
+Oberflächenelemente eines an. Der Bau scheitert mit „The name … does not exist", und zwar in
+der C#-Datei, also an einer Stelle, die nach einem Tippfehler aussieht. Der Name sitzt jetzt
+am **Raster**, die Spalte wird darüber geholt.
+
+#### ⛔ (2) Der Finger erreichte Textfeld und Notizzettel überhaupt nicht
+
+`OnPointerPressed` bog bei `PointerType.Touch` ab, **bevor das Werkzeug gefragt wurde** —
+`BeginInput` hat ein Finger nie erreicht. Damit waren beide Werkzeuge **auf genau dem Gerät
+unbedienbar, für das die App gebaut ist**; sie gingen nur mit Maus und Touchpad.
+
+Der Grund war eine richtige Regel, die zu weit gefasst worden war. „Der Finger zeichnet nie"
+ist die Grundlage der Handballenabweisung (§4.10) — daraus war „der Finger tut sonst gar
+nichts" geworden. **Die Regel heißt jetzt nicht „Finger ja/nein", sondern „Zug oder Tipp"**
+(`WbLeiste.IstTippwerkzeug`, Core): Ein Strich entsteht aus einer **Bewegung**, und ein
+Handballen zieht ihn versehentlich mit — deshalb bleibt der Finger davon fern. Ein Textfeld
+entsteht aus einer **Stelle**: es gibt keinen Zug, den ein Handballen verderben könnte.
+Ein Finger, ohne Bewegung über 12 Punkte, kein zweiter Finger — dann setzt er.
+
+Auswahl und Sticker stehen **bewusst nicht** dabei: Lasso und Verschieben brauchen den Zug
+und stritten mit dem Schieben der Fläche; der Sticker kommt über seine Kachel. Drei Wächter
+halten das fest, darunter „kein Stift ist ein Tipp-Werkzeug" — fiele der, dürfte der Finger
+zeichnen.
+
+⚠ **Nicht am laufenden Programm belegt.** Berührungen lassen sich von hier aus nicht
+erzeugen; das prüft der Nutzer mit dem Finger.
+
+#### ⚠ (3) Der Stift — der Verdacht ist eingekreist, die Auslösung nicht bewiesen
+
+Im ganzen Eingabepfad gibt es **genau eine** Stelle, an der ein Stift woanders landet als
+eine Maus: `_stylusInverted = punkt.Properties.IsEraser`. Danach schlägt `EffectiveTool` das
+gewählte Werkzeug und macht daraus den Radierer — **lautlos und für jedes Werkzeug
+gleichzeitig**. Genau das Bild, das gemeldet wurde.
+
+Am ausgelieferten Rücken nachgelesen (nicht geraten, §4.42): `Avalonia.X11` 12.1.1 führt
+`_currentSlaveIsEraser` **am Master-Zeiger**, setzt es aus dem Gerätenamen des Slaves
+(`Name.IndexOf("eraser")`) und aktualisiert es **nur bei `XI_DeviceChanged`** — der Wert ist
+also **klebrig**. `IsBarrelButtonPressed` scheidet aus: das Wort „Barrel" kommt in der
+Assembly **kein einziges Mal** vor.
+
+Und am Gerät gemessen (XI2 abgefragt): XWayland legt für das Tablett **dauerhaft alle drei
+Werkzeuge als eigene Geräte** an — `xwayland-tablet stylus:1`, `… eraser:1`, `… cursor:1`,
+**alle drei mit Drucksensor**, auch ohne dass je ein Radiergummi benutzt wurde.
+
+**Ob daraus ein hängendes `IsEraser` wird, sagt kein Quelltext.** Deshalb ist statt einer
+Reparatur das **Messgerät geschärft worden**: die F9-Anzeige zeigt jetzt zusätzlich
+`Werkzeug X → wirksam Y`, `Invertiert`/`IsEraser` und die Fingerzahl. Steht dort
+`Invertiert ja`, ohne dass das Radiergummi-Ende benutzt wurde, ist die Ursache gefunden.
+*Eine Behebung, die auf eine unbewiesene Ursache zielt, sieht wie eine Lösung aus — §4.42 und
+V2-59 haben genau das einmal gekostet.*
+
+#### ⛔ (4) Die Bildschirmtastatur ist keine Lücke, sondern eine Sackgasse
+
+Drei Befunde, und der dritte ist neu:
+
+1. `Avalonia.X11` 12.1.1 enthält `InputPane` **kein einziges Mal** → `TopLevel.InputPane` ist
+   `null`, die App kann eine Tastatur **nie** von selbst holen. Bestätigt §4.43 auf Omarchy.
+2. Der Kopf ist **XWayland**-Client — Avalonia 12.1.1 bringt keinen Wayland-Rücken mit (im
+   Paketsatz liegt nur `avalonia.x11`).
+3. **Von Hand hervorholen hilft auch nicht, und das ist gemessen** — zweimal, mit
+   Fokusnachweis und Gegenprobe: `ydotool` (uinput-Ebene) tippt zuverlässig ins Textfeld;
+   `wtype` (`zwp_virtual_keyboard_v1` — **dasselbe Protokoll, das `wvkbd` und `squeekboard`
+   benutzen**) bringt **nichts** an. Und schlimmer: die offene Bearbeitung **verschwindet
+   samt Inhalt**, ohne übernommen zu werden, **während das Fenster den Fokus behält**.
+
+> **Damit ist eine externe Bildschirmtastatur kein Weg.** Sie ist stumm (wie §4.41 es auf
+> GNOME fand) **und zerstört obendrein die laufende Eingabe.** Das ist keine Einstellung, die
+> man findet, und kein Paket, das man nachinstalliert.
+
+**Empfohlen ist eine eigene Tastatur im Fenster**, nach dem Muster des Zahlenblocks aus
+Stück 5 — der ist aus genau diesem Grund gebaut worden. Sie umgeht jedes Protokoll, wirkt in
+AppImage **und** Flatpak-Sandbox gleich und trägt später nach iPadOS. **Die Entscheidung
+liegt beim Nutzer** (§5 „Noch offen").
+
+#### (5) Der Bedienwunsch: die Einstellungsleiste klappt
+
+Alles eingeklappt; das Werkzeug klappt seinen Abschnitt auf. Vorher wurden die
+werkzeugeigenen Abschnitte ein- und **ausgeblendet** — die Leiste war damit länger als das
+Fenster, und was gerade fehlte, sah aus, als gäbe es das gar nicht.
+
+- **Die Zuordnung Werkzeug → Abschnitt steht in Core** (`WbLeiste.BereichVon`). Vorher standen
+  dafür in *einer* Methode **zwei** Aufzählungen derselben vier Werkzeuge, drei Zeilen
+  auseinander — §4.78 in klein.
+- **Kein `Expander`, obwohl der WPF-Kopf einen benutzt.** Avalonias Fluent-Expander bringt
+  eine eigene Kachel mit, im dunklen Erscheinungsbild ein fast schwarzer Kasten (§4.94, §4.55:
+  derselbe Fund zum dritten Mal). Ein `ToggleButton` und ein `StackPanel`, die wir schon
+  haben, sind weniger Arbeit **und weniger Annahmen** als ein fremdes Template.
+- **Ein Werkzeugwechsel klappt nur werkzeugeigene Abschnitte zu.** Seite, Cover und Export
+  hängen an keinem Werkzeug; sie zuzuklappen wäre eine Antwort auf eine ungestellte Frage.
+- Nebenbei: die Leiste hieß `Settings.Page` („Seite") statt `Wb.Settings` („Einstellungen") —
+  sonst stünde jetzt eine Gruppe „Seite" in einer Leiste namens „Seite".
+
+#### ⛔ Und zwei Funde, die nicht aus der Bugliste stammen
+
+**(a) Die „vier weiteren Stellen" der Version waren sechs.** Der Kommentar in
+`Directory.Build.props` führt die Liste — und die **Projektseite unter `site/`** stand nie
+darin, obwohl sie in §4.101 **im selben Zug wie die 1.0.0** entstanden ist. Beim ersten
+Anheben danach bot sie prompt Dateien zum Download an, die es unter diesem Namen nicht mehr
+gibt. *Eine Liste, die eine andere Stelle vollständig nennen soll, veraltet genau dann, wenn
+jemand eine sechste anlegt.* Liste korrigiert, `site/` und die Fehlervorlage nachgezogen.
+
+**(b) Die naheliegende Erklärung für 34.000 geänderte Zeilen war falsch.** Der Arbeitsbaum
+zeigte 160 Dateien als geändert, ohne dass jemand sie angefasst hatte; die Vermutung lautete
+„beim Umzug von Windows ist CRLF zu LF geworden". **Nachgesehen statt geglaubt:** das Repo ist
+seit jeher LF (`git show HEAD:` liefert `\n`). CRLF stand nur in der **Arbeitskopie** dieses
+Rechners — sie ist kopiert und nicht geklont worden. Behoben hat es `git checkout -- .`.
+*Wer der ersten Erklärung folgt, schreibt die Historie um, um ein Problem zu lösen, das in der
+Arbeitskopie sitzt.* `.gitattributes` (`* text=auto eol=lf`) hält den Fall künftig fern und
+hat nebenbei **fünf echte Ausreißer** gefunden: die Dateien des Stylus-Prototyps lagen als
+einzige mit CRLF in der Objektdatenbank.
+
+#### Am laufenden Programm geprüft (Dauerregel 1 und 4)
+
+Eigene Instanz mit Wegwerf-Datenbank unter `/tmp`, die Instanz des Nutzers nicht angefasst.
+Gesteuert mit `ydotool` (uinput) — **`wtype` scheidet aus, siehe (4)**; Bilder mit `grim`.
+
+- **Seitenleiste**: zu und wieder auf, Spalte verschwindet vollständig, `sidebar` steht
+  danach auf `0` bzw. `1` in der Datenbank.
+- **Klappgruppen**: Leiste geht mit sechs eingeklappten Köpfen auf (Cover fehlt korrekt, keine
+  Cover-Seite); **F** klappt nur „Formen" auf; **T** klappt Formen zu und „Text" auf; ein
+  Klick auf „Seite" klappt von Hand auf und bleibt beim nächsten Werkzeugwechsel stehen.
+- **Über-Dialog**: „Version 1.0.1" in **beiden** Sprachen, beide Zeilen umgebrochen statt
+  abgeschnitten (§4.101 hält).
+
+**Bau 0/0. 1250 Core-Tests, +6.** ⚠ **Der WPF-Kopf ist nicht mitgeprüft und kann es nicht
+mehr sein** — es gibt keinen Windows-Rechner mehr (§0). Angefasst wurde an gemeinsamem Code
+nur `WbLeiste` (rein additiv).
+
 ---
 
 ## 5. Entscheidungen
@@ -13947,9 +14155,15 @@ dieses Laptops. MPP und EMR bleiben ungetestet, siehe „Offen" unten.
 
 ## 5b. Wann und wie auf den CachyOS-Laptop wechseln
 
-> **Dieser Abschnitt ist die Begründung zu Dauerregel 3a** (Kopfzeile): Am Ende **jeder**
-> Antwort steht eine Zeile dazu, ob der nächste Schritt hierher gehört — auch wenn sie „nein"
-> lautet. Wer die Regel liest und wissen will, *warum*, liest hier weiter.
+> **⛔ HISTORIE (2026-09-09): Diesen Aufbau gibt es nicht mehr — und den Laptop auch nicht.**
+> Entwickelt wird auf dem Lenovo Yoga unter Omarchy, und zwar **als einzigem Gerät** (§0).
+> Der CachyOS-Laptop ist weg, der Plan „auf ihn kommt Windows als Gegenprobe" ist hinfällig,
+> **Dauerregel 3a ist gestrichen**. Dieser Abschnitt wird **nicht nachgezogen**: er steht nur
+> noch als Begründungsspeicher da. Wer hier einen Auftrag liest, liest einen Auftrag an ein
+> Gerät, das es nicht mehr gibt.
+
+> *(Dieser Abschnitt war die Begründung zu **Dauerregel 3a** — der Schlusszeile „ist der
+> Laptop dran?". Die Regel ist am 2026-09-09 gestrichen, weil es den Laptop nicht mehr gibt.)*
 >
 > **Was auf dem Laptop zu tun ist, steht nicht hier, sondern in §5d.** Dieser Abschnitt sagt
 > *ob und warum* gewechselt wird, §5d sagt *was dann zu tun ist* — samt dem **Prompt zum
@@ -14084,6 +14298,14 @@ Der Wechsel kostet nichts weiter als `git pull` — genau dafür ist der Remote 
 
 ## 5c. Zugang zu GitHub — Stand beider Rechner
 
+> **⚠ GERÄTEWECHSEL (2026-09-08, V2-128): Dieser Abschnitt beschreibt den alten Aufbau.**
+> Entwickelt wird jetzt auf dem Lenovo Yoga unter Omarchy (§0, „Neuer Entwicklungsrechner");
+> `origin` läuft dort über SSH `git@github.com:GONKstupid/GonkNote.git` (funktioniert, eigene
+> Zeile in der Tabelle unten). Der Windows-Entwicklungsrechner ist raus; auf den
+> CachyOS-Laptop kommt Windows als Gegenprobe-Gerät (noch nicht eingerichtet). Bis der
+> Windows-Laptop steht, sind die beiden alten Rechnerzeilen Historie. Nachgezogen wird
+> §5b–§5e, sobald der Windows-Laptop eingerichtet ist.
+
 **Hier steht bewusst kein Schlüsselmaterial und kein Token.** Diese Datei liegt im Repo
 (Kopfzeile) — was hier landet, ist irgendwann öffentlich. Nur *wo* etwas liegt, nicht *was*.
 
@@ -14091,6 +14313,7 @@ Der Wechsel kostet nichts weiter als `git pull` — genau dafür ist der Remote 
 |---|---|
 | **Windows** (dieser) | Eigener SSH-Key in `%USERPROFILE%\.ssh\id_ed25519`, bei GitHub als „Windows-Entwicklungsrechner (gonk)" hinterlegt. `origin` läuft über `git@github.com:…` |
 | **CachyOS-Laptop** | Eigener SSH-Key in `~/.ssh/id_ed25519`, bei GitHub als „CachyOS-Laptop (gonk)" (§5b) |
+| **Lenovo Yoga (Omarchy)** — neuer Entwicklungsrechner (V2-128) | Repo unter `/home/gonk/Projects/gonk-note-V2`, `origin` über SSH `git@github.com:GONKstupid/GonkNote.git` (funktioniert). Eigener SSH-Key des Geräts — **Bezeichnung bei GitHub hier nachtragen, sobald bestätigt.** |
 
 **Je Rechner ein eigener Key, nie derselbe auf beiden.** Geht ein Gerät verloren, wird genau
 dessen Key auf GitHub gelöscht und der andere läuft weiter.
@@ -14121,6 +14344,14 @@ weitergegeben, ist es verbrannt und muss widerrufen werden, auch wenn es „nur 
 ---
 
 ## 5d. 🐧 Auftrag für den Linux-Laptop — hier anfangen
+
+> **⚠ GERÄTEWECHSEL (2026-09-08, V2-128): Dieser Abschnitt beschreibt den alten Aufbau.**
+> **⛔ HISTORIE (2026-09-09): Diesen Aufbau gibt es nicht mehr — und den Laptop auch nicht.**
+> Entwickelt wird auf dem Lenovo Yoga unter Omarchy, und zwar **als einzigem Gerät** (§0).
+> Der CachyOS-Laptop ist weg, der Plan „auf ihn kommt Windows als Gegenprobe" ist hinfällig,
+> **Dauerregel 3a ist gestrichen**. Dieser Abschnitt wird **nicht nachgezogen**: er steht nur
+> noch als Begründungsspeicher da. Wer hier einen Auftrag liest, liest einen Auftrag an ein
+> Gerät, das es nicht mehr gibt.
 
 > **Wenn du auf dem CachyOS-Laptop läufst, ist dieser Abschnitt deine Arbeitsanweisung.**
 > Der Nutzer muss dir nichts weiter sagen als „lies das HANDOFF". Lies §5b (warum der Laptop
@@ -14568,6 +14799,13 @@ und keinen Digitizer, das ist von hier aus grundsätzlich nicht messbar (§4.62)
 ---
 
 ## 5e. 🪟 Auftrag für den Windows-Rechner — hier weitermachen
+
+> **⛔ HISTORIE (2026-09-09): Diesen Aufbau gibt es nicht mehr — und den Laptop auch nicht.**
+> Entwickelt wird auf dem Lenovo Yoga unter Omarchy, und zwar **als einzigem Gerät** (§0).
+> Der CachyOS-Laptop ist weg, der Plan „auf ihn kommt Windows als Gegenprobe" ist hinfällig,
+> **Dauerregel 3a ist gestrichen**. Dieser Abschnitt wird **nicht nachgezogen**: er steht nur
+> noch als Begründungsspeicher da. Wer hier einen Auftrag liest, liest einen Auftrag an ein
+> Gerät, das es nicht mehr gibt.
 
 > **Das ist der Normalfall.** Entwickelt wird unter Windows (§5b); der Laptop ist Messgerät.
 > Dieser Abschnitt sagt, **womit die nächste Runde anfängt** — nicht, was zu bauen ist. Was
@@ -18248,6 +18486,8 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 | V2-125 | 2026-09-05 | **Phase 5, Schritt ⑤ — veröffentlicht, und der Fund saß im eigenen Über-Dialog** (§4.101 neu; `Directory.Build.props`, beide Loc-Tabellen, `AboutDialog.xaml` und `AboutWindow.axaml`, `metainfo.xml`, `packaging/LIESMICH.md`, die vier mitgelieferten Dokumente, `THIRD-PARTY-NOTICES.md`, **neu** `site/` (zwei HTML-Seiten, eine CSS-Datei, sieben Bilder), `tools/demo-db/`, `CONTRIBUTING.md`, `SECURITY.md`, `.github/workflows/pages.yml`, `.github/workflows/release.yml`, `.github/ISSUE_TEMPLATE/`, `.github/pull_request_template.md`; `Core/Text/TdTableUmbau.cs`, `.github/workflows/ci.yml`; Bau 0/0, **1313 Tests, +5** = 1244 Core + 69 WPF). **Der Nutzer hat das Repo auf „public" geschaltet**, und damit war ⑤ fällig. **Version 1.0.0 an fünf Stellen**, die keiner nachhält — `Directory.Build.props`, **beide** Loc-Tabellen, die `<release>`-Zeile, die vier Dokumente, der Tag; **die Liste steht jetzt im Kommentar von `Directory.Build.props`**. **`About.Version` sagt jetzt etwas anderes:** Die Zeile nannte bisher die **Portierungsphase** — eine Auskunft, die ihren Gegenstand verliert, sobald die Portierung ausgeliefert ist; sie nennt jetzt, **was als Nächstes kommt** (Rechtschreibprüfung, dann iPadOS). **⛔ DER FUND DER RUNDE SASS IM EIGENEN ÜBER-DIALOG:** Die längere Zeile wurde **abgeschnitten statt umgebrochen**, und der Bau war grün — ein **waagerechtes `StackPanel`** misst seine Kinder mit **unendlicher Breite**, `TextWrapping` hatte also gar keine Breite, an der es hätte brechen können. **Behoben ist der Behälter und nicht der Text** (`DockPanel`, in **beiden** Köpfen — im Linux-Kopf vorsorglich, obwohl dessen Zeile zufällig passte). *Ein Text, der abgeschnitten wird statt umzubrechen, ist kein Textproblem, sondern ein Layoutfehler, und er wartet auf den, der die Zeile das nächste Mal verlängert.* **⛔ Zweiter Fund, gemeldet vom Wächter:** Die Anleitung verweist jetzt ein **viertes** Mal aufs README, und `Die_Anleitung_verweist_klickbar_aufs_README` fiel — *das ist der Wächter, der tut, wofür er da ist*: Er zählt die genaue Liste und nicht „mindestens einen" (§4.99, der Rundreise-Test, der sich der Palettenlücke angepasst hatte). **⛔ Dritter Fund:** Die erste Fassung des Abschnitts „Installieren" war eine **dreispaltige Tabelle** — auf GitHub gut, **im Hilfe-Fenster war die dritte Spalte weg**; ersetzt durch drei Absätze, in beiden Sprachen. **⚠ Derselbe Verdacht steht benannt für Abschnitt 14 beider Anleitungen und ist ungeprüft**, weil `tools/klick.ps1` einen Dialog nicht blättern kann (es holt das **Haupt**fenster nach vorn). **Die Bildschirmfotos durften nicht aus dem echten Bestand kommen** (Dauerregel 4 — die Kopie ist zum *Prüfen* da und enthält Schulunterlagen), also **`tools/demo-db`**: erfundener Inhalt, deutsch und englisch, über `TdMarkdown.Lesen` erzeugt statt von Hand zusammengesteckt. **⚠ Und das Werkzeug war selbst prüfbedürftig:** Der erste Anlauf setzte Notizzettel und Haken bei y = 730…840 — **auf dem Bild waren sie nicht da**, denn bei 100 % zeigt das Fenster nur die oberen zwei Drittel der 1123 hohen Seite. **Die Projektseite liegt in `site/` und nicht in `docs/`**, und der Grund ist Windows: `docs` und `Docs` sind dort **dasselbe Verzeichnis**; veröffentlicht wird über `pages.yml` (Quelle: GitHub Actions). **`release.yml` baut an einem `v*`-Tag** Windows-Zip, AppImage und Tarball, prüft vorher beide Testprojekte — **⚠ und ist nie gelaufen**, weil ein Tag die Veröffentlichung *ist* und es keinen Probelauf gibt, der nichts hinausschickt; der **Tarball** ist die Rückfallebene, falls der AppImage-Zweig auf einem Runner bricht. **Das Beiwerk ist zweisprachig in je EINER Datei** — Dauerregel 1 wird hier bewusst **nicht** kopiert: Die vier mitgelieferten Dokumente gibt es paarweise, **weil die App sie anzeigt**; `CONTRIBUTING` und `SECURITY` zeigt niemand an, *und zwei Dateien, die niemand nebeneinander sieht, laufen auseinander*. **✅ Die Checkliste aus §6 ist Punkt für Punkt abgehakt**, einschließlich der zwei Prüfungen, die sich nicht nachholen lassen: `Docs/HANDOFF.md` **sauber** (kein Benutzerpfad, kein Token, kein Schlüssel; „Schulunterlagen" nur als Regel) und die **ganze Git-Historie sauber** — 633 Pfade, davon 124 nicht mehr im Baum und **alle 124 aus dem Umzug von Phase 0**. Nebenbei richtiggestellt: **62 Cover, nicht 53**, und §2 führte die Rechtschreibprüfung als Phase „5.6", während §5 Nr. 22 und §6 **5.1** sagen. **Neu in §7: „Neu aus §4.101", sechs Einträge.** **⛔ UND EIN BEFUND BEIM NACHSEHEN NACH DEM PUSH, DER NICHT AUS DIESER RUNDE STAMMT: DIE CI WAR SEIT DEM 2026-09-03 ROT** — letzter grüner Lauf `b25dab32` (2026-09-01), erster roter `ff5a2a1e`, und **dazwischen liegen neun Commits in einem Push** (V2-109 bis V2-116); **welcher es war, sagt die CI nicht**. Seither **neun rote Läufe in Folge, in beiden Jobs, und immer nur im Testschritt** — `Bauen (Release)` und alle vier Linux-Bauschritte sind grün, **es ist kein Übersetzungsfehler**. Beide Jobs sammeln bei Fehlschlag `Snapshots/ist/**` ein und haben **null Artefakte** abgelegt: **sehr wahrscheinlich kein abgewichener Schnappschuss**. **⚠ Hier ist es nicht reproduzierbar** — nicht im Arbeitsbaum (1308 grün) und, was der eigentliche Versuch war, **auch nicht in einem frischen Klon des gepushten Standes** (`%TEMP%`, `dotnet build -warnaserror` 0/0, `dotnet test` 1239 + 69 grün); *ein verschmutzter Arbeitsbaum war die naheliegende Erklärung und ist damit ausgeschlossen*. **⛔ Die Protokolle sind von hier aus nicht lesbar** (`HTTP 403: Must have admin rights to Repository`, `gh` nicht angemeldet, keine Annotationen an den Prüfläufen) — **ohne den Namen des fallenden Wächters ist jede Ursache eine Vermutung**; zwei sind benannt und als Vermutung gekennzeichnet (Kultur `de-DE` gegen `en-US`, installierte Schriften). **Das blockierte das Release**, denn `release.yml` lässt vor dem Packen dieselben Tests laufen. **⛔ STATT ZU RATEN IST DIE CI DAZU GEBRACHT WORDEN, ES SELBST ZU SAGEN:** `::error::` erzeugt eine **Annotation**, und die steht in der Check-Run-API, **die bei einem öffentlichen Repo ohne Anmeldung lesbar ist** — die Protokolle sind es nicht. Beide Jobs schreiben ihr Testprotokoll seither per `tee` mit und benennen bei Fehlschlag die gefallenen Wächter. **⛔ Der erste Anlauf davon ist selbst gefallen** — danach standen je Job **zwei** Fehlschläge, und der zweite war der Schritt, der den ersten erklären sollte: GitHub startet jeden `bash`-Schritt mit `-eo pipefail`, und ein `grep` ohne Treffer gibt 1 zurück. *Ein Schritt, der einen Fehler benennen soll, darf selbst keinen erzeugen* — jetzt `set +e`, `set +o pipefail`, `exit 0`; und **dass der Griff nach der Zählzeile ins Leere ging, war selbst eine Auskunft**, weshalb das Protokollende seither immer mitgeht. **✅ DER ZWEITE LAUF NANNTE IHN, UND ES WAR EIN EINZIGER: `TabellenUmbauTests.Datumsangaben_werden_als_Datum_sortiert` — und KEIN Testfehler.** `TdTableEdit.AlsDatum` las mit `CultureInfo.CurrentCulture`: Auf `de-DE` ging „15.02.2026" durch, auf `en-US` nicht (Monat 15), **damit galt die Spalte als Zahlenspalte** und `TdTabellenformel.AlsZahl` machte daraus **15.022.026** — *genau die Umkehrung, vor der der Kommentar über der Sortierung warnt, und niemand sieht sie, weil das Ergebnis sortiert aussieht.* **Dasselbe Dokument war auf einem deutschen und einem englischen Rechner verschieden sortiert.** Jetzt liest `Datumskulturen` fest **`de-DE`, dann invariant** — **dieselbe Rangfolge, die `TdTabellenformel.AlsZahl` seit jeher verwendet**; *`AlsDatum` war der einzige Ort, der die gleiche Frage anders beantwortete*. Und die Kultur gilt für die **ganze Spalte** und nicht je Zelle, sonst wäre „03.04.2026" einmal der 3. April und einmal der 4. März. **+5 Wächter, alle mit fest gesetzter `CultureInfo.CurrentCulture`** (`en-US`, `de-DE`, `fr-FR`, dazu ISO) — *der alte erbt die Kultur des Rechners und war deshalb hier immer grün: ein Wächter, der die Kultur des Rechners erbt, prüft den Rechner und nicht das Programm.* **✅ Danach beide CI-Jobs grün, zum ersten Mal seit dem 2026-09-01.** *Ein Netz, in das niemand hineinsieht, meldet nichts; es hängt nur — und keine der neun Runden dazwischen hat es bemerkt, weil jede lokal grün gemessen hat. Zum Ablauf einer Runde gehört ab jetzt ein Blick auf den letzten CI-Lauf (§8).* ▶ **Phase 5 ist damit zu. Es bleiben drei Handgriffe, und alle drei gehören dem GitHub-Konto des Nutzers:** den **Tag `v1.0.0`** schieben (er löst das Release aus und **mit ihm ist M3 erreicht**), **Pages auf „GitHub Actions"** stellen, **Beschreibung und Topics** setzen — `gh` ist hier nicht angemeldet. ▶ **Der Laptop ist nicht dran.** |
 | V2-126 | 2026-09-06 | **Was Flathub verlangt — nachgelesen, und das Manifest erfüllt es nicht** (§4.102 neu; **kein Produktivcode angefasst** — nur `Docs/HANDOFF.md` und der Kommentarkopf von `packaging/flatpak/io.github.gonkstupid.GonkNote.yml`). Der Nutzer hat gefragt, was für Flathub zu tun ist; die Antwort steht in den Anforderungen und nicht in einer Vermutung, also ist sie **nachgelesen** worden (docs.flathub.org, 2026-09-06). **⛔ DER BLOCKER IST GRUNDSÄTZLICH: „All source available submissions must be built entirely from source code" und „There is no network access during the build process".** Unser Manifest packt ein fertiges `dotnet publish`-Ergebnis ein (`type: dir`) — *für die Erprobung in Schritt ③ die richtige Wahl, für eine Einreichung nicht.* **Eine Begründung kann richtig sein und trotzdem nur für ihren Zweck gelten.** **⛔ Und eine zweite Begründung im selben Kommentarkopf ist schlicht falsch:** „es gibt keine `org.freedesktop.Sdk.Extension.dotnet` für net10.0" — **es gibt sie**, mit `branch/25.08` (genau unsere Runtime-Fassung) und dem SDK **10.0.300 GA**; über die GitHub-API nachgesehen und nicht angenommen (dotnet8/9/10 → 200, dotnet11 → 404). *Ob der Satz je stimmte, ist nicht mehr zu sagen — er liest sich in beiden Fällen wie eine gültige Begründung*, zum sechsten Mal dieses Muster (§4.60, §4.71, §4.77, §4.99, §4.101). **Vier kleinere Punkte kommen dazu:** `--talk-name=…portal.Desktop` streichen (Portale sind ohnehin erlaubt), `--socket=wayland` streichen (Avalonia hat keinen Wayland-Rücken), **`flathub.json` mit `only-arches` gleich richtig setzen** (eine später gestrichene Architektur bleibt sonst auf ihrer alten Fassung stehen), und Icon/`.desktop`/`.metainfo.xml` aus einer Git-Quelle holen statt als Dateien in den PR. **✅ Was ohne Änderung passt:** die **App-ID** (der Domänenteil ist klein, die letzte Komponente wird „as-is" genommen — *damit ist der `cid-contains-uppercase-letter`-Hinweis als der Stilhinweis bestätigt, den der Kommentar dort vermutet*), die Metainfo-Pflichtfelder, `--socket=x11` **mit** `--share=ipc`, und **kein `--filesystem=home`** — *das steht so im Manifest, seit es das Manifest gibt, nicht weil Flathub es verlangt, sondern weil §4.96 es so entschieden hat.* **⚠ Die Rückfrage, die im Review kommt, ist `--socket=x11` ohne `fallback-x11`** — die Antwort ist gemessen (§4.96: `fallback-x11` gibt X11 nur frei, wenn kein Wayland da ist, und der Kopf stirbt dann mit „XOpenDisplay failed"); **wer sie auf Zuruf ändert, macht das Paket unstartbar.** **Neu in §7: „Neu aus §4.102", vier Einträge**, und in §6 „Vorgemerkt: Flathub" mit dem vollen Zuschnitt. **⚠ Es blockiert nichts** — AppImage und Windows-Zip decken beide Plattformen ab, sobald der Tag steht, und beide READMEs sagen seit §4.101 ehrlich „noch nicht auf Flathub". ▶ **Der Laptop ist noch nicht dran**, aber der Umbau bestellt ihn: `flatpak-builder` läuft nicht unter Windows, und **der Quellbau ist ein anderer als die zwei, die er kennt**. |
 | V2-127 | 2026-09-06 | **Die Installationsprobe — und der `Fonts`-Ordner stand in keiner Anleitung** (§4.103 neu; beide READMEs, beide Anleitungen; **kein Produktivcode angefasst**; Bau 0/0, **1313 Tests unverändert**). Der Auftrag war eine Frage — ist das Repo bereit, dass jemand installiert? —, **also ist sie gemessen worden und nicht beantwortet.** **✅ Windows trägt:** `dotnet publish` genau wie in `release.yml`, `.pdb` der nativen Bibliotheken weg, `Compress-Archive` → **92,4 MB Zip**; entpackt liegen `GonkNote.exe` (85,1 MB), **`Fonts` (24), `tessdata` (deu+eng), `Assets` (62 Cover + 2 SVGs)** und `LICENSE` darin, **aus dem entpackten Ordner mit frischer Datenbank gestartet** — Fenster steht, Inter zeichnet. **⛔ DER FUND: Abschnitt 1 beider Anleitungen nannte `tessdata` und `Assets`, ABER NICHT `Fonts`** — und die Oberflächenschriften liegen als **lose Dateien** neben der Exe (`AppFonts.Family` baut den Pfad aus `AppContext.BaseDirectory`). **Nachgemessen statt hergeleitet:** genau diese drei Dinge in einen leeren Ordner kopiert, gestartet — **die App läuft und zeichnet alles in Segoe UI.** *Das ist §4.72 rückwärts, herbeigeführt von einer unvollständigen Kopieranweisung; und der Rückfall selbst bleibt richtig, `AppFonts` begründet ihn — ein Sicherheitsnetz, das niemand sieht, verdeckt genau den Fehler, gegen den es gespannt ist.* In **vier** Dateien behoben (beide Anleitungen in Abschnitt 1 **und** 14, beide READMEs). **Wer den fertigen Download nimmt, war nie betroffen.** **⛔ ZWEI FUNDE AM ZERLEGER, BEIDE BEIM GEGENPRÜFEN ENTSTANDEN:** Der erste war meiner — der Hinweis stand als **Blockzitat in einem Listenpunkt**, und im Hilfe-Fenster standen die `>` **wörtlich** im Text, mit ineinanderlaufenden Zeilen; `Markdown.Parse` kennt ein Blockzitat nur am Zeilenanfang. **Auf GitHub sieht dasselbe richtig aus — das ist der Punkt.** Der zweite ist älter: ``[`packaging/LIESMICH.md`](…)`` zeigt die **Backticks wörtlich**, weil ein nicht angenommenes `.md`-Ziel schlichter Text wird (§4.99) und der Linktext dabei nicht weiter ausgewertet wird; **es war die einzige solche Stelle** in allen vier Dokumenten. **✅ LINUX, soweit von hier aus prüfbar:** `dotnet publish -r linux-x64 --self-contained` läuft **als Kreuzbau von Windows aus** — genau der Aufruf aus `release.yml` und beiden `bauen.sh` — und liefert **341 Dateien / 155,1 MB** mit `GonkNote.Avalonia`, `libSkiaSharp.so`, `Fonts` (27), `tessdata` (2) und 62 Covern; `x64/` und `x86/` liegen drin und werden von **allen drei** Wegen weggeräumt (am Gerät **null** gemessen, §4.100). **Die drei Startpfade sind gegengelesen und stimmen überein** (`gonknote.sh`, `AppRun`, `.desktop`). **⚠ Was die Probe NICHT beantwortet:** den Linux-**Start** (Kreuzbau, hier nicht startbar), `release.yml` (nie gelaufen, ein Tag ist der einzige Auslöser) und den Weg „Release-Seite → Herunterladen → Starten" auf **keiner** Plattform — *der eine Schritt, den auch die sorgfältigste Probe nicht vorwegnehmen kann.* **Neu in §7: „Neu aus §4.103", vier Einträge.** ▶ **Der Laptop ist nicht dran.** |
+| V2-128 | 2026-09-08 | **Neuer Entwicklungsrechner: Lenovo Yoga 7 2-in-1 14 IML9 unter Omarchy** (§0 „Hier geht es weiter"; **kein Produktivcode angefasst** — nur `Docs/HANDOFF.md`). Der Windows-Entwicklungsrechner ist vollständig ersetzt; auf den CachyOS-Laptop kommt wieder Windows als Gegenprobe-Gerät für den WPF-Kopf (umgekehrte Rollenverteilung zu §5b/§5d/§5e, **noch nicht eingerichtet**). **Die App läuft unter Omarchy über das installierte AppImage** — funktioniert bis auf ein paar bekannte Bugs. **Reihenfolge festgehalten:** zuerst diese Bugs beheben, erst danach der Flathub-Umbau (§4.102, §6) und Phase 5.1 (§5 Nr. 22). §5b/§5c/§5d/§5e mit datiertem Banner als „alter Aufbau" markiert; Nachziehen, wenn der Windows-Laptop steht. Dauerregel 3a ruht. |
+| V2-129 | 2026-09-09 | **Vier Bugmeldungen vom Gerät — und die Bildschirmtastatur ist eine Sackgasse, gemessen** (§4.104; `MainWindow.axaml(.cs)`, `WhiteboardView.Input/Einstellungen/Render/Cover/axaml(.cs)`, `Themes/Styles.axaml`, `WbLeiste` in Core; Bau 0/0, **1250 Core-Tests, +6**; Version **1.0.1**, Release `v1.0.1`). **Die erste Runde auf dem Gerät, an dem der Nutzer wirklich arbeitet.** **⛔ (1) Die Seitenleiste schloss nie, sie leerte sich nur:** `SeitenleisteUmschalten` war **eine Zeile** (`IsVisible`), die Rasterspalte stand als Kurzform `"260,4,*"` fest und blieb 260 Punkte breit, der Trenner sichtbar. **Der WPF-Kopf hat es von Anfang an vollständig gemacht** (`SetSidebarVisible`); dieser Kopf hatte ein Fünftel davon — und **§4.71 hat die zwei Flächen ausdrücklich verglichen, ohne es zu finden:** *gemessen wurde, was zu sehen ist, nicht, was passiert, wenn man darauf drückt.* Jetzt Spalte auf 0 **samt `MinWidth`** (180 hielte sie sonst offen), Trenner mit, Breite gemerkt, Stand gesichert unter **demselben Schlüssel wie drüben**. ⚠ **Neunte Stelle, an der Avalonia nicht wie WPF ist:** `x:Name` an einer `ColumnDefinition` erzeugt **kein Feld** — der Bau scheitert in der C#-Datei, also dort, wo es nach einem Tippfehler aussieht. **⛔ (2) Der Finger erreichte Textfeld und Notizzettel überhaupt nicht:** `OnPointerPressed` bog bei `PointerType.Touch` ab, **bevor das Werkzeug gefragt wurde** — beide Werkzeuge waren **auf genau dem Gerät unbedienbar, für das die App gebaut ist**. Eine richtige Regel war zu weit gefasst: aus „der Finger zeichnet nie" (Handballenabweisung, §4.10) war „der Finger tut sonst gar nichts" geworden. **Sie heißt jetzt „Zug oder Tipp"** (`WbLeiste.IstTippwerkzeug`, Core): ein Strich entsteht aus einer Bewegung und bleibt dem Stift, ein Textfeld entsteht aus einer **Stelle** — es gibt keinen Zug, den ein Handballen verderben könnte. Auswahl und Sticker stehen bewusst nicht dabei. ⚠ **Nicht am laufenden Programm belegt** — Berührungen lassen sich von hier aus nicht erzeugen. **⚠ (3) Der Stift ist eingekreist, nicht bewiesen:** es gibt **genau eine** Stelle, an der ein Stift woanders landet als eine Maus (`_stylusInverted = …IsEraser`) — danach schlägt `EffectiveTool` **lautlos jedes Werkzeug**. Am Rücken nachgelesen: `Avalonia.X11` führt `_currentSlaveIsEraser` **am Master**, setzt es aus dem Gerätenamen (`IndexOf("eraser")`) und aktualisiert **nur bei `XI_DeviceChanged`** — der Wert ist **klebrig**; „Barrel" kommt in der Assembly **kein einziges Mal** vor. Am Gerät gemessen: XWayland legt **dauerhaft alle drei** Tablett-Werkzeuge an (`stylus:1`, `eraser:1`, `cursor:1`), **alle mit Drucksensor**. **Statt zu reparieren ist das Messgerät geschärft worden:** die F9-Anzeige zeigt jetzt `Werkzeug → wirksam`, `Invertiert`/`IsEraser` und die Fingerzahl. *Eine Behebung auf eine unbewiesene Ursache sieht wie eine Lösung aus — §4.42/V2-59 hat das einmal gekostet.* **⛔ (4) Die Bildschirmtastatur ist keine Lücke, sondern eine Sackgasse:** `Avalonia.X11` 12.1.1 enthält `InputPane` **kein einziges Mal** (→ `TopLevel.InputPane` ist `null`, §4.43 bestätigt), der Kopf ist **XWayland**-Client (kein Wayland-Rücken im Paketsatz) — **und von Hand hervorholen hilft auch nicht, zweimal gemessen mit Fokusnachweis und Gegenprobe:** `ydotool` (uinput) tippt zuverlässig ins Textfeld, **`wtype` (`zwp_virtual_keyboard_v1` — dasselbe Protokoll, das `wvkbd` und `squeekboard` benutzen) bringt nichts an** und **zerstört obendrein die offene Bearbeitung samt Inhalt, während das Fenster den Fokus behält**. Empfohlen ist eine **eigene Tastatur im Fenster** nach dem Muster des Zahlenblocks; **Entscheidung liegt beim Nutzer**. **(5) Der Bedienwunsch:** die Einstellungsleiste klappt — alles zu, das Werkzeug klappt seinen Abschnitt auf; Zuordnung in Core (`WbLeiste.BereichVon`, vorher **zwei Aufzählungen derselben vier Werkzeuge in einer Methode**), **kein `Expander`** (Fluents Kachel ist im Dunklen ein fast schwarzer Kasten — §4.94/§4.55 zum dritten Mal), und die Leiste hieß `Settings.Page` statt `Wb.Settings`. **⛔ Zwei Funde außerhalb der Bugliste:** die **„vier weiteren Stellen" der Version waren sechs** — die **Projektseite `site/`** stand nie in der Liste, obwohl sie in §4.101 **im selben Zug wie die 1.0.0** entstand, und bot prompt Dateien an, die es nicht mehr gibt; und **die naheliegende Erklärung für 34.000 geänderte Zeilen war falsch** — das Repo ist seit jeher LF, CRLF stand nur in der **Arbeitskopie** (kopiert statt geklont), behoben hat es `git checkout -- .`. *Wer der ersten Erklärung folgt, schreibt die Historie um, um ein Problem zu lösen, das in der Arbeitskopie sitzt.* `.gitattributes` hält es künftig fern und fand **fünf echte Ausreißer** (Stylus-Prototyp). **Dazu gestrichen: Dauerregel 3a** — **den CachyOS-Laptop gibt es nicht mehr** (Nutzer); §5b/§5d/§5e sind damit vollständig Historie, **und der Preis ist benannt: es gibt keinen laufenden WPF-Kopf mehr**, der Zwei-Köpfe-Vergleich ist von hier aus nicht mehr prüfbar |
 | V2-115 | 2026-09-01 | **Schritt ①c ist zu — das Lineal gestrichen, der Menü-Aufklapppunkt neu vermessen** (§4.92 neu; Bau 0/0, **1256 Tests unveraendert**). **(4) Lineal: bewusst gestrichen.** Gemessen: `DrawRuler` im WPF-Kopf hat **keinen einzigen Maus-Handler** — es ist eine cm-Skala mit zwei Dreiecken, eine Zierleiste und kein Werkzeug. Der einzige Posten ohne Rueckhalt in Core, und was er leistet, leisten die vier Randfelder im Layout-Reiter **in Zahlen** und aenderbar. Wird in ⑤ im README als bekannter Unterschied genannt. **⛔ Menü-Aufklapppunkt: dritter Anlauf gescheitert und zurueckgenommen — aber die Messung ist neu und mehr wert als der Versuch.** Bisher stand da "klappt am linken Rand der Leiste auf"; gemessen klappt es **ausserhalb des Fensters** auf, rund 170 px links vom Fensterrand. Und: **"Datei" und "Ansicht" klappen an DERSELBEN Stelle auf** — damit ist das Aufklappziel fuer beide **dasselbe Element**, also weder das MenuItem noch sein Grid. Der Anlauf (Popup aus dem Spaltengitter in ein umschliessendes Grid heben, weil die `SharedSizeGroup` das Gitter aufblaeht) war **ohne jede Wirkung** und ist zurueckgenommen. **Der einzige Weg, der zur Messung passt und den noch niemand versucht hat: ein eigenes Template nur fuer `Role=TopLevelHeader`** — WPF benutzt dafuer normalerweise drei verschiedene Vorlagen, hier dient eine fuer alle drei Rollen. **Damit sind alle sieben Entscheidungen aus §5e beantwortet** (§4.86–§4.92): fuenf gebaut, eine gestrichen, eine als Messung beantwortet statt als Frage gestellt. ▶ **Als Naechstes: Schritt ②, die Rueckmeldung** — eine eigene Runde (§5 Nr. 28). **Der Laptop ist nicht dran — aber bei ③ ist er es zwingend** (§5d) |
 | V2-114 | 2026-09-01 | **Der Tabellenentwurf, zweite Haelfte** (§4.91 neu; neu `Core/Text/TdTabellenformel.cs`, `TdTableUmbau.cs`, `Core.Tests/TabellenUmbauTests.cs`; Bau 0/0, **1256 Tests, +36**). Runde B von Frage (2): **teilen, sortieren, rechnen, Tabelle ↔ Text** — das, was Core erst rechnen lernen musste. **Das Formelergebnis geht als TEXT in die Zelle und nicht als Feld:** §4.20 verlangte sonst eine neue `TdFieldKind`, einen Auswertungsschritt im Umbruch und einen DOCX-Weg; **der WPF-Kopf schreibt seit jeher ebenfalls nur das Ergebnis**, und beim Editor ist Windows die Vorlage. Benanntes Zugestaendnis. **Eine leere Zelle beendet die Reihe NICHT** — Words Regel dort ergibt bei einer Zwischenueberschrift eine halbe Summe, ohne dass etwas danach aussieht. **Beide Zahlenschreibweisen** werden gelesen (deutsch und englisch): eine Tabelle, deren Summe von der Systemsprache abhaengt, rechnet auf dem naechsten Rechner anders. **Der leere Absatz beim Teilen ist kein Rest** — zwei Tabellen unmittelbar hintereinander sind in DOCX **eine**. **⛔ Der Tooltip hat eine Ergaenzung erzwungen:** `Ed.Table.Sort.Tip` verspricht "Text/Zahl/Datum", und der WPF-Kopf kann das; die erste Fassung hier konnte nur Text und Zahl. **Datum wird jetzt VOR Zahl geprueft**, und das ist keine Geschmacksfrage: "01.03.2026" liest sich als Zahl 1.032.026 und "15.02.2026" als 15.022.026 — die Reihenfolge kehrt sich um und sieht trotzdem plausibel aus. *Ein Tooltip ist eine Zusage; wer ihn uebernimmt, uebernimmt sie mit.* **⛔ Werkzeugfalle, drei Anlaeufe:** **Koordinaten aus einem Flyout gelten nur fuer die Aufnahme, aus der sie stammen.** Ein Ribbon, das umbricht, verschiebt seine Knoepfe — und mit ihnen jedes Flyout daran. Erst der Vergleich gegen ein **funktionierendes** Werkzeug ("Tabelle teilen", gleiches Muster, wirkte sofort) hat gezeigt, dass der Weg traegt und die Koordinate nicht (§4.82 woertlich). **✅ Und der eingebaute Hinweis "keine Zahlen im Bereich" hat den ersten Anlauf ueberhaupt erst diagnostizierbar gemacht** — *ein Knopf, der sagt, warum er nichts tut, ist billiger als der Fehlerbericht, den er erspart.* **Nicht gebaut und benannt:** die Schnelltabellen (`Ed.Table.Quick.*`) — zwei fest verdrahtete Vorlagen ohne Vorlagensammlung dahinter. **✅ Am laufenden Programm:** Teilen samt richtig ausgegrautem Knopf in Zeile 0, Summe 10+5=15, Hinweis ohne Zahlen, Sortieren dreht die Folge |
 | V2-113 | 2026-09-01 | **Der Tabellenentwurf, erste Haelfte** (§4.90 neu; neu `Core/Text/TdTableEntwurf.cs`, `Avalonia/Views/TextDocView.Tabelle.cs`, `Core.Tests/TabellenEntwurfTests.cs`; Bau 0/0, **1220 Tests, +25**). Runde A von Frage (2): **Rahmen, Fuellung, Kopfzeile, Zellabstand, Spaltenbreite, verbinden und teilen** — alles, was `TdTable` schon konnte. **Nicht "erst Core, dann Oberflaeche" wie §5e vorschlug, sondern nach Nutzen geschnitten:** eine Runde, die nur Core baut, endet an einem gruenen Bau — und **zwei der drei Funde dieser Runde waeren dann erst eine Runde spaeter aufgefallen**. **⛔ Fund 1, vom Waechter:** `TdTableEdit.Kopie` kopierte das **Format nicht**. `TdTableFormat` ist eine Klasse, alte und neue Tabelle teilten sich das Objekt. Bis heute fiel es nicht auf, weil **kein einziger Handgriff das Format anfasste**; mit dem Entwurf fassen es fuenf an, und ab da haette jede Rahmenaenderung die **Sicherung im Rueckgaengig-Stapel mitgeaendert** — Strg+Z haette nichts zurueckgebracht (§4.32 woertlich). `TdTableFormat.Kopie()` gab es laengst, sie wurde nur nicht gerufen. **⛔ Fund 2, am laufenden Programm:** `TabelleWerkzeuge` war ein `StackPanel` und bricht **nie** um — die drei neuen Knoepfe ragten aus dem Fenster und waren nicht anklickbar. Bau und Waechter gruen. **⛔ Fund 3, im Bestand:** **vier Sprachtexte tragen die XML-Entitaet `&amp;` woertlich**, beim Uebernehmen aus dem WPF-XAML mitgekommen — auf dem Knopf stand "Design &amp;amp; Rahmen...". Alle vier stehen seit Monaten so da, in **beiden** Sprachen, und **der WPF-Kopf zeigt sie genauso falsch**; aufgefallen ist es erst, als der Linux-Kopf den Schluessel zum **ersten Mal** anzeigte. *Ein Text, den kein Kopf benutzt, wird von keinem Auge geprueft.* Ein neuer Waechter haelt XML-Entitaeten in beiden Tabellen fest. **Zwei benannte Einschraenkungen, beide mit derselben Ursache** — die Auswahl des Editors ist eine Spanne ueber Absaetze und kennt kein Rechteck aus Zellen: **verbunden wird mit der rechten Nachbarin** (mehrmals gedrueckt zieht weiter), **gefuellt wird die Zelle unter der Marke**. **AutoAnpassen ist das Weglassen einer Zahl** und kein eigener Rechenweg |

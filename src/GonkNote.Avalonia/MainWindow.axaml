@@ -95,7 +95,31 @@
             </DockPanel>
         </Border>
 
-        <Grid ColumnDefinitions="260,4,*">
+        <!-- ⛔ Hier stand die Kurzform `ColumnDefinitions="260,4,*"`, und damit war die Spalte
+             nicht erreichbar: `SeitenleisteUmschalten` hat nur `Seitenleiste.IsVisible`
+             umgelegt, die **Spalte blieb 260 Punkte breit** und der Trenner daneben sichtbar.
+             Zu sehen war genau das, was der Nutzer am 2026-09-09 gemeldet hat: der Inhalt
+             verschwindet, die Fläche bleibt stehen, der Editor bleibt schmal.
+
+             **Eine Leiste wird nicht unsichtbar gemacht, sie wird eingeklappt** — und dazu
+             braucht die Spalte einen Namen. Der WPF-Kopf hat das von Anfang an so gemacht
+             (`SidebarCol`, `SetSidebarVisible`); dieser Kopf hatte die halbe Hälfte davon.
+             Min- und Höchstbreite kommen im selben Zug dazu, damit der Trenner hier dieselben
+             Schranken hat wie drüben.
+
+             ⚠ **Die neunte Stelle, an der Avalonia nicht wie WPF ist:** Ein `x:Name` an einer
+             `ColumnDefinition` erzeugt hier **kein Feld im Code-Behind** — der Erzeuger legt
+             nur für Oberflächenelemente eines an, und eine Spaltendefinition ist keines. Der
+             Bau scheitert mit „The name … does not exist", und zwar erst in der C#-Datei, also
+             an einer Stelle, die nach einem Tippfehler aussieht. Deshalb trägt das **Raster**
+             den Namen, und die Spalte wird darüber geholt (`SeitenleisteSpalte` im
+             Code-Behind). Drüben steht der Name an der Spalte selbst. -->
+        <Grid x:Name="Hauptraster">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="260" MinWidth="180" MaxWidth="450"/>
+                <ColumnDefinition Width="4"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
 
             <!-- ===== Seitenleiste ===== -->
             <Border x:Name="Seitenleiste" Grid.Column="0" Background="{DynamicResource Brush.SidebarBg}">
@@ -285,7 +309,11 @@
                 </DockPanel>
             </Border>
 
-            <GridSplitter Grid.Column="1" Background="Transparent" ResizeDirection="Columns"/>
+            <!-- Der Trenner geht mit der Leiste mit. Bliebe er stehen, wäre eine 4 Punkte
+                 breite Greiffläche übrig, die eine Spalte der Breite 0 aufziehen könnte —
+                 eine Leiste, die zu ist, soll sich nicht ziehen lassen. -->
+            <GridSplitter x:Name="SeitenleisteTrenner" Grid.Column="1"
+                          Background="Transparent" ResizeDirection="Columns"/>
 
             <!-- ===== Arbeitsbereich ===== -->
             <Grid Grid.Column="2">

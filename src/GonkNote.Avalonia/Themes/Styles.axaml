@@ -1,6 +1,7 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="clr-namespace:GonkNote.ViewModels;assembly=GonkNote.ViewModels">
+        xmlns:vm="clr-namespace:GonkNote.ViewModels;assembly=GonkNote.ViewModels"
+        xmlns:views="clr-namespace:GonkNote.Views">
 
     <!-- Aussehen des Linux-Kopfs. **Die Farben stehen hier nicht** — die kommen aus der
          Farbtabelle in Core und werden von AvaloniaThemeHost als „Brush.X"/„Color.X" in
@@ -801,6 +802,62 @@
     </Style>
     <Style Selector="ToggleButton.seitensymbol:checked /template/ Rectangle#Balken">
         <Setter Property="IsVisible" Value="True"/>
+    </Style>
+
+    <!-- ==== Klappbarer Abschnitt der Einstellungsleiste (Nutzerwunsch 2026-09-09) ======
+         Die Kopfzeile einer Einstellungsgruppe: Beschriftung links, Winkel rechts, die
+         ganze Zeile ist der Schalter.
+
+         ⚠ **Bewusst KEIN `Expander`, obwohl der WPF-Kopf einen benutzt.** Avalonias
+         Fluent-Expander bringt eine eigene Kachel mit — Hintergrund, Rahmen, Ecken,
+         Innenabstand —, und die ist im dunklen Erscheinungsbild ein fast schwarzer Kasten.
+         Das ist derselbe Fund wie §4.94 („jedes Aufklappfeld trug Fluents Vorgabegrau") und
+         §4.55 (der Hintergrund sitzt am Border **im Template**, nicht am Steuerelement): man
+         überschriebe am Ende die halbe Vorlage, ohne ihre Teilnamen zu kennen. **Zwei
+         Bausteine, die wir schon haben — ein ToggleButton und ein StackPanel — sind hier
+         weniger Arbeit und weniger Annahmen als ein fremdes Template.**
+
+         Dass der WPF-Kopf einen echten Expander benutzt, ist damit **kein** Unterschied im
+         Verhalten, sondern nur einer in der Machart; sichtbar ist beides dasselbe:
+         Beschriftung, Winkel, auf- und zuklappen. -->
+    <Style Selector="ToggleButton.abschnitt">
+        <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="Margin" Value="0,6,0,0"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="Foreground" Value="{DynamicResource Brush.Text}"/>
+        <Setter Property="Template">
+            <ControlTemplate>
+                <!-- Der Border trägt die Fläche unter dem Zeiger; der DockPanel hält den
+                     Winkel rechts, damit die Beschriftung links bündig bleibt, egal wie
+                     lang sie in der jeweiligen Sprache ist. -->
+                <Border Name="Flaeche" Background="Transparent" CornerRadius="6"
+                        Padding="6,7">
+                    <DockPanel LastChildFill="True">
+                        <views:Symbol Name="Winkel" DockPanel.Dock="Right" Icon="ChevronDown"
+                                      Size="14" VerticalAlignment="Center" Margin="6,0,0,0"
+                                      Stroke="{DynamicResource Brush.TextMuted}"/>
+                        <ContentPresenter Content="{TemplateBinding Content}"
+                                          VerticalAlignment="Center"/>
+                    </DockPanel>
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <Style Selector="ToggleButton.abschnitt:pointerover /template/ Border#Flaeche">
+        <Setter Property="Background" Value="{DynamicResource Brush.Hover}"/>
+    </Style>
+    <!-- Aufgeklappt zeigt der Winkel nach oben. **Ein zweites Symbol statt einer Drehung:**
+         die Symbole sind gestrichene Formen im 16×16-Raster, und eine gedrehte Strichform
+         verschiebt bei ungerader Strichstärke die Pixel — die Tabelle in Core hat beide
+         Richtungen ohnehin. -->
+    <Style Selector="ToggleButton.abschnitt:checked /template/ views|Symbol#Winkel">
+        <Setter Property="Icon" Value="ChevronUp"/>
     </Style>
 
 </Styles>

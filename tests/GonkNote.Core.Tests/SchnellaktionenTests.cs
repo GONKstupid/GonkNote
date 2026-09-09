@@ -231,6 +231,86 @@ public class SchnellaktionenTests
         foreach (var t in WbLeiste.Kuerzel.Values) Assert.Contains(t, stehen);
     }
 
+    // ==================== Tipp-Werkzeuge (Nutzermeldung 2026-09-09) ====================
+
+    /// <summary>
+    /// Der Befund, für den <c>IstTippwerkzeug</c> gebaut wurde: Textfeld und Notizzettel
+    /// setzen etwas an eine <b>Stelle</b> und ziehen keinen Zug — mit dem Finger waren sie
+    /// deshalb im Linux-Kopf gar nicht zu erreichen.
+    /// </summary>
+    [Fact]
+    public void Textfeld_und_Notizzettel_sind_Tippwerkzeuge()
+    {
+        Assert.True(WbLeiste.IstTippwerkzeug(ToolType.Text));
+        Assert.True(WbLeiste.IstTippwerkzeug(ToolType.Sticky));
+    }
+
+    /// <summary>
+    /// <b>Kein Stift ist ein Tipp-Werkzeug</b>, und das ist die Handballenabweisung: was aus
+    /// einer Bewegung entsteht, bleibt dem Stift vorbehalten. Fiele diese Zusicherung, dürfte
+    /// der Finger zeichnen — und der aufgelegte Handballen mit ihm.
+    /// </summary>
+    [Fact]
+    public void Kein_Stift_und_kein_Radierer_ist_ein_Tippwerkzeug()
+    {
+        foreach (var t in WbLeiste.Stifte) Assert.False(WbLeiste.IstTippwerkzeug(t));
+        Assert.False(WbLeiste.IstTippwerkzeug(ToolType.Eraser));
+    }
+
+    /// <summary>Auswahl, Hand, Formen und Sticker gehören ebenfalls nicht dazu — je aus
+    /// eigenem Grund, siehe <c>WbLeiste.IstTippwerkzeug</c>.</summary>
+    [Fact]
+    public void Auswahl_Hand_Formen_und_Sticker_sind_keine_Tippwerkzeuge()
+    {
+        foreach (var t in WbLeiste.Auswahlwerkzeuge) Assert.False(WbLeiste.IstTippwerkzeug(t));
+        Assert.False(WbLeiste.IstTippwerkzeug(ToolType.Pan));
+        Assert.False(WbLeiste.IstTippwerkzeug(ToolType.Shape));
+        Assert.False(WbLeiste.IstTippwerkzeug(ToolType.Sticker));
+    }
+
+    // ==================== Klappgruppen der Einstellungsleiste ====================
+
+    [Fact]
+    public void Jedes_Werkzeug_mit_Einstellungen_klappt_seinen_Abschnitt_auf()
+    {
+        Assert.Equal(WbLeiste.Einstellungsbereich.Formen, WbLeiste.BereichVon(ToolType.Shape));
+        Assert.Equal(WbLeiste.Einstellungsbereich.Text, WbLeiste.BereichVon(ToolType.Text));
+        Assert.Equal(WbLeiste.Einstellungsbereich.Zettel, WbLeiste.BereichVon(ToolType.Sticky));
+        Assert.Equal(WbLeiste.Einstellungsbereich.Sticker, WbLeiste.BereichVon(ToolType.Sticker));
+    }
+
+    /// <summary>
+    /// <b>Seite, Cover und Export hängen an keinem Werkzeug.</b> Der Wächter hält die
+    /// Entscheidung fest, die der Kopf daraus ableitet: er klappt beim Werkzeugwechsel nur
+    /// werkzeugeigene Abschnitte zu und lässt diese drei stehen, wie der Nutzer sie
+    /// hinterlassen hat. Käme eines davon in <c>BereichVon</c>, klappte es dem Nutzer unter
+    /// den Händen weg.
+    /// </summary>
+    [Fact]
+    public void Seite_Cover_und_Export_haengen_an_keinem_Werkzeug()
+    {
+        var werkzeugeigen = Enum.GetValues<ToolType>().Select(WbLeiste.BereichVon).ToHashSet();
+
+        Assert.DoesNotContain(WbLeiste.Einstellungsbereich.Seite, werkzeugeigen);
+        Assert.DoesNotContain(WbLeiste.Einstellungsbereich.Cover, werkzeugeigen);
+        Assert.DoesNotContain(WbLeiste.Einstellungsbereich.Export, werkzeugeigen);
+    }
+
+    /// <summary>
+    /// Ein Stift bringt keinen Abschnitt mit — sonst risse jeder Griff zum Stift die
+    /// Einstellungsleiste auf.
+    /// </summary>
+    [Fact]
+    public void Stifte_und_Auswahl_bringen_keinen_Abschnitt_mit()
+    {
+        foreach (var t in WbLeiste.Stifte)
+            Assert.Equal(WbLeiste.Einstellungsbereich.Keiner, WbLeiste.BereichVon(t));
+        foreach (var t in WbLeiste.Auswahlwerkzeuge)
+            Assert.Equal(WbLeiste.Einstellungsbereich.Keiner, WbLeiste.BereichVon(t));
+        Assert.Equal(WbLeiste.Einstellungsbereich.Keiner, WbLeiste.BereichVon(ToolType.Eraser));
+        Assert.Equal(WbLeiste.Einstellungsbereich.Keiner, WbLeiste.BereichVon(ToolType.Pan));
+    }
+
     // ==================== Hilfen ====================
 
     private static WbPage MitElementen(int anzahl)

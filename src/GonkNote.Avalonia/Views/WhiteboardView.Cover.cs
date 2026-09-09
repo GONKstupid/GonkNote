@@ -83,8 +83,19 @@ public partial class WhiteboardView
     /// </summary>
     private void CoverSpiegeln()
     {
-        CoverBereich.IsVisible = _page?.IsCover == true;
-        if (!CoverBereich.IsVisible) return;
+        // **Der Kopf entscheidet, ob es den Abschnitt gibt; der Inhalt nur, ob er offen ist.**
+        // Seit den Klappgruppen (2026-09-09) sind das zwei verschiedene Fragen: ohne Cover-Seite
+        // ist der Abschnitt gar nicht da, mit Cover-Seite ist er da und eingeklappt. Stünde die
+        // alte Zeile allein, hinge auf einer gewöhnlichen Seite ein Kopf ohne Inhalt in der
+        // Leiste, den ein Klick ins Leere aufklappt.
+        bool cover = _page?.IsCover == true;
+        KopfCover.IsVisible = cover;
+        if (!cover)
+        {
+            KopfCover.IsChecked = false;
+            CoverBereich.IsVisible = false;
+            return;
+        }
 
         var stil = _vm?.Doc.Cover;
 

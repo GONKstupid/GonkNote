@@ -80,6 +80,29 @@ public partial class WhiteboardView
     /// Es ist ausdrücklich auch die Stelle, an der ein <b>zweites Stiftgerät</b> (MPP, EMR)
     /// beurteilt wird — der einzige Punkt aus §5 „Noch offen", der echtes Risiko trägt.
     /// </para>
+    /// <para>
+    /// ⛔ <b>Seit dem 2026-09-09 stehen drei Zeilen mehr darin, und sie haben einen Anlass.</b>
+    /// Der Nutzer meldet, dass das Textfeld-Werkzeug <b>mit dem Stift</b> nichts tut, während
+    /// Maus und Touchpad gehen. Im Eingabepfad gibt es genau <b>eine</b> Stelle, an der ein
+    /// Stift woanders landen kann als eine Maus:
+    /// <c>_stylusInverted = punkt.Properties.IsEraser</c> — danach schlägt
+    /// <see cref="EffectiveTool"/> das gewählte Werkzeug und macht daraus den Radierer, und
+    /// zwar <b>lautlos</b>, für jedes Werkzeug gleichzeitig.
+    /// </para>
+    /// <para>
+    /// <b>Der Verdacht ist am ausgelieferten Rücken belegt, die Auslösung nicht</b> (dieselbe
+    /// Trennung wie in §4.42): <c>Avalonia.X11</c> 12.1.1 führt <c>_currentSlaveIsEraser</c>
+    /// am <b>Master</b>-Zeiger und setzt es aus dem Gerätenamen des Slaves
+    /// (<c>Name.IndexOf("eraser")</c>), aktualisiert <b>nur bei <c>XI_DeviceChanged</c></b> —
+    /// der Wert ist also <b>klebrig</b>. Und XWayland legt für ein Tablett grundsätzlich alle
+    /// Werkzeuge als eigene Geräte an; auf diesem Rechner gemessen:
+    /// <c>xwayland-tablet stylus:1</c>, <c>xwayland-tablet eraser:1</c>,
+    /// <c>xwayland-tablet cursor:1</c> — <b>alle drei mit Drucksensor, dauerhaft vorhanden,
+    /// auch ohne dass je ein Radiergummi benutzt wurde.</b> Ob daraus wirklich ein hängendes
+    /// <c>IsEraser</c> wird, sagt kein Quelltext — <b>das sagt dieses Fenster, sobald jemand
+    /// den Stift aufsetzt.</b> Steht dort <c>Invertiert ja</c>, ohne dass das Radiergummi-Ende
+    /// benutzt wurde, ist die Ursache gefunden.
+    /// </para>
     /// </summary>
     private void DrawStiftAnzeige(SKCanvas leinwand, SkiaPaintArgs e)
     {
@@ -91,6 +114,11 @@ public partial class WhiteboardView
             $"Druck    {_letzterDruck:0.0000}  {(_geraetLiefertDruck ? "(Gerät liefert Druck)" : "(Rückfall: feste Breite)")}",
             $"Neigung  X {_tiltX,6:0.0}°   Y {_tiltY,6:0.0}°",
             $"Punkte   {_activePoints?.Count ?? 0}",
+            // Die drei Zeilen für den Befund oben. `Werkzeug` zeigt beides, weil genau die
+            // Abweichung der Fehler ist: gewählt T, wirksam Eraser.
+            $"Werkzeug {_tool} → wirksam {EffectiveTool}",
+            $"Invertiert {(_stylusInverted ? "ja" : "nein")}   IsEraser {(_letztesEraserFlag ? "ja" : "nein")}",
+            $"Finger   {_finger.Count}   Tipp {(_tippMoeglich ? "möglich" : "nein")}",
         ];
 
         using var schrift = new SKFont(WbFonts.Regular, 12);

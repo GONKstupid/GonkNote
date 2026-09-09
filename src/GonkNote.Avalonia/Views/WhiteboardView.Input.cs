@@ -115,6 +115,14 @@ public partial class WhiteboardView
     /// <summary>Mit F9 einblendbar: was der Stift gerade wirklich liefert. Standardmäßig aus.</summary>
     private bool _stiftAnzeige;
 
+    /// <summary>
+    /// Was <c>PointerPointProperties.IsEraser</c> beim letzten Aufsetzen des Stifts gemeldet
+    /// hat — <b>roh, vor jeder Verrechnung</b>. Nur für die F9-Anzeige; getrennt von
+    /// <see cref="_stylusInverted"/> gehalten, weil dort die Stifttaste mit hineinläuft und
+    /// man sonst nicht sieht, welcher der beiden Wege den Radierer eingeschaltet hat.
+    /// </summary>
+    private bool _letztesEraserFlag;
+
     // ==================== Handballenabweisung ====================
 
     /// <summary>
@@ -165,6 +173,13 @@ public partial class WhiteboardView
             _stiftLiegtAuf = true;
             // Das Radiergummi-Ende meldet sich als eigener Zeiger — dafür braucht es keine
             // Einstellung und keinen Werkzeugwechsel.
+            //
+            // ⚠ **Das ist die einzige Stelle, an der ein Stift woanders landet als eine Maus**,
+            // und damit der einzige Verdächtige für die Meldung „das Textfeld-Werkzeug tut mit
+            // dem Stift nichts" (2026-09-09). Roh mitgeschrieben für die F9-Anzeige, damit der
+            // nächste Aufsetzer die Frage beantwortet statt sie zu wiederholen — die
+            // Herleitung steht bei `DrawStiftAnzeige`.
+            _letztesEraserFlag = punkt.Properties.IsEraser;
             _stylusInverted = punkt.Properties.IsEraser;
             // Die zweite Stift-Taste radiert, solange sie gehalten wird. Im WPF-Kopf öffnet
             // sie die Schnellaktionen; die sind nicht M1, und die Taste ungenutzt zu lassen
@@ -300,8 +315,37 @@ public partial class WhiteboardView
     }
 
     // ==================== Finger-Gesten ====================
-    // Der Finger zeichnet nie — er schiebt und zoomt. Das ist die Grundlage der
+    // Der Finger **zieht** nie einen Strich — er schiebt und zoomt. Das ist die Grundlage der
     // Handballenabweisung: was nicht zeichnen kann, kann auch nicht versehentlich malen.
+    //
+    // ⛔ **Daraus war „der Finger tut sonst gar nichts" geworden, und das war zu viel.** Bis
+    // zum 2026-09-09 bog `OnPointerPressed` bei `PointerType.Touch` ab, **bevor** das Werkzeug
+    // überhaupt gefragt wurde — `BeginInput` hat ein Finger also nie erreicht. Textfeld und
+    // Notizzettel waren damit auf dem Gerät, für das diese App gebaut ist, mit dem Finger
+    // **unerreichbar**; bedienbar waren sie nur mit Maus und Touchpad. Vom Nutzer gemeldet,
+    // und im Bau wie in den Wächtern war nichts davon zu sehen.
+    //
+    // **Die Regel steht jetzt in Core** (`WbLeiste.IstTippwerkzeug`) und heißt nicht mehr
+    // „Finger ja/nein", sondern **„Zug oder Tipp"**: ein Strich entsteht aus einer Bewegung
+    // und bleibt dem Stift vorbehalten, ein Textfeld entsteht aus einer Stelle. Die
+    // Begründung im Langen steht dort — hier steht nur, wie ein Tipp erkannt wird.
+
+    /// <summary>Wo der erste Finger aufgesetzt hat — der Anfang eines möglichen Tipps.</summary>
+    private Point _tippStart;
+
+    /// <summary>
+    /// Kann die laufende Berührung noch ein Tipp werden? Sie verliert es durch Bewegung und
+    /// durch einen zweiten Finger, und beides ist endgültig: ein Schieben wird nicht dadurch
+    /// wieder zum Tipp, dass der Finger zum Ausgangspunkt zurückkehrt.
+    /// </summary>
+    private bool _tippMoeglich;
+
+    /// <summary>
+    /// Ab dieser Bewegung (Schirmpunkte) ist es ein Schieben und kein Tipp mehr. Etwas
+    /// großzügiger als <c>DruckSpielraum</c>: ein Finger steht nie so still wie ein Zeiger,
+    /// und wer auf eine Stelle tippt, verwackelt sie um ein paar Punkte.
+    /// </summary>
+    private const double TippSpielraum = 12;
 
     private void BeruehrungBeginnt(PointerPressedEventArgs e, PointerPoint punkt)
     {
@@ -312,6 +356,11 @@ public partial class WhiteboardView
         if (_finger.Count >= 2) PinchSetzen();
 
         SchnellaktionenVerbergen();
+
+        // Ein Tipp braucht **einen** Finger. Der zweite macht daraus eine Zoom-Geste, und die
+        // darf am Ende kein Textfeld hinterlassen.
+        _tippMoeglich = _finger.Count == 1;
+        _tippStart = punkt.Position;
 
         // Ein langer Druck mit **einem** Finger öffnet die Schnellaktionen; sobald ein
         // zweiter dazukommt, ist es eine Zoom-Geste und kein Druck mehr.
@@ -341,6 +390,15 @@ public partial class WhiteboardView
         var neu = e.GetPosition(Skia);
         _finger[e.Pointer.Id] = neu;
 
+        // **Gegen den Aufsetzpunkt gemessen, nicht gegen den letzten Punkt.** Wer langsam
+        // schiebt, legt sonst lauter Schritte unterhalb der Schwelle zurück und käme am Ende
+        // trotzdem als Tipp heraus.
+        if (_tippMoeglich &&
+            (_finger.Count >= 2 ||
+             Math.Abs(neu.X - _tippStart.X) > TippSpielraum ||
+             Math.Abs(neu.Y - _tippStart.Y) > TippSpielraum))
+            _tippMoeglich = false;
+
         DruckBewegt(neu);
 
         if (_finger.Count == 1)
@@ -368,9 +426,28 @@ public partial class WhiteboardView
     private void BeruehrungEndet(PointerReleasedEventArgs e)
     {
         e.Pointer.Capture(null);
+
+        // **Vor dem Entfernen prüfen**, sonst steht die Zahl schon auf 0 und der Tipp fällt
+        // durch. Und nur der Finger, der auch aufgesetzt hat: ein Zeiger, den `_finger` nicht
+        // kennt, ist einer, den die Handballenabweisung oben abgewiesen hat.
+        bool warTipp = _tippMoeglich && _finger.Count == 1 && _finger.ContainsKey(e.Pointer.Id);
+        var stelle = e.GetPosition(Skia);
+
+        _tippMoeglich = false;
         _finger.Remove(e.Pointer.Id);
         if (_finger.Count >= 2) PinchSetzen();
         DruckAbbrechen();
+
+        // **`_tool` und nicht `EffectiveTool`.** Das Radiergummi-Ende gehört dem Stift; ein
+        // Finger ist nie invertiert, und ein `_stylusInverted`, das von einem vorigen
+        // Stiftzug stehengeblieben ist, dürfte den Tipp nicht verschlucken.
+        //
+        // **Die Stelle kommt aus dem Loslassen und nicht aus dem Aufsetzen:** unterhalb von
+        // `TippSpielraum` ist die Fläche zwar kaum mitgewandert, aber `ToCanvas` rechnet den
+        // aktuellen Stand von Verschiebung und Zoom ein — und der ist der beim Loslassen.
+        if (warTipp && WbLeiste.IstTippwerkzeug(_tool))
+            BeginInput(ToCanvas(stelle), Stiftlage.Rueckfall);
+
         e.Handled = true;
     }
 

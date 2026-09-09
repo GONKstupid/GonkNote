@@ -381,14 +381,45 @@
                             <views:Symbol Icon="Close"
                                   Stroke="{DynamicResource Brush.Text}"/>
                         </Button>
-                        <TextBlock Text="{loc:T Settings.Page}" FontWeight="SemiBold" FontSize="14"
+                        <!-- ⛔ Hier stand `Settings.Page` — „Seite". Das war schon vor den
+                             Klappgruppen falsch: die Leiste enthält Seite, Formen, Text,
+                             Notizzettel, Sticker, Cover und Export. Drüben steht an derselben
+                             Stelle seit jeher `Wb.Settings` („Einstellungen"), und §4.71 hat
+                             die beiden Flächen verglichen, ohne es zu finden. Mit den
+                             Klappgruppen stünde jetzt eine Gruppe „Seite" in einer Leiste
+                             namens „Seite". -->
+                        <TextBlock Text="{loc:T Wb.Settings}" FontWeight="SemiBold" FontSize="14"
                                    VerticalAlignment="Center"
                                    Foreground="{DynamicResource Brush.Text}"/>
                     </DockPanel>
                 </Border>
 
+                <!-- ==================== Die Klappgruppen (Nutzerwunsch 2026-09-09) ========
+                     **Alle Abschnitte sind eingeklappt**, und aufgeklappt wird von Hand — oder
+                     von selbst, sobald ein Werkzeug seinen Abschnitt mitbringt: wer die Formen
+                     nimmt, bekommt die Formen-Einstellungen offen und alles andere zu.
+
+                     Bis dahin standen hier sieben Abschnitte **untereinander ausgerollt**, und
+                     die werkzeugeigenen wurden je nach Werkzeug ein- und ausgeblendet. Das
+                     hatte zwei Nachteile: die Leiste war länger als das Fenster (man rollte,
+                     um an den Export zu kommen), und ein Abschnitt, der **verschwindet**,
+                     sagt einem nicht, dass es ihn gibt. Eingeklappt steht er da und ist
+                     trotzdem aus dem Weg.
+
+                     **Welcher Abschnitt zu welchem Werkzeug gehört, steht in Core**
+                     (`WbLeiste.BereichVon`) und nicht hier — dieselbe Regel wie bei den
+                     Werkzeuggruppen der Leiste (§4.78: eine Liste, die an drei Stellen
+                     gepflegt werden muss, veraltet an einer davon).
+
+                     Das Auf- und Zuklappen selbst macht `AbschnittsTabelle` im Code-Behind;
+                     hier stehen nur Kopf und Inhalt paarweise beieinander. -->
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <StackPanel Margin="14,12">
+                    <StackPanel x:Name="Abschnitte" Margin="14,12">
+
+                    <!-- ==================== Seite ==================== -->
+                    <ToggleButton x:Name="KopfSeite" Classes="abschnitt"
+                                  Content="{loc:T Settings.Page}"/>
+                    <StackPanel x:Name="SeiteBereich" IsVisible="False" Margin="0,4,0,0">
 
                         <!-- Muster -->
                         <TextBlock Text="{loc:T Settings.Page.Pattern}" FontWeight="SemiBold"
@@ -456,15 +487,19 @@
                         <TextBlock x:Name="CoverHinweis" IsVisible="False" TextWrapping="Wrap"
                                    FontSize="11" Foreground="{DynamicResource Brush.TextMuted}"
                                    Text="{loc:T Settings.Page.CoverHint}"/>
+                    </StackPanel>
 
-                        <!-- ==================== Formen ==================== -->
-                        <!-- Neu in Phase 4.5. Die Sektion erscheint nur, solange das
-                             Formen-Werkzeug aktiv ist — dieselbe Regel wie drüben, wo sie in
-                             einem Expander sitzt: eine Füllfarbe ohne Form daneben ist eine
-                             Einstellung ohne Gegenstand. -->
-                        <StackPanel x:Name="FormenBereich" IsVisible="False" Margin="0,18,0,0">
-                            <TextBlock Text="{loc:T Settings.Shapes}" FontWeight="SemiBold" FontSize="14"
-                                       Margin="0,0,0,6" Foreground="{DynamicResource Brush.Text}"/>
+                    <!-- ==================== Formen ==================== -->
+                    <!-- Neu in Phase 4.5. **Der Abschnitt verschwindet nicht mehr, wenn das
+                         Formen-Werkzeug ruht — er ist nur eingeklappt** (Nutzerwunsch
+                         2026-09-09). Die alte Begründung („eine Füllfarbe ohne Form daneben
+                         ist eine Einstellung ohne Gegenstand") trug das Ausblenden; sie trägt
+                         das Einklappen genauso, und ein eingeklappter Abschnitt sagt
+                         zusätzlich, dass es ihn gibt. Aufgeklappt wird er, sobald das
+                         Werkzeug gewählt ist. -->
+                    <ToggleButton x:Name="KopfFormen" Classes="abschnitt"
+                                  Content="{loc:T Settings.Shapes}"/>
+                    <StackPanel x:Name="FormenBereich" IsVisible="False" Margin="0,4,0,0">
                             <TextBlock Text="{loc:T Settings.Shapes.Hint}" TextWrapping="Wrap" FontSize="11"
                                        Margin="0,0,0,8" Foreground="{DynamicResource Brush.TextMuted}"/>
 
@@ -501,10 +536,10 @@
                             </StackPanel>
                         </StackPanel>
 
-                        <!-- ==================== Textfeld ==================== -->
-                        <StackPanel x:Name="TextBereich" IsVisible="False" Margin="0,18,0,0">
-                            <TextBlock Text="{loc:T Settings.Text}" FontWeight="SemiBold" FontSize="14"
-                                       Margin="0,0,0,6" Foreground="{DynamicResource Brush.Text}"/>
+                    <!-- ==================== Textfeld ==================== -->
+                    <ToggleButton x:Name="KopfText" Classes="abschnitt"
+                                  Content="{loc:T Settings.Text}"/>
+                    <StackPanel x:Name="TextBereich" IsVisible="False" Margin="0,4,0,0">
                             <StackPanel Orientation="Horizontal" Spacing="4">
                                 <!-- Der Schalter trägt die Vorschau, wie bei der Formfüllung. -->
                                 <ToggleButton x:Name="TextGrundAn" Classes="werkzeug"
@@ -524,10 +559,10 @@
                             </StackPanel>
                         </StackPanel>
 
-                        <!-- ==================== Notizzettel ==================== -->
-                        <StackPanel x:Name="ZettelBereich" IsVisible="False" Margin="0,18,0,0">
-                            <TextBlock Text="{loc:T Settings.Sticky}" FontWeight="SemiBold" FontSize="14"
-                                       Margin="0,0,0,6" Foreground="{DynamicResource Brush.Text}"/>
+                    <!-- ==================== Notizzettel ==================== -->
+                    <ToggleButton x:Name="KopfZettel" Classes="abschnitt"
+                                  Content="{loc:T Settings.Sticky}"/>
+                    <StackPanel x:Name="ZettelBereich" IsVisible="False" Margin="0,4,0,0">
                             <StackPanel Orientation="Horizontal" Spacing="4">
                                 <Border x:Name="ZettelVorschau" Width="26" Height="26" CornerRadius="4"
                                         BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1"/>
@@ -545,9 +580,9 @@
                              Fläche gezogen, sondern durch Klick auf seine Kachel eingefügt —
                              genau wie drüben. Deshalb steht hier ein Kachelraster und kein
                              Farbwähler. -->
-                        <StackPanel x:Name="StickerBereich" IsVisible="False" Margin="0,18,0,0">
-                            <TextBlock Text="{loc:T Tool.Sticker}" FontWeight="SemiBold" FontSize="14"
-                                       Margin="0,0,0,6" Foreground="{DynamicResource Brush.Text}"/>
+                    <ToggleButton x:Name="KopfSticker" Classes="abschnitt"
+                                  Content="{loc:T Tool.Sticker}"/>
+                    <StackPanel x:Name="StickerBereich" IsVisible="False" Margin="0,4,0,0">
                             <TextBlock Text="{loc:T Settings.Sticker.Hint}" TextWrapping="Wrap" FontSize="11"
                                        Margin="0,0,0,8" Foreground="{DynamicResource Brush.TextMuted}"/>
 
@@ -589,10 +624,14 @@
                              Begründung dort („das Werkzeug gibt es hier nicht") ist mit
                              diesem Abschnitt abgelaufen — es wäre sonst §4.60 zum dritten
                              Mal gewesen. -->
-                        <StackPanel x:Name="CoverBereich" IsVisible="False" Margin="0,18,0,0">
-                            <TextBlock Text="{loc:T Settings.Cover}" FontWeight="SemiBold" FontSize="14"
-                                       Margin="0,0,0,6" Foreground="{DynamicResource Brush.Text}"/>
-
+                    <!-- **Kopf und Inhalt sind hier beide an die Cover-Seite gebunden**, anders
+                         als bei den Werkzeug-Abschnitten. Der Unterschied ist nicht Willkür:
+                         Formen gibt es immer, ein Cover nicht — ein eingeklappter Abschnitt
+                         „Cover" auf einer gewöhnlichen Seite verspräche etwas, das dort nicht
+                         existiert. `CoverSpiegeln` setzt beide. -->
+                    <ToggleButton x:Name="KopfCover" Classes="abschnitt" IsVisible="False"
+                                  Content="{loc:T Settings.Cover}"/>
+                    <StackPanel x:Name="CoverBereich" IsVisible="False" Margin="0,4,0,0">
                             <TextBlock Text="{loc:T Settings.Cover.Gradient}" FontWeight="SemiBold"
                                        Margin="0,0,0,4" Foreground="{DynamicResource Brush.Text}"/>
                             <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,0,0,12">
@@ -644,19 +683,20 @@
                             </Button>
                         </StackPanel>
 
-                        <!-- ==================== Export ==================== -->
-                        <!-- Neu in Phase 5, Schritt ①c. **Immer sichtbar**, anders als die
-                             Werkzeug-Abschnitte darüber: exportiert wird das Dokument und
-                             nicht das, was gerade in der Hand liegt — dieselbe Regel wie
-                             drüben, wo der Abschnitt ebenfalls an keinem Werkzeug hängt.
+                    <!-- ==================== Export ==================== -->
+                    <!-- Neu in Phase 5, Schritt ①c. **Er hängt an keinem Werkzeug**: exportiert
+                         wird das Dokument und nicht das, was gerade in der Hand liegt — dieselbe
+                         Regel wie drüben. Seit den Klappgruppen (2026-09-09) heißt das nicht
+                         mehr „immer sichtbar", sondern: **kein Werkzeug klappt ihn auf**, er
+                         wartet auf einen Klick auf seinen Kopf.
 
                              **Der Kopf exportiert nicht selbst**, er wählt nur das Format
                              vor. Gespeichert und geschrieben wird über MainViewModel, genau
                              wie bei „Datei → Exportieren" und wie im Texteditor dieses Kopfes
                              (TextDocView, Export_Click). -->
-                        <StackPanel Margin="0,18,0,0">
-                            <TextBlock Text="{loc:T Settings.Export}" FontWeight="SemiBold" FontSize="14"
-                                       Margin="0,0,0,6" Foreground="{DynamicResource Brush.Text}"/>
+                    <ToggleButton x:Name="KopfExport" Classes="abschnitt"
+                                  Content="{loc:T Settings.Export}"/>
+                    <StackPanel x:Name="ExportBereich" IsVisible="False" Margin="0,4,0,0">
                             <TextBlock Text="{loc:T Settings.Export.Hint}" TextWrapping="Wrap" FontSize="11"
                                        Margin="0,0,0,8" Foreground="{DynamicResource Brush.TextMuted}"/>
                             <Button Classes="flach" HorizontalAlignment="Stretch" Margin="0,0,0,4"

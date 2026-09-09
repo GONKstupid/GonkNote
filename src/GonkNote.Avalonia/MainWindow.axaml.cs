@@ -37,6 +37,11 @@ public partial class MainWindow : Window
         _vm = new MainViewModel(App.Db, App.Platform);
         DataContext = _vm;
 
+        // Den Stand der Seitenleiste wiederherstellen — derselbe Schlüssel wie drüben, damit
+        // beide Köpfe auf derselben Datenbank dasselbe meinen. **Nur die 0 klappt zu:** ein
+        // fehlender Wert heißt „noch nie zugeklappt" und nicht „zu".
+        if (App.Db.GetSetting("sidebar") == "0") SeitenleisteSetzen(false);
+
         SpracheHaken();
         Loc.LanguageChanged += SpracheHaken;
 
@@ -71,8 +76,76 @@ public partial class MainWindow : Window
     private void Seitenleiste_Click(object? sender, RoutedEventArgs e) =>
         SeitenleisteUmschalten();
 
-    private void SeitenleisteUmschalten() =>
-        Seitenleiste.IsVisible = !Seitenleiste.IsVisible;
+    private void SeitenleisteUmschalten() => SeitenleisteSetzen(!_seitenleisteOffen);
+
+    /// <summary>Ist die Seitenleiste aufgeklappt? Startwert wie drüben: ja.</summary>
+    private bool _seitenleisteOffen = true;
+
+    /// <summary>
+    /// Die Breite, mit der die Leiste wieder aufgeht. <b>Sie wird beim Einklappen gemerkt</b>,
+    /// damit eine von Hand gezogene Breite das Zuklappen übersteht — sonst stünde sie beim
+    /// nächsten Aufklappen wieder auf den 260 Punkten aus dem XAML.
+    /// </summary>
+    private GridLength _seitenleisteBreite = new(260);
+
+    /// <summary>
+    /// Die Spalte der Seitenleiste. <b>Über das Raster geholt und nicht über <c>x:Name</c></b> —
+    /// der Grund steht im XAML über den Spaltendefinitionen: Avalonia erzeugt für eine
+    /// <c>ColumnDefinition</c> kein Feld, der WPF-Kopf bekommt dort eines.
+    /// </summary>
+    private ColumnDefinition SeitenleisteSpalte => Hauptraster.ColumnDefinitions[0];
+
+    /// <summary>
+    /// Klappt die Seitenleiste ein und aus.
+    ///
+    /// <para>
+    /// ⛔ <b>Bis zum 2026-09-09 stand hier eine Zeile:</b> <c>Seitenleiste.IsVisible =
+    /// !Seitenleiste.IsVisible</c>. Das blendet den <b>Inhalt</b> aus und sonst nichts — die
+    /// Rasterspalte ist 260 Punkte breit geblieben, der Trenner daneben sichtbar, und der
+    /// Arbeitsbereich damit genauso schmal wie vorher. Am laufenden Programm sah es aus, als
+    /// hätte sich die Leiste geleert statt geschlossen. <b>Der WPF-Kopf hat es von Anfang an
+    /// richtig gemacht</b> (<c>SetSidebarVisible</c>), und der Vergleich der beiden Flächen in
+    /// §4.71 hat es trotzdem nicht gefunden: gemessen wurde, was zu sehen ist, nicht was
+    /// passiert, wenn man darauf drückt.
+    /// </para>
+    /// <para>
+    /// <b>Drei Dinge gehören zusammen</b>, und jedes einzeln weggelassen ergibt ein halb
+    /// geschlossenes Bild: der Inhalt verschwindet, die <b>Spalte</b> geht auf 0 (samt
+    /// <c>MinWidth</c> — eine Mindestbreite von 180 hält die Spalte sonst offen), und der
+    /// <b>Trenner</b> geht mit.
+    /// </para>
+    /// <para>
+    /// <b>Der Stand wird gesichert</b>, genau wie drüben (<c>App.Db</c>, Schlüssel
+    /// <c>sidebar</c>) und mit demselben Schlüssel — wer die Leiste zuklappt, will sie beim
+    /// nächsten Start zu haben, und zwei Köpfe auf derselben Datenbank dürfen sich darüber
+    /// nicht widersprechen.
+    /// </para>
+    /// </summary>
+    private void SeitenleisteSetzen(bool offen)
+    {
+        if (offen == _seitenleisteOffen) return;
+        _seitenleisteOffen = offen;
+
+        if (offen)
+        {
+            Seitenleiste.IsVisible = true;
+            SeitenleisteTrenner.IsVisible = true;
+            SeitenleisteSpalte.MinWidth = 180;
+            SeitenleisteSpalte.Width = _seitenleisteBreite;
+        }
+        else
+        {
+            _seitenleisteBreite = SeitenleisteSpalte.Width;
+            Seitenleiste.IsVisible = false;
+            SeitenleisteTrenner.IsVisible = false;
+            // **Erst die Mindestbreite, dann die Breite.** Umgekehrt klemmt das Raster die 0
+            // sofort wieder auf 180 hoch, und die Leiste bliebe als leerer Streifen stehen.
+            SeitenleisteSpalte.MinWidth = 0;
+            SeitenleisteSpalte.Width = new GridLength(0);
+        }
+
+        App.Db.SetSetting("sidebar", offen ? "1" : "0");
+    }
 
     private void Sprache_Click(object? sender, RoutedEventArgs e)
     {

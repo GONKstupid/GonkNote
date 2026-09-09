@@ -11,8 +11,9 @@
      Repos, den .github/workflows/pages.yml veröffentlicht. Wer eine Datei dort umbenennt,
      bricht diesen Eintrag — und es fällt erst bei der Flathub-Einreichung auf.
 
-     ✅ Die <release>-Zeile steht auf 1.0.0 (§5 Nr. 23). Wer sie anhebt, zieht
-     Directory.Build.props und About.Version in beiden Loc-Tabellen mit. -->
+     ✅ Die oberste <release>-Zeile steht auf 1.0.1 (§5 Nr. 23). Wer sie anhebt, zieht die
+     Stellen nach, die der Kommentar in Directory.Build.props aufzaehlt — er fuehrt die
+     Liste, und sie ist am 2026-09-09 um die Projektseite laenger geworden. -->
 <component type="desktop-application">
   <!-- ⚠ `appstreamcli validate` merkt im pedantischen Lauf den Großbuchstaben an
        (cid-contains-uppercase-letter). Das ist ein Stilhinweis und kein Fehler: für
@@ -109,6 +110,17 @@
   </requires>
 
   <releases>
+    <release version="1.0.1" date="2026-09-09">
+      <description>
+        <p>Bug fixes for the Linux edition: the sidebar now really collapses instead of
+           only emptying itself, the text and sticky-note tools can be used with a finger,
+           and the settings panel groups its sections into collapsible headings.</p>
+        <p xml:lang="de">Fehlerbehebungen der Linux-Ausgabe: Die Seitenleiste klappt jetzt
+           wirklich zu, statt sich nur zu leeren; Textfeld und Notizzettel lassen sich mit
+           dem Finger bedienen; die Einstellungsleiste fasst ihre Abschnitte in klappbare
+           Gruppen.</p>
+      </description>
+    </release>
     <release version="1.0.0" date="2026-09-05">
       <description>
         <p>First public release. The Linux edition does everything the Windows edition

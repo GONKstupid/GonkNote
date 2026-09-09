@@ -199,6 +199,10 @@ public partial class WhiteboardView : UserControl
         EditFeld.AddHandler(KeyDownEvent, EditFeld_Taste, RoutingStrategies.Tunnel);
         AddHandler(KeyUpEvent, OnKeyUp, RoutingStrategies.Tunnel);
 
+        // Die Klappgruppen der Einstellungsleiste (Nutzerwunsch 2026-09-09). **Genau einmal**,
+        // hier und nicht bei jedem Aufklappen — der Grund steht bei AbschnitteEinhaengen.
+        AbschnitteEinhaengen();
+
         SyncSizeControls();
     }
 
@@ -374,30 +378,34 @@ public partial class WhiteboardView : UserControl
         SchnellaktionenVerbergen();
         ZahlenblockSchliessen();
 
-        // Die Formen-Einstellungen erscheinen nur mit dem Werkzeug. Ist die Leiste zu,
-        // klappt sie auf — sonst wäre die Füllfarbe hinter einem Knopf versteckt, den
-        // niemand in dem Moment drückt (dieselbe Regel wie im WPF-Kopf).
+        // Die Sammlung wird erst gelesen, wenn jemand sie sehen will — sie liegt auf der
+        // Platte, und beim Start braucht sie niemand.
+        if (tool == ToolType.Sticker) StickerSicherstellen();
+
+        // Bringt das Werkzeug einen eigenen Abschnitt mit? Ist die Leiste zu, klappt sie auf —
+        // sonst wäre die Füllfarbe hinter einem Knopf versteckt, den niemand in dem Moment
+        // drückt (dieselbe Regel wie im WPF-Kopf).
         //
         // **Und dann gespiegelt.** Wer die Leiste aufklappt, ohne EinstellungenSpiegeln zu
         // rufen, bekommt sie mit lauter leeren Umschaltern — kein Muster, kein Farbton, kein
         // Format markiert. Das steht seit Phase 3 in Einstellungen_Click und ist hier beim
         // zweiten Aufklappweg prompt wieder passiert (am laufenden Programm gesehen).
-        FormenBereich.IsVisible = tool == ToolType.Shape;
-        TextBereich.IsVisible = tool == ToolType.Text;
-        ZettelBereich.IsVisible = tool == ToolType.Sticky;
-        StickerBereich.IsVisible = tool == ToolType.Sticker;
-
-        // Die Sammlung wird erst gelesen, wenn jemand sie sehen will — sie liegt auf der
-        // Platte, und beim Start braucht sie niemand.
-        if (tool == ToolType.Sticker) StickerSicherstellen();
-
-        bool eigeneSektion = tool is ToolType.Shape or ToolType.Text or ToolType.Sticky
-                                  or ToolType.Sticker;
-        if (eigeneSektion && !EinstellungenLeiste.IsVisible)
+        //
+        // ⛔ **Hier standen vier Zeilen `…Bereich.IsVisible = tool == …` und daneben eine
+        // fünfte Liste derselben vier Werkzeuge** (`eigeneSektion`). Zwei Aufzählungen für
+        // eine Aussage, in derselben Methode, drei Zeilen auseinander — §4.78 in klein. Beide
+        // sind jetzt eine Frage an Core.
+        var bereich = WbLeiste.BereichVon(tool);
+        if (bereich != WbLeiste.Einstellungsbereich.Keiner && !EinstellungenLeiste.IsVisible)
         {
             EinstellungenLeiste.IsVisible = true;
             EinstellungenSpiegeln();
         }
+
+        // **Nach dem Spiegeln.** `EinstellungenSpiegeln` setzt über `CoverSpiegeln` mit, ob es
+        // den Cover-Abschnitt überhaupt gibt — davor aufgeklappt, klappte man an einem Kopf,
+        // den es gleich nicht mehr gibt.
+        BereichAufklappen(bereich);
 
         Skia.Cursor = new Cursor(tool switch
         {

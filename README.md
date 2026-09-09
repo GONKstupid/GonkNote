@@ -19,7 +19,7 @@ nach der Sprache, die du unter Ansicht → Sprache gewählt hast.)*
 **Drei Wege, und keiner davon braucht Adminrechte.** Alle Downloads liegen unter
 [Releases](https://github.com/GONKstupid/GonkNote/releases).
 
-**1. Windows 11** — `GonkNote-1.0.0-windows-x64.zip` herunterladen, entpacken,
+**1. Windows 11** — `GonkNote-1.0.1-windows-x64.zip` herunterladen, entpacken,
 `GonkNote.exe` starten. Ein installiertes .NET braucht sie nicht, und in die Registry
 schreibt sie nichts.
 
@@ -32,8 +32,8 @@ drei Ordner mit.
 **2. Linux, AppImage** — eine Datei, keine Abhängigkeiten, keine Sandbox:
 
 ```bash
-chmod +x GonkNote-1.0.0-x86_64.AppImage
-./GonkNote-1.0.0-x86_64.AppImage
+chmod +x GonkNote-1.0.1-x86_64.AppImage
+./GonkNote-1.0.1-x86_64.AppImage
 ```
 
 Dein System braucht **fontconfig und mindestens eine Schrift** — ohne sie bleibt jeder

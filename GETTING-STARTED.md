@@ -402,7 +402,7 @@ Gonk Note does **not** update itself — there is no updater and no internet con
 the new state and rebuild. It takes less than a minute.
 
 **Which version is running?** `Help → About Gonk Note` shows it at the top
-(e.g. "Version 1.0.0 · Windows and Linux").
+(e.g. "Version 1.0.1 · Windows and Linux").
 
 > **If you use a ready-made download**, this section does not apply: just fetch the new file
 > from [Releases](https://github.com/GONKstupid/GonkNote/releases) and replace the old one.

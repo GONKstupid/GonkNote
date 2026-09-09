@@ -11,20 +11,38 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>14</LangVersion>
-    <!-- 1.0.0 seit Phase 5, Schritt ⑤ (HANDOFF §5 Nr. 23, Nutzer-Entscheidung 2026-08-28):
-         die Zahl gehört an die **Auslieferung** und nicht an ihren Anfang. Bis dahin stand
-         hier 0.3.0 — seit Phase 2, Schritt 3, wo der Umbau von LiteDB auf SQLite das
-         **Dateiformat** änderte.
+    <!-- 1.0.1 seit dem 2026-09-09 (V2-129): die erste Fehlerbehebungs-Ausgabe. Sie hebt
+         nur die letzte Stelle — es sind Fehlerbehebungen und ein Bedienwunsch, kein neues
+         Dateiformat und keine neue Fähigkeit.
 
-         ⛔ WER SIE ANHEBT, ZIEHT VIER WEITERE STELLEN NACH, und keine davon fällt beim
+         1.0.0 kam mit Phase 5, Schritt ⑤ (HANDOFF §5 Nr. 23, Nutzer-Entscheidung
+         2026-08-28): die Zahl gehört an die **Auslieferung** und nicht an ihren Anfang. Bis
+         dahin stand hier 0.3.0 — seit Phase 2, Schritt 3, wo der Umbau von LiteDB auf
+         SQLite das **Dateiformat** änderte.
+
+         ⛔ WER SIE ANHEBT, ZIEHT SECHS WEITERE STELLEN NACH, und keine davon fällt beim
          Bauen auf (HANDOFF §4.5, Dauerregel 1):
            * About.Version in **beiden** Loc-Tabellen (LocGerman, LocEnglish) — dort steht
-             auch die Portierungsphase,
-           * die <release>-Zeile in packaging/flatpak/…metainfo.xml,
+             **nicht** die Zahl (die kommt als {0} herein), wohl aber der Satz dahinter,
+           * ein NEUER <release>-Eintrag in packaging/flatpak/…metainfo.xml — der alte
+             bleibt stehen, eine Ausgabe, die es gab, wird nicht nachträglich weggelassen,
            * die vier mitgelieferten Dokumente, wo sie eine Version nennen,
+           * die Projektseite site/index.html UND site/en/index.html (Versionszeile und
+             die Dateinamen in der Download-Tabelle),
+           * der Platzhalter in .github/ISSUE_TEMPLATE/fehler.yml,
            * Tag und Release auf GitHub.
-         Danach beide Über-Dialoge in beiden Sprachen und in **beiden Köpfen** gegenprüfen. -->
-    <Version>1.0.0</Version>
+
+         ⛔ **Die Liste stand bis zum 2026-09-09 auf „vier", und sie war falsch.** Die
+         Projektseite ist in §4.101 entstanden, im selben Zug wie die 1.0.0 — und ist
+         dieser Aufzählung nie hinzugefügt worden. Beim ersten Anheben danach (V2-129)
+         stand sie prompt noch auf 1.0.0 und bot Dateien zum Download an, die es unter
+         diesem Namen nicht mehr gab. *Eine Liste, die eine andere Stelle vollständig
+         nennen soll, veraltet genau dann, wenn jemand eine sechste anlegt.*
+
+         Danach beide Über-Dialoge in beiden Sprachen gegenprüfen. *(„Und in beiden Köpfen"
+         stand hier bis zum 2026-09-09 — den WPF-Kopf kann seit dem Wegfall des zweiten
+         Rechners niemand mehr starten, siehe HANDOFF §0.)* -->
+    <Version>1.0.1</Version>
     <Company>GonkNote</Company>
     <Product>Gonk Note</Product>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>

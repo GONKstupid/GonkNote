@@ -1,5 +1,7 @@
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Interactivity;
+using GonkNote.Core.Editing;
 using GonkNote.Core.Models;
 using GonkNote.ViewModels;
 
@@ -19,9 +21,18 @@ namespace GonkNote.Views;
 /// </para>
 ///
 /// <para>
-/// <b>Was jetzt noch fehlt, ist das Cover</b> — und nur das (<c>WhiteboardView.Covers.cs</c>
-/// drüben, 250 Zeilen). Es fehlt benannt und wird nach §5 Nr. 26 hier gebaut, nicht drüben
-/// gelöscht.
+/// ⛔ <b>Und der Satz darunter war seinerseits abgelaufen:</b> „Was jetzt noch fehlt, ist das
+/// Cover." Das Cover ist in Phase 5, Schritt ①c gebaut worden (§4.81) — die Leiste hat seitdem
+/// alle sieben Abschnitte. <i>Derselbe Fehler wie der im Absatz darüber, im selben Kommentar,
+/// eine Runde später.</i>
+/// </para>
+///
+/// <para>
+/// <b>Seit dem 2026-09-09 sind die Abschnitte klappbar</b> (Nutzerwunsch). Die Leiste geht mit
+/// <b>allem eingeklappt</b> auf; aufgeklappt wird von Hand oder durch das Werkzeug, das den
+/// Abschnitt mitbringt. Vorher wurden die werkzeugeigenen Abschnitte ein- und
+/// <b>ausgeblendet</b> — die Leiste war damit länger als das Fenster, und was gerade fehlte,
+/// sah aus, als gäbe es das gar nicht.
 /// </para>
 ///
 /// <para>
@@ -34,6 +45,80 @@ namespace GonkNote.Views;
 public partial class WhiteboardView
 {
     private bool _stummeEinstellungen;
+
+    // ==================== Die Klappgruppen ====================
+
+    /// <summary>
+    /// Kopf und Inhalt jedes Abschnitts, in der Reihenfolge der Leiste.
+    ///
+    /// <para>
+    /// <b>Eine Tabelle statt sieben Zuweisungen</b> — das ist der Punkt der ganzen Umstellung.
+    /// Vorher standen die vier werkzeugeigenen Abschnitte als vier Zeilen in
+    /// <c>SetTool</c> (<c>FormenBereich.IsVisible = tool == ToolType.Shape;</c> und so fort),
+    /// und ein fünfter Abschnitt hätte eine fünfte Zeile gebraucht, die man vergisst — genau
+    /// die Falle, die §4.78 den Formen-Stift gekostet hat.
+    /// </para>
+    /// <para>
+    /// <b>Die Zuordnung Werkzeug → Abschnitt steht nicht hier</b>, sondern in
+    /// <see cref="WbLeiste.BereichVon"/>. Hier steht nur, welche zwei Steuerelemente zu einem
+    /// Abschnitt gehören.
+    /// </para>
+    /// </summary>
+    private (ToggleButton Kopf, Control Inhalt, WbLeiste.Einstellungsbereich Bereich)[] Abschnittstabelle =>
+    [
+        (KopfSeite,    SeiteBereich,   WbLeiste.Einstellungsbereich.Seite),
+        (KopfFormen,   FormenBereich,  WbLeiste.Einstellungsbereich.Formen),
+        (KopfText,     TextBereich,    WbLeiste.Einstellungsbereich.Text),
+        (KopfZettel,   ZettelBereich,  WbLeiste.Einstellungsbereich.Zettel),
+        (KopfSticker,  StickerBereich, WbLeiste.Einstellungsbereich.Sticker),
+        (KopfCover,    CoverBereich,   WbLeiste.Einstellungsbereich.Cover),
+        (KopfExport,   ExportBereich,  WbLeiste.Einstellungsbereich.Export),
+    ];
+
+    /// <summary>
+    /// Hängt die Köpfe ein. <b>Einmal beim Aufbau</b>, aus dem Konstruktor der Ansicht — ein
+    /// zweiter Aufruf hinge jeden Handler ein zweites Mal an, und dann klappte ein Klick den
+    /// Abschnitt auf und sofort wieder zu.
+    /// </summary>
+    private void AbschnitteEinhaengen()
+    {
+        foreach (var (kopf, inhalt, _) in Abschnittstabelle)
+        {
+            var ziel = inhalt;
+            kopf.IsCheckedChanged += (_, _) => ziel.IsVisible = kopf.IsChecked == true;
+        }
+    }
+
+    /// <summary>
+    /// Klappt genau einen Abschnitt auf und alle anderen zu.
+    ///
+    /// <para>
+    /// <b><see cref="WbLeiste.Einstellungsbereich.Keiner"/> klappt nicht alles zu</b>, und das
+    /// ist die eine Entscheidung, die hier zu treffen war. Wer vom Formen- zum Stift-Werkzeug
+    /// wechselt, hat nichts über die Einstellungsleiste gesagt — ihm die Gruppe zuzuklappen,
+    /// die er gerade von Hand geöffnet hat, wäre eine Antwort auf eine ungestellte Frage.
+    /// Zugeklappt werden deshalb nur die <b>werkzeugeigenen</b> Abschnitte: einer davon ohne
+    /// sein Werkzeug ist eine Einstellung ohne Gegenstand (dieselbe Begründung, mit der sie
+    /// vorher ganz verschwanden). Seite, Cover und Export bleiben, wie der Nutzer sie
+    /// hinterlassen hat.
+    /// </para>
+    /// </summary>
+    private void BereichAufklappen(WbLeiste.Einstellungsbereich bereich)
+    {
+        foreach (var (kopf, _, eigener) in Abschnittstabelle)
+        {
+            if (eigener == bereich) kopf.IsChecked = true;
+            else if (WerkzeugAbschnitt(eigener)) kopf.IsChecked = false;
+        }
+    }
+
+    /// <summary>
+    /// Hängt der Abschnitt an einem Werkzeug? <b>Aus <see cref="WbLeiste.BereichVon"/>
+    /// abgeleitet und nicht danebengeschrieben</b> — sonst gäbe es die Liste zweimal, und die
+    /// zweite veraltet.
+    /// </summary>
+    private static bool WerkzeugAbschnitt(WbLeiste.Einstellungsbereich bereich) =>
+        Enum.GetValues<ToolType>().Any(t => WbLeiste.BereichVon(t) == bereich);
 
     private void Einstellungen_Click(object? sender, RoutedEventArgs e)
     {
@@ -48,6 +133,11 @@ public partial class WhiteboardView
         // lauter leeren Umschaltern auf — am laufenden Programm genau so gesehen.
         EinstellungenLeiste.IsVisible = true;
         EinstellungenSpiegeln();
+
+        // Von Hand aufgemacht heißt: der Nutzer sucht etwas und hat nicht gesagt, was. Den
+        // Abschnitt des aktuellen Werkzeugs klappt er trotzdem auf — es ist die einzige
+        // Vermutung, die es gibt, und sie kostet einen Klick, wenn sie falsch ist.
+        BereichAufklappen(WbLeiste.BereichVon(_tool));
     }
 
     /// <summary>

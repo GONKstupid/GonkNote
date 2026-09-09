@@ -11,7 +11,7 @@
      Repos, den .github/workflows/pages.yml veröffentlicht. Wer eine Datei dort umbenennt,
      bricht diesen Eintrag — und es fällt erst bei der Flathub-Einreichung auf.
 
-     ✅ Die oberste <release>-Zeile steht auf 1.0.1 (§5 Nr. 23). Wer sie anhebt, zieht die
+     ✅ Die oberste <release>-Zeile steht auf 1.0.2 (§5 Nr. 23). Wer sie anhebt, zieht die
      Stellen nach, die der Kommentar in Directory.Build.props aufzaehlt — er fuehrt die
      Liste, und sie ist am 2026-09-09 um die Projektseite laenger geworden. -->
 <component type="desktop-application">
@@ -110,6 +110,19 @@
   </requires>
 
   <releases>
+    <release version="1.0.2" date="2026-09-09">
+      <description>
+        <p>An on-screen keyboard is now built in (View menu, German and English), so the app
+           can be used on a tablet without a hardware keyboard. Alternatively GonkNote can
+           raise the system keyboard via a configurable command. Text fields no longer close
+           when the window system loses track of the keyboard focus.</p>
+        <p xml:lang="de">Eine Bildschirmtastatur ist jetzt eingebaut (Menü Ansicht, deutsch und
+           englisch) — damit lässt sich die App auf einem Tablet ohne Hardware-Tastatur
+           bedienen. Wahlweise ruft GonkNote über einen einstellbaren Befehl die Tastatur des
+           Systems. Textfelder schließen sich nicht mehr, wenn das Fenstersystem den
+           Tastaturfokus verliert.</p>
+      </description>
+    </release>
     <release version="1.0.1" date="2026-09-09">
       <description>
         <p>Bug fixes for the Linux edition: the sidebar now really collapses instead of

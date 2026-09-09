@@ -429,7 +429,7 @@ Internetverbindung. Du holst dir den neuen Stand und baust neu. Das dauert unter
 einer Minute.
 
 **Welche Version läuft gerade?** `Hilfe → Über Gonk Note` zeigt sie oben
-(z. B. „Version 1.0.1 · Windows und Linux").
+(z. B. „Version 1.0.2 · Windows und Linux").
 
 > **Wenn du einen fertigen Download benutzt**, gilt dieser Abschnitt nicht: Dann lädst du
 > unter [Releases](https://github.com/GONKstupid/GonkNote/releases) einfach die neue Datei

@@ -11,9 +11,11 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>14</LangVersion>
-    <!-- 1.0.1 seit dem 2026-09-09 (V2-129): die erste Fehlerbehebungs-Ausgabe. Sie hebt
-         nur die letzte Stelle — es sind Fehlerbehebungen und ein Bedienwunsch, kein neues
-         Dateiformat und keine neue Fähigkeit.
+    <!-- 1.0.2 seit dem 2026-09-09 (V2-129b): die zweite Runde am Gerät — Bildschirmtastatur
+         und die zwei Stift-Regeln. Weiterhin nur die letzte Stelle: es kommt Bedienung dazu,
+         aber kein neues Dateiformat.
+
+         1.0.1 war die erste Fehlerbehebungs-Ausgabe (V2-129).
 
          1.0.0 kam mit Phase 5, Schritt ⑤ (HANDOFF §5 Nr. 23, Nutzer-Entscheidung
          2026-08-28): die Zahl gehört an die **Auslieferung** und nicht an ihren Anfang. Bis
@@ -42,7 +44,7 @@
          Danach beide Über-Dialoge in beiden Sprachen gegenprüfen. *(„Und in beiden Köpfen"
          stand hier bis zum 2026-09-09 — den WPF-Kopf kann seit dem Wegfall des zweiten
          Rechners niemand mehr starten, siehe HANDOFF §0.)* -->
-    <Version>1.0.1</Version>
+    <Version>1.0.2</Version>
     <Company>GonkNote</Company>
     <Product>Gonk Note</Product>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>

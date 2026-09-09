@@ -320,7 +320,10 @@ Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — beh
 >   Rechnern (Windows entwickelt, CachyOS misst), den es nicht mehr gibt. Sie werden **nicht
 >   nachgezogen** und bleiben nur als Begründungsspeicher stehen — wer dort einen Auftrag
 >   liest, liest einen Auftrag an ein Gerät, das weg ist.
-> - **⚠ Und der Preis gehört dazugesagt: es gibt keinen laufenden WPF-Kopf mehr.** Alles, was
+> - **▶ Ein neuer Windows-Laptop kommt** (Nutzer, 2026-09-09) — der WPF-Kopf wird also wieder
+>   prüfbar. **Die Priorität liegt trotzdem bei Linux**; was das für die Arbeitsweise heißt,
+>   steht als Entscheidung in §5 (erste Zeile).
+> - **⚠ Und der Preis gehört bis dahin dazugesagt: es gibt keinen laufenden WPF-Kopf.** Alles, was
 >   nur der Windows-Kopf beantworten kann — der Zwei-Köpfe-Vergleich aus Phase 5, Schritt ①,
 >   die Gegenprobe „rechnet es dort auch so?", die 69 WPF-Wächter — ist von hier aus **nicht
 >   mehr prüfbar.** Der Code bleibt im Baum und wird in der CI gebaut; **gesehen** hat ihn
@@ -331,7 +334,7 @@ Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — beh
 > (bis auf ein paar Bugs). Erster echter Lauf auf einem fremden Linux außerhalb des
 > Baurechners.
 >
-> **▶ DIE ERSTE BUG-RUNDE IST GELAUFEN (2026-09-09, V2-129, §4.104) — Version 1.0.1.**
+> **▶ ZWEI BUG-RUNDEN SIND GELAUFEN (2026-09-09, V2-129 §4.104 und V2-129b §4.105) — Version 1.0.2.**
 > Vier Meldungen des Nutzers, dazu ein Bedienwunsch:
 >
 > | | Punkt | Stand |
@@ -1468,6 +1471,7 @@ außer den dreien in `AlteTypnamenTests`, die jetzt bewusst die *Migration* bewa
 
 | Frage | Entscheidung | Warum |
 |---|---|---|
+| **Was passiert mit dem WPF-Kopf, jetzt wo kein Windows-Rechner mehr da ist?** | **Er bleibt — aber er hat nicht mehr denselben Rang** (Nutzer, 2026-09-09). Ein **neuer Windows-Laptop kommt bald**, auf dem er wieder geprüft werden kann; die Vorarbeit wird also nicht weggeworfen. **Die Priorität liegt aber so oder so bei Linux und nicht bei Windows.** Daraus folgt für jede Runde bis dahin: (a) Der WPF-Kopf wird **weiter gebaut und in der CI getestet** — was dort rot wird, wird behoben. (b) **Neue Bedienung wird für Linux gebaut und nicht mehr zwingend gespiegelt**; §5 Nr. 26 („was fehlt, wird nachgebaut und nicht drüben gelöscht") gilt weiter, aber die Reihenfolge ist umgekehrt: Linux zuerst, Windows nach. (c) **„In beiden Köpfen gesehen" darf niemand mehr behaupten**, solange kein Windows-Gerät da ist — ungeprüft heißt ungeprüft, und das gehört in die Runde geschrieben. (d) Wenn der Laptop steht, ist der **Nachholbedarf des WPF-Kopfs** eine eigene Runde wert — §5b/§5d/§5e werden dann für den neuen Aufbau neu geschrieben (sie sind heute Historie, §0) |
 | Dateiname | **`gonknote.sqlite`**, neben `gonknote.db` | Der **Stamm** bleibt `gonknote` — davon leitet `BlobStore` seinen Ordner ab. Ein anderer Stamm hieße `gonknote.blobs` findet niemand mehr, und alle Bilder wären scheinbar weg |
 | Zeitpunkt | **automatisch und still beim ersten Start** | Verlustfrei und einmalig; ein Dialog wäre neue Oberfläche in zwei Sprachen für eine Frage ohne echte Wahl |
 | Altdatei | **unangetastet liegen lassen** | Nie beschrieben, nie umbenannt, nie gelöscht — dieselbe Regel wie Dauerregel 4. Sie ist der Rückweg |

@@ -10,7 +10,7 @@ gebaut und gestartet**, nicht hergeleitet.
 >
 > ✅ **Und der Posten, der dazu noch offen war, ist erledigt** (2026-09-05, V2-125, Schritt ⑤):
 > Die Version steht in `Directory.Build.props`, in `About.Version` (beide Sprachtabellen) und
-> in der `metainfo.xml` auf **1.0.2** (seit V2-129; 1.0.0 war die erste Ausgabe); der
+> in der `metainfo.xml` auf **1.0.3** (seit V2-132; 1.0.0 war die erste Ausgabe); der
 > `<release>`-Eintrag beschreibt eine Ausgabe und
 > nennt sich nicht mehr selbst „packaging trial“. Der alte 0.3.0-Eintrag bleibt als
 > `type="development"` stehen — eine Fassung, die es gab, wird nicht nachträglich weggelassen.

@@ -36,7 +36,7 @@ body:
     attributes:
       label: Version
       description: "Hilfe → Über Gonk Note · Help → About Gonk Note"
-      placeholder: "1.0.2"
+      placeholder: "1.0.3"
     validations:
       required: true
 

@@ -11,7 +11,7 @@
      Repos, den .github/workflows/pages.yml veröffentlicht. Wer eine Datei dort umbenennt,
      bricht diesen Eintrag — und es fällt erst bei der Flathub-Einreichung auf.
 
-     ✅ Die oberste <release>-Zeile steht auf 1.0.2 (§5 Nr. 23). Wer sie anhebt, zieht die
+     ✅ Die oberste <release>-Zeile steht auf 1.0.3 (§5 Nr. 23). Wer sie anhebt, zieht die
      Stellen nach, die der Kommentar in Directory.Build.props aufzaehlt — er fuehrt die
      Liste, und sie ist am 2026-09-09 um die Projektseite laenger geworden. -->
 <component type="desktop-application">
@@ -110,6 +110,23 @@
   </requires>
 
   <releases>
+    <release version="1.0.3" date="2026-09-10">
+      <description>
+        <p>Custom colour themes: a theme is a small JSON file of named colours in the
+           Themes folder next to your data; View → Theme lists your own themes beside Light
+           and Dark, and "Save template…" writes a starting point. Anything a file leaves
+           out is taken from Light or Dark. Plus fixes to pen and finger input: the palm is
+           no longer let through for a moment when a text field opens, and touches resting
+           before the pen no longer keep scrolling while you write.</p>
+        <p xml:lang="de">Eigene Farbdesigns: Ein Design ist eine kleine JSON-Datei mit
+           benannten Farben im Ordner Themes neben deinen Daten; Ansicht → Design listet
+           eigene Designs neben Hell und Dunkel, „Vorlage speichern…“ schreibt einen
+           Startpunkt. Was eine Datei auslässt, kommt aus Hell bzw. Dunkel. Dazu
+           Behebungen an Stift- und Finger-Eingabe: Der Handballen wird beim Öffnen eines
+           Textfelds nicht mehr kurz durchgelassen, und Berührungen, die vor dem Stift
+           auflagen, schieben die Ansicht nicht mehr weiter, während geschrieben wird.</p>
+      </description>
+    </release>
     <release version="1.0.2" date="2026-09-09">
       <description>
         <p>An on-screen keyboard is now built in (View menu, German and English), so the app

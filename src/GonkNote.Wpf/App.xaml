@@ -5,8 +5,13 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <!-- [0] wird zur Laufzeit von WpfThemeHost gegen Dark.xaml/Light.xaml getauscht -->
-                <ResourceDictionary Source="Themes/Light.xaml"/>
+                <!-- [0] füllt WpfThemeHost zur Laufzeit aus der Farbtabelle in Core.
+                     Bis zum 2026-09-10 stand hier `Themes/Light.xaml`; die Datei ist
+                     gelöscht, weil dieselben zwanzig Farben sonst zweimal im Baum stünden
+                     (einmal hier, einmal in Core für den Linux-Kopf). Der Platzhalter bleibt
+                     leer und wird noch im Start ersetzt — **vor dem ersten Fenster**, siehe
+                     App.xaml.cs. -->
+                <ResourceDictionary/>
                 <ResourceDictionary Source="Themes/Styles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>

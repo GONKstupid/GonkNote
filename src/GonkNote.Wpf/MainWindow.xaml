@@ -112,9 +112,16 @@
                     <Separator/>
                     <MenuItem Header="{loc:T Menu.File.Quit}" Command="{Binding ExitCommand}" InputGestureText="{loc:T Shortcut.Quit}"/>
                 </MenuItem>
-                <MenuItem Header="{loc:T Menu.View}">
+                <MenuItem x:Name="ViewMenu" Header="{loc:T Menu.View}">
                     <MenuItem Header="{loc:T Menu.View.Sidebar}" Click="ToggleSidebar_Click" InputGestureText="{loc:T Shortcut.Sidebar}"/>
-                    <MenuItem Header="{loc:T Menu.View.Theme}" Command="{Binding ToggleThemeCommand}" InputGestureText="{loc:T Shortcut.Theme}"/>
+                    <!-- Das Design-Untermenü (Nutzerwunsch 2026-08-02, HANDOFF §6).
+                         **Der Inhalt entsteht im Code** (MainWindow.Design.cs): Hell, Dunkel
+                         und danach je ein Eintrag pro Datei im Design-Ordner — eine Liste,
+                         die es zur Bauzeit nicht gibt. Der Kürzelhinweis steht als Tooltip
+                         und nicht als InputGestureText: Strg+T schaltet zwischen Hell und
+                         Dunkel um und wählt keinen der Einträge. -->
+                    <MenuItem x:Name="DesignMenu" Header="{loc:T Menu.View.Design}"
+                              ToolTip="{loc:T Sidebar.ThemeTooltip}"/>
                     <MenuItem Header="{loc:T Menu.View.Language}">
                         <MenuItem x:Name="LangGerman" Header="{loc:T Menu.View.Language.German}"
                                   IsCheckable="True" Click="Language_Click" Tag="de"/>

@@ -359,6 +359,16 @@ Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — beh
 > wählen, mit dem **Stift** aufsetzen: bleibt das Feld jetzt stehen? Wenn nicht, steht im
 > Protokoll unter der Anzeige, **was** es schließt.
 >
+> **▶ EIGENE DESIGNS SIND GEBAUT (2026-09-10, V2-130, §4.107) — der Wunsch vom 2026-08-02.**
+> Ein Design ist eine JSON-Datei mit bis zu zwanzig benannten Farben unter
+> `<Datenordner>/Themes/*.json`; was fehlt, kommt aus Hell bzw. Dunkel. **Ansicht → Design**
+> gibt es jetzt in beiden Köpfen, mit „Eigenes laden…", „Vorlage speichern…" und
+> „Design-Ordner öffnen". **Der WPF-Kopf ist mit umgestellt** (Nutzer-Entscheidung, §5):
+> `Themes/Light.xaml` und `Dark.xaml` sind **gelöscht**, beide Köpfe bauen ihr Wörterbuch
+> aus derselben Tabelle in Core. **Am Linux-Kopf am laufenden Programm belegt**, in sechs
+> Schritten samt Neustart — **der WPF-Kopf ist gebaut und nicht gesehen** (§4.107, „Was diese
+> Runde nicht belegen konnte"): das ist der erste Posten für den neuen Windows-Laptop.
+>
 > **▶ Danach:** der **Flathub-Umbau** (§4.102, §6) und **Phase 5.1** (Rechtschreibprüfung,
 > §5 Nr. 22).
 >
@@ -915,7 +925,7 @@ möglich) gelten unverändert weiter — siehe `gonk-note\HANDOFF.md` §1.
 | | |
 |---|---|
 | **Version** | **1.0.0** · `net10.0` · SkiaSharp 3.119.4 · Avalonia 12.1.1 · SQLite — angehoben in V2-125 (§5 Nr. 23), fünf Stellen, alle vier Über-Dialoge gegengeprüft |
-| **Tests** | **1313** — 1244 in `GonkNote.Core.Tests`, 69 in `GonkNote.Wpf.Tests` (alles, was am `FlowDocument` hängt) · Stand V2-125. **+5**, und alle fünf halten dieselbe Sache fest: **eine Sortierung darf nicht von der Kultur des Rechners abhängen** (§4.101). Einer wurde außerdem *nachgezogen* (der vierte README-Verweis der Anleitung). **+38 in dieser Runde**: der Markdown-Import in Core (23), die neue Grammatik (6), die Tabellensperre (3), die zwei nachgereichten Wächter für die Lücken aus §4.21, und vier für die Dokumentverweise im WPF-Projekt |
+| **Tests** | **1355** — **1287** in `GonkNote.Core.Tests` (hier gemessen), **68 gerechnet** in `GonkNote.Wpf.Tests`. ⚠ **Die WPF-Zahl ist seit V2-128 nicht mehr messbar** — es gibt keinen Windows-Rechner (§0); sie wird fortgeschrieben, nicht gezählt. Stand V2-130 (§4.107: +26 in Core, in WPF vier Fälle weg und drei neu). Die Zeile darunter beschreibt den Stand von V2-125 und bleibt als Begründung stehen: 1244 in `GonkNote.Core.Tests`, 69 in `GonkNote.Wpf.Tests` (alles, was am `FlowDocument` hängt) · Stand V2-125. **+5**, und alle fünf halten dieselbe Sache fest: **eine Sortierung darf nicht von der Kultur des Rechners abhängen** (§4.101). Einer wurde außerdem *nachgezogen* (der vierte README-Verweis der Anleitung). **+38 in dieser Runde**: der Markdown-Import in Core (23), die neue Grammatik (6), die Tabellensperre (3), die zwei nachgereichten Wächter für die Lücken aus §4.21, und vier für die Dokumentverweise im WPF-Projekt |
 | **Bau** | Debug und Release je 0 Fehler / 0 Warnungen; CI mit zwei Läufen (Windows, Ubuntu) — **beide grün seit dem 2026-09-05**. ⛔ **Sie waren es vier Tage lang nicht**, und keine der neun Runden dazwischen hat es bemerkt (§4.101): ein Wächter fiel nur auf `en-US`. **Die CI benennt jetzt bei jedem Fehlschlag die gefallenen Wächter als Annotation** — die ist ohne Anmeldung lesbar, die Protokolle sind es nicht |
 | **Meilensteine** | ✅ **M0** (Core baut auf Linux) · ✅ **M1** (Notizbuch und Whiteboard laufen unter Linux) · ✅ **M2** (Funktionsgleichheit Linux ↔ Windows) — **ausgerufen am 2026-08-28**, Nutzer-Entscheidung, **mit einem benannten Loch**: die Rechtschreibprüfung fehlt im Linux-Kopf (§6, bewusst so entschieden am 2026-08-22). Die zweite Stift-Taste darf verschieden bleiben und ist **kein** Loch (§5 Nr. 17) · ▶ **M3** (veröffentlicht) — **das Repo ist seit dem 2026-09-05 öffentlich**, Phase 5 ist zu; **ausgerufen wird M3 mit dem Tag `v1.0.0`**, und den setzt der Nutzer (§4.101) |
 
@@ -1027,6 +1037,8 @@ gonk-note-V2/
 │  │  ├─ Theming/                die Farbtabelle (§4.9)              ← neu in Phase 3
 │  │  │                          ThemeColor (20 Farben), HexColor, ThemeDefinition,
 │  │  │                          Themes.Light/.Dark — ein Theme ist eine Datentabelle
+│  │  │                          ThemeFile (die JSON-Datei), ThemeLibrary (der Ordner
+│  │  │                          Themes/ im Datenordner)              ← neu in §4.107
 │  │  │                          Fonts.cs — dasselbe für Schriften: FontRole (5 Rollen),
 │  │  │                          FontScheme, Fonts.Standard, die mitgelieferten
 │  │  │                          Schnitte                             ← neu in §4.26
@@ -1099,7 +1111,8 @@ gonk-note-V2/
 │     │                          WpfDocumentIo (die FlowDocument-Naht aus §4.1; seit
 │     │                          §4.22 auch die Übernahme der Bestandsdokumente)
 │     ├─ Views/                  Whiteboard (Partials), TextEditor (Partials), Dialoge
-│     ├─ Themes/                 Light/Dark/Styles
+│     ├─ Themes/                 nur noch Styles.xaml — Light/Dark sind mit §4.107
+│     │                          gelöscht, die Farben kommen aus Core
 │     └─ Services/               alles mit WPF-Bezug (§4.1):
 │                                MarkdownImporter, MarkdownFlow,
 │                                PdfExporter (seit §4.27 nur noch Whiteboard/Notizbuch),
@@ -1120,7 +1133,9 @@ gonk-note-V2/
 │  │  └─ Snapshots/*.sha256      Pixelhashes des Renderers (Golden-Files)
 │  └─ GonkNote.Wpf.Tests/        net10.0-windows · nur Windows · 59 Tests
 │     ├─ Fixtures/               referenz.md, referenz-docx.txt (Golden-Files)
-│     └─ FarbtabelleTests.cs     hält Core/Theming und Themes/*.xaml zusammen (§4.9)
+│     └─ ThemeschluesselTests.cs prüft jeden „Brush.X"/„Color.X" im Quelltext gegen die
+│                                Farbtabelle (§4.107; hieß bis dahin FarbtabelleTests und
+│                                verglich Core/Theming mit Themes/*.xaml, §4.9)
 │
 ├─ tools/                        Werkzeuge, KEIN Produktivcode, nicht in der Solution
 │  ├─ stylus-prototyp/           Messwerkzeug zu §5a — Ergebnis liegt dort vor
@@ -1609,6 +1624,14 @@ unverändert" entgegen. **Damit stehen dieselben zwanzig Farben an zwei Stellen*
 dafür gibt es `FarbtabelleTests` im WPF-Testprojekt: er liest die beiden XAML-Dateien als
 reines XML und vergleicht sie Zeile für Zeile mit der Tabelle — in beide Richtungen, also
 auch „steht in der XAML eine Farbe, die die Tabelle nicht kennt?".
+
+> **⛔ Dieser Absatz ist seit dem 2026-09-10 überholt (§4.107)** und bleibt als Begründung
+> stehen. Mit den eigenen Designs baut **auch** `WpfThemeHost` sein Wörterbuch aus der
+> Tabelle; `Themes/Light.xaml` und `Dark.xaml` sind **gelöscht**, die zwanzig Farben stehen
+> nur noch an einer Stelle. `FarbtabelleTests` ist damit **beantwortet und nicht
+> abgeschafft** — an seiner Stelle steht `ThemeschluesselTests`, der die neue Gefahr prüft:
+> einen Schlüssel, den das Wörterbuch nicht kennt. *Der bewachte Zustand ist verschwunden,
+> also der Wächter mit ihm.*
 
 `AvaloniaThemeHost` baut daraus zur Laufzeit ein `ResourceDictionary` (`Brush.X` **und**
 `Color.X` je Eintrag) und setzt zusätzlich `RequestedThemeVariant`, damit auch Avalonias
@@ -13222,6 +13245,164 @@ hinklicken — „Test" steht als Element auf der Fläche.
 
 ---
 
+### 4.107 Eigene Designs — der Wunsch vom 2026-08-02 ist eingelöst, in **beiden** Köpfen
+
+**Der Nutzerwunsch stand seit dem 2026-08-02 in §6** („eigene Themes anlegen und über Ansicht
+→ Design laden") und war dort ausdrücklich auf „frühestens nach M1" gelegt. Er ist jetzt
+gebaut — und er war das, was §6 vorhergesagt hatte: **eine Zutat und kein Umbau.**
+
+#### Was §6 vorweggenommen hatte, und was davon gehalten hat
+
+Der Zuschnitt aus §6 ist Punkt für Punkt übernommen worden, und keine seiner Annahmen musste
+korrigiert werden:
+
+| Aus §6 (2026-08-02) | Was daraus wurde |
+|---|---|
+| „JSON mit 20 benannten Farben, `System.Text.Json` mit Source-Generator" | `Core/Theming/ThemeFile.cs` — `ThemeFileData` + `ThemeJson`-Kontext, AOT-tauglich wie in Phase 2 Schritt 3 |
+| „liegt in `Themes/*.json` im Datenordner, die Datei des Nutzers gewinnt" | `Core/Theming/ThemeLibrary.cs`, über `AppPaths.DataSubfolder` — dieselbe Stelle und dieselbe Regel wie Sticker, Cover und Geodreieck |
+| „Core hält die Tabelle, jeder Kopf übersetzt sie in seine Pinsel" | unverändert — beide Köpfe bauen ihr Wörterbuch in einer Schleife über `ThemeDefinition.Entries` |
+| „aus `Apply(AppTheme)` wird `Apply(ThemeDefinition)`" | genau so; `AppTheme` bleibt als Auskunft bestehen, `IThemeHost` hat jetzt **beide** Methoden und dazu `Definition` |
+| „Hochladen heißt: wählen, prüfen, **kopieren**" | `ThemeLibrary.Insert` — und ein vorhandener Name wird durchnummeriert, nie überschrieben |
+| „ausdrücklich **kein** XAML-Upload" | eingehalten. Die drei Gründe stehen wörtlich im Kopfkommentar von `ThemeFile`: NativeAOT, Portierbarkeit und — der wichtigste — **XAML kann Typen erzeugen**, eine weitergegebene Theme-Datei wäre damit ausführbarer Code |
+
+**`AvaloniaThemeHost.Apply(ThemeDefinition)` ist für diese Runde nicht angefasst worden.** Der
+Kommentar, den Phase 3 dort hinterlassen hat — *„ein geladenes Theme später einzuhängen heißt:
+eine andere `ThemeDefinition` hierhin geben, mehr nicht"* — war keine Hoffnung, sondern eine
+Zusage, und sie hat gehalten.
+
+#### Die drei Entscheidungen des Nutzers (2026-09-10)
+
+| Frage | Entscheidung |
+|---|---|
+| Was bei einer **unvollständigen** Datei? | **Still ergänzen** — fehlende Farben kommen aus Hell bzw. Dunkel. Eine Datei mit drei Farben ist ein gültiges Design. Das war der Vorschlag aus §6, und der Mechanismus stand seit Phase 3 (`ThemeDefinition.Over`) |
+| Bekommt der **WPF-Kopf** es mit? | **Ja, sofort** — gegen die Empfehlung dieses Dokuments, die auf „nur Linux, WPF vormerken" lautete (es gibt keinen laufenden Windows-Rechner, §0). **Die Entscheidung gilt**, und was sie kostet, steht unten unter „Was diese Runde nicht belegen konnte" |
+| Wie kommt jemand an die **erste** Datei? | **Vorlage exportieren** — „Design → Vorlage speichern…" schreibt das aktive Design vollständig heraus. Zwanzig Farbnamen aus einer Anleitung abzutippen macht niemand |
+
+#### Der Unterschied, der die Leseregel trägt: fehlt ≠ falsch
+
+Still ergänzt wird, was **nicht dasteht**. Gemeldet wird, was **falsch dasteht** — kaputtes
+JSON, eine fehlende oder unbekannte `variant`, und ein unlesbarer Farbwert wie `#GG00ZZ`.
+
+*„Nicht dagewesen" ist eine Aussage des Nutzers; ein Tippfehler ist keine.* Eine vertippte
+Farbe still auf die Vorgabe zurückfallen zu lassen hieße, jemanden nach einer Farbe suchen zu
+lassen, die nie ankommt — dieselbe Sorte stiller Fehlschlag, vor der §7 an fünf Stellen warnt.
+
+**Ein unbekannter Farbname ist dagegen ausdrücklich kein Fehler.** Eine Datei aus einer
+späteren Fassung, die eine einundzwanzigste Farbe kennt, läuft hier weiter; was wir nicht
+kennen, geht uns nichts an.
+
+**Und `variant` bleibt Pflicht.** §6 Punkt 4 hatte das vorweggenommen, und der Grund ist
+gemessen und nicht ästhetisch: `WbRenderer` wählt danach seine Vorgaben (`PageShade`), die
+Titelleiste unter Windows ihren dunklen Modus. Aus der Helligkeit von `PageBg` geraten wäre
+das genau dort falsch, wo ein Design interessant wird — bei einem dunklen Bild mit hellem
+Papier. Ein eigener Wächter hält fest, dass dieselbe Datei mit getauschter Variante ein
+anderes Papier bekommt.
+
+#### Der WPF-Kopf: die zwei XAML-Dateien sind **gelöscht**
+
+`WpfThemeHost` tauschte bis heute `Themes/Light.xaml` gegen `Themes/Dark.xaml`. Jetzt baut er
+dasselbe Wörterbuch im Code aus `Themes.Light`/`.Dark` — **dieselben Schlüssel**
+(`Brush.WindowBg`, `Color.PageBg` …), **dieselbe Stelle [0]** in den `MergedDictionaries`.
+
+**Damit stehen die zwanzig Farben nur noch an einer Stelle**, und die Doppelung, die §4.9
+benannt und mit einem Wächter zusammengehalten hat, ist weg statt bewacht.
+
+Drei Dinge waren dafür nachzusehen, nicht anzunehmen:
+
+- **Kein einziger `StaticResource` auf einen Theme-Schlüssel** im ganzen WPF-Kopf — gemessen
+  über alle `.xaml`. Das ist die Bedingung, unter der der Austausch trägt: Stelle [0] ist beim
+  Auswerten der XAML jetzt **leer** und wird erst im Start gefüllt. Ein `StaticResource` hätte
+  genau einmal gefragt und behalten, was er fand: nichts. **Ein Wächter hält das fest**, denn
+  der nächste, der ihn hinschreibt, bekäme sonst eine Fläche in WPF-Vorgabe und keinen Fehler.
+- **Das Bild muss vor der Datenbank stehen.** `App.OnStartup` legt jetzt sofort nach
+  `WpfPlatformServices` das helle Design an. Ohne diese Zeile stünde jede Farbe bis zur
+  Theme-Zeile weiter unten auf ihrer WPF-Vorgabe — sichtbar würde das genau einmal, aber an
+  der schlechtesten Stelle: in der Fehlermeldung, mit der ein misslungener Datenbankstart
+  abbricht.
+- **`SolidColorBrush` wird eingefroren.** Er wird über alle Fenster geteilt und nie geändert.
+
+#### Der Wächter ist nicht abgeschafft, sondern beantwortet
+
+`FarbtabelleTests` verglich Core mit den XAML-Dateien. Die Dateien gibt es nicht mehr, also
+gibt es die Frage nicht mehr. **An seine Stelle tritt `ThemeschluesselTests` — und zwar in
+beiden Testprojekten**, denn die Gefahr hat sich verschoben:
+
+> Solange die Farben in einer XAML-Datei standen, war ein vertippter Schlüssel ein
+> **Ladefehler**. Jetzt entsteht das Wörterbuch im Code, und ein `DynamicResource
+> Brush.Boarder` wirkt **still gar nicht** — die Fläche bleibt in der Vorgabe des
+> Rahmenwerks stehen, und niemand bekommt einen Fehler.
+
+Das ist wörtlich der Fund, der den Linux-Kopf sechs Runden lang begleitet hat (§4.86, §4.94,
+§4.95: *„jede Fläche, die noch niemand angefasst hat, trägt Fluents Vorgabe"*) — nur diesmal
+vorher gesehen. Die Tests lesen den Quelltext beider Köpfe und prüfen jeden gefundenen
+Schlüssel gegen `ThemeColor`; der Linux-Teil läuft in `GonkNote.Core.Tests` und damit **in
+jeder CI**.
+
+#### Der Fund am laufenden Programm: das Menü war eine Momentaufnahme
+
+Gebaut, gestartet, „Vorlage speichern…" geklickt — die Datei lag da. Dann zwei Dateien von
+Hand in den Ordner gelegt, Menü aufgeklappt: **nur die Vorlage stand darin.**
+
+Die Liste entstand beim Start und wurde nur nach einem Design- oder Sprachwechsel neu gebaut.
+**Das Menü lädt mit „Design-Ordner öffnen" ausdrücklich dazu ein, Dateien hineinzulegen** —
+und hätte bis zum nächsten Neustart so getan, als sei nichts geschehen.
+
+Behoben in beiden Köpfen: die Liste wird bei **jedem Aufklappen des Ansicht-Menüs** neu
+gebaut. Gehängt ist es an *Ansicht* und nicht an das Design-Untermenü selbst: dessen Einträge
+werden dabei ersetzt, und ein gerade aufgehendes Untermenü unter sich auszutauschen ist die
+Sorte Handgriff, die je nach Fassung des Rahmenwerks geht oder nicht.
+
+*Ein Bau kann diesen Fehler nicht sehen, ein Wächter auch nicht — er ist erst da, wenn jemand
+etwas in einen Ordner legt, während das Programm läuft.*
+
+#### Am laufenden Programm belegt (Dauerregel 4) — Linux-Kopf, Omarchy
+
+Mit einer Wegwerf-Datenbank (`--db /tmp/…`), Bilder je Schritt:
+
+1. **Ansicht → Design** klappt auf: Hell (Punkt gesetzt), Dunkel, Trennlinie, „Eigenes
+   laden…", „Vorlage speichern…", „Design-Ordner öffnen". Der Kürzelhinweis steht als Tooltip
+   („Dark/Light Mode (Strg+T)") und nicht als Kopfzeile — Strg+T schaltet um und wählt keinen
+   Eintrag.
+2. **Vorlage speichern** → Meldung mit dem vollen Pfad; die Datei enthält **alle zwanzig
+   Farben**, `"name": "Hell (Kopie)"`, `"variant": "light"`.
+3. Zwei Dateien von Hand hineingelegt — ein vollständiges dunkles Design („Abendrot", 15 von
+   20 Farben) und **eine kaputte**. Beide stehen im Menü, nach Anzeigenamen sortiert; **die
+   kaputte ausgegraut**, mit dem Grund im Tooltip.
+4. **Abendrot gewählt:** Fenster, Seitenleiste, Menüs, Ribbon und die Tintenkacheln der
+   Zeichenfläche wechseln in einem Zug; Fluents eigene Flächen wechseln mit (`variant: dark`).
+   **Das offene Menü hat sich dabei selbst neu gezeichnet**, ohne zuzuklappen.
+5. **App beendet und neu gestartet:** Abendrot ist wieder da. In der Datenbank stehen
+   `theme = dark` und `theme-file = abendrot.json`.
+6. Notizbuch angelegt und geöffnet: Leinwand und Werkzeugleiste tragen die Farben des
+   Designs, die Vorgabetinte ist die des Designs (`DefaultInk`).
+
+**Danach aufgeräumt:** die drei Probedateien lagen im **echten** Datenordner
+(`~/.config/GonkNote/Themes`) — `--db` verlegt die Datenbank, nicht den Datenordner — und sind
+gelöscht; die echte Datenbank ist nie geöffnet worden.
+
+#### ⚠ Was diese Runde **nicht** belegen konnte
+
+**Der WPF-Kopf ist gebaut worden, ohne zu laufen.** Es gibt keinen Windows-Rechner (§0), und
+das trifft hier härter als sonst: Die Umstellung tauscht die **Quelle jeder Farbe im ganzen
+Kopf**. Was ein Test prüfen konnte, ist geprüft (jeder Schlüssel im Quelltext ist bekannt,
+kein `StaticResource`); was nur der Augenschein zeigt, steht aus:
+
+- Sieht das Fenster nach dem Start aus wie vorher? (Erwartet: ja — dieselben Schlüssel,
+  dieselben Werte, derselbe Austauschplatz.)
+- Zieht die Titelleiste beim Wechsel nach (`TitleBarTheme` hängt an `ThemeChanged`)?
+- Steht das Design-Untermenü mit Haken an der richtigen Stelle?
+
+**Das ist keine Lücke im Fleiß, sondern eine im Aufbau** — und die erste Runde, die den neuen
+Windows-Laptop hat, sollte hier anfangen.
+
+#### Zahlen
+
+Bau 0/0 (Core, Avalonia; Debug und Release). **Core-Tests 1287** (vorher 1261, **+26**: 23 für
+Datei und Ordner, 3 für die Schlüssel). **WPF-Tests rechnerisch 68** (vorher 69: vier Fälle aus
+`FarbtabelleTests` weg, drei neue) — **nicht gemessen**, siehe oben.
+
+---
+
 ## 5. Entscheidungen
 
 **Getroffen, alle umgesetzt:**
@@ -13291,6 +13472,9 @@ hinklicken — „Test" steht als Element auf der Fläche.
 | Wo die Weiche über die Dateiendung steht | **In Core (`TdExport`), nicht in den Köpfen** (§4.28). Seit §4.27 stehen alle vier Exportwege in Core; was blieb, war ein `switch`. Ihn zweimal zu schreiben wäre die Falle aus §4.13 — zwei Fassungen derselben Entscheidung, die auseinanderdriften, sobald ein Format dazukommt. Entschieden 2026-08-11 |
 | Was ein unter Linux importiertes Dokument in `Rtf` bekommt | **Nichts — und der WPF-Editor fällt dafür auf `Model` zurück** (§4.28). Ein `XamlPackage` gibt es nur unter Windows; ohne den Rückfall zeigte der WPF-Editor ein **leeres Blatt**, und das sieht nach gelöschtem Inhalt aus. **Die Reihenfolge kehrt sich dabei nicht um:** `Rtf` führt weiter, solange dort etwas steht — gelesen wird aus `Model` nur, wenn es sonst nichts zu lesen gäbe. Entschieden 2026-08-11 |
 | Ob der Linux-Kopf Markdown importiert | **Nein, nur DOCX** (§4.28). `TdDocx.Lesen` steht in Core, der Markdown-*Import* geht drüben weiter über ein `FlowDocument`. Ein `.md`-Eintrag in der Formatliste führte in einen Dateidialog, hinter dem eine Ausnahme wartet — **ein Format anzubieten, das man nicht lesen kann, ist schlimmer, als es nicht anzubieten.** Entschieden 2026-08-11 |
+| **Was bei einer unvollständigen Theme-Datei geschieht** | **Still ergänzen** (§4.107). Fehlende Farben kommen aus Hell bzw. Dunkel — eine Datei mit drei Farben ist ein gültiges Design; der Mechanismus (`ThemeDefinition.Over`) stand seit Phase 3. **Gemeldet wird nur, was falsch dasteht**: kaputtes JSON, fehlende `variant`, unlesbarer Farbwert. *„Nicht dagewesen" ist eine Aussage des Nutzers, ein Tippfehler ist keine.* Entschieden 2026-09-10 (Nutzer) |
+| **Ob der WPF-Kopf die eigenen Designs sofort mitbekommt** | **Ja, sofort** (§4.107) — **gegen die Empfehlung dieses Dokuments**, die auf „nur Linux, WPF vormerken" lautete, weil es keinen laufenden Windows-Rechner gibt (§0). **Sie gilt.** `WpfThemeHost` baut sein Wörterbuch jetzt aus derselben Tabelle, `Themes/Light.xaml` und `Dark.xaml` sind gelöscht. **Der Preis ist benannt:** der Kopf ist gebaut, aber nicht gesehen worden. Entschieden 2026-09-10 (Nutzer) |
+| **Wie jemand zu seiner ersten Theme-Datei kommt** | **Über eine exportierte Vorlage** (§4.107): „Ansicht → Design → Vorlage speichern…" schreibt das aktive Design vollständig heraus. Zwanzig Farbnamen aus einer Anleitung abzutippen macht niemand — und eine Vorlage, die nur die Hälfte zeigt, verschweigt genau das, wonach jemand sucht. Entschieden 2026-09-10 (Nutzer) |
 | Namen der WPF-Hilfsmethoden | **Bleiben stehen** — `HitElement`, `HitTestElement`, `SelectByLasso`, `ComputeSelectionBounds` sind Einzeiler, die an `WbHit` weiterreichen. Elf Aufrufstellen in fünf Partials umzubenennen hätte den Diff verdreifacht, ohne am Ergebnis etwas zu ändern; wegkommen sollte die zweite **Rechnung**, nicht die zweite Bezeichnung (§4.13). Entschieden 2026-08-04 |
 
 **Noch offen:**
@@ -16719,9 +16903,22 @@ heute **404**), und der **Tag** muss existieren.
 Erweiterung liefert `10.0.300` GA. Es gibt **kein `global.json`**, das den Preview-Stand
 festnagelt — *tragen sollte es also, gemessen ist es nicht.*
 
-### Vorgemerkt: eigene Farbschemata (Nutzerwunsch 2026-08-02)
+### ✅ Erledigt: eigene Farbschemata (Nutzerwunsch 2026-08-02, **gebaut am 2026-09-10**)
 
-**Gewünscht:** eigene Themes anlegen und über **Ansicht → Design** laden.
+> **▶ DIESER PUNKT IST ZU — die Umsetzung steht in §4.107.** Was darunter folgt, ist der
+> **Zuschnitt von 2026-08-02** und bleibt als Begründungsspeicher stehen: er ist Punkt für
+> Punkt so gebaut worden, und keine seiner Annahmen musste korrigiert werden. **Die vier
+> „vor der Umsetzung zu klären"-Fragen am Ende sind alle beantwortet** (1 am 2026-08-03,
+> 2 und 3 und 4 am 2026-09-10) — die Antworten stehen in §5 und in §4.107.
+>
+> **Was heute gilt, in vier Zeilen:** Ein Design ist eine JSON-Datei mit bis zu zwanzig
+> benannten Farben unter `<Datenordner>/Themes/*.json`. Was fehlt, kommt aus Hell bzw.
+> Dunkel; `variant` ist Pflicht. Das Menü steht in **beiden** Köpfen unter
+> **Ansicht → Design**, samt „Eigenes laden…", „Vorlage speichern…" und „Design-Ordner
+> öffnen". **Auch der WPF-Kopf baut sein Wörterbuch jetzt aus der Farbtabelle in Core** —
+> `Themes/Light.xaml` und `Dark.xaml` sind gelöscht.
+
+**Gewünscht war:** eigene Themes anlegen und über **Ansicht → Design** laden.
 
 **Machbar, und kleiner als es klingt.** Ein Theme ist heute nichts als **20 flache
 Hex-Farben** — 15 `SolidColorBrush` plus 5 rohe `Color` (`src/GonkNote.Wpf/Themes/Light.xaml`).
@@ -17089,6 +17286,23 @@ weil sie bei der Portierung direkt zuschlagen:
 > *§7 ist der Ort, den man vor einer Änderung liest; ein Prompt ist der Ort, den man einmal
 > ausführt. Was länger gilt als eine Runde, gehört nicht in den Prompt.*
 
+- **⛔ Eine im Code gebaute Liste bemerkt das Dateisystem nicht** (neu aus §4.107, 2026-09-10).
+  Das Design-Untermenü entstand beim Start und wurde nur nach einem Design- oder
+  Sprachwechsel neu gebaut — **zwei von Hand in den Ordner gelegte Dateien standen bis zum
+  Neustart nicht darin**, obwohl derselbe Menüpunkt („Design-Ordner öffnen") ausdrücklich
+  zum Hineinlegen einlädt. **Wer eine Liste aus einem Ordner baut, baut sie beim Aufklappen
+  neu**, nicht beim Start; dasselbe gilt für Sticker, Cover und die Geodreieck-SVGs.
+  *Kein Bau und kein Wächter kann das sehen — der Fehler entsteht erst, wenn jemand etwas in
+  einen Ordner legt, während das Programm läuft.*
+- **⛔ Ein Ressourcenschlüssel, der im Code entsteht, schlägt still fehl.** Seit §4.107 bauen
+  **beide** Köpfe ihr Farb-Wörterbuch in einer Schleife über `ThemeColor`. Solange die Farben
+  in einer XAML-Datei standen, war ein vertippter Schlüssel ein **Ladefehler**; jetzt bleibt
+  die Fläche in der Vorgabe des Rahmenwerks stehen, und **niemand bekommt einen Fehler** —
+  dieselbe Mechanik wie beim Violett (§4.86). **`ThemeschluesselTests` in beiden
+  Testprojekten liest dafür den Quelltext** und prüft jeden `Brush.X`/`Color.X` gegen die
+  Tabelle. **Und: nie `StaticResource` auf eine Theme-Farbe** — Stelle [0] der
+  `MergedDictionaries` ist beim Auswerten der XAML **leer** und wird bei jedem Designwechsel
+  ersetzt; ein `StaticResource` fragt genau einmal.
 - **⛔ Ein grüner Bau beweist an einer *Oberfläche* fast nichts.** Das steht weiter unten
   schon für die **Eingabe-Naht** (§4.55) — an einer Oberfläche ist es schlimmer, weil dort
   gar kein Wächter existiert, der es sehen könnte. Vier Beispiele aus derselben Phase, alle
@@ -18533,7 +18747,9 @@ cd C:\Dev\Zed\gonk-note-V2
 dotnet build -c Release      # 0 Fehler / 0 Warnungen
 dotnet build -c Debug        # schneller, ohne Self-Contained/win-x64
 
-dotnet test -c Release       # beide Testprojekte, 1313 Tests (1244 Core + 69 WPF)
+dotnet test -c Release       # beide Testprojekte, 1355 Tests (1287 Core + 68 WPF, Stand V2-130)
+                             # ⚠ Von hier (Omarchy) laeuft nur GonkNote.Core.Tests:
+                             #   dotnet test tests/GonkNote.Core.Tests
 
 # ⛔ NACH JEDEM PUSH: WAS SAGT DIE CI? Ein gruener lokaler Lauf sagt darueber nichts --
 #    zwischen dem 2026-09-01 und dem 2026-09-05 war sie neun Laeufe lang rot, und keine der
@@ -18740,6 +18956,7 @@ Eine Zeile je Runde, neueste zuerst. V1-Runden 1–36 stehen in `gonk-note\HANDO
 | V2-129 | 2026-09-09 | **Vier Bugmeldungen vom Gerät — und die Bildschirmtastatur ist eine Sackgasse, gemessen** (§4.104; `MainWindow.axaml(.cs)`, `WhiteboardView.Input/Einstellungen/Render/Cover/axaml(.cs)`, `Themes/Styles.axaml`, `WbLeiste` in Core; Bau 0/0, **1250 Core-Tests, +6**; Version **1.0.1**, Release `v1.0.1`). **Die erste Runde auf dem Gerät, an dem der Nutzer wirklich arbeitet.** **⛔ (1) Die Seitenleiste schloss nie, sie leerte sich nur:** `SeitenleisteUmschalten` war **eine Zeile** (`IsVisible`), die Rasterspalte stand als Kurzform `"260,4,*"` fest und blieb 260 Punkte breit, der Trenner sichtbar. **Der WPF-Kopf hat es von Anfang an vollständig gemacht** (`SetSidebarVisible`); dieser Kopf hatte ein Fünftel davon — und **§4.71 hat die zwei Flächen ausdrücklich verglichen, ohne es zu finden:** *gemessen wurde, was zu sehen ist, nicht, was passiert, wenn man darauf drückt.* Jetzt Spalte auf 0 **samt `MinWidth`** (180 hielte sie sonst offen), Trenner mit, Breite gemerkt, Stand gesichert unter **demselben Schlüssel wie drüben**. ⚠ **Neunte Stelle, an der Avalonia nicht wie WPF ist:** `x:Name` an einer `ColumnDefinition` erzeugt **kein Feld** — der Bau scheitert in der C#-Datei, also dort, wo es nach einem Tippfehler aussieht. **⛔ (2) Der Finger erreichte Textfeld und Notizzettel überhaupt nicht:** `OnPointerPressed` bog bei `PointerType.Touch` ab, **bevor das Werkzeug gefragt wurde** — beide Werkzeuge waren **auf genau dem Gerät unbedienbar, für das die App gebaut ist**. Eine richtige Regel war zu weit gefasst: aus „der Finger zeichnet nie" (Handballenabweisung, §4.10) war „der Finger tut sonst gar nichts" geworden. **Sie heißt jetzt „Zug oder Tipp"** (`WbLeiste.IstTippwerkzeug`, Core): ein Strich entsteht aus einer Bewegung und bleibt dem Stift, ein Textfeld entsteht aus einer **Stelle** — es gibt keinen Zug, den ein Handballen verderben könnte. Auswahl und Sticker stehen bewusst nicht dabei. ⚠ **Nicht am laufenden Programm belegt** — Berührungen lassen sich von hier aus nicht erzeugen. **⚠ (3) Der Stift ist eingekreist, nicht bewiesen:** es gibt **genau eine** Stelle, an der ein Stift woanders landet als eine Maus (`_stylusInverted = …IsEraser`) — danach schlägt `EffectiveTool` **lautlos jedes Werkzeug**. Am Rücken nachgelesen: `Avalonia.X11` führt `_currentSlaveIsEraser` **am Master**, setzt es aus dem Gerätenamen (`IndexOf("eraser")`) und aktualisiert **nur bei `XI_DeviceChanged`** — der Wert ist **klebrig**; „Barrel" kommt in der Assembly **kein einziges Mal** vor. Am Gerät gemessen: XWayland legt **dauerhaft alle drei** Tablett-Werkzeuge an (`stylus:1`, `eraser:1`, `cursor:1`), **alle mit Drucksensor**. **Statt zu reparieren ist das Messgerät geschärft worden:** die F9-Anzeige zeigt jetzt `Werkzeug → wirksam`, `Invertiert`/`IsEraser` und die Fingerzahl. *Eine Behebung auf eine unbewiesene Ursache sieht wie eine Lösung aus — §4.42/V2-59 hat das einmal gekostet.* **⛔ (4) Die Bildschirmtastatur ist keine Lücke, sondern eine Sackgasse:** `Avalonia.X11` 12.1.1 enthält `InputPane` **kein einziges Mal** (→ `TopLevel.InputPane` ist `null`, §4.43 bestätigt), der Kopf ist **XWayland**-Client (kein Wayland-Rücken im Paketsatz) — **und von Hand hervorholen hilft auch nicht, zweimal gemessen mit Fokusnachweis und Gegenprobe:** `ydotool` (uinput) tippt zuverlässig ins Textfeld, **`wtype` (`zwp_virtual_keyboard_v1` — dasselbe Protokoll, das `wvkbd` und `squeekboard` benutzen) bringt nichts an** und **zerstört obendrein die offene Bearbeitung samt Inhalt, während das Fenster den Fokus behält**. Empfohlen ist eine **eigene Tastatur im Fenster** nach dem Muster des Zahlenblocks; **Entscheidung liegt beim Nutzer**. **(5) Der Bedienwunsch:** die Einstellungsleiste klappt — alles zu, das Werkzeug klappt seinen Abschnitt auf; Zuordnung in Core (`WbLeiste.BereichVon`, vorher **zwei Aufzählungen derselben vier Werkzeuge in einer Methode**), **kein `Expander`** (Fluents Kachel ist im Dunklen ein fast schwarzer Kasten — §4.94/§4.55 zum dritten Mal), und die Leiste hieß `Settings.Page` statt `Wb.Settings`. **⛔ Zwei Funde außerhalb der Bugliste:** die **„vier weiteren Stellen" der Version waren sechs** — die **Projektseite `site/`** stand nie in der Liste, obwohl sie in §4.101 **im selben Zug wie die 1.0.0** entstand, und bot prompt Dateien an, die es nicht mehr gibt; und **die naheliegende Erklärung für 34.000 geänderte Zeilen war falsch** — das Repo ist seit jeher LF, CRLF stand nur in der **Arbeitskopie** (kopiert statt geklont), behoben hat es `git checkout -- .`. *Wer der ersten Erklärung folgt, schreibt die Historie um, um ein Problem zu lösen, das in der Arbeitskopie sitzt.* `.gitattributes` hält es künftig fern und fand **fünf echte Ausreißer** (Stylus-Prototyp). **Dazu gestrichen: Dauerregel 3a** — **den CachyOS-Laptop gibt es nicht mehr** (Nutzer); §5b/§5d/§5e sind damit vollständig Historie, **und der Preis ist benannt: es gibt keinen laufenden WPF-Kopf mehr**, der Zwei-Köpfe-Vergleich ist von hier aus nicht mehr prüfbar |
 | V2-129b | 2026-09-09 | **Die Tastatur ist doch keine Sackgasse — und der Stift ist eingekreist** (§4.105; neu `Core/Editing/Bildschirmtastatur.cs`, `Views/TastaturView.cs`, `MainWindow.Tastatur.cs`; Bau 0/0, **1261 Core-Tests, +11**). **⛔ RICHTIGSTELLUNG AN §4.104:** Dort war gemessen, Tasten über `zwp_virtual_keyboard_v1` kämen nicht an (mit `wtype`, zweimal, mit Gegenprobe) — daraus wurde „eine externe Bildschirmtastatur ist stumm". **Mit der Tastatur, die der Nutzer wirklich benutzt** (`io.github.mtolhuys.onscreen-keyboard`, eigener nativer Helfer über **dasselbe** Protokoll), **kommt sie sehr wohl an.** Der Unterschied liegt am Werkzeug: `wtype` schickt und verschwindet, der Helfer wartet nach jedem Schritt auf den Rundlauf. *Ein Ersatzwerkzeug beweist über den echten Fall nur so viel, wie es ihm gleicht — ist der echte Gegenstand greifbar, wird an ihm gemessen.* **Stehen bleibt der andere Teil:** `Avalonia.X11` hat kein `InputPane`, eine fremde Tastatur kann tippen, aber **nicht von selbst aufgehen**, und dafür gibt es keinen einheitlichen Weg. **Daraus drei Zustände statt eines Hakens** (Ansicht → Bildschirmtastatur): **Eingebaut** (mitgeliefert, unten angedockt, geht beim Fokus eines Textfelds auf), **System** (einstellbarer Umschaltbefehl `keyboard.command`, Vorgabe wird beim Start gesucht) und **Aus** — *„aus" heißt für den einen „gar keine", für den anderen „meine eigene", und ein Schalter hält das nicht auseinander.* **Die eingebaute:** Belegung in **Core** (deutsch QWERTZ, englisch QWERTY, drei Ebenen, Umschalter gelten für eine Taste), Aussehen im Kopf; **die Tasten nehmen keinen Fokus** — sonst nimmt die Tastatur dem Textfeld beim ersten Druck den Fokus, im Whiteboard verwirft es sich dabei sogar; geschrieben wird über `TextInput`/`KeyDown` ans fokussierte Element, also über denselben Weg wie eine echte Tastatur (trägt damit im Texteditor **und** auf der Tafel). Wächter prüfen die eine Zusage, auf die es ankommt: **was draufsteht, kommt heraus** — in beiden Sprachen und allen drei Ebenen. **⚠ Der Stift: zwei Regeln gebaut, die Ursache NICHT gemessen.** Die neue Meldung („Feld kommt kurz, schließt sofort") schließt den Radierer-Verdacht aus §4.104 aus; die Mechanik ist `LostFocus` → Abschließen, und ein frisches leeres Feld wird dabei **verworfen**. Neu: **Fokusverlust ohne Nachfolger ist kein Weggehen** (das Feld holt ihn zurück), und **zweimal öffnen an derselben Stelle ist eine Absicht** (der zweite Wunsch wird verworfen statt des Feldes) — geprüft wird die Stelle und nicht eine Frist. **Ein virtueller Stift über `uinput` wurde gebaut**, Hyprland nimmt ihn als Werkzeug an, **stellt seine Ereignisse aber nicht zu** — deshalb steht die Behebung auf „macht jeden Auslöser dieser Art unschädlich" und nicht auf einer gemessenen Ursache. **Die F9-Anzeige führt jetzt ein Ereignisprotokoll**, damit die nächste Runde nicht wieder rät. **⛔ Werkzeugbefund:** `grim` ist nach mehreren abgebrochenen Aufnahmen hängengeblieben — die Bildschirmkopie des Kompositors antwortet nicht mehr, Hyprland läuft; **der Augenschein für die eingebaute Tastatur war damit in dieser Runde nicht mehr möglich.** *Ein Messwerkzeug, das man mitten im Bild abbricht, kann den Gegenstand mitnehmen.* **Belegt ist die fremde Tastatur; eingebaute Tastatur, Stift-Regeln und Finger-Tipp warten auf den Nutzer am Gerät** |
 | V2-129c | 2026-09-10 | **Der Stift: die Ursache saß in Zeile 1 — und die erste Behebung hat sie verfehlt** (§4.106; `WhiteboardView.Input.cs`, `MainWindow.Tastatur.cs`; Bau 0/0, 1261 Core-Tests). **Zweite Meldung desselben Fehlers.** §4.105 hatte zwei Regeln gebaut, die „jeden Auslöser dieser Art unschädlich machen" sollten — sie taten es nicht. **Die Ursache stand die ganze Zeit in der ersten Zeile von `OnPointerPressed`:** `Skia.Focus()` lief **vor** der Zeigerart-Weiche und **vor** der Handballenabweisung. Der Stift öffnet das Eingabefeld, im selben Augenblick meldet der Digitizer die zugehörige **Berührung** (oder den Handballen) — und deren Druck holte den Fokus auf die Fläche, **bevor** ihn jemand als Handballen verwerfen konnte. `EditFeld_Verlassen` schloss die Bearbeitung, und ein frisches Feld ist leer, also wurde es **verworfen**. **Damit erklärt sich das ganze Bild auf einmal:** Stift und Finger scheitern (beide erzeugen eine Berührung), Maus und Touchpad gehen (sie erzeugen keine) — *und genau das ist der Unterschied zur vorigen Runde: die Erklärung deckt alle drei Beobachtungen und nicht nur eine.* **Warum §4.105 danebengriff:** Regel A fängt einen Fokusverlust **ohne Nachfolger** ab — hier gab es einen, die Fläche selbst; Regel B verwirft einen zweiten Öffnungswunsch **an derselben Stelle** — hier gab es gar keinen, sondern einen Fokusdiebstahl. *Eine Abwehr, die den falschen Fall abdeckt, sieht wie eine Behebung aus.* Beide Regeln bleiben stehen, sie sind für sich richtig. **Behoben:** `Skia.Focus()` steht hinter der Weiche, eine Berührung fokussiert erst **nach** der Handballenabweisung. **⛔ Und dieselbe Abweisung hatte ein zweites Loch in der anderen Richtung:** Berührungen, die **vor** dem Stift auflagen, standen weiter in `_finger` und haben über `BeruehrungBewegt` **weitergeschoben, während geschrieben wurde** — der Fehler, den der Kommentar daneben als „der Fehler, an dem Notiz-Apps üblicherweise scheitern" beschreibt, nur eine Reihenfolge weiter. Wer den Stift aufsetzt, hat entschieden: was noch aufliegt, ist Hand. **Die F9-Spur geht zusätzlich nach `stderr`** und damit ins Journal — acht Zeilen auf dem Schirm muss sonst jemand abtippen. **⛔ Zweiter Nutzerbefund: die System-Tastatur rief den falschen Befehl.** „Command not found: `wvkbd-mobintl`", dreimal als Systemmeldung, am Gerät fotografiert. `omarchy-toggle-osk` **liegt im Pfad** — und genau das hat die Erkennung aus §4.105 gefragt —, aber er startet `wvkbd-mobintl`, und **das ist gar nicht installiert**; die Tastatur, die der Nutzer wirklich benutzt, stand daneben. *Ein vorhandener Startknopf ist kein Beleg dafür, dass hinter ihm etwas steht.* Jeder Eintrag prüft jetzt **seine eigene Voraussetzung**, und der Befehl darf **Argumente** haben (`omarchy-shell onscreen-keyboard toggle` sind drei Wörter — mit der alten Fassung wäre er gar nicht aufrufbar gewesen). **Am laufenden Programm belegt:** System-Tastatur geht beim Fokus eines Textfelds auf und danach wieder zu, ohne neue Fehlermeldung; kein Rückschritt am Textfeld mit der Maus. **⚠ Der Stift selbst bleibt ungemessen** (der echte liegt beim Nutzer, der virtuelle wird von Hyprland nicht zugestellt). **⚠ Nebenbefund:** die System-Tastatur legt sich als Overlay **über** das Fenster statt es zu verkleinern — was darunter liegt, ist nicht anklickbar; die eingebaute hat das nicht, sie ist angedockt |
+| V2-130 | 2026-09-10 | **Eigene Designs — der Wunsch vom 2026-08-02 ist eingelöst, in BEIDEN Köpfen** (§4.107 neu; neu `Core/Theming/ThemeFile.cs` + `ThemeLibrary.cs`, `Avalonia/MainWindow.Design.cs`, `Wpf/MainWindow.Design.cs`, `Core.Tests/DesignsTests.cs` + `ThemeschluesselTests.cs`, `Wpf.Tests/ThemeschluesselTests.cs`; **gelöscht: `Wpf/Themes/Light.xaml` und `Dark.xaml`**; `IThemeHost` um `Definition` und `Apply(ThemeDefinition)` erweitert, beide `App`-Starts, beide Sprachtabellen +17 Schlüssel, alle vier mitgelieferten Dokumente; Bau 0/0, **1287 Core-Tests, +26**, WPF rechnerisch 68). **§6 hatte den Zuschnitt 2026-08-02 vorweggenommen, und keine seiner Annahmen musste korrigiert werden** — JSON mit Source-Generator statt XAML-Upload (*XAML kann Typen erzeugen; eine weitergegebene Theme-Datei wäre ausführbarer Code*), Ordner über `AppPaths.DataSubfolder` wie Sticker und Cover, Core hält die Tabelle, jeder Kopf übersetzt sie. **`AvaloniaThemeHost.Apply(ThemeDefinition)` ist dafür NICHT angefasst worden**: die Zusage aus Phase 3 (*„ein geladenes Theme einzuhängen heißt, eine andere `ThemeDefinition` hierhin zu geben, mehr nicht"*) hat gehalten. **Drei Nutzer-Entscheidungen (§5):** unvollständige Datei **still ergänzen** · **der WPF-Kopf sofort mit** (gegen die Empfehlung dieses Dokuments) · **Vorlage exportieren** als Einstieg. **Die Leseregel trägt auf einem Unterschied: fehlt ≠ falsch.** Still ergänzt wird, was nicht dasteht; gemeldet wird kaputtes JSON, fehlende `variant` und ein unlesbarer Farbwert — *„nicht dagewesen" ist eine Aussage des Nutzers, ein Tippfehler ist keine.* **Ein unbekannter Farbname ist ausdrücklich kein Fehler** (eine Datei aus einer späteren Fassung soll laufen), **`variant` dagegen Pflicht**: `WbRenderer` wählt danach `PageShade`, die Titelleiste unter Windows ihren dunklen Modus — aus der Helligkeit von `PageBg` geraten wäre genau bei einem dunklen Bild mit hellem Papier falsch (§6 Punkt 4, eigener Wächter). **⛔ Der WPF-Kopf ist umgestellt und seine zwei Theme-XAML gelöscht:** dieselben Schlüssel, dieselbe Stelle [0] — **damit stehen die zwanzig Farben nur noch an einer Stelle**, und die Doppelung aus §4.9 ist weg statt bewacht. Dafür war dreierlei nachzusehen und nicht anzunehmen: **kein einziger `StaticResource`** auf einen Theme-Schlüssel im ganzen Kopf (Stelle [0] ist beim Auswerten der XAML jetzt leer), **das Bild muss vor der Datenbank stehen** (sonst stünde die Fehlermeldung eines misslungenen Datenbankstarts in WPF-Vorgabefarben da), und die Pinsel werden **eingefroren**. **`FarbtabelleTests` ist beantwortet, nicht abgeschafft** — an seiner Stelle steht `ThemeschluesselTests`, **in beiden Testprojekten**, denn die Gefahr hat sich verschoben: *ein vertippter Schlüssel war ein Ladefehler, jetzt wirkt er still gar nicht* — wörtlich der Fund, der den Linux-Kopf sechs Runden begleitet hat (§4.86/§4.94/§4.95), nur diesmal vorher gesehen. **⛔ Der Fund am laufenden Programm: das Menü war eine Momentaufnahme.** Zwei von Hand hineingelegte Dateien standen nicht darin — die Liste entstand beim Start. *Das Menü lädt mit „Design-Ordner öffnen" ausdrücklich zum Hineinlegen ein und hätte bis zum Neustart getan, als sei nichts geschehen.* Behoben in beiden Köpfen: neu gebaut bei jedem Aufklappen des **Ansicht**-Menüs (nicht am Untermenü selbst — dessen Einträge werden dabei ersetzt). *Kein Bau und kein Wächter kann diesen Fehler sehen; er entsteht erst, wenn jemand etwas in einen Ordner legt, während das Programm läuft.* **✅ Am laufenden Programm belegt (Linux-Kopf, Wegwerf-DB, Bilder je Schritt):** Menü mit Punkt auf Hell und Kürzelhinweis als Tooltip; Vorlage geschrieben (alle zwanzig Farben, `"name": "Hell (Kopie)"`); zwei Dateien hineingelegt, darunter eine kaputte — **beide im Menü, die kaputte ausgegraut mit dem Grund im Tooltip**; „Abendrot" gewählt: Fenster, Leisten, Fluent-Flächen und die Tintenkacheln wechseln in einem Zug, **das offene Menü zeichnet sich selbst neu**; **nach dem Neustart ist es wieder da** (`theme = dark`, `theme-file = abendrot.json`); im Notizbuch trägt die Leinwand die Farben des Designs samt Vorgabetinte. Probedateien danach aus dem echten Datenordner gelöscht (`--db` verlegt die Datenbank, **nicht** den Datenordner). **⚠ Und der Preis der Nutzer-Entscheidung, benannt: der WPF-Kopf ist gebaut worden, ohne zu laufen** — die Umstellung tauscht die Quelle **jeder** Farbe im ganzen Kopf, und was nur der Augenschein zeigt (Start, Titelleiste, Menühaken), steht aus. **Das ist der erste Posten für den neuen Windows-Laptop.** ▶ **Als Nächstes: der Flathub-Umbau (§4.102) und Phase 5.1** |
 | V2-115 | 2026-09-01 | **Schritt ①c ist zu — das Lineal gestrichen, der Menü-Aufklapppunkt neu vermessen** (§4.92 neu; Bau 0/0, **1256 Tests unveraendert**). **(4) Lineal: bewusst gestrichen.** Gemessen: `DrawRuler` im WPF-Kopf hat **keinen einzigen Maus-Handler** — es ist eine cm-Skala mit zwei Dreiecken, eine Zierleiste und kein Werkzeug. Der einzige Posten ohne Rueckhalt in Core, und was er leistet, leisten die vier Randfelder im Layout-Reiter **in Zahlen** und aenderbar. Wird in ⑤ im README als bekannter Unterschied genannt. **⛔ Menü-Aufklapppunkt: dritter Anlauf gescheitert und zurueckgenommen — aber die Messung ist neu und mehr wert als der Versuch.** Bisher stand da "klappt am linken Rand der Leiste auf"; gemessen klappt es **ausserhalb des Fensters** auf, rund 170 px links vom Fensterrand. Und: **"Datei" und "Ansicht" klappen an DERSELBEN Stelle auf** — damit ist das Aufklappziel fuer beide **dasselbe Element**, also weder das MenuItem noch sein Grid. Der Anlauf (Popup aus dem Spaltengitter in ein umschliessendes Grid heben, weil die `SharedSizeGroup` das Gitter aufblaeht) war **ohne jede Wirkung** und ist zurueckgenommen. **Der einzige Weg, der zur Messung passt und den noch niemand versucht hat: ein eigenes Template nur fuer `Role=TopLevelHeader`** — WPF benutzt dafuer normalerweise drei verschiedene Vorlagen, hier dient eine fuer alle drei Rollen. **Damit sind alle sieben Entscheidungen aus §5e beantwortet** (§4.86–§4.92): fuenf gebaut, eine gestrichen, eine als Messung beantwortet statt als Frage gestellt. ▶ **Als Naechstes: Schritt ②, die Rueckmeldung** — eine eigene Runde (§5 Nr. 28). **Der Laptop ist nicht dran — aber bei ③ ist er es zwingend** (§5d) |
 | V2-114 | 2026-09-01 | **Der Tabellenentwurf, zweite Haelfte** (§4.91 neu; neu `Core/Text/TdTabellenformel.cs`, `TdTableUmbau.cs`, `Core.Tests/TabellenUmbauTests.cs`; Bau 0/0, **1256 Tests, +36**). Runde B von Frage (2): **teilen, sortieren, rechnen, Tabelle ↔ Text** — das, was Core erst rechnen lernen musste. **Das Formelergebnis geht als TEXT in die Zelle und nicht als Feld:** §4.20 verlangte sonst eine neue `TdFieldKind`, einen Auswertungsschritt im Umbruch und einen DOCX-Weg; **der WPF-Kopf schreibt seit jeher ebenfalls nur das Ergebnis**, und beim Editor ist Windows die Vorlage. Benanntes Zugestaendnis. **Eine leere Zelle beendet die Reihe NICHT** — Words Regel dort ergibt bei einer Zwischenueberschrift eine halbe Summe, ohne dass etwas danach aussieht. **Beide Zahlenschreibweisen** werden gelesen (deutsch und englisch): eine Tabelle, deren Summe von der Systemsprache abhaengt, rechnet auf dem naechsten Rechner anders. **Der leere Absatz beim Teilen ist kein Rest** — zwei Tabellen unmittelbar hintereinander sind in DOCX **eine**. **⛔ Der Tooltip hat eine Ergaenzung erzwungen:** `Ed.Table.Sort.Tip` verspricht "Text/Zahl/Datum", und der WPF-Kopf kann das; die erste Fassung hier konnte nur Text und Zahl. **Datum wird jetzt VOR Zahl geprueft**, und das ist keine Geschmacksfrage: "01.03.2026" liest sich als Zahl 1.032.026 und "15.02.2026" als 15.022.026 — die Reihenfolge kehrt sich um und sieht trotzdem plausibel aus. *Ein Tooltip ist eine Zusage; wer ihn uebernimmt, uebernimmt sie mit.* **⛔ Werkzeugfalle, drei Anlaeufe:** **Koordinaten aus einem Flyout gelten nur fuer die Aufnahme, aus der sie stammen.** Ein Ribbon, das umbricht, verschiebt seine Knoepfe — und mit ihnen jedes Flyout daran. Erst der Vergleich gegen ein **funktionierendes** Werkzeug ("Tabelle teilen", gleiches Muster, wirkte sofort) hat gezeigt, dass der Weg traegt und die Koordinate nicht (§4.82 woertlich). **✅ Und der eingebaute Hinweis "keine Zahlen im Bereich" hat den ersten Anlauf ueberhaupt erst diagnostizierbar gemacht** — *ein Knopf, der sagt, warum er nichts tut, ist billiger als der Fehlerbericht, den er erspart.* **Nicht gebaut und benannt:** die Schnelltabellen (`Ed.Table.Quick.*`) — zwei fest verdrahtete Vorlagen ohne Vorlagensammlung dahinter. **✅ Am laufenden Programm:** Teilen samt richtig ausgegrautem Knopf in Zeile 0, Summe 10+5=15, Hinweis ohne Zahlen, Sortieren dreht die Folge |
 | V2-113 | 2026-09-01 | **Der Tabellenentwurf, erste Haelfte** (§4.90 neu; neu `Core/Text/TdTableEntwurf.cs`, `Avalonia/Views/TextDocView.Tabelle.cs`, `Core.Tests/TabellenEntwurfTests.cs`; Bau 0/0, **1220 Tests, +25**). Runde A von Frage (2): **Rahmen, Fuellung, Kopfzeile, Zellabstand, Spaltenbreite, verbinden und teilen** — alles, was `TdTable` schon konnte. **Nicht "erst Core, dann Oberflaeche" wie §5e vorschlug, sondern nach Nutzen geschnitten:** eine Runde, die nur Core baut, endet an einem gruenen Bau — und **zwei der drei Funde dieser Runde waeren dann erst eine Runde spaeter aufgefallen**. **⛔ Fund 1, vom Waechter:** `TdTableEdit.Kopie` kopierte das **Format nicht**. `TdTableFormat` ist eine Klasse, alte und neue Tabelle teilten sich das Objekt. Bis heute fiel es nicht auf, weil **kein einziger Handgriff das Format anfasste**; mit dem Entwurf fassen es fuenf an, und ab da haette jede Rahmenaenderung die **Sicherung im Rueckgaengig-Stapel mitgeaendert** — Strg+Z haette nichts zurueckgebracht (§4.32 woertlich). `TdTableFormat.Kopie()` gab es laengst, sie wurde nur nicht gerufen. **⛔ Fund 2, am laufenden Programm:** `TabelleWerkzeuge` war ein `StackPanel` und bricht **nie** um — die drei neuen Knoepfe ragten aus dem Fenster und waren nicht anklickbar. Bau und Waechter gruen. **⛔ Fund 3, im Bestand:** **vier Sprachtexte tragen die XML-Entitaet `&amp;` woertlich**, beim Uebernehmen aus dem WPF-XAML mitgekommen — auf dem Knopf stand "Design &amp;amp; Rahmen...". Alle vier stehen seit Monaten so da, in **beiden** Sprachen, und **der WPF-Kopf zeigt sie genauso falsch**; aufgefallen ist es erst, als der Linux-Kopf den Schluessel zum **ersten Mal** anzeigte. *Ein Text, den kein Kopf benutzt, wird von keinem Auge geprueft.* Ein neuer Waechter haelt XML-Entitaeten in beiden Tabellen fest. **Zwei benannte Einschraenkungen, beide mit derselben Ursache** — die Auswahl des Editors ist eine Spanne ueber Absaetze und kennt kein Rechteck aus Zellen: **verbunden wird mit der rechten Nachbarin** (mehrmals gedrueckt zieht weiter), **gefuellt wird die Zelle unter der Marke**. **AutoAnpassen ist das Weglassen einer Zahl** und kein eigener Rechenweg |

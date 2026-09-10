@@ -35,6 +35,24 @@ public partial class MainWindow : Window
 
         if (App.Db.GetSetting("sidebar") == "0") SetSidebarVisible(false);
         ShowActiveLanguage();
+
+        // Das Design-Untermenü (MainWindow.Design.cs). Es hängt an beiden Ereignissen: der
+        // Sprachwechsel benennt seine Einträge neu, der Designwechsel setzt den Haken um —
+        // auch dann, wenn er über Strg+T oder den Knopf in der Seitenleiste kam.
+        FillDesignMenu();
+        Loc.LanguageChanged += FillDesignMenu;
+        App.Platform.Theme.ThemeChanged += FillDesignMenu;
+
+        // **Und bei jedem Aufklappen neu.** Am laufenden Linux-Kopf gefunden (2026-09-10):
+        // Wer über „Design-Ordner öffnen" eine Datei hineinlegt, findet sie im Menü sonst
+        // erst nach dem nächsten Designwechsel. Gehängt an das **Ansicht**-Menü und nicht an
+        // das Design-Untermenü, dessen Einträge hier ersetzt werden.
+        ViewMenu.SubmenuOpened += (_, _) => FillDesignMenu();
+        Closing += (_, _) =>
+        {
+            Loc.LanguageChanged -= FillDesignMenu;
+            App.Platform.Theme.ThemeChanged -= FillDesignMenu;
+        };
     }
 
     // ==================== Sprache ====================

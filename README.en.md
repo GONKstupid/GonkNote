@@ -203,6 +203,11 @@ Nothing is lost along the way: whatever one edition cannot display, it does not 
 - **Dark/light mode** (`Ctrl+T`) for the app design — pages and writing surfaces stay light by
   default; the window title bar follows the theme (dark in dark mode). The sidebar collapses
   with `Ctrl+B`
+- **Your own themes**: a theme is a JSON file of twenty named colours, kept in `Themes/` inside
+  the data folder. `View → Theme` lists them next to Light and Dark; "Save template…" writes the
+  active theme out as a starting point, "Load your own…" picks up a file from elsewhere.
+  Whatever a file does not name comes from Light or Dark — three colours are enough.
+  **Applies to both editions**
 - **Maximised window without a title bar**: when the window is maximised the title bar hides
   and the menu bar moves up. Move the mouse to the top edge and a title bar (minimise, restore,
   close) glides back in. A double-click on the menu bar (or the standard Windows commands)
@@ -303,8 +308,8 @@ carry on from there is described in [Getting started](GETTING-STARTED.md).
 
 | Building block | Technology |
 |---|---|
-| Windows interface | WPF (.NET 10), MVVM, dynamic theme resource dictionaries |
-| Linux interface | Avalonia 12 (.NET 10), the same view models, colours from a table in `GonkNote.Core` |
+| Windows interface | WPF (.NET 10), MVVM, resource dictionary built at runtime from the colour table in `GonkNote.Core` |
+| Linux interface | Avalonia 12 (.NET 10), the same view models, the same colour table |
 | Whiteboard rendering | SkiaSharp — via `SKElement` on Windows, via Avalonia's own Skia canvas on Linux; **same renderer, same pixels** |
 | Stylus input | WPF stylus events resp. Avalonia pointers, both with pressure and tilt |
 | Persistence | SQLite (`Microsoft.Data.Sqlite`); documents as JSON, read and written via a source generator |
@@ -326,7 +331,8 @@ src/
 │  ├─ Rendering/            Skia drawing routines of the whiteboard, set-square overlay
 │  ├─ Editing/              Precise erasing, hit testing and lasso
 │  ├─ Text/                 Markdown parser for the bundled documents
-│  ├─ Theming/              the colour table: a theme is 20 named colours
+│  ├─ Theming/              the colour table: a theme is 20 named colours — bundled, or
+│  │                        loaded as JSON from the user's `Themes/` folder
 │  └─ Localization/         Loc (lookup) + one table each for DE/EN
 │
 ├─ GonkNote.ViewModels/      MainViewModel, tab VMs, tree VM, MVVM base (net10.0) —
@@ -340,7 +346,7 @@ src/
 │  ├─ Views/                WhiteboardView and TextEditorView — both split into partial
 │  │                        files by topic, plus the dialogs
 │  ├─ Services/             Import/export (DOCX, PDF, Markdown), OCR, text styles
-│  └─ Themes/               Light.xaml, Dark.xaml, Styles.xaml
+│  └─ Themes/               Styles.xaml — the colours come from the core
 │
 └─ GonkNote.Avalonia/        Linux interface (net10.0, also runs on Windows)
    ├─ Platform/             the same interfaces, implemented for Avalonia

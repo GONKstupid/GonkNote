@@ -34,13 +34,22 @@ public sealed class AvaloniaThemeHost : IThemeHost
 
     AppTheme IThemeHost.Current => Current.Variant;
 
+    /// <summary>Die aktive Tabelle als Auskunft der Naht — dasselbe Objekt wie <see cref="Current"/>.</summary>
+    public ThemeDefinition Definition => Current;
+
     public event Action? ThemeChanged;
 
     public void Apply(AppTheme theme) => Apply(Themes.ForVariant(theme));
 
     /// <summary>
     /// Eine beliebige Farbtabelle anlegen. <see cref="IThemeHost.Apply(AppTheme)"/> ist der
-    /// Sonderfall „nimm die mitgelieferte hell bzw. dunkel".
+    /// Sonderfall „nimm die mitgelieferte hell bzw. dunkel“.
+    /// <para>
+    /// <b>Seit dem 2026-09-10 ist das der Weg der eigenen Designs</b> (HANDOFF §6): Die
+    /// Vorhersage von Phase 3 — „ein geladenes Theme einzuhängen heißt, eine andere
+    /// <see cref="ThemeDefinition"/> hierhin zu geben, mehr nicht“ — hat gehalten. An dieser
+    /// Methode ist dafür keine Zeile geändert worden.
+    /// </para>
     /// </summary>
     public void Apply(ThemeDefinition theme)
     {
@@ -193,6 +202,11 @@ public sealed class AvaloniaThemeHost : IThemeHost
         palette.Accent = akzent.ToAvalonia();
     }
 
+    /// <summary>
+    /// Strg+T. <b>Schaltet zwischen den zwei mitgelieferten Tabellen um</b>, auch wenn
+    /// gerade ein eigenes Design läuft — die Taste heißt „Dark/Light“ und nicht „vorheriges
+    /// Design“. Zurück zum eigenen Design geht es über Ansicht → Design.
+    /// </summary>
     public void Toggle() =>
         Apply(Current.Variant == AppTheme.Dark ? AppTheme.Light : AppTheme.Dark);
 }

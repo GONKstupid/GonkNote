@@ -45,6 +45,22 @@ public partial class MainWindow : Window
         SpracheHaken();
         Loc.LanguageChanged += SpracheHaken;
 
+        // Das Design-Untermenü (MainWindow.Design.cs). Es hängt an beiden Ereignissen: der
+        // Sprachwechsel benennt seine Einträge neu, der Designwechsel setzt den Haken um —
+        // auch dann, wenn er über Strg+T oder den Knopf in der Seitenleiste kam.
+        DesignMenueFuellen();
+        Loc.LanguageChanged += DesignMenueFuellen;
+        App.Platform.Theme.ThemeChanged += DesignMenueFuellen;
+
+        // **Und bei jedem Aufklappen neu.** Am laufenden Programm gefunden (2026-09-10): Wer
+        // über „Design-Ordner öffnen" eine Datei hineinlegt, findet sie im Menü sonst erst
+        // nach dem nächsten Designwechsel — der Ordner lädt zum Hineinlegen ein, und das
+        // Menü wüsste bis zum Neustart nichts davon. Gehängt wird es an das **Ansicht**-Menü
+        // und nicht an das Design-Untermenü: dessen Einträge werden hier ersetzt, und das
+        // gerade aufgehende Untermenü unter sich auszutauschen ist die Sorte Handgriff, die
+        // je nach Fassung des Rahmenwerks funktioniert oder nicht.
+        AnsichtMenue.SubmenuOpened += (_, _) => DesignMenueFuellen();
+
         // Die Bildschirmtastatur (Nutzerwunsch 2026-09-09) — Modus wiederherstellen und den
         // Fokus beobachten. Begründung in MainWindow.Tastatur.cs.
         TastaturHerstellen();

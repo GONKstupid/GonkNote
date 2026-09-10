@@ -18,7 +18,7 @@ namespace GonkNote.Views;
 
 /// <summary>
 /// Rich-Text-Editor für Textdokumente im Ribbon-Layout (Design-Konzept nach
-/// ONLYOFFICE-Vorbild, Farben ausschließlich aus Themes/Light|Dark.xaml).
+/// ONLYOFFICE-Vorbild, Farben ausschließlich aus der Farbtabelle in Core).
 /// Speichert als XamlPackage (erhält Bilder/Tabellen), lädt ältere RTF-Dokumente.
 /// Kern: Laden/Speichern, Ribbon-Umschaltung, Zoom, Lineal, Statusleiste,
 /// Navigator, Theme-/Ink-Handling. Werkzeuge in den partial-Dateien.

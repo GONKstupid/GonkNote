@@ -342,6 +342,7 @@ ones:
 | Stickers (image stickers) | `Stickers/` — subfolders become separate groups |
 | Notebook covers | `Covers/` — appear under "Individuell" |
 | Set-square graphic | `Geodreieck-Light.svg` or `-Dark.svg` |
+| Your own themes (colour schemes) | `Themes/*.json` — appear under "View → Theme" |
 
 > **This section applies to both editions.** Stickers, your own cover templates and the set
 > square are read from the same folders on Linux — they just live under
@@ -361,10 +362,47 @@ missing too, Gonk Note draws a plain outline.
 
 - **Language:** `View → Language → German / English`. Switches immediately, without a restart;
   your document names are left untouched.
-- **Dark/light mode:** `Ctrl+T` or `View → Toggle dark/light mode`. Writing surfaces stay light
-  by default — change the page shade in the settings if you want.
+- **Light and dark:** `Ctrl+T` toggles; `View → Theme` offers both for picking. Writing surfaces
+  stay light by default — change the page shade in the settings if you want.
 
 Both settings are remembered.
+
+### Your own theme
+
+A theme in Gonk Note is nothing but a **list of twenty colours** — a JSON file, not a program.
+Here is how to make one:
+
+1. `View → Theme → Save template…` — Gonk Note writes the currently active theme as a complete
+   file into the `Themes/` folder and tells you where it is.
+2. Open it in a text editor and change the colour values (`#RRGGBB`, `#AARRGGBB` or the short
+   `#RGB`). `name` is what will appear in the menu.
+3. The file shows up under `View → Theme` the next time you open the menu. To pick up a file
+   from somewhere else use `Load your own…` — Gonk Note checks it and **copies** it into the
+   folder; your original stays where it is.
+
+**You do not have to list all twenty colours.** Whatever is missing comes from Light or Dark —
+a file with three lines is a valid theme:
+
+```json
+{
+  "name": "Sunset",
+  "variant": "dark",
+  "colors": {
+    "Accent": "#FF6B35",
+    "WindowBg": "#241019"
+  }
+}
+```
+
+Apart from the colours, `variant` is the one thing that is required: Gonk Note has to know
+whether your theme is meant to be **light or dark**. More than a colour hangs on it — the
+defaults of the drawing surface and, on Windows, the window title bar follow it, and that is
+not something to guess.
+
+> **Two things that come with it.** A theme can colour the **paper** as well (`PageBg`,
+> `PageLine`, `PageGridDot`, `CanvasBg`, `DefaultInk`) — and that then shows up in **exports**
+> too. And a file Gonk Note cannot read does not vanish: it sits greyed out in the menu, with a
+> tooltip saying what is wrong with it.
 
 ---
 
@@ -376,7 +414,7 @@ Both settings are remembered.
 |---|---|
 | `Ctrl+S` / `Ctrl+Shift+S` | Save / save all |
 | `Ctrl+B` | Show/hide the sidebar |
-| `Ctrl+T` | Dark/light mode |
+| `Ctrl+T` | Toggle light/dark |
 | `F2` / `Del` | Rename / delete (in the folder tree) |
 | `Ctrl+Z` / `Ctrl+Y` | Undo / redo |
 

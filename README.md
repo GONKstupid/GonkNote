@@ -205,6 +205,11 @@ wieder heraus.
 - **Dark-/Light-Mode** (`Strg+T`) fürs App-Design — Seiten und Schreibflächen bleiben
   standardmäßig hell; die Fenster-Titelleiste folgt dem Theme (im Dark Mode dunkel).
   Seitenleiste einklappbar (`Strg+B`)
+- **Eigene Designs**: Ein Design ist eine JSON-Datei mit zwanzig benannten Farben und liegt
+  unter `Themes/` im Datenordner. `Ansicht → Design` listet sie neben Hell und Dunkel;
+  „Vorlage speichern…" schreibt das aktive Design als Startpunkt heraus, „Eigenes laden…"
+  holt eine Datei von woanders. Was eine Datei nicht nennt, kommt aus Hell bzw. Dunkel —
+  drei Farben genügen. **Gilt für beide Ausgaben**
 - **Maximiertes Fenster ohne Titelleiste**: Wird das Fenster maximiert („in Groß"),
   blendet sich die Titelleiste aus und die Menüleiste rückt nach oben. Fährst du mit der
   Maus an den oberen Fensterrand, gleitet eine Titelleiste (Minimieren/Wiederherstellen/
@@ -308,8 +313,8 @@ es danach weitergeht, steht in [Erste Schritte](ERSTE-SCHRITTE.md).
 
 | Baustein | Technologie |
 |---|---|
-| Oberfläche Windows | WPF (.NET 10), MVVM, dynamische Theme-ResourceDictionaries |
-| Oberfläche Linux | Avalonia 12 (.NET 10), dieselben ViewModels, Farben aus einer Tabelle in `GonkNote.Core` |
+| Oberfläche Windows | WPF (.NET 10), MVVM, Ressourcen-Wörterbuch zur Laufzeit aus der Farbtabelle in `GonkNote.Core` |
+| Oberfläche Linux | Avalonia 12 (.NET 10), dieselben ViewModels, dieselbe Farbtabelle |
 | Whiteboard-Rendering | SkiaSharp — unter Windows über `SKElement`, unter Linux über Avalonias eigene Skia-Leinwand; **derselbe Renderer, dieselben Pixel** |
 | Stifteingabe | WPF-Stylus-Events bzw. Avalonia-Pointer, beide mit Druck und Neigung |
 | Persistenz | SQLite (`Microsoft.Data.Sqlite`); Dokumente als JSON, gelesen und geschrieben über einen Source-Generator |
@@ -331,7 +336,8 @@ src/
 │  ├─ Rendering/            Skia-Zeichenroutinen des Whiteboards, Geodreieck-Overlay
 │  ├─ Editing/              Punktgenaues Radieren, Trefferprüfung und Lasso
 │  ├─ Text/                 Markdown-Zerleger für die mitgelieferten Dokumente
-│  ├─ Theming/              die Farbtabelle: ein Design ist 20 benannte Farben
+│  ├─ Theming/              die Farbtabelle: ein Design ist 20 benannte Farben — mitgeliefert
+│  │                        oder als JSON aus dem Ordner `Themes/` des Nutzers
 │  └─ Localization/         Loc (Nachschlagen) + je eine Tabelle DE/EN
 │
 ├─ GonkNote.ViewModels/      MainViewModel, Tab-VMs, Baum-VM, MVVM-Basis (net10.0) —
@@ -345,7 +351,7 @@ src/
 │  ├─ Views/                WhiteboardView und TextEditorView — beide nach Themen in
 │  │                        partial-Dateien geteilt, dazu die Dialoge
 │  ├─ Services/             Import/Export (DOCX, PDF, Markdown), OCR, Textstile
-│  └─ Themes/               Light.xaml, Dark.xaml, Styles.xaml
+│  └─ Themes/               Styles.xaml — die Farben kommen aus dem Kern
 │
 └─ GonkNote.Avalonia/        Linux-Oberfläche (net10.0, läuft auch unter Windows)
    ├─ Platform/             dieselben Schnittstellen, für Avalonia umgesetzt

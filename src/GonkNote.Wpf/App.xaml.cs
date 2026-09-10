@@ -2,6 +2,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Threading;
 using GonkNote.Core.Platform;
+using GonkNote.Core.Theming;
 using GonkNote.Platform;
 using GonkNote.Services;
 using GonkNote.Core.Services;
@@ -33,6 +34,13 @@ public partial class App : Application
 
         Platform = new WpfPlatformServices();
         AppPaths.Current = Platform.Paths;
+
+        // **Sofort ein Bild anlegen, noch vor der Datenbank.** Seit dem 2026-09-10 steht in
+        // App.xaml an Stelle [0] ein leeres Wörterbuch statt `Themes/Light.xaml` — ohne diese
+        // Zeile stünde jede Farbe bis zur Zeile „Theme.Apply" weiter unten auf ihrer
+        // WPF-Vorgabe. Sichtbar würde das genau einmal, aber an der schlechtesten Stelle:
+        // in der Fehlermeldung, mit der ein misslungener Datenbankstart abbricht.
+        Platform.Theme.Apply(AppTheme.Light);
         Core.Rendering.WbFonts.Schema = Platform.Fonts.Scheme;       // vor dem ersten Zeichnen
 
         // Die Oberflaechenschriften — **vor dem ersten Fenster**, sonst zeichnet es in der
@@ -72,10 +80,16 @@ public partial class App : Application
 
         Loc.Apply(Loc.FromCode(Db.GetSetting("language")));
 
-        var theme = Db.GetSetting("theme") == "dark" ? AppTheme.Dark : AppTheme.Light;
-        Platform.Theme.Apply(theme);
+        // Zwei Schlüssel, eine Wahl: `theme` sagt hell oder dunkel, `theme-file` nennt die
+        // Datei eines eigenen Designs (leer = mitgeliefert). Der zweite ist der Rückfall des
+        // ersten — ist die Datei gelöscht oder zerschrieben, startet die App in der zuletzt
+        // gewählten Variante statt gar nicht (ThemeLibrary.AtStartup).
+        Platform.Theme.Apply(ThemeLibrary.AtStartup(Db.GetSetting("theme"), Db.GetSetting("theme-file")));
         Platform.Theme.ThemeChanged += () =>
+        {
             Db.SetSetting("theme", Platform.Theme.Current == AppTheme.Dark ? "dark" : "light");
+            Db.SetSetting("theme-file", Platform.Theme.Definition.File ?? "");
+        };
 
         MainWindow = new MainWindow();
         MainWindow.Show();

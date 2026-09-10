@@ -365,6 +365,7 @@ den mitgelieferten:
 | Sticker (Bild-Aufkleber) | `Stickers/` — Unterordner werden zu eigenen Gruppen |
 | Notizbuch-Cover | `Covers/` — erscheinen unter „Individuell" |
 | Geodreieck-Grafik | `Geodreieck-Light.svg` bzw. `-Dark.svg` |
+| Eigene Designs (Farbschemata) | `Themes/*.json` — erscheinen unter „Ansicht → Design" |
 
 > **Dieser Abschnitt gilt für beide Ausgaben.** Sticker, eigene Cover-Vorlagen und
 > das Geodreieck werden unter Linux aus denselben Ordnern gelesen — nur liegen die
@@ -385,11 +386,48 @@ mitgelieferte Grafik; fehlt auch die, zeichnet Gonk Note eine schlichte Kontur.
 
 - **Sprache:** `Ansicht → Sprache → Deutsch / Englisch`. Wechselt sofort, ohne
   Neustart; deine Dokumentnamen bleiben unangetastet.
-- **Dark/Light Mode:** `Strg+T` oder `Ansicht → Dark/Light Mode umschalten`. Die
-  Schreibflächen bleiben dabei standardmäßig hell — den Farbton der Seite stellst
-  du bei Bedarf in den Einstellungen um.
+- **Hell und Dunkel:** `Strg+T` schaltet um; `Ansicht → Design` zeigt beides zur
+  Auswahl. Die Schreibflächen bleiben dabei standardmäßig hell — den Farbton der
+  Seite stellst du bei Bedarf in den Einstellungen um.
 
 Beide Einstellungen werden gemerkt.
+
+### Ein eigenes Design
+
+Ein Design ist bei Gonk Note nichts als eine **Liste von zwanzig Farben** — eine
+JSON-Datei, kein Programm. So legst du eines an:
+
+1. `Ansicht → Design → Vorlage speichern…` — Gonk Note schreibt das gerade aktive
+   Design als vollständige Datei in den Ordner `Themes/` und sagt dir, wo sie liegt.
+2. Öffne sie in einem Texteditor und ändere die Farbwerte (`#RRGGBB`, `#AARRGGBB`
+   oder kurz `#RGB`). `name` ist, was später im Menü steht.
+3. Die Datei erscheint unter `Ansicht → Design`, sobald du das Menü das nächste Mal
+   aufklappst. Eine Datei von woanders holst du über `Eigenes laden…` — Gonk Note
+   prüft sie und **kopiert** sie in den Ordner, das Original bleibt liegen.
+
+**Du musst nicht alle zwanzig Farben angeben.** Was fehlt, kommt aus Hell bzw.
+Dunkel — eine Datei mit drei Zeilen ist ein gültiges Design:
+
+```json
+{
+  "name": "Abendrot",
+  "variant": "dark",
+  "colors": {
+    "Accent": "#FF6B35",
+    "WindowBg": "#241019"
+  }
+}
+```
+
+`variant` ist die einzige Pflichtangabe neben den Farben: Gonk Note muss wissen, ob
+dein Design **hell oder dunkel** gemeint ist. Daran hängt mehr als die Farbe — die
+Voreinstellungen der Zeichenfläche und unter Windows die Fenster-Titelleiste richten
+sich danach, und geraten wird das nicht.
+
+> **Zwei Dinge, die dazugehören.** Ein Design kann auch das **Papier** einfärben
+> (`PageBg`, `PageLine`, `PageGridDot`, `CanvasBg`, `DefaultInk`) — und das wirkt sich
+> dann auch auf den **Export** aus. Und eine Datei, die Gonk Note nicht lesen kann,
+> verschwindet nicht: sie steht ausgegraut im Menü, und der Tooltip sagt, was ihr fehlt.
 
 ---
 
@@ -401,7 +439,7 @@ Beide Einstellungen werden gemerkt.
 |---|---|
 | `Strg+S` / `Strg+Umschalt+S` | Speichern / alles speichern |
 | `Strg+B` | Seitenleiste ein-/ausblenden |
-| `Strg+T` | Dark/Light Mode |
+| `Strg+T` | Hell/Dunkel umschalten |
 | `F2` / `Entf` | Umbenennen / löschen (im Ordnerbaum) |
 | `Strg+Z` / `Strg+Y` | Rückgängig / Wiederholen |
 

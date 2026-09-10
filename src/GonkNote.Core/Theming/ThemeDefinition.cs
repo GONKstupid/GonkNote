@@ -13,9 +13,10 @@ namespace GonkNote.Core.Theming;
 /// Tabelle und <b>jeder Kopf übersetzt sie in seine eigenen Pinsel</b>.
 /// </para>
 /// <para>
-/// Die Klasse ist bewusst unveränderlich und ohne Datei-Zugriff: Laden aus
-/// <c>%APPDATA%\GonkNote\Themes\*.json</c> ist für nach Meilenstein M1 vorgesehen und
-/// braucht dann nichts weiter als einen Deserialisierer, der <see cref="Over"/> aufruft.
+/// Die Klasse ist bewusst unveränderlich und <b>ohne Datei-Zugriff</b>. Das Laden aus
+/// <c>&lt;Datenordner&gt;/Themes/*.json</c> steht seit dem 2026-09-10 in
+/// <see cref="ThemeFile"/> und <see cref="ThemeLibrary"/> — und es ist genau das geworden,
+/// was hier vorhergesagt war: ein Deserialisierer, der <see cref="Over"/> aufruft.
 /// </para>
 /// </summary>
 public sealed class ThemeDefinition
@@ -25,11 +26,12 @@ public sealed class ThemeDefinition
 
     private readonly HexColor[] _colors;
 
-    private ThemeDefinition(string name, AppTheme variant, HexColor[] colors)
+    private ThemeDefinition(string name, AppTheme variant, HexColor[] colors, string? file = null)
     {
         Name = name;
         Variant = variant;
         _colors = colors;
+        File = file;
     }
 
     /// <summary>Anzeigename, z. B. „Hell". Bei einer geladenen Datei deren Name.</summary>
@@ -41,6 +43,22 @@ public sealed class ThemeDefinition
     /// für ihren dunklen Modus. Auch ein selbst gebautes Theme muss sich hier festlegen.
     /// </summary>
     public AppTheme Variant { get; }
+
+    /// <summary>
+    /// Dateiname der geladenen Theme-Datei (mit Endung, ohne Pfad) — <c>null</c> bei den
+    /// beiden mitgelieferten Tabellen.
+    /// <para>
+    /// <b>Warum die Herkunft an der Tabelle hängt und nicht neben ihr:</b> Der Kopf muss
+    /// nach jedem Wechsel wissen, was er in die Einstellungen schreibt, damit dasselbe Bild
+    /// beim nächsten Start wieder da ist. Eine zweite Variable daneben wäre eine zweite
+    /// Wahrheit über dieselbe Sache — und die erste Stelle, die sie zu setzen vergisst,
+    /// wäre ein Theme, das sich nach dem Neustart in „Hell" zurückverwandelt.
+    /// </para>
+    /// </summary>
+    public string? File { get; }
+
+    /// <summary>Dieselbe Tabelle mit einer anderen Herkunft — die Farben bleiben unberührt.</summary>
+    public ThemeDefinition WithFile(string? file) => new(Name, Variant, _colors, file);
 
     public HexColor this[ThemeColor color] => _colors[(int)color];
 
@@ -91,6 +109,6 @@ public sealed class ThemeDefinition
     {
         var colors = (HexColor[])_colors.Clone();
         foreach (var (color, value) in overrides) colors[(int)color] = value;
-        return new ThemeDefinition(name, variant, colors);
+        return new ThemeDefinition(name, variant, colors, File);
     }
 }

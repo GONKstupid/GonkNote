@@ -14,7 +14,7 @@ namespace GonkNote.Core.Theming;
 public enum ThemeColor
 {
     // ---- Oberfläche (15) ----------------------------------------------------------
-    // Was im WPF-Kopf als SolidColorBrush in Themes/Light.xaml steht.
+    // Was in beiden Köpfen als Pinsel unter „Brush.X" im Ressourcen-Wörterbuch landet.
 
     /// <summary>Fensterhintergrund und Arbeitsbereich.</summary>
     WindowBg,
@@ -62,8 +62,8 @@ public enum ThemeColor
     Selection,
 
     // ---- Das gezeichnete Blatt (5) ------------------------------------------------
-    // Was im WPF-Kopf als rohe <Color> in Themes/Light.xaml steht, weil der Renderer
-    // SKColor braucht und keinen Pinsel.
+    // Was in beiden Köpfen zusätzlich als rohe Farbe unter „Color.X" gebraucht wird, weil
+    // der Renderer ein SKColor braucht und keinen Pinsel.
     //
     // Diese fünf sind ausdrücklich Teil der Tabelle: ein Theme, das sie mit ändert,
     // ändert das Aussehen von Notizbüchern — auch im Export. Ob ein einzelnes Theme

@@ -4,6 +4,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
 using GonkNote.Core.Platform;
+using GonkNote.Core.Theming;
 using GonkNote.Core.Services;
 using GonkNote.Platform;
 using GonkNote.Services;
@@ -81,10 +82,16 @@ public partial class App : Application
 
         Loc.Apply(Loc.FromCode(Db.GetSetting("language")));
 
-        var theme = Db.GetSetting("theme") == "dark" ? AppTheme.Dark : AppTheme.Light;
-        Platform.Theme.Apply(theme);
+        // Zwei Schlüssel, eine Wahl: `theme` sagt hell oder dunkel, `theme-file` nennt die
+        // Datei eines eigenen Designs (leer = mitgeliefert). Der zweite ist der Rückfall des
+        // ersten — ist die Datei gelöscht oder zerschrieben, startet die App in der zuletzt
+        // gewählten Variante statt gar nicht (ThemeLibrary.AtStartup).
+        Platform.Theme.Apply(ThemeLibrary.AtStartup(Db.GetSetting("theme"), Db.GetSetting("theme-file")));
         Platform.Theme.ThemeChanged += () =>
+        {
             Db.SetSetting("theme", Platform.Theme.Current == AppTheme.Dark ? "dark" : "light");
+            Db.SetSetting("theme-file", Platform.Theme.Definition.File ?? "");
+        };
 
         desktop.MainWindow = new MainWindow();
         desktop.ShutdownRequested += (_, _) => Db.Dispose();

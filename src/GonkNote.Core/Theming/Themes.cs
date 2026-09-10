@@ -3,20 +3,19 @@ using GonkNote.Core.Platform;
 namespace GonkNote.Core.Theming;
 
 /// <summary>
-/// Die beiden mitgelieferten Farbtabellen.
+/// Die beiden mitgelieferten Farbtabellen — <b>die einzige Fassung dieser zwanzig Farben im
+/// ganzen Baum</b>.
 /// <para>
-/// Die Werte sind <b>wörtlich</b> dieselben wie in <c>src/GonkNote.Wpf/Themes/Light.xaml</c>
-/// und <c>Dark.xaml</c> — die Farben der App ändern sich mit Phase 3 nicht, sie stehen nur
-/// an einer Stelle mehr zur Verfügung. Der WPF-Kopf liest weiterhin sein
-/// <c>ResourceDictionary</c>; ihn auf die Tabelle umzustellen wäre ein Umbau im laufenden
-/// Kopf ohne Gegenwert und stünde der Regel „der WPF-Kopf verhält sich unverändert"
-/// entgegen.
+/// Bis zum 2026-09-10 standen sie ein zweites Mal in <c>src/GonkNote.Wpf/Themes/Light.xaml</c>
+/// und <c>Dark.xaml</c>, und ein Wächter im WPF-Testprojekt verglich beide Fassungen Zeile
+/// für Zeile — <em>weil zwei Wahrheiten auseinanderlaufen, sobald es niemand nachhält</em>
+/// (§4.13). Mit den eigenen Designs baut auch <c>WpfThemeHost</c> sein
+/// <c>ResourceDictionary</c> aus dieser Tabelle; die zwei XAML-Dateien sind gelöscht und der
+/// Wächter ist damit beantwortet statt abgeschafft.
 /// </para>
 /// <para>
-/// <b>Damit die beiden Fassungen nicht auseinanderlaufen</b>, vergleicht der Test
-/// <c>FarbtabelleTests</c> im WPF-Testprojekt diese Tabelle Zeile für Zeile mit den beiden
-/// XAML-Dateien. Wer hier oder dort eine Farbe ändert, bekommt einen roten Lauf statt zweier
-/// Köpfe, die unterschiedlich aussehen.
+/// <b>Sie sind zugleich der Rückfall jedes geladenen Designs:</b> was eine Theme-Datei nicht
+/// nennt, kommt von hier (<see cref="ThemeDefinition.Over"/>, <see cref="ThemeFile"/>).
 /// </para>
 /// </summary>
 public static class Themes
@@ -80,9 +79,9 @@ public static class Themes
         "#E6ECF7");  // DefaultInk
 
     /// <summary>
-    /// Die Tabelle zu einer Hell/Dunkel-Auskunft. Das ist der Rückfall, solange es keine
-    /// geladenen Tabellen gibt — danach bleibt sie die Vorlage, über die eine eigene Datei
-    /// gelegt wird (<see cref="ThemeDefinition.Over"/>).
+    /// Die Tabelle zu einer Hell/Dunkel-Auskunft — der Rückfall, und seit den eigenen
+    /// Designs zugleich die Vorlage, über die eine eigene Datei gelegt wird
+    /// (<see cref="ThemeDefinition.Over"/>).
     /// </summary>
     public static ThemeDefinition ForVariant(AppTheme variant) =>
         variant == AppTheme.Dark ? Dark : Light;

@@ -73,11 +73,18 @@
                                   Header="{loc:TK Menu.File.Quit|Shortcut.Quit}"/>
                     </MenuItem>
 
-                    <MenuItem Header="{loc:T Menu.View}">
+                    <MenuItem x:Name="AnsichtMenue" Header="{loc:T Menu.View}">
                         <MenuItem Click="Seitenleiste_Click"
                                   Header="{loc:TK Menu.View.Sidebar|Shortcut.Sidebar}"/>
-                        <MenuItem Command="{Binding ToggleThemeCommand}"
-                                  Header="{loc:TK Menu.View.Theme|Shortcut.Theme}"/>
+                        <!-- Das Design-Untermenü (Nutzerwunsch 2026-08-02, HANDOFF §6).
+                             **Der Inhalt entsteht im Code** (MainWindow.Design.cs): Hell,
+                             Dunkel und danach je ein Eintrag pro Datei im Design-Ordner —
+                             eine Liste, die es zur Bauzeit nicht gibt. Der Kürzelhinweis
+                             steht als Tooltip und nicht als Kopfzeile: Strg+T schaltet
+                             zwischen Hell und Dunkel um und wählt keinen der Einträge. -->
+                        <MenuItem x:Name="DesignMenue"
+                                  Header="{loc:T Menu.View.Design}"
+                                  ToolTip.Tip="{loc:T Sidebar.ThemeTooltip}"/>
                         <!-- Die Bildschirmtastatur (Nutzerwunsch 2026-09-09). Drei Zustände
                              statt eines Hakens: „aus" heißt für den einen „ich will gar
                              keine", für den anderen „ich will meine eigene". Das sind zwei

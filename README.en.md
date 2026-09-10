@@ -280,10 +280,11 @@ different on the two editions. Each family's licence text sits beside it as `OFL
 
 **Gonk Note is a side project a school student vibe-coded on the side.** It exists
 because I could not get on with the options that were available (Goodnotes wasn't usable on Windows because, as an Edge-based Progressive Web App, it prevented me from uninstalling Edge and consumed so much RAM and CPU that I sometimes couldn't even have another program open alongside it—despite having 32 GB of RAM—without Goodnotes and, say, my browser becoming incredibly laggy. Opening notebooks took so long it was genuinely annoying (3–12 seconds); Goodnotes would sometimes crash when opening large notebooks (even those under 100 pages), and when it didn't, the app alone caused CPU usage of over 15% and RAM usage exceeding 90%. After an update, a huge crosshair appeared that couldn't be turned off—it was so big that I sometimes couldn't see what I was writing. And as if that weren't enough, neither Goodnotes nor the alternatives (which didn't work for me anyway, as working with styles is important to me) are available for Linux.)
+
 **Practically everything in this project was made by AI:** the code, the architecture,
-the tests, this documentation. My role was that of the client — deciding what gets
+the tests, this documentation. My role was that of the client: deciding what gets
 built, trying it out, reporting bugs, setting the direction. The writing itself was done
-by the AI.
+by the AI. but I did the app icon in Affinity by my self 
 
 So do not take anything here as a reference for "this is how it's done". It is a thing to
 use, not a lesson. If it is useful to you, that makes me happy. If you find a bug, say so

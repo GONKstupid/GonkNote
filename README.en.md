@@ -284,7 +284,7 @@ because I could not get on with the options that were available (Goodnotes wasn'
 **Practically everything in this project was made by AI:** the code, the architecture,
 the tests, this documentation. My role was that of the client: deciding what gets
 built, trying it out, reporting bugs, setting the direction. The writing itself was done
-by the AI. but I did the app icon in Affinity by my self 
+by the AI. But I created the app icon in Affinity by my self. 
 
 So do not take anything here as a reference for "this is how it's done". It is a thing to
 use, not a lesson. If it is useful to you, that makes me happy. If you find a bug, say so

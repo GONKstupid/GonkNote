@@ -191,6 +191,69 @@ public partial class WhiteboardView
     /// </summary>
     private bool _stiftLiegtAuf;
 
+    /// <summary>
+    /// Wann der Stift zuletzt abgehoben hat — <see cref="DateTime.MinValue"/>, wenn noch nie.
+    /// </summary>
+    private DateTime _stiftAbgehoben = DateTime.MinValue;
+
+    /// <summary>
+    /// So lange nach dem Abheben gelten Berührungen weiter als Handballen.
+    ///
+    /// <para>
+    /// ⛔ <b>Der Anlass</b> (Nutzer, 2026-09-10): „Der Stift löst das Textfeld aus, es
+    /// verschwindet jetzt zwar nicht sofort, aber direkt danach — wenn der Stift den
+    /// Bildschirm nicht mehr berührt." Die Abweisung endete **exakt in dem Augenblick**, in
+    /// dem <c>_stiftLiegtAuf</c> auf <c>false</c> ging. Die Hand lag da noch auf dem Glas,
+    /// galt ab dieser Millisekunde als Finger — und schloss die gerade geöffnete
+    /// Beschriftung.
+    /// </para>
+    /// <para>
+    /// <b>Hier ist eine Frist die richtige Antwort und keine geratene Zahl</b>, anders als an
+    /// den Stellen, an denen dieses Projekt Fristen ablehnt: Sie bildet keine Vermutung über
+    /// die Software ab, sondern <b>eine Tatsache über die Hand</b> — sie verlässt das Glas
+    /// nicht gleichzeitig mit der Stiftspitze, sie rollt ab. Jede Notiz-App mit
+    /// Handballenabweisung hat diese Frist; ohne sie ist der erste Zug nach jedem Absetzen
+    /// eine Wette.
+    /// </para>
+    /// <para>
+    /// <b>Kurz gehalten:</b> Sie kostet den Finger für einen Augenblick nach dem Schreiben.
+    /// Wer die Fläche gleich nach dem Absetzen schieben will, merkt eine Verzögerung —
+    /// dagegen steht, dass ohne sie jeder Handballen die Arbeit des Stifts wegwirft.
+    /// </para>
+    /// </summary>
+    private static readonly TimeSpan HandballenNachlauf = TimeSpan.FromMilliseconds(400);
+
+    /// <summary>
+    /// Berührungen, die als Handballen abgewiesen wurden — <b>bis sie losgelassen werden</b>.
+    ///
+    /// <para>
+    /// <b>Das ist der genaue Teil der Abweisung, und er braucht keine Frist.</b> Eine
+    /// Berührung, die beim Aufsetzen Handballen war, bleibt es: dass der Stift zwischendurch
+    /// abhebt, macht aus der aufliegenden Hand keinen Finger. Ohne diese Liste würde
+    /// dieselbe, nie losgelassene Berührung nach dem Abheben plötzlich mitzählen — beim
+    /// Schieben, beim Zoomen und beim Tipp.
+    /// </para>
+    /// </summary>
+    private readonly HashSet<int> _abgewiesen = [];
+
+    /// <summary>
+    /// Ist diese Berührung Handballen? Merkt sich die Antwort für die Dauer der Berührung.
+    /// </summary>
+    private bool HandballenAbweisen(int zeigerId)
+    {
+        if (_abgewiesen.Contains(zeigerId)) return true;
+
+        bool handballen = _stiftLiegtAuf ||
+                          DateTime.UtcNow - _stiftAbgehoben < HandballenNachlauf;
+
+        if (handballen)
+        {
+            _abgewiesen.Add(zeigerId);
+            Spur($"Handballen abgewiesen id={zeigerId} (Stift {(_stiftLiegtAuf ? "liegt auf" : "eben abgehoben")})");
+        }
+        return handballen;
+    }
+
     /// <summary>Aktive Berührungen für die Gesten (1 Finger = schieben, 2 = zoomen).</summary>
     private readonly Dictionary<int, Point> _finger = new();
     private Point _gestenMitte;
@@ -255,6 +318,9 @@ public partial class WhiteboardView
             // scheitern" beschreibt — nur eine Reihenfolge weiter.
             //
             // Wer den Stift aufsetzt, hat entschieden: **was noch aufliegt, ist Hand.**
+            // Sie wandern in die Abgewiesenen, damit auch ihr *Loslassen* still bleibt und
+            // nicht als Tipp durchgeht.
+            foreach (var id in _finger.Keys) _abgewiesen.Add(id);
             _finger.Clear();
             _tippMoeglich = false;
             DruckAbbrechen();
@@ -367,7 +433,12 @@ public partial class WhiteboardView
         DruckAbbrechen();
         Spur($"Los   {e.Pointer.Type} id={e.Pointer.Id}");
 
-        if (e.Pointer.Type == PointerType.Pen) _stiftLiegtAuf = false;
+        if (e.Pointer.Type == PointerType.Pen)
+        {
+            _stiftLiegtAuf = false;
+            // Ab hier läuft der Nachlauf — die Hand liegt noch, siehe HandballenNachlauf.
+            _stiftAbgehoben = DateTime.UtcNow;
+        }
 
         // Nach einem langen Druck ist die Handlung schon verworfen und die Leiste offen —
         // das Loslassen darf sie nicht als Strich-Ende nachbereiten.
@@ -437,12 +508,24 @@ public partial class WhiteboardView
 
     private void BeruehrungBeginnt(PointerPressedEventArgs e, PointerPoint punkt)
     {
-        if (_stiftLiegtAuf) return;   // Handballen, während geschrieben wird
+        if (HandballenAbweisen(e.Pointer.Id))
+        {
+            e.Handled = true;
+            return;
+        }
 
         // **Erst hier den Fokus holen, nicht in `OnPointerPressed`.** Eine Berührung, die die
         // Zeile darüber verwirft, hat nichts zu fokussieren — und genau das hat die offene
         // Beschriftung gekostet (Begründung im Langen bei `OnPointerPressed`).
-        Skia.Focus();
+        //
+        // ⛔ **Und während einer offenen Beschriftung nimmt eine Berührung den Fokus gar
+        // nicht** (Nutzer, 2026-09-10, zweite Fassung des Fehlers): Wer schiebt, während ein
+        // Textfeld offen steht, will schieben — nicht die Beschriftung beenden. Und wer
+        // tippt, beendet sie ohnehin auf dem geordneten Weg, nämlich über `BeginInput` beim
+        // Loslassen (siehe <see cref="BeruehrungEndet"/>). Den Fokus schon beim Aufsetzen zu
+        // nehmen hieße, die Bearbeitung zu schließen, **bevor** feststeht, ob überhaupt
+        // etwas passiert.
+        if (!EditFeld.IsVisible) Skia.Focus();
 
         e.Pointer.Capture(Skia);
         _finger[e.Pointer.Id] = punkt.Position;
@@ -519,6 +602,14 @@ public partial class WhiteboardView
     private void BeruehrungEndet(PointerReleasedEventArgs e)
     {
         e.Pointer.Capture(null);
+
+        // Eine abgewiesene Berührung ist mit dem Loslassen erledigt — die nächste wird neu
+        // beurteilt. Ohne dieses Vergessen wüchse die Liste über die ganze Sitzung.
+        if (_abgewiesen.Remove(e.Pointer.Id))
+        {
+            e.Handled = true;
+            return;
+        }
 
         // **Vor dem Entfernen prüfen**, sonst steht die Zahl schon auf 0 und der Tipp fällt
         // durch. Und nur der Finger, der auch aufgesetzt hat: ein Zeiger, den `_finger` nicht

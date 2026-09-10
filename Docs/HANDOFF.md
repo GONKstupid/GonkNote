@@ -13163,6 +13163,46 @@ Fassung wäre er nicht aufrufbar gewesen, und in `keyboard.command` hätte niema
 mit Argumenten eintragen können. Getrennt wird an Leerzeichen und **nicht über eine Shell**:
 eine Shell dazwischen wäre eine zweite Sprache in einer Einstellung, die von Hand gefüllt wird.
 
+#### ⛔ Nachtrag am selben Tag: die Abweisung endete eine Millisekunde zu früh
+
+**Der Nutzer meldet nach:** „Der Stift löst das Textfeld aus, es verschwindet jetzt zwar nicht
+sofort, aber **direkt danach — wenn der Stift den Bildschirm nicht mehr berührt.**" Und der
+Satz, auf den es ankommt: *„Das Problem daran ist, dass man dann nichts tippen kann, weil das
+Textfeld schon verschwunden ist, wenn man auf der Bildschirmtastatur mit dem Stylus tippt."*
+
+**Die Behebung oben war richtig und zu kurz.** Sie hat den Fall abgedeckt, in dem der Stift
+**aufliegt** — `_stiftLiegtAuf`. Aber diese Bedingung fällt **exakt in dem Augenblick**, in
+dem die Spitze abhebt, und die Hand liegt da noch. Ab dieser Millisekunde galt der Handballen
+als Finger, holte den Fokus und schloss die gerade geöffnete Beschriftung.
+
+**Drei Regeln, und zwei davon brauchen keine Frist:**
+
+1. **Eine abgewiesene Berührung bleibt abgewiesen, bis sie losgelassen wird.** Dass der Stift
+   zwischendurch abhebt, macht aus der aufliegenden Hand keinen Finger. Genau und ohne
+   Zeitmaß (`_abgewiesen`).
+2. **Während einer offenen Beschriftung nimmt eine Berührung den Fokus gar nicht.** Wer
+   schiebt, während ein Textfeld offen steht, will schieben; wer tippt, beendet die
+   Bearbeitung ohnehin auf dem geordneten Weg über `BeginInput` beim Loslassen. Den Fokus
+   schon beim Aufsetzen zu nehmen hieße, die Bearbeitung zu schließen, **bevor** feststeht,
+   ob überhaupt etwas passiert.
+3. **Ein Nachlauf von 400 ms nach dem Abheben** (`HandballenNachlauf`).
+
+**Zu (3) gehört eine Rechtfertigung, denn dieses Projekt lehnt Fristen sonst ab.** Der
+Unterschied: Die Fristen, die hier abgelehnt werden, bilden **Vermutungen über die Software**
+ab — „vielleicht kommt das Ereignis innerhalb von x Millisekunden". Diese hier bildet **eine
+Tatsache über die Hand** ab: sie verlässt das Glas nicht gleichzeitig mit der Stiftspitze, sie
+rollt ab. Jede Notiz-App mit Handballenabweisung hat diese Frist; ohne sie ist der erste Zug
+nach jedem Absetzen eine Wette. **Der Preis ist benannt:** Wer die Fläche unmittelbar nach dem
+Schreiben mit dem Finger schieben will, merkt eine Verzögerung.
+
+**Und der zweite Satz des Nutzers ist der eigentliche Maßstab:** Ein Textfeld, das das Abheben
+des Stifts nicht überlebt, ist **auf einem Stiftgerät unbenutzbar** — man kommt gar nicht bis
+zur Tastatur. *Die Frage war nie, ob das Feld aufgeht, sondern ob es lange genug steht, um
+beschrieben zu werden.*
+
+**Kein Rückschritt am laufenden Programm:** Textfeld mit der Maus anlegen, tippen, woanders
+hinklicken — „Test" steht als Element auf der Fläche.
+
 #### Am laufenden Programm belegt
 
 - **System-Tastatur:** Ansicht → Bildschirmtastatur → System-Tastatur; ein Textfeld bekommt

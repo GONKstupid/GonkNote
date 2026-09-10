@@ -136,12 +136,30 @@ public partial class WhiteboardView
     /// <summary>Wie viele Zeilen das Protokoll behält — so viele, wie neben die Fläche passen.</summary>
     private const int SpurTiefe = 8;
 
-    /// <summary>Schreibt eine Zeile ins Protokoll der F9-Anzeige. Aus = kostenlos.</summary>
+    /// <summary>
+    /// Schreibt eine Zeile ins Protokoll der F9-Anzeige. Aus = kostenlos.
+    ///
+    /// <para>
+    /// <b>Sie geht zusätzlich nach <c>stderr</c></b>, und das hat einen praktischen Grund:
+    /// Auf dem Schirm stehen acht Zeilen, und wer sie ablesen will, muss sie abtippen oder
+    /// fotografieren. Über <c>stderr</c> landet dieselbe Zeile im Journal der Sitzung
+    /// (<c>journalctl --user -t GonkNote.Avalonia</c>) und ist damit **nachlesbar, ohne dass
+    /// jemand daneben steht.** Ein Fehler, der nur im Augenblick sichtbar ist, kostet sonst
+    /// jedes Mal eine Rückfrage.
+    /// </para>
+    /// <para>
+    /// <b>Nur mit eingeschalteter Anzeige</b> — ein Programm, das ungefragt bei jedem
+    /// Zeigerdruck ins Journal schreibt, ist eine Zumutung für das System und eine für den,
+    /// der es später durchsucht.
+    /// </para>
+    /// </summary>
     private void Spur(string was)
     {
         if (!_stiftAnzeige) return;
-        _spur.Enqueue($"{DateTime.Now:HH:mm:ss.fff}  {was}");
+        var zeile = $"{DateTime.Now:HH:mm:ss.fff}  {was}";
+        _spur.Enqueue(zeile);
         while (_spur.Count > SpurTiefe) _spur.Dequeue();
+        Console.Error.WriteLine($"[Spur] {zeile}");
         Neuzeichnen();
     }
 
@@ -183,7 +201,6 @@ public partial class WhiteboardView
     private void OnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         if (_vm == null || _page == null) return;
-        Skia.Focus();   // Tastenkürzel brauchen den Fokus auf der Fläche, nicht auf dem Rahmen
 
         var punkt = e.GetCurrentPoint(Skia);
         var art = e.Pointer.Type;
@@ -193,16 +210,54 @@ public partial class WhiteboardView
 
         if (art == PointerType.Touch)
         {
+            // **Der Fokus wird hier NICHT geholt.** Eine Berührung, die die
+            // Handballenabweisung gleich verwirft, darf auch den Tastaturfokus nicht
+            // anfassen — siehe die Begründung unten.
             BeruehrungBeginnt(e, punkt);
             return;
         }
 
         // ---- Stift und Maus ----
+        //
+        // ⛔ **Hier stand `Skia.Focus()` als allererste Zeile der Methode — vor der
+        // Zeigerart, vor der Handballenabweisung, vor allem.** Das war der Fehler, an dem
+        // das Textfeld-Werkzeug mit Stift und Finger gescheitert ist (Nutzer, 2026-09-09,
+        // zweimal gemeldet; die erste Behebung in §4.105 hat ihn nicht getroffen).
+        //
+        // **Der Ablauf:** Der Stift setzt auf, `BeginTextInput` legt das Eingabefeld an und
+        // gibt ihm den Fokus. Im selben Augenblick meldet der Digitizer die **Berührung**,
+        // die zur Stiftspitze gehört — oder den Handballen daneben. Dieser zweite Druck lief
+        // in Zeile 1 in `Skia.Focus()`, **bevor** irgendjemand ihn als Handballen verwerfen
+        // konnte. Das Feld verlor den Fokus an die Fläche, `EditFeld_Verlassen` schloss die
+        // Bearbeitung, und weil ein frisches Feld leer ist, wurde es dabei **verworfen**.
+        // Auf dem Schirm: das Feld blitzt auf und ist weg.
+        //
+        // **Warum die Regel aus §4.105 nicht griff:** Sie fängt einen Fokusverlust *ohne
+        // Nachfolger* ab. Hier gab es einen Nachfolger — die Zeichenfläche selbst. *Eine
+        // Abwehr, die den falschen Fall abdeckt, sieht wie eine Behebung aus.*
+        //
+        // **Und warum es mit der Maus ging:** Eine Maus erzeugt keine zweite Berührung.
+        //
+        // Der Fokus gehört weiterhin auf die Fläche (die Tastenkürzel hängen daran) — aber
+        // erst hier, wo feststeht, dass es ein Druck ist, der auch etwas tun darf.
+        Skia.Focus();
         e.Pointer.Capture(Skia);
 
         if (art == PointerType.Pen)
         {
             _stiftLiegtAuf = true;
+
+            // ⛔ **Die Handballenabweisung hatte ein Loch in der anderen Richtung.** Sie
+            // verwirft Berührungen, die **nach** dem Stift aufsetzen — eine, die schon
+            // vorher lag, stand weiter in `_finger` und hat über `BeruehrungBewegt`
+            // **weitergeschoben, während geschrieben wurde**. Genau der Fehler, den der
+            // Kommentar bei `_stiftLiegtAuf` als „der Fehler, an dem Notiz-Apps üblicherweise
+            // scheitern" beschreibt — nur eine Reihenfolge weiter.
+            //
+            // Wer den Stift aufsetzt, hat entschieden: **was noch aufliegt, ist Hand.**
+            _finger.Clear();
+            _tippMoeglich = false;
+            DruckAbbrechen();
             // Das Radiergummi-Ende meldet sich als eigener Zeiger — dafür braucht es keine
             // Einstellung und keinen Werkzeugwechsel.
             //
@@ -383,6 +438,11 @@ public partial class WhiteboardView
     private void BeruehrungBeginnt(PointerPressedEventArgs e, PointerPoint punkt)
     {
         if (_stiftLiegtAuf) return;   // Handballen, während geschrieben wird
+
+        // **Erst hier den Fokus holen, nicht in `OnPointerPressed`.** Eine Berührung, die die
+        // Zeile darüber verwirft, hat nichts zu fokussieren — und genau das hat die offene
+        // Beschriftung gekostet (Begründung im Langen bei `OnPointerPressed`).
+        Skia.Focus();
 
         e.Pointer.Capture(Skia);
         _finger[e.Pointer.Id] = punkt.Position;

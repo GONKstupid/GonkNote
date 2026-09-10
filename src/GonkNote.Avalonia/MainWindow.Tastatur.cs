@@ -64,21 +64,39 @@ public partial class MainWindow
 
     /// <summary>
     /// Wonach gesucht wird, wenn der Nutzer keinen Befehl eingetragen hat — in dieser
-    /// Reihenfolge.
+    /// Reihenfolge, und <b>jeder Eintrag prüft seine eigene Voraussetzung</b>.
     ///
     /// <para>
-    /// <b>Die Liste ist eine Bequemlichkeit und keine Festlegung.</b> Sie steht hier und
-    /// nicht in Core, weil sie eine Aussage über <i>Linux-Arbeitsumgebungen</i> ist und
-    /// nicht über die App; ein iPadOS-Kopf hätte damit nichts anzufangen. Wer eine andere
-    /// Tastatur benutzt, trägt seinen Befehl in die Einstellung ein — <b>deshalb ist die
-    /// Liste kurz und wird nicht gepflegt</b>: eine lange Liste sähe aus wie eine
-    /// Zusicherung, dass alles Aufgezählte funktioniert.
+    /// ⛔ <b>Warum die Voraussetzung mit dazugehört</b> (Nutzer, 2026-09-10): Die erste
+    /// Fassung dieser Liste hat nur gefragt, ob der <i>Befehl</i> im Pfad liegt. Auf diesem
+    /// Rechner liegt <c>omarchy-toggle-osk</c> im Pfad — aber er startet <c>wvkbd-mobintl</c>,
+    /// und <b>das ist gar nicht installiert.</b> GonkNote hat also brav einen Befehl
+    /// gerufen, der jedes Mal mit „Command not found: wvkbd-mobintl" scheiterte, <b>während
+    /// die Tastatur, die der Nutzer wirklich benutzt, danebenstand und funktioniert hätte.</b>
+    /// <i>Ein vorhandener Startknopf ist kein Beleg dafür, dass hinter ihm etwas steht.</i>
+    /// </para>
+    /// <para>
+    /// <b>Die Liste bleibt trotzdem kurz und wird nicht gepflegt.</b> Wer eine andere
+    /// Tastatur benutzt, trägt seinen Befehl unter <c>keyboard.command</c> ein — eine lange
+    /// Liste sähe aus wie eine Zusicherung, dass alles Aufgezählte funktioniert, und genau
+    /// diese Zusicherung ist oben gebrochen.
     /// </para>
     /// </summary>
-    private static readonly string[] BekannteBefehle =
+    private static readonly (string Befehl, Func<bool> Vorhanden)[] BekannteBefehle =
     [
-        "omarchy-toggle-osk",   // Omarchy (dieser Rechner)
-        "squeekboard-toggle",
+        // Das Plugin, das der Nutzer benutzt. Erkannt am Plugin-Ordner und nicht am
+        // Startknopf: `omarchy-shell` gibt es auf jedem Omarchy, das Plugin nicht.
+        ("omarchy-shell onscreen-keyboard toggle",
+            () => ImPfad("omarchy-shell") &&
+                  Directory.Exists(Path.Combine(
+                      Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+                      ".config", "omarchy", "plugins",
+                      "io.github.mtolhuys.onscreen-keyboard"))),
+
+        // Omarchys eigener Umschalter — **nur wenn wvkbd wirklich da ist**, siehe oben.
+        ("omarchy-toggle-osk", () => ImPfad("omarchy-toggle-osk") && ImPfad("wvkbd-mobintl")),
+
+        ("squeekboard-toggle", () => ImPfad("squeekboard-toggle")),
     ];
 
     // ==================== Menü ====================
@@ -185,8 +203,8 @@ public partial class MainWindow
 
     private static string? BefehlSuchen()
     {
-        foreach (var name in BekannteBefehle)
-            if (ImPfad(name)) return name;
+        foreach (var (befehl, vorhanden) in BekannteBefehle)
+            if (vorhanden()) return befehl;
         return null;
     }
 
@@ -217,16 +235,32 @@ public partial class MainWindow
     /// </summary>
     private void SystemtastaturUmschalten()
     {
-        if (_tastaturBefehl is not { Length: > 0 } befehl) return;
+        if (_tastaturBefehl is not { Length: > 0 } zeile) return;
+
+        // **Der Befehl darf Argumente haben.** Der Umschalter des Plugins heißt
+        // `omarchy-shell onscreen-keyboard toggle` — drei Wörter. Die erste Fassung hat die
+        // ganze Zeile als Dateinamen genommen; damit war jeder Befehl mit Argumenten von
+        // vornherein unbrauchbar, und in der Einstellung `keyboard.command` hätte niemand
+        // einen eintragen können.
+        //
+        // **Getrennt wird an Leerzeichen und nicht über eine Shell.** Eine Shell dazwischen
+        // wäre eine zweite Sprache in einer Einstellung, die der Nutzer von Hand füllt —
+        // mit Anführungszeichen, Ersetzungen und allem, was daran hängt.
+        var teile = zeile.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (teile.Length == 0) return;
+
         try
         {
-            using var p = Process.Start(new ProcessStartInfo
+            var start = new ProcessStartInfo
             {
-                FileName = befehl,
+                FileName = teile[0],
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
-            });
+            };
+            foreach (var arg in teile.Skip(1)) start.ArgumentList.Add(arg);
+
+            using var p = Process.Start(start);
             _systemtastaturOffen = !_systemtastaturOffen;
         }
         catch

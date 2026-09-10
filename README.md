@@ -286,8 +286,7 @@ Dokument auf beiden Ausgaben verschieden aus. Die Lizenztexte liegen je Familie 
 ## Ein ehrliches Wort zum Schluss
 
 **Gonk Note ist ein nebenher gevibecodetes Projekt eines Schülers.** Es ist entstanden,
-weil ich mit den Möglichkeiten, die es gab, nicht zurechtkam — und nicht, weil ich es
-besser könnte.
+weil ich mit den Möglichkeiten, die es gab, nicht zurechtkam (Goodnotes war unter widows nicht brauchbar da es als auf edge basierende Progressiv web app 1. mir nicht ermöglicht hat edge zu deinstallieren, so krass viel Ram und CPU gefressen hat, dass ich teilweise nicht mal ein aderes Programm neben Goodnotes offen haben konnte (32 GB RAM btw) ohne das goodnotes und beispielsweise mein browser krass laggy wurde, Zeiten um Notizbücher zu öffnen waren so lange das es aktive genervt hat (3-12 sek), beim öffnen von großen Notizbüchern (noch unter 100 Seiten) ist Goodnotes manchmal abgestürzt und wenn nicht hatte ich durch Goodnotes allein eine CPU Auslastungvon 15% + und eine RAM Auslastung von über 90%, nach einem update hatte ich auf einmal ein fettes Fadenkreuz bekommen was man nicht ausschalten konnte und so fett war das ich teilweise nicht sehen konnte was ich schreibe und wenn das nicht genug wäre gibt es Goodnotes und alternativen (mit den ich auch nicht zurecht kam, das arbeiten mit Styles ist mir wichtig) nicht für Linux.) 
 
 **Praktisch alles in diesem Projekt wurde von KI gemacht:** der Code, die Architektur,
 die Tests, diese Dokumentation. Meine Rolle war die des Auftraggebers — entscheiden, was

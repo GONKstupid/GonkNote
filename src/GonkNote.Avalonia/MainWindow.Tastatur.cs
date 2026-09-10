@@ -119,6 +119,14 @@ public partial class MainWindow
         _tastaturBefehl = App.Db.GetSetting("keyboard.command");
         if (string.IsNullOrWhiteSpace(_tastaturBefehl)) _tastaturBefehl = BefehlSuchen();
 
+        // **Einmal beim Start ins Journal**, und zwar ungefragt. Das ist die eine Auskunft,
+        // die man braucht, wenn die System-Tastatur nicht aufgeht — und ohne sie bleibt nur
+        // Raten (2026-09-10 zweimal erlebt: erst der falsche Befehl, dann die Frage, ob
+        // ueberhaupt einer gefunden wurde). Eine Zeile pro Programmstart ist keine Last.
+        Console.Error.WriteLine(_tastaturBefehl is { Length: > 0 } b
+            ? $"[Tastatur] Befehl fuer die System-Tastatur: {b}"
+            : "[Tastatur] Kein Befehl fuer eine System-Tastatur gefunden.");
+
         TastaturmodusSetzen(App.Db.GetSetting("keyboard") switch
         {
             "eingebaut" => Tastaturmodus.Eingebaut,
@@ -182,6 +190,8 @@ public partial class MainWindow
         if (_tastaturmodus == Tastaturmodus.Aus) return;
 
         bool will = WillText(e.Source);
+        if (_tastaturmodus == Tastaturmodus.System)
+            Console.Error.WriteLine($"[Tastatur] Fokus -> {e.Source?.GetType().Name}, willText={will}, offen={_systemtastaturOffen}");
 
         if (_tastaturmodus == Tastaturmodus.Eingebaut)
         {
@@ -262,10 +272,15 @@ public partial class MainWindow
 
             using var p = Process.Start(start);
             _systemtastaturOffen = !_systemtastaturOffen;
+            Console.Error.WriteLine(
+                $"[Tastatur] {zeile} -> jetzt {(_systemtastaturOffen ? "offen" : "zu")}");
         }
-        catch
+        catch (Exception ex)
         {
-            // Siehe oben: still. Der Modus bleibt, damit der nächste Versuch nicht ausbleibt.
+            // **Still auf dem Schirm, laut im Journal.** Eine Fehlermeldung bei jedem
+            // Antippen eines Textfelds waere unertraeglich; gar keine Spur zu hinterlassen
+            // hat diese Runde aber eine ganze Messung gekostet.
+            Console.Error.WriteLine($"[Tastatur] {zeile} gescheitert: {ex.Message}");
         }
     }
 }

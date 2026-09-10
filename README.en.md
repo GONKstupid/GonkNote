@@ -1,358 +1,238 @@
 # Gonk Note
 
-A modern, offline-capable note-taking app for **Windows 11 and Linux** — an alternative to
-GoodNotes with notebooks, whiteboards and text documents. Stylus-friendly (Wacom, Microsoft
-Pen, …), no cloud, no installer, no admin rights.
+A modern, offline-capable note-taking app for **Windows 11 and Linux** — an alternative
+to GoodNotes with notebooks, whiteboards and text documents. Stylus-friendly (Wacom,
+Microsoft Pen, …), no cloud, no installer, no admin rights.
 
-> **New here?** The step-by-step guide
-> **[Getting started](GETTING-STARTED.md)** takes you from cloning the repo to your first
-> written, exported and backed-up note in about 10 minutes. This page describes *what*
-> Gonk Note can do — the guide shows *how* to begin.
-
-*(English version. The German original is `README.md`. Inside the app this page follows the
-language you picked under View → Language.)*
+*(English version. The German original is [`README.md`](README.md). Inside the app this
+page follows the language you picked under View → Language.)*
 
 ![A notebook page with pen, pencil, highlighter, shapes and a sticky note](site/bilder/notizbuch.en.png)
 
+## Documentation
+
+| You want to … | Read |
+|---|---|
+| **install** Gonk Note | [Docs/INSTALL.md](Docs/INSTALL.md) |
+| **get started** (10 minutes) | [Docs/GETTING-STARTED.md](Docs/GETTING-STARTED.md) |
+| know **what** the app can do | this README, the [Features](#features) section |
+| **build** it yourself | [Build](#build) below, in detail in [Docs/INSTALL.md](Docs/INSTALL.md) |
+| **contribute** | [CONTRIBUTING.md](CONTRIBUTING.md) |
+
 ## Install
 
-**Three ways, and none of them needs admin rights.** All downloads are under
-[Releases](https://github.com/GONKstupid/GonkNote/releases).
+**Three ways, none of them needs admin rights.** All downloads are under
+[Releases](https://github.com/GONKstupid/GonkNote/releases); the details are in
+[Docs/INSTALL.md](Docs/INSTALL.md).
 
-**1. Windows 11** — download `GonkNote-1.0.2-windows-x64.zip`, unpack it, run
-`GonkNote.exe`. It needs no installed .NET and writes nothing to the registry.
-
-⚠ **Keep the folder together.** Three folders sit next to the exe and each is needed:
-`Fonts` (interface and document fonts), `tessdata` (text-recognition language data) and
-`Assets` (cover templates, set square). **Without `Fonts` Gonk Note still starts** and draws
-everything in the Windows system font — with no hint that anything is missing. If you move
-the exe, take the three folders along.
-
-**2. Linux, AppImage** — one file, no dependencies, no sandbox:
-
-```bash
-chmod +x GonkNote-1.0.2-x86_64.AppImage
-./GonkNote-1.0.2-x86_64.AppImage
-```
-
-Your system needs **fontconfig and at least one font** — without them every drawn piece of
-text stays blank. That is the only prerequisite; everything else is inside the image,
-**including text recognition**: it works on a machine where no Tesseract is installed at all.
-
-**3. Linux, Flatpak** — sandbox and software centre, and intended as the main channel.
-**Gonk Note is not on Flathub yet**, though; that entry is still outstanding. Until then you
-build the package yourself; the prerequisites (runtime and SDK from Flathub) and the two
-commands are in [packaging/LIESMICH.md](packaging/LIESMICH.md) (German):
-
-```bash
-cd packaging/flatpak && ./bauen.sh
-flatpak run io.github.gonkstupid.GonkNote
-```
-
-**Rather build it yourself?** The [Build](#build) section further down covers both editions
-from source. If you are starting from scratch, [Getting started](GETTING-STARTED.md) is the
-better place.
+1. **Windows 11** — unpack `GonkNote-<version>-windows-x64.zip`, run `GonkNote.exe`. No
+   installed .NET needed. ⚠ **Keep the folder together:** `Fonts`, `tessdata` and
+   `Assets` sit next to the exe, and without `Fonts` Gonk Note quietly draws in the
+   Windows system font.
+2. **Linux, AppImage** — one file, no dependencies, no sandbox. The only prerequisite is
+   **fontconfig and one font**; text recognition is inside the image.
+3. **Linux, Flatpak** — intended as the main channel, **not on Flathub yet**. Until then
+   build it yourself (`packaging/flatpak/bauen.sh`).
 
 > **Your data stays where it is.** On first start Gonk Note creates one folder —
-> `%APPDATA%\GonkNote` on Windows, `~/.config/GonkNote` on Linux — and writes nowhere else.
-> To uninstall, delete the program and that folder.
+> `%APPDATA%\GonkNote` on Windows, `~/.config/GonkNote` on Linux — and writes nowhere
+> else. To uninstall, delete the program and that folder.
 
 ## Two editions, one app
 
-Gonk Note comes as a **Windows edition** (WPF) and a **Linux edition** (Avalonia). Both read
-the same database, use the same core library and draw with the same renderer — a notebook
-looks identical on either.
+Gonk Note comes as a **Windows edition** (WPF) and a **Linux edition** (Avalonia). Both
+read the same database, use the same core library and draw with the same renderer — a
+notebook looks identical on either.
 
-**Both editions can do the same** — everything on this page applies to both. Folder tree
-including drag & drop, pinning and favourites, gallery, two languages, dark/light, the
-sliding title bar, help and about dialog; the canvas for **notebooks and whiteboards** with
-pen, pencil and highlighter including pressure and tilt, precise erasing, lasso and move,
-shape pen, text boxes, sticky notes, stickers, import, ruler and set square, numpad, quick
-actions and **text recognition**; page navigation, adding and deleting pages, page settings,
-zoom, touch gestures, undo and saving — and the **text document editor**.
+**Both can do the same.** Everything under [Features](#features) applies to both: folder
+tree, gallery, two languages, dark/light, your own themes, the canvas for notebooks and
+whiteboards including text recognition — and the text-document editor with display,
+import and export.
 
-The short list below says where they still differ. **It is complete:** every entry in it has
-been measured, none estimated.
+**The differences are listed in full** — every entry has been measured, none estimated:
 
-**Text documents are displayed and written.** A text document opens as typeset paper — with
-headings, character formats, lists, tables, images, charts and running heads, page by page,
-with zoom, "Fit width" and "Whole page". **What you see is exactly what would be exported** —
-same layout, same renderer. Plus **import** (DOCX, Markdown) and **export** (PDF, DOCX,
-Markdown, PNG).
+| The Linux edition lacks | Why |
+|---|---|
+| **Spell checking** | On Windows it rides on a Windows service. A counterpart is the first item after the port and firmly scheduled |
+| **Composed characters** (`´` + `e` → `é`) do not arrive | A bug in Avalonia's window layer on Linux, reported there. Plain characters and umlauts are unaffected |
+| **Ruler** above the text document | Deliberately left out: in the Windows edition it is decoration without function. The numbers are in the "Layout" tab and changeable there |
+| **Existing documents from the Windows edition** appear only after being opened and saved there once | Their old format is readable on Windows only. Their contents stay untouched |
+
+| The Windows edition lacks | Why |
+|---|---|
+| **Page numbers** in the text editor | It does not compute pages but lets Windows flow the text. The Linux edition typesets real pages and knows which one you are on |
+
+Nothing is lost along the way: whatever one edition cannot display, it does not touch —
+a file created on Windows comes back out unchanged on Linux.
 
 ![The text editor with headings, lists and a table](site/bilder/textdokument.en.png)
 
-**What the Linux edition still lacks** — each with a reason, none of it forgotten:
-
-| Missing | Why |
-|---|---|
-| **Spell checking** | On Windows it rides on a Windows service. A counterpart is the **first item after the port** and firmly scheduled |
-| **Composed characters** (`´` + `e` → `é`) do not arrive | A bug in Avalonia's window layer on Linux, not in Gonk Note. It is reported there; plain characters and umlauts are unaffected |
-| **Ruler** above the text document | Deliberately left out: in the Windows edition it is decoration without function — the margins cannot be dragged there. What it shows is in the "Layout" tab as numbers, and changeable |
-| **Existing documents from the Windows edition** appear only after being opened and saved there once | Their old format is readable on Windows only. Their contents stay untouched |
-
-![The same notebook page in the Windows edition](site/bilder/windows.png)
-
-*The same page, the same database, the Windows edition. The renderer is the same — what looks
-different here is the toolbar and nothing else. (The screenshot is in German; the Windows
-edition speaks both languages just like the Linux one.)*
-
-And the **Windows** edition lacks one thing in return: its text editor shows **no page
-numbers**. It does not compute pages but lets Windows flow the text; the Linux edition
-typesets real pages and therefore knows which one you are on.
-
-Nothing is lost along the way: whatever one edition cannot display, it does not touch either
-— a file you created on Windows comes back out unchanged on Linux.
-
 ## Features
+
+### Organising
 
 - **Folder tree** with arbitrary nesting, drag & drop (move, hold `Ctrl` to copy),
   rename (`F2`), delete (`Del`), context menu, freely chosen icon colours — items and
-  subfolders **inherit their folder's colour automatically** as long as they have none of their own
-- **Pinning & favourites**: pinned folders appear in the sidebar's quick-access area;
-  favourites are listed first inside their folder
-- **Gallery start view** (when no document is open): the current folder's contents as large
-  tiles (GoodNotes-style) – coloured folder icons, notebook covers as previews, cards for
-  whiteboards and text documents, each with name, date and context menu. Selecting a folder in
-  the tree or opening a folder tile navigates into it (breadcrumb + back)
+  subfolders **inherit their folder's colour** as long as they have none of their own
+- **Pinning & favourites**: pinned folders in quick access, favourites first
+- **Gallery start view**: the current folder as large tiles (GoodNotes-style), with
+  notebook covers as previews, breadcrumb and back
+- **Two languages** (German/English), switchable under **View → Language** at runtime;
+  document names stay unchanged
+- **Dark/light mode** (`Ctrl+T`); pages stay light by default, the title bar follows the
+  theme. The sidebar collapses with `Ctrl+B`
+- **Your own themes**: a theme is a JSON file of up to twenty named colours in `Themes/`
+  inside the data folder. `View → Theme` lists them next to Light and Dark; "Save
+  template…" writes a starting point, "Load your own…" picks up a file from elsewhere.
+  Whatever is missing comes from Light or Dark — three colours are enough. Guide and an
+  AI prompt in
+  [Docs/GETTING-STARTED.md](Docs/GETTING-STARTED.md#12-your-own-themes--including-with-an-ai)
 
   ![The gallery: notebook, whiteboard and text document as tiles](site/bilder/galerie.en.png)
 
-- **Two languages**: the interface can be switched between **German** and **English** under
-  **View → Language** — at runtime, without restarting. The choice is remembered. Your own
-  document names stay untouched; only the interface changes.
-- **Three document types**, each in its own tab:
-  - **Notebook** — A4/A3 pages with a customisable cover (gradient, lettering or your own
-    image; bundled cover templates in the categories "Basic", "Muster" and "Pixel Art" plus
-    your own uploadable templates under "Individuell")
-  - **Whiteboard** — an infinite canvas with a dot grid
-  - **Text document** — a rich-text editor with a permanently light writing surface
-- **Whiteboard tools** (SkiaSharp rendering; the default colour follows the page: black on
-  light pages, white on dark ones):
-  - Pen (pressure-sensitive), pencil, highlighter
-  - **Shape pen** (`G`): recognises drawn shapes like GoodNotes does — straight lines
-    (snapping to 45°), circles/ellipses, rectangles, polylines; otherwise the curve is smoothed
-  - **Eraser** erases precisely: strokes are split at the point of contact, and the back of the
-    stylus erases automatically. Its size is set with the size slider (or the number pad via a
-    long press) and is remembered separately from the stroke width
-  - **Selection** with two tools: **lasso** (`L`) encircles objects (only what is ~fully
-    enclosed) and **move** (`V`) selects objects directly by clicking. Selected objects can be
-    moved, **scaled** (corner handle) and **rotated** (rotation handle snapping to 15°) — for
-    strokes, shapes, text, images and sticky notes
-  - **Quick options menu** on the canvas (a floating icon bar in toolbar style: cut, copy,
-    duplicate, paste, **recognise text (OCR)**, delete, select all) — opens via right-click,
-    the **second stylus button**, a **long press** (finger or stylus, with lasso/move/hand) or
-    automatically after a selection; entirely without the keyboard
-  - **Stroke width via number pad**: a long press on the size slider (or a click on the value)
-    opens a numpad for direct entry (modelled on Adobe Fresco)
-  - **OCR** (text recognition, offline via Tesseract, German/English): recognises printed text
-    in selected images or imported PDF pages; copy the result or insert it as a sticky note
-  - Shapes (line, arrow, rectangle, ellipse, triangle) with fill colour and opacity —
-    settings in the sidebar on the right
-  - **Text boxes** with a choice of font, text and background colour (automatic contrast
-    protection)
-  - **Sticky notes** (coloured notes) and **stickers** (image stickers). Gonk Note deliberately
-    ships no stickers for licensing reasons — put your own images into
-    `%APPDATA%\GonkNote\Stickers` (or use the "+" tile in the sticker tool); subfolders appear
-    as separate groups
-  - **Drawing aids**: ruler (`R`) and set square (`D`), rotatable and snapping. The set square
-    is a bundled vector graphic with millimetre and degree scales (one version each for the
-    light and dark app theme). Your own drawing takes precedence: place it as
-    `%APPDATA%\GonkNote\Geodreieck-Light.svg` or `-Dark.svg`
-  - **Insert images**: toolbar button, `Ctrl+V` or drag & drop (PNG, JPEG, BMP, GIF, WebP,
-    SVG); scalable proportionally with the corner handle
-  - **Insert PDF & Word** (toolbar button or drag & drop): with a page selection dialog; in a
-    notebook every page becomes a page of its own to write and highlight on (like GoodNotes),
-    in a whiteboard the pages land as high-resolution, scalable images.
-    **Very large PDFs too**: the file is never loaded in one piece, the selection shows fast
-    thumbnails, and only the pages you actually insert are rendered at full resolution
-    (picking five pages out of 600 takes seconds instead of minutes)
-  - Undo/redo (`Ctrl+Z` / `Ctrl+Y`), zoom (`Ctrl+mouse wheel`), pan (middle mouse button,
-    space bar, hand tool)
-- **Touch gestures**: one finger pans the view, two fingers zoom (pinch) and pan, a
-  three-finger double tap undoes
-- **Settings sidebar on the right** (gear icon): page pattern and shade, format (A4/A3,
-  portrait/landscape, template for new pages), shape options, text options, cover design and an
-  **export section** (PDF/PNG straight from the sidebar) — changes take effect immediately
-- **Text editor** in a ribbon layout (Home / Insert / Layout / References, plus the contextual
-  tab **Table** when the caret sits inside a table):
-  - Character and paragraph formatting, styles (Normal, Heading 1–4, Title, Quote,
-    header/footer), format painter, lists with a style library, find & replace
-  - **Advanced settings** (an expandable sidebar): page setup (A4/A5/A3/Letter,
-    portrait/landscape, margins in cm including a worksheet template), paragraphs,
-    headers/footers with placeholders, watermark, and table design/borders — each opened from
-    its ribbon button
-  - **Table of contents** from the headings, hyperlinks, special characters, captions
-  - **Tables like in Word** (contextual tab "Table"): grid insert, text↔table, quick tables,
-    rows/columns, merge cells (vertically too)/split, split table, autofit, sorting, formulas
-    (`=SUMME(ABOVE)` …), table styles with header/total rows and banded rows/columns, borders
-    and shading
-  - **Charts** (column, bar, line, scatter, scatter+line, pie, radar — several series, colours
-    extendable via "+" and removable via right-click)
-  - Spell checking (German/English, switchable in the status bar; the chosen language applies
-    to the whole document and is re-checked immediately) with correction suggestions.
-    Note: the markings come from Windows – if no dictionary is installed for a language (English
-    on a German-only Windows, say), a warning symbol appears and nothing is marked; the language
-    can be added in the Windows settings. Ruler, status bar (words, zoom), heading navigator,
-    page-break marks
-- **Import**: images, PDF, DOCX and **Markdown (`.md`)** — DOCX/Markdown become new text documents
-- **Export**: text document → PDF / DOCX / Markdown / PNG, whiteboard/notebook → PDF / PNG —
-  via "File → Export" or the export section of the settings sidebar. If the original data for an
-  image is missing, Gonk Note says so after the export instead of quietly exporting at lower
-  quality
-- **Dark/light mode** (`Ctrl+T`) for the app design — pages and writing surfaces stay light by
-  default; the window title bar follows the theme (dark in dark mode). The sidebar collapses
-  with `Ctrl+B`
-- **Your own themes**: a theme is a JSON file of twenty named colours, kept in `Themes/` inside
-  the data folder. `View → Theme` lists them next to Light and Dark; "Save template…" writes the
-  active theme out as a starting point, "Load your own…" picks up a file from elsewhere.
-  Whatever a file does not name comes from Light or Dark — three colours are enough.
-  **Applies to both editions**
-- **Maximised window without a title bar**: when the window is maximised the title bar hides
-  and the menu bar moves up. Move the mouse to the top edge and a title bar (minimise, restore,
-  close) glides back in. A double-click on the menu bar (or the standard Windows commands)
-  restores the window
-- **Persistence**: a SQLite file `gonknote.sqlite` in the data folder for texts, strokes
-  and structure; **images and imported PDF/Word pages live next to it** in
-  `gonknote.blobs\` — one file per image. The data folder is `%APPDATA%\GonkNote` on
-  Windows and `~/.config/GonkNote` on Linux; **Help → About Gonk Note** shows it. Autosave
-  every 30 s, plus a save when closing tabs and the app.
-  **For a backup, take both: the file *and* the folder.**
-  Up to version 0.2.0 the file was called `gonknote.db` and was a LiteDB file. It is
-  **migrated once** on the first start after that and then stays next to the new one,
-  unchanged — a way back for as long as you keep it.
-  **From now on back up `gonknote.sqlite`, no longer `gonknote.db`:** the old file no longer
-  grows with your work and would soon be an outdated state.
-  Images no longer referenced by any document move to `gonknote.papierkorb\` and are only
-  removed for good after 30 days; if an image is needed again before that, Gonk Note fetches it
-  back by itself
-- **Large documents**: originals are stored untouched and written back untouched on export; what
-  you see is a downscaled derivative. A Word document with photos therefore comes out exactly as
-  large as it went in (previously eight times as large), and a notebook with 120 imported pages
-  (118 MB) can be saved and opened. Memory stays flat during a PDF import: 530 MB of rendered
-  pages pass through with a peak of about 114 MB. Several hundred pages are no problem in the
-  text editor — a 500-page document opens in roughly 1.8 seconds
-- **Memory use**: around 180 MB after startup, about 290 MB with a notebook open — regardless of
-  how large the document is, because only the currently visible pages are held in memory (budget
-  96 MB). Closing a tab releases memory; the undo history is capped at 200 steps so it does not
-  grow during long sessions
+### Notebook & whiteboard
+
+- **Three document types**, each in its own tab: **notebook** (A4/A3 pages with a
+  customisable cover), **whiteboard** (infinite canvas with a dot grid), **text
+  document** (see below)
+- **Tools** (SkiaSharp rendering; the default colour follows the page): pen
+  (pressure-sensitive), pencil, highlighter
+- **Shape pen** (`G`): recognises drawn shapes like GoodNotes — straight lines (snapping
+  to 45°), circles/ellipses, rectangles, polylines; otherwise the curve is smoothed
+- **Eraser**: splits strokes precisely at the point of contact, the back of the stylus
+  erases automatically, its size remembered separately from the stroke width
+- **Selection** with **lasso** (`L`) and **move** (`V`): selected objects can be moved,
+  **scaled** (corner handle) and **rotated** (15° snapping) — strokes, shapes, text,
+  images, sticky notes
+- **Quick options menu** on the canvas (cut, copy, duplicate, paste, recognise text,
+  delete, select all) — via right-click, the second stylus button, a long press or
+  automatically after a selection; entirely without the keyboard
+- **Stroke width via number pad**: a long press on the size slider opens a numpad
+- **OCR** (offline via Tesseract, German/English): recognises printed text in selected
+  images or imported PDF pages; copy the result or insert it as a sticky note
+- **Shapes** (line, arrow, rectangle, ellipse, triangle) with fill colour and opacity
+- **Text boxes** with a choice of font, text and background colour (contrast protection)
+- **Sticky notes** and **stickers** (image stickers; Gonk Note ships none for licensing
+  reasons — put your own into `Stickers/`, subfolders become groups)
+- **Drawing aids**: ruler (`R`) and set square (`D`), rotatable and snapping; your own
+  set-square SVG takes precedence
+- **Insert images** (PNG, JPEG, BMP, GIF, WebP, SVG) via button, `Ctrl+V` or drag &
+  drop, scalable proportionally
+- **Insert PDF & Word** with a page selection dialog: in a notebook every page becomes a
+  page of its own, in a whiteboard high-resolution, scalable images. **Very large PDFs
+  too** — never loaded in one piece, only the pages you actually insert at full
+  resolution
+- **Touch gestures**: 1 finger pans, 2 fingers zoom (pinch), three-finger double tap =
+  undo. Undo/redo (`Ctrl+Z`/`Ctrl+Y`), zoom (`Ctrl+mouse wheel`)
+- **Settings sidebar** (gear icon): page pattern and shade, format, shape and text
+  options, cover design, **export** (PDF/PNG straight away) — takes effect immediately
+
+### Text-document editor
+
+Ribbon layout (Home / Insert / Layout / References, plus the contextual tab **Table**):
+
+- Character and paragraph formatting, styles (Normal, Heading 1–4, Title, Quote,
+  header/footer), format painter, lists with a style library, find & replace
+- **Advanced settings**: page setup (A4/A5/A3/Letter, orientation, margins in cm
+  including a worksheet template), paragraphs, headers/footers with placeholders,
+  watermark, table design/borders
+- **Table of contents** from the headings, hyperlinks, special characters, captions
+- **Tables like in Word**: grid insert, text↔table, quick tables, rows/columns, merge
+  cells (vertically too)/split, split table, autofit, sorting, formulas
+  (`=SUMME(ABOVE)` …), table styles with header/total rows and banded rows/columns,
+  borders and shading
+- **Charts** (column, bar, line, scatter, scatter+line, pie, radar — several series,
+  colours extendable)
+- **Spell checking** (Windows; German/English switchable in the status bar) with
+  correction suggestions. Status bar (words, zoom), heading navigator, page-break marks
+- **Import**: images, PDF, DOCX, **Markdown** (DOCX/Markdown become new text documents)
+- **Export**: text document → PDF / DOCX / Markdown / PNG, whiteboard/notebook → PDF /
+  PNG. If the original data for an image is missing, Gonk Note says so after the export
+
+### Under the hood
+
+- **Persistence**: a SQLite file `gonknote.sqlite` for texts, strokes and structure;
+  **images and imported pages live next to it** in `gonknote.blobs/` — one file per
+  image. Autosave every 30 s, plus a save on close. **For a backup, take both: the file
+  *and* the folder.** Up to version 0.2.0 the file was called `gonknote.db` (LiteDB); it
+  is migrated once on the first start after that and then stays unchanged. Sorted-out
+  images move to `gonknote.papierkorb/` for 30 days
+- **Large documents**: originals are stored untouched and written back untouched on
+  export; what you see is a downscaled derivative. A Word document with photos comes out
+  exactly as large as it went in; a 500-page text document opens in roughly 1.8 seconds
+- **Memory use**: around 180 MB after startup, ~290 MB with a notebook open — regardless
+  of document size, because only visible pages are held in memory. The undo history is
+  capped at 200 steps
 
 ### Keyboard shortcuts in the whiteboard
 
-| Key | Tool |
-|---|---|
-| `S` | Pen |
-| `G` | Shape pen |
-| `B` | Pencil |
-| `M` | Highlighter |
-| `E` | Eraser |
-| `V` | Move (click objects) |
-| `L` | Lasso |
-| `T` | Text box |
-| `F` | Shapes |
-| `N` | Sticky note |
-| `R` | Ruler |
-| `D` | Set square |
-| `H` | Hand (pan the canvas) |
+| Key | Tool | | Key | Tool |
+|---|---|---|---|---|
+| `S` | Pen | | `T` | Text box |
+| `G` | Shape pen | | `F` | Shapes |
+| `B` | Pencil | | `N` | Sticky note |
+| `M` | Highlighter | | `R` | Ruler |
+| `E` | Eraser | | `D` | Set square |
+| `V` | Move | | `H` | Hand (pan the canvas) |
+| `L` | Lasso | | | |
 
-Selection: move, scale, rotate · `Ctrl+C/X/V` copy/cut/paste · `Ctrl+D` duplicate ·
-`Ctrl+A` select all · `Del` delete · right-click, the second stylus button or a long press
-opens the quick options menu.
+Selection: move, scale, rotate · `Ctrl+C/X/V` · `Ctrl+D` duplicate · `Ctrl+A` select
+all · `Del` delete · right-click / second stylus button / long press = quick options
+menu.
 
 ## Build
 
-Requirement: .NET SDK 10 or newer.
-
-**Always build per project, never the whole solution.** It contains both editions, and the
-Windows edition cannot be compiled on Linux — that is intended, not a fault.
-
-### Windows
+Requirement: .NET SDK 10 or newer. **Always build per project, never the whole
+solution** — it contains both editions, and the Windows edition cannot be compiled on
+Linux.
 
 ```powershell
-# Development
-dotnet run --project src/GonkNote.Wpf
-
-# Single-file exe (self-contained, no .NET installation needed)
-dotnet publish src/GonkNote.Wpf -c Release
-# Result: src/GonkNote.Wpf/bin/Release/net10.0-windows10.0.19041.0/win-x64/publish/GonkNote.exe
+# Windows
+dotnet run --project src/GonkNote.Wpf                 # development
+dotnet publish src/GonkNote.Wpf -c Release            # single-file exe
 ```
 
-Note: WPF does not support assembly trimming (`PublishTrimmed`); the exe is compressed
-instead (`EnableCompressionInSingleFile`).
-
-### Linux
-
 ```bash
+# Linux (needs fontconfig + one font)
 dotnet run --project src/GonkNote.Avalonia
 ```
 
-The system needs **fontconfig and at least one font** for this — without them every drawn
-piece of text stays blank. On Arch-like systems:
-
-```bash
-sudo pacman -S fontconfig ttf-dejavu
-```
-
-Under Wayland, Gonk Note runs through XWayland; the toolkit has no native Wayland path.
-Stylus pressure and tilt arrive in full through it.
-
-### Both
-
-For testing, `--db <path>` uses an alternative database — **work on a copy, never on your
-real data.**
-
-What has to sit next to the program (`tessdata` for text recognition on Windows) and how to
-carry on from there is described in [Getting started](GETTING-STARTED.md).
+For testing, `--db <path>` uses an alternative database — **work on a copy, never on
+your real data.** All details, prerequisites and troubleshooting are in
+[Docs/INSTALL.md](Docs/INSTALL.md).
 
 ## Architecture
+
+The application consists of **one core and two interfaces**. Data model, persistence,
+drawing routines, colours and translations live in the core; an interface only holds
+what draws pixels or accepts input. That is why the Linux edition exists at all — it
+rebuilt none of it.
 
 | Building block | Technology |
 |---|---|
 | Windows interface | WPF (.NET 10), MVVM, resource dictionary built at runtime from the colour table in `GonkNote.Core` |
 | Linux interface | Avalonia 12 (.NET 10), the same view models, the same colour table |
-| Whiteboard rendering | SkiaSharp — via `SKElement` on Windows, via Avalonia's own Skia canvas on Linux; **same renderer, same pixels** |
+| Whiteboard rendering | SkiaSharp — via `SKElement` on Windows, via Avalonia's Skia canvas on Linux; **same renderer, same pixels** |
 | Stylus input | WPF stylus events resp. Avalonia pointers, both with pressure and tilt |
-| Persistence | SQLite (`Microsoft.Data.Sqlite`); documents as JSON, read and written via a source generator |
+| Persistence | SQLite (`Microsoft.Data.Sqlite`); documents as JSON via a source generator |
 | Core logic | a separate library `GonkNote.Core` (net10.0) — free of UI dependencies |
-
-The application consists of **one core and two interfaces**. Data model, persistence,
-drawing routines, colours and translations live in the core; an interface only holds what
-draws pixels or accepts input. That is why the Linux edition exists at all — it rebuilt
-none of it.
 
 ```
 src/
-├─ GonkNote.Core/            Core logic without UI ties (net10.0), namespace GonkNote.Core.*
-│  ├─ Models/               NoteItem (tree), whiteboard elements, enums
-│  ├─ Platform/             the seam to the interfaces: file dialogs, clipboard, theme,
-│  │                        OCR, spell checking … as interfaces
-│  ├─ Services/             DatabaseService (SQLite), BlobStore (images/PDFs next to the
-│  │                        database), UndoStack, ImageCache, PDF import
-│  ├─ Rendering/            Skia drawing routines of the whiteboard, set-square overlay
-│  ├─ Editing/              Precise erasing, hit testing and lasso
-│  ├─ Text/                 Markdown parser for the bundled documents
-│  ├─ Theming/              the colour table: a theme is 20 named colours — bundled, or
-│  │                        loaded as JSON from the user's `Themes/` folder
-│  └─ Localization/         Loc (lookup) + one table each for DE/EN
-│
-├─ GonkNote.ViewModels/      MainViewModel, tab VMs, tree VM, MVVM base (net10.0) —
-│                            used by both interfaces
-│
-├─ GonkNote.Legacy/          Reads databases up to version 0.2.0 (LiteDB); the only place
-│                            in the project that still knows that package
-│
-├─ GonkNote.Wpf/             Windows interface (net10.0-windows)
-│  ├─ Platform/             the implementations behind Core/Platform
-│  ├─ Views/                WhiteboardView and TextEditorView — both split into partial
-│  │                        files by topic, plus the dialogs
-│  ├─ Services/             Import/export (DOCX, PDF, Markdown), OCR, text styles
-│  └─ Themes/               Styles.xaml — the colours come from the core
-│
-└─ GonkNote.Avalonia/        Linux interface (net10.0, also runs on Windows)
-   ├─ Platform/             the same interfaces, implemented for Avalonia
-   ├─ Views/                WhiteboardView (input, rendering, settings), dialogs,
-   │                        Markdown display
-   └─ Themes/Styles.axaml   Shape and vector icons — the colours come from the core
+├─ GonkNote.Core/         core logic without UI ties (net10.0)
+│  ├─ Models/            NoteItem (tree), whiteboard elements, enums
+│  ├─ Platform/          the seam to the interfaces: file dialogs, clipboard,
+│  │                     theme, OCR, spell checking … as interfaces
+│  ├─ Services/          DatabaseService (SQLite), BlobStore, UndoStack, PDF import
+│  ├─ Rendering/         Skia drawing routines, set-square overlay
+│  ├─ Editing/           precise erasing, hit testing, lasso
+│  ├─ Text/              document model, layout, renderer, Markdown parser
+│  ├─ Theming/           the colour table (20 colours) + theme files from Themes/
+│  └─ Localization/      Loc + one table each for DE/EN
+├─ GonkNote.ViewModels/   MVVM for both interfaces
+├─ GonkNote.Legacy/       reads databases up to version 0.2.0 (LiteDB)
+├─ GonkNote.Wpf/          Windows interface (net10.0-windows)
+└─ GonkNote.Avalonia/     Linux interface (net10.0, also runs on Windows)
 ```
 
 ## Licence
@@ -360,20 +240,16 @@ src/
 Gonk Note is licensed under the **MIT licence** — see [LICENSE](LICENSE).
 Copyright © 2026 Manuel Toegel.
 
-In short: use, modify and redistribute freely, including commercially; the licence text and the
-copyright notice must be included, and there is no warranty.
+In short: use, modify and redistribute freely, including commercially; the licence text
+and the copyright notice must be included, and there is no warranty.
 
-The bundled **notebook covers** (`Assets/Covers/**`), the **set-square graphics**
-(`Assets/Geodreieck-Light.svg`, `-Dark.svg`) and the **app icon** are original works and fall
-under the same licence (see [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)).
-
-**Gonk Note deliberately ships no stickers** — the tool only works with images you place in
-`%APPDATA%\GonkNote\Stickers` yourself.
+The bundled **notebook covers**, the **set-square graphics** and the **app icon** are
+original works under the same licence. **Gonk Note deliberately ships no stickers.**
 
 ### Libraries used
 
-All dependencies are permissively licensed and compatible with the MIT licence. The notices that
-Apache-2.0 and BSD-3 require on redistribution (particularly for the single-file exe) are in
+All dependencies are permissively licensed and compatible with the MIT licence. The
+notices that Apache-2.0 and BSD-3 require on redistribution are in
 [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md):
 
 | Building block | Purpose | Licence |
@@ -392,14 +268,25 @@ Apache-2.0 and BSD-3 require on redistribution (particularly for the single-file
 | [Space Grotesk](https://github.com/floriankarsten/space-grotesk) | Cover titles and large headings | SIL OFL 1.1 |
 | [Geist](https://github.com/vercel/geist-font) | Text boxes and sticky notes on the whiteboard | SIL OFL 1.1 |
 
-**The icons come from a table inside the programme**, not from an icon font. That is deliberate
-too, and for the same reason as the typefaces: “Segoe Fluent Icons” belongs to Microsoft, may not
-be redistributed and is missing on Linux — every icon would be an empty box there. Seven shapes
-(notebook, text document, whiteboard, set square, fit width, fit page, restore window) are our
-own; the rest come from Lucide.
+**The icons come from a table inside the program**, not from an icon font: "Segoe Fluent
+Icons" belongs to Microsoft, may not be redistributed and is missing on Linux. Seven
+shapes are our own, the rest come from Lucide. **The five typefaces ship with the app**
+(`Fonts/` folder next to the program) — without them the same document would look
+different on the two editions. Each family's licence text sits beside it as `OFL.txt`.
 
-**The five typefaces ship with the app** and live in a `Fonts\` folder next to the programme.
-That is deliberate: “Segoe UI” does not exist on Linux, and no particular typeface is guaranteed
-on any Linux system — without bundled fonts the same document would look different on the two
-editions. Each family's licence text sits beside it as `OFL.txt` and belongs with any
-redistribution.
+---
+
+## An honest word at the end
+
+**Gonk Note is a side project a school student vibe-coded on the side.** It exists
+because I could not get on with the options that were available — not because I could do
+it better.
+
+**Practically everything in this project was made by AI:** the code, the architecture,
+the tests, this documentation. My role was that of the client — deciding what gets
+built, trying it out, reporting bugs, setting the direction. The writing itself was done
+by the AI.
+
+So do not take anything here as a reference for "this is how it's done". It is a thing to
+use, not a lesson. If it is useful to you, that makes me happy. If you find a bug, say so
+in the [issues](https://github.com/GONKstupid/GonkNote/issues).

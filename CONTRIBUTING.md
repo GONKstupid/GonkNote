@@ -3,8 +3,8 @@
 *Deutsch zuerst, English below.*
 
 > **Warum diese Datei einsprachig-doppelt ist und nicht zweimal existiert:** Die vier
-> mitgelieferten Dokumente (`README.md`, `README.en.md`, `ERSTE-SCHRITTE.md`,
-> `GETTING-STARTED.md`) gibt es paarweise, weil die App sie anzeigt und nach der eingestellten
+> mitgelieferten Dokumente (`README.md`, `README.en.md`, `Docs/ERSTE-SCHRITTE.md`,
+> `Docs/GETTING-STARTED.md`) gibt es paarweise, weil die App sie anzeigt und nach der eingestellten
 > Sprache auswählt. Diese hier zeigt niemand an — und zwei Dateien, die niemand nebeneinander
 > sieht, laufen auseinander. Also stehen beide Sprachen in einer Datei.
 

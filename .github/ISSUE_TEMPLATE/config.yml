@@ -10,9 +10,9 @@ contact_links:
       Was hier als Lücke zählt, steht in SECURITY.md.
       · Not as a public issue; this route stays private.
 
-  - name: Erste Schritte lesen · Read the getting-started guide
-    url: https://github.com/GONKstupid/GonkNote/blob/main/ERSTE-SCHRITTE.md
+  - name: Installieren & erste Schritte · Install and getting started
+    url: https://github.com/GONKstupid/GonkNote/blob/main/Docs/ERSTE-SCHRITTE.md
     about: >
-      Vom Herunterladen bis zur ersten exportierten und gesicherten Notiz.
-      Englisch: GETTING-STARTED.md
-      · From download to your first exported and backed-up note.
+      Aufsetzen: Docs/INSTALLIEREN.md. Bedienung von der ersten Notiz bis zum Export
+      und zur Sicherung: Docs/ERSTE-SCHRITTE.md.
+      · English: Docs/INSTALL.md and Docs/GETTING-STARTED.md.

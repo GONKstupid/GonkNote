@@ -70,8 +70,8 @@
          Textaenderungen wirken also ohne Code-Aenderung (Services\EmbeddedDocs.cs). -->
     <Resource Include="..\..\README.md" Link="README.md" />
     <Resource Include="..\..\README.en.md" Link="README.en.md" />
-    <Resource Include="..\..\ERSTE-SCHRITTE.md" Link="ERSTE-SCHRITTE.md" />
-    <Resource Include="..\..\GETTING-STARTED.md" Link="GETTING-STARTED.md" />
+    <Resource Include="..\..\Docs\ERSTE-SCHRITTE.md" Link="ERSTE-SCHRITTE.md" />
+    <Resource Include="..\..\Docs\GETTING-STARTED.md" Link="GETTING-STARTED.md" />
     <!-- Geodreieck: je Theme eine Vektorgrafik, wie die Sticker als lose Begleitdatei
          neben die Exe. Eigene Zeichnungen des Nutzers liegen in %APPDATA%\GonkNote und
          haben Vorrang (WbAidRenderer.UserAssetFolder). -->

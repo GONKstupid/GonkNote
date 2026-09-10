@@ -133,8 +133,8 @@
   <ItemGroup>
     <AvaloniaResource Include="..\..\README.md"            Link="README.md" />
     <AvaloniaResource Include="..\..\README.en.md"         Link="README.en.md" />
-    <AvaloniaResource Include="..\..\ERSTE-SCHRITTE.md"    Link="ERSTE-SCHRITTE.md" />
-    <AvaloniaResource Include="..\..\GETTING-STARTED.md"   Link="GETTING-STARTED.md" />
+    <AvaloniaResource Include="..\..\Docs\ERSTE-SCHRITTE.md"  Link="ERSTE-SCHRITTE.md" />
+    <AvaloniaResource Include="..\..\Docs\GETTING-STARTED.md" Link="GETTING-STARTED.md" />
   </ItemGroup>
 
   <!-- Cover-Vorlagen (§4.81). **Dieselben zwei Zeilen wie im WPF-csproj** — und das ist der

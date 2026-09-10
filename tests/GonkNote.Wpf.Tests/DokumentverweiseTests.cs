@@ -67,7 +67,7 @@ public sealed class DokumentverweiseTests
         return File.ReadAllText(pfad);
     }
 
-    private static string Anleitung() => Mitgeliefert("ERSTE-SCHRITTE.md");
+    private static string Anleitung() => Mitgeliefert(Path.Combine("Docs", "ERSTE-SCHRITTE.md"));
 
     private static string Liesmich() => Mitgeliefert("README.md");
 

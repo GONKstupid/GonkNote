@@ -39,3 +39,14 @@ id_ed25519
 # (.github/workflows/ci.yml, Schritt "Gefallene Waechter benennen") und gehoert nicht ins Repo.
 test-output.txt
 gefallen.txt
+
+# Der Wissensgraph aus /graphify. Reines Erzeugnis: graph.json allein ist 14,5 MB und
+# wird bei jedem Update vollstaendig neu geschrieben -- im Repo laege es nach ein paar
+# Runden mehrfach in der History, und da bekaeme man es nur mit einem Rewrite wieder
+# heraus. Mit einem Befehl neu gebaut, deshalb wie bin/ und obj/ draussen.
+graphify-out/
+
+# Byte-gleiche Zweitkopie der OCR-Sprachdaten. Eingebunden wird tessdata/ in der Wurzel
+# (GonkNote.Avalonia.csproj, "..\..\tessdata\*.traineddata") -- auf diese Kopie zeigt
+# nichts im Repo. Sie liegt nur da und soll nicht ein zweites Mal mitwandern.
+tools/tessdata/

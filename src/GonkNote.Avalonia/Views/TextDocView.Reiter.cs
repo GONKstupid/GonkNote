@@ -248,13 +248,23 @@ public partial class TextDocView
 
         // Weder Tabelle noch falsch geschriebenes Wort: kein Menü. Siehe oben — nicht öffnen
         // statt alles ausgrauen.
-        if (ort is null && vorschlaege.Count == 0) return;
+        if (ort is null && vorschlaege.Count == 0 && Befundhinweis() is not { Length: > 0 }) return;
 
         var menue = new MenuFlyout { Placement = PlacementMode.Pointer };
 
-        // **Die Vorschläge stehen oben.** Wer mit der rechten Taste auf ein rot
-        // unterringeltes Wort zielt, will es verbessern — und nicht erst an sechs
-        // Tabellenbefehlen vorbeilesen.
+        // **Die Vorschläge stehen oben.** Wer mit der rechten Taste auf ein unterringeltes
+        // Wort zielt, will es verbessern — und nicht erst an sechs Tabellenbefehlen
+        // vorbeilesen.
+        //
+        // **Bei Grammatik steht der Hinweis darüber**, grau und nicht anklickbar: „Dasselbe
+        // Wort steht zweimal hintereinander" sagt, worum es geht; eine nackte Liste von
+        // Wörtern sagte es bei einem Satzbaufehler nicht.
+        if (Befundhinweis() is { Length: > 0 } hinweis)
+        {
+            menue.Items.Add(new MenuItem { Header = hinweis, IsEnabled = false });
+            if (vorschlaege.Count > 0) menue.Items.Add(new Separator());
+        }
+
         foreach (var (wort, ersetzen) in vorschlaege)
         {
             var eintrag = new MenuItem { Header = wort };

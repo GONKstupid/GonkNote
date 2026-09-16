@@ -244,7 +244,7 @@ public partial class TextDocView : UserControl
 
         _kontext = new TdRenderContext(
             new TdBlobImages(App.Db.Blobs), _felder, _umbruch.PageCount,
-            Rechtschreibsprache: Pruefsprache);
+            Rechtschreibsprache: Pruefsprache, Grammatik: _grammatikAn);
 
         // Ein Dokument kann beim Schreiben kürzer werden — dann zeigt die Leiste unten sonst
         // auf eine Seite, die es nicht mehr gibt.

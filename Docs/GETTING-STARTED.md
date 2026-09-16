@@ -181,14 +181,17 @@ To get going:
    cells, sorting, formulas such as `=SUMME(ABOVE)`).
 3. **Set up the page** via `Layout` → *Advanced settings*: format, orientation, margins
    in centimetres, headers/footers, watermark.
-4. Switch the **spell checker** (Windows edition only) between German and English in the
-   status bar at the bottom.
+4. Switch **spell and grammar checking** between German and English in the status bar at
+   the bottom; next to it are two switches, one per check. Misspelled words get a **red**
+   wavy underline, grammar findings a **blue** one. Right-click an underlined word for
+   corrections.
 
 > **Both editions write.** The Linux edition shows a text document as typeset paper with
 > tables, images, charts and a running head, page by page and with zoom — and lets you
 > type, format, search and export in it. The differences between the editions are listed
-> in the [README](../README.en.md#two-editions-one-app); the biggest is spell checking,
-> which does not exist on Linux yet.
+> in the [README](../README.en.md#two-editions-one-app). **Spell checking, which was the
+> biggest of them for a long time, has been there since 1.0.4** — with bundled
+> dictionaries, so there is nothing to install first.
 >
 > **A document from the Windows edition** shows up under Linux only after being opened
 > and saved there once. Until then the tab tells you what to do — and the contents are
@@ -423,10 +426,19 @@ with it.
 and are reported once per session. That file is the first thing that belongs in a bug
 report.
 
-**The spell checker marks nothing.** The markings come from Windows, not from Gonk Note.
-If the dictionary for a language is missing (typically English on a German-only
-Windows), a warning triangle appears in the status bar. The fix: add the language in the
-Windows settings. **The Linux edition has no spell checking yet.**
+**The spell checker marks nothing.** *Windows edition:* the markings come from Windows,
+not from Gonk Note. If the dictionary for a language is missing (typically English on a
+German-only Windows), a warning triangle appears in the status bar. The fix: add the
+language in the Windows settings. *Linux edition:* the dictionaries ship with the
+program; if the switch is greyed out, the `Dictionaries` folder next to the program is
+missing.
+
+**Grammar checking only finds small things.** True, and not a bug: on its own Gonk Note
+checks fixed rules — the same word twice, a space before a comma, a sentence starting in
+lower case. Syntax and cases are beyond it. **For real grammar checking, run a
+LanguageTool server on your own machine** (`languagetool --http`, port 8081); Gonk Note
+finds it by itself and takes its findings. **Your machine only** — Gonk Note never sends
+anything to a remote server, including the public languagetool.org service.
 
 **OCR finds no text / reports missing language data.** The `tessdata` folder has to sit
 next to `GonkNote.exe` — not in the data folder. The build puts it there itself; move

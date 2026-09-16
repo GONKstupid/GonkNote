@@ -39,12 +39,18 @@ namespace GonkNote.Core.Rendering;
 /// (<paramref name="Markierung"/>): Was nur beim Schreiben gilt, kommt vom Schreibenden mit.
 /// </para>
 /// </param>
+/// <param name="Grammatik">
+/// Ob neben der Rechtschreibung auch auf Grammatik geprüft wird (Phase 5.2). <b>Ohne Wirkung,
+/// solange <paramref name="Rechtschreibsprache"/> <c>null</c> ist</b> — keine Sprache heißt
+/// keine Prüfung, und zwar für beide.
+/// </param>
 public readonly record struct TdRenderContext(
     ITdImages? Bilder = null,
     TdFieldContext? Felder = null,
     int? Seitenzahl = null,
     TdMarkierung? Markierung = null,
-    string? Rechtschreibsprache = null);
+    string? Rechtschreibsprache = null,
+    bool Grammatik = true);
 
 /// <summary>
 /// Der Zeichner: aus einer gesetzten Seite (<see cref="TdPage"/>) werden Pixel.
@@ -387,6 +393,13 @@ public static class TdRenderer
     public static readonly SKColor Fehlerfarbe = new(0xD3, 0x2F, 0x2F);
 
     /// <summary>
+    /// Die Farbe der Grammatik-Welle. <b>Blau, wie drüben und wie überall sonst</b> — der
+    /// Unterschied Rot/Blau ist die einzige Auskunft darüber, ob ein Wort falsch geschrieben
+    /// ist oder ein Satz schief steht, und sie ist ohne Klick lesbar.
+    /// </summary>
+    public static readonly SKColor Grammatikfarbe = new(0x1E, 0x66, 0xC8);
+
+    /// <summary>
     /// Die roten Wellenlinien unter falsch geschriebenen Wörtern.
     ///
     /// <para>
@@ -408,7 +421,7 @@ public static class TdRenderer
         if (kontext.Rechtschreibsprache is not { Length: > 0 } sprache) return;
         if (zeile.Source is not { } absatz) return;
 
-        var fehler = TdRechtschreibung.Fehler(absatz, sprache);
+        var fehler = TdPruefung.Fehler(absatz, sprache, kontext.Grammatik);
         if (fehler.Count == 0) return;
 
         foreach (var lauf in zeile.Runs)
@@ -442,7 +455,7 @@ public static class TdRenderer
                     if (lauf.Format.VerticalAlign is TdVerticalAlign.Superscript) grundlinie -= schrift.Size * 0.33f;
                     else if (lauf.Format.VerticalAlign is TdVerticalAlign.Subscript) grundlinie += schrift.Size * 0.16f;
 
-                    Welle(leinwand, x0, x1, grundlinie, schrift.Size);
+                    Welle(leinwand, x0, x1, grundlinie, schrift.Size, f.Art);
                 }
             }
             finally { schrift?.Dispose(); }
@@ -455,7 +468,8 @@ public static class TdRenderer
     /// derselbe Punkt wie bei <see cref="StricheZeichnen"/>: Eine Welle, die bei 8 pt passt,
     /// ist bei 28 pt ein Sägeblatt.
     /// </summary>
-    private static void Welle(SKCanvas leinwand, float x0, float x1, float grundlinie, float schriftgroesse)
+    private static void Welle(
+        SKCanvas leinwand, float x0, float x1, float grundlinie, float schriftgroesse, TdBefundArt art)
     {
         float hoehe = Math.Max(1f, schriftgroesse * 0.055f);
         float halbwelle = Math.Max(1.5f, schriftgroesse * 0.11f);
@@ -470,7 +484,7 @@ public static class TdRenderer
 
         using var stift = new SKPaint
         {
-            Color = Fehlerfarbe,
+            Color = art is TdBefundArt.Grammatik ? Grammatikfarbe : Fehlerfarbe,
             Style = SKPaintStyle.Stroke,
             StrokeWidth = Math.Max(1f, schriftgroesse / 16f),
             IsAntialias = true,

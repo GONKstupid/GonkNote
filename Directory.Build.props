@@ -11,9 +11,10 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>14</LangVersion>
-    <!-- 1.0.4 seit dem 2026-09-16 (V2-135): die Rechtschreibprüfung im Linux-Kopf
-         (Phase 5.1, §5 Nr. 22) — **das benannte Loch aus M2 ist zu**. Dazu die
-         Schriftvorschau in den Wählern des Linux-Kopfs. Weiterhin nur die letzte Stelle:
+    <!-- 1.0.4 seit dem 2026-09-16 (V2-135/V2-136): die Rechtschreibprüfung im Linux-Kopf
+         (Phase 5.1, §5 Nr. 22) — **das benannte Loch aus M2 ist zu** — und die
+         Grammatikprüfung hinterher (Phase 5.2). Dazu die Schriftvorschau in den Wählern
+         des Linux-Kopfs. Weiterhin nur die letzte Stelle:
          Es kommt Bedienung dazu und ein Beipack (Assets/Dictionaries), aber kein neues
          Dateiformat — die Prüfsprache steht bewusst noch NICHT im Dokument.
 

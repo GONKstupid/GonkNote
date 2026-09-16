@@ -386,6 +386,17 @@ internal static class LocEnglish
         ["Ed.Find.NotFound"] = "Not found",
         ["Ed.Find.Replaced"] = "{0} replaced",
         ["Ed.Status.Counts"] = "Words: 0 · Characters: 0",
+        // ---- Grammar check (phase 5.2) ----
+        // Counterpart to the Gram.* block in LocGerman. LanguageTool brings its own wording
+        // and passes through Loc.T untouched; these are the fixed rules only.
+        ["Gram.Doppeltes.Wort"] = "The same word appears twice in a row",
+        ["Gram.Leerzeichen.Vor"] = "No space before a punctuation mark",
+        ["Gram.Leerzeichen.Fehlt"] = "A space is missing after the punctuation mark",
+        ["Gram.Leerzeichen.Doppelt"] = "More than one space",
+        ["Gram.Satzanfang"] = "A sentence starts with a capital letter",
+        ["Ed.Grammar"] = "Grammar check",
+        ["Ed.Grammar.Toggle"] = "Grammar check on/off",
+        ["Ed.Grammar.Button"] = " G✓ ",
         ["Ed.Spell.Language"] = "Spell-check language",
         ["Lang.German"] = "German",
         ["Lang.English"] = "English",

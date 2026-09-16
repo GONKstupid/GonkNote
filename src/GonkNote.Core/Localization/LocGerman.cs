@@ -400,6 +400,18 @@ internal static class LocGerman
         ["Ed.Find.NotFound"] = "Nicht gefunden",
         ["Ed.Find.Replaced"] = "{0} ersetzt",
         ["Ed.Status.Counts"] = "Wörter: 0 · Zeichen: 0",
+        // ---- Grammatikprüfung (Phase 5.2) ----
+        // **Das sind die Sätze zu den festen Regeln, nicht zu LanguageTool.** Dessen Befunde
+        // bringen ihren Text schon mit, in der geprüften Sprache; sie gehen unverändert durch
+        // `Loc.T`, weil das unbekannte Schlüssel unverändert zurückgibt.
+        ["Gram.Doppeltes.Wort"] = "Dasselbe Wort steht zweimal hintereinander",
+        ["Gram.Leerzeichen.Vor"] = "Vor einem Satzzeichen steht kein Leerzeichen",
+        ["Gram.Leerzeichen.Fehlt"] = "Nach dem Satzzeichen fehlt ein Leerzeichen",
+        ["Gram.Leerzeichen.Doppelt"] = "Mehr als ein Leerzeichen",
+        ["Gram.Satzanfang"] = "Ein Satz fängt groß an",
+        ["Ed.Grammar"] = "Grammatikprüfung",
+        ["Ed.Grammar.Toggle"] = "Grammatikprüfung ein/aus",
+        ["Ed.Grammar.Button"] = " G✓ ",
         ["Ed.Spell.Language"] = "Sprache für die Rechtschreibprüfung",
         ["Lang.German"] = "Deutsch",
         ["Lang.English"] = "Englisch",

@@ -2,13 +2,47 @@ using WeCantSpell.Hunspell;
 
 namespace GonkNote.Core.Text;
 
-/// <summary>Ein angestrichenes Wort: wo es anfängt und wie lang es ist, in Zeichen.</summary>
+/// <summary>Woran eine Fundstelle liegt — und damit, in welcher Farbe sie angestrichen wird.</summary>
+public enum TdBefundArt
+{
+    /// <summary>Das Wort steht nicht im Wörterbuch. Rote Welle.</summary>
+    Rechtschreibung,
+
+    /// <summary>Am Satz stimmt etwas nicht. Blaue Welle — dieselbe Unterscheidung wie drüben
+    /// und wie in jedem anderen Textprogramm.</summary>
+    Grammatik,
+}
+
+/// <summary>Eine angestrichene Stelle: wo sie anfängt und wie lang sie ist, in Zeichen.</summary>
 /// <remarks>
+/// <para>
 /// <b>Die Zählung ist die des Absatztextes</b> und damit dieselbe wie
 /// <see cref="TdLaidOutRun.Linear"/> — nur so lässt sich eine Fundstelle ohne zweite
 /// Rechnung auf ein gesetztes Stück abbilden.
+/// </para>
+/// <para>
+/// <b>Ein Typ für beide Prüfungen und nicht zwei</b> (Phase 5.2): Zeichner und Menü tun mit
+/// einer Grammatik-Fundstelle dasselbe wie mit einer Rechtschreib-Fundstelle — anstreichen und
+/// Vorschläge anbieten. Verschieden ist die Farbe und der Satz dazu, und beides passt in ein
+/// Feld.
+/// </para>
 /// </remarks>
-public readonly record struct TdFehlstelle(int Start, int Laenge)
+/// <param name="Hinweis">
+/// <b>Ein Loc-Schlüssel, kein Satz</b> — die Worte macht der Kopf (<c>Loc.T</c>). Core kennt
+/// keine Sprache der Oberfläche; stünde hier deutscher Text, stünde er auch im englischen
+/// Menü. <c>null</c> bei der Rechtschreibung: dort ist das falsche Wort der ganze Hinweis.
+/// </param>
+/// <param name="Vorschlaege">
+/// Was stattdessen dastehen könnte. Bei der Rechtschreibung <c>null</c> — die kommen dort erst
+/// auf Nachfrage aus dem Wörterbuch, weil <c>Suggest</c> teuer ist und beim Zeichnen niemand
+/// danach fragt.
+/// </param>
+public readonly record struct TdFehlstelle(
+    int Start,
+    int Laenge,
+    TdBefundArt Art = TdBefundArt.Rechtschreibung,
+    string? Hinweis = null,
+    IReadOnlyList<string>? Vorschlaege = null)
 {
     public int Ende => Start + Laenge;
 }

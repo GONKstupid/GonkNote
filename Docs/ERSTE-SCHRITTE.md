@@ -185,15 +185,18 @@ Zum Einstieg:
    verbinden, sortieren, Formeln wie `=SUMME(ABOVE)`).
 3. **Seite einrichten** über `Layout` → *Erweiterte Einstellungen*: Format, Ausrichtung,
    Ränder in Zentimetern, Kopf-/Fußzeile, Wasserzeichen.
-4. Die **Rechtschreibprüfung** (nur Windows-Ausgabe) schaltest du unten in der
-   Statusleiste zwischen Deutsch und Englisch um.
+4. **Rechtschreib- und Grammatikprüfung** schaltest du unten in der Statusleiste
+   zwischen Deutsch und Englisch um; daneben stehen zwei Schalter, einer je Prüfung.
+   Falsch geschriebene Wörter bekommen eine **rote** Wellenlinie, Grammatikbefunde eine
+   **blaue**. Die rechte Maustaste auf einem angestrichenen Wort bietet Verbesserungen an.
 
 > **Beide Ausgaben schreiben.** Die Linux-Ausgabe zeigt ein Textdokument als gesetztes
 > Papier mit Tabellen, Bildern, Diagrammen und Kopfzeile, zum Blättern und Zoomen — und
 > lässt dich darin tippen, formatieren, suchen und exportieren. Die Unterschiede
 > zwischen den Ausgaben stehen im
-> [README](../README.md#zwei-ausgaben-eine-app); der größte ist die
-> Rechtschreibprüfung, die es unter Linux noch nicht gibt.
+> [README](../README.md#zwei-ausgaben-eine-app). **Die Rechtschreibprüfung, die lange
+> darunter fehlte, gibt es seit 1.0.4 auch dort** — mit mitgelieferten Wörterbüchern,
+> also ohne dass du etwas installieren musst.
 >
 > **Ein Dokument aus der Windows-Ausgabe** erscheint unter Linux erst, nachdem es dort
 > einmal geöffnet und gespeichert wurde. Bis dahin steht in der Registerkarte, was zu
@@ -430,11 +433,20 @@ rückgängig.
 Datenordner und werden einmal pro Sitzung gemeldet. Diese Datei ist das Erste, was in
 einen Bug-Report gehört.
 
-**Die Rechtschreibprüfung streicht nichts an.** Die Markierungen kommen von Windows,
-nicht von Gonk Note. Fehlt für eine Sprache das Wörterbuch (typisch: Englisch auf einem
-rein deutschen Windows), erscheint in der Statusleiste ein Warndreieck. Abhilfe: die
-Sprache in den Windows-Einstellungen ergänzen. **In der Linux-Ausgabe gibt es die
-Prüfung noch nicht.**
+**Die Rechtschreibprüfung streicht nichts an.** *Windows-Ausgabe:* Die Markierungen
+kommen von Windows, nicht von Gonk Note. Fehlt für eine Sprache das Wörterbuch (typisch:
+Englisch auf einem rein deutschen Windows), erscheint in der Statusleiste ein
+Warndreieck. Abhilfe: die Sprache in den Windows-Einstellungen ergänzen.
+*Linux-Ausgabe:* Die Wörterbücher kommen mit dem Programm; ist der Schalter grau, fehlt
+der Ordner `Dictionaries` neben dem Programm.
+
+**Die Grammatikprüfung findet nur Kleinigkeiten.** Das stimmt, und es ist kein Fehler:
+Ohne Zusatz prüft Gonk Note feste Regeln — dasselbe Wort zweimal, Leerzeichen vor dem
+Komma, ein klein beginnender Satz. Satzbau und Fälle kann sie nicht. **Wer echte
+Grammatikprüfung will, startet einen LanguageTool-Server auf dem eigenen Rechner**
+(`languagetool --http`, Port 8081); Gonk Note findet ihn von selbst und übernimmt seine
+Befunde. **Nur der eigene Rechner** — an einen fremden Server schickt Gonk Note
+grundsätzlich nichts, auch nicht an den öffentlichen Dienst von languagetool.org.
 
 **OCR findet keinen Text / meldet fehlende Sprachdaten.** Der Ordner `tessdata` muss
 neben `GonkNote.exe` liegen — nicht im Datenordner. Der Bau legt ihn selbst dorthin; wer

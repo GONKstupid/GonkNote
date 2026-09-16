@@ -114,15 +114,21 @@
       <description>
         <p>Spell checking on Linux — the one named gap that the Linux edition shipped with.
            Misspelled words get a red wavy underline, a right-click offers corrections, and
-           the status bar carries the language picker and an on/off switch. German and
-           English dictionaries are bundled, so nothing has to be installed first. Plus a
+           the status bar carries the language picker and on/off switches. German and
+           English dictionaries are bundled, so nothing has to be installed first. Grammar
+           checking comes along: fixed rules that always run (the same word twice, a space
+           before a comma, a sentence starting in lower case), and real grammar on top if a
+           LanguageTool server runs on your own machine. Plus a
            font preview: every entry in the font pickers of the text editor and the
            whiteboard is now shown in its own typeface.</p>
         <p xml:lang="de">Rechtschreibprüfung unter Linux — das eine benannte Loch, mit dem
            die Linux-Ausgabe hinausgegangen ist. Falsch geschriebene Wörter bekommen eine
            rote Wellenlinie, die rechte Maustaste bietet Verbesserungen an, und in der
-           Statusleiste stehen Sprachwahl und Ein/Aus. Die deutschen und englischen
+           Statusleiste stehen Sprachwahl und die Schalter. Die deutschen und englischen
            Wörterbücher werden mitgeliefert; es muss also nichts vorher installiert werden.
+           Die Grammatikprüfung kommt mit: feste Regeln, die immer laufen (dasselbe Wort
+           zweimal, Leerzeichen vor dem Komma, ein klein beginnender Satz), und echte
+           Grammatik darüber, wenn auf dem eigenen Rechner ein LanguageTool-Server läuft.
            Dazu eine Schriftvorschau: Jeder Eintrag in den Schriftwählern von Texteditor und
            Whiteboard steht jetzt in seiner eigenen Schrift.</p>
       </description>

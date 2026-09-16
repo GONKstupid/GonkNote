@@ -1105,6 +1105,15 @@
                                   Click="Rechtschreibung_Click"
                                   ToolTip.Tip="{loc:T Ed.Spell.Toggle}"
                                   AutomationProperties.Name="{loc:T Ed.Spell}"/>
+                    <!-- **Zwei Schalter und nicht einer** (Phase 5.2): Die Rechtschreibung
+                         ist eine Tatsachenauskunft — das Wort steht im Wörterbuch oder nicht.
+                         Die Grammatik ist es ohne LanguageTool-Server nur zum Teil; wer die
+                         Vermutungen nicht will, soll die roten Wellen trotzdem behalten. -->
+                    <ToggleButton x:Name="GrammatikSchalter" Classes="flach" IsChecked="True"
+                                  FontSize="11" Content="{loc:T Ed.Grammar.Button}"
+                                  Click="Grammatik_Click"
+                                  ToolTip.Tip="{loc:T Ed.Grammar.Toggle}"
+                                  AutomationProperties.Name="{loc:T Ed.Grammar}"/>
 
                     <Border Classes="trenner"/>
 

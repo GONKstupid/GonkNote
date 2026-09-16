@@ -145,7 +145,7 @@ Den vollständigen Lizenztext samt Copyright-Zeile findest du je Familie in
 ## Die mitgelieferten Wörterbücher (Rechtschreibprüfung)
 
 Gonk Note **liefert seine Wörterbücher mit** (`Assets/Dictionaries/`, HANDOFF §5 Nr. 22,
-Phase 5.1). Der Grund ist derselbe wie bei den Schriften einen Abschnitt weiter oben: Auf
+Phase 5.1/5.2). Der Grund ist derselbe wie bei den Schriften einen Abschnitt weiter oben: Auf
 keinem Linux-System ist ein Hunspell-Wörterbuch garantiert — auf dem Rechner, auf dem diese
 Funktion entstanden ist, war keines installiert. Ohne Beipack wäre die Rechtschreibprüfung
 bei den meisten Nutzern vorhanden und nirgends wirksam.
@@ -209,6 +209,27 @@ http://wordlist.sourceforge.net . Die Affix-Datei ist eine stark überarbeitete 
 Die vollständigen Angaben zu Quellen und Beiträgen — darunter Alan Beales 12Dicts, das
 gemeinfreie Moby-Lexikon und Brian Kelks Wortliste — stehen in `README_en_US.txt`, das
 ebenfalls mit in die Ausgabe kopiert wird.
+
+### LanguageTool — benutzt, wenn da; **nicht mitgeliefert**
+
+https://languagetool.org · https://github.com/languagetool-org/languagetool
+
+Seit 1.0.4 nimmt Gonk Note die Befunde eines **LanguageTool-Servers** an, wenn auf demselben
+Rechner einer läuft (`languagetool --http`). **Weitergegeben wird davon nichts**: kein Byte
+LanguageTool liegt im Programmordner, im AppImage oder im Flatpak, und es gibt keine
+Paketabhängigkeit darauf. Wer den Server will, installiert ihn selbst — aus der
+Paketverwaltung seiner Verteilung oder von der Projektseite.
+
+Deshalb entsteht hier **keine Lizenzpflicht**: LanguageTool steht unter der LGPL 2.1, und die
+greift bei Weitergabe. Gonk Note gibt es nicht weiter, sondern spricht über HTTP mit einem
+Dienst, den der Nutzer betreibt — dieselbe Art Beziehung wie zu einem Drucker oder einer
+Datenbank.
+
+> **⛔ Nur der eigene Rechner.** Die Prüfung spricht ausschließlich mit dem Loopback-Gerät;
+> jede andere Adresse wird abgelehnt, auch über die Umgebungsvariable. Die **öffentliche API
+> von languagetool.org wird bewusst nicht unterstützt** — ein Grammatikdienst bekommt den
+> Text des Dokuments zu sehen, und „Deine Daten liegen nur auf diesem Rechner" ist eine
+> Zusage und keine Voreinstellung.
 
 ### Die Prüfmaschine selbst
 

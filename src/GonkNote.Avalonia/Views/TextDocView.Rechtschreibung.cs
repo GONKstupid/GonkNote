@@ -1,5 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.Threading;
+using GonkNote.Services;
 using GonkNote.Core.Rendering;
 using GonkNote.Core.Text;
 
@@ -36,6 +38,12 @@ public partial class TextDocView
     private bool _rechtschreibungAn = true;
 
     /// <summary>
+    /// Ob auch auf Grammatik geprüft wird (Phase 5.2). Eigener Schalter, weil es eine eigene
+    /// Frage ist — siehe die Begründung am Knopf in <c>TextDocView.axaml</c>.
+    /// </summary>
+    private bool _grammatikAn = true;
+
+    /// <summary>
     /// Was der Zeichner bekommt: die Sprache — oder <c>null</c>, wenn abgeschaltet ist oder
     /// es für sie kein Wörterbuch gibt.
     /// <para>
@@ -64,7 +72,32 @@ public partial class TextDocView
         if (!moeglich) RechtschreibSchalter.IsChecked = false;
 
         _rechtschreibungAn = RechtschreibSchalter.IsChecked == true;
+
+        GrammatikSchalter.IsEnabled = moeglich;
+        if (!moeglich) GrammatikSchalter.IsChecked = false;
+        _grammatikAn = GrammatikSchalter.IsChecked == true;
+
+        // **Der Server wird nicht angepingt und nicht abgewartet.** Läuft einer, kommen seine
+        // Befunde beim ersten geprüften Absatz von selbst dazu und melden sich hier zurück;
+        // läuft keiner, merkt sich `TdLanguageTool` das nach dem ersten Versuch und fragt nie
+        // wieder. Ein Startvorgang, der auf ein Netzwerk wartet, ist ein Startvorgang, der
+        // manchmal hängt.
+        TdLanguageTool.Fertig += LanguageToolGemeldet;
     }
+
+    /// <summary>
+    /// LanguageTool ist mit Befunden zurück. <b>Auf einem fremden Faden</b> — deshalb über den
+    /// Planer der Plattform zurück in die Oberfläche, und nur neu zeichnen: Der Umbruch ändert
+    /// sich durch eine Welle nicht.
+    /// </summary>
+    private void LanguageToolGemeldet() =>
+        // **`Dispatcher.UIThread` und nicht `IUiScheduler`**: Der kann nur wiederholen
+        // (`Repeat`), und ihn um ein einmaliges `Post` zu erweitern hieße, beide Köpfe
+        // anzufassen — für eine Zeile, die ohnehin nur der Linux-Kopf braucht.
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (_grammatikAn && Pruefsprache is not null) Skia.InvalidateVisual();
+        });
 
     private void Sprache_Gewechselt(object? sender, SelectionChangedEventArgs e)
     {
@@ -78,6 +111,12 @@ public partial class TextDocView
     private void Rechtschreibung_Click(object? sender, RoutedEventArgs e)
     {
         _rechtschreibungAn = RechtschreibSchalter.IsChecked == true;
+        PruefungNachziehen();
+    }
+
+    private void Grammatik_Click(object? sender, RoutedEventArgs e)
+    {
+        _grammatikAn = GrammatikSchalter.IsChecked == true;
         PruefungNachziehen();
     }
 
@@ -100,6 +139,29 @@ public partial class TextDocView
     /// angeschrieben; hier ist sie dieselbe.
     /// </para>
     /// </summary>
+    /// <summary>
+    /// Der Satz über der Vorschlagsliste — <b>nur bei Grammatik</b>. Bei der Rechtschreibung
+    /// ist das angestrichene Wort selbst der Hinweis; eine Zeile „Dieses Wort steht nicht im
+    /// Wörterbuch" darüber sagte nichts, was die rote Welle nicht schon gesagt hat.
+    /// </summary>
+    private string? Befundhinweis()
+    {
+        if (Pruefsprache is not { } sprache || _modell is null) return null;
+
+        var stelle = _auswahl.Focus;
+        if (TdCursor.AbsatzAn(_modell, stelle.Paragraph) is not { } absatz) return null;
+
+        int linear = TdCursor.Linear(absatz, stelle);
+        var fund = TdPruefung.Fehler(absatz, sprache, _grammatikAn)
+            .FirstOrDefault(f => linear >= f.Start && linear <= f.Ende);
+
+        // `Loc.T` gibt unbekannte Schlüssel unverändert zurück — deshalb geht hier sowohl der
+        // Schlüssel der eigenen Regeln durch als auch der fertige Satz von LanguageTool.
+        return fund is { Art: TdBefundArt.Grammatik, Hinweis: { Length: > 0 } schluessel }
+            ? Loc.T(schluessel)
+            : null;
+    }
+
     private IReadOnlyList<(string Wort, Action Ersetzen)> Verbesserungsvorschlaege()
     {
         if (Pruefsprache is not { } sprache || _modell is null) return [];
@@ -111,7 +173,7 @@ public partial class TextDocView
 
         // `<=` auf beiden Seiten: Wer hinter das letzte Zeichen eines Wortes klickt, meint
         // dieses Wort und nicht das nächste.
-        var fehler = TdRechtschreibung.Fehler(absatz, sprache);
+        var fehler = TdPruefung.Fehler(absatz, sprache, _grammatikAn);
         if (fehler.FirstOrDefault(f => linear >= f.Start && linear <= f.Ende) is not { Laenge: > 0 } fund)
             return [];
 
@@ -120,7 +182,7 @@ public partial class TextDocView
         int absatzIndex = stelle.Paragraph;
         return
         [
-            .. TdRechtschreibung.Vorschlaege(wort, sprache)
+            .. TdPruefung.Vorschlaege(fund, wort, sprache)
                 .Select(vorschlag => (vorschlag, (Action)(() => Ersetzen(absatzIndex, fund, wort, vorschlag)))),
         ];
     }
@@ -159,7 +221,7 @@ public partial class TextDocView
     /// </summary>
     private void PruefungNachziehen()
     {
-        _kontext = _kontext with { Rechtschreibsprache = Pruefsprache };
+        _kontext = _kontext with { Rechtschreibsprache = Pruefsprache, Grammatik = _grammatikAn };
         Skia.InvalidateVisual();
     }
 }

@@ -195,6 +195,38 @@ public sealed class GrammatikTests
     }
 
     [Fact]
+    public async Task Ein_Fehlschlag_wird_nicht_gemerkt_sonst_greift_die_Wiederholung_nie()
+    {
+        // **Der Grund für diesen Wächter.** Der Hinweis im Menü sagt „starte LanguageTool".
+        // Würde ein gescheiterter Versuch als leere Liste im Zwischenspeicher landen, träfe
+        // jede spätere Abfrage auf diesen Eintrag und käme gar nicht mehr bis zum Server —
+        // der Hinweis wäre eine Anweisung, die folgenlos bleibt, bis das Programm neu
+        // startet. Genau so war der erste Wurf.
+        TdLanguageTool.Vergessen();
+        TdLanguageTool.Adresse = new Uri("http://localhost:1");
+        TdLanguageTool.Wiederholung = TimeSpan.Zero;
+
+        const string text = "Das ist ist ein Satz.";
+        Assert.Empty(TdLanguageTool.Befunde(text, De));
+
+        // Dem Hintergrund Zeit geben, den Fehlschlag festzustellen.
+        for (int i = 0; i < 100 && TdLanguageTool.Verfuegbar is null; i++)
+            await Task.Delay(20);
+
+        Assert.False(TdLanguageTool.Verfuegbar);
+
+        // Mit abgelaufener Sperre muss derselbe Text erneut angefragt werden — messbar daran,
+        // dass die Auskunft „nicht nachgesehen" zurückkommt statt beim Nein zu bleiben.
+        Assert.Empty(TdLanguageTool.Befunde(text, De));
+        Assert.True(TdLanguageTool.Verfuegbar is null or false,
+            "Der Fehlschlag wurde gemerkt — die Wiederholung kommt nie bis zur Abfrage.");
+
+        TdLanguageTool.Wiederholung = TimeSpan.FromSeconds(30);
+        TdLanguageTool.Vergessen();
+        TdLanguageTool.Adresse = new Uri("http://localhost:8081");
+    }
+
+    [Fact]
     public void Nur_der_eigene_Rechner_ist_erlaubt()
     {
         // ⛔ Die Zusage des Programms: „Deine Daten liegen nur auf diesem Rechner." Ein

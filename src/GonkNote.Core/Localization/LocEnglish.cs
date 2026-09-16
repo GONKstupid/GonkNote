@@ -395,6 +395,8 @@ internal static class LocEnglish
         ["Gram.Leerzeichen.Doppelt"] = "More than one space",
         ["Gram.Satzanfang"] = "A sentence starts with a capital letter",
         ["Ed.Grammar"] = "Grammar check",
+        // Counterpart to Ed.Grammar.More in LocGerman.
+        ["Ed.Grammar.More"] = "More grammar: run LanguageTool on this machine (languagetool --http)",
         ["Ed.Grammar.Toggle"] = "Grammar check on/off",
         ["Ed.Grammar.Button"] = " G✓ ",
         ["Ed.Spell.Language"] = "Spell-check language",

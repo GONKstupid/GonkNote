@@ -162,6 +162,43 @@ public partial class TextDocView
             : null;
     }
 
+    /// <summary>
+    /// Soll unter den Vorschlägen stehen, wie man zu echter Grammatikprüfung kommt?
+    ///
+    /// <para>
+    /// <b>Genau dann, wenn drei Dinge zusammenkommen:</b> Der Nutzer schaut gerade auf einen
+    /// Grammatikbefund, die Grammatikprüfung ist an, und es ist <b>nachgesehen</b>, dass kein
+    /// LanguageTool-Server läuft. Das Nachgesehen-Haben ist der Teil, der leicht untergeht:
+    /// <see cref="TdLanguageTool.Verfuegbar"/> ist <c>null</c>, solange niemand gefragt hat,
+    /// und „noch nicht gefragt" ist kein „nein" — ein Hinweis darauf wäre eine Behauptung
+    /// über einen Rechner, den man nicht angesehen hat.
+    /// </para>
+    /// <para>
+    /// <b>Und nur bei Grammatik.</b> Bei einem falsch geschriebenen Wort hat LanguageTool
+    /// nichts beizutragen (dafür ist das Wörterbuch da); der Satz stünde dort als Werbung in
+    /// einem Menü, in dem er nichts zu suchen hat.
+    /// </para>
+    /// </summary>
+    private bool LanguageToolHinweis() =>
+        _grammatikAn &&
+        TdLanguageTool.Verfuegbar is false &&
+        Befundart() is TdBefundArt.Grammatik;
+
+    /// <summary>Woran die Fundstelle unter der Marke liegt — oder <c>null</c>, wenn dort keine ist.</summary>
+    private TdBefundArt? Befundart()
+    {
+        if (Pruefsprache is not { } sprache || _modell is null) return null;
+
+        var stelle = _auswahl.Focus;
+        if (TdCursor.AbsatzAn(_modell, stelle.Paragraph) is not { } absatz) return null;
+
+        int linear = TdCursor.Linear(absatz, stelle);
+        foreach (var f in TdPruefung.Fehler(absatz, sprache, _grammatikAn))
+            if (linear >= f.Start && linear <= f.Ende) return f.Art;
+
+        return null;
+    }
+
     private IReadOnlyList<(string Wort, Action Ersetzen)> Verbesserungsvorschlaege()
     {
         if (Pruefsprache is not { } sprache || _modell is null) return [];

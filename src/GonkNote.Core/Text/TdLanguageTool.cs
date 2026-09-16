@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net.Http;
 using System.Text.Json;
 
@@ -15,11 +16,23 @@ namespace GonkNote.Core.Text;
 /// genau diesen Server.
 /// </para>
 /// <para>
-/// <b>Warum er nicht mitgeliefert wird.</b> LanguageTool ist Java. Mitliefern hieße eine
-/// Laufzeitumgebung ins AppImage zu legen und aus 88 MB rund 600 MB zu machen — für eine
-/// Funktion, die ohne sie nicht ausfällt, sondern nur schmaler wird. Deshalb dieselbe
-/// Staffelung wie bei der Texterkennung (§4.64): <b>Ist einer da, wird er benutzt; ist keiner
-/// da, wird das gesagt</b> und die festen Regeln tragen weiter.
+/// <b>Warum er nicht mitgeliefert wird</b> (Nutzerfrage, 2026-09-16 — nachgemessen, nicht
+/// geschätzt): LanguageTool 6.6 sind <b>386 MB</b> installiert, dazu eine JRE mit <b>125 MB</b>;
+/// das AppImage wüchse von 88 MB auf rund 600 MB, getrimmt auf de+en und mit <c>jlink</c>
+/// immer noch auf etwa 300 MB.
+/// <para>
+/// <b>Das Gewicht ist dabei der harmloseste der vier Gründe.</b> Der eigentliche ist, dass die
+/// App damit eine <b>zweite Laufzeitumgebung besäße</b>: einen JVM-Kindprozess starten, einen
+/// freien Port suchen, sein Hochfahren abwarten, ihn zuverlässig abräumen und seine Abstürze
+/// überleben. Dazu ein halbes bis ein Gigabyte Arbeitsspeicher, eine deutlich größere
+/// Prüffläche bei der Flathub-Einreichung — und ein Weg, den iPadOS (Phase 6) ohnehin nicht
+/// mitgehen kann, weil dort keine JVM läuft. Die Naht „Server, wenn einer da ist" muss es
+/// also sowieso geben.
+/// </para>
+/// <para>
+/// Deshalb dieselbe Staffelung wie bei der Texterkennung (§4.64): <b>Ist einer da, wird er
+/// benutzt; ist keiner da, wird das gesagt</b> — im Menü, an der Stelle, an der es jemanden
+/// interessiert — und die festen Regeln tragen weiter.
 /// </para>
 /// <para>
 /// <b>⛔ NUR DER EIGENE RECHNER.</b> Geprüft wird ausschließlich gegen einen Server auf dem
@@ -70,6 +83,26 @@ public static class TdLanguageTool
     /// </summary>
     public static event Action? Fertig;
 
+    /// <summary>
+    /// Wie lange ein „kein Server da" gilt, bevor erneut nachgesehen wird.
+    ///
+    /// <para>
+    /// <b>Ohne diese Wiederholung wäre der Hinweis im Menü eine Lüge:</b> Er sagt „starte
+    /// LanguageTool" — und ohne sie passierte danach nichts bis zum nächsten Programmstart,
+    /// weil das erste Nein für immer gegolten hätte.
+    /// </para>
+    /// <para>
+    /// <b>Gemessen wird verstrichene Zeit und nicht die Uhrzeit</b> (<see cref="Stopwatch"/>),
+    /// und das ist die Antwort auf §4.20 „Core fragt die Uhr nicht selbst": Diese Zahl geht in
+    /// kein Dokument, in keinen Export und in kein Bild — sie entscheidet nur, ob ein Rechner
+    /// noch einmal gefragt wird. Eine Wanduhr, die zurückspringt, dürfte das nicht
+    /// durcheinanderbringen.
+    /// </para>
+    /// </summary>
+    public static TimeSpan Wiederholung { get; set; } = TimeSpan.FromSeconds(30);
+
+    private static long _letzterFehlschlag;
+
     private static readonly Lock _tor = new();
     private static readonly Dictionary<(string Text, string Sprache), IReadOnlyList<TdFehlstelle>> _befunde = new();
     private static readonly HashSet<(string Text, string Sprache)> _unterwegs = [];
@@ -86,8 +119,14 @@ public static class TdLanguageTool
     public static IReadOnlyList<TdFehlstelle> Befunde(string? text, string? bcp47)
     {
         if (string.IsNullOrWhiteSpace(text) || bcp47 is not { Length: > 0 }) return [];
-        if (Verfuegbar is false) return [];
+        // Die fremde Adresse bleibt endgültig nein — daran ändert kein Abwarten etwas.
         if (!Erlaubt(Adresse)) { Verfuegbar = false; return []; }
+
+        if (Verfuegbar is false)
+        {
+            if (Stopwatch.GetElapsedTime(_letzterFehlschlag) < Wiederholung) return [];
+            Verfuegbar = null;
+        }
 
         var schluessel = (text, bcp47);
 
@@ -110,6 +149,7 @@ public static class TdLanguageTool
             _unterwegs.Clear();
         }
         Verfuegbar = null;
+        _letzterFehlschlag = 0;
     }
 
     // ==================== Der Hintergrund ====================
@@ -117,6 +157,7 @@ public static class TdLanguageTool
     private static async Task Holen((string Text, string Sprache) schluessel)
     {
         IReadOnlyList<TdFehlstelle> ergebnis = [];
+        bool geklappt = true;
 
         try
         {
@@ -143,20 +184,35 @@ public static class TdLanguageTool
                 Verfuegbar = true;
             }
         }
-        catch (HttpRequestException) { Verfuegbar = false; }
-        catch (TaskCanceledException) { Verfuegbar = false; }
+        catch (HttpRequestException) { Fehlgeschlagen(); geklappt = false; }
+        catch (TaskCanceledException) { Fehlgeschlagen(); geklappt = false; }
         catch (JsonException) { Verfuegbar = true; }
 
         lock (_tor)
         {
-            // ponytail: platt gedeckelt wie in TdRechtschreibung — beim Überlauf fliegt alles
-            // raus. Eine echte LRU erst, wenn ein Dokument das je erreicht.
-            if (_befunde.Count > 2048) _befunde.Clear();
-            _befunde[schluessel] = ergebnis;
+            // ⚠ **Ein Fehlschlag wird NICHT gemerkt**, und das ist der Sinn von
+            // <see cref="Wiederholung"/>: Läge hier nach einem gescheiterten Versuch eine
+            // leere Liste im Zwischenspeicher, käme die Wiederholung nie bis zur Abfrage —
+            // sie träfe vorher auf den Eintrag und gäbe ihn zurück. Genau so war es beim
+            // ersten Wurf, und es hätte den Hinweis im Menü wirkungslos gemacht.
+            if (geklappt)
+            {
+                // ponytail: platt gedeckelt wie in TdRechtschreibung — beim Überlauf fliegt
+                // alles raus. Eine echte LRU erst, wenn ein Dokument das je erreicht.
+                if (_befunde.Count > 2048) _befunde.Clear();
+                _befunde[schluessel] = ergebnis;
+            }
+
             _unterwegs.Remove(schluessel);
         }
 
         Fertig?.Invoke();
+    }
+
+    private static void Fehlgeschlagen()
+    {
+        Verfuegbar = false;
+        _letzterFehlschlag = Stopwatch.GetTimestamp();
     }
 
     /// <summary>

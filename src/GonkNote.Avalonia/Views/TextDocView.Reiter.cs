@@ -248,7 +248,10 @@ public partial class TextDocView
 
         // Weder Tabelle noch falsch geschriebenes Wort: kein Menü. Siehe oben — nicht öffnen
         // statt alles ausgrauen.
-        if (ort is null && vorschlaege.Count == 0 && Befundhinweis() is not { Length: > 0 }) return;
+        bool ltHinweis = LanguageToolHinweis();
+
+        if (ort is null && vorschlaege.Count == 0 && !ltHinweis &&
+            Befundhinweis() is not { Length: > 0 }) return;
 
         var menue = new MenuFlyout { Placement = PlacementMode.Pointer };
 
@@ -270,6 +273,17 @@ public partial class TextDocView
             var eintrag = new MenuItem { Header = wort };
             eintrag.Click += (_, _) => ersetzen();
             menue.Items.Add(eintrag);
+        }
+
+        // **Der Weg zur echten Grammatikprüfung, und zwar da, wo man ihn braucht.** Die
+        // festen Regeln finden Flüchtigkeitsfehler; Satzbau und Fälle können sie nicht (siehe
+        // `TdGrammatik`). Wer auf einem Grammatikbefund steht und keinen Server laufen hat,
+        // ist genau der, dem dieser Satz etwas nützt — in der Statusleiste hätte ihn niemand
+        // gelesen. Grau: Er ist eine Auskunft und kein Befehl.
+        if (ltHinweis)
+        {
+            if (vorschlaege.Count > 0) menue.Items.Add(new Separator());
+            menue.Items.Add(new MenuItem { Header = Loc.T("Ed.Grammar.More"), IsEnabled = false });
         }
 
         if (ort is not { } drin)

@@ -410,6 +410,10 @@ internal static class LocGerman
         ["Gram.Leerzeichen.Doppelt"] = "Mehr als ein Leerzeichen",
         ["Gram.Satzanfang"] = "Ein Satz fängt groß an",
         ["Ed.Grammar"] = "Grammatikprüfung",
+        // Der Hinweis unter den Vorschlägen, **nur wenn kein LanguageTool-Server läuft**.
+        // Er nennt den Befehl und nicht nur den Namen: „installier dir was" ist keine
+        // Anleitung, wenn man nicht weiß, wonach man sucht.
+        ["Ed.Grammar.More"] = "Mehr Grammatik: LanguageTool auf diesem Rechner starten (languagetool --http)",
         ["Ed.Grammar.Toggle"] = "Grammatikprüfung ein/aus",
         ["Ed.Grammar.Button"] = " G✓ ",
         ["Ed.Spell.Language"] = "Sprache für die Rechtschreibprüfung",

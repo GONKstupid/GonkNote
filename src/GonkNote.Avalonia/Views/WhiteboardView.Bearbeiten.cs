@@ -94,6 +94,7 @@ public partial class WhiteboardView
                                 : HexColor.Parse(_textGrundHex, HexColor.Black))
                             .ToString(),
             FontSize = 18f,
+            FontFamily = _textSchrift,
             Background = _textGrundHex,
         }, neu: true);
     }
@@ -143,6 +144,11 @@ public partial class WhiteboardView
         EditFeld.VerticalContentAlignment = VerticalAlignment.Center;
 
         EditFeld.FontSize = Math.Max(8, el.FontSize * Zoom);
+
+        // **Das Feld schreibt in der Schrift des Elements**, sonst tippt man in der
+        // Oberflächenschrift und der Text springt erst beim Abschließen um.
+        EditFeldSchriftSetzen(el.FontFamily);
+
         FeldfarbenSetzen(
             el.Background is { } grund
                 ? HexColor.Parse(grund, HexColor.Black).ToBrush()
@@ -170,6 +176,12 @@ public partial class WhiteboardView
         EditFeld.VerticalContentAlignment = VerticalAlignment.Top;
 
         EditFeld.FontSize = Math.Max(8, el.FontSize * Zoom);
+
+        // Beide Werkzeuge teilen sich dieses Feld: Der Zettel muss die Schrift **setzen**
+        // und nicht die des zuletzt bearbeiteten Textfelds erben — dieselbe Regel wie bei
+        // den Maßen ein paar Zeilen weiter oben.
+        EditFeldSchriftSetzen(el.FontFamily);
+
         FeldfarbenSetzen(
             HexColor.Parse(el.Color, HexColor.Black).ToBrush(),
             HexColor.Parse(el.TextColor, HexColor.Black).ToBrush());
@@ -448,6 +460,84 @@ public partial class WhiteboardView
         TextGrundVorschau.Background = _textGrundHex is null
             ? Brushes.Transparent
             : _textGrundFarbe.ToBrush();
+
+    // ==================== Die Schriftart des Textfeld-Werkzeugs ====================
+
+    /// <summary>
+    /// Die Schrift, die ein <b>neues</b> Textfeld bekommt.
+    ///
+    /// <para>
+    /// <b>Die Vorgabe kommt aus dem Schriftschema und steht nicht als Name hier</b> — es ist
+    /// dieselbe Rolle, mit der <see cref="TextElement.FontFamily"/> anfängt
+    /// (<see cref="FontRole.Handwriting"/>). Ein zweiter Name an dieser Stelle wäre der
+    /// Anfang zweier Vorgaben, von denen eine irgendwann die andere überholt.
+    /// </para>
+    /// </summary>
+    private string _textSchrift = Fonts.Standard.Family(FontRole.Handwriting);
+
+    /// <summary>
+    /// Füllt den Wähler — <b>einmal beim Aufbau</b>, wie die Klappgruppen daneben.
+    /// Die Liste ändert sich zur Laufzeit nicht.
+    /// </summary>
+    private void TextSchriftFuellen()
+    {
+        _stummeEinstellungen = true;
+        try
+        {
+            TextSchrift.ItemsSource = Schriften;
+
+            // Die Vorgabe des Schemas ist mitgeliefert und steht damit in der Liste. Hat
+            // dieses System sie ausnahmsweise nicht, bleibt die Auswahl leer statt still
+            // auf etwas anderes zu springen — dieselbe Regel wie beim Cover.
+            TextSchrift.SelectedItem = Schriften.Contains(_textSchrift) ? _textSchrift : null;
+        }
+        finally { _stummeEinstellungen = false; }
+    }
+
+    private void TextSchrift_Geaendert(object? sender, SelectionChangedEventArgs e)
+    {
+        if (_stummeEinstellungen) return;
+        if (TextSchrift.SelectedItem is not string schrift) return;
+
+        _textSchrift = schrift;
+
+        // **Auch auf das gerade Bearbeitete bzw. Ausgewählte** — das sagt der Hinweis
+        // darunter zu (`Settings.Text.Hint`), und drüben hält es `ApplyToActiveText` genauso.
+        AufAktivenText(t => t.FontFamily = schrift);
+    }
+
+    /// <summary>
+    /// Wendet eine Änderung auf das Textfeld an, das gerade bearbeitet wird — sonst auf das
+    /// einzelne ausgewählte. <b>Bei mehreren ausgewählten geschieht nichts:</b> welche der
+    /// Auswahlen gemeint wäre, sagt niemand, und stillschweigend alle zu ändern ist die
+    /// Antwort auf eine ungestellte Frage.
+    /// </summary>
+    private void AufAktivenText(Action<TextElement> aendern)
+    {
+        var ziel = _bearbeiteterText
+            ?? (_selection.Count == 1 ? _selection.First() as TextElement : null);
+        if (ziel == null) return;
+
+        aendern(ziel);
+        MarkDirty();
+
+        // Das offene Eingabefeld liegt ÜBER dem Element und zeichnet den Text selbst; ohne
+        // das hier bliebe es in der alten Schrift stehen, bis die Bearbeitung endet.
+        if (ReferenceEquals(ziel, _bearbeiteterText)) EditFeldSchriftSetzen(ziel.FontFamily);
+
+        Neuzeichnen();
+    }
+
+    /// <summary>
+    /// Gibt dem Eingabefeld die Schrift des Elements.
+    /// <b>Ein leerer Name bleibt ungesetzt</b> statt auf eine hier hingeschriebene
+    /// Ersatzschrift zu fallen: <c>FontFamily</c> nicht anzufassen heißt, dass Avalonias
+    /// eigene Kette greift — dieselbe, die auch der Zeichner am Ende benutzt.
+    /// </summary>
+    private void EditFeldSchriftSetzen(string? familie) =>
+        EditFeld.FontFamily = familie is { Length: > 0 } name
+            ? new FontFamily(name)
+            : FontFamily.Default;
 
     private void Zettelfarbe_Click(object? sender, RoutedEventArgs e)
     {

@@ -78,7 +78,13 @@ public partial class WhiteboardView
     {
         GroesseHaltenAbbrechen();
         _groesseStart = p;
-        _groesseUhr = new DispatcherTimer { Interval = WbZahlenblock.Haltedauer };
+        // Dieselbe Stufe und derselbe Grund wie beim Langdruck der Schnellaktionen
+        // (Begründung im Langen in <c>WhiteboardView.Schnellaktionen.cs</c>): die Vorgabe
+        // ist `Background`, und die kommt unter einem aufliegenden Stift nicht mehr dran.
+        _groesseUhr = new DispatcherTimer(DispatcherPriority.Input)
+        {
+            Interval = WbZahlenblock.Haltedauer,
+        };
         _groesseUhr.Tick += GroesseHaltenAbgelaufen;
         _groesseUhr.Start();
     }

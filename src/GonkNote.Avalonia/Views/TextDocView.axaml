@@ -1085,6 +1085,29 @@
                            FontSize="12" Foreground="{DynamicResource Brush.TextMuted}"/>
 
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="2">
+                    <!-- Rechtschreibprüfung (Phase 5.1, §5 Nr. 22 — das benannte Loch aus M2).
+                         **Sprachwahl und Schalter sitzen hier und nicht im Ribbon**, weil sie
+                         drüben seit jeher hier sitzen (`TextEditorView.xaml`, Statusleiste):
+                         Sie betreffen die Ansicht und nicht das Dokument.
+
+                         **Kein Warnsymbol wie im WPF-Kopf.** Dort kann Windows für eine
+                         Sprache kein Wörterbuch haben; hier werden beide mitgeliefert
+                         (§4.26 bei den Schriften, derselbe Grund). Fehlt trotzdem eines,
+                         bleibt der Schalter grau — das ist dieselbe ehrliche Antwort wie bei
+                         der Texterkennung (§4.64) und braucht keinen zweiten Hinweis. -->
+                    <ComboBox x:Name="SprachWahl" Width="96" VerticalAlignment="Center" FontSize="12"
+                              SelectionChanged="Sprache_Gewechselt" ToolTip.Tip="{loc:T Ed.Spell.Language}">
+                        <ComboBoxItem Content="{loc:T Lang.German}" Tag="de-DE" IsSelected="True"/>
+                        <ComboBoxItem Content="{loc:T Lang.English}" Tag="en-US"/>
+                    </ComboBox>
+                    <ToggleButton x:Name="RechtschreibSchalter" Classes="flach" IsChecked="True"
+                                  FontSize="11" Content="{loc:T Ed.Spell.Button}"
+                                  Click="Rechtschreibung_Click"
+                                  ToolTip.Tip="{loc:T Ed.Spell.Toggle}"
+                                  AutomationProperties.Name="{loc:T Ed.Spell}"/>
+
+                    <Border Classes="trenner"/>
+
                     <Button Classes="flach symbol" Click="Seitenbreite_Click"
                             ToolTip.Tip="{loc:T Ed.FitWidth.Tip}">
                         <views:Symbol Icon="FitWidth" Stroke="{DynamicResource Brush.Text}"/>

@@ -224,6 +224,39 @@ public static class TdCursor
         return summe;
     }
 
+    /// <summary>
+    /// Der Klartext eines Absatzes in <b>Cursorschritten</b>.
+    ///
+    /// <para>
+    /// <b>Das ist nicht <c>PlainText()</c>, und der Unterschied ist der Punkt:</b> Ein Feld,
+    /// ein Bild und ein Zeilenumbruch sind für den Cursor **ein** Schritt breit, liefern im
+    /// Klartext aber nichts (§4.20, §4.21). Wer sie ausließe, bekäme einen Text, dessen
+    /// Indizes nicht mehr zu <see cref="Linear"/> passen — und ein Treffer säße hinterher um
+    /// so viele Zeichen daneben, wie Felder davor stehen.
+    /// </para>
+    /// <para>
+    /// Sie werden deshalb durch <b>ein Ersatzzeichen</b> vertreten: <c>U+FFFC</c>, das
+    /// „Object Replacement Character". <b>Es ist bewusst kein Leerzeichen</b> — sonst fände
+    /// eine Suche nach „a b" ein „a" vor einem Bild und ein „b" dahinter.
+    /// </para>
+    /// <para>
+    /// <b>Sie stand bis Phase 5.1 privat in <see cref="TdSuche"/>.</b> Die
+    /// Rechtschreibprüfung braucht genau dieselbe Zählung — eine zweite Fassung wäre eine
+    /// zweite Wahrheit gewesen, und die Wellenlinie säße dann um dieselben Felder daneben
+    /// wie oben beschrieben.
+    /// </para>
+    /// </summary>
+    public static string AbsatzText(TdParagraph absatz)
+    {
+        var sb = new System.Text.StringBuilder();
+        foreach (var stueck in Stuecke(absatz))
+        {
+            if (stueck is TdRun run) sb.Append(run.Text);
+            else sb.Append('￼', Laenge(stueck));
+        }
+        return sb.ToString();
+    }
+
     // ---------------------------------------------------------------- Absätze finden
 
     /// <summary>

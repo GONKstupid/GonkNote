@@ -144,7 +144,23 @@ public partial class WhiteboardView
 
         _druckStart = schirm;
         _druckVomFinger = vomFinger;
-        _druckUhr = new DispatcherTimer { Interval = Druckdauer };
+
+        // ⛔ **`DispatcherPriority.Input` und nicht die Vorgabe** (Nutzer, 2026-09-14:
+        // „hold für Rechtsklick ist zickig und funktioniert nur manchmal").
+        //
+        // `new DispatcherTimer()` nimmt in Avalonia 12.1.1 `DispatcherPriority.Background` —
+        // die **unterste** Stufe, unter `Input` und unter `Render` (am Bau nachgemessen).
+        // Solange ein Stift oder ein Finger aufliegt, meldet der Digitizer mit einigen
+        // hundert Hertz; die Warteschlange läuft damit nie leer, und ein Auftrag der
+        // untersten Stufe kommt nicht mehr dran. **Genau deshalb ging es mit der Maus
+        // zuverlässig und mit Stift und Finger nur manchmal:** eine stillstehende Maus
+        // erzeugt gar keine Ereignisse.
+        //
+        // `Input` und nicht `Normal`: gleiche Stufe wie die Zeigerereignisse heißt
+        // Reihenfolge statt Vordrängeln — alle Bewegungen, die vor dem Ablauf eingetroffen
+        // sind, werden **vorher** verarbeitet und können den Druck noch als Zug abbrechen.
+        // Auf `Normal` gehoben, spränge die Leiste mitten in einen Zug hinein.
+        _druckUhr = new DispatcherTimer(DispatcherPriority.Input) { Interval = Druckdauer };
         _druckUhr.Tick += DruckAbgelaufen;
         _druckUhr.Start();
     }

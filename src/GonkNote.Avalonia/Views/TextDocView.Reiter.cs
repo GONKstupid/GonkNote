@@ -241,9 +241,34 @@ public partial class TextDocView
     /// </summary>
     private void TabellenmenueZeigen()
     {
-        if (!Schreibbar || TdTableEdit.Ort(_modell!, _auswahl.Focus) is not { } ort) return;
+        if (!Schreibbar) return;
+
+        var ort = TdTableEdit.Ort(_modell!, _auswahl.Focus);
+        var vorschlaege = Verbesserungsvorschlaege();
+
+        // Weder Tabelle noch falsch geschriebenes Wort: kein Menü. Siehe oben — nicht öffnen
+        // statt alles ausgrauen.
+        if (ort is null && vorschlaege.Count == 0) return;
 
         var menue = new MenuFlyout { Placement = PlacementMode.Pointer };
+
+        // **Die Vorschläge stehen oben.** Wer mit der rechten Taste auf ein rot
+        // unterringeltes Wort zielt, will es verbessern — und nicht erst an sechs
+        // Tabellenbefehlen vorbeilesen.
+        foreach (var (wort, ersetzen) in vorschlaege)
+        {
+            var eintrag = new MenuItem { Header = wort };
+            eintrag.Click += (_, _) => ersetzen();
+            menue.Items.Add(eintrag);
+        }
+
+        if (ort is not { } drin)
+        {
+            menue.ShowAt(Skia, showAtPointer: true);
+            return;
+        }
+
+        if (vorschlaege.Count > 0) menue.Items.Add(new Separator());
 
         menue.Items.Add(Eintrag("Ed.Table.Row.Above", () => Zeile(darunter: false)));
         menue.Items.Add(Eintrag("Ed.Table.Row.Below", () => Zeile(darunter: true)));
@@ -253,9 +278,9 @@ public partial class TextDocView
 
         // Dieselbe Grenze wie im Reiter: die letzte Zeile und die letzte Spalte bleiben stehen.
         menue.Items.Add(Eintrag(
-            "Ed.Table.Row.Delete", ZeileWeg, ort.Tabelle.Rows.Count > 1));
+            "Ed.Table.Row.Delete", ZeileWeg, drin.Tabelle.Rows.Count > 1));
         menue.Items.Add(Eintrag(
-            "Ed.Table.Column.Delete", SpalteWeg, ort.Tabelle.Spaltenzahl() > 1));
+            "Ed.Table.Column.Delete", SpalteWeg, drin.Tabelle.Spaltenzahl() > 1));
         menue.Items.Add(Eintrag("Ed.Table.Delete", TabelleWeg));
 
         menue.ShowAt(Skia, showAtPointer: true);

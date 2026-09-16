@@ -29,11 +29,22 @@ namespace GonkNote.Core.Rendering;
 /// Zentimetern und gehört nach <c>Core/Text</c>; hier werden daraus zwei Rechtecke.
 /// </para>
 /// </param>
+/// <param name="Rechtschreibsprache">
+/// Die Sprache, gegen die geprüft wird — <c>null</c> heißt <b>keine Prüfung</b>, und das ist
+/// der Normalfall: beim Drucken, beim Export, in jeder Vorschau. <b>Eine Wellenlinie ist eine
+/// Hilfe beim Schreiben und gehört nicht aufs Papier.</b>
+///
+/// <para>
+/// Sie steht hier und nicht als Schalter im Kopf, weil die Auswahl darüber genauso läuft
+/// (<paramref name="Markierung"/>): Was nur beim Schreiben gilt, kommt vom Schreibenden mit.
+/// </para>
+/// </param>
 public readonly record struct TdRenderContext(
     ITdImages? Bilder = null,
     TdFieldContext? Felder = null,
     int? Seitenzahl = null,
-    TdMarkierung? Markierung = null);
+    TdMarkierung? Markierung = null,
+    string? Rechtschreibsprache = null);
 
 /// <summary>
 /// Der Zeichner: aus einer gesetzten Seite (<see cref="TdPage"/>) werden Pixel.
@@ -179,6 +190,12 @@ public static class TdRenderer
             if (zeile.Marker is { } marke) StueckZeichnen(leinwand, marke, grundlinieCm, massstab, kontext);
 
             foreach (var lauf in zeile.Runs) StueckZeichnen(leinwand, lauf, grundlinieCm, massstab, kontext);
+
+            // Die Wellenlinien nach dem Text: Sie gehören unter die Buchstaben und nicht
+            // hinter sie. Je Zeile und nicht je Lauf — ein falsch geschriebenes Wort darf
+            // über zwei Läufe gehen (ein fett gesetzter Wortteil), und der Prüfer kennt nur
+            // den Absatz.
+            WellenZeichnen(leinwand, zeile, grundlinieCm, massstab, kontext);
 
             // **Die Linie steht unter dem letzten Zeilenumbruch des Absatzes, nicht unter jeder
             // Zeile.** Ein Absatz, der über drei Zeilen läuft, hat *eine* Trennlinie — wer sie
@@ -358,6 +375,107 @@ public static class TdRenderer
             float y = grundlinie + (m.StrikeoutPosition ?? -schrift.Size * 0.28f);
             leinwand.DrawLine(x, y, x + weite, y, stift);
         }
+    }
+
+    // ==================== Rechtschreibung ====================
+
+    /// <summary>
+    /// Die Farbe der Wellenlinie. <b>Fest wie <see cref="Auswahlfarbe"/> und aus demselben
+    /// Grund</b> (§1): Ein Dokument ist Papier und bleibt weiß — eine Markierung, die im
+    /// dunklen Thema die Farbe wechselt, wäre auf weißem Grund einmal unlesbar.
+    /// </summary>
+    public static readonly SKColor Fehlerfarbe = new(0xD3, 0x2F, 0x2F);
+
+    /// <summary>
+    /// Die roten Wellenlinien unter falsch geschriebenen Wörtern.
+    ///
+    /// <para>
+    /// <b>Der Zeichner sucht die Fehler nicht selbst</b> — <see cref="TdRechtschreibung"/>
+    /// tut das, und zwar je Absatz und gemerkt. Hier wird nur zugeordnet: welcher Teil einer
+    /// Fundstelle in welchen gesetzten Lauf fällt und wie weit er dort vom linken Rand weg
+    /// anfängt. Dieselbe Trennung wie beim Umbruch (§4.16).
+    /// </para>
+    /// <para>
+    /// <b>Die Zuordnung geht über <see cref="TdLaidOutRun.Linear"/></b>, und deshalb zählt der
+    /// Prüfer in Cursorschritten: Ein Bild im Absatz ist dort ein Schritt breit, im Klartext
+    /// aber nichts — ohne diese gemeinsame Zählung säße jede Wellenlinie hinter einem Bild um
+    /// ein Zeichen daneben.
+    /// </para>
+    /// </summary>
+    private static void WellenZeichnen(
+        SKCanvas leinwand, TdLine zeile, double grundlinieCm, double massstab, TdRenderContext kontext)
+    {
+        if (kontext.Rechtschreibsprache is not { Length: > 0 } sprache) return;
+        if (zeile.Source is not { } absatz) return;
+
+        var fehler = TdRechtschreibung.Fehler(absatz, sprache);
+        if (fehler.Count == 0) return;
+
+        foreach (var lauf in zeile.Runs)
+        {
+            // Ein Feld und ein Bild sind unteilbar und werden nicht geprüft; ein Lauf ohne
+            // eigene Stelle (Linear < 0) lässt sich nicht zuordnen — etwa die
+            // Aufzählungsmarke, die gar nicht zum Text gehört (§4.17).
+            if (lauf.Linear < 0 || lauf.Text.Length == 0) continue;
+            if (lauf.Field is not null || lauf.Graphic is not null) continue;
+
+            int von = lauf.Linear, bis = lauf.Linear + lauf.Text.Length;
+
+            SKFont? schrift = null;
+            try
+            {
+                foreach (var f in fehler)
+                {
+                    int a = Math.Max(f.Start, von) - von;
+                    int b = Math.Min(f.Ende, bis) - von;
+                    if (b <= a) continue;
+
+                    schrift ??= SchriftFuer(lauf.Format, massstab);
+
+                    float x0 = Px(lauf.XCm, massstab) + schrift.MeasureText(lauf.Text.AsSpan(0, a));
+                    float x1 = Px(lauf.XCm, massstab) + schrift.MeasureText(lauf.Text.AsSpan(0, b));
+
+                    // Hoch- und Tiefstellung verschiebt die Grundlinie dieses Laufs — dieselbe
+                    // Rechnung wie in `StueckZeichnen`. Ohne sie liefe die Welle unter einem
+                    // hochgestellten Wort quer durch die Zeile darunter.
+                    float grundlinie = Px(grundlinieCm, massstab);
+                    if (lauf.Format.VerticalAlign is TdVerticalAlign.Superscript) grundlinie -= schrift.Size * 0.33f;
+                    else if (lauf.Format.VerticalAlign is TdVerticalAlign.Subscript) grundlinie += schrift.Size * 0.16f;
+
+                    Welle(leinwand, x0, x1, grundlinie, schrift.Size);
+                }
+            }
+            finally { schrift?.Dispose(); }
+        }
+    }
+
+    /// <summary>
+    /// Ein Zickzack von <paramref name="x0"/> bis <paramref name="x1"/>.
+    /// <b>Wellenlänge und Höhe hängen an der Schriftgröße</b> und sind keine festen Zahlen —
+    /// derselbe Punkt wie bei <see cref="StricheZeichnen"/>: Eine Welle, die bei 8 pt passt,
+    /// ist bei 28 pt ein Sägeblatt.
+    /// </summary>
+    private static void Welle(SKCanvas leinwand, float x0, float x1, float grundlinie, float schriftgroesse)
+    {
+        float hoehe = Math.Max(1f, schriftgroesse * 0.055f);
+        float halbwelle = Math.Max(1.5f, schriftgroesse * 0.11f);
+        float y = grundlinie + schriftgroesse * 0.14f;
+
+        using var pfad = new SKPath();
+        pfad.MoveTo(x0, y);
+
+        bool oben = true;
+        for (float x = x0; x < x1; x += halbwelle, oben = !oben)
+            pfad.LineTo(Math.Min(x + halbwelle, x1), oben ? y - hoehe : y + hoehe);
+
+        using var stift = new SKPaint
+        {
+            Color = Fehlerfarbe,
+            Style = SKPaintStyle.Stroke,
+            StrokeWidth = Math.Max(1f, schriftgroesse / 16f),
+            IsAntialias = true,
+        };
+        leinwand.DrawPath(pfad, stift);
     }
 
     // ==================== Bilder und Diagramme ====================

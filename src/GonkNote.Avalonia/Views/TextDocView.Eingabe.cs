@@ -805,7 +805,15 @@ public partial class TextDocView
         {
             // 530 ms ist der Takt, den Windows seit jeher vorgibt; Avalonia hat keine Auskunft
             // dazu, und ein eigener Wert wäre nur eine zweite Meinung.
-            _blinker = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(530) };
+            //
+            // **`Background` ausgeschrieben, obwohl es die Vorgabe ist**: die Vorgabe ist
+            // eine Falle (siehe `ZeitgeberTests`) und hier trotzdem die richtige Wahl — eine
+            // Schreibmarke, die während des Schreibens nicht blinkt, steht einfach; eine,
+            // die sich vor die Eingabe drängelt, kostet Striche.
+            _blinker = new DispatcherTimer(DispatcherPriority.Background)
+            {
+                Interval = TimeSpan.FromMilliseconds(530),
+            };
             _blinker.Tick += (_, _) =>
             {
                 _markeAn = !_markeAn;

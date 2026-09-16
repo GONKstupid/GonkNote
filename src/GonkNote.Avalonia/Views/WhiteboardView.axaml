@@ -557,6 +557,27 @@
                                 <TextBlock Text="{loc:T Settings.Text.Bg}" VerticalAlignment="Center"
                                            Margin="6,0,0,0" Foreground="{DynamicResource Brush.Text}"/>
                             </StackPanel>
+
+                            <!-- **Die Schriftart des Textfeld-Werkzeugs** (Nutzer, 2026-09-14:
+                                 „kann man nicht ändern, gehört in die Einstellungsleiste").
+                                 Die beiden Sprachtabellen trugen `Settings.Text.Font` und
+                                 `Settings.Text.Hint` die ganze Zeit, und der WPF-Kopf hat den
+                                 Wähler seit jeher — hier fehlte allein das Steuerelement.
+                                 Dasselbe Muster wie beim Cover darunter; die Liste kommt aus
+                                 `Schriftliste` in Core (§5 Nr. 14). -->
+                            <TextBlock Text="{loc:T Settings.Text.Font}" FontWeight="SemiBold"
+                                       Margin="0,12,0,4" Foreground="{DynamicResource Brush.Text}"/>
+                            <ComboBox x:Name="TextSchrift" Margin="0,0,0,4" HorizontalAlignment="Stretch"
+                                      SelectionChanged="TextSchrift_Geaendert">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <!-- Vorschau: jeder Eintrag in seiner eigenen Schrift -->
+                                        <TextBlock Text="{Binding}" FontFamily="{Binding}"/>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                            <TextBlock Text="{loc:T Settings.Text.Hint}" TextWrapping="Wrap" FontSize="11"
+                                       Margin="0,0,0,4" Foreground="{DynamicResource Brush.TextMuted}"/>
                         </StackPanel>
 
                     <!-- ==================== Notizzettel ==================== -->
@@ -656,7 +677,14 @@
                             <TextBlock Text="{loc:T Settings.Cover.Font}" FontWeight="SemiBold"
                                        Margin="0,0,0,4" Foreground="{DynamicResource Brush.Text}"/>
                             <ComboBox x:Name="CoverSchrift" Margin="0,0,0,12" HorizontalAlignment="Stretch"
-                                      SelectionChanged="CoverSchrift_Geaendert"/>
+                                      SelectionChanged="CoverSchrift_Geaendert">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <!-- Vorschau: jeder Eintrag in seiner eigenen Schrift -->
+                                        <TextBlock Text="{Binding}" FontFamily="{Binding}"/>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
 
                             <TextBlock Text="{loc:T Settings.Cover.Image}" FontWeight="SemiBold"
                                        Margin="0,0,0,4" Foreground="{DynamicResource Brush.Text}"/>

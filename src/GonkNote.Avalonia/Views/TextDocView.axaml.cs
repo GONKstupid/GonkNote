@@ -144,6 +144,7 @@ public partial class TextDocView : UserControl
         // die Farbkacheln entstehen aus Tabellen (§4.39, §4.40) und nicht aus der XAML.
         ListenAufbauen();
         FarbenAufbauen();
+        RechtschreibungAufbauen();
     }
 
     /// <summary>
@@ -242,7 +243,8 @@ public partial class TextDocView : UserControl
         _umbruchMs = Stopwatch.GetElapsedTime(begonnen).TotalMilliseconds;
 
         _kontext = new TdRenderContext(
-            new TdBlobImages(App.Db.Blobs), _felder, _umbruch.PageCount);
+            new TdBlobImages(App.Db.Blobs), _felder, _umbruch.PageCount,
+            Rechtschreibsprache: Pruefsprache);
 
         // Ein Dokument kann beim Schreiben kürzer werden — dann zeigt die Leiste unten sonst
         // auf eine Seite, die es nicht mehr gibt.

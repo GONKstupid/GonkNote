@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Threading;
 using GonkNote.Views;
 
 namespace GonkNote;
@@ -205,8 +206,70 @@ public partial class MainWindow
         }
 
         // System-Tastatur: auf- und zumachen, denn sie liegt über dem Fenster und verdeckt
-        // die Arbeit, solange sie steht.
-        if (will != _systemtastaturOffen) SystemtastaturUmschalten();
+        // die Arbeit, solange sie steht. **Aber erst, wenn der Fokus zur Ruhe gekommen ist.**
+        SystemtastaturWuenschen(will);
+    }
+
+    /// <summary>
+    /// Der zuletzt geäußerte Wunsch und die Uhr, die ihn ausführt.
+    ///
+    /// <para>
+    /// ⛔ <b>Warum hier eine Uhr steht</b> (Nutzer, 2026-09-14: „Bildschirmtastatur
+    /// verschwindet, wenn durch Stylus getriggert, immer noch sofort"). Vorher stand an der
+    /// Rufstelle <c>if (will != _systemtastaturOffen) Umschalten()</c> — <b>jeder</b>
+    /// Fokuswechsel auf etwas, das keinen Text will, machte die Tastatur also zu. Das ist
+    /// genau der Fall, den ein Stift erzeugt: Der Digitizer meldet zur Stiftspitze die
+    /// zugehörige <b>Berührung</b> (V2-129c, dieselbe Ursache wie beim verschwindenden
+    /// Textfeld), die holt den Fokus auf die Zeichenfläche — und die will keinen Text. Auf
+    /// dem Schirm: Die Tastatur geht auf und im selben Wimpernschlag wieder zu.
+    /// </para>
+    /// <para>
+    /// <b>Gewartet wird auf den <i>letzten</i> Wunsch, nicht auf den ersten.</b> Ein
+    /// Fokuswechsel kommt bei einem Stiftaufsetzer als Bündel; erst wenn eine Viertelsekunde
+    /// lang keiner mehr nachkommt, steht fest, wo der Fokus wirklich liegen bleibt. Das ist
+    /// dieselbe Überlegung, mit der die eingebaute Leiste gar nicht erst auf Fokusverlust
+    /// hört („nur aufgehen, nicht zugehen", oben) — nur muss die System-Tastatur eben doch
+    /// zugehen können, weil sie über dem Fenster liegt.
+    /// </para>
+    /// <para>
+    /// <b><c>DispatcherPriority.Input</c> und nicht die Vorgabe:</b> die ist
+    /// <c>Background</c>, die unterste Stufe — unter einem aufliegenden Stift läuft die
+    /// Warteschlange nie leer und der Auftrag käme nicht mehr dran. (Derselbe Fund wie beim
+    /// Langdruck der Schnellaktionen, am selben Tag.) <c>Input</c> heißt außerdem: alle
+    /// Fokuswechsel, die schon in der Schlange stehen, werden vorher noch gesehen.
+    /// </para>
+    /// </summary>
+    private bool _tastaturWunsch;
+    private DispatcherTimer? _tastaturUhr;
+
+    /// <summary>So lange muss der Fokus stillhalten, bevor die System-Tastatur reagiert.</summary>
+    private static readonly TimeSpan Fokusruhe = TimeSpan.FromMilliseconds(250);
+
+    /// <inheritdoc cref="_tastaturWunsch"/>
+    private void SystemtastaturWuenschen(bool will)
+    {
+        _tastaturWunsch = will;
+
+        if (_tastaturUhr is null)
+        {
+            _tastaturUhr = new DispatcherTimer(DispatcherPriority.Input) { Interval = Fokusruhe };
+            _tastaturUhr.Tick += Fokusruhe_Abgelaufen;
+        }
+
+        // Neu anstoßen: jeder weitere Fokuswechsel schiebt die Entscheidung nach hinten.
+        _tastaturUhr.Stop();
+        _tastaturUhr.Start();
+    }
+
+    private void Fokusruhe_Abgelaufen(object? sender, EventArgs e)
+    {
+        _tastaturUhr?.Stop();
+
+        // Der Modus kann sich in der Wartezeit geändert haben — dann ist der Wunsch hinfällig.
+        if (_tastaturmodus != Tastaturmodus.System) return;
+        if (_tastaturWunsch == _systemtastaturOffen) return;
+
+        SystemtastaturUmschalten();
     }
 
     // ==================== Die System-Tastatur ====================

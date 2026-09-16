@@ -119,31 +119,33 @@ public partial class WhiteboardView
     /// Entscheidung wie beim Schriftfeld des Editors (§4.73).
     /// </para>
     /// <para>
-    /// ⚠ <b>Der WPF-Kopf hält hier bis heute eine fest verdrahtete Liste</b> — „Segoe UI",
-    /// „Segoe Print", „Calibri" … , also <i>Windows</i>-Schriften an einer Stelle, die für
-    /// beide Köpfe gilt. §5 Nr. 14 ist dort beim Editor angekommen und beim Cover nicht.
-    /// Benannt in §4.81.
+    /// ⚠ <b>Hier stand, der WPF-Kopf halte „bis heute eine fest verdrahtete Liste"</b> —
+    /// „Segoe UI", „Segoe Print", „Calibri" …, also Windows-Schriften an einer Stelle, die
+    /// für beide Köpfe gilt. <b>Der Satz ist abgelaufen:</b> §4.81 hat genau das drüben
+    /// behoben, <c>CoverFonts</c> ruft dort seitdem dasselbe <see cref="Schriftliste"/>.
+    /// Nachgesehen am 2026-09-14. <i>Ein Hinweis auf fremde Schuld überlebt ihre Behebung,
+    /// weil ihn beim Beheben niemand liest.</i>
     /// </para>
     /// </summary>
     private void CoverSchriftenFuellen(string? gewaehlt)
     {
-        // Dieselbe Quelle wie das Schriftfeld des Editors (TextDocView.Farben.cs).
-        _coverSchriften ??= Schriftliste.Aufbauen(
-            FontManager.Current.SystemFonts.Select(f => f.Name));
-
         _stummeEinstellungen = true;
         try
         {
-            if (CoverSchrift.ItemsSource is null) CoverSchrift.ItemsSource = _coverSchriften;
-
             // **Was das Dokument nennt, wird angeboten, auch wenn dieses System die Schrift
             // nicht hat** — sonst spränge die Auswahl beim Öffnen still auf etwas anderes und
             // schriebe das beim nächsten Ändern in die Datei. Dieselbe Regel wie drüben.
-            if (gewaehlt is { Length: > 0 } && !_coverSchriften.Contains(gewaehlt))
-            {
-                _coverSchriften = [.. _coverSchriften, gewaehlt];
-                CoverSchrift.ItemsSource = _coverSchriften;
-            }
+            //
+            // **Der Nachtrag geht in eine eigene Liste und nicht in die gemeinsame.** Die ist
+            // seit 2026-09-14 statisch und wird vom Textfeld mitbenutzt; eine Schrift, die
+            // nur ein einzelnes Dokument nennt, hätte sich darüber in jede andere Tafel und
+            // in den Schriftwähler des Textfelds getragen. Dieselbe Trennung hält der
+            // WPF-Kopf mit seiner örtlichen `schriften`-Variablen.
+            var liste = gewaehlt is { Length: > 0 } && !Schriften.Contains(gewaehlt)
+                ? (IReadOnlyList<string>)[.. Schriften, gewaehlt]
+                : Schriften;
+
+            if (!ReferenceEquals(CoverSchrift.ItemsSource, liste)) CoverSchrift.ItemsSource = liste;
 
             // ⚠ **Gegen die Liste prüfen und nicht gegen `CoverSchrift.Items`**: bei gesetztem
             // `ItemsSource` ist `Items` nicht die Liste, gegen die man sinnvoll vergleicht —
@@ -154,8 +156,27 @@ public partial class WhiteboardView
         finally { _stummeEinstellungen = false; }
     }
 
-    /// <summary>Die Schriftenliste, einmal gebaut — sie kostet einen Durchgang durch alle Systemschriften.</summary>
-    private IReadOnlyList<string>? _coverSchriften;
+    private static IReadOnlyList<string>? _schriften;
+
+    /// <summary>
+    /// Die Schriftenliste: mitgelieferte oben, Systemschriften darunter, ohne Doppelte
+    /// (<see cref="Schriftliste"/> in Core, §5 Nr. 14).
+    ///
+    /// <para>
+    /// <b>Eine Liste für Cover <i>und</i> Textfeld</b> — sie hieß bis 2026-09-14
+    /// <c>_coverSchriften</c> und war damit der Anfang derselben Spaltung, die §4.81 beim
+    /// Cover schon einmal gekostet hat.
+    /// </para>
+    /// <para>
+    /// <b>Und sie liegt <i>einmal</i> im Programm und nicht einmal je Tafel.</b> Der
+    /// Durchgang durch alle Systemschriften ist der teure Teil, die Liste ändert sich zur
+    /// Laufzeit nicht, und jede offene Tafel baute sich bis hierher ihre eigene. Der
+    /// WPF-Kopf hält sie aus demselben Grund statisch (<c>CoverFonts</c>).
+    /// </para>
+    /// </summary>
+    private static IReadOnlyList<string> Schriften =>
+        _schriften ??= Schriftliste.Aufbauen(
+            FontManager.Current.SystemFonts.Select(f => f.Name));
 
     // ==================== Farbe, Schrift, Bild ====================
 

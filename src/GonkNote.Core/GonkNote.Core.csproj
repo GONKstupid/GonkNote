@@ -31,6 +31,9 @@
          Das Paket ist reines verwaltetes .NET und plattformneutral; der Linux- und der
          iPadOS-Kopf bekommen es damit ohne Zutun mit. -->
     <PackageReference Include="DocumentFormat.OpenXml" />
+    <!-- Rechtschreibprüfung (Phase 5.1). Steht in Core und nicht im Linux-Kopf: die
+         Fundstellen braucht der Zeichner (TdRenderer), und der steht hier. -->
+    <PackageReference Include="WeCantSpell.Hunspell" />
   </ItemGroup>
 
   <!-- Die Geodreieck-Grafiken sind hier bewusst NICHT eingebettet. Sie liegen als lose
@@ -55,6 +58,22 @@
     <Content Include="..\..\Assets\Fonts\**\*.ttf" Link="Fonts\%(RecursiveDir)%(Filename)%(Extension)"
              CopyToOutputDirectory="PreserveNewest" />
     <Content Include="..\..\Assets\Fonts\**\OFL.txt" Link="Fonts\%(RecursiveDir)%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!-- Die mitgelieferten Wörterbücher (Phase 5.1). **Derselbe Grund wie bei den Schriften
+       eine Gruppe weiter oben** (§4.26): Auf keinem Linux-Rechner ist ein Hunspell-Wörterbuch
+       garantiert — auf dem Entwicklungsrechner war beim Bauen dieser Funktion keines
+       installiert. Ohne Beipack wäre die Rechtschreibprüfung bei den meisten Nutzern
+       unsichtbar vorhanden und nirgends wirksam.
+
+       ⚠ **Die Lizenzen sind NICHT dieselben wie beim Rest des Programms.** de_DE stammt aus
+       igerman98 (Fassung „frami") und steht unter der GNU GPL v2 oder v3; en_US kommt aus
+       SCOWL und ist BSD-artig. Deshalb gehen die README-Dateien und COPYING_GPLv3 mit
+       hinaus — sie stehen in THIRD-PARTY-NOTICES.md namentlich. Ein Wörterbuch ist eine
+       Datentabelle und wird nicht dazugebunden; die MIT-Lizenz des Programms bleibt. -->
+  <ItemGroup>
+    <Content Include="..\..\Assets\Dictionaries\*" Link="Dictionaries\%(Filename)%(Extension)"
              CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 

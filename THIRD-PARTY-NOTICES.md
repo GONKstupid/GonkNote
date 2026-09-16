@@ -27,6 +27,7 @@ erhalten bleiben.
 | Svg.Skia | 5.1.1 | https://github.com/wieslawsoltes/Svg.Skia |
 | DocumentFormat.OpenXml | 3.1.0 | https://github.com/dotnet/Open-XML-SDK |
 | Docnet.Core | 2.6.0 | https://github.com/GowenGit/docnet |
+| WeCantSpell.Hunspell | 7.0.1 | https://github.com/aarondandy/WeCantSpell.Hunspell |
 
 **LiteDB steht nicht mehr im Produktivpfad.** Es liegt nur noch in `GonkNote.Legacy` und
 liest dort Datenbanken bis einschließlich Version 0.2.0 ein, damit sie einmalig nach SQLite
@@ -138,6 +139,83 @@ Den vollständigen Lizenztext samt Copyright-Zeile findest du je Familie in
 
 > **Inter war schon vorher dabei**, über das NuGet-Paket `Avalonia.Fonts.Inter` im Linux-Kopf —
 > **ohne Vermerk in dieser Datei.** Das war eine Lücke und ist mit §4.26 geschlossen.
+
+---
+
+## Die mitgelieferten Wörterbücher (Rechtschreibprüfung)
+
+Gonk Note **liefert seine Wörterbücher mit** (`Assets/Dictionaries/`, HANDOFF §5 Nr. 22,
+Phase 5.1). Der Grund ist derselbe wie bei den Schriften einen Abschnitt weiter oben: Auf
+keinem Linux-System ist ein Hunspell-Wörterbuch garantiert — auf dem Rechner, auf dem diese
+Funktion entstanden ist, war keines installiert. Ohne Beipack wäre die Rechtschreibprüfung
+bei den meisten Nutzern vorhanden und nirgends wirksam.
+
+**⚠ Diese beiden Dateisätze stehen NICHT unter der MIT-Lizenz des Programms**, und das
+deutsche steht sogar unter einer Copyleft-Lizenz. Beides ist zulässig und ändert nichts an
+der Lizenz von Gonk Note:
+
+* Ein Wörterbuch ist eine **Datentabelle**, keine Bibliothek. Es wird nicht dazugebunden,
+  sondern zur Laufzeit als Datei gelesen — dieselbe Art Beipack wie die Schriften und die
+  Tesseract-Sprachdaten. Die GPL wirkt auf das, womit sie ein Werk bildet, und eine
+  Wortliste neben dem Programm ist eine bloße Zusammenstellung auf einem Datenträger.
+* Die Dateien gehen **unverändert** hinaus, samt ihren README- und Lizenzdateien.
+* Weitergegeben wird das, was die GPL als Quelle eines Wörterbuchs kennt: die `.dic` und
+  die `.aff` selbst. Es gibt keine übersetzte Form davon, die man zusätzlich schulden könnte.
+
+Wer nur das Programm ohne die Wörterbücher weitergeben will, lässt den Ordner
+`Dictionaries/` weg: Dann meldet die Prüfung ehrlich „nicht verfügbar", und der Schalter in
+der Statusleiste bleibt grau (HANDOFF §4.64, dieselbe Regel wie bei der Texterkennung).
+
+### de_DE — GNU General Public License, Version 2 oder 3
+
+`Assets/Dictionaries/de_DE.aff`, `de_DE.dic` · Fassung `20161207+frami20170109`
+
+Aus der LibreOffice-Wörterbuchsammlung (`de/de_DE_frami`), abgeleitet vom
+**igerman98**-Wörterbuch von Björn Jacke — https://www.j3e.de/ispell/igerman98/ . Die
+Erweiterung „frami" wird von Franz Michael Baumann gepflegt.
+
+> Das Wörterbuch und alle enthaltenen Wortlisten sind lizenziert unter der GNU GPL,
+> Version 2 oder 3.
+
+Der vollständige Lizenztext liegt als `COPYING_GPLv3` daneben, die Herkunftsangabe als
+`README_de_DE_frami.txt`; beide werden mit in die Ausgabe kopiert und gehen mit dem Programm
+hinaus.
+
+> **Hinweis zur Fassung:** Das Basis-igerman98 steht wahlweise auch unter der
+> OASIS-Verteilungslizenz. **Für die hier mitgelieferte `frami`-Erweiterung gilt das
+> nicht** — ihre eigene README nennt ausdrücklich nur die GPL v2 oder v3. Wer die
+> permissivere Wahlmöglichkeit braucht, nimmt das Basiswörterbuch statt dieser Erweiterung.
+
+### en_US — SCOWL (BSD-artig, permissiv)
+
+`Assets/Dictionaries/en_US.aff`, `en_US.dic` · Fassung `2020.12.07`
+
+Aus SCOWL (Spell Checker Oriented Word Lists) von Kevin Atkinson —
+http://wordlist.sourceforge.net . Die Affix-Datei ist eine stark überarbeitete Fassung der
+`english.aff` aus Geoff Kuennings Ispell und steht unter dessen BSD-Lizenz.
+
+> The collective work is Copyright 2000-2018 by Kevin Atkinson as well as any of the
+> copyrights mentioned below:
+>
+> Copyright 2000-2018 by Kevin Atkinson
+>
+> Permission to use, copy, modify, distribute and sell these word lists, the associated
+> scripts, the output created from the scripts, and its documentation for any purpose is
+> hereby granted without fee, provided that the above copyright notice appears in all copies
+> and that both that copyright notice and this permission notice appear in supporting
+> documentation. Kevin Atkinson makes no representations about the suitability of this array
+> for any purpose. It is provided "as is" without express or implied warranty.
+
+Die vollständigen Angaben zu Quellen und Beiträgen — darunter Alan Beales 12Dicts, das
+gemeinfreie Moby-Lexikon und Brian Kelks Wortliste — stehen in `README_en_US.txt`, das
+ebenfalls mit in die Ausgabe kopiert wird.
+
+### Die Prüfmaschine selbst
+
+Gelesen werden die Dateien von **WeCantSpell.Hunspell** (MIT, siehe Tabelle oben) — einer
+Hunspell-Umsetzung in reinem C#. **Es wird keine native `libhunspell` mitgeliefert und keine
+eingebunden**; deshalb taucht hier nur ein MIT-Paket auf und kein zweiter Beipack wie bei
+Tesseract.
 
 ---
 

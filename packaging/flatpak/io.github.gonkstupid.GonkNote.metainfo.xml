@@ -11,7 +11,7 @@
      Repos, den .github/workflows/pages.yml veröffentlicht. Wer eine Datei dort umbenennt,
      bricht diesen Eintrag — und es fällt erst bei der Flathub-Einreichung auf.
 
-     ✅ Die oberste <release>-Zeile steht auf 1.0.3 (§5 Nr. 23). Wer sie anhebt, zieht die
+     ✅ Die oberste <release>-Zeile steht auf 1.0.4 (§5 Nr. 23). Wer sie anhebt, zieht die
      Stellen nach, die der Kommentar in Directory.Build.props aufzaehlt — er fuehrt die
      Liste, und sie ist am 2026-09-09 um die Projektseite laenger geworden. -->
 <component type="desktop-application">
@@ -110,6 +110,23 @@
   </requires>
 
   <releases>
+    <release version="1.0.4" date="2026-09-16">
+      <description>
+        <p>Spell checking on Linux — the one named gap that the Linux edition shipped with.
+           Misspelled words get a red wavy underline, a right-click offers corrections, and
+           the status bar carries the language picker and an on/off switch. German and
+           English dictionaries are bundled, so nothing has to be installed first. Plus a
+           font preview: every entry in the font pickers of the text editor and the
+           whiteboard is now shown in its own typeface.</p>
+        <p xml:lang="de">Rechtschreibprüfung unter Linux — das eine benannte Loch, mit dem
+           die Linux-Ausgabe hinausgegangen ist. Falsch geschriebene Wörter bekommen eine
+           rote Wellenlinie, die rechte Maustaste bietet Verbesserungen an, und in der
+           Statusleiste stehen Sprachwahl und Ein/Aus. Die deutschen und englischen
+           Wörterbücher werden mitgeliefert; es muss also nichts vorher installiert werden.
+           Dazu eine Schriftvorschau: Jeder Eintrag in den Schriftwählern von Texteditor und
+           Whiteboard steht jetzt in seiner eigenen Schrift.</p>
+      </description>
+    </release>
     <release version="1.0.3" date="2026-09-10">
       <description>
         <p>Custom colour themes: a theme is a small JSON file of named colours in the

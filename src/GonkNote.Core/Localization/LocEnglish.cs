@@ -573,7 +573,7 @@ internal static class LocEnglish
         // {0} = Versionsnummer. Gegenstueck zu About.Version in LocGerman — die Zeile stand
         // bisher fest verdrahtet im Code und erschien deshalb auch im englischen Dialog deutsch.
         // Sie sagt, woran gearbeitet wird, nicht was fertig ist; beide Tabellen zusammen aendern.
-        ["About.Version"] = "Version {0} · Windows and Linux — next up: spell checking on Linux, then iPadOS",
+        ["About.Version"] = "Version {0} · Windows and Linux, with spell checking — next up: iPadOS",
         // Gegenstueck zu Db.OpenFailed in LocGerman. {0} = Fehlermeldung, {1} = Protokollpfad.
         ["Db.OpenFailed"] =
             "The database could not be opened:\n\n{0}\n\n" +

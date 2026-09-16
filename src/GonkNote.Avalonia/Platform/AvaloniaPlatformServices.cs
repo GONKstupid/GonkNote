@@ -12,15 +12,11 @@ namespace GonkNote.Platform;
 /// Aufrufe, und der nächste Dienst käme still nur an einer davon an.
 /// </para>
 /// <para>
-/// <b>Zwei Einträge sind Rückfälle, keine Umsetzungen</b> — und zwar die, die Core bereits
+/// <b>Ein Eintrag ist ein Rückfall, keine Umsetzung</b> — und zwar die, die Core bereits
 /// mitbringt. Sie sind hier ausdrücklich benannt, damit niemand nachsehen muss, was der Kopf
 /// kann und was nicht:
 /// </para>
 /// <list type="table">
-///   <item><term><see cref="AlwaysSupportedSpellChecker"/></term>
-///     <description>Es gibt keine Windows-Rechtschreib-API unter Linux. Hunspell ist der
-///     vorgesehene Weg (HANDOFF §6, „aus V1 mitgeschleppt"); bis dahin nicht blockieren und
-///     nicht warnen.</description></item>
 ///   <item><term><see cref="AvaloniaDocumentIo"/></term>
 ///     <description>Import und Export hängen an <c>FlowDocument</c> und kommen mit Phase 4
 ///     (HANDOFF §4.1). Siehe die Klasse selbst.</description></item>
@@ -28,6 +24,12 @@ namespace GonkNote.Platform;
 /// <para>
 /// <see cref="PdfiumRasterizer"/> dagegen ist <b>keine</b> Notlösung: die Umsetzung liegt in
 /// Core, weil Windows und Linux sie sich teilen — nur iOS bekommt in Phase 5 etwas eigenes.
+/// </para>
+/// <para>
+/// <b>Hier stand bis Phase 5.1 <c>AlwaysSupportedSpellChecker</c></b> — der Rückfall aus Core,
+/// der auf jede Sprachfrage Ja sagte, weil es unter Linux keine Windows-Rechtschreib-API gibt.
+/// Seither steht dort <see cref="AvaloniaSpellChecker"/> und die Antwort ist die wahre: Ja für
+/// die mitgelieferten Wörterbücher, Nein für alles andere (§5 Nr. 22).
 /// </para>
 /// <para>
 /// <b>Hier stand bis Phase 4.5, Stück 6 auch <c>NoOcrEngine</c>.</b> Seither steht dort
@@ -48,7 +50,7 @@ public sealed class AvaloniaPlatformServices : IPlatformServices
     public IShell Shell { get; } = new AvaloniaShell();
     public IUiScheduler Scheduler { get; } = new AvaloniaUiScheduler();
     public IOcrEngine Ocr { get; } = new TesseractOcrEngine();
-    public ISpellChecker SpellChecker { get; } = new AlwaysSupportedSpellChecker();
+    public ISpellChecker SpellChecker { get; } = new AvaloniaSpellChecker();
     public IPdfRasterizer Pdf { get; } = new PdfiumRasterizer();
     public IFontProvider Fonts { get; } = new AvaloniaFontProvider();
     public IDocumentIo Documents { get; } = new AvaloniaDocumentIo();

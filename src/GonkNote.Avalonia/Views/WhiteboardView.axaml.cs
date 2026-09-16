@@ -203,6 +203,9 @@ public partial class WhiteboardView : UserControl
         // hier und nicht bei jedem Aufklappen — der Grund steht bei AbschnitteEinhaengen.
         AbschnitteEinhaengen();
 
+        // Ebenfalls genau einmal: die Liste kostet einen Durchgang durch alle Systemschriften.
+        TextSchriftFuellen();
+
         SyncSizeControls();
     }
 

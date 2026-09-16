@@ -40,7 +40,14 @@ public partial class WhiteboardView
     {
         CancelSizeHold();
         _sizeHoldStart = p;
-        _sizeHoldTimer = new DispatcherTimer { Interval = WbZahlenblock.Haltedauer };
+        // `DispatcherPriority.Input` und nicht die Vorgabe: die ist `Background`, also die
+        // unterste Stufe. Unter einem aufliegenden Stift läuft die Warteschlange nie leer
+        // und der Langdruck kommt nicht mehr dran — im Linux-Kopf gemessen und gemeldet
+        // (2026-09-14), hier derselbe Aufruf und damit derselbe Fehler.
+        _sizeHoldTimer = new DispatcherTimer(DispatcherPriority.Input)
+        {
+            Interval = WbZahlenblock.Haltedauer,
+        };
         _sizeHoldTimer.Tick += (_, _) => { CancelSizeHold(); OpenSizeNumpad(); };
         _sizeHoldTimer.Start();
     }

@@ -40,6 +40,13 @@
     <PackageVersion Include="Docnet.Core" Version="2.6.0" />
     <!-- OCR. Windows/Linux; auf iOS ersetzt durch Vision → Phase 2: IOcrEngine -->
     <PackageVersion Include="Tesseract" Version="5.2.0" />
+    <!-- Rechtschreibprüfung (Phase 5.1, §5 Nr. 22 — das benannte Loch aus M2).
+         **Reines verwaltetes .NET**, und das ist der ganze Grund für dieses Paket und gegen
+         libhunspell/libenchant: Tesseract hat gezeigt, was eine native Bibliothek im AppImage
+         kostet (ldd-Einsammeln, SONAME-Verweise, LD_LIBRARY_PATH, §4.98). Hier fällt das alles
+         weg — ein Codepfad für Linux, Windows und später iPadOS, ohne Beipack.
+         MIT-Lizenz; liest die gewöhnlichen .aff/.dic-Dateien aus Assets/Dictionaries. -->
+    <PackageVersion Include="WeCantSpell.Hunspell" Version="7.0.1" />
     <!-- Persistenz seit Phase 2, Schritt 3. Das Paket bringt die native SQLite-Bibliothek
          für Windows, Linux, macOS **und** iOS mit (SQLitePCLRaw.bundle_e_sqlite3) — anders
          als LiteDB kommt es ohne Reflection.Emit aus und ist damit NativeAOT-tauglich. -->

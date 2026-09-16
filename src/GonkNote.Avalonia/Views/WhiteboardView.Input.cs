@@ -698,7 +698,23 @@ public partial class WhiteboardView
             // und den Drehgriff anfasst, will drehen — auch mit dem Lasso in der Hand.
             case ToolType.Lasso:
                 if (BeginHandleDrag(c)) break;
-                ClearSelection();
+
+                // ⛔ **Hier stand `ClearSelection()` ohne Bedingung** (Nutzer, 2026-09-14):
+                // Wer etwas ausgewählt hatte und für das Rechtsklick-Menü lange darauf
+                // drückte, hatte die Auswahl schon beim **Aufsetzen** verloren — die Leiste
+                // ging 600 ms später auf, und es war nichts mehr gewählt. Beim Verschieben-
+                // Werkzeug trat das nicht auf, weil `BeginMoveOrSelect` genau diese Frage
+                // schon stellt; das Lasso stellte sie nicht.
+                //
+                // **Ein Druck INNERHALB der Auswahl hebt sie nicht auf** — dieselbe Regel
+                // wie drüben bei `BeginMoveOrSelect`, damit beide Auswahl-Werkzeuge sich
+                // gleich anfassen. Ein neues Lasso, das dort beginnt, verliert nichts:
+                // `EndInput` setzt die Auswahl aus dem fertigen Zug ohnehin neu — die
+                // Zeile hier war für den echten Lasso-Zug von jeher wirkungslos und hat
+                // allein den Langdruck gekostet.
+                if (_selection.Count == 0 || !InflatedSelectionBounds().Contains(c))
+                    ClearSelection();
+
                 _lassoPts = [c];
                 break;
 

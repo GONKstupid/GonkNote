@@ -4,6 +4,7 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
 using GonkNote.Core.Platform;
+using GonkNote.Core.Text;
 using GonkNote.Core.Theming;
 
 namespace GonkNote.Platform;
@@ -49,7 +50,12 @@ public sealed class AvaloniaUiScheduler : IUiScheduler
 {
     public IDisposable Repeat(TimeSpan interval, Action tick)
     {
-        var uhr = new DispatcherTimer { Interval = interval };
+        // **`Background` ausgeschrieben, obwohl es die Vorgabe ist** — die Vorgabe ist eine
+        // Falle (sie ist die *unterste* Stufe und kommt unter einem aufliegenden Stift nicht
+        // mehr dran, siehe `ZeitgeberTests`), und hier ist sie ausnahmsweise richtig: der
+        // einzige Nutzer ist das Sichern alle dreißig Sekunden. Das darf warten, bis die
+        // Hand vom Schirm ist.
+        var uhr = new DispatcherTimer(DispatcherPriority.Background) { Interval = interval };
         uhr.Tick += (_, _) => tick();
         uhr.Start();
         return new Abmeldung(uhr);
@@ -77,6 +83,20 @@ public sealed class AvaloniaUiScheduler : IUiScheduler
 /// selbst — Chrome und Leinwand bekommen dieselbe Datei.
 /// </para>
 /// </summary>
+/// <summary>
+/// Die Sprachfrage, beantwortet aus den mitgelieferten Wörterbüchern (Phase 5.1).
+/// <para>
+/// <b>Hier stand bis dahin <c>AlwaysSupportedSpellChecker</c></b> — er sagte auf jede Sprache
+/// Ja, weil unter Linux niemand prüfte und ein Nein nur blockiert hätte. Jetzt prüft jemand,
+/// und damit ist Ja auf alles eine Unwahrheit: Für Französisch liegt kein Wörterbuch neben
+/// dem Programm, und das soll man sehen können (§4.64).
+/// </para>
+/// </summary>
+public sealed class AvaloniaSpellChecker : ISpellChecker
+{
+    public bool IsSupported(string bcp47) => TdRechtschreibung.Verfuegbar(bcp47);
+}
+
 public sealed class AvaloniaFontProvider : IFontProvider
 {
     public FontScheme Scheme => Fonts.Standard;

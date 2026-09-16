@@ -647,11 +647,12 @@ internal static class LocGerman
         // **Nachgezogen am 2026-09-05 mit 1.0.0** (HANDOFF §5 Nr. 23, Schritt ⑤): Die
         // Portierung ist ausgeliefert, die Phasennummer taugt hier deshalb nicht mehr als
         // Auskunft — sie sagte, in welchem Umbau wir stecken, und wir stecken in keinem.
-        // **Die Zeile behält ihren Zweck** und nennt jetzt, was als Nächstes kommt: die
-        // Rechtschreibprüfung unter Linux (§5 Nr. 22, das eine benannte Loch in M2) und
-        // danach iPadOS (§1). Wer eine dieser beiden abschließt, zieht die Zeile nach —
-        // **beide Tabellen zusammen** (Dauerregel 1).
-        ["About.Version"] = "Version {0} · Windows und Linux — als Nächstes: Rechtschreibprüfung unter Linux, danach iPadOS",
+        // **Die Zeile behält ihren Zweck** und nennt, was als Nächstes kommt. Bis 1.0.3
+        // stand hier die Rechtschreibprüfung unter Linux (§5 Nr. 22, das eine benannte Loch
+        // in M2); sie ist mit 1.0.4 drin, und die Zeile nennt seitdem iPadOS (§1). Wer
+        // iPadOS abschließt, zieht sie erneut nach — **beide Tabellen zusammen**
+        // (Dauerregel 1). Ein Satz über das, was als Nächstes kommt, veraltet still.
+        ["About.Version"] = "Version {0} · Windows und Linux, mit Rechtschreibprüfung — als Nächstes: iPadOS",
         // {0} = Fehlermeldung, {1} = Pfad des Protokolls. Erscheint, wenn sich die Datenbank
         // nicht öffnen lässt — meist beim einmaligen Übertragen einer Altdatenbank nach
         // SQLite. Zwangsläufig in der Standardsprache: die Sprachwahl steht in eben der

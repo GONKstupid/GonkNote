@@ -64,7 +64,7 @@ public static class TdSuche
 
             for (int p = von; p <= bis; p++)
             {
-                string text = AbsatzText(absaetze[p]);
+                string text = TdCursor.AbsatzText(absaetze[p]);
                 int abOffset = runde == 0 && p == startAbsatz ? startOffset : 0;
                 if (abOffset > text.Length) continue;
 
@@ -115,7 +115,7 @@ public static class TdSuche
         for (int p = anzahlAbsaetze - 1; p >= 0; p--)
         {
             if (TdCursor.AbsatzAn(doc, p) is not { } absatz) continue;
-            string text = AbsatzText(absatz);
+            string text = TdCursor.AbsatzText(absatz);
 
             var stellen = new List<int>();
             int idx = text.IndexOf(suche, StringComparison.CurrentCultureIgnoreCase);
@@ -159,33 +159,6 @@ public static class TdSuche
     }
 
     // ==================== Innen ====================
-
-    /// <summary>
-    /// Der Klartext eines Absatzes in <b>Cursorschritten</b>.
-    ///
-    /// <para>
-    /// <b>Das ist nicht <c>PlainText()</c>, und der Unterschied ist der Punkt:</b> Ein Feld,
-    /// ein Bild und ein Zeilenumbruch sind für den Cursor **ein** Schritt breit, liefern im
-    /// Klartext aber nichts (§4.20, §4.21). Wer sie ausließe, bekäme einen Text, dessen
-    /// Indizes nicht mehr zu <see cref="TdCursor.Linear"/> passen — und der Treffer säße
-    /// hinterher um so viele Zeichen daneben, wie Felder davor stehen.
-    /// </para>
-    /// <para>
-    /// Sie werden deshalb durch <b>ein Ersatzzeichen</b> vertreten: <c>U+FFFC</c>, das
-    /// „Object Replacement Character". <b>Es ist bewusst kein Leerzeichen</b> — sonst fände
-    /// eine Suche nach „a b" ein „a" vor einem Bild und ein „b" dahinter.
-    /// </para>
-    /// </summary>
-    private static string AbsatzText(TdParagraph absatz)
-    {
-        var sb = new System.Text.StringBuilder();
-        foreach (var stueck in TdCursor.Stuecke(absatz))
-        {
-            if (stueck is TdRun run) sb.Append(run.Text);
-            else sb.Append('￼', TdCursor.Laenge(stueck));
-        }
-        return sb.ToString();
-    }
 
     /// <summary>Aus Absatznummer und Zeichenabstand eine Auswahl über <paramref name="laenge"/> Zeichen.</summary>
     private static TdSelection Treffer(TdParagraph absatz, int absatzIndex, int von, int laenge) =>

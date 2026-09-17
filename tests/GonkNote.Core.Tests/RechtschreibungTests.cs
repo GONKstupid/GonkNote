@@ -143,7 +143,11 @@ public sealed class RechtschreibungTests
         using (var leinwand = new SKCanvas(bmp))
         {
             leinwand.Clear(SKColors.White);
-            TdRenderer.Seite(leinwand, seite, massstab, new TdRenderContext(Rechtschreibsprache: sprache));
+            // **Grammatik aus.** Geprüft wird hier die rote Welle; mit Grammatik ginge nebenbei
+            // eine Anfrage an einen LanguageTool-Server hinaus, die unter Windows zwei Sekunden
+            // nachhängt und in den nächsten Test platzt (CI, 2026-09-16).
+            TdRenderer.Seite(leinwand, seite, massstab,
+                new TdRenderContext(Rechtschreibsprache: sprache, Grammatik: false));
         }
 
         // **Gezählt wird nur Rot**, nicht „nicht mehr weiß" wie in <see cref="Farbfleck"/>:

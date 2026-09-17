@@ -159,6 +159,11 @@ jobs:
       # `draft: false` und `generate_release_notes: true`: Der Text unten sagt, was einer
       # herunterladen soll; die erzeugte Liste darunter sagt, was sich geändert hat. Beides
       # von Hand zu schreiben hieße, es beim zweiten Mal nicht mehr zu tun.
+      #
+      # ⛔ **Keine Einschränkung namentlich im festen Text.** Bis 1.0.4 stand hier „die
+      # wichtigste: der Linux-Ausgabe fehlt die Rechtschreibprüfung" — und das wäre auf der
+      # 1.0.4-Seite gelandet, obwohl genau diese Ausgabe sie mitbringt. Ein fester Text, der
+      # einen veränderlichen Zustand nennt, veraltet still; die Liste führt das README.
       - uses: softprops/action-gh-release@v2
         with:
           files: artefakte/*
@@ -177,8 +182,6 @@ jobs:
             (`packaging/flatpak/bauen.sh`).
 
             **Bekannte Einschränkungen** stehen namentlich im
-            [README](https://github.com/GONKstupid/GonkNote#zwei-ausgaben-eine-app) — die
-            wichtigste: der Linux-Ausgabe fehlt die Rechtschreibprüfung, und sie ist der
-            erste Punkt danach.
+            [README](https://github.com/GONKstupid/GonkNote#zwei-ausgaben-eine-app).
 
             Alles bleibt auf dem Rechner: keine Cloud, kein Konto, keine Telemetrie.

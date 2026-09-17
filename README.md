@@ -55,7 +55,6 @@ geschätzt:
 
 | Der Linux-Ausgabe fehlt | Warum |
 |---|---|
-| **Rechtschreibprüfung** | Sie hängt in der Windows-Ausgabe an einem Windows-Dienst. Ein Gegenstück ist der erste Punkt nach der Portierung und fest eingeplant |
 | **Zusammengesetzte Zeichen** (`´` + `e` → `é`) kommen nicht an | Ein Fehler im Fenster-Baustein von Avalonia unter Linux, dort gemeldet. Einfache Zeichen und Umlaute sind nicht betroffen |
 | **Lineal** über dem Textdokument | Bewusst weggelassen: in der Windows-Ausgabe ist es eine Zierleiste ohne Funktion. Die Werte stehen im Reiter „Layout" und sind dort änderbar |
 | **Bestandsdokumente aus der Windows-Ausgabe** erscheinen erst nach einmaligem Öffnen und Speichern dort | Ihr altes Format liest nur Windows. Der Inhalt bleibt unangetastet |
@@ -63,6 +62,7 @@ geschätzt:
 | Der Windows-Ausgabe fehlt | Warum |
 |---|---|
 | **Seitenzahlen** im Texteditor | Sie rechnet keine Seiten, sondern lässt Windows den Text fließen. Die Linux-Ausgabe setzt echte Seiten und weiß deshalb, auf welcher man steht |
+| **Grammatikprüfung** | Sie prüft über Windows nur die Rechtschreibung. Die Linux-Ausgabe prüft zusätzlich feste Regeln (dasselbe Wort zweimal, Leerzeichen vor dem Komma, klein beginnender Satz) — und echte Grammatik, wenn auf dem eigenen Rechner ein LanguageTool-Server läuft |
 
 Nichts davon geht verloren: was eine Ausgabe nicht anzeigen kann, fasst sie auch nicht
 an — eine Datei aus Windows kommt unter Linux unverändert wieder heraus.
@@ -144,8 +144,9 @@ Ribbon-Layout (Start / Einfügen / Layout / Verweise, plus Kontext-Tab **Tabelle
   und Füllung
 - **Diagramme** (Säulen, Balken, Linie, Punkt, Punkt+Linie, Kuchen, Radar — mehrere
   Reihen, Farben erweiterbar)
-- **Rechtschreibprüfung** (Windows; Deutsch/Englisch in der Statusleiste umschaltbar) mit
-  Korrekturvorschlägen. Statusleiste (Wörter, Zoom), Überschriften-Navigator,
+- **Rechtschreibprüfung** (beide Ausgaben; Deutsch/Englisch in der Statusleiste
+  umschaltbar) mit Korrekturvorschlägen — unter Linux mit mitgelieferten Wörterbüchern und
+  dazu einer **Grammatikprüfung**. Statusleiste (Wörter, Zoom), Überschriften-Navigator,
   Seitenumbruch-Marken
 - **Import**: Bilder, PDF, DOCX, **Markdown** (DOCX/Markdown als neue Textdokumente)
 - **Export**: Textdokument → PDF / DOCX / Markdown / PNG, Whiteboard/Notizbuch → PDF /

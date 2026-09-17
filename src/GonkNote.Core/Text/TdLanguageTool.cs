@@ -184,10 +184,40 @@ public static class TdLanguageTool
                 Verfuegbar = true;
             }
         }
-        catch (HttpRequestException) { Fehlgeschlagen(); geklappt = false; }
-        catch (TaskCanceledException) { Fehlgeschlagen(); geklappt = false; }
-        catch (JsonException) { Verfuegbar = true; }
+        catch (JsonException)
+        {
+            // Der Server ist da und hat geantwortet, nur nicht lesbar. Das ist eine Auskunft
+            // über diesen einen Text, nicht über den Server.
+            Verfuegbar = true;
+        }
+        catch (Exception)
+        {
+            // ⛔ **Jede andere Ausnahme ist ein Fehlschlag — nicht nur die zwei erwarteten.**
+            // Bis 2026-09-17 standen hier `HttpRequestException` und
+            // `TaskCanceledException`, und das war eine Annahme. Gemessen gegen einen Server,
+            // der die Verbindung abreißt: `HttpClient` wirft dann **mal eine
+            // `HttpRequestException`, mal eine nackte `SocketException`**. Die zweite lief an
+            // beiden Fängen vorbei, die Aufgabe starb still — sie wird ja nicht abgewartet —,
+            // und die Anfrage blieb für immer als „unterwegs" stehen. Dieser Absatz wäre bis
+            // zum Neustart nie wieder geprüft worden, und `Fertig` hätte sich nie gemeldet.
+            // Aufgefallen ist es am Wächter, nicht im Betrieb.
+            Fehlgeschlagen();
+            geklappt = false;
+        }
+        finally
+        {
+            Abschliessen(schluessel, ergebnis, geklappt);
+        }
+    }
 
+    /// <summary>
+    /// Trägt das Ergebnis ein und meldet es. <b>Steht im <c>finally</c></b>: Eine Abfrage, die
+    /// hier nicht ankommt, bleibt als „unterwegs" liegen, und ihr Text wird nie wieder
+    /// gefragt — deshalb darf kein Weg daran vorbeiführen.
+    /// </summary>
+    private static void Abschliessen(
+        (string Text, string Sprache) schluessel, IReadOnlyList<TdFehlstelle> ergebnis, bool geklappt)
+    {
         lock (_tor)
         {
             // ⚠ **Ein Fehlschlag wird NICHT gemerkt**, und das ist der Sinn von

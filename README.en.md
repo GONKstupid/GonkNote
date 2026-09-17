@@ -53,7 +53,6 @@ import and export.
 
 | The Linux edition lacks | Why |
 |---|---|
-| **Spell checking** | On Windows it rides on a Windows service. A counterpart is the first item after the port and firmly scheduled |
 | **Composed characters** (`´` + `e` → `é`) do not arrive | A bug in Avalonia's window layer on Linux, reported there. Plain characters and umlauts are unaffected |
 | **Ruler** above the text document | Deliberately left out: in the Windows edition it is decoration without function. The numbers are in the "Layout" tab and changeable there |
 | **Existing documents from the Windows edition** appear only after being opened and saved there once | Their old format is readable on Windows only. Their contents stay untouched |
@@ -61,6 +60,7 @@ import and export.
 | The Windows edition lacks | Why |
 |---|---|
 | **Page numbers** in the text editor | It does not compute pages but lets Windows flow the text. The Linux edition typesets real pages and knows which one you are on |
+| **Grammar checking** | It checks spelling through Windows only. The Linux edition also checks fixed rules (the same word twice, a space before a comma, a sentence starting in lower case) — and real grammar if a LanguageTool server runs on your own machine |
 
 Nothing is lost along the way: whatever one edition cannot display, it does not touch —
 a file created on Windows comes back out unchanged on Linux.
@@ -143,8 +143,9 @@ Ribbon layout (Home / Insert / Layout / References, plus the contextual tab **Ta
   borders and shading
 - **Charts** (column, bar, line, scatter, scatter+line, pie, radar — several series,
   colours extendable)
-- **Spell checking** (Windows; German/English switchable in the status bar) with
-  correction suggestions. Status bar (words, zoom), heading navigator, page-break marks
+- **Spell checking** (both editions; German/English switchable in the status bar) with
+  correction suggestions — on Linux with bundled dictionaries and a **grammar check** on
+  top. Status bar (words, zoom), heading navigator, page-break marks
 - **Import**: images, PDF, DOCX, **Markdown** (DOCX/Markdown become new text documents)
 - **Export**: text document → PDF / DOCX / Markdown / PNG, whiteboard/notebook → PDF /
   PNG. If the original data for an image is missing, Gonk Note says so after the export

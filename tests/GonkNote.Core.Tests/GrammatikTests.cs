@@ -1,3 +1,6 @@
+using System.Diagnostics;
+using System.Net;
+using System.Net.Sockets;
 using GonkNote.Core.Text;
 
 namespace GonkNote.Core.Tests;
@@ -13,9 +16,35 @@ namespace GonkNote.Core.Tests;
 /// mit. Jede Ausnahme in <see cref="TdGrammatik"/> hat hier deshalb ihren Wächter.
 /// </para>
 /// </summary>
-public sealed class GrammatikTests
+public sealed class GrammatikTests : IDisposable
 {
     private const string De = "de-DE";
+
+    /// <summary>
+    /// <b>Jeder Fall beginnt mit abgeschaltetem LanguageTool</b> — über eine Adresse, die
+    /// <see cref="TdLanguageTool.Erlaubt"/> ablehnt, sodass gar keine Anfrage hinausgeht.
+    ///
+    /// <para>
+    /// ⚠ <b>Gemessen, nicht vermutet</b> (CI, Windows-Job, 2026-09-16): Ohne das schickten die
+    /// Zusammenlege-Fälle unten nebenbei echte Anfragen an <c>localhost:8081</c>. Unter Linux
+    /// scheitern die in Millisekunden; <b>unter Windows dauert „Verbindung abgelehnt" auf
+    /// localhost rund zwei Sekunden</b>, weil das System den Aufbau mehrfach wiederholt. So
+    /// lange hängt die Anfrage nach — und ihr Fehlschlag platzt in den nächsten Fall hinein.
+    /// Wer LanguageTool prüfen will, setzt die Adresse ausdrücklich selbst.
+    /// </para>
+    /// </summary>
+    public GrammatikTests()
+    {
+        TdLanguageTool.Vergessen();
+        TdLanguageTool.Adresse = new Uri("https://abgeschaltet.invalid");
+    }
+
+    public void Dispose()
+    {
+        TdLanguageTool.Vergessen();
+        TdLanguageTool.Adresse = new Uri("http://localhost:8081");
+        TdLanguageTool.Wiederholung = TimeSpan.FromSeconds(30);
+    }
 
     private static string[] Stellen(string text) =>
         [.. TdGrammatik.Fehler(text, De).Select(f => text.Substring(f.Start, f.Laenge))];
@@ -178,20 +207,92 @@ public sealed class GrammatikTests
 
     // ==================== LanguageTool, ohne Server ====================
 
-    [Fact]
-    public void Ohne_Server_gibt_LanguageTool_nichts_zurueck_und_haelt_nicht_auf()
+    /// <summary>
+    /// <b>Ein Server, der jeden Anruf annimmt, zählt und sofort auflegt.</b>
+    ///
+    /// <para>
+    /// Bis 2026-09-16 zielten diese Fälle auf <c>localhost:1</c>, einen Port, auf dem nichts
+    /// lauscht. <b>Das ist nicht auf jedem System dasselbe:</b> Linux lehnt sofort ab, Windows
+    /// versucht es rund zwei Sekunden lang — und der Wächter, der genau zwei Sekunden wartete,
+    /// fiel dort. Ein Gegenüber, das annimmt und auflegt, scheitert überall in Millisekunden.
+    /// </para>
+    /// <para>
+    /// <b>Und es zählt</b> — das ist der eigentliche Gewinn: Ob eine zweite Anfrage wirklich
+    /// hinausging, war vorher nur zu vermuten. Jetzt steht es als Zahl da.
+    /// </para>
+    /// </summary>
+    private sealed class Auflegender : IDisposable
     {
-        TdLanguageTool.Vergessen();
+        private readonly TcpListener _ohr = new(IPAddress.Loopback, 0);
+        private int _angenommen;
 
-        // Ein Port, auf dem nichts lauscht. **Der Aufruf darf nicht blockieren** — er steht im
-        // Zeichenweg, und ein HTTP-Aufruf mitten im Malen wäre ein stehendes Fenster.
-        TdLanguageTool.Adresse = new Uri("http://localhost:1");
+        public Auflegender()
+        {
+            _ohr.Start();
+            _ = Task.Run(async () =>
+            {
+                while (true)
+                {
+                    TcpClient anruf;
+                    try { anruf = await _ohr.AcceptTcpClientAsync(); }
+                    catch (Exception) { return; } // Stop() beendet die Schleife.
 
-        var begonnen = System.Diagnostics.Stopwatch.StartNew();
-        Assert.Empty(TdLanguageTool.Befunde("Das ist ist ein Satz.", De));
-        Assert.True(begonnen.ElapsedMilliseconds < 500, $"blockiert: {begonnen.ElapsedMilliseconds} ms");
+                    Interlocked.Increment(ref _angenommen);
 
-        TdLanguageTool.Vergessen();
+                    // RST statt FIN: Der Aufrufer bekommt sofort einen Fehler und wartet
+                    // nicht auf eine Antwort, die nie kommt.
+                    anruf.Client.LingerState = new LingerOption(true, 0);
+                    anruf.Dispose();
+                }
+            });
+        }
+
+        public Uri Adresse => new($"http://127.0.0.1:{((IPEndPoint)_ohr.LocalEndpoint).Port}");
+
+        public int Angenommen => Volatile.Read(ref _angenommen);
+
+        public void Dispose() => _ohr.Stop();
+    }
+
+    /// <summary>
+    /// Wartet, bis etwas eingetreten ist — <b>mit reichlich Luft</b>: 15 s sind fast das
+    /// Doppelte der Zeitgrenze von <see cref="TdLanguageTool"/> (8 s). Ein Wächter, der nur so
+    /// lange wartet, wie es auf dem eigenen Rechner dauert, fällt auf dem nächsten.
+    /// </summary>
+    private static async Task Bis(Func<bool> bedingung, string was)
+    {
+        var uhr = Stopwatch.StartNew();
+        while (!bedingung())
+        {
+            if (uhr.Elapsed > TimeSpan.FromSeconds(15))
+                Assert.Fail($"Nach 15 s nicht eingetreten: {was}");
+            await Task.Delay(20);
+        }
+    }
+
+    [Fact]
+    public async Task Ohne_Server_gibt_LanguageTool_nichts_zurueck_und_haelt_nicht_auf()
+    {
+        using var server = new Auflegender();
+        var meldungen = new int[1];
+        Action zaehlen = () => Interlocked.Increment(ref meldungen[0]);
+        TdLanguageTool.Fertig += zaehlen;
+
+        try
+        {
+            TdLanguageTool.Adresse = server.Adresse;
+
+            // **Der Aufruf darf nicht blockieren** — er steht im Zeichenweg, und ein
+            // HTTP-Aufruf mitten im Malen wäre ein stehendes Fenster.
+            var begonnen = Stopwatch.StartNew();
+            Assert.Empty(TdLanguageTool.Befunde("Das ist ist ein Satz.", De));
+            Assert.True(begonnen.ElapsedMilliseconds < 500, $"blockiert: {begonnen.ElapsedMilliseconds} ms");
+
+            // Die Anfrage zu Ende laufen lassen, damit sie nicht in den nächsten Fall platzt.
+            await Bis(() => Volatile.Read(ref meldungen[0]) >= 1, "die Abfrage ist beendet");
+            Assert.False(TdLanguageTool.Verfuegbar);
+        }
+        finally { TdLanguageTool.Fertig -= zaehlen; }
     }
 
     [Fact]
@@ -202,28 +303,40 @@ public sealed class GrammatikTests
         // jede spätere Abfrage auf diesen Eintrag und käme gar nicht mehr bis zum Server —
         // der Hinweis wäre eine Anweisung, die folgenlos bleibt, bis das Programm neu
         // startet. Genau so war der erste Wurf.
-        TdLanguageTool.Vergessen();
-        TdLanguageTool.Adresse = new Uri("http://localhost:1");
-        TdLanguageTool.Wiederholung = TimeSpan.Zero;
+        using var server = new Auflegender();
+        var meldungen = new int[1];
+        Action zaehlen = () => Interlocked.Increment(ref meldungen[0]);
+        TdLanguageTool.Fertig += zaehlen;
 
-        const string text = "Das ist ist ein Satz.";
-        Assert.Empty(TdLanguageTool.Befunde(text, De));
+        try
+        {
+            TdLanguageTool.Adresse = server.Adresse;
+            TdLanguageTool.Wiederholung = TimeSpan.Zero;
 
-        // Dem Hintergrund Zeit geben, den Fehlschlag festzustellen.
-        for (int i = 0; i < 100 && TdLanguageTool.Verfuegbar is null; i++)
-            await Task.Delay(20);
+            const string text = "Das ist ist ein Satz.";
 
-        Assert.False(TdLanguageTool.Verfuegbar);
+            // ---- Erster Versuch: er erreicht den Server und scheitert ----
+            Assert.Empty(TdLanguageTool.Befunde(text, De));
 
-        // Mit abgelaufener Sperre muss derselbe Text erneut angefragt werden — messbar daran,
-        // dass die Auskunft „nicht nachgesehen" zurückkommt statt beim Nein zu bleiben.
-        Assert.Empty(TdLanguageTool.Befunde(text, De));
-        Assert.True(TdLanguageTool.Verfuegbar is null or false,
-            "Der Fehlschlag wurde gemerkt — die Wiederholung kommt nie bis zur Abfrage.");
+            // Auf `Fertig` gewartet und nicht auf `Verfuegbar`: `Fertig` meldet sich erst,
+            // wenn die Abfrage auch aus der Liste der laufenden verschwunden ist. Wer vorher
+            // nachfragt, träfe sie dort noch an — und bekäme gar keine neue.
+            await Bis(() => Volatile.Read(ref meldungen[0]) >= 1, "die erste Abfrage ist beendet");
+            Assert.False(TdLanguageTool.Verfuegbar);
 
-        TdLanguageTool.Wiederholung = TimeSpan.FromSeconds(30);
-        TdLanguageTool.Vergessen();
-        TdLanguageTool.Adresse = new Uri("http://localhost:8081");
+            int nachDerErsten = server.Angenommen;
+            Assert.True(nachDerErsten >= 1, "Die erste Abfrage hat den Server nie erreicht.");
+
+            // ---- Zweiter Versuch mit DEMSELBEN Text ----
+            // **Das ist die ganze Aussage:** Stünde der Fehlschlag im Zwischenspeicher, käme
+            // dieser Aufruf von dort zurück, und beim Server klingelte es nicht noch einmal.
+            Assert.Empty(TdLanguageTool.Befunde(text, De));
+
+            await Bis(() => server.Angenommen > nachDerErsten,
+                "die zweite Abfrage hat den Server erreicht — der Fehlschlag wurde gemerkt");
+            await Bis(() => Volatile.Read(ref meldungen[0]) >= 2, "die zweite Abfrage ist beendet");
+        }
+        finally { TdLanguageTool.Fertig -= zaehlen; }
     }
 
     [Fact]
@@ -244,13 +357,9 @@ public sealed class GrammatikTests
     [Fact]
     public void Eine_fremde_Adresse_schaltet_die_Pruefung_ab_statt_zu_senden()
     {
-        TdLanguageTool.Vergessen();
         TdLanguageTool.Adresse = new Uri("https://api.languagetool.org");
 
         Assert.Empty(TdLanguageTool.Befunde("Das ist ist ein Satz.", De));
         Assert.False(TdLanguageTool.Verfuegbar);
-
-        TdLanguageTool.Vergessen();
-        TdLanguageTool.Adresse = new Uri("http://localhost:8081");
     }
 }

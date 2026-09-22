@@ -156,6 +156,53 @@ public sealed class SchriftkonzeptTests
     }
 
     /// <summary>
+    /// <b>Eine Schrift, die der Rechner hat, darf nicht in der Rückfallkette landen</b>
+    /// (Nutzer, 2026-09-21).
+    ///
+    /// <para>
+    /// <b>Der Fehler, den dieser Test einfängt.</b> <see cref="WbFonts.Aufloesen"/> prüfte, ob
+    /// der <b>zurückgegebene</b> Familienname dem angefragten gleicht. Unter Linux stimmt das
+    /// für Hunderte von Namen nicht, ohne dass etwas fehlt: <c>„Noto Serif Light"</c> liefert
+    /// die Grundfamilie <c>„Noto Serif"</c>, <c>„Liberation Mono"</c> wird von fontconfig
+    /// ersetzt. Beide wurden verworfen und fielen auf die Oberflächenschrift — <b>397 von 665
+    /// Namen der Wählerliste</b> auf dem Entwicklungsrechner.
+    /// </para>
+    /// <para>
+    /// <b>Warum es niemand sah:</b> Die Vorschau im Wähler und das Eingabefeld zeichnet
+    /// Avalonia, und dessen Schriftverwaltung stellt diese Frage nicht. Falsch war allein die
+    /// <b>Tafel</b> — also genau die Stelle, an der man es für „die Einstellung wirkt nicht"
+    /// hält statt für einen Fehler in der Schriftauflösung.
+    /// </para>
+    /// <para>
+    /// <b>Der Test rechnet nicht mit bestimmten Schriften.</b> Er nimmt, was der Rechner
+    /// hergibt, und prüft nur die Regel: Was in der Familienliste des Systems steht, muss auch
+    /// vom System kommen. Hat ein Rechner keine solchen Namen — unter Windows gut möglich —,
+    /// gibt es nichts zu prüfen, und das ist kein Fehlschlag.
+    /// </para>
+    /// </summary>
+    [Fact]
+    public void Eine_Systemschrift_faellt_nicht_auf_die_Rueckfallkette()
+    {
+        var mitgeliefert = Fonts.Mitgeliefert.Select(f => f.Family)
+                                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        // Genau die Namen, an denen die alte Namensgleichheit scheiterte: das System kennt
+        // sie, gibt aber etwas anders Heißendes zurück.
+        var heikel = SKFontManager.Default.FontFamilies
+            .Where(n => !mitgeliefert.Contains(n))
+            .Where(n => SKTypeface.FromFamilyName(n, SKFontStyle.Normal) is { } tf
+                        && !string.Equals(tf.FamilyName, n, StringComparison.OrdinalIgnoreCase))
+            .Take(25)
+            .ToList();
+
+        foreach (var name in heikel)
+        {
+            var vomSystem = SKTypeface.FromFamilyName(name, SKFontStyle.Normal)!;
+            Assert.Equal(vomSystem.FamilyName, WbFonts.Family(name).FamilyName);
+        }
+    }
+
+    /// <summary>
     /// <b>Der Wächter, der die drei früheren Auflösungswege zusammenhält.</b> Umbruch
     /// (<c>TdSkiaMeasure</c>) und Zeichner (<c>TdRenderer</c>) müssen für dasselbe Format
     /// dieselbe Schrift bekommen — sonst bricht eine Zeile an einer Stelle um und steht an

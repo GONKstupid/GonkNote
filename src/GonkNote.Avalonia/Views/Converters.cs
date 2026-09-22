@@ -131,6 +131,43 @@ public sealed class IsZeroConverter : IValueConverter
 }
 
 /// <summary>
+/// Ein Schriftname zu einer <see cref="FontFamily"/> — für die Schriftvorschau in den
+/// Wählern, wo jeder Eintrag in seiner eigenen Schrift steht.
+///
+/// <para>
+/// ⛔ <b>Warum es ihn braucht, obwohl <c>FontFamily</c> einen <c>string</c> frisst</b>
+/// (Nutzer, 2026-09-21). Im axaml stand <c>FontFamily="{Binding}"</c>, und das ist genau der
+/// Fall, in dem die <b>implizite</b> Umwandlung <c>string</c> → <c>FontFamily</c>
+/// <b>nicht</b> greift: Beim direkten Zuweisen im Code und beim festen Wert im XAML gilt sie,
+/// über eine Bindung in Avalonia 12 nicht — die Eigenschaft bleibt dann auf ihrem geerbten
+/// Wert stehen. <b>Ohne Fehlermeldung.</b>
+/// </para>
+/// <para>
+/// <b>Das Bild war deshalb: jeder Eintrag in derselben Schrift</b> — und zwar unabhängig
+/// davon, ob die Schrift mitgeliefert oder vom System ist. Gemessen an fünf Namen in drei
+/// Spalten (direkte Zuweisung / bloße Bindung / Bindung mit diesem Konverter): nur die
+/// mittlere Spalte war einfarbig, „JetBrains Mono" darin nicht einmal dicktengleich.
+/// <i>Eine Vorschau, die nichts vorführt, sieht aus wie eine Schriftenliste, die nicht wirkt</i>
+/// — deshalb las sich der Fehler wie „die Schriftart ändert sich nicht".
+/// </para>
+/// <para>
+/// <b>Ein leerer Name ergibt <see cref="FontFamily.Default"/></b> und nicht etwa einen hier
+/// hingeschriebenen Namen — dieselbe Regel wie in <c>WhiteboardView.EditFeldSchriftSetzen</c>:
+/// Wo nichts steht, soll Avalonias eigene Kette greifen.
+/// </para>
+/// </summary>
+public sealed class FontNameToFamilyConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+        value is string name && !string.IsNullOrWhiteSpace(name)
+            ? new FontFamily(name)
+            : FontFamily.Default;
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+        throw new NotSupportedException();
+}
+
+/// <summary>
 /// Die Art eines Eintrags zu seinem Symbol.
 ///
 /// <para>

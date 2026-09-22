@@ -440,9 +440,13 @@ public partial class WhiteboardView
             leinwand.DrawRect(seite, verlauf);
         }
 
-        var fett = stil == null
-            ? WbFonts.Bold
-            : SKTypeface.FromFamilyName(stil.FontFamily, SKFontStyle.Bold) ?? WbFonts.Bold;
+        // ⛔ **Hier stand zweimal `SKTypeface.FromFamilyName`** (Nutzer, 2026-09-21) — also der
+        // zweite Schriftauflöser neben `WbFonts`, genau der, den §4.26 abgeschafft hat. Die
+        // Folge war doppelt: Eine **mitgelieferte** Schrift („Space Grotesk" ist die Vorgabe
+        // des Covers) erreichte diese Stelle nie, weil `FromFamilyName` nur Systemschriften
+        // sieht; und eine Systemschrift mit Stilzusatz bekam die stille Vorgabe des Systems.
+        // `WbFonts.Family` beantwortet beides an der einen Stelle.
+        var fett = stil == null ? WbFonts.Bold : WbFonts.Family(stil.FontFamily, bold: true);
 
         string titel = _vm?.Item.Name ?? "";
         using var titelFarbe = new SKPaint { Color = SKColors.White, IsAntialias = true };
@@ -464,7 +468,7 @@ public partial class WhiteboardView
 
         using var unterFarbe = new SKPaint { Color = SKColors.White.WithAlpha(170), IsAntialias = true };
         using var unterSchrift = new SKFont(
-            stil == null ? WbFonts.Regular : SKTypeface.FromFamilyName(stil.FontFamily) ?? WbFonts.Regular, 15);
+            stil == null ? WbFonts.Regular : WbFonts.Family(stil.FontFamily), 15);
         leinwand.DrawText("N O T I Z B U C H", _page.Width / 2f, _page.Height * 0.49f,
             SKTextAlign.Center, unterSchrift, unterFarbe);
     }

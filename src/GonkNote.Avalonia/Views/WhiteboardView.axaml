@@ -572,7 +572,8 @@
                                 <ComboBox.ItemTemplate>
                                     <DataTemplate>
                                         <!-- Vorschau: jeder Eintrag in seiner eigenen Schrift -->
-                                        <TextBlock Text="{Binding}" FontFamily="{Binding}"/>
+                                        <TextBlock Text="{Binding}"
+                                                   FontFamily="{Binding Converter={StaticResource NameZuSchrift}}"/>
                                     </DataTemplate>
                                 </ComboBox.ItemTemplate>
                             </ComboBox>
@@ -681,7 +682,8 @@
                                 <ComboBox.ItemTemplate>
                                     <DataTemplate>
                                         <!-- Vorschau: jeder Eintrag in seiner eigenen Schrift -->
-                                        <TextBlock Text="{Binding}" FontFamily="{Binding}"/>
+                                        <TextBlock Text="{Binding}"
+                                                   FontFamily="{Binding Converter={StaticResource NameZuSchrift}}"/>
                                     </DataTemplate>
                                 </ComboBox.ItemTemplate>
                             </ComboBox>

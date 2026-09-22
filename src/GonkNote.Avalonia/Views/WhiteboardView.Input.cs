@@ -696,25 +696,18 @@ public partial class WhiteboardView
 
             // Beide Auswahl-Werkzeuge müssen zuerst die Griffe fragen: wer eine Auswahl hat
             // und den Drehgriff anfasst, will drehen — auch mit dem Lasso in der Hand.
+            //
+            // ⛔ **Und das gilt seit 2026-09-21 auch fürs Verschieben** (Nutzer): Ein Druck
+            // **innerhalb** der Auswahl hob sie zwar nicht auf, begann aber trotzdem ein
+            // neues Lasso — und `EndInput` setzte die Auswahl aus dem neuen Zug. Wer mit dem
+            // Lasso ausgewählt hatte und das Gewählte anfassen wollte, verlor es damit im
+            // Augenblick des Anfassens. Der Umweg über „erst auf Verschieben umschalten" war
+            // kein Umweg, sondern die einzige Möglichkeit. **Drüben im WPF-Kopf teilen sich
+            // beide Werkzeuge seit jeher dieselbe Weiche** (`BeginSelectionDrag`); jetzt hier
+            // auch — `BeginHandleDrag` nimmt `Grab.Move` mit.
             case ToolType.Lasso:
                 if (BeginHandleDrag(c)) break;
-
-                // ⛔ **Hier stand `ClearSelection()` ohne Bedingung** (Nutzer, 2026-09-14):
-                // Wer etwas ausgewählt hatte und für das Rechtsklick-Menü lange darauf
-                // drückte, hatte die Auswahl schon beim **Aufsetzen** verloren — die Leiste
-                // ging 600 ms später auf, und es war nichts mehr gewählt. Beim Verschieben-
-                // Werkzeug trat das nicht auf, weil `BeginMoveOrSelect` genau diese Frage
-                // schon stellt; das Lasso stellte sie nicht.
-                //
-                // **Ein Druck INNERHALB der Auswahl hebt sie nicht auf** — dieselbe Regel
-                // wie drüben bei `BeginMoveOrSelect`, damit beide Auswahl-Werkzeuge sich
-                // gleich anfassen. Ein neues Lasso, das dort beginnt, verliert nichts:
-                // `EndInput` setzt die Auswahl aus dem fertigen Zug ohnehin neu — die
-                // Zeile hier war für den echten Lasso-Zug von jeher wirkungslos und hat
-                // allein den Langdruck gekostet.
-                if (_selection.Count == 0 || !InflatedSelectionBounds().Contains(c))
-                    ClearSelection();
-
+                ClearSelection();
                 _lassoPts = [c];
                 break;
 
@@ -748,10 +741,10 @@ public partial class WhiteboardView
     /// sitzt auf der Ecke und ragt hinein — wer erst auf „innerhalb" prüft, verschluckt ihn.
     /// </para>
     /// <para>
-    /// <b>Verschieben behandelt diese Methode nicht.</b> Der Linux-Kopf verschiebt seit
-    /// Phase 3 in <see cref="BeginMoveOrSelect"/>, und der greift zusätzlich ein Element auf,
-    /// das noch gar nicht ausgewählt ist. Diese Unterscheidung geht verloren, wenn man beides
-    /// zusammenlegt.
+    /// <b>Verschieben gehört seit 2026-09-21 dazu</b> — sonst kann das Lasso eine Auswahl
+    /// anlegen, aber nicht anfassen. Was die Weiche <b>nicht</b> kann, ist ein Element
+    /// aufgreifen, das noch gar nicht ausgewählt ist; das bleibt
+    /// <see cref="BeginMoveOrSelect"/> und damit dem Verschieben-Werkzeug vorbehalten.
     /// </para>
     /// </summary>
     private bool BeginHandleDrag(SKPoint c)
@@ -779,26 +772,38 @@ public partial class WhiteboardView
                 _scaleAccum = 1f;
                 return true;
 
+            // **Die Auswahl selbst anfassen heißt verschieben** — für beide Auswahl-Werkzeuge.
+            // Bis 2026-09-21 fehlte dieser Zweig, und das Lasso konnte nur auswählen, nie
+            // anfassen.
+            case WbHandles.Grab.Move:
+                BeginMove(c);
+                return true;
+
             default:
                 return false;
         }
     }
 
+    private void BeginMove(SKPoint c)
+    {
+        _movingSelection = true;
+        _moveLast = c;
+        _movedX = _movedY = 0;
+    }
+
     /// <summary>
-    /// Verschieben-Werkzeug: liegt etwas unter dem Zeiger, wird es gegriffen; sonst wird
-    /// die Auswahl aufgehoben.
+    /// Verschieben-Werkzeug, <b>nachdem die Griffe abgelehnt haben</b>: Was unter dem Zeiger
+    /// liegt, wird aufgegriffen und gleich gezogen; liegt nichts da, wird die Auswahl
+    /// aufgehoben.
+    /// <para>
+    /// Die bestehende Auswahl fragt diese Methode nicht mehr selbst ab — das tut seit
+    /// 2026-09-21 <see cref="BeginHandleDrag"/> über <see cref="WbHandles.Probe"/>, für beide
+    /// Auswahl-Werkzeuge mit derselben Geometrie.
+    /// </para>
     /// </summary>
     private void BeginMoveOrSelect(SKPoint c)
     {
         if (_page == null) return;
-
-        if (_selection.Count > 0 && InflatedSelectionBounds().Contains(c))
-        {
-            _movingSelection = true;
-            _moveLast = c;
-            _movedX = _movedY = 0;
-            return;
-        }
 
         var treffer = WbHit.Topmost(_page.Elements, c, 5f / Zoom);
         _selection.Clear();
@@ -806,9 +811,7 @@ public partial class WhiteboardView
 
         _selection.Add(treffer);
         ComputeSelectionBounds();
-        _movingSelection = true;
-        _moveLast = c;
-        _movedX = _movedY = 0;
+        BeginMove(c);
     }
 
     private void MoveInput(SKPoint c, Stiftlage lage)
@@ -857,13 +860,12 @@ public partial class WhiteboardView
                 EraseAt(c);
                 break;
 
+            // Ein laufendes Lasso oder ein laufendes Verschieben — welches von beidem, hat
+            // das Aufsetzen entschieden und nicht das Werkzeug.
             case ToolType.Lasso:
-                if (DragHandle(c)) break;
-                _lassoPts?.Add(c);
-                break;
-
             case ToolType.Move:
                 if (DragHandle(c)) break;
+                if (_lassoPts != null) { _lassoPts.Add(c); break; }
                 if (!_movingSelection) return;
                 float mx = c.X - _moveLast.X, my = c.Y - _moveLast.Y;
                 foreach (var el in _selection) el.Translate(mx, my);
@@ -976,6 +978,7 @@ public partial class WhiteboardView
                 break;
 
             case ToolType.Lasso:
+            case ToolType.Move:
                 if (_lassoPts is { Count: > 2 })
                 {
                     _selection.Clear();
@@ -984,9 +987,7 @@ public partial class WhiteboardView
                     if (_selection.Count > 0) ComputeSelectionBounds();
                 }
                 _lassoPts = null;
-                break;
 
-            case ToolType.Move:
                 if (_movingSelection &&
                     (Math.Abs(_movedX) > 0.01f || Math.Abs(_movedY) > 0.01f))
                 {

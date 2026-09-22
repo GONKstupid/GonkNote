@@ -25,6 +25,10 @@
             <views:GradientBrushConverter x:Key="GradientBrush"/>
             <views:BytesToImageConverter x:Key="BytesToImage" DecodeWidth="240"/>
             <views:KindToIconConverter x:Key="KindToIcon"/>
+            <!-- Die Schriftvorschau in den Wählern. Eine Bindung wandelt den Namen NICHT von
+                 selbst um (V2-134 nachgebessert, siehe Konverter) — ohne ihn stünde jeder
+                 Eintrag in derselben Schrift. -->
+            <views:FontNameToFamilyConverter x:Key="NameZuSchrift"/>
             <views:IsZeroConverter x:Key="IstLeer"/>
             <views:IsZeroConverter x:Key="IstDa" Invert="True"/>
         </ResourceDictionary>

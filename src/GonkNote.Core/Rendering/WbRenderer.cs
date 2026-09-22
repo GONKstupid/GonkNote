@@ -155,8 +155,7 @@ public static class WbFonts
 
         // 2. Die Schriften des Rechners — ein Bestandsdokument mit „Segoe UI" bekommt sie
         //    unter Windows weiterhin (§4.14: der gespeicherte Wert gewinnt).
-        if (SKTypeface.FromFamilyName(familie, stil) is { } system &&
-            string.Equals(system.FamilyName, familie, StringComparison.OrdinalIgnoreCase))
+        if (KenntDasSystem(familie) && SKTypeface.FromFamilyName(familie, stil) is { } system)
             return system;
 
         // 3. Die Rückfallkette des Schemas, wieder mitgeliefert vor System.
@@ -165,13 +164,46 @@ public static class WbFonts
             foreach (var (b, i) in new[] { (bold, italic), (false, false) })
                 if (tabelle.TryGetValue((ersatz, b, i), out var eigen)) return eigen;
 
-            if (SKTypeface.FromFamilyName(ersatz, stil) is { } kette &&
-                string.Equals(kette.FamilyName, ersatz, StringComparison.OrdinalIgnoreCase))
+            if (KenntDasSystem(ersatz) && SKTypeface.FromFamilyName(ersatz, stil) is { } kette)
                 return kette;
         }
 
         return SKTypeface.FromFamilyName(null, stil) ?? SKTypeface.Default;
     }
+
+    /// <summary>
+    /// Hat der Rechner eine Familie dieses Namens? <b>Die Frage muss vorher gestellt werden</b>,
+    /// weil <c>SKTypeface.FromFamilyName</c> sie nicht beantwortet: Es liefert für einen
+    /// unbekannten Namen <b>nie null</b>, sondern die Vorgabe des Systems — hier „Liberation
+    /// Sans". Ohne eine Prüfung bekäme jeder Tippfehler stillschweigend irgendeine Schrift.
+    ///
+    /// <para>
+    /// ⛔ <b>Bis 2026-09-21 stand hier der Vergleich <c>typeface.FamilyName == familie</c></b>,
+    /// also die Frage <i>„heißt das, was ich bekommen habe, so wie das, was ich wollte?"</i>.
+    /// Die Frage ist falsch gestellt, und zwar auf Linux massenhaft:
+    /// <list type="bullet">
+    /// <item><c>„Noto Serif Light"</c> → fontconfig liefert die Grundfamilie <c>„Noto Serif"</c>
+    ///   — ein <b>richtiger</b> Treffer, der am Namen scheiterte.</item>
+    /// <item><c>„Liberation Mono"</c> → fontconfig ersetzt es durch <c>„iA Writer Mono S"</c>
+    ///   — die Antwort des Systems auf genau diese Frage, ebenfalls verworfen.</item>
+    /// </list>
+    /// <b>Gemessen: 397 von 665 Namen der Wählerliste fielen durch</b> und landeten über die
+    /// Rückfallkette auf Inter. Sichtbar war das als „die Schriftart ändert sich nicht" —
+    /// aber <b>nur auf der Tafel</b>: Vorschau und Eingabefeld zeichnet Avalonia, und dessen
+    /// Schriftverwaltung stellt diese Frage nicht. Zwei Kanäle, eine Liste, zwei Antworten.
+    /// </para>
+    /// <para>
+    /// <b>Die richtige Frage ist die Familienliste des Systems</b> — sie sagt, ob es den Namen
+    /// gibt, und überlässt die Zuordnung dem System. Einmal geholt und behalten: der Durchgang
+    /// kostet auf diesem Rechner 660 Einträge, und die Liste ändert sich zur Laufzeit nicht.
+    /// </para>
+    /// </summary>
+    private static HashSet<string>? _systemfamilien;
+
+    private static bool KenntDasSystem(string familie) =>
+        (_systemfamilien ??= new HashSet<string>(
+            SKFontManager.Default.FontFamilies, StringComparer.OrdinalIgnoreCase))
+        .Contains(familie);
 
     /// <summary>
     /// Schrift für die Textausgabe. Seit SkiaSharp 3 liegen Größe und Schriftart in

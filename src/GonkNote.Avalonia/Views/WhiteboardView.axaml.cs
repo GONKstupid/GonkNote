@@ -691,8 +691,6 @@ public partial class WhiteboardView : UserControl
         Neuzeichnen();
     }
 
-    private SKRect InflatedSelectionBounds() => WbHandles.InflatedBounds(_selectionBounds, Zoom);
-
     private void ComputeSelectionBounds() => _selectionBounds = WbHit.Bounds(_selection);
 
     /// <summary>

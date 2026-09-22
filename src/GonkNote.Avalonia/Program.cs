@@ -32,5 +32,10 @@ internal static class Program
         AppBuilder.Configure<App>()
             .UsePlatformDetect()
             .WithInterFont()
+            // Die mitgelieferten Schriften auch für Avalonias eigene Textausgabe — Vorschau
+            // im Schriftwähler, Eingabefeld über einem Textfeld, Chrome. Die Leinwand geht
+            // über WbFonts und braucht das nicht (Platform/AvaloniaEngines.cs).
+            .ConfigureFonts(Platform.AvaloniaSchriften.Anmelden)
+            .With(Platform.AvaloniaSchriften.Zuordnungen())
             .LogToTrace();
 }

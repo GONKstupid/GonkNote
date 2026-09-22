@@ -313,8 +313,11 @@ public partial class WhiteboardView
             canvas.DrawRect(rect, grad);
         }
 
-        var coverBold = cs == null ? WbFonts.Bold
-            : SKTypeface.FromFamilyName(cs.FontFamily, SKFontStyle.Bold) ?? WbFonts.Bold;
+        // ⛔ Der zweite Schriftauflöser neben WbFonts — dieselbe Stelle wie im Linux-Kopf und
+        // aus demselben Grund entfernt (2026-09-21): `FromFamilyName` sieht keine
+        // mitgelieferte Schrift, und bei einer Systemschrift mit Stilzusatz liefert es
+        // stillschweigend die Vorgabe des Systems. §4.26: EIN Ort für Name → SKTypeface.
+        var coverBold = cs == null ? WbFonts.Bold : WbFonts.Family(cs.FontFamily, bold: true);
 
         string title = _vm?.Item.Name ?? "";
         using var titlePaint = new SKPaint { Color = SKColors.White, IsAntialias = true };
@@ -336,7 +339,7 @@ public partial class WhiteboardView
 
         using var subPaint = new SKPaint { Color = SKColors.White.WithAlpha(170), IsAntialias = true };
         using var subFont = new SKFont(
-            cs == null ? WbFonts.Regular : SKTypeface.FromFamilyName(cs.FontFamily) ?? WbFonts.Regular, 15);
+            cs == null ? WbFonts.Regular : WbFonts.Family(cs.FontFamily), 15);
         canvas.DrawText("N O T I Z B U C H", _page.Width / 2f, _page.Height * 0.49f,
             SKTextAlign.Center, subFont, subPaint);
     }

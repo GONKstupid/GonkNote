@@ -314,34 +314,6 @@
             </ScrollViewer>
         </Border>
 
-        <!-- ==================== Seitenleiste unten ==================== -->
-        <Border x:Name="PageBar" DockPanel.Dock="Bottom"
-                Background="{DynamicResource Brush.ToolbarBg}"
-                BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,1,0,0">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="8,4" Spacing="2">
-                <Button Classes="flach symbol" Click="PrevPage_Click">
-                    <views:Symbol Icon="ChevronLeft"
-                          Stroke="{DynamicResource Brush.Text}"/>
-                </Button>
-                <TextBlock x:Name="PageLabel" VerticalAlignment="Center" MinWidth="110"
-                           TextAlignment="Center" FontSize="12"
-                           Foreground="{DynamicResource Brush.TextMuted}"/>
-                <Button Classes="flach symbol" Click="NextPage_Click">
-                    <views:Symbol Icon="ChevronRight"
-                          Stroke="{DynamicResource Brush.Text}"/>
-                </Button>
-                <Border Classes="trenner"/>
-                <Button Classes="flach symbol" Click="AddPage_Click" ToolTip.Tip="{loc:T Page.Add}">
-                    <views:Symbol Icon="Plus"
-                          Stroke="{DynamicResource Brush.Text}"/>
-                </Button>
-                <Button Classes="flach symbol" Click="DeletePage_Click" ToolTip.Tip="{loc:T Page.Delete}">
-                    <views:Symbol Icon="Trash"
-                          Stroke="{DynamicResource Brush.Text}"/>
-                </Button>
-            </StackPanel>
-        </Border>
-
         <!-- ==================== Einstellungen (rechte Seitenleiste) ==================== -->
         <!-- Sechs Abschnitte: Seite, Formen, Text, Notizzettel, Sticker, Export.
              Drüben sind es sieben — es fehlt **das Cover**, und nur das.
@@ -413,6 +385,34 @@
 
                      Das Auf- und Zuklappen selbst macht `AbschnittsTabelle` im Code-Behind;
                      hier stehen nur Kopf und Inhalt paarweise beieinander. -->
+                <!-- Blättern, neue Seite, Seite löschen — immer sichtbar, nicht in einer
+                     Klappgruppe. Stand bis 2026-10 als Fußleiste unter der Fläche; geblättert
+                     wird sonst durch Scrollen (Seiten untereinander, WhiteboardView.Render.cs). -->
+                <Border x:Name="PageBar" DockPanel.Dock="Top" Padding="10,6"
+                        BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,0,0,1">
+                    <DockPanel>
+                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="2">
+                            <Button Classes="flach symbol" Click="AddPage_Click" ToolTip.Tip="{loc:T Page.Add}">
+                                <views:Symbol Icon="Plus" Stroke="{DynamicResource Brush.Text}"/>
+                            </Button>
+                            <Button Classes="flach symbol" Click="DeletePage_Click" ToolTip.Tip="{loc:T Page.Delete}">
+                                <views:Symbol Icon="Trash" Stroke="{DynamicResource Brush.Text}"/>
+                            </Button>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="2">
+                            <Button Classes="flach symbol" Click="PrevPage_Click">
+                                <views:Symbol Icon="ChevronLeft" Stroke="{DynamicResource Brush.Text}"/>
+                            </Button>
+                            <TextBlock x:Name="PageLabel" VerticalAlignment="Center" MinWidth="76"
+                                       TextAlignment="Center" FontSize="12"
+                                       Foreground="{DynamicResource Brush.Text}"/>
+                            <Button Classes="flach symbol" Click="NextPage_Click">
+                                <views:Symbol Icon="ChevronRight" Stroke="{DynamicResource Brush.Text}"/>
+                            </Button>
+                        </StackPanel>
+                    </DockPanel>
+                </Border>
+
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel x:Name="Abschnitte" Margin="14,12">
 
@@ -420,6 +420,7 @@
                     <ToggleButton x:Name="KopfSeite" Classes="abschnitt"
                                   Content="{loc:T Settings.Page}"/>
                     <StackPanel x:Name="SeiteBereich" IsVisible="False" Margin="0,4,0,0">
+
 
                         <!-- Muster -->
                         <TextBlock Text="{loc:T Settings.Page.Pattern}" FontWeight="SemiBold"
@@ -457,25 +458,26 @@
                         <!-- Format und Ausrichtung. Die unendliche Fläche hat kein Blatt,
                              dessen Maße man setzen könnte — dort verschwindet der Abschnitt. -->
                         <StackPanel x:Name="FormatAbschnitt">
-                            <TextBlock Text="{loc:T Settings.Page.Format}" FontWeight="SemiBold"
-                                       Margin="0,0,0,4" Foreground="{DynamicResource Brush.Text}"/>
-                            <UniformGrid Columns="2" Margin="0,0,0,14">
-                                <RadioButton x:Name="SetzeFormatA4" GroupName="setzeFormat" Margin="0,2"
-                                             Content="A4" IsCheckedChanged="Seiteneinstellung_Geaendert"/>
-                                <RadioButton x:Name="SetzeFormatA3" GroupName="setzeFormat" Margin="0,2"
-                                             Content="A3" IsCheckedChanged="Seiteneinstellung_Geaendert"/>
-                            </UniformGrid>
-
-                            <TextBlock Text="{loc:T Settings.Page.Orientation}" FontWeight="SemiBold"
-                                       Margin="0,0,0,4" Foreground="{DynamicResource Brush.Text}"/>
-                            <StackPanel Margin="0,0,0,14">
-                                <RadioButton x:Name="SetzeHochformat" GroupName="setzeLage" Margin="0,2"
-                                             Content="{loc:T Settings.Page.Portrait}"
-                                             IsCheckedChanged="Seiteneinstellung_Geaendert"/>
-                                <RadioButton x:Name="SetzeQuerformat" GroupName="setzeLage" Margin="0,2"
-                                             Content="{loc:T Settings.Page.Landscape}"
-                                             IsCheckedChanged="Seiteneinstellung_Geaendert"/>
-                            </StackPanel>
+                            <Grid ColumnDefinitions="*,*" Margin="0,0,0,14">
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="{loc:T Settings.Page.Format}" FontWeight="SemiBold"
+                                               Margin="0,0,0,4" Foreground="{DynamicResource Brush.Text}"/>
+                                    <RadioButton x:Name="SetzeFormatA4" GroupName="setzeFormat" Margin="0,2"
+                                                 Content="A4" IsCheckedChanged="Seiteneinstellung_Geaendert"/>
+                                    <RadioButton x:Name="SetzeFormatA3" GroupName="setzeFormat" Margin="0,2"
+                                                 Content="A3" IsCheckedChanged="Seiteneinstellung_Geaendert"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1">
+                                    <TextBlock Text="{loc:T Settings.Page.Orientation}" FontWeight="SemiBold"
+                                               Margin="0,0,0,4" Foreground="{DynamicResource Brush.Text}"/>
+                                    <RadioButton x:Name="SetzeHochformat" GroupName="setzeLage" Margin="0,2"
+                                                 Content="{loc:T Settings.Page.Portrait}"
+                                                 IsCheckedChanged="Seiteneinstellung_Geaendert"/>
+                                    <RadioButton x:Name="SetzeQuerformat" GroupName="setzeLage" Margin="0,2"
+                                                 Content="{loc:T Settings.Page.Landscape}"
+                                                 IsCheckedChanged="Seiteneinstellung_Geaendert"/>
+                                </StackPanel>
+                            </Grid>
 
                             <CheckBox x:Name="SetzeAlsStandard" Margin="0,0,0,12"
                                       Content="{loc:T Settings.Page.AsDefault}"
@@ -500,8 +502,6 @@
                     <ToggleButton x:Name="KopfFormen" Classes="abschnitt"
                                   Content="{loc:T Settings.Shapes}"/>
                     <StackPanel x:Name="FormenBereich" IsVisible="False" Margin="0,4,0,0">
-                            <TextBlock Text="{loc:T Settings.Shapes.Hint}" TextWrapping="Wrap" FontSize="11"
-                                       Margin="0,0,0,8" Foreground="{DynamicResource Brush.TextMuted}"/>
 
                             <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,0,0,8">
                                 <!-- Der Schalter trägt die Vorschau: er zeigt, was er
@@ -595,6 +595,20 @@
                                 <TextBlock Text="{loc:T Settings.Sticky.Color}" VerticalAlignment="Center"
                                            Margin="6,0,0,0" Foreground="{DynamicResource Brush.Text}"/>
                             </StackPanel>
+
+                            <!-- Muster neuer Zettel; die Farbe bleibt, das Muster liegt darauf. -->
+                            <TextBlock Text="{loc:T Settings.Page.Pattern}" FontWeight="SemiBold"
+                                       Margin="0,10,0,4" Foreground="{DynamicResource Brush.Text}"/>
+                            <UniformGrid Columns="2">
+                                <RadioButton GroupName="zettelMuster" Margin="0,2" Tag="Blank" IsChecked="True"
+                                             Content="{loc:T Settings.Page.Blank}" IsCheckedChanged="Zettelmuster_Geaendert"/>
+                                <RadioButton GroupName="zettelMuster" Margin="0,2" Tag="Lines"
+                                             Content="{loc:T Settings.Page.Lines}" IsCheckedChanged="Zettelmuster_Geaendert"/>
+                                <RadioButton GroupName="zettelMuster" Margin="0,2" Tag="Grid"
+                                             Content="{loc:T Settings.Page.Grid}" IsCheckedChanged="Zettelmuster_Geaendert"/>
+                                <RadioButton GroupName="zettelMuster" Margin="0,2" Tag="Dots"
+                                             Content="{loc:T Settings.Page.Dots}" IsCheckedChanged="Zettelmuster_Geaendert"/>
+                            </UniformGrid>
                         </StackPanel>
 
                         <!-- ==================== Sticker ==================== -->
@@ -727,8 +741,6 @@
                     <ToggleButton x:Name="KopfExport" Classes="abschnitt"
                                   Content="{loc:T Settings.Export}"/>
                     <StackPanel x:Name="ExportBereich" IsVisible="False" Margin="0,4,0,0">
-                            <TextBlock Text="{loc:T Settings.Export.Hint}" TextWrapping="Wrap" FontSize="11"
-                                       Margin="0,0,0,8" Foreground="{DynamicResource Brush.TextMuted}"/>
                             <Button Classes="flach" HorizontalAlignment="Stretch" Margin="0,0,0,4"
                                     Tag=".pdf" Click="TafelExport_Click"
                                     Content="{loc:T Settings.Export.Pdf}"/>

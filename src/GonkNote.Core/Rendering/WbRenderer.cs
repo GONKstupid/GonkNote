@@ -713,6 +713,8 @@ public static class WbRenderer
         using (var bg = new SKPaint { IsAntialias = true, Color = fill })
             canvas.DrawRoundRect(rect, radius, radius, bg);
 
+        DrawStickyPattern(canvas, sn, rect);
+
         // hauchzarter Rand, leicht dunkler als die Füllung
         using var border = new SKPaint
         {
@@ -722,6 +724,41 @@ public static class WbRenderer
             Color = new SKColor(0, 0, 0, 28),
         };
         canvas.DrawRoundRect(rect, radius, radius, border);
+    }
+
+    /// <summary>
+    /// Linien, Karo oder Punkte auf dem Zettel — dunkles Schwarz mit wenig Deckkraft, damit
+    /// das Muster auf jeder Zettelfarbe als deren dunklere Variante erscheint.
+    /// </summary>
+    private static void DrawStickyPattern(SKCanvas canvas, StickyNoteElement sn, SKRect rect)
+    {
+        if (sn.Background == PageBackground.Blank) return;
+        const float abstand = 20f;
+
+        canvas.Save();
+        canvas.ClipRect(rect);
+        using var stift = new SKPaint { IsAntialias = true, Color = new SKColor(0, 0, 0, 40), StrokeWidth = 1f };
+        switch (sn.Background)
+        {
+            case PageBackground.Lines:
+                // Im Takt der Textzeilen aus DrawSticky, knapp unter der Grundlinie.
+                for (float y = rect.Top + StickyPad + sn.FontSize * 1.25f; y < rect.Bottom - 4; y += sn.FontSize * 1.32f)
+                    canvas.DrawLine(rect.Left + 8, y, rect.Right - 8, y, stift);
+                break;
+            case PageBackground.Grid:
+                for (float y = rect.Top + abstand; y < rect.Bottom; y += abstand)
+                    canvas.DrawLine(rect.Left, y, rect.Right, y, stift);
+                for (float x = rect.Left + abstand; x < rect.Right; x += abstand)
+                    canvas.DrawLine(x, rect.Top, x, rect.Bottom, stift);
+                break;
+            case PageBackground.Dots:
+                stift.Color = new SKColor(0, 0, 0, 70);
+                for (float x = rect.Left + abstand; x < rect.Right; x += abstand)
+                    for (float y = rect.Top + abstand; y < rect.Bottom; y += abstand)
+                        canvas.DrawCircle(x, y, 1.1f, stift);
+                break;
+        }
+        canvas.Restore();
     }
 
     public static void DrawSticky(SKCanvas canvas, StickyNoteElement sn)

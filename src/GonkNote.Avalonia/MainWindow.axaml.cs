@@ -265,6 +265,20 @@ public partial class MainWindow : Window
         });
     }
 
+    /// <summary>
+    /// Das Umbenennen-Feld einer Galeriekachel geht auf. Es ist schon eingehängt und nur
+    /// unsichtbar — darum hilft hier nicht <c>AttachedToVisualTree</c> wie im Baum.
+    /// </summary>
+    private void KachelUmbenennen_Sichtbar(object? sender, AvaloniaPropertyChangedEventArgs e)
+    {
+        if (e.Property != IsVisibleProperty || sender is not TextBox { IsVisible: true } box) return;
+        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+        {
+            box.Focus();
+            box.SelectAll();
+        });
+    }
+
     private void Umbenennen_Fokus(object? sender, RoutedEventArgs e)
     {
         if ((sender as TextBox)?.DataContext is TreeItemViewModel t && t.IsRenaming)

@@ -119,6 +119,7 @@ public partial class WhiteboardView
             X = c.X - 100f, Y = c.Y - 100f,
             Color = _zettelfarbe.ToString(),
             TextColor = _zettelfarbe.LesbareSchrift().ToString(),
+            Background = _zettelmuster,
         }, neu: true);
     }
 
@@ -547,6 +548,12 @@ public partial class WhiteboardView
 
         _zettelfarbe = gewaehlt;
         ZettelVorschauNachfuehren();
+    }
+
+    private void Zettelmuster_Geaendert(object? sender, RoutedEventArgs e)
+    {
+        if (sender is RadioButton { IsChecked: true, Tag: string muster })
+            _zettelmuster = Enum.Parse<PageBackground>(muster);
     }
 
     private void ZettelVorschauNachfuehren() => ZettelVorschau.Background = _zettelfarbe.ToBrush();

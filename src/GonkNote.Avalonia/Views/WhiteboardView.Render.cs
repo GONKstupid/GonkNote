@@ -204,7 +204,7 @@ public partial class WhiteboardView
             InhaltVerwerfen();
             leinwand.Save();
             ApplyViewTransform(leinwand);
-            DrawPageAndElements(leinwand, e);
+            DrawSeiten(leinwand, e);
             leinwand.Restore();
             return;
         }
@@ -239,7 +239,7 @@ public partial class WhiteboardView
 
         using var aufnahme = new SKPictureRecorder();
         var leinwand = aufnahme.BeginRecording(rahmen);
-        DrawPageAndElements(leinwand, e);
+        DrawSeiten(leinwand, e);
         return aufnahme.EndRecording();
     }
 
@@ -259,7 +259,53 @@ public partial class WhiteboardView
             Math.Max(tl.X, br.X), Math.Max(tl.Y, br.Y));
     }
 
-    private void DrawPageAndElements(SKCanvas leinwand, SkiaPaintArgs e)
+    /// <summary>Abstand zwischen zwei Seiten in der durchgehenden Ansicht (Flächeneinheiten).</summary>
+    private const float SeitenAbstand = 24f;
+
+    /// <summary>
+    /// Die aktuelle Seite und — wie in GoodNotes — darüber das Ende der vorigen, darunter
+    /// der Anfang der folgenden. Die Nachbarn sind nur Anzeige: Eingabe geht an
+    /// <see cref="_page"/>, und <see cref="SeiteFolgen"/> wechselt sie, sobald man
+    /// hinüberscrollt oder auf einen Nachbarn tippt.
+    /// </summary>
+    private void DrawSeiten(SKCanvas leinwand, SkiaPaintArgs e)
+    {
+        if (_page is { IsInfinite: false } aktuell && _vm != null)
+        {
+            var seiten = _vm.Doc.Pages;
+            var sicht = SichtbarerBereich(e);
+            // ponytail: die Zeichenroutinen lesen `_page`; für die Nachbarn wird es kurz
+            // umgesetzt statt jede Routine um einen Seitenparameter zu erweitern.
+            try
+            {
+                float y = 0;
+                for (int i = _vm.PageIndex - 1; i >= 0 && y > sicht.Top; i--)
+                {
+                    y -= seiten[i].Height + SeitenAbstand;
+                    NachbarZeichnen(leinwand, e, seiten[i], y);
+                }
+                y = aktuell.Height + SeitenAbstand;
+                for (int i = _vm.PageIndex + 1; i < seiten.Count && y < sicht.Bottom; i++)
+                {
+                    NachbarZeichnen(leinwand, e, seiten[i], y);
+                    y += seiten[i].Height + SeitenAbstand;
+                }
+            }
+            finally { _page = aktuell; }
+        }
+        DrawPageAndElements(leinwand, e);
+    }
+
+    private void NachbarZeichnen(SKCanvas leinwand, SkiaPaintArgs e, WbPage seite, float y)
+    {
+        _page = seite;
+        leinwand.Save();
+        leinwand.Translate(0, y);
+        DrawPageAndElements(leinwand, e, y);
+        leinwand.Restore();
+    }
+
+    private void DrawPageAndElements(SKCanvas leinwand, SkiaPaintArgs e, float versatzY = 0)
     {
         DrawPageBackground(leinwand, e);
         if (_page == null) return;
@@ -267,6 +313,7 @@ public partial class WhiteboardView
         // Nur Sichtbares zeichnen. Das verhindert, dass bei vielen hochauflösenden Bildern
         // jedes Bild alle durch den Dekodierer geht.
         var sichtbar = SichtbarerBereich(e);
+        sichtbar.Offset(0, -versatzY);
         foreach (var el in _page.Elements)
         {
             var b = WbRenderer.ElementBounds(el);

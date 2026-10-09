@@ -151,6 +151,7 @@ public partial class WhiteboardView
             Text = text.Trim(),
             Color = _zettelfarbe.ToString(),
             TextColor = _zettelfarbe.LesbareSchrift().ToString(),
+            Background = _zettelmuster,
         };
 
         // Auf einer begrenzten Seite darf der Zettel nicht über den Rand hängen. Auf einer

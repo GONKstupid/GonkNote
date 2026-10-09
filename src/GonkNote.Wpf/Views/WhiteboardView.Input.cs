@@ -46,6 +46,7 @@ public partial class WhiteboardView
             return;
         }
 
+        FollowPage(p.Y);   // Druck auf eine Nachbarseite schreibt dort
         BeginInput(ToCanvas(new Point(p.X, p.Y)), p.PressureFactor);
         CanvasHost.CaptureStylus();
         StartHoldDetect(new Point(p.X, p.Y), fromTouch: false);
@@ -109,6 +110,7 @@ public partial class WhiteboardView
         }
         if (e.ChangedButton != MouseButton.Left) return;
 
+        FollowPage(screen.Y);
         BeginInput(ToCanvas(screen), 0.5f);
         CanvasHost.CaptureMouse();
     }
@@ -204,6 +206,7 @@ public partial class WhiteboardView
             _gestureDist = dist;
             Skia.InvalidateVisual();
         }
+        FollowPage(CanvasHost.ActualHeight / 2);
         e.Handled = true;
     }
 
@@ -249,6 +252,7 @@ public partial class WhiteboardView
         PanX += (float)(screen.X - _panLast.X);
         PanY += (float)(screen.Y - _panLast.Y);
         _panLast = screen;
+        FollowPage(CanvasHost.ActualHeight / 2);
         Skia.InvalidateVisual();
     }
 
@@ -404,6 +408,7 @@ public partial class WhiteboardView
             X = c.X - 100f, Y = c.Y - 100f,
             Color = _stickyColorHex,
             TextColor = ReadableStickyTextColor(_stickyColorHex),
+            Background = _stickyPattern,
         }, isNew: true);
     }
 

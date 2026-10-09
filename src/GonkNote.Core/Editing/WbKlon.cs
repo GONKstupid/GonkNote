@@ -76,7 +76,7 @@ public static class WbKlon
             {
                 X = sn.X, Y = sn.Y, Width = sn.Width, Height = sn.Height, Text = sn.Text,
                 Color = sn.Color, TextColor = sn.TextColor, FontSize = sn.FontSize,
-                FontFamily = sn.FontFamily,
+                FontFamily = sn.FontFamily, Background = sn.Background,
             },
             _ => throw new NotSupportedException(
                 $"Kein Klonweg für {el.GetType().Name} — WbKlon.Klonen ergänzen."),

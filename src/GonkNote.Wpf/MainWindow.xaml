@@ -490,7 +490,7 @@
                                                         <Grid>
                                                             <Image Source="{Binding CoverImageData, Converter={StaticResource BytesToImage}}" Stretch="UniformToFill"
                                                                    Visibility="{Binding HasCoverImage, Converter={StaticResource BoolToVis}}"/>
-                                                            <TextBlock Text="{Binding Name}" Foreground="White" FontSize="13" FontWeight="SemiBold"
+                                                            <TextBlock Text="{Binding Tree.Name}" Foreground="White" FontSize="13" FontWeight="SemiBold"
                                                                        TextWrapping="Wrap" TextAlignment="Center" Margin="10"
                                                                        VerticalAlignment="Center" HorizontalAlignment="Center"
                                                                        Visibility="{Binding HasCoverImage, Converter={StaticResource InverseBoolToVis}}"/>
@@ -527,7 +527,7 @@
                                                             <DropShadowEffect BlurRadius="12" ShadowDepth="3" Opacity="0.3" Color="Black"/>
                                                         </Border.Effect>
                                                         <StackPanel Margin="12,14">
-                                                            <TextBlock Text="{Binding Name}" FontSize="9" FontWeight="SemiBold"
+                                                            <TextBlock Text="{Binding Tree.Name}" FontSize="9" FontWeight="SemiBold"
                                                                        Foreground="#333" TextTrimming="CharacterEllipsis"/>
                                                             <Rectangle Height="2" Fill="#E5E5E5" Margin="0,9,0,0"/>
                                                             <Rectangle Height="2" Fill="#E5E5E5" Margin="0,6,0,0"/>
@@ -548,9 +548,20 @@
                                                 </Grid>
                                                 <!-- Name + Chevron -->
                                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                                    <TextBlock Text="{Binding Name}" Foreground="{DynamicResource Brush.Text}"
+                                                    <!-- Am Baumknoten und nicht an der Kachel: der meldet Änderungen,
+                                                         die Kachel nicht. So erscheint eine Umbenennung hier, auch wenn
+                                                         sie in der Seitenleiste läuft — und eine aus der Galerie hat ihr
+                                                         Feld hier. -->
+                                                    <TextBlock Text="{Binding Tree.Name}" Foreground="{DynamicResource Brush.Text}"
                                                                FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
-                                                               MaxWidth="128" TextAlignment="Center" VerticalAlignment="Center"/>
+                                                               MaxWidth="128" TextAlignment="Center" VerticalAlignment="Center"
+                                                               Visibility="{Binding Tree.IsRenaming, Converter={StaticResource InverseBoolToVis}}"/>
+                                                    <TextBox DataContext="{Binding Tree}" Width="128" Padding="4,2" FontSize="13"
+                                                             Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
+                                                             Visibility="{Binding IsRenaming, Converter={StaticResource BoolToVis}}"
+                                                             IsVisibleChanged="RenameBox_IsVisibleChanged"
+                                                             LostKeyboardFocus="RenameBox_LostFocus"
+                                                             KeyDown="RenameBox_KeyDown"/>
                                                     <Button Style="{StaticResource IconButton}" Content="{views:Icon ChevronDown, Size=9}" FontSize="9"
                                                             Width="18" Height="18" Margin="3,0,0,0" ToolTip="{loc:T Gallery.Options}"
                                                             Click="GalleryChevron_Click"/>

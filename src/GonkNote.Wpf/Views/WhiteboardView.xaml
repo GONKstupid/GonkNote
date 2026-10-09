@@ -273,25 +273,6 @@
             </ScrollViewer>
         </Border>
 
-        <!-- ===== Seitenleiste unten (nur Notizbücher) ===== -->
-        <Border x:Name="PageBar" DockPanel.Dock="Bottom" Background="{DynamicResource Brush.ToolbarBg}"
-                BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,1,0,0"
-                Padding="8,3" Visibility="Collapsed">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                <Button Style="{StaticResource IconButton}" Content="{views:Icon ChevronLeft}" ToolTip="{loc:T Page.Previous}"
-                        AutomationProperties.Name="{loc:T Page.Previous}" Click="PrevPage_Click"/>
-                <TextBlock x:Name="PageLabel" Text="{loc:T Page.Label}" VerticalAlignment="Center" Margin="10,0"
-                           Foreground="{DynamicResource Brush.Text}"/>
-                <Button Style="{StaticResource IconButton}" Content="{views:Icon ChevronRight}" ToolTip="{loc:T Page.Next}"
-                        AutomationProperties.Name="{loc:T Page.Next}" Click="NextPage_Click"/>
-                <Border Width="1" Background="{DynamicResource Brush.Border}" Margin="8,4"/>
-                <Button Style="{StaticResource IconButton}" Content="{views:Icon Plus}" ToolTip="{loc:T Page.Add}"
-                        AutomationProperties.Name="{loc:T Page.Add}" Click="AddPage_Click"/>
-                <Button Style="{StaticResource IconButton}" Content="{views:Icon Trash}" ToolTip="{loc:T Page.Delete}"
-                        AutomationProperties.Name="{loc:T Page.Delete}" Click="DeletePage_Click"/>
-            </StackPanel>
-        </Border>
-
         <!-- ===== Einstellungen (rechte Seitenleiste, wie Word-Formatbereich) ===== -->
         <Border x:Name="SettingsPanel" DockPanel.Dock="Right" Width="270" Visibility="Collapsed"
                 Background="{DynamicResource Brush.ToolbarBg}"
@@ -306,6 +287,30 @@
                                    Foreground="{DynamicResource Brush.Text}" VerticalAlignment="Center"/>
                     </DockPanel>
                 </Border>
+                <!-- Blättern, neue Seite, Seite löschen (nur Notizbücher). Stand bis 2026-10 als
+                     Fußleiste unter der Fläche; geblättert wird sonst durch Scrollen
+                     (Seiten untereinander, WhiteboardView.Render.cs DrawPages). -->
+                <Border x:Name="PageBar" DockPanel.Dock="Top" Padding="10,4" Visibility="Collapsed"
+                        BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,0,0,1">
+                    <DockPanel>
+                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                            <Button Style="{StaticResource IconButton}" Content="{views:Icon Plus}" ToolTip="{loc:T Page.Add}"
+                                    AutomationProperties.Name="{loc:T Page.Add}" Click="AddPage_Click"/>
+                            <Button Style="{StaticResource IconButton}" Content="{views:Icon Trash}" ToolTip="{loc:T Page.Delete}"
+                                    AutomationProperties.Name="{loc:T Page.Delete}" Click="DeletePage_Click"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <Button Style="{StaticResource IconButton}" Content="{views:Icon ChevronLeft}" ToolTip="{loc:T Page.Previous}"
+                                    AutomationProperties.Name="{loc:T Page.Previous}" Click="PrevPage_Click"/>
+                            <TextBlock x:Name="PageLabel" Text="{loc:T Page.Label}" VerticalAlignment="Center"
+                                       MinWidth="76" TextAlignment="Center" FontSize="12"
+                                       Foreground="{DynamicResource Brush.Text}"/>
+                            <Button Style="{StaticResource IconButton}" Content="{views:Icon ChevronRight}" ToolTip="{loc:T Page.Next}"
+                                    AutomationProperties.Name="{loc:T Page.Next}" Click="NextPage_Click"/>
+                        </StackPanel>
+                    </DockPanel>
+                </Border>
+
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="14,12">
 
@@ -337,23 +342,28 @@
                         </UniformGrid>
 
                         <StackPanel x:Name="SetSizeSection">
-                            <TextBlock Text="{loc:T Settings.Page.Format}" FontWeight="SemiBold" Margin="0,0,0,4"
-                                       Foreground="{DynamicResource Brush.Text}"/>
-                            <UniformGrid Columns="2" Margin="0,0,0,12">
-                                <RadioButton x:Name="SetSizeA4" Content="A4" GroupName="setSize" Margin="0,2"
-                                             Foreground="{DynamicResource Brush.Text}" Checked="PageSetting_Changed"/>
-                                <RadioButton x:Name="SetSizeA3" Content="A3" GroupName="setSize" Margin="0,2"
-                                             Foreground="{DynamicResource Brush.Text}" Checked="PageSetting_Changed"/>
-                            </UniformGrid>
-
-                            <TextBlock Text="{loc:T Settings.Page.Orientation}" FontWeight="SemiBold" Margin="0,0,0,4"
-                                       Foreground="{DynamicResource Brush.Text}"/>
-                            <UniformGrid Columns="2" Margin="0,0,0,12">
-                                <RadioButton x:Name="SetOrientPortrait" Content="{loc:T Settings.Page.Portrait}" GroupName="setOrient" Margin="0,2"
-                                             Foreground="{DynamicResource Brush.Text}" Checked="PageSetting_Changed"/>
-                                <RadioButton x:Name="SetOrientLandscape" Content="{loc:T Settings.Page.Landscape}" GroupName="setOrient" Margin="0,2"
-                                             Foreground="{DynamicResource Brush.Text}" Checked="PageSetting_Changed"/>
-                            </UniformGrid>
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition/>
+                                    <ColumnDefinition/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="{loc:T Settings.Page.Format}" FontWeight="SemiBold" Margin="0,0,0,4"
+                                               Foreground="{DynamicResource Brush.Text}"/>
+                                    <RadioButton x:Name="SetSizeA4" Content="A4" GroupName="setSize" Margin="0,2"
+                                                 Foreground="{DynamicResource Brush.Text}" Checked="PageSetting_Changed"/>
+                                    <RadioButton x:Name="SetSizeA3" Content="A3" GroupName="setSize" Margin="0,2"
+                                                 Foreground="{DynamicResource Brush.Text}" Checked="PageSetting_Changed"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1">
+                                    <TextBlock Text="{loc:T Settings.Page.Orientation}" FontWeight="SemiBold" Margin="0,0,0,4"
+                                               Foreground="{DynamicResource Brush.Text}"/>
+                                    <RadioButton x:Name="SetOrientPortrait" Content="{loc:T Settings.Page.Portrait}" GroupName="setOrient" Margin="0,2"
+                                                 Foreground="{DynamicResource Brush.Text}" Checked="PageSetting_Changed"/>
+                                    <RadioButton x:Name="SetOrientLandscape" Content="{loc:T Settings.Page.Landscape}" GroupName="setOrient" Margin="0,2"
+                                                 Foreground="{DynamicResource Brush.Text}" Checked="PageSetting_Changed"/>
+                                </StackPanel>
+                            </Grid>
 
                             <CheckBox x:Name="SetAsDefault" Content="{loc:T Settings.Page.AsDefault}"
                                       Foreground="{DynamicResource Brush.Text}" Margin="0,0,0,12"
@@ -365,9 +375,6 @@
                         <!-- Formen (nur bei aktivem Formen-Werkzeug sichtbar) -->
                         <Expander x:Name="ShapeSection" Header="{loc:T Settings.Shapes}" IsExpanded="True">
                         <StackPanel>
-                            <TextBlock Text="{loc:T Settings.Shapes.Hint}"
-                                       Foreground="{DynamicResource Brush.TextMuted}" FontSize="11"
-                                       TextWrapping="Wrap" Margin="0,0,0,8"/>
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
                                 <ToggleButton x:Name="BtnShapeFill" Style="{StaticResource ToolButton}"
                                               ToolTip="{loc:T Settings.Shapes.FillToggle}"
@@ -461,6 +468,20 @@
                                 <Button Style="{StaticResource IconButton}" ToolTip="{loc:T Settings.Sticky.CustomColor}"
                                         Click="StickyColorPick_Click" Content="{views:Icon Palette}"/>
                             </StackPanel>
+
+                            <!-- Muster auf dem Zettel; die Farbe bleibt, das Muster liegt darauf. -->
+                            <TextBlock Text="{loc:T Settings.Page.Pattern}" FontWeight="SemiBold" Margin="0,0,0,4"
+                                       Foreground="{DynamicResource Brush.Text}"/>
+                            <UniformGrid Columns="2" Margin="0,0,0,8">
+                                <RadioButton Content="{loc:T Settings.Page.Blank}" GroupName="stickyPattern" Tag="Blank" IsChecked="True"
+                                             Margin="0,2" Foreground="{DynamicResource Brush.Text}" Checked="StickyPattern_Checked"/>
+                                <RadioButton Content="{loc:T Settings.Page.Lines}" GroupName="stickyPattern" Tag="Lines"
+                                             Margin="0,2" Foreground="{DynamicResource Brush.Text}" Checked="StickyPattern_Checked"/>
+                                <RadioButton Content="{loc:T Settings.Page.Grid}" GroupName="stickyPattern" Tag="Grid"
+                                             Margin="0,2" Foreground="{DynamicResource Brush.Text}" Checked="StickyPattern_Checked"/>
+                                <RadioButton Content="{loc:T Settings.Page.Dots}" GroupName="stickyPattern" Tag="Dots"
+                                             Margin="0,2" Foreground="{DynamicResource Brush.Text}" Checked="StickyPattern_Checked"/>
+                            </UniformGrid>
                             <TextBlock Text="{loc:T Settings.Sticky.Hint}"
                                        Foreground="{DynamicResource Brush.TextMuted}" FontSize="11"
                                        TextWrapping="Wrap" Margin="0,0,0,12"/>
@@ -489,8 +510,6 @@
                         <!-- Cover (nur Notizbücher) -->
                         <Expander Header="{loc:T Settings.Export}" IsExpanded="False">
                             <StackPanel>
-                                <TextBlock Text="{loc:T Settings.Export.Hint}" TextWrapping="Wrap" Margin="0,0,0,8"
-                                           Foreground="{DynamicResource Brush.TextMuted}"/>
                                 <Button Content="{loc:T Settings.Export.Pdf}" Style="{StaticResource FlatButton}"
                                         Click="ExportPdf_Click" HorizontalAlignment="Stretch" Margin="0,0,0,4"/>
                                 <Button Content="{loc:T Settings.Export.Png}" Style="{StaticResource FlatButton}"

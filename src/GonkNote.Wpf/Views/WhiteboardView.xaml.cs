@@ -88,6 +88,7 @@ public partial class WhiteboardView : UserControl
     private bool _editingStickyIsNew;
     private string _editingStickyOld = "";
     private string _stickyColorHex = "#FFFEF08A";
+    private PageBackground _stickyPattern = PageBackground.Blank;
 
     // Zeichenhilfen: Lineal & Geodreieck (transient, werden nicht gespeichert)
     private enum RulerDrag { None, Move, Rotate }
@@ -648,6 +649,7 @@ public partial class WhiteboardView : UserControl
         else
         {
             PanY += e.Delta * 0.5f;
+            FollowPage(CanvasHost.ActualHeight / 2);
             Skia.InvalidateVisual();
         }
         e.Handled = true;
@@ -756,9 +758,41 @@ public partial class WhiteboardView : UserControl
         ClearSelection();
         _vm.PageIndex = idx;
         _page = _vm.Doc.Pages[idx];
+        PanY = 24;   // an den Seitenanfang; FollowPage setzt die Verschiebung danach selbst
         UpdatePageLabel();
         if (SettingsPanel.Visibility == Visibility.Visible) RefreshSettingsPanel();
         Skia.InvalidateVisual();
+    }
+
+    /// <summary>
+    /// Durchgehende Seiten: Liegt die Schirmhöhe <paramref name="screenY"/> auf einer
+    /// Nachbarseite, wird sie zur aktuellen — und die Verschiebung so nachgezogen, dass
+    /// auf dem Schirm nichts springt. Gerufen nach dem Scrollen (Mitte der Fläche) und
+    /// vor einem Druck (Stelle des Drucks).
+    /// </summary>
+    private void FollowPage(double screenY)
+    {
+        if (_vm == null || _page is not { IsInfinite: false }) return;
+        var pages = _vm.Doc.Pages;
+        int idx = _vm.PageIndex;
+        float y = ToCanvas(new Point(0, screenY)).Y, shift = 0;
+
+        while (y > pages[idx].Height + PageGap / 2 && idx + 1 < pages.Count)
+        {
+            float step = pages[idx].Height + PageGap;
+            y -= step; shift += step; idx++;
+        }
+        while (y < -PageGap / 2 && idx > 0)
+        {
+            idx--;
+            float step = pages[idx].Height + PageGap;
+            y += step; shift -= step;
+        }
+        if (idx == _vm.PageIndex) return;
+
+        float pan = PanY;
+        GoToPage(idx);
+        PanY = pan + shift * Zoom;
     }
 
     private void PrevPage_Click(object sender, RoutedEventArgs e) => GoToPage((_vm?.PageIndex ?? 0) - 1);

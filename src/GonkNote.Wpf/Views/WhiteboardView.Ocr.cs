@@ -99,6 +99,7 @@ public partial class WhiteboardView
             Text = text.Trim(),
             Color = _stickyColorHex,
             TextColor = ReadableStickyTextColor(_stickyColorHex),
+            Background = _stickyPattern,
         };
         if (!_page.IsInfinite)
         {

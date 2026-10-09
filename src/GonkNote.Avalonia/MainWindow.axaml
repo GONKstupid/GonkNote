@@ -434,7 +434,7 @@
                                 </ItemsControl.ItemsPanel>
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate x:DataType="vm:GalleryItemViewModel">
-                                        <Button Classes="kachel"
+                                        <views:KachelKnopf Classes="kachel"
                                                 Command="{Binding $parent[ItemsControl].((vm:MainViewModel)DataContext).GalleryOpenCommand}"
                                                 CommandParameter="{Binding}">
                                             <StackPanel>
@@ -541,9 +541,21 @@
 
                                                 <!-- Name + Chevron -->
                                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="3">
-                                                    <TextBlock Text="{Binding Name}" Foreground="{DynamicResource Brush.Text}"
+                                                    <!-- Am Baumknoten und nicht an der Kachel: der meldet
+                                                         Änderungen, die Kachel nicht. So erscheint eine
+                                                         Umbenennung hier, auch wenn sie in der Seitenleiste
+                                                         läuft — und eine aus der Galerie hat ihr Feld hier. -->
+                                                    <TextBlock Text="{Binding Tree.Name}" Foreground="{DynamicResource Brush.Text}"
                                                                FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
-                                                               MaxWidth="128" TextAlignment="Center" VerticalAlignment="Center"/>
+                                                               MaxWidth="128" TextAlignment="Center" VerticalAlignment="Center"
+                                                               IsVisible="{Binding !Tree.IsRenaming}"/>
+                                                    <TextBox DataContext="{Binding Tree}" x:DataType="vm:TreeItemViewModel"
+                                                             Text="{Binding Name, Mode=TwoWay}" Width="128"
+                                                             Padding="4,2" FontSize="13"
+                                                             IsVisible="{Binding IsRenaming}"
+                                                             PropertyChanged="KachelUmbenennen_Sichtbar"
+                                                             LostFocus="Umbenennen_Fokus"
+                                                             KeyDown="Umbenennen_Taste"/>
                                                     <Button Classes="flach" Width="20" Height="20" Padding="0"
                                                             ToolTip.Tip="{loc:T Gallery.Options}"
                                                             Click="GalerieMenue_Click">
@@ -563,7 +575,7 @@
                                                            HorizontalAlignment="Center"
                                                            Foreground="{DynamicResource Brush.TextMuted}"/>
                                             </StackPanel>
-                                        </Button>
+                                        </views:KachelKnopf>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>

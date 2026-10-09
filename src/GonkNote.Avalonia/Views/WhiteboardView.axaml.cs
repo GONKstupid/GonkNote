@@ -119,6 +119,7 @@ public partial class WhiteboardView : UserControl
     /// <summary>Vorgabe-Hintergrund neuer Textfelder; <c>null</c> = durchsichtig.</summary>
     private string? _textGrundHex;
     private HexColor _zettelfarbe = new(0xFF, 0xFD, 0xE6, 0x8A);   // dasselbe Gelb wie drüben
+    private PageBackground _zettelmuster = PageBackground.Blank;
 
     // **`KnopfFuer` sucht hier über das `Tag`** — ein Werkzeug, dessen Knopf in dieser Liste
     // fehlt, ist damit auch per Tastenkürzel nicht erreichbar. Genau das war der Zustand des
@@ -786,6 +787,7 @@ public partial class WhiteboardView : UserControl
         {
             PanX += (float)e.Delta.X * 60f;
             PanY += (float)e.Delta.Y * 60f;
+            SeiteFolgen(Skia.Bounds.Height / 2);
             Neuzeichnen();
         }
         e.Handled = true;
@@ -920,11 +922,43 @@ public partial class WhiteboardView : UserControl
         ClearSelection();
         _vm.PageIndex = idx;
         _page = _vm.Doc.Pages[idx];
+        PanY = 24;   // an den Seitenanfang; SeiteFolgen setzt die Verschiebung danach selbst
         InhaltVerwerfen();
         UpdatePageLabel();
         RefreshAutoSwatch();
         EinstellungenSpiegeln();
         Neuzeichnen();
+    }
+
+    /// <summary>
+    /// Durchgehende Seiten: Liegt die Schirmhöhe <paramref name="schirmY"/> auf einer
+    /// Nachbarseite, wird sie zur aktuellen — und die Verschiebung so nachgezogen, dass
+    /// auf dem Schirm nichts springt. Gerufen nach dem Scrollen (Mitte der Fläche) und
+    /// vor einem Druck (Stelle des Drucks).
+    /// </summary>
+    private void SeiteFolgen(double schirmY)
+    {
+        if (_vm == null || _page is not { IsInfinite: false }) return;
+        var seiten = _vm.Doc.Pages;
+        int idx = _vm.PageIndex;
+        float y = ToCanvas(new Point(0, schirmY)).Y, verschub = 0;
+
+        while (y > seiten[idx].Height + SeitenAbstand / 2 && idx + 1 < seiten.Count)
+        {
+            float schritt = seiten[idx].Height + SeitenAbstand;
+            y -= schritt; verschub += schritt; idx++;
+        }
+        while (y < -SeitenAbstand / 2 && idx > 0)
+        {
+            idx--;
+            float schritt = seiten[idx].Height + SeitenAbstand;
+            y += schritt; verschub -= schritt;
+        }
+        if (idx == _vm.PageIndex) return;
+
+        float pan = PanY;
+        GoToPage(idx);
+        PanY = pan + verschub * Zoom;
     }
 
     private void PrevPage_Click(object? sender, RoutedEventArgs e) => GoToPage((_vm?.PageIndex ?? 0) - 1);

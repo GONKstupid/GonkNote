@@ -249,6 +249,14 @@ public partial class WhiteboardView
         });
     }
 
+    private void StickyPattern_Checked(object sender, RoutedEventArgs e)
+    {
+        // Wie die Farbe: gilt für neue Zettel und den gerade bearbeiteten/ausgewählten.
+        if (((RadioButton)sender).Tag is not string tag || tag.Length == 0) return;
+        _stickyPattern = Enum.Parse<PageBackground>(tag);
+        ApplyToActiveSticky(sn => sn.Background = _stickyPattern);
+    }
+
     private void StickyColorPick_Click(object sender, RoutedEventArgs e)
     {
         var cur = ParseColor(_stickyColorHex);

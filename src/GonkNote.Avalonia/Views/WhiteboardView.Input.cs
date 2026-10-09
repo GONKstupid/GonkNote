@@ -370,6 +370,7 @@ public partial class WhiteboardView
 
         var lage = Lage(punkt.Properties, art);
         NeigungMerken(lage, art);
+        SeiteFolgen(punkt.Position.Y);   // Druck auf eine Nachbarseite schreibt dort
         BeginInput(ToCanvas(punkt.Position), lage);
         e.Handled = true;
     }
@@ -596,6 +597,7 @@ public partial class WhiteboardView
             _gestenAbstand = abstand;
             Neuzeichnen();
         }
+        SeiteFolgen(Skia.Bounds.Height / 2);
         e.Handled = true;
     }
 
@@ -630,7 +632,10 @@ public partial class WhiteboardView
         // `TippSpielraum` ist die Fläche zwar kaum mitgewandert, aber `ToCanvas` rechnet den
         // aktuellen Stand von Verschiebung und Zoom ein — und der ist der beim Loslassen.
         if (warTipp && WbLeiste.IstTippwerkzeug(_tool))
+        {
+            SeiteFolgen(stelle.Y);
             BeginInput(ToCanvas(stelle), Stiftlage.Rueckfall);
+        }
 
         e.Handled = true;
     }
@@ -649,6 +654,7 @@ public partial class WhiteboardView
         PanX += (float)(punkt.X - _panLast.X);
         PanY += (float)(punkt.Y - _panLast.Y);
         _panLast = punkt;
+        SeiteFolgen(Skia.Bounds.Height / 2);
         Neuzeichnen();
     }
 

@@ -96,6 +96,15 @@ public class KlonTests
     }
 
     [Fact]
+    public void Ein_Zettel_behaelt_sein_Muster()
+    {
+        var el = new StickyNoteElement { Background = PageBackground.Dots, Color = "#FF86EFAC" };
+        var klon = (StickyNoteElement)WbKlon.Klonen(el);
+        Assert.Equal(PageBackground.Dots, klon.Background);
+        Assert.Equal("#FF86EFAC", klon.Color);
+    }
+
+    [Fact]
     public void Ein_unbekannter_Elementtyp_faellt_auf()
     {
         Assert.Throws<NotSupportedException>(() => WbKlon.Klonen(new FremdesElement()));

@@ -66,14 +66,62 @@ public partial class WhiteboardView
         canvas.Scale(Zoom);
     }
 
+    /// <summary>Abstand zwischen zwei Seiten in der durchgehenden Ansicht (Flächeneinheiten).</summary>
+    private const float PageGap = 24f;
+
+    /// <summary>
+    /// Die aktuelle Seite und — wie in GoodNotes — darüber das Ende der vorigen, darunter
+    /// der Anfang der folgenden. Die Nachbarn sind nur Anzeige: Eingabe geht an
+    /// <see cref="_page"/>, und <see cref="FollowPage"/> wechselt sie, sobald man
+    /// hinüberscrollt oder auf einen Nachbarn tippt. Gegenstück zu <c>DrawSeiten</c> im
+    /// Linux-Kopf.
+    /// </summary>
+    private void DrawPages(SKCanvas canvas)
+    {
+        if (_page is { IsInfinite: false } current && _vm != null)
+        {
+            var pages = _vm.Doc.Pages;
+            var view = VisibleCanvasRect();
+            // ponytail: die Zeichenroutinen lesen `_page`; für die Nachbarn wird es kurz
+            // umgesetzt statt jede Routine um einen Seitenparameter zu erweitern.
+            try
+            {
+                float y = 0;
+                for (int i = _vm.PageIndex - 1; i >= 0 && y > view.Top; i--)
+                {
+                    y -= pages[i].Height + PageGap;
+                    DrawNeighbour(canvas, pages[i], y);
+                }
+                y = current.Height + PageGap;
+                for (int i = _vm.PageIndex + 1; i < pages.Count && y < view.Bottom; i++)
+                {
+                    DrawNeighbour(canvas, pages[i], y);
+                    y += pages[i].Height + PageGap;
+                }
+            }
+            finally { _page = current; }
+        }
+        DrawPageAndElements(canvas);
+    }
+
+    private void DrawNeighbour(SKCanvas canvas, WbPage page, float y)
+    {
+        _page = page;
+        canvas.Save();
+        canvas.Translate(0, y);
+        DrawPageAndElements(canvas, y);
+        canvas.Restore();
+    }
+
     /// <summary>Seitenhintergrund und alle fertigen Elemente.</summary>
-    private void DrawPageAndElements(SKCanvas canvas)
+    private void DrawPageAndElements(SKCanvas canvas, float offsetY = 0)
     {
         DrawPageBackground(canvas);
 
         // Viewport-Culling: nur sichtbare Elemente zeichnen. Das verhindert, dass
         // bei vielen (hochauflösenden) Bildern jedes Frame alle dekodiert werden.
         var visible = VisibleCanvasRect();
+        visible.Offset(0, -offsetY);
         foreach (var el in _page!.Elements)
         {
             if (el == _editingText) continue;
@@ -117,7 +165,7 @@ public partial class WhiteboardView
             DropContentCache();
             canvas.Save();
             ApplyViewTransform(canvas, pixelScale);
-            DrawPageAndElements(canvas);
+            DrawPages(canvas);
             canvas.Restore();
             return;
         }
@@ -139,7 +187,7 @@ public partial class WhiteboardView
         var c = surface.Canvas;
         c.Clear(CanvasBackColor());
         ApplyViewTransform(c, pixelScale);
-        DrawPageAndElements(c);
+        DrawPages(c);
         return surface.Snapshot();
     }
 

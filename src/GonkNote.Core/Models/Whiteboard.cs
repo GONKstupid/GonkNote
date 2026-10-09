@@ -243,6 +243,8 @@ public class StickyNoteElement : WbElement
     public string Color { get; set; } = "#FFFEF08A";
     /// <summary>Textfarbe.</summary>
     public string TextColor { get; set; } = "#FF1F2937";
+    /// <summary>Muster auf dem Zettel, in der Zettelfarbe abgedunkelt. Blanko = wie bisher.</summary>
+    public PageBackground Background { get; set; } = PageBackground.Blank;
     public float FontSize { get; set; } = 16f;
 
     /// <summary>

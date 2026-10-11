@@ -349,6 +349,7 @@ Wächter sehen konnte: **jede Tabelle stand mit doppelter Kopfzeile da** — beh
 > Warnung: Runtime 26.08), mit `--db` auf einer Kopie gestartet. **10.0.300 trägt.** Pages
 > steht auf „GitHub Actions", Screenshots antworten mit 200. **▶ Als Nächstes beim Nutzer:**
 > Fork von `flathub/flathub`, PR gegen `new-pr` (Anleitung: `packaging/LIESMICH.md`).
+> **Entschieden (2026-10-12):** eingereicht wird mit **`v1.0.4`** und **Runtime 25.08** (§5).
 > **Danach** wäre ein **v1.0.5** mit V2-139/V2-140 das erste Update auf Flathub, und dann
 > Phase 6.
 

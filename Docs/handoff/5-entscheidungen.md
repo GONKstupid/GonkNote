@@ -6,6 +6,7 @@
 
 | Frage | Entscheidung |
 |---|---|
+| **Flathub-Einreichung: welcher Tag, welche Runtime?** | **`v1.0.4` und Runtime 25.08** (Nutzer, 2026-10-12). So steht das Manifest seit V2-141 (§4.108). V2-139/V2-140 kommen mit einem späteren v1.0.5 als gewöhnliches Update; die Linter-Warnung „Runtime 26.08“ bleibt bewusst stehen und wird im Review so beantwortet |
 | **Wann geht das Repo öffentlich — vor oder nach dem iPad-Kopf?** | **Vorher** (Nutzer, 2026-08-18). Die Veröffentlichung ist **vorgezogen**, iPadOS **nachgestellt**: Phase 4.5 → **Phase 5 Aufräumen + öffentlich gehen + Flatpak/AppImage** → **Phase 6 iPadOS**. Der Linux-Port ist das Ziel des Projekts, der iPad-Kopf ein Zusatz — eine fertige Linux-Fassung soll nicht auf einen zweiten Port warten. **iPadOS bleibt Teil desselben Projekts und Repos**, nichts ist gestrichen. **M1/M2 unverändert**, dahinter umnummeriert: **M3 = veröffentlicht, M4 = TestFlight**. Begründung und Folgen im Kasten in §6; **`gonk-note-port-RM.MD` ist nachgezogen** |
 | Ziel-Framework | **`net10.0`** statt `net9.0` — LTS bis Nov 2028 (§4.3) |
 | SkiaSharp | **3.119.4 + Svg.Skia 5.1.1**, vorgezogen vor Phase 1 (§4.4) |

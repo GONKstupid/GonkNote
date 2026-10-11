@@ -202,6 +202,20 @@ For testing, `--db <path>` uses an alternative database — **work on a copy, ne
 your real data.** All details, prerequisites and troubleshooting are in
 [Docs/INSTALL.md](Docs/INSTALL.md).
 
+## Roadmap
+
+- ✔ **Phase 0–4** — move, tests/CI, decoupling, Linux front end, own document engine
+- ✔ **Phase 4.5** — missing tools of the Linux edition: feature parity Linux ↔ Windows
+- ✔ **Phase 5** — align, packages (AppImage, zip), clean up, publish: version 1.0.0
+- ✔ **Phase 5.1** — spell checking on Linux (Hunspell), version 1.0.4
+- ✔ **Phase 5.2** — grammar checking on Linux (fixed rules, optional LanguageTool), version 1.0.4
+- ▶ **Now** — cross-check on a Windows test device: review the Windows edition since 1.0.1
+- **Planned** — Flathub listing (build from source)
+- **Phase 6** — iPadOS edition: Apple Pencil, PDFKit/Vision, TestFlight
+
+Order and reasoning live in
+[Docs/Gonk-Note-Specification.md](Docs/Gonk-Note-Specification.md#roadmap) (German).
+
 ## Architecture
 
 The application consists of **one core and two interfaces**. Data model, persistence,

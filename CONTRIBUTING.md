@@ -46,6 +46,9 @@ wirklich gebraucht wird, ist wenig, aber davon nichts weglassen:
 aussehen und keine sind — sie stehen mit Begründung in `Docs/HANDOFF.md`. Ein Pull Request,
 der eine davon umdreht, kostet uns beide Zeit.
 
+**Was Gonk Note ist, steht in `Docs/Gonk-Note-Specification.md`** — Zuschnitt, Architektur
+und die fixierten Entscheidungen. Ein neues Feature beginnt dort, nicht im Code.
+
 Wenn wir uns einig sind:
 
 ```bash
@@ -114,6 +117,9 @@ actually needed is little, but please leave none of it out:
 **Open an issue first.** This project has decisions that look arbitrary from the outside and
 are not — they are written down with their reasons in `Docs/HANDOFF.md` (German). A pull
 request that reverses one of them costs us both time.
+
+**What Gonk Note is lives in `Docs/Gonk-Note-Specification.md`** (German) — scope,
+architecture and the settled decisions. A new feature starts there, not in the code.
 
 Once we agree:
 

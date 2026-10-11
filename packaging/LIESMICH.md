@@ -27,10 +27,10 @@ gebaut und gestartet**, nicht hergeleitet.
 
 ## Was beide gemeinsam haben
 
-**Gebaut wird mit `dotnet publish --self-contained`**, nicht aus dem Quelltext heraus. Damit
-steckt die .NET-Laufzeit im Paket; das Wirtssystem braucht keine. Für das Flatpak ist es
-zusätzlich der Grund, warum das Manifest nur einpackt: `flatpak-builder` baut ohne Netz, und
-ein NuGet-Wiederherstellen im Sandkasten bräuchte einen mitgelieferten Paketspiegel.
+**Gebaut wird mit `dotnet publish --self-contained`** — die .NET-Laufzeit steckt im Paket,
+das Wirtssystem braucht keine. **Das Flatpak baut dabei seit V2-141 aus dem Quelltext**
+(Tag im Manifest, NuGet aus `nuget-sources.json`, ohne Netz — so verlangt es Flathub);
+das AppImage veröffentlicht weiterhin aus dem Arbeitsbaum.
 
 **Beide werfen `x64/` und `x86/` weg.** Das Tesseract-NuGet legt seine Windows-DLLs als
 Inhaltsdateien ab, nicht unter `runtimes/` — `dotnet publish -r linux-x64` nimmt sie deshalb
@@ -41,12 +41,44 @@ mit. Das sind **12 MB PE32+-Dateien in einem Linux-Paket**.
 ```bash
 # einmalig, ohne sudo
 flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
-flatpak install --user flathub org.freedesktop.Platform//25.08 org.freedesktop.Sdk//25.08
+flatpak install --user flathub org.flatpak.Builder
 
 cd packaging/flatpak
-./bauen.sh                      # baut und installiert ins Nutzer-Flatpak
-flatpak run io.github.gonkstupid.GonkNote -- --db /tmp/gonk-test/gonknote.sqlite
+./bauen.sh        # flathub-build + Lint (Manifest und Repo) + Installation
+mkdir -p /tmp/gonk-test && cp -a ~/.config/GonkNote/gonknote.{sqlite,blobs} /tmp/gonk-test/
+flatpak run --filesystem=/tmp/gonk-test io.github.gonkstupid.GonkNote --db /tmp/gonk-test/gonknote.sqlite
 ```
+
+**⚠ Gebaut wird der Tag aus dem Manifest, nicht der Arbeitsbaum.** Und **`/tmp` der Sandbox
+ist nicht das des Rechners** — ohne `--filesystem=/tmp/gonk-test` legt `--db` still eine
+leere Datenbank in der Sandbox an.
+
+### Auf Flathub einreichen (Nutzer-Konto)
+
+Drei Dateien gehen in den PR, alle aus `packaging/flatpak/`:
+`io.github.gonkstupid.GonkNote.yml`, `nuget-sources.json`, `flathub.json`. Icon, `.desktop`
+und `.metainfo.xml` holt das Manifest selbst aus dem Tag.
+
+1. Auf GitHub `flathub/flathub` forken — **Haken bei „Copy the master branch only"
+   entfernen**, sonst fehlt `new-pr`.
+2. ```bash
+   git clone --branch=new-pr git@github.com:GONKstupid/flathub.git
+   cd flathub
+   git checkout -b add-io.github.gonkstupid.GonkNote new-pr
+   cp ~/Projects/gonk-note-V2/packaging/flatpak/{io.github.gonkstupid.GonkNote.yml,nuget-sources.json,flathub.json} .
+   git add . && git commit -m "Add io.github.gonkstupid.GonkNote"
+   git push -u origin add-io.github.gonkstupid.GonkNote
+   ```
+3. PR öffnen: **Basis `flathub/flathub` : `new-pr`** (nicht `master`), Titel
+   `Add io.github.gonkstupid.GonkNote`, die Checkliste der Vorlage abhaken.
+4. Im PR `bot, build` kommentieren — der Testbau läuft auf Flathubs Rechnern.
+5. Rückfragen beantworten. Die zwei, die zu erwarten sind:
+   - **`--socket=x11` ohne Wayland:** Avalonia 12 hat unter Linux nur einen X11-Rücken;
+     mit `fallback-x11` stirbt die App in einer Wayland-Sitzung („XOpenDisplay failed").
+   - **Runtime 25.08 statt 26.08** (Linter-Warnung): bewusst, die dotnet10-Erweiterung ist
+     auf 25.08 gebaut und gemessen. Ein Wechsel heißt `nuget-sources.json` neu erzeugen.
+6. Nach dem Merge die Einladung in `flathub/io.github.gonkstupid.GonkNote` annehmen
+   (2FA nötig, **binnen einer Woche**). Updates laufen ab dann als PR in jenes Repo.
 
 **Tesseract und Leptonica werden mitgebaut** (Quelltext-Module im Manifest). Keine
 Freedesktop-Plattform bringt sie mit, und `TesseractBindung.Suchpfade` in Core hat `/app/lib`

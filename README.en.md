@@ -209,8 +209,8 @@ your real data.** All details, prerequisites and troubleshooting are in
 - ✔ **Phase 5** — align, packages (AppImage, zip), clean up, publish: version 1.0.0
 - ✔ **Phase 5.1** — spell checking on Linux (Hunspell), version 1.0.4
 - ✔ **Phase 5.2** — grammar checking on Linux (fixed rules, optional LanguageTool), version 1.0.4
-- ▶ **Now** — cross-check on a Windows test device: review the Windows edition since 1.0.1
-- **Planned** — Flathub listing (build from source)
+- ✔ **Windows cross-check** — the Windows edition since 1.0.1 reviewed on a test device
+- ▶ **Now** — Flathub listing: the build from source is ready, submission in progress
 - **Phase 6** — iPadOS edition: Apple Pencil, PDFKit/Vision, TestFlight
 
 Order and reasoning live in

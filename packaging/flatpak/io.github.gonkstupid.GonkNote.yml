@@ -1,38 +1,18 @@
-# Das Flatpak-Manifest des Linux-Kopfs (HANDOFF §6, Phase 5, Schritt ③).
+# Das Flatpak-Manifest des Linux-Kopfs — seit V2-141 (HANDOFF §4.108) ein QUELLBAU für Flathub.
 #
-# ▶ Es baut NICHT aus dem Quelltext. Gebaut wird vorher mit `dotnet publish` (siehe
-#   bauen.sh), und dieses Manifest packt das Ergebnis ein. Der Grund ist der Ordner
-#   ~/.nuget: flatpak-builder baut ohne Netz, und ein NuGet-Wiederherstellen im Sandkasten
-#   verlangt entweder Netzfreigabe oder einen mitgelieferten Paketspiegel. Beides ist mehr
-#   Maschinerie, als eine Erprobung braucht — und beides verdeckt, was hier gemessen werden
-#   soll: läuft der fertige Kopf in der Sandbox.
+# ▶ Gebaut wird aus dem Repo, gepinnt auf einen Tag (Quelle `type: git` unten), mit der
+#   SDK-Erweiterung `org.freedesktop.Sdk.Extension.dotnet10` (branch/25.08, SDK 10.0.300).
+#   Flathub baut OHNE Netz: alle NuGet-Pakete stehen in `nuget-sources.json` und liegen beim
+#   Bau unter ./nuget-sources. Bis V2-140 packte dieses Manifest ein fertiges
+#   `dotnet publish`-Ergebnis ein (`type: dir`) — für die Erprobung richtig, für Flathub
+#   nicht (§4.102).
 #
-#   ⛔ UND GENAU DAS GEHT SO NICHT AUF FLATHUB (HANDOFF §4.102, nachgelesen 2026-09-06):
-#      „All source available submissions must be built entirely from source code" und
-#      „There is no network access during the build process". Ein `type: dir` mit einem
-#      fertigen publish-Ordner wird abgelehnt. Die Begründung oben bleibt richtig — aber
-#      NUR FÜR IHREN ZWECK, die Erprobung. Für eine Einreichung ist dieses Manifest auf
-#      einen Quellbau umzubauen; der Zuschnitt steht in §6, „Vorgemerkt: Flathub".
+# ▶ Selbstenthalten (`--self-contained`): die Laufzeit steckt im Paket, `gonknote.sh` bleibt
+#   ein schlichtes `exec`. ponytail: das Runtime-Pack (10.0.8) steht fest in
+#   nuget-sources.json — hebt Flathub die Erweiterung an, bricht der Bau, bis
+#   `nuget-sources.json` neu erzeugt ist (Befehl in bauen.sh).
 #
-# ▶ Selbstenthalten veröffentlicht (`--self-contained`). Damit steckt die .NET-Laufzeit im
-#   Paket, und die Freedesktop-Plattform muss keine mitbringen.
-#
-#   ⛔ HIER STAND BIS ZUM 2026-09-06: „es gibt keine `org.freedesktop.Sdk.Extension.dotnet`
-#      für net10.0". DAS IST FALSCH. `flathub/org.freedesktop.Sdk.Extension.dotnet10` gibt
-#      es, mit `branch/25.08` — genau der Runtime-Fassung unten — und dem SDK 10.0.300 (GA).
-#      Nachgesehen über die GitHub-API, nicht angenommen: dotnet8/9/10 antworten mit 200,
-#      dotnet11 mit 404. Ob der Satz je stimmte, ist von hier aus nicht zu sagen; er liest
-#      sich in beiden Fällen wie eine gültige Begründung (§4.102, sechstes Mal dieses
-#      Muster). Der Quellbau oben nimmt genau diese Erweiterung.
-#
-# ▶ Weitere Punkte, die Flathub verlangt und die hier bewusst NOCH NICHT geändert sind —
-#   sie gehören in den Umbau und nicht in eine Erprobung, die am Gerät gemessen ist:
-#     * `--talk-name=org.freedesktop.portal.Desktop` streichen (Portale sind ohnehin erlaubt,
-#       flatpak-builder-lint flaggt die Zeile),
-#     * `--socket=wayland` streichen (Avalonia hat keinen Wayland-Rücken, siehe unten),
-#     * `flathub.json` mit `{"only-arches": ["x86_64"]}` danebenlegen.
-#
-# ▶ Tesseract und Leptonica werden hier MITGEBAUT und nicht vorausgesetzt. Sie stehen in
+# ▶ Tesseract und Leptonica werden MITGEBAUT und nicht vorausgesetzt. Sie stehen in
 #   keiner Freedesktop-Plattform, und ohne sie meldet die Texterkennung ehrlich „nicht
 #   verfügbar" (HANDOFF §4.63, §5 Nr. 18). `TesseractBindung.Suchpfade` in Core hat
 #   `/app/lib` seit jeher an erster Stelle — genau für diesen Fall.
@@ -43,6 +23,8 @@ id: io.github.gonkstupid.GonkNote
 runtime: org.freedesktop.Platform
 runtime-version: '25.08'
 sdk: org.freedesktop.Sdk
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.dotnet10
 command: gonknote
 
 finish-args:
@@ -52,24 +34,19 @@ finish-args:
   #    auch in einer Wayland-Sitzung — draußen läuft der Kopf über XWayland. `fallback-x11`
   #    gibt den X11-Socket aber NUR frei, wenn kein Wayland-Socket da ist. In einer
   #    GNOME-Wayland-Sitzung heißt das: kein X11, und der Kopf stirbt beim Start mit
-  #    „XOpenDisplay failed". Genau so ist er beim ersten Lauf gestorben.
+  #    „XOpenDisplay failed". Genau so ist er beim ersten Lauf gestorben (§4.96).
   #
-  #    ▶ `--socket=wayland` bleibt trotzdem stehen: kostet nichts, und sobald Avalonia
-  #      einen Wayland-Rücken mitbringt, ist das hier nicht die Stelle, die es aufhält.
-  - --socket=wayland
+  #    `--socket=wayland` ist seit V2-141 raus: nichts benutzt ihn, und Flathub will das
+  #    Minimum. Bringt Avalonia einen Wayland-Rücken, kommt er hier wieder hinein.
   - --socket=x11
   - --share=ipc
   - --device=dri
-  # Der Stift. `--device=dri` reicht dafür nicht: Avalonia liest unter X11 über XInput2,
-  # unter Wayland über das Tablet-Protokoll des Verbunds — beides läuft über den Socket,
-  # nicht über /dev/input. Steht hier als Erinnerung, dass hier NICHTS zu öffnen ist:
-  # `--device=input` wäre die falsche Antwort und gäbe rohen evdev-Zugriff.
+  # Der Stift läuft unter X11 über XInput2, also über den Socket — `--device=input` wäre
+  # die falsche Antwort und gäbe rohen evdev-Zugriff.
   #
   # ▶ Dateien: bewusst KEIN --filesystem=home. Öffnen, Importieren und Exportieren laufen
-  #   über das Portal (Avalonias StorageProvider), und das Portal gibt genau die eine
-  #   gewählte Datei frei. Ob das im Alltag trägt, ist eine der Fragen von Schritt ③ und
-  #   wird gemessen, nicht angenommen.
-  - --talk-name=org.freedesktop.portal.Desktop
+  #   über das Portal (Avalonias StorageProvider). Portale brauchen keinen `--talk-name`
+  #   (seit V2-141 gestrichen, flatpak-builder-lint flaggt ihn).
 
 modules:
 
@@ -135,33 +112,32 @@ modules:
   # ---------------------------------------------------------------- Gonk Note
   - name: gonknote
     buildsystem: simple
+    build-options:
+      append-path: /usr/lib/sdk/dotnet10/bin
+      append-ld-library-path: /usr/lib/sdk/dotnet10/lib
+      env:
+        DOTNET_CLI_TELEMETRY_OPTOUT: 'true'
+        DOTNET_NOLOGO: 'true'
     build-commands:
       # Das Programm liegt unter /app/gonknote und nicht in /app/bin: es sind 240 Dateien,
-      # und /app/bin ist im PATH.
-      - mkdir -p /app/gonknote
-      - cp -a publish/. /app/gonknote/
+      # und /app/bin ist im PATH. `--source` ersetzt nuget.org — ohne Netz gibt es nur das.
+      - dotnet publish src/GonkNote.Avalonia -c Release -r linux-x64 --self-contained true
+        --source ./nuget-sources -o /app/gonknote
       # ⛔ Die Windows-Bibliotheken der Tesseract-Bindung. `dotnet publish -r linux-x64`
       #    nimmt sie trotzdem mit (das NuGet-Paket legt sie als Inhaltsdateien ab, nicht
       #    unter runtimes/) — 12 MB PE32+-DLLs in einem Linux-Paket. Hier fliegen sie raus.
       - rm -rf /app/gonknote/x64 /app/gonknote/x86
-      - install -Dm755 gonknote.sh /app/bin/gonknote
-      - install -Dm644 io.github.gonkstupid.GonkNote.desktop
+      - install -Dm755 packaging/flatpak/gonknote.sh /app/bin/gonknote
+      - install -Dm644 packaging/flatpak/io.github.gonkstupid.GonkNote.desktop
                        /app/share/applications/io.github.gonkstupid.GonkNote.desktop
-      - install -Dm644 io.github.gonkstupid.GonkNote.metainfo.xml
+      - install -Dm644 packaging/flatpak/io.github.gonkstupid.GonkNote.metainfo.xml
                        /app/share/metainfo/io.github.gonkstupid.GonkNote.metainfo.xml
-      - install -Dm644 gonk-note-Icon.png
+      - install -Dm644 Assets/gonk-note-Icon.png
                        /app/share/icons/hicolor/256x256/apps/io.github.gonkstupid.GonkNote.png
     sources:
-      # Wird von bauen.sh angelegt. Ohne den Lauf gibt es diesen Ordner nicht — und
-      # flatpak-builder sagt das dann auch deutlich.
-      - type: dir
-        path: build/publish
-        dest: publish
-      - type: file
-        path: gonknote.sh
-      - type: file
-        path: io.github.gonkstupid.GonkNote.desktop
-      - type: file
-        path: io.github.gonkstupid.GonkNote.metainfo.xml
-      - type: file
-        path: ../../Assets/gonk-note-Icon.png
+      # Icon, .desktop und .metainfo.xml kommen mit — im Flathub-PR liegt keine Binärdatei.
+      - type: git
+        url: https://github.com/GONKstupid/GonkNote.git
+        tag: v1.0.4
+        commit: 5b7aef9698121552008ad754aaefbdd7cb4934d5
+      - nuget-sources.json

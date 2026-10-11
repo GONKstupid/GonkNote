@@ -737,7 +737,16 @@ Aufräumen zu **ergänzen**, nicht abzuarbeiten wie ein Vertrag.)*
 > strikt in der Reihenfolge Absätze/Zeichenformate → Seitenumbruch → Listen → Tabellen →
 > Felder/TOC → Diagramme bauen, nach **jedem** Schritt Roundtrip-Test.
 
-### Vorgemerkt: Flathub — der Umbau auf einen Quellbau
+### ✅ Erledigt (V2-141, 2026-10-11) — Vorgemerkt: Flathub — der Umbau auf einen Quellbau
+
+> **▶ DIESER PUNKT IST ZU — die Umsetzung steht in §4.108.** Quellbau mit der
+> dotnet10-Erweiterung, `nuget-sources.json`, Git-Quelle auf **`v1.0.4`**, `finish-args`
+> aufgeräumt, `flathub.json` — **hier unter Omarchy gebaut, beide Lints ohne Fehler**,
+> gestartet mit `--db` auf einer Kopie. Die offene Frage unten ist beantwortet: **10.0.300
+> trägt.** Beide Vorbedingungen stehen (Pages auf „GitHub Actions", Screenshots 200; Tag
+> v1.0.4). **Offen ist nur der Teil des Nutzers:** Fork, PR gegen `new-pr`, Review,
+> Einladung — Anleitung in `packaging/LIESMICH.md`. Was darunter folgt, ist der Zuschnitt
+> von 2026-09-06; „Windows-Arbeit" und „der Laptop" darin sind seit V2-128 überholt.
 
 > **▶ Der volle Befund steht in §4.102, hier nur der Zuschnitt.** Er ist nachgelesen und
 > nicht vermutet (docs.flathub.org, 2026-09-06).

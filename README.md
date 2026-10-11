@@ -214,8 +214,8 @@ Voraussetzungen und die Fehlerbehebung stehen in
 - ✔ **Phase 5** — angleichen, Pakete (AppImage, Zip), aufräumen, veröffentlichen: Version 1.0.0
 - ✔ **Phase 5.1** — Rechtschreibprüfung unter Linux (Hunspell), Version 1.0.4
 - ✔ **Phase 5.2** — Grammatikprüfung unter Linux (feste Regeln, optional LanguageTool), Version 1.0.4
-- ▶ **Jetzt** — Gegenprobe auf einem Windows-Testgerät: die Windows-Ausgabe seit 1.0.1 durchsehen
-- **Vorgemerkt** — Flathub-Eintrag (Bau aus dem Quellcode)
+- ✔ **Gegenprobe unter Windows** — die Windows-Ausgabe seit 1.0.1 auf einem Testgerät durchgesehen
+- ▶ **Jetzt** — Flathub-Eintrag: der Bau aus dem Quellcode steht, die Einreichung läuft
 - **Phase 6** — iPadOS-Ausgabe: Apple Pencil, PDFKit/Vision, TestFlight
 
 Reihenfolge und Begründungen stehen in

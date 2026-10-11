@@ -1,44 +1,40 @@
 #!/usr/bin/env bash
-# Baut das Flatpak des Linux-Kopfs. HANDOFF §6, Phase 5, Schritt ③.
+# Baut das Flatpak des Linux-Kopfs genau so, wie Flathub es baut (HANDOFF §4.108):
+# aus dem Tag im Manifest, ohne Netz, und lintet zweimal (Manifest und Repo).
 #
-# Zwei Schritte, und die Reihenfolge ist zwingend:
-#   1. `dotnet publish` legt den fertigen Kopf nach build/publish
-#   2. `flatpak-builder` packt genau diesen Ordner ein (das Manifest baut NICHT selbst —
-#      die Begründung steht oben im Manifest)
+# ⚠ Gebaut wird der TAG aus dem Manifest, nicht der Arbeitsbaum.
 #
 # Voraussetzungen (einmalig, ohne sudo):
 #   flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
-#   flatpak install --user flathub org.freedesktop.Platform//25.08 org.freedesktop.Sdk//25.08
+#   flatpak install --user flathub org.flatpak.Builder
+#
+# nuget-sources.json neu erzeugen (nach jeder Paketänderung und wenn Flathub die
+# dotnet10-Erweiterung anhebt). Generator: flatpak/flatpak-builder-tools, dotnet/.
+# ⚠ TMPDIR setzen — das /tmp der Sandbox ist zu klein, NuGet meldet dann „No space left":
+#   flatpak run --env=TMPDIR=$HOME/.cache/nuget-tmp --command=sh --runtime=org.freedesktop.Sdk//25.08 \
+#     --share=network --filesystem=host org.freedesktop.Sdk.Extension.dotnet10//25.08 -c \
+#     'mkdir -p $TMPDIR; PATH=$PATH:/usr/lib/sdk/dotnet10/bin exec dotnet restore "$@"' -- \
+#     --packages ~/.cache/nuget-pk src/GonkNote.Avalonia -r linux-x64 -p:SelfContained=true --disable-build-servers
+#   danach aus ~/.cache/nuget-pk die JSON-Liste bauen wie flatpak-dotnet-generator.py.
 #
 # Aufruf:
-#   ./bauen.sh              baut und installiert ins Nutzer-Flatpak
-#   ./bauen.sh --nur-bauen  baut, ohne zu installieren
+#   ./bauen.sh              baut, lintet und installiert ins Nutzer-Flatpak
 set -euo pipefail
 
 HIER="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-WURZEL="$(cd "$HIER/../.." && pwd)"
 ID=io.github.gonkstupid.GonkNote
-
 cd "$HIER"
 
-echo "▶ 1/2  dotnet publish (selbstenthalten, linux-x64)"
-rm -rf build/publish
-dotnet publish "$WURZEL/src/GonkNote.Avalonia" \
-    -c Release -r linux-x64 --self-contained true \
-    -o build/publish
+echo "▶ 1/3  flathub-build"
+flatpak run --command=flathub-build org.flatpak.Builder --install "$ID.yml"
 
-echo "▶ 2/2  flatpak-builder"
-# --force-clean: ein stehengebliebener build/ aus einem abgebrochenen Lauf ist die
-# häufigste Ursache für „es baut, aber die Änderung ist nicht drin".
-ARGS=(--force-clean --user --repo=build/repo)
-if [[ "${1:-}" != "--nur-bauen" ]]; then
-    ARGS+=(--install)
-fi
-flatpak-builder "${ARGS[@]}" build/flatpak "$ID.yml"
+echo "▶ 2/3  Lint: Manifest"
+flatpak run --command=flatpak-builder-lint org.flatpak.Builder manifest "$ID.yml"
+
+echo "▶ 3/3  Lint: Repo"
+flatpak run --command=flatpak-builder-lint org.flatpak.Builder repo repo
 
 echo
-echo "✅ Fertig. Starten mit:"
-echo "   flatpak run $ID -- --db /tmp/gonk-test/gonknote.sqlite"
-echo
-echo "⚠ Ohne --db greift der Lauf auf den echten Bestand zu (HANDOFF Dauerregel 4)."
-echo "   In der Sandbox ist das ~/.var/app/$ID/config/GonkNote und nicht ~/.config/GonkNote."
+echo "✅ Fertig. Starten — NUR mit einer Kopie (HANDOFF Dauerregel 4):"
+echo "   flatpak run $ID --db /tmp/gonk-test/gonknote.sqlite"
+echo "   In der Sandbox liegt der Bestand unter ~/.var/app/$ID/config/GonkNote."
